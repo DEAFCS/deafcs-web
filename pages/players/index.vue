@@ -1022,6 +1022,11 @@ export default {
             only_played_matches: this.onlyPlayedMatches,
             elo_track: "season",
             sort_by: this.getSortBy(),
+            // Only show players who've actually signed in on the site — not
+            // Steam accounts the panel merely knows about (e.g. looked up
+            // via other players' friend lists), which have no
+            // last_sign_in_at and would otherwise clutter name search.
+            registeredOnly: true,
           },
         });
 

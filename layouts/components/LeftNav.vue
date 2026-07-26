@@ -51,7 +51,13 @@ const {
 const hasLeagueSeason = computed(() => !!currentLeagueSeason.value);
 const { pendingImports: pendingMatchImports } = usePendingImports();
 const matchContext = useMatchContext();
-const logoPath = computed(() => (authStore.me ? "/me" : "/watch"));
+const logoPath = computed(() => {
+  const override = useApplicationSettingsStore().topBarLogoLink;
+  if (override) {
+    return override;
+  }
+  return authStore.me ? "/me" : "/play";
+});
 const isLogoRouteActive = computed(() => {
   if (logoPath.value === "/me") {
     return (

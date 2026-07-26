@@ -132,6 +132,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
         labelKey: "pages.settings.application.plugins.title",
         order: 3,
       },
+      {
+        path: "/settings/application/top-bar",
+        labelKey: "pages.settings.application.top_bar.title",
+        order: 4,
+      },
     ],
   },
   {

@@ -422,6 +422,39 @@ export const useApplicationSettingsStore = defineStore(
       );
     });
 
+    // Explicit sort order for every top-bar tab (the fixed "watch"/"play"/
+    // "community" slots plus one "plugin:<slug>" entry per registered
+    // plugin), keyed by the same strings the settings page displays as
+    // number inputs. Absent = no override; the nav picks its own default.
+    const topBarOrder = computed<Record<string, number>>(() => {
+      const raw = settings.value?.find(
+        (setting) => setting.name === "public.top_bar_order",
+      )?.value;
+
+      if (!raw) {
+        return {};
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch {}
+
+      return {};
+    });
+
+    // Overrides where the brand logo/name in the top bar links to. Empty
+    // means "no override" — the nav falls back to its default (/me when
+    // signed in, otherwise /play).
+    const topBarLogoLink = computed<string | null>(() => {
+      const value = settings.value?.find(
+        (setting) => setting.name === "public.top_bar_logo_link",
+      )?.value;
+      return value?.trim() || null;
+    });
+
     // HUD layout the game-streamer pod boots (and the demo player should show
     // as active). Legacy "default" folds into "horizontal"; anything but
     // "vertical" is horizontal. Mirrors the api's resolveHudMode default.
@@ -587,6 +620,8 @@ export const useApplicationSettingsStore = defineStore(
       faceitEnabled,
       scrimFinderEnabled,
       pluginsEnabled,
+      topBarOrder,
+      topBarLogoLink,
       defaultHudMode,
       canCreateMatch,
       currentPluginVersion,

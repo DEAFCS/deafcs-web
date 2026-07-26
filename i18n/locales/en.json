@@ -2070,6 +2070,18 @@
             "custom_hint": "Or paste an image URL or inline SVG (e.g. from a plugin).",
             "custom_placeholder": "https://… , <svg…>, or an icon name"
           }
+        },
+        "top_bar": {
+          "title": "Change Top Bar",
+          "section": "Top Bar Order",
+          "description": "Set a number for each tab to control the order it appears in the top navigation bar. Lower numbers come first.",
+          "hint": "This only affects the order of tabs in the top bar. It has no effect on the Apps section of the sidebar.",
+          "logo_link": {
+            "title": "Logo Link",
+            "description": "Where clicking the brand logo/name in the top bar takes visitors. Leave blank to use the default (My Stats when signed in, otherwise Play).",
+            "placeholder": "/play or https://example.com",
+            "hint": "Accepts an in-app path (e.g. /watch) or a full external URL."
+          }
         }
       },
       "language": {
