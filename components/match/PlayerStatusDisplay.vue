@@ -26,6 +26,7 @@ const { isMobile } = useSidebar();
     :compact="isMobile"
     :match-type="match?.options?.type"
     :external="isExternalMatch"
+    :historical-elo="historicalElo"
   >
     <template v-slot:avatar-corner v-if="member.captain">
       <span
@@ -148,6 +149,10 @@ export default {
     match: {
       type: Object,
       required: false,
+    },
+    historicalElo: {
+      type: Number,
+      default: null,
     },
     showDetails: {
       default: true,

@@ -112,7 +112,11 @@ const DASH = "—";
         </DropdownMenu>
         <div class="min-w-0 flex-1">
           <div class="hidden md:block">
-            <LineupMember :match="match" :member="member">
+            <LineupMember
+              :match="match"
+              :member="member"
+              :historical-elo="memberEloChange?.updated_elo"
+            >
               <template v-if="member.player?.steam_id" #avatar-badge>
                 <PlayerMatchClipsButton :steam-id="member.player.steam_id" />
               </template>
@@ -171,7 +175,7 @@ const DASH = "—";
                     />
                     <PlayerElo
                       v-if="!isExternalMatch"
-                      :elo="member.player.elo"
+                      :elo="mobileEloForDisplay"
                       :type="match?.options?.type"
                     />
                     <PlayerFaceitRank
@@ -839,6 +843,18 @@ export default {
           (ec: any) => String(ec.player_steam_id) === String(steamId),
         ) ?? null
       );
+    },
+    // Mobile row shows ELO without going through PlayerDisplay, so it needs
+    // its own override: the rating this player had right after THIS match,
+    // not their live current rating (which drifts once they play more games).
+    mobileEloForDisplay() {
+      if (!this.memberEloChange?.updated_elo) {
+        return this.member?.player?.elo;
+      }
+      const type = (this.match?.options?.type ?? "").toLowerCase();
+      const modeKey =
+        type === "wingman" || type === "duel" ? type : "competitive";
+      return { [modeKey]: this.memberEloChange.updated_elo };
     },
   },
 };

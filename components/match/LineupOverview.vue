@@ -4,6 +4,7 @@ import SortableTableHead from "~/components/common/SortableTableHead.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import { useTableSort } from "~/composables/useTableSort";
 import { useMatchSide } from "~/composables/useMatchSide";
+import { teamAvgElo } from "~/utilities/teamElo";
 
 const matchSide = useMatchSide();
 import {
@@ -176,6 +177,19 @@ import {
                 ></span>
               </div>
               <span class="truncate">{{ lp.name }}</span>
+              <span
+                v-if="teamAvgRank(lp) !== null"
+                class="hidden shrink-0 items-baseline gap-1 whitespace-nowrap font-mono md:inline-flex"
+              >
+                <span
+                  class="text-[0.6rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+                >
+                  {{ $t("match.overview.team_avg") }}
+                </span>
+                <span class="text-xs font-bold text-foreground">
+                  {{ teamAvgRank(lp)?.toLocaleString() }}
+                </span>
+              </span>
               <div v-if="canEditTeamName(lp)" class="w-6 h-6 flex-shrink-0">
                 <Dialog
                   :open="editingLineupId === lp.id"
@@ -639,6 +653,15 @@ export default {
     },
     canAddToLineupFor(lp: any): boolean {
       return lp.can_update_lineup && lp.lineup_players.length < this.maxPlayers;
+    },
+    // Average ELO (for this match's ladder — competitive/wingman/duel) across
+    // a lineup's roster, shown next to the team name in the header.
+    teamAvgRank(lp: any): number | null {
+      const eloKey = this.match?.options?.type?.toLowerCase();
+      if (!eloKey) {
+        return null;
+      }
+      return teamAvgElo(lp?.lineup_players ?? [], eloKey);
     },
     canEditTeamName(lp: any): boolean {
       if (!lp?.can_update_lineup) return false;

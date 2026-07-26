@@ -220,7 +220,7 @@ import FiveStackToolTip from "./FiveStackToolTip.vue";
               />
               <PlayerElo
                 v-else-if="!external"
-                :elo="player.elo"
+                :elo="eloForDisplay"
                 :type="matchType"
               />
             </template>
@@ -244,7 +244,7 @@ import FiveStackToolTip from "./FiveStackToolTip.vue";
             />
             <PlayerElo
               v-else-if="showElo && !external"
-              :elo="player.elo"
+              :elo="eloForDisplay"
               :type="matchType"
             />
             <slot name="elo-postfix"></slot>
@@ -351,6 +351,15 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Overrides the ELO shown for `matchType`'s ladder with the rating the
+    // player actually had for a specific past match (its player_elo row's
+    // `updated_elo`), instead of `player.elo` — which is always today's
+    // live rating and would otherwise misrepresent an old match once the
+    // player has since played more games.
+    historicalElo: {
+      type: Number,
+      default: null,
+    },
   },
   inject: {
     matchRanks: { from: "matchRanks", default: null },
@@ -374,6 +383,21 @@ export default {
     },
   },
   computed: {
+    // Same mode normalization PlayerElo.vue applies internally: Premier/
+    // Faceit/unknown types rank on the competitive ladder.
+    eloModeKey(): "competitive" | "wingman" | "duel" {
+      const normalized = (this.matchType ?? "").toLowerCase();
+      if (normalized === "wingman" || normalized === "duel") {
+        return normalized;
+      }
+      return "competitive";
+    },
+    eloForDisplay(): { competitive?: number; wingman?: number; duel?: number } {
+      if (this.historicalElo === null || this.historicalElo === undefined) {
+        return this.player?.elo;
+      }
+      return { [this.eloModeKey]: this.historicalElo };
+    },
     faceitSkillLevel(): number | null {
       return (
         (this.player as any)?.faceit_rank_history?.[0]?.skill_level ??

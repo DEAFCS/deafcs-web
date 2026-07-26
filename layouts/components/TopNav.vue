@@ -216,11 +216,11 @@ const loginArrowClasses =
               >
                 <NavigationMenuLink as-child>
                   <NuxtLink
-                    :to="`/apps/${item.plugin.slug}`"
+                    :to="`/apps/${item.plugin?.slug}`"
                     :class="navLinkClasses"
                   >
                     <span :class="navTickClasses"></span>
-                    {{ item.plugin.title }}
+                    {{ item.plugin?.title }}
                   </NuxtLink>
                 </NavigationMenuLink>
               </NavigationMenuItem>
