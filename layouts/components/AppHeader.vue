@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { SidebarTrigger } from "~/components/ui/sidebar";
 import { Separator } from "~/components/ui/separator";
-import SystemUpdate from "./SystemUpdate.vue";
 import BreadCrumbs from "~/components/BreadCrumbs.vue";
 import SystemStatus from "./SystemStatus.vue";
 import MatchLobbies from "./MatchLobbies.vue";
@@ -33,8 +32,6 @@ const { openLastOrDefaultHub } = useHubState();
 
         <MatchLobbies v-if="!isMobile"></MatchLobbies>
 
-        <SystemUpdate v-if="isAdmin"></SystemUpdate>
-
         <SystemStatus></SystemStatus>
 
         <Button
@@ -58,9 +55,6 @@ export default {
   computed: {
     me() {
       return useAuthStore().me;
-    },
-    isAdmin() {
-      return useAuthStore().isAdmin;
     },
   },
 };
