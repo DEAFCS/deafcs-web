@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { marked } from "marked";
-import DOMPurify from "dompurify";
+import { renderNewsMarkdown } from "~/utilities/newsMarkdown";
 
 /**
  * Presentational view of a full news article — date, title, teaser, cover, and
@@ -33,8 +32,8 @@ const renderedContent = computed(() => {
   if (!import.meta.client || !props.contentMarkdown) {
     return "";
   }
-  const html = marked.parse(props.contentMarkdown, { breaks: true }) as string;
-  return DOMPurify.sanitize(html);
+  const videoOrigin = `https://${useRuntimeConfig().public.apiDomain}`;
+  return renderNewsMarkdown(props.contentMarkdown, videoOrigin);
 });
 </script>
 
@@ -61,18 +60,6 @@ const renderedContent = computed(() => {
         {{ teaser }}
       </p>
     </header>
-
-    <div
-      v-if="coverImageUrl"
-      class="aspect-video w-full overflow-hidden rounded-lg border border-border/50 bg-background/60"
-    >
-      <img
-        :src="coverImageUrl"
-        :alt="title"
-        referrerpolicy="no-referrer"
-        class="h-full w-full object-cover"
-      />
-    </div>
 
     <ClientOnly>
       <div

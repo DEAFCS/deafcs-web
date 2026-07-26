@@ -2300,7 +2300,10 @@
         "back_to_edit": "Back to Editor",
         "upload_image": "Upload image",
         "uploading": "Uploading…",
-        "uploading_image": "Uploading image…"
+        "uploading_image": "Uploading image…",
+        "upload_video": "Upload video",
+        "uploading_video": "Uploading video…",
+        "embed_video_link": "Embed YouTube/Vimeo link"
       }
     },
     "seasons": {
@@ -4967,6 +4970,7 @@
       "leave_lineup": "Leave Lineup",
       "render_highlight": "Render highlight…",
       "update_team_name": "Update Team Name",
+      "team_avg": "Team Avg",
       "kd": "K/D",
       "hltv": "HLTV",
       "hs": "HS%",

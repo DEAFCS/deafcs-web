@@ -491,6 +491,28 @@ mark {
   border-radius: 0.5rem;
   margin: 1rem 0;
 }
+.news-content video {
+  max-width: 100%;
+  border-radius: 0.5rem;
+  margin: 1rem 0;
+  background: hsl(var(--muted));
+}
+.news-video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 1rem 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  background: hsl(var(--muted));
+}
+.news-video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
 .news-content pre {
   background: hsl(var(--muted));
   padding: 1rem;
