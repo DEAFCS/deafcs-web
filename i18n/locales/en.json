@@ -1607,6 +1607,8 @@
         "auto_cancel_duration_description": "Cancels a match that hasn't gone live (still in picking / veto / waiting) after this many minutes.",
         "live_match_timeout": "Live Match Timeout",
         "live_match_timeout_description": "Safety timeout — a live match is auto-cancelled after this many minutes if it never finishes.",
+        "map_veto_pick_seconds": "Map Veto Pick Time",
+        "map_veto_pick_seconds_description": "How many seconds a team has to make each map veto pick.",
         "matchmaking_type_description": "Toggle matchmaking for each type that will allow players to join matchmaking for this type of match.",
         "players": {
           "permissions_section": "Role Permissions",
@@ -4749,7 +4751,8 @@
       "is_picking": "is Picking a",
       "organizer_override": "Match Organizer Override",
       "pick": "Pick",
-      "confirm": "Confirm {type}"
+      "confirm": "Confirm {type}",
+      "time_left": "Time Left"
     },
     "map_lineup": {
       "picked": "Picked"

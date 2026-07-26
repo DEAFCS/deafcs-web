@@ -675,6 +675,7 @@ export default {
               tv_connection_string: true,
               is_match_server_available: true,
               cancels_at: true,
+              map_veto_pick_expires_at: true,
               scheduled_at: true,
               ended_at: true,
               server_error: true,

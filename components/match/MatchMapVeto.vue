@@ -52,6 +52,23 @@ import MatchPicksDisplay from "~/components/match/MatchPicksDisplay.vue";
       </div>
 
       <div
+        v-if="showCountdown"
+        class="flex flex-col items-center gap-0.5"
+        :title="$t('match.map_veto.time_left')"
+      >
+        <div
+          class="flex h-11 w-11 items-center justify-center rounded-md border font-mono text-xl font-bold leading-none tabular-nums transition-colors duration-300"
+          :class="
+            isCountdownCritical
+              ? 'border-destructive/60 bg-destructive/10 text-destructive [text-shadow:0_0_16px_hsl(var(--destructive)/0.6)]'
+              : 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.1)] text-[hsl(var(--tac-amber))] [text-shadow:0_0_16px_hsl(var(--tac-amber)/0.4)]'
+          "
+        >
+          {{ remainingSeconds }}
+        </div>
+      </div>
+
+      <div
         class="flex items-center gap-2 cursor-pointer text-xs text-muted-foreground"
         @click="override = !override"
         v-if="canOverride"
@@ -282,6 +299,9 @@ export default {
       }),
       playTickSound: useSound().playTickSound,
       playMatchFoundSound: useSound().playMatchFoundSound,
+      playCountdownSound: useSound().playCountdownSound,
+      remainingSeconds: 0,
+      countdownInterval: undefined as ReturnType<typeof setInterval> | undefined,
     };
   },
   watch: {
@@ -307,13 +327,43 @@ export default {
         }
       },
     },
+    "match.map_veto_pick_expires_at": {
+      immediate: true,
+      handler() {
+        this.updateCountdown();
+      },
+    },
+  },
+  mounted() {
+    this.countdownInterval = setInterval(this.updateCountdown, 1000);
   },
   beforeUnmount() {
     if (this.submitTimeout) {
       clearTimeout(this.submitTimeout);
     }
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+    }
   },
   methods: {
+    updateCountdown() {
+      const expiresAt = this.match?.map_veto_pick_expires_at;
+      if (!expiresAt) {
+        this.remainingSeconds = 0;
+        return;
+      }
+
+      const difference = Math.max(
+        0,
+        Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 1000),
+      );
+
+      if (difference > 0 && difference <= 5 && difference !== this.remainingSeconds) {
+        this.playCountdownSound();
+      }
+
+      this.remainingSeconds = difference;
+    },
     finishSubmitting() {
       if (this.submitTimeout) {
         clearTimeout(this.submitTimeout);
@@ -441,6 +491,12 @@ export default {
     },
     mapPool() {
       return this.match.options?.map_pool?.maps;
+    },
+    showCountdown() {
+      return !!this.match?.map_veto_pick_expires_at && this.remainingSeconds > 0;
+    },
+    isCountdownCritical() {
+      return this.remainingSeconds > 0 && this.remainingSeconds <= 5;
     },
   },
 };

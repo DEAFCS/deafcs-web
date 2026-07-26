@@ -89,7 +89,7 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
               </FormItem>
             </FormField>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               <FormField
                 v-slot="{ componentField }"
                 name="public.max_acceptable_latency"
@@ -147,6 +147,29 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
                   }}</FormDescription>
                   <FormControl>
                     <Input v-bind="componentField" type="number" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+
+              <FormField
+                v-slot="{ componentField }"
+                name="public.map_veto_pick_seconds"
+              >
+                <FormItem>
+                  <FormLabel>
+                    {{
+                      $t("pages.settings.application.map_veto_pick_seconds")
+                    }}
+                    <span class="text-muted-foreground font-normal">(sek)</span>
+                  </FormLabel>
+                  <FormDescription>{{
+                    $t(
+                      "pages.settings.application.map_veto_pick_seconds_description",
+                    )
+                  }}</FormDescription>
+                  <FormControl>
+                    <Input v-bind="componentField" type="number" min="5" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -320,6 +343,7 @@ export default {
                 .string()
                 .default(e_player_roles_enum.user),
               max_acceptable_latency: z.number().default(100),
+              map_veto_pick_seconds: z.number().default(20),
             }),
           }),
         ),
@@ -331,7 +355,12 @@ export default {
       immediate: true,
       handler(newVal: Array<{ name: string; value: string | null }>) {
         for (const setting of newVal) {
-          if (
+          if (setting.name === "public.map_veto_pick_seconds") {
+            (this.form.setFieldValue as any)(
+              setting.name,
+              Number(setting.value) || 20,
+            );
+          } else if (
             setting.name === "public.max_acceptable_latency" ||
             setting.name === "auto_cancel_duration" ||
             setting.name === "live_match_timeout"
@@ -491,6 +520,12 @@ export default {
                     name: "public.max_acceptable_latency",
                     value: String(
                       (this.form.values as any).public.max_acceptable_latency,
+                    ),
+                  },
+                  {
+                    name: "public.map_veto_pick_seconds",
+                    value: String(
+                      (this.form.values as any).public.map_veto_pick_seconds,
                     ),
                   },
                   {
