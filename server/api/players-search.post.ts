@@ -85,7 +85,7 @@ export default defineEventHandler(async (event) => {
   }
 
   if (body.registeredOnly || sortBy.includes("last_sign_in_at")) {
-    filterBy.push(`last_sign_in_at:!~~`);
+    filterBy.push(`last_sign_in_at:!=~~`);
   }
 
   // Filter by team
