@@ -7,8 +7,18 @@ import TimeAgo from "../TimeAgo.vue";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
 
+const matchTypeColors: Record<string, string> = {
+  Competitive: "249 158 47",
+  Wingman: "217 70 239",
+  Duel: "34 211 238",
+};
+
+const matchTypeColorStyle = (type: string): Record<string, string> => ({
+  "--mode-rgb": matchTypeColors[type] ?? matchTypeColors.Competitive,
+});
+
 const mmCardBase =
-  "group/mmc relative flex flex-col flex-1 min-h-[120px] px-[1.1rem] pt-4 pb-5 text-left cursor-pointer overflow-hidden isolate border border-border text-foreground [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_60%,hsl(var(--tac-amber)/0.05)_100%)] [transition:border-color_180ms_ease,background_220ms_ease,box-shadow_220ms_ease] hover:border-[hsl(var(--tac-amber)/0.55)] hover:[background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,hsl(var(--tac-amber)/0.12)_100%)] hover:shadow-[0_0_24px_hsl(var(--tac-amber)/0.12)] focus-visible:outline-none focus-visible:border-[hsl(var(--tac-amber))] focus-visible:shadow-[0_0_0_2px_hsl(var(--tac-amber)/0.35)]";
+  "group/mmc relative flex flex-col flex-1 min-h-[120px] px-[1.1rem] pt-4 pb-5 text-left cursor-pointer overflow-hidden isolate border border-border text-foreground [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_60%,rgb(var(--mode-rgb)/0.05)_100%)] [transition:border-color_180ms_ease,background_220ms_ease,box-shadow_220ms_ease] hover:border-[rgb(var(--mode-rgb)/0.55)] hover:[background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,rgb(var(--mode-rgb)/0.10)_100%)] hover:shadow-[0_0_24px_rgb(var(--mode-rgb)/0.12)] focus-visible:outline-none focus-visible:border-[rgb(var(--mode-rgb))] focus-visible:shadow-[0_0_0_2px_rgb(var(--mode-rgb)/0.35)]";
 
 </script>
 
@@ -37,25 +47,26 @@ const mmCardBase =
     <template v-else-if="!confirmationDetails">
       <div
         v-if="isInQueue && matchMakingQueueDetails"
-        class="relative mb-4 overflow-hidden rounded-lg border border-border px-6 py-10 sm:px-10 sm:py-12 [backdrop-filter:blur(6px)] [background:linear-gradient(180deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.3)_100%)] animate-fade-in"
+        class="relative mb-4 overflow-hidden rounded-lg border border-[rgb(var(--mode-rgb)/0.28)] px-6 py-10 sm:px-10 sm:py-12 [backdrop-filter:blur(6px)] [background:linear-gradient(180deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.3)_100%)] animate-fade-in"
+        :style="matchTypeColorStyle(matchMakingQueueDetails.type)"
       >
         <span
           aria-hidden="true"
-          class="pointer-events-none absolute left-2 top-2 h-[14px] w-[14px] border-l-2 border-t-2 border-[hsl(var(--tac-amber))]"
+          class="pointer-events-none absolute left-2 top-2 h-[14px] w-[14px] border-l-2 border-t-2 border-[rgb(var(--mode-rgb))]"
         ></span>
         <span
           aria-hidden="true"
-          class="pointer-events-none absolute bottom-2 right-2 h-[14px] w-[14px] border-b-2 border-r-2 border-[hsl(var(--tac-amber))]"
-        ></span>
-
-        <span
-          aria-hidden="true"
-          class="pointer-events-none absolute inset-0 opacity-40 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,hsl(var(--tac-amber)/0.04)_3px,hsl(var(--tac-amber)/0.04)_4px)]"
+          class="pointer-events-none absolute bottom-2 right-2 h-[14px] w-[14px] border-b-2 border-r-2 border-[rgb(var(--mode-rgb))]"
         ></span>
 
         <span
           aria-hidden="true"
-          class="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_55%,hsl(var(--tac-amber)/0.12),transparent_65%)] animate-soft-pulse"
+          class="pointer-events-none absolute inset-0 opacity-40 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,rgb(var(--mode-rgb)/0.04)_3px,rgb(var(--mode-rgb)/0.04)_4px)]"
+        ></span>
+
+        <span
+          aria-hidden="true"
+          class="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_55%,rgb(var(--mode-rgb)/0.12),transparent_65%)] animate-soft-pulse"
         ></span>
 
         <span
@@ -63,20 +74,20 @@ const mmCardBase =
           class="pointer-events-none absolute left-0 right-0 top-0 h-[2px] overflow-hidden"
         >
           <span
-            class="block h-full w-1/2 bg-gradient-to-r from-transparent via-[hsl(var(--tac-amber))] to-transparent animate-loading-bar"
+            class="block h-full w-1/2 bg-gradient-to-r from-transparent via-[rgb(var(--mode-rgb))] to-transparent animate-loading-bar"
           ></span>
         </span>
 
         <div class="relative z-10 flex flex-col items-center gap-6 text-center">
           <div
-            class="inline-flex items-center gap-2 font-mono text-[0.72rem] font-bold uppercase tracking-[0.28em] text-[hsl(var(--tac-amber))]"
+            class="inline-flex items-center gap-2 font-mono text-[0.72rem] font-bold uppercase tracking-[0.28em] text-[rgb(var(--mode-rgb))]"
           >
             <span
-              class="inline-block h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]"
+              class="inline-block h-[2px] w-[10px] bg-[rgb(var(--mode-rgb))]"
             ></span>
             {{ $t("matchmaking.in_queue_label") }}
             <span
-              class="h-1 w-1 rounded-full bg-[hsl(var(--tac-amber))] animate-soft-pulse"
+              class="h-1 w-1 rounded-full bg-[rgb(var(--mode-rgb))] animate-soft-pulse"
             ></span>
           </div>
 
@@ -95,7 +106,7 @@ const mmCardBase =
 
           <div class="flex flex-col items-center gap-1">
             <div
-              class="font-mono font-bold leading-none tracking-[0.06em] text-foreground text-[clamp(2.75rem,7vw,4rem)] tabular-nums [text-shadow:0_0_24px_hsl(var(--tac-amber)/0.3)]"
+              class="font-mono font-bold leading-none tracking-[0.06em] text-foreground text-[clamp(2.75rem,7vw,4rem)] tabular-nums [text-shadow:0_0_24px_rgb(var(--mode-rgb)/0.3)]"
             >
               <TimeAgo
                 v-if="matchMakingQueueDetails.joinedAt"
@@ -119,10 +130,10 @@ const mmCardBase =
             <span
               v-for="region in matchMakingQueueDetails.regions"
               :key="region"
-              class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.08)] px-2.5 py-0.5 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[hsl(var(--tac-amber))]"
+              class="inline-flex items-center gap-1.5 rounded-full border border-[rgb(var(--mode-rgb)/0.35)] bg-[rgb(var(--mode-rgb)/0.08)] px-2.5 py-0.5 font-mono text-[0.65rem] uppercase tracking-[0.18em] text-[rgb(var(--mode-rgb))]"
             >
               <span
-                class="h-1 w-1 rounded-full bg-[hsl(var(--tac-amber))]"
+                class="h-1 w-1 rounded-full bg-[rgb(var(--mode-rgb))]"
               ></span>
               {{ region }}
             </span>
@@ -184,6 +195,7 @@ const mmCardBase =
             :key="type.value"
             type="button"
             :disabled="!canQueueType(type.value)"
+            :style="matchTypeColorStyle(type.value)"
             :class="[
               mmCardBase,
               'transition-all duration-300 ease-out',
@@ -194,7 +206,7 @@ const mmCardBase =
             @click="handleMatchTypeClick(type.value)"
           >
             <span
-              class="absolute inset-0 z-0 pointer-events-none opacity-0 transition-opacity [transition-duration:220ms] [transition-timing-function:ease] [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,hsl(var(--tac-amber)/0.03)_3px,hsl(var(--tac-amber)/0.03)_4px)] group-hover/mmc:opacity-100"
+              class="absolute inset-0 z-0 pointer-events-none opacity-0 transition-opacity [transition-duration:220ms] [transition-timing-function:ease] [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,rgb(var(--mode-rgb)/0.03)_3px,rgb(var(--mode-rgb)/0.03)_4px)] group-hover/mmc:opacity-100"
               aria-hidden="true"
             ></span>
 
@@ -221,10 +233,10 @@ const mmCardBase =
               class="relative z-[1] flex-1 min-w-0 flex flex-col gap-[0.4rem]"
             >
               <div
-                class="inline-flex items-center gap-[0.55rem] font-mono text-[0.72rem] font-bold tracking-[0.24em] uppercase text-muted-foreground transition-colors [transition-duration:180ms] group-hover/mmc:text-[hsl(var(--tac-amber))]"
+                class="inline-flex items-center gap-[0.55rem] font-mono text-[0.72rem] font-bold tracking-[0.24em] uppercase text-muted-foreground transition-colors [transition-duration:180ms] group-hover/mmc:text-[rgb(var(--mode-rgb))]"
               >
                 <span
-                  class="inline-block w-[10px] h-[2px] bg-[hsl(var(--tac-amber))]"
+                  class="inline-block w-[10px] h-[2px] bg-[rgb(var(--mode-rgb))]"
                   aria-hidden="true"
                 ></span>
                 {{ type.value.toUpperCase() }}
@@ -316,6 +328,22 @@ interface ConfirmationDetails {
   type: e_match_types_enum;
   region: string;
 }
+
+// Development-only presentation fixture for /play?previewQueue=1.
+// It stays local to this component and never touches auth, matchmaking, or
+// socket state.
+const DEV_QUEUE_PREVIEW_USER = {
+  steam_id: "dev-queue-preview",
+  is_banned: false,
+  matchmaking_cooldown: null,
+};
+
+const DEV_QUEUE_PREVIEW_DETAILS: QueueDetails = {
+  totalInQueue: 3,
+  type: e_match_types_enum.Competitive,
+  regions: ["DEAFCS Preview"],
+  joinedAt: new Date(Date.now() - 45_000).toISOString(),
+};
 
 interface Match {
   id: string;
@@ -454,6 +482,9 @@ export default {
       this.joinMatchmaking(matchType);
     },
     joinMatchmaking(matchType: e_match_types_enum): void {
+      if (this.isQueuePreview) {
+        return;
+      }
       socket.event("matchmaking:join-queue", {
         type: matchType,
         regions: this.preferredRegions.map((region: Region) => {
@@ -462,10 +493,29 @@ export default {
       });
     },
     leaveMatchmaking(): void {
+      if (this.isQueuePreview) {
+        return;
+      }
       socket.event("matchmaking:leave");
     },
   },
   computed: {
+    isQueuePreview(): boolean {
+      return import.meta.dev && this.$route.query.previewQueue === "1";
+    },
+    previewQueueMode(): e_match_types_enum {
+      if (this.isQueuePreview) {
+        const mode = this.$route.query.mode;
+        if (
+          mode === e_match_types_enum.Competitive ||
+          mode === e_match_types_enum.Wingman ||
+          mode === e_match_types_enum.Duel
+        ) {
+          return mode;
+        }
+      }
+      return e_match_types_enum.Competitive;
+    },
     showSeparators() {
       return useApplicationSettingsStore().showSeparators;
     },
@@ -504,21 +554,39 @@ export default {
       return useMatchmakingStore().regionStats;
     },
     matchMakingQueueDetails(): QueueDetails | undefined {
+      if (this.isQueuePreview) {
+        return {
+          ...DEV_QUEUE_PREVIEW_DETAILS,
+          type: this.previewQueueMode,
+        };
+      }
       return useMatchmakingStore().joinedMatchmakingQueues.details;
     },
     confirmationDetails(): ConfirmationDetails | undefined {
+      if (this.isQueuePreview) {
+        return undefined;
+      }
       return useMatchmakingStore().joinedMatchmakingQueues.confirmation;
     },
     matchmakingAllowed(): boolean {
+      if (this.isQueuePreview) {
+        return true;
+      }
       return useApplicationSettingsStore().matchmakingAllowed;
     },
     matchmakingEnabled(): boolean {
       return useApplicationSettingsStore().matchmakingEnabled;
     },
     me() {
+      if (this.isQueuePreview) {
+        return DEV_QUEUE_PREVIEW_USER;
+      }
       return useAuthStore().me;
     },
     isGuest(): boolean {
+      if (this.isQueuePreview) {
+        return false;
+      }
       return !useAuthStore().me?.steam_id;
     },
     queueWaitTime(): string {
