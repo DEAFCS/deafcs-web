@@ -17,6 +17,7 @@ import LoadingScreen from "~/components/LoadingScreen.vue";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
+import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { loginLinks } from "~/utilities/loginLinks";
@@ -309,5 +310,7 @@ const whyDeafcsFeatures = [
         <HomeTopPlayersPreview />
       </div>
     </section>
+
+    <HomeLatestHighlights />
   </main>
 </template>
