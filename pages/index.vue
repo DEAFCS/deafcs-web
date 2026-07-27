@@ -21,6 +21,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 import LoadingScreen from "~/components/LoadingScreen.vue";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
+import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { loginLinks } from "~/utilities/loginLinks";
@@ -287,6 +288,7 @@ const whyDeafcsFeatures = [
           <HomeLatestResultsPreview
             v-else-if="preview.title === 'Latest Results'"
           />
+          <HomeTopPlayersPreview v-else-if="preview.title === 'Top Players'" />
           <Card
             v-else
             class="min-w-0 overflow-hidden border-border/70 bg-card/40 p-5 shadow-none"
