@@ -19,6 +19,7 @@ import {
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
 import LoadingScreen from "~/components/LoadingScreen.vue";
+import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { loginLinks } from "~/utilities/loginLinks";
@@ -280,36 +281,38 @@ const whyDeafcsFeatures = [
         Live community data will be connected in the next homepage tasks.
       </p>
       <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card
-          v-for="preview in communityPreviews"
-          :key="preview.title"
-          class="min-w-0 overflow-hidden border-border/70 bg-card/40 p-5 shadow-none"
-        >
-          <div class="flex items-center gap-3">
-            <component
-              :is="preview.icon"
-              class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
-              aria-hidden="true"
-            />
-            <h3
-              class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
-            >
-              {{ preview.title }}
-            </h3>
-          </div>
-          <div
-            class="mt-5 space-y-3"
-            role="status"
-            :aria-label="`${preview.title} data will be added in a later task`"
+        <template v-for="preview in communityPreviews" :key="preview.title">
+          <HomeLatestNewsPreview v-if="preview.title === 'Latest News'" />
+          <Card
+            v-else
+            class="min-w-0 overflow-hidden border-border/70 bg-card/40 p-5 shadow-none"
           >
-            <div class="h-3 w-3/4 animate-pulse rounded bg-muted/70"></div>
-            <div class="h-3 w-full animate-pulse rounded bg-muted/50"></div>
-            <div class="h-3 w-2/3 animate-pulse rounded bg-muted/40"></div>
-            <p class="pt-2 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-muted-foreground/70">
-              Data preview coming next
-            </p>
-          </div>
-        </Card>
+            <div class="flex items-center gap-3">
+              <component
+                :is="preview.icon"
+                class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
+                aria-hidden="true"
+              />
+              <h3
+                class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
+              >
+                {{ preview.title }}
+              </h3>
+            </div>
+            <div
+              class="mt-5 space-y-3"
+              role="status"
+              :aria-label="`${preview.title} data will be added in a later task`"
+            >
+              <div class="h-3 w-3/4 animate-pulse rounded bg-muted/70"></div>
+              <div class="h-3 w-full animate-pulse rounded bg-muted/50"></div>
+              <div class="h-3 w-2/3 animate-pulse rounded bg-muted/40"></div>
+              <p class="pt-2 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-muted-foreground/70">
+                Data preview coming next
+              </p>
+            </div>
+          </Card>
+        </template>
       </div>
     </section>
 
