@@ -218,20 +218,48 @@ ChartJS.register({
 
 <template>
   <div
-    class="h-full w-full origin-center transition-transform duration-200 ease-in-out"
+    class="flex h-full w-full origin-center flex-col transition-transform duration-200 ease-in-out"
     :class="collapsed ? 'scale-y-0' : 'scale-y-100'"
   >
-    <Line
-      :key="chartKey"
-      :data="chartData"
-      :options="chartOptions"
-      v-if="chartData"
-      @chart:render="onChartRender"
-    />
+    <div
+      class="flex shrink-0 flex-wrap items-center justify-end gap-x-4 gap-y-1 px-3 pb-1.5 pt-2"
+      aria-label="ELO history legend"
+    >
+      <span
+        v-for="item in modeLegendItems"
+        :key="item.key"
+        class="inline-flex items-center gap-1.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+      >
+        <span
+          class="h-2 w-2 rounded-full shadow-[0_0_8px_currentColor]"
+          :style="{ color: item.color, backgroundColor: item.color }"
+          aria-hidden="true"
+        ></span>
+        {{ item.label }}
+      </span>
+    </div>
+    <div class="min-h-0 flex-1">
+      <Line
+        :key="chartKey"
+        :data="chartData"
+        :options="chartOptions"
+        v-if="chartData"
+        @chart:render="onChartRender"
+      />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
+const MODE_STYLES: Record<
+  string,
+  { color: string; borderDash: number[] }
+> = {
+  competitive: { color: "#F99E2F", borderDash: [] },
+  wingman: { color: "#D946EF", borderDash: [4, 4] },
+  duel: { color: "#22D3EE", borderDash: [10, 4, 2, 4] },
+};
+
 interface EloHistoryEntry {
   current_elo?: number | null;
   elo_change?: number | null;
@@ -321,6 +349,25 @@ export default {
     },
   },
   computed: {
+    modeLegendItems() {
+      return [
+        {
+          key: "competitive",
+          label: "Competitive",
+          color: MODE_STYLES.competitive.color,
+        },
+        {
+          key: "wingman",
+          label: "Wingman",
+          color: MODE_STYLES.wingman.color,
+        },
+        {
+          key: "duel",
+          label: "Duel",
+          color: MODE_STYLES.duel.color,
+        },
+      ];
+    },
     skillGroupKind(): "wingman" | "competitive" | null {
       const rt = Number(this.rankType);
       if (rt === 6) return "wingman";
@@ -569,6 +616,8 @@ export default {
 
       const datasets = this.normalizedSeries.map((series) => {
         const focus = !!series.focus;
+        const modeKey = String(series.key || series.label).toLowerCase();
+        const modeStyle = MODE_STYLES[modeKey];
 
         // Index lookup: timestamp → entry for this series.
         const byTs = new Map<string, EloHistoryEntry>();
@@ -576,18 +625,17 @@ export default {
           if (entry.match_created_at) byTs.set(entry.match_created_at, entry);
         }
 
-        // Single-series chart: focus line is white; a pinned comparison series
-        // keeps its explicit (sky-blue) color; extra non-focus series dim out.
-        const lineColor = series.color
-          ? series.color
-          : focus
-            ? "#fff"
-            : "rgba(255,255,255,0.3)";
-        const pointColor = series.color
-          ? series.color
-          : focus
-            ? "#fff"
-            : "rgba(255,255,255,0.4)";
+        // Named match modes keep a permanent color. Nonstandard comparison
+        // series can still provide an explicit color; other series fall back
+        // to the existing focus/dim treatment.
+        const lineColor = modeStyle
+          ? modeStyle.color
+          : series.color
+            ? series.color
+            : focus
+              ? "#fff"
+              : "rgba(255,255,255,0.3)";
+        const pointColor = lineColor;
 
         const data = labels.map((ts) => {
           const entry = byTs.get(ts);
@@ -608,11 +656,13 @@ export default {
           fill: false,
           borderColor: lineColor,
           borderWidth: focus ? 2.5 : 1.5,
-          borderDash: focus ? [] : [4, 4],
+          borderDash: modeStyle?.borderDash ?? (focus ? [] : [4, 4]),
           pointBackgroundColor: pointColor,
-          pointBorderColor: focus ? "#fff" : "rgba(255,255,255,0.4)",
+          pointBorderColor: pointColor,
           pointBorderWidth: Math.max(1, radius * 0.5),
           pointRadius: radius,
+          pointHoverBackgroundColor: pointColor,
+          pointHoverBorderColor: pointColor,
           pointHoverRadius: Math.max(focus ? 6 : 5, radius + 2),
           pointHoverBorderWidth: focus ? 3 : 1.5,
           tension: this.skillGroupKind ? 0 : tension,
