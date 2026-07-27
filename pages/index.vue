@@ -20,6 +20,7 @@ import {
 import { useAuthStore } from "~/stores/AuthStore";
 import LoadingScreen from "~/components/LoadingScreen.vue";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
+import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { loginLinks } from "~/utilities/loginLinks";
@@ -283,6 +284,9 @@ const whyDeafcsFeatures = [
       <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
         <template v-for="preview in communityPreviews" :key="preview.title">
           <HomeLatestNewsPreview v-if="preview.title === 'Latest News'" />
+          <HomeLatestResultsPreview
+            v-else-if="preview.title === 'Latest Results'"
+          />
           <Card
             v-else
             class="min-w-0 overflow-hidden border-border/70 bg-card/40 p-5 shadow-none"
