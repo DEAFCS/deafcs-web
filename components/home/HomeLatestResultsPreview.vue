@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import {
   ArrowRight,
   CalendarDays,
-  ChevronLeft,
-  ChevronRight,
   Film,
   ListChecks,
 } from "lucide-vue-next";
@@ -50,17 +48,9 @@ interface MatchResult {
 }
 
 const matches = ref<MatchResult[]>([]);
-const currentIndex = ref(0);
 const loading = ref(true);
 const requestError = ref(false);
 let fetchGeneration = 0;
-
-const currentMatch = computed(() => matches.value[currentIndex.value] ?? null);
-const hasMultipleResults = computed(() => matches.value.length > 1);
-const canGoPrevious = computed(() => currentIndex.value > 0);
-const canGoNext = computed(
-  () => currentIndex.value < matches.value.length - 1,
-);
 
 function scoreFor(match: MatchResult): { lineup1: number; lineup2: number } | null {
   if (match.match_maps.length === 0) return null;
@@ -116,14 +106,6 @@ function scoreColorFor(
   return won ? "text-green-500" : "text-red-500";
 }
 
-function goPrevious() {
-  if (canGoPrevious.value) currentIndex.value--;
-}
-
-function goNext() {
-  if (canGoNext.value) currentIndex.value++;
-}
-
 async function fetchLatestResults() {
   const generation = ++fetchGeneration;
   loading.value = true;
@@ -142,7 +124,7 @@ async function fetchLatestResults() {
               { effective_at: order_by.desc_nulls_last },
               { created_at: order_by.desc },
             ],
-            limit: 3,
+            limit: 2,
           },
           {
             id: true,
@@ -185,14 +167,12 @@ async function fetchLatestResults() {
     if (generation !== fetchGeneration) return;
     matches.value = ((data as { matches: MatchResult[] }).matches ?? []).slice(
       0,
-      3,
+      2,
     );
-    currentIndex.value = 0;
   } catch (error) {
     if (generation !== fetchGeneration) return;
     console.error("[home-latest-results] failed to load results", error);
     matches.value = [];
-    currentIndex.value = 0;
     requestError.value = true;
   } finally {
     if (generation === fetchGeneration) {
@@ -254,7 +234,7 @@ void fetchLatestResults();
       </div>
 
       <div
-        v-else-if="!currentMatch"
+        v-else-if="matches.length === 0"
         class="flex min-h-32 flex-1 items-center justify-center rounded-md border border-dashed border-border/60 bg-muted/10 px-4 py-5 text-center"
       >
         <p class="font-mono text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground">
@@ -262,110 +242,83 @@ void fetchLatestResults();
         </p>
       </div>
 
-      <template v-else>
+      <div v-else class="space-y-3">
         <NuxtLink
-          :to="{ name: 'matches-id', params: { id: currentMatch.id } }"
-          class="group/result min-w-0 rounded-md border border-border/60 bg-background/25 p-3 outline-none transition-colors hover:border-[hsl(var(--tac-amber)/0.4)] hover:bg-background/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
-          :aria-label="`View ${currentMatch.lineup_1.name} versus ${currentMatch.lineup_2.name}`"
+          v-for="match in matches"
+          :key="match.id"
+          :to="{ name: 'matches-id', params: { id: match.id } }"
+          class="group/result block min-w-0 rounded-md border border-border/60 bg-background/25 p-3 outline-none transition-colors hover:border-[hsl(var(--tac-amber)/0.4)] hover:bg-background/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+          :aria-label="`View ${match.lineup_1.name} versus ${match.lineup_2.name}`"
         >
           <div class="flex min-w-0 items-center justify-between gap-3">
             <div class="flex min-w-0 items-center gap-2">
               <span
                 class="inline-flex min-w-0 items-center rounded-md border border-border/70 bg-muted/35 px-2.5 py-1 font-mono text-[0.62rem] font-bold uppercase leading-none tracking-[0.14em] text-foreground"
               >
-                BO{{ currentMatch.options?.best_of ?? 1 }}
+                BO{{ match.options?.best_of ?? 1 }}
               </span>
               <span
-                v-if="clipCountFor(currentMatch) > 0"
+                v-if="clipCountFor(match) > 0"
                 class="inline-flex min-w-0 items-center gap-1.5 rounded-md border border-border/70 bg-muted/35 px-2 py-1 font-mono text-[0.6rem] font-bold uppercase leading-none tracking-[0.14em] text-foreground/80"
-                :aria-label="`${clipCountFor(currentMatch)} public highlights`"
+                :aria-label="`${clipCountFor(match)} public highlights`"
               >
                 <Film class="h-3 w-3 shrink-0" aria-hidden="true" />
                 <span class="tabular-nums">
-                  {{ clipCountFor(currentMatch) }}
+                  {{ clipCountFor(match) }}
                 </span>
               </span>
             </div>
             <TimeAgo
               :date="
-                currentMatch.effective_at ||
-                currentMatch.ended_at ||
-                currentMatch.created_at
+                match.effective_at ||
+                match.ended_at ||
+                match.created_at
               "
               class="shrink-0 text-xs text-muted-foreground"
             />
           </div>
 
           <div
-            v-if="matchContextFor(currentMatch)"
+            v-if="matchContextFor(match)"
             class="mt-3 flex min-w-0 items-center gap-1.5 font-mono text-[0.6rem] uppercase leading-none tracking-[0.14em] text-muted-foreground"
-            :title="matchContextFor(currentMatch)"
+            :title="matchContextFor(match)"
           >
             <ListChecks class="h-3 w-3 shrink-0 opacity-50" aria-hidden="true" />
-            <span class="truncate">{{ matchContextFor(currentMatch) }}</span>
+            <span class="truncate">{{ matchContextFor(match) }}</span>
           </div>
 
           <div class="mt-3 space-y-2">
             <div class="flex min-w-0 items-center justify-between gap-3">
               <span class="truncate text-sm font-semibold text-foreground">
-                {{ currentMatch.lineup_1.name }}
+                {{ match.lineup_1.name }}
               </span>
               <span
                 class="shrink-0 text-xl font-bold tabular-nums"
-                :class="scoreColorFor(currentMatch, 'lineup1')"
+                :class="scoreColorFor(match, 'lineup1')"
               >
-                {{ scoreFor(currentMatch)?.lineup1 ?? "—" }}
+                {{ scoreFor(match)?.lineup1 ?? "—" }}
               </span>
             </div>
             <div class="flex min-w-0 items-center justify-between gap-3">
               <span class="truncate text-sm font-semibold text-foreground">
-                {{ currentMatch.lineup_2.name }}
+                {{ match.lineup_2.name }}
               </span>
               <span
                 class="shrink-0 text-xl font-bold tabular-nums"
-                :class="scoreColorFor(currentMatch, 'lineup2')"
+                :class="scoreColorFor(match, 'lineup2')"
               >
-                {{ scoreFor(currentMatch)?.lineup2 ?? "—" }}
+                {{ scoreFor(match)?.lineup2 ?? "—" }}
               </span>
             </div>
           </div>
         </NuxtLink>
 
-        <div
-          v-if="hasMultipleResults"
-          class="mt-3 flex items-center justify-center gap-3"
-          aria-label="Result navigation"
-        >
-          <button
-            type="button"
-            class="inline-flex size-10 items-center justify-center rounded-md border border-border bg-background/30 text-muted-foreground outline-none transition-colors hover:border-[hsl(var(--tac-amber)/0.45)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-border disabled:hover:text-muted-foreground"
-            :disabled="!canGoPrevious"
-            aria-label="Show previous result"
-            @click="goPrevious"
-          >
-            <ChevronLeft class="h-4 w-4" aria-hidden="true" />
-          </button>
-          <span
-            class="min-w-12 text-center font-mono text-[0.65rem] font-semibold tabular-nums tracking-[0.12em] text-muted-foreground"
-          >
-            {{ currentIndex + 1 }} / {{ matches.length }}
-          </span>
-          <button
-            type="button"
-            class="inline-flex size-10 items-center justify-center rounded-md border border-border bg-background/30 text-muted-foreground outline-none transition-colors hover:border-[hsl(var(--tac-amber)/0.45)] hover:text-foreground focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)] disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:border-border disabled:hover:text-muted-foreground"
-            :disabled="!canGoNext"
-            aria-label="Show next result"
-            @click="goNext"
-          >
-            <ChevronRight class="h-4 w-4" aria-hidden="true" />
-          </button>
-        </div>
-      </template>
+      </div>
 
       <NuxtLink
         v-if="!loading"
         to="/matches"
-        class="mt-auto inline-flex min-h-10 items-center gap-1 self-start rounded-md pt-3 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+        class="mt-3 inline-flex min-h-10 items-center gap-1 self-start rounded-md font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
       >
         View all results
         <ArrowRight class="h-3 w-3" aria-hidden="true" />

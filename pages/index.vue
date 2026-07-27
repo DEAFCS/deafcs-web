@@ -3,13 +3,8 @@ import { computed } from "vue";
 import {
   ArrowRight,
   BadgeCheck,
-  CalendarDays,
   Gamepad2,
-  Medal,
   MessageSquareText,
-  Newspaper,
-  Play,
-  Radio,
   ShieldCheck,
   Sparkles,
   Trophy,
@@ -71,14 +66,6 @@ const howItWorksSteps = [
     description: "Play matches and climb the DEAFCS leaderboard.",
     icon: Trophy,
   },
-];
-
-const communityPreviews = [
-  { title: "Live Match", icon: Radio },
-  { title: "Latest Results", icon: CalendarDays },
-  { title: "Top Players", icon: Medal },
-  { title: "Latest News", icon: Newspaper },
-  { title: "Latest Highlights", icon: Play },
 ];
 
 const whyDeafcsFeatures = [
@@ -228,6 +215,40 @@ const whyDeafcsFeatures = [
       </div>
     </section>
 
+    <section aria-labelledby="why-deafcs-title">
+      <div :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
+        Built with purpose
+      </div>
+      <h2
+        id="why-deafcs-title"
+        class="text-2xl font-bold tracking-tight sm:text-3xl"
+      >
+        Why DEAFCS
+      </h2>
+      <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
+        <Card
+          v-for="(feature, index) in whyDeafcsFeatures"
+          :key="feature.title"
+          class="min-w-0 border-border/60 bg-card/35 p-5 shadow-none lg:col-span-2"
+          :class="{
+            'lg:col-start-2': index === 3,
+            'lg:col-start-4': index === 4,
+          }"
+        >
+          <component
+            :is="feature.icon"
+            class="h-5 w-5 text-[hsl(var(--tac-amber))]"
+            aria-hidden="true"
+          />
+          <h3 class="mt-4 font-semibold text-foreground">{{ feature.title }}</h3>
+          <p class="mt-2 text-sm leading-6 text-muted-foreground">
+            {{ feature.description }}
+          </p>
+        </Card>
+      </div>
+    </section>
+
     <section aria-labelledby="how-it-works-title">
       <div :class="tacticalSectionLabelClasses">
         <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
@@ -283,76 +304,9 @@ const whyDeafcsFeatures = [
         Live community data will be connected in the next homepage tasks.
       </p>
       <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <template v-for="preview in communityPreviews" :key="preview.title">
-          <HomeLatestNewsPreview v-if="preview.title === 'Latest News'" />
-          <HomeLatestResultsPreview
-            v-else-if="preview.title === 'Latest Results'"
-          />
-          <HomeTopPlayersPreview v-else-if="preview.title === 'Top Players'" />
-          <Card
-            v-else
-            class="min-w-0 overflow-hidden border-border/70 bg-card/40 p-5 shadow-none"
-          >
-            <div class="flex items-center gap-3">
-              <component
-                :is="preview.icon"
-                class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
-                aria-hidden="true"
-              />
-              <h3
-                class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
-              >
-                {{ preview.title }}
-              </h3>
-            </div>
-            <div
-              class="mt-5 space-y-3"
-              role="status"
-              :aria-label="`${preview.title} data will be added in a later task`"
-            >
-              <div class="h-3 w-3/4 animate-pulse rounded bg-muted/70"></div>
-              <div class="h-3 w-full animate-pulse rounded bg-muted/50"></div>
-              <div class="h-3 w-2/3 animate-pulse rounded bg-muted/40"></div>
-              <p class="pt-2 font-mono text-[0.6rem] uppercase tracking-[0.16em] text-muted-foreground/70">
-                Data preview coming next
-              </p>
-            </div>
-          </Card>
-        </template>
-      </div>
-    </section>
-
-    <section aria-labelledby="why-deafcs-title">
-      <div :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
-        Built with purpose
-      </div>
-      <h2
-        id="why-deafcs-title"
-        class="text-2xl font-bold tracking-tight sm:text-3xl"
-      >
-        Why DEAFCS
-      </h2>
-      <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card
-          v-for="(feature, index) in whyDeafcsFeatures"
-          :key="feature.title"
-          class="min-w-0 border-border/60 bg-card/35 p-5 shadow-none lg:col-span-2"
-          :class="{
-            'lg:col-start-2': index === 3,
-            'lg:col-start-4': index === 4,
-          }"
-        >
-          <component
-            :is="feature.icon"
-            class="h-5 w-5 text-[hsl(var(--tac-amber))]"
-            aria-hidden="true"
-          />
-          <h3 class="mt-4 font-semibold text-foreground">{{ feature.title }}</h3>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            {{ feature.description }}
-          </p>
-        </Card>
+        <HomeLatestNewsPreview />
+        <HomeLatestResultsPreview />
+        <HomeTopPlayersPreview />
       </div>
     </section>
   </main>
