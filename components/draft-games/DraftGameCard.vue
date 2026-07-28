@@ -34,6 +34,17 @@ const props = defineProps<{
   draftGame: any;
 }>();
 
+const matchTypeColors: Record<string, string> = {
+  Competitive: "249 158 47",
+  Wingman: "217 70 239",
+  Duel: "34 211 238",
+};
+
+const modeColorStyle = computed<Record<string, string>>(() => ({
+  "--mode-rgb":
+    matchTypeColors[props.draftGame.type] ?? matchTypeColors.Competitive,
+}));
+
 const MODE_META: Record<
   string,
   { icon: any; label: string; short: string }
@@ -232,7 +243,8 @@ const openRoom = () => {
 
 <template>
   <div
-    class="draft-row group relative flex cursor-pointer items-stretch overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-[hsl(var(--tac-amber)/0.5)]"
+    class="draft-row group relative flex cursor-pointer items-stretch overflow-hidden rounded-lg border border-border bg-card transition-all hover:border-[rgb(var(--mode-rgb)/0.5)]"
+    :style="modeColorStyle"
     role="button"
     tabindex="0"
     @click="openRoom"
@@ -247,7 +259,7 @@ const openRoom = () => {
         {{ draftGame.type }}
       </span>
       <span
-        class="mt-0.5 inline-flex max-w-full items-center gap-1 rounded border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.1)] px-1.5 py-0.5 font-mono text-[0.5rem] font-semibold uppercase leading-tight tracking-[0.1em] text-[hsl(var(--tac-amber))]"
+        class="mt-0.5 inline-flex max-w-full items-center gap-1 rounded border border-[rgb(var(--mode-rgb)/0.35)] bg-[rgb(var(--mode-rgb)/0.1)] px-1.5 py-0.5 font-mono text-[0.5rem] font-semibold uppercase leading-tight tracking-[0.1em] text-[rgb(var(--mode-rgb))]"
       >
         <component :is="modeMeta.icon" class="h-2.5 w-2.5 shrink-0" />
         {{ $t(modeMeta.short) }}
@@ -472,7 +484,7 @@ const openRoom = () => {
   opacity: 0;
   background: radial-gradient(
     120% 100% at 0% 50%,
-    hsl(var(--tac-amber) / 0.06),
+    rgb(var(--mode-rgb) / 0.06),
     transparent 55%
   );
   transition: opacity 0.25s ease;
@@ -483,8 +495,8 @@ const openRoom = () => {
 .type-rail {
   background: linear-gradient(
     180deg,
-    hsl(var(--tac-amber) / 0.08),
-    hsl(var(--tac-amber) / 0.02)
+    rgb(var(--mode-rgb) / 0.08),
+    rgb(var(--mode-rgb) / 0.02)
   );
   border-right: 1px solid hsl(var(--border));
 }
@@ -495,7 +507,7 @@ const openRoom = () => {
   bottom: 12px;
   width: 3px;
   border-radius: 0 2px 2px 0;
-  background: hsl(var(--tac-amber));
-  box-shadow: 0 0 10px hsl(var(--tac-amber) / 0.6);
+  background: rgb(var(--mode-rgb));
+  box-shadow: 0 0 10px rgb(var(--mode-rgb) / 0.6);
 }
 </style>
