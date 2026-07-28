@@ -84,9 +84,10 @@ import {
   tacticalTabsListClasses,
   tacticalTabsTriggerClasses,
 } from "~/utilities/tacticalClasses";
+import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 
 const tournamentHeroClasses =
-  "relative isolate overflow-hidden rounded-lg border border-border px-7 py-6 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
+  "relative isolate overflow-hidden rounded-lg border border-border px-7 py-6 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[rgb(var(--mode-rgb))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[rgb(var(--mode-rgb))] after:content-[''] max-md:px-4 max-md:py-5";
 const tournamentHeroToplineClasses =
   "order-2 flex shrink-0 flex-wrap items-start gap-2 max-sm:w-full";
 const tournamentHeroBodyClasses =
@@ -100,10 +101,12 @@ const tournamentHeroNameClasses =
   "relative m-0 min-w-0 font-sans text-[clamp(1.75rem,4vw,3rem)] font-bold uppercase leading-[0.95] tracking-[0.02em] [font-stretch:80%]";
 const tournamentHeroNameMainClasses = "relative text-foreground";
 const tournamentHeroNameGhostClasses =
-  "pointer-events-none absolute left-[5px] top-[5px] right-[-5px] overflow-hidden whitespace-nowrap text-transparent select-none [-webkit-text-stroke:1px_hsl(var(--tac-amber)_/_0.35)]";
+  "pointer-events-none absolute left-[5px] top-[5px] right-[-5px] overflow-hidden whitespace-nowrap text-transparent select-none [-webkit-text-stroke:1px_rgb(var(--mode-rgb)_/_0.35)]";
 const tournamentHeroBadgesClasses = "flex flex-wrap gap-1.5";
 const tournamentHeroTagClasses =
   "inline-flex items-center rounded border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] px-[0.55rem] py-[0.2rem] font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-[hsl(var(--tac-amber))]";
+const tournamentHeroModeTagClasses =
+  "inline-flex items-center rounded border border-[rgb(var(--mode-rgb)_/_0.4)] bg-[rgb(var(--mode-rgb)_/_0.12)] px-[0.55rem] py-[0.2rem] font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-[rgb(var(--mode-rgb))]";
 const tournamentHeroMutedTagClasses =
   "border-border bg-muted/30 text-muted-foreground";
 const tournamentHeroMetaClasses =
@@ -179,7 +182,10 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
     </NuxtLink>
     <Tabs v-model="activeTab" default-value="overview">
       <PageTransition>
-        <header :class="tournamentHeroClasses">
+        <header
+          :class="tournamentHeroClasses"
+          :style="matchTypeColorStyle(tournament.options?.type)"
+        >
           <div
             v-if="tournamentBannerSrc"
             aria-hidden="true"
@@ -190,7 +196,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               class="h-full w-full object-cover opacity-[0.38]"
             />
             <div
-              class="absolute inset-0 [background:radial-gradient(600px_300px_at_88%_12%,hsl(var(--tac-amber)/0.1),transparent_62%)]"
+              class="absolute inset-0 [background:radial-gradient(600px_300px_at_88%_12%,rgb(var(--mode-rgb)/0.1),transparent_62%)]"
             ></div>
             <!-- Top fade keeps the status/settings row legible over busy artwork. -->
             <div
@@ -357,7 +363,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 </div>
 
                 <div :class="tournamentHeroBadgesClasses">
-                  <span :class="tournamentHeroTagClasses">
+                  <span :class="tournamentHeroModeTagClasses">
                     {{ tournament.options.type }}
                   </span>
                   <span

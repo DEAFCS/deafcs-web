@@ -38,6 +38,7 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
             <SettingHeader>{{ $t("match.options.type.label") }}</SettingHeader>
             <AnimatedFilters
               :model-value="componentField.modelValue"
+              :accent-rgb="selectedTypeAccentRgb"
               :options="
                 selectableMatchTypes.map((type) => ({
                   key: type.value,
@@ -1175,6 +1176,7 @@ import {
 import { mapFields } from "~/graphql/mapGraphql";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useAuthStore } from "~/stores/AuthStore";
+import { matchTypeRgb } from "~/utilities/matchTypeColors";
 
 interface Map {
   id: string;
@@ -1439,6 +1441,9 @@ export default {
     },
   },
   computed: {
+    selectedTypeAccentRgb(): string {
+      return matchTypeRgb(this.form?.values?.type);
+    },
     selectableMatchTypes(): { value: string; description: string }[] {
       return (this.e_match_types || []).filter(
         (type: { value: string }) =>

@@ -25,6 +25,7 @@ const props = defineProps<{
   size?: "lg";
   block?: boolean;
   fill?: boolean;
+  accentRgb?: string;
 }>();
 
 const model = defineModel<string>();
@@ -121,17 +122,21 @@ watch(
     ]"
   >
     <span
-      class="pointer-events-none absolute bg-[hsl(var(--tac-amber))] shadow-[0_0_12px_-2px_hsl(var(--tac-amber)/0.6)]"
+      class="pointer-events-none absolute"
       :class="[
         indicatorShape,
         indicator.ready ? 'opacity-100' : 'opacity-0',
         animate ? 'transition-all duration-300 ease-out' : '',
+        accentRgb
+          ? 'border border-[rgb(var(--filter-accent-rgb)/0.8)] bg-[rgb(var(--filter-accent-rgb))] shadow-[0_0_12px_-2px_rgb(var(--filter-accent-rgb)/0.6)]'
+          : 'bg-[hsl(var(--tac-amber))] shadow-[0_0_12px_-2px_hsl(var(--tac-amber)/0.6)]',
       ]"
       :style="{
         left: `${indicator.left}px`,
         top: `${indicator.top}px`,
         width: `${indicator.width}px`,
         height: `${indicator.height}px`,
+        ...(accentRgb ? { '--filter-accent-rgb': accentRgb } : {}),
       }"
     />
     <template v-for="opt in options" :key="opt.key">
