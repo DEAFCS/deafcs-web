@@ -13,6 +13,7 @@ import { useI18n } from "vue-i18n";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
+import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Slider } from "~/components/ui/slider";
@@ -207,6 +208,10 @@ const isPartyLeader = computed(() => {
 const inLobbyNotLeader = computed(
   () => !!useMatchmakingStore().currentLobby && !isPartyLeader.value,
 );
+const canHostDraftRoom = computed(() => {
+  const settings = useApplicationSettingsStore();
+  return settings.canCreateMatch && settings.canCreateCustomMatch;
+});
 
 const draftActionButtonHeightClasses = "h-9 max-sm:flex-1";
 
@@ -332,6 +337,7 @@ const rehost = async () => {
             {{ $t("draft_games.rehost") }}
           </Button>
           <Button
+            v-if="canHostDraftRoom"
             type="button"
             :class="[
               tacticalCtaButtonClasses,
