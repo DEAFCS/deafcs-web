@@ -44,6 +44,7 @@ import DraftSettingsSheet from "~/components/draft-games/DraftSettingsSheet.vue"
 import DraftCoinFlip from "~/components/draft-games/DraftCoinFlip.vue";
 import MatchAdminBottomBar from "~/components/match/MatchAdminBottomBar.vue";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
+import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 
 const props = defineProps<{
   room: any;
@@ -671,7 +672,10 @@ const start = () => {
 </script>
 
 <template>
-  <div class="draft-room space-y-4">
+  <div
+    class="draft-room space-y-4"
+    :style="matchTypeColorStyle(room.type)"
+  >
     <DraftCoinFlip
       v-if="showCoinFlip"
       :room="room"
@@ -1728,13 +1732,13 @@ const start = () => {
   border-radius: 0.75rem;
   background: radial-gradient(
     ellipse at top,
-    hsl(var(--tac-amber) / 0.07),
+    rgb(var(--mode-rgb) / 0.07),
     transparent 60%
   );
   pointer-events: none;
 }
 .assemble-count {
-  text-shadow: 0 0 24px hsl(var(--tac-amber) / 0.3);
+  text-shadow: 0 0 24px rgb(var(--mode-rgb) / 0.3);
 }
 .slot {
   height: 6px;
@@ -1748,12 +1752,12 @@ const start = () => {
     box-shadow 0.3s ease;
 }
 .slot--filled {
-  border-color: hsl(var(--tac-amber));
-  background: hsl(var(--tac-amber));
-  box-shadow: 0 0 8px hsl(var(--tac-amber) / 0.55);
+  border-color: rgb(var(--mode-rgb));
+  background: rgb(var(--mode-rgb));
+  box-shadow: 0 0 8px rgb(var(--mode-rgb) / 0.55);
 }
 .slot--next {
-  border-color: hsl(var(--tac-amber) / 0.6);
+  border-color: rgb(var(--mode-rgb) / 0.6);
   animation: slot-pulse 1.4s ease-in-out infinite;
 }
 @keyframes slot-pulse {

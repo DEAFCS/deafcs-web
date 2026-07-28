@@ -251,7 +251,7 @@ const leave = async () => {
           <div class="meta">
             <template v-for="(part, i) in metaLine" :key="i">
               <span v-if="i > 0" class="sep" aria-hidden="true">·</span>
-              <span>{{ part }}</span>
+              <span :class="{ 'meta-mode': i === 0 }">{{ part }}</span>
             </template>
           </div>
         </div>
@@ -508,6 +508,9 @@ const leave = async () => {
   text-transform: uppercase;
   letter-spacing: 0.16em;
   color: hsl(var(--muted-foreground));
+}
+.meta-mode {
+  color: rgb(var(--mode-rgb));
 }
 .meta .sep {
   color: hsl(var(--muted-foreground) / 0.4);

@@ -54,9 +54,9 @@ const onSelected = (player: { steam_id: string }) => {
     color 0.15s ease;
 }
 .open-slot:hover {
-  border-color: hsl(var(--tac-amber) / 0.55);
-  background: hsl(var(--tac-amber) / 0.06);
-  color: hsl(var(--tac-amber));
+  border-color: rgb(var(--mode-rgb) / 0.55);
+  background: rgb(var(--mode-rgb) / 0.06);
+  color: rgb(var(--mode-rgb));
 }
 .open-slot-avatar {
   display: grid;
@@ -69,7 +69,7 @@ const onSelected = (player: { steam_id: string }) => {
   transition: border-color 0.15s ease;
 }
 .open-slot:hover .open-slot-avatar {
-  border-color: hsl(var(--tac-amber) / 0.5);
+  border-color: rgb(var(--mode-rgb) / 0.5);
 }
 .open-slot-label {
   font-size: 0.8rem;
