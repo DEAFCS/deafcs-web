@@ -105,6 +105,17 @@ const typeLabel = computed(() => {
   }
 });
 
+const matchTypeColors: Record<string, string> = {
+  Competitive: "249 158 47",
+  Wingman: "217 70 239",
+  Duel: "34 211 238",
+};
+
+const modeColorStyle = computed<Record<string, string>>(() => ({
+  "--mode-rgb":
+    matchTypeColors[props.eloChange?.type ?? ""] ?? matchTypeColors.Competitive,
+}));
+
 function formatSigned(n: number): string {
   const sign = n > 0 ? "+" : "";
   return `${sign}${n.toLocaleString()}`;
@@ -183,25 +194,26 @@ const chipClipSm = "";
       >
         <div
           :data-result="isWin ? 'win' : 'loss'"
+          :style="modeColorStyle"
           :class="[
             'relative px-[18px] pt-[18px] pb-[14px]',
-            '[background-image:radial-gradient(circle_at_top_right,hsl(var(--tac-amber)/0.14)_0%,transparent_55%),linear-gradient(180deg,hsl(0_0%_100%/0.035)_0%,transparent_55%)]',
+            '[background-image:radial-gradient(circle_at_top_right,rgb(var(--mode-rgb)/0.14)_0%,transparent_55%),linear-gradient(180deg,hsl(0_0%_100%/0.035)_0%,transparent_55%)]',
           ]"
         >
           <span
-            class="absolute top-1 left-1 w-[10px] h-[10px] border-t-[1.5px] border-l-[1.5px] border-[hsl(var(--tac-amber))] pointer-events-none"
+            class="absolute top-1 left-1 w-[10px] h-[10px] border-t-[1.5px] border-l-[1.5px] border-[rgb(var(--mode-rgb))] pointer-events-none"
             aria-hidden="true"
           />
           <span
-            class="absolute top-1 right-1 w-[10px] h-[10px] border-t-[1.5px] border-r-[1.5px] border-[hsl(var(--tac-amber))] pointer-events-none"
+            class="absolute top-1 right-1 w-[10px] h-[10px] border-t-[1.5px] border-r-[1.5px] border-[rgb(var(--mode-rgb))] pointer-events-none"
             aria-hidden="true"
           />
           <span
-            class="absolute bottom-1 left-1 w-[10px] h-[10px] border-b-[1.5px] border-l-[1.5px] border-[hsl(var(--tac-amber))] pointer-events-none"
+            class="absolute bottom-1 left-1 w-[10px] h-[10px] border-b-[1.5px] border-l-[1.5px] border-[rgb(var(--mode-rgb))] pointer-events-none"
             aria-hidden="true"
           />
           <span
-            class="absolute bottom-1 right-1 w-[10px] h-[10px] border-b-[1.5px] border-r-[1.5px] border-[hsl(var(--tac-amber))] pointer-events-none"
+            class="absolute bottom-1 right-1 w-[10px] h-[10px] border-b-[1.5px] border-r-[1.5px] border-[rgb(var(--mode-rgb))] pointer-events-none"
             aria-hidden="true"
           />
 
@@ -216,13 +228,13 @@ const chipClipSm = "";
             <span
               class="inline-flex items-center gap-1.5 text-[10px] tracking-[0.22em] uppercase text-muted-foreground font-medium"
             >
-              <span class="text-[9px] text-[hsl(var(--tac-amber))]">◢</span>
+              <span class="text-[9px] text-[rgb(var(--mode-rgb))]">◢</span>
               <span>{{ $t("match.elo_details.title") }}</span>
             </span>
             <span class="inline-flex items-center gap-1.5">
               <span
                 v-if="typeLabel"
-                class="text-[10px] tracking-[0.22em] uppercase font-extrabold px-2 py-0.5 border border-[hsl(var(--tac-amber)/0.55)] text-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.1)] rounded-[2px]"
+                class="text-[10px] tracking-[0.22em] uppercase font-extrabold px-2 py-0.5 border border-[rgb(var(--mode-rgb)/0.55)] text-[rgb(var(--mode-rgb))] bg-[rgb(var(--mode-rgb)/0.1)] rounded-[2px]"
               >
                 {{ typeLabel }}
               </span>
