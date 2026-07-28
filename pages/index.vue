@@ -18,6 +18,7 @@ import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
+import HomeFeaturedTournament from "~/components/home/HomeFeaturedTournament.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { loginLinks } from "~/utilities/loginLinks";
@@ -289,6 +290,8 @@ const whyDeafcsFeatures = [
         </Card>
       </div>
     </section>
+
+    <HomeFeaturedTournament />
 
     <section aria-labelledby="community-title">
       <div :class="tacticalSectionLabelClasses">
