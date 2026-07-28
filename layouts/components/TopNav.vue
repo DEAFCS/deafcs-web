@@ -82,6 +82,22 @@ const isHome = computed(() => {
   return route.path === homePath.value;
 });
 
+function onLogoClick(event: MouseEvent) {
+  if (
+    route.path !== "/" ||
+    event.button !== 0 ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey ||
+    event.metaKey
+  ) {
+    return;
+  }
+
+  event.preventDefault();
+  window.location.reload();
+}
+
 const navMenuClasses =
   "ml-0 min-w-0 sm:ml-1 [&>div:last-child>*]:!mt-0 [&>div:last-child>*]:!rounded-none [&>div:last-child>*]:!border-0 [&>div:last-child>*]:!bg-transparent [&>div:last-child>*]:!shadow-none";
 
@@ -162,10 +178,9 @@ const loginArrowClasses =
           v-if="!isMobile"
           :to="homePath"
           class="inline-flex select-none items-center gap-[0.7rem] text-inherit no-underline"
-          :class="{ 'pointer-events-none cursor-default': isHome }"
-          :tabindex="isHome ? -1 : undefined"
           :aria-label="brandName || $t('layouts.app_nav.brand')"
           :aria-current="isHome ? 'page' : undefined"
+          @click="onLogoClick"
         >
           <NuxtImg
             class="h-[30px] w-[30px] shrink-0 object-contain"
