@@ -274,6 +274,7 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
             winning_lineup_id: true,
             map_veto_type: true,
             map_veto_picking_lineup_id: true,
+            map_veto_pick_expires_at: true,
             region_veto_picking_lineup_id: true,
             region_veto_picks: {
               type: true,
