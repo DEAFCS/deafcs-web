@@ -17,6 +17,15 @@ interface NewsArticle {
   published_at: string | null;
 }
 
+const props = withDefaults(
+  defineProps<{
+    hideWhenEmpty?: boolean;
+  }>(),
+  {
+    hideWhenEmpty: false,
+  },
+);
+
 const applicationSettings = useApplicationSettingsStore();
 const newsEnabled = computed(() => applicationSettings.newsEnabled);
 
@@ -27,6 +36,14 @@ let fetchGeneration = 0;
 
 const articleLink = computed(() =>
   article.value?.slug ? `/news/${article.value.slug}` : "/news",
+);
+const shouldRender = computed(
+  () =>
+    newsEnabled.value &&
+    (!props.hideWhenEmpty ||
+      loading.value ||
+      requestError.value ||
+      !!article.value),
 );
 
 function formatDate(value: string | null): string {
@@ -95,7 +112,7 @@ watch(
 
 <template>
   <Card
-    v-if="newsEnabled"
+    v-if="shouldRender"
     class="flex min-w-0 flex-col overflow-hidden border-border/70 bg-card/40 shadow-none"
   >
     <div class="flex items-center gap-3 px-5 pt-5">

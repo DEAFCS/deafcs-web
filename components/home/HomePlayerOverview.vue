@@ -11,7 +11,12 @@ import {
 } from "lucide-vue-next";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { useAuthStore } from "~/stores/AuthStore";
+import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
+import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
+import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
+import HomeLiveMatchesPreview from "~/components/home/HomeLiveMatchesPreview.vue";
 import HomeMyMatch from "~/components/home/HomeMyMatch.vue";
+import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
@@ -377,10 +382,10 @@ watch(
           </section>
         </div>
 
-        <section
-          aria-labelledby="features-title"
-          class="homepage-entry homepage-entry--delay-200"
+        <div
+          class="homepage-entry homepage-entry--delay-200 space-y-8 sm:space-y-10"
         >
+          <section aria-labelledby="features-title">
           <h2
             id="features-title"
             class="mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground"
@@ -448,7 +453,46 @@ watch(
               </div>
             </NuxtLink>
           </nav>
-        </section>
+          </section>
+
+          <section aria-labelledby="community-title">
+            <h2
+              id="community-title"
+              class="mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground"
+            >
+              <span
+                class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
+                aria-hidden="true"
+              ></span>
+              COMMUNITY
+            </h2>
+
+            <div
+              class="grid min-w-0 grid-cols-[repeat(auto-fit,minmax(min(100%,18rem),1fr))] gap-4"
+            >
+              <HomeLatestNewsPreview hide-when-empty />
+              <HomeLiveMatchesPreview />
+              <HomeLatestResultsPreview />
+            </div>
+          </section>
+
+          <section aria-labelledby="top-leaderboards-title">
+            <h2
+              id="top-leaderboards-title"
+              class="mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground"
+            >
+              <span
+                class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
+                aria-hidden="true"
+              ></span>
+              TOP 5 LEADERBOARDS
+            </h2>
+
+            <HomeTopPlayersPreview variant="all" />
+          </section>
+
+          <HomeLatestHighlights />
+        </div>
       </div>
     </section>
   </main>
