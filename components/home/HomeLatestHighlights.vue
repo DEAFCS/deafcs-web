@@ -90,16 +90,13 @@ void fetchLatestHighlights();
   <section aria-labelledby="latest-highlights-title">
     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div>
-        <div :class="tacticalSectionLabelClasses">
+        <div
+          id="latest-highlights-title"
+          :class="tacticalSectionLabelClasses"
+        >
           <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
           Community highlights
         </div>
-        <h2
-          id="latest-highlights-title"
-          class="text-2xl font-bold tracking-tight sm:text-3xl"
-        >
-          Latest Highlights
-        </h2>
       </div>
 
       <NuxtLink

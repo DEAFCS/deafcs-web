@@ -1,42 +1,14 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import gql from "graphql-tag";
-import {
-  ArrowRight,
-  Medal,
-  Play,
-  RotateCcw,
-  Trophy,
-  UserRound,
-} from "lucide-vue-next";
-import getGraphqlClient from "~/graphql/getGraphqlClient";
+import { computed } from "vue";
+import { ArrowRight, Medal, Play, Trophy, UserRound } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
 import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeLiveMatchesPreview from "~/components/home/HomeLiveMatchesPreview.vue";
-import HomeMyMatch from "~/components/home/HomeMyMatch.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import { Button } from "~/components/ui/button";
-import { Card } from "~/components/ui/card";
-import { Skeleton } from "~/components/ui/skeleton";
-import { eloTierColor } from "~/utils/eloTier";
-
-type LeaderboardMode = "Competitive" | "Wingman" | "Duel";
-type LeaderboardAlias = "competitive" | "wingman" | "duel";
-
-type EloRankRow = {
-  player_steam_id: string;
-  value: number | null;
-  rank: number | null;
-};
-
-type ModeState = {
-  row: EloRankRow | null;
-  loading: boolean;
-  requestError: boolean;
-};
 
 type PreviewPlayer = {
   steam_id: string;
@@ -46,32 +18,6 @@ type PreviewPlayer = {
 const props = defineProps<{
   previewPlayer?: PreviewPlayer;
 }>();
-
-const modes: Array<{
-  value: LeaderboardMode;
-  alias: LeaderboardAlias;
-  label: string;
-  color: string;
-}> = [
-  {
-    value: "Competitive",
-    alias: "competitive",
-    label: "Competitive",
-    color: "#F99E2F",
-  },
-  {
-    value: "Wingman",
-    alias: "wingman",
-    label: "Wingman",
-    color: "#D946EF",
-  },
-  {
-    value: "Duel",
-    alias: "duel",
-    label: "Duel",
-    color: "#22D3EE",
-  },
-];
 
 const destinations = [
   {
@@ -100,58 +46,6 @@ const destinations = [
   },
 ] as const;
 
-const PERSONAL_ELO_QUERY = gql`
-  query HomePersonalElo(
-    $steamId: String!
-    $category: String!
-    $windowDays: Int!
-    $excludeTournaments: Boolean!
-  ) {
-    competitive: get_player_leaderboard_rank(
-      args: {
-        _category: $category
-        _window_days: $windowDays
-        _match_type: "Competitive"
-        _exclude_tournaments: $excludeTournaments
-        _season_id: null
-        _player_steam_id: $steamId
-      }
-    ) {
-      player_steam_id
-      value
-      rank
-    }
-    wingman: get_player_leaderboard_rank(
-      args: {
-        _category: $category
-        _window_days: $windowDays
-        _match_type: "Wingman"
-        _exclude_tournaments: $excludeTournaments
-        _season_id: null
-        _player_steam_id: $steamId
-      }
-    ) {
-      player_steam_id
-      value
-      rank
-    }
-    duel: get_player_leaderboard_rank(
-      args: {
-        _category: $category
-        _window_days: $windowDays
-        _match_type: "Duel"
-        _exclude_tournaments: $excludeTournaments
-        _season_id: null
-        _player_steam_id: $steamId
-      }
-    ) {
-      player_steam_id
-      value
-      rank
-    }
-  }
-`;
-
 const authStore = useAuthStore();
 const player = computed(() => props.previewPlayer ?? authStore.me);
 const steamId = computed(() => String(player.value?.steam_id ?? ""));
@@ -160,87 +54,6 @@ const profilePath = computed(() => ({
   name: "players-id",
   params: { id: steamId.value },
 }));
-
-const modeStates = ref<Record<LeaderboardMode, ModeState>>({
-  Competitive: { row: null, loading: true, requestError: false },
-  Wingman: { row: null, loading: true, requestError: false },
-  Duel: { row: null, loading: true, requestError: false },
-});
-let eloGeneration = 0;
-
-function formatElo(value: number | null | undefined): string {
-  if (value == null || !Number.isFinite(Number(value))) return "Unranked";
-  return Math.round(Number(value)).toLocaleString();
-}
-
-function rankText(row: EloRankRow | null): string {
-  const rank = Number(row?.rank);
-  return Number.isFinite(rank) && rank > 0
-    ? `#${rank.toLocaleString()}`
-    : "Unranked";
-}
-
-async function fetchPersonalElo() {
-  const generation = ++eloGeneration;
-  for (const mode of modes) {
-    modeStates.value[mode.value].loading = true;
-    modeStates.value[mode.value].requestError = false;
-  }
-
-  try {
-    const response = await getGraphqlClient().query({
-      query: PERSONAL_ELO_QUERY,
-      variables: {
-        steamId: steamId.value,
-        category: "elo",
-        windowDays: 0,
-        excludeTournaments: false,
-      },
-      fetchPolicy: "network-only",
-      errorPolicy: "all",
-    });
-    if (generation !== eloGeneration) return;
-
-    const data = (response.data ?? {}) as Record<
-      LeaderboardAlias,
-      EloRankRow[] | undefined
-    >;
-    const errors = ((response as any).errors ?? []) as Array<{
-      path?: Array<string | number>;
-    }>;
-
-    for (const mode of modes) {
-      const aliasFailed = errors.some(
-        (error) => error.path?.[0] === mode.alias,
-      );
-      const rows = data[mode.alias];
-      modeStates.value[mode.value] = {
-        row: aliasFailed ? null : (rows?.[0] ?? null),
-        loading: false,
-        requestError: aliasFailed || !Array.isArray(rows),
-      };
-    }
-  } catch (error) {
-    if (generation !== eloGeneration) return;
-    console.error("[home-player-overview] failed to load personal ELO", error);
-    for (const mode of modes) {
-      modeStates.value[mode.value] = {
-        row: null,
-        loading: false,
-        requestError: true,
-      };
-    }
-  }
-}
-
-watch(
-  steamId,
-  (id) => {
-    if (!id) return;
-    void fetchPersonalElo();
-  },
-  { immediate: true },
-);
 </script>
 
 <template>
@@ -277,113 +90,8 @@ watch(
       class="min-w-0"
     >
       <div class="min-w-0 space-y-5">
-        <div class="homepage-entry homepage-entry--delay-100 space-y-5">
-          <section aria-labelledby="personal-elo-title">
-          <h2
-            id="personal-elo-title"
-            class="mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground"
-          >
-            <span
-              class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
-              aria-hidden="true"
-            ></span>
-            Personal ELO
-          </h2>
-
-          <Card
-            class="min-w-0 overflow-hidden border-border/80 bg-card/45 p-0 shadow-[0_20px_65px_-48px_hsl(var(--foreground)/0.24)]"
-          >
-            <div class="grid min-w-0 grid-cols-1 sm:grid-cols-3">
-              <section
-                v-for="(mode, index) in modes"
-                :key="mode.value"
-                class="relative flex min-w-0 items-center justify-between gap-4 px-4 py-3 sm:block"
-                :class="{
-                  'border-t border-border/70 sm:border-l sm:border-t-0':
-                    index > 0,
-                }"
-                :aria-label="`${mode.label} ELO`"
-              >
-                <div class="min-w-0">
-                  <div class="flex items-center gap-2">
-                    <span
-                      class="h-0.5 w-3 shrink-0 rounded-full"
-                      :style="{ backgroundColor: mode.color }"
-                      aria-hidden="true"
-                    ></span>
-                    <h3
-                      class="font-mono text-[0.68rem] font-black uppercase tracking-[0.1em]"
-                    >
-                      {{ mode.label }}
-                    </h3>
-                  </div>
-                </div>
-
-                <div
-                  v-if="modeStates[mode.value].loading"
-                  class="flex items-center gap-2 sm:mt-3 sm:block sm:space-y-1.5"
-                >
-                  <Skeleton class="h-5 w-16" />
-                  <Skeleton class="h-3 w-8" />
-                </div>
-
-                <div
-                  v-else-if="modeStates[mode.value].requestError"
-                  class="flex items-center gap-2 sm:mt-2"
-                  role="alert"
-                >
-                  <span class="text-xs text-muted-foreground">Unavailable</span>
-                  <button
-                    type="button"
-                    class="inline-flex min-h-8 items-center gap-1 rounded px-1.5 text-[0.68rem] font-semibold text-[hsl(var(--tac-amber))] outline-none hover:bg-[hsl(var(--tac-amber)/0.08)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
-                    @click="fetchPersonalElo"
-                  >
-                    <RotateCcw class="size-3" aria-hidden="true" />
-                    Retry
-                  </button>
-                </div>
-
-                <div
-                  v-else
-                  class="flex shrink-0 items-baseline gap-2 sm:mt-3 sm:flex-wrap"
-                >
-                  <span
-                    class="text-lg font-black leading-none tabular-nums"
-                    :style="{
-                      color: eloTierColor(modeStates[mode.value].row?.value),
-                    }"
-                  >
-                    {{ formatElo(modeStates[mode.value].row?.value) }}
-                  </span>
-                  <span
-                    class="font-mono text-[0.68rem] font-bold tabular-nums text-muted-foreground"
-                  >
-                    {{ rankText(modeStates[mode.value].row) }}
-                  </span>
-                </div>
-              </section>
-            </div>
-          </Card>
-          </section>
-
-          <section aria-labelledby="my-match-title">
-          <h2
-            id="my-match-title"
-            class="mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground"
-          >
-            <span
-              class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
-              aria-hidden="true"
-            ></span>
-            MY MATCH
-          </h2>
-
-            <HomeMyMatch :player="player" />
-          </section>
-        </div>
-
         <div
-          class="homepage-entry homepage-entry--delay-200 space-y-8 sm:space-y-10"
+          class="homepage-entry homepage-entry--delay-100 space-y-8 sm:space-y-10"
         >
           <section aria-labelledby="features-title">
           <h2

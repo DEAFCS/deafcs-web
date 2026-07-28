@@ -545,7 +545,7 @@ const wideGrid =
             <!-- View details — opens the picks/deciders + team stat-table drawer
                (same overview MatchTableRow uses). The inline panel above is the
                player-focused readout; this is the full match breakdown. -->
-            <div v-if="allowOverviewDrawer" class="flex">
+            <div class="flex">
               <button
                 type="button"
                 class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-background hover:text-[hsl(var(--tac-amber))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.6)]"
@@ -561,7 +561,6 @@ const wideGrid =
     </Transition>
 
     <MatchOverviewDrawer
-      v-if="allowOverviewDrawer"
       v-model:open="drawerOpen"
       :match="match"
       :player="player"
@@ -595,9 +594,6 @@ export default {
     // Focus player's aggregate stats for this match, batched by the parent
     // page. Powers the collapsed row without a per-row matches_by_pk query.
     collapsedAgg: { type: Object, required: false, default: null },
-    // Keep inline quick stats reusable without forcing the separate overview
-    // drawer onto focused surfaces such as the logged-in homepage.
-    allowOverviewDrawer: { type: Boolean, required: false, default: true },
   },
   data() {
     return {
