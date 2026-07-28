@@ -2827,7 +2827,7 @@ const playerHeroTeamChipDotClasses =
                     ? "External"
                     : sourceRef === "all"
                       ? $t("pages.players.detail.all_short")
-                      : "5Stack"
+                      : $t("player_match.source.internal")
                 }}</span>
                 <span class="opacity-40">·</span>
                 <span>{{

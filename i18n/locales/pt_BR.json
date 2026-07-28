@@ -815,7 +815,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "Skill rating do matchmaking 5Stack — sobe e desce conforme vitórias e derrotas."
+      "description": "Skill rating do matchmaking DEAFCS — sobe e desce conforme vitórias e derrotas."
     },
     "kda": {
       "label": "K / D / A",
@@ -2472,7 +2472,7 @@
       "detail": {
         "all_short": "Todos",
         "settings_changed": "Configurações personalizadas ativas",
-        "source_all_unavailable_elo": "\"Todos\" não está disponível na aba ELO — mostrando apenas o ELO do 5Stack.",
+        "source_all_unavailable_elo": "\"Todos\" não está disponível na aba ELO — mostrando apenas o ELO do DEAFCS.",
         "external_warning": {
           "title": "Nenhum histórico de partidas vinculado",
           "description": "Vincule seu código de autenticação do histórico de partidas da Steam para importar suas partidas Premier, Competitivas e Wingman.",
@@ -6491,7 +6491,7 @@
     },
     "source": {
       "all": "Todos",
-      "internal": "5Stack",
+      "internal": "DEAFCS",
       "external": "Externo"
     },
     "view_short": "Ver",

@@ -8,7 +8,6 @@ import {
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 import {
-  ExternalLink,
   ChevronsDown,
   ChevronDown,
   Minus,
@@ -30,8 +29,6 @@ definePageMeta({ layout: false });
 // chromeless. Loaded directly (shared link, mobile PWA) → wrap in the default
 // layout so the nav is reachable instead of being a dead end.
 const isPopout = import.meta.client && !!window.opener;
-
-const GITHUB_URL = "https://github.com/5stackgg/5stack-panel/issues";
 
 type Formula = { frac?: boolean; pct?: boolean; note?: boolean };
 
@@ -290,15 +287,6 @@ function isFrac(f?: Formula): boolean {
               <p class="text-sm leading-relaxed text-foreground/90">
                 {{ $t("glossary.intro") }}
               </p>
-              <a
-                :href="GITHUB_URL"
-                target="_blank"
-                rel="noopener"
-                class="inline-flex items-center gap-2 w-fit px-3 py-1.5 rounded border border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.1)] font-mono text-[0.7rem] tracking-[0.14em] uppercase text-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)/0.18)]"
-              >
-                <ExternalLink class="w-3.5 h-3.5" />
-                {{ $t("glossary.github_cta") }}
-              </a>
             </CardContent>
           </Card>
 

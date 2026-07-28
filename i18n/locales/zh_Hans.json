@@ -814,7 +814,7 @@
     },
     "elo": {
       "label": "ELO",
-      "description": "5Stack 匹配系统技术评分——随胜负而升降。"
+      "description": "DEAFCS 匹配系统技术评分——随胜负而升降。"
     },
     "kda": {
       "label": "K / D / A",
@@ -2318,7 +2318,7 @@
       "detail": {
         "all_short": "全部",
         "settings_changed": "自定义设置已激活",
-        "source_all_unavailable_elo": "“全部”在 ELO 标签页不可用——仅显示 5Stack ELO。",
+        "source_all_unavailable_elo": "“全部”在 ELO 标签页不可用——仅显示 DEAFCS ELO。",
         "external_warning": {
           "title": "未关联比赛历史",
           "description": "关联您的 Steam 比赛历史认证码以导入您的优先、竞技和搭档比赛。",
@@ -5890,7 +5890,7 @@
       "elo": "Elo"
     },
     "source": {
-      "internal": "5Stack",
+      "internal": "DEAFCS",
       "external": "外部"
     },
     "view_short": "查看",
