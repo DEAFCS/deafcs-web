@@ -5580,7 +5580,7 @@
     "show_xray": "显示 X 光"
   },
   "branding": {
-    "site_title_suffix": "Counter-Strike 管理系统"
+    "site_title_suffix": ""
   },
   "validation": {
     "map_pool_required": "需要地图池",

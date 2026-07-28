@@ -116,9 +116,10 @@ export default defineEventHandler(async (event) => {
   const description = truncate(
     record.description ||
       (facts.length
-        ? `Counter-Strike event on 5Stack · ${facts.join(" · ")}`
-        : "Counter-Strike event on 5Stack."),
+        ? `DEAFCS Counter-Strike event · ${facts.join(" · ")}`
+        : DEAFCS_DESCRIPTION),
   );
+  image ||= DEAFCS_IMAGE;
 
   setResponseHeader(event, "Content-Type", "text/html; charset=utf-8");
   setResponseHeader(event, "Cache-Control", "public, max-age=300");

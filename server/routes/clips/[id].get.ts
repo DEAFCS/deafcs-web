@@ -14,6 +14,10 @@ function escapeHtml(s: string): string {
     .replace(/'/g, "&#39;");
 }
 
+const DEAFCS_DESCRIPTION =
+  "DEAFCS is the home of Counter-Strike for the deaf community, featuring Quick Play, cups, leagues, and tournaments.";
+const DEAFCS_IMAGE = "https://deafcs.net/branding/deafcs-logo.png";
+
 const CLIP_QUERY = `query ClipForUnfurl($id: uuid!) {
   match_clips_by_pk(id: $id) {
     id
@@ -87,7 +91,8 @@ export default defineEventHandler(async (event) => {
       : (lineup1 ?? lineup2 ?? "");
   const title: string =
     clip.title || `${targetName} — ${mapName ?? "Match highlight"}`;
-  const description = [matchup, mapName].filter(Boolean).join(" · ");
+  const description =
+    [matchup, mapName].filter(Boolean).join(" · ") || DEAFCS_DESCRIPTION;
   const durationSec = Math.max(0, Math.round((clip.duration_ms ?? 0) / 1000));
 
   setResponseHeader(event, "Content-Type", "text/html; charset=utf-8");
@@ -97,7 +102,7 @@ export default defineEventHandler(async (event) => {
   const safeTitle = escapeHtml(title);
   const safeDesc = escapeHtml(description);
   const safeVideo = escapeHtml(videoUrl);
-  const safeThumb = thumbUrl ? escapeHtml(thumbUrl) : "";
+  const safeThumb = escapeHtml(thumbUrl || DEAFCS_IMAGE);
   const safePage = escapeHtml(pageUrl);
   const safeFallback = escapeHtml(fallback);
 
@@ -109,14 +114,12 @@ export default defineEventHandler(async (event) => {
     <meta name="description" content="${safeDesc}" />
 
     <meta property="og:type" content="video.other" />
-    <meta property="og:site_name" content="5Stack" />
+    <meta property="og:site_name" content="DEAFCS" />
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${safeDesc}" />
     <meta property="og:url" content="${safePage}" />
-    ${safeThumb ? `<meta property="og:image" content="${safeThumb}" />` : ""}
-    ${safeThumb ? `<meta property="og:image:secure_url" content="${safeThumb}" />` : ""}
-    <meta property="og:image:width" content="1280" />
-    <meta property="og:image:height" content="720" />
+    <meta property="og:image" content="${safeThumb}" />
+    <meta property="og:image:secure_url" content="${safeThumb}" />
 
     <meta property="og:video" content="${safeVideo}" />
     <meta property="og:video:secure_url" content="${safeVideo}" />
@@ -133,7 +136,7 @@ export default defineEventHandler(async (event) => {
     <meta name="twitter:player:height" content="720" />
     <meta name="twitter:player:stream" content="${safeVideo}" />
     <meta name="twitter:player:stream:content_type" content="video/mp4" />
-    ${safeThumb ? `<meta name="twitter:image" content="${safeThumb}" />` : ""}
+    <meta name="twitter:image" content="${safeThumb}" />
 
     <meta http-equiv="refresh" content="0; url=${safeFallback}" />
     <script>window.location.replace(${JSON.stringify(fallback)});</script>

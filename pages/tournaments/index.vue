@@ -59,6 +59,10 @@ const { t } = useI18n();
 const route = useRoute();
 const router = useRouter();
 
+useHead({
+  title: () => t("pages.tournaments.title"),
+});
+
 type StatusFilter = "all" | "live" | "registration" | "upcoming" | "finished";
 type SincePreset = "all" | "7d" | "30d" | "90d" | "6m" | "1y";
 

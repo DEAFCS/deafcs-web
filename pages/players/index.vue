@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { Button } from "~/components/ui/button";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -54,6 +55,12 @@ import {
   filterTriggerActive,
   filterBadgeClasses,
 } from "~/utilities/tacticalClasses";
+
+const { t } = useI18n();
+
+useHead({
+  title: () => t("pages.players.title"),
+});
 </script>
 
 <template>

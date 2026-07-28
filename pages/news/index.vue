@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { Card } from "~/components/ui/card";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -22,6 +23,7 @@ interface NewsArticle {
 
 const PER_PAGE = 12;
 
+const { t } = useI18n();
 const articles = ref<NewsArticle[]>([]);
 const total = ref(0);
 const loading = ref(true);
@@ -36,6 +38,10 @@ const newsLabel = computed(
 const canPostNews = computed(
   () => useApplicationSettingsStore().canPostNews,
 );
+
+useHead({
+  title: () => newsLabel.value || t("pages.news.title"),
+});
 
 const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PER_PAGE)));
 const hasNextPage = computed(() => page.value < totalPages.value);

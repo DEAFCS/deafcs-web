@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import OtherMatches from "~/components/match/OtherMatches.vue";
 import RecentHighlights from "~/components/clips/RecentHighlights.vue";
 import {
@@ -15,6 +16,12 @@ import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
+
+const { t } = useI18n();
+
+useHead({
+  title: () => t("pages.watch.title"),
+});
 </script>
 
 <template>

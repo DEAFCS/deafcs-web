@@ -291,6 +291,10 @@ const route = useRoute();
 const auth = useAuthStore();
 const loggedInSteamId = computed(() => auth.me?.steam_id ?? null);
 
+useHead({
+  title: () => t("pages.leaderboard.title"),
+});
+
 const category = useRouteTab({
   defaultTab: "elo",
   tabs: Object.keys(CATEGORY_CONFIG),

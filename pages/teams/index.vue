@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import {
   Search,
   X,
@@ -38,6 +39,12 @@ import {
   filterTriggerActive,
   filterBadgeClasses,
 } from "~/utilities/tacticalClasses";
+
+const { t } = useI18n();
+
+useHead({
+  title: () => t("pages.teams.title"),
+});
 </script>
 
 <template>

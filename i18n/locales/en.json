@@ -5808,7 +5808,7 @@
     "show_xray": "Show x-ray"
   },
   "branding": {
-    "site_title_suffix": "Counter-Strike Management System"
+    "site_title_suffix": ""
   },
   "validation": {
     "map_pool_required": "Map pool is required",

@@ -6169,7 +6169,7 @@
     "switch_stream_here": "Trocar stream aqui"
   },
   "branding": {
-    "site_title_suffix": "Sistema de Gerenciamento de Counter-Strike"
+    "site_title_suffix": ""
   },
   "validation": {
     "map_pool_required": "O pool de mapas é necessário",

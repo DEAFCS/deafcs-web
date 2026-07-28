@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import { useI18n } from "vue-i18n";
 import { Settings2, Lock } from "lucide-vue-next";
 import DraftGames from "~/components/draft-games/DraftGames.vue";
 import MyUpcoming from "~/components/MyUpcoming.vue";
@@ -19,6 +20,12 @@ import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
+
+const { t } = useI18n();
+
+useHead({
+  title: () => t("pages.play.title"),
+});
 
 const settingsOpen = ref(false);
 </script>

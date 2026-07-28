@@ -72,6 +72,10 @@ const { t } = useI18n();
 const clipQueueScope = "highlights-index";
 const { activeClipId, clearClipQueue, setClipQueue } = useClipModal();
 
+useHead({
+  title: () => t("pages.highlights.title"),
+});
+
 type Filter = "all" | "public" | "private";
 
 const auth = useAuthStore();

@@ -25,6 +25,10 @@ const { t, te } = useI18n();
 
 definePageMeta({ layout: false });
 
+useHead({
+  title: "Stats Guide",
+});
+
 // Opened as a desktop popup (window.open from a match/player page) → stay
 // chromeless. Loaded directly (shared link, mobile PWA) → wrap in the default
 // layout so the nav is reachable instead of being a dead end.

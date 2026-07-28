@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from "vue";
+import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
@@ -17,7 +18,12 @@ import {
   tacticalHeaderActionClasses,
 } from "~/utilities/tacticalClasses";
 
+const { t } = useI18n();
 const { client: apolloClient } = useApolloClient();
+
+useHead({
+  title: () => t("league.list.title"),
+});
 
 const loading = ref(true);
 const seasons = ref<any[]>([]);

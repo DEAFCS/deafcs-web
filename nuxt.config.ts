@@ -4,12 +4,12 @@ import federation from "@originjs/vite-plugin-federation";
 
 const sw = process.env.SW === "true";
 
-const title = "5Stack — The System Behind the Game—Yours";
+const title = "DEAFCS";
 const description =
-  "Counter-Strike Management System — a comprehensive panel for managing servers, matches, and tournaments.";
+  "DEAFCS is the home of Counter-Strike for the deaf community, featuring Quick Play, cups, leagues, and tournaments.";
 
-// TODO - i tired to get SSO to work but it wont
-const url = `https://5stack.gg`;
+const url = "https://deafcs.net";
+const image = `${url}/branding/deafcs-logo.png`;
 
 export default defineNuxtConfig({
   ssr: false,
@@ -28,24 +28,30 @@ export default defineNuxtConfig({
         "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
       title,
       titleTemplate: (pageTitle?: string) =>
-        pageTitle && pageTitle !== title ? `${pageTitle} | 5Stack` : title,
+        pageTitle && pageTitle !== title ? `${pageTitle} | DEAFCS` : title,
       meta: [
         { name: "color-scheme", content: "dark" },
         { name: "theme-color", content: "#0a0a0b" },
         { name: "robots", content: "index, follow" },
         { name: "title", content: title },
         { name: "description", content: description },
-        { name: "site_name", content: "5Stack" },
+        { name: "site_name", content: "DEAFCS" },
 
         { property: "og:locale", content: "en" },
         { property: "og:type", content: "website" },
 
         { property: "og:title", content: title },
         { property: "og:description", content: description },
-        { property: "og:site_name", content: "5Stack" },
+        { property: "og:site_name", content: "DEAFCS" },
 
         { property: "og:url", content: url },
-        { property: "og:image", content: `${url}/_ipx/_/favicon/512.png` },
+        { property: "og:image", content: image },
+        { property: "og:image:alt", content: "DEAFCS" },
+
+        { name: "twitter:card", content: "summary" },
+        { name: "twitter:title", content: title },
+        { name: "twitter:description", content: description },
+        { name: "twitter:image", content: image },
       ],
       htmlAttrs: {
         class: "dark",

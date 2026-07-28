@@ -7,6 +7,11 @@
 export const BOT_UA =
   /(discordbot|twitterbot|facebookexternalhit|facebot|slackbot|slack-imgproxy|telegrambot|whatsapp|linkedinbot|redditbot|embedly|quora link preview|pinterest|vkshare|skypeuripreview|iframely|googlebot|bingbot|applebot|mastodon|nuzzel|w3c_validator|valve\/steam|steamchaturl|steam)/i;
 
+export const DEAFCS_DESCRIPTION =
+  "DEAFCS is the home of Counter-Strike for the deaf community, featuring Quick Play, cups, leagues, and tournaments.";
+export const DEAFCS_IMAGE =
+  "https://deafcs.net/branding/deafcs-logo.png";
+
 export function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -42,7 +47,7 @@ export interface UnfurlOptions {
 export function renderUnfurl(opts: UnfurlOptions): string {
   const safeTitle = escapeHtml(opts.title);
   const safeDesc = escapeHtml(opts.description);
-  const safeImage = opts.image ? escapeHtml(opts.image) : "";
+  const safeImage = escapeHtml(opts.image || DEAFCS_IMAGE);
   const safeAlt = escapeHtml(opts.imageAlt || opts.title);
   const safePage = escapeHtml(opts.pageUrl);
   const safeHuman = escapeHtml(opts.humanUrl);
@@ -56,20 +61,20 @@ export function renderUnfurl(opts: UnfurlOptions): string {
     <meta name="description" content="${safeDesc}" />
 
     <meta property="og:type" content="${type}" />
-    <meta property="og:site_name" content="5Stack" />
+    <meta property="og:site_name" content="DEAFCS" />
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${safeDesc}" />
     <meta property="og:url" content="${safePage}" />
-    ${safeImage ? `<meta property="og:image" content="${safeImage}" />` : ""}
-    ${safeImage ? `<meta property="og:image:secure_url" content="${safeImage}" />` : ""}
-    ${safeImage && opts.imageWidth ? `<meta property="og:image:width" content="${opts.imageWidth}" />` : ""}
-    ${safeImage && opts.imageHeight ? `<meta property="og:image:height" content="${opts.imageHeight}" />` : ""}
-    ${safeImage ? `<meta property="og:image:alt" content="${safeAlt}" />` : ""}
+    <meta property="og:image" content="${safeImage}" />
+    <meta property="og:image:secure_url" content="${safeImage}" />
+    ${opts.imageWidth ? `<meta property="og:image:width" content="${opts.imageWidth}" />` : ""}
+    ${opts.imageHeight ? `<meta property="og:image:height" content="${opts.imageHeight}" />` : ""}
+    <meta property="og:image:alt" content="${safeAlt}" />
 
-    <meta name="twitter:card" content="${safeImage ? "summary_large_image" : "summary"}" />
+    <meta name="twitter:card" content="${opts.image ? "summary_large_image" : "summary"}" />
     <meta name="twitter:title" content="${safeTitle}" />
     <meta name="twitter:description" content="${safeDesc}" />
-    ${safeImage ? `<meta name="twitter:image" content="${safeImage}" />` : ""}
+    <meta name="twitter:image" content="${safeImage}" />
     ${opts.extraMeta || ""}
 
     <meta http-equiv="refresh" content="0; url=${safeHuman}" />
@@ -79,7 +84,7 @@ export function renderUnfurl(opts: UnfurlOptions): string {
     </style>
   </head>
   <body>
-    <p>${safeTitle} — <a href="${safeHuman}">open on 5Stack</a>.</p>
+    <p>${safeTitle} — <a href="${safeHuman}">open on DEAFCS</a>.</p>
   </body>
 </html>`;
 }

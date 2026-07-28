@@ -10,6 +10,10 @@
 const BOT_UA =
   /(discordbot|twitterbot|facebookexternalhit|facebot|slackbot|slack-imgproxy|telegrambot|whatsapp|linkedinbot|redditbot|embedly|quora link preview|pinterest|vkshare|skypeuripreview|iframely|googlebot|bingbot|applebot|mastodon|nuzzel|w3c_validator|developers\.google\.com\/\+\/web\/snippet)/i;
 
+const DEAFCS_DESCRIPTION =
+  "DEAFCS is the home of Counter-Strike for the deaf community, featuring Quick Play, cups, leagues, and tournaments.";
+const DEAFCS_IMAGE = "https://deafcs.net/branding/deafcs-logo.png";
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -86,12 +90,12 @@ export default defineEventHandler(async (event) => {
   const pageUrl = `${origin}/news/${encodeURIComponent(article.slug)}`;
   const humanUrl = `${pageUrl}?ufl=1`;
   const title: string = article.title || "News";
-  const description: string = article.teaser || title;
-  const image: string | null = article.cover_image_url ?? null;
+  const description: string = article.teaser || DEAFCS_DESCRIPTION;
+  const image: string = article.cover_image_url || DEAFCS_IMAGE;
 
   const safeTitle = escapeHtml(title);
   const safeDesc = escapeHtml(description);
-  const safeImage = image ? escapeHtml(image) : "";
+  const safeImage = escapeHtml(image);
   const safePage = escapeHtml(pageUrl);
   const safeHuman = escapeHtml(humanUrl);
   const publishedAt = article.published_at
@@ -109,21 +113,19 @@ export default defineEventHandler(async (event) => {
     <meta name="description" content="${safeDesc}" />
 
     <meta property="og:type" content="article" />
-    <meta property="og:site_name" content="5Stack" />
+    <meta property="og:site_name" content="DEAFCS" />
     <meta property="og:title" content="${safeTitle}" />
     <meta property="og:description" content="${safeDesc}" />
     <meta property="og:url" content="${safePage}" />
     ${publishedAt ? `<meta property="article:published_time" content="${publishedAt}" />` : ""}
-    ${safeImage ? `<meta property="og:image" content="${safeImage}" />` : ""}
-    ${safeImage ? `<meta property="og:image:secure_url" content="${safeImage}" />` : ""}
-    ${safeImage ? `<meta property="og:image:width" content="1280" />` : ""}
-    ${safeImage ? `<meta property="og:image:height" content="720" />` : ""}
-    ${safeImage ? `<meta property="og:image:alt" content="${safeTitle}" />` : ""}
+    <meta property="og:image" content="${safeImage}" />
+    <meta property="og:image:secure_url" content="${safeImage}" />
+    <meta property="og:image:alt" content="${safeTitle}" />
 
-    <meta name="twitter:card" content="${safeImage ? "summary_large_image" : "summary"}" />
+    <meta name="twitter:card" content="${article.cover_image_url ? "summary_large_image" : "summary"}" />
     <meta name="twitter:title" content="${safeTitle}" />
     <meta name="twitter:description" content="${safeDesc}" />
-    ${safeImage ? `<meta name="twitter:image" content="${safeImage}" />` : ""}
+    <meta name="twitter:image" content="${safeImage}" />
 
     <meta http-equiv="refresh" content="0; url=${safeHuman}" />
     <style>

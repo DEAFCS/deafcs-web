@@ -131,7 +131,7 @@ export default defineEventHandler(async (event) => {
     bestOf,
     tournamentName,
   ].filter(Boolean);
-  const description = truncate(facts.join(" · ") || "Counter-Strike match on 5Stack.");
+  const description = truncate(facts.join(" · ") || DEAFCS_DESCRIPTION);
 
   // Image: prefer a map screenshot (large card). Pick the current map, else the
   // last decided map, else the first. Workshop posters are absolute Steam CDN
@@ -162,6 +162,7 @@ export default defineEventHandler(async (event) => {
       record.lineup_1?.team?.avatar_url || record.lineup_2?.team?.avatar_url;
     if (avatar) image = `https://${apiDomain}/${avatar}`;
   }
+  image ||= DEAFCS_IMAGE;
 
   setResponseHeader(event, "Content-Type", "text/html; charset=utf-8");
   setResponseHeader(event, "Cache-Control", "public, max-age=120");

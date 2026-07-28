@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent } from "vue";
-import { useI18n } from "vue-i18n";
 import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 import { useBranding } from "~/composables/useBranding";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
@@ -25,7 +24,6 @@ const StreamGlobal = defineAsyncComponent(
 polyfillCountryFlagEmojis();
 
 const { brandName } = useBranding();
-const { t } = useI18n();
 
 // Single, stable manifest link. 5stack.gg keeps the static build manifest; every
 // other (white-label) host points at the host-aware Nitro route. Setting it once
@@ -37,20 +35,20 @@ const manifestHref =
     : "/branding/manifest.webmanifest";
 
 useHead({
-  title: () => brandName.value || "5Stack",
+  title: () => brandName.value || "DEAFCS",
   titleTemplate: (pageTitle?: string) => {
-    const base = brandName.value || "5Stack";
+    const base = brandName.value || "DEAFCS";
     if (pageTitle && pageTitle !== base) {
-      return `${pageTitle} | ${base}`;
+      return `${base} | ${pageTitle}`;
     }
-    return `${base} | ${t("branding.site_title_suffix")}`;
+    return base;
   },
   link: [{ rel: "manifest", href: manifestHref }],
   // iOS home-screen label — plain brand name, no " | …" suffix.
   meta: [
     {
       name: "apple-mobile-web-app-title",
-      content: () => brandName.value || "5Stack",
+      content: () => brandName.value || "DEAFCS",
     },
   ],
 });

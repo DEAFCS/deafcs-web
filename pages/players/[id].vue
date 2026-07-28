@@ -14,6 +14,11 @@ import PlayerCareerDuels from "~/components/player/PlayerCareerDuels.vue";
 import PlayerCareerClutches from "~/components/player/PlayerCareerClutches.vue";
 
 const { t } = useI18n();
+const playerContext = usePlayerContext();
+
+useHead({
+  title: () => playerContext.value?.name || undefined,
+});
 
 // Demo-upload modal (own profile + admin), opened from a subtle link by matches.
 const showDemoUpload = ref(false);
