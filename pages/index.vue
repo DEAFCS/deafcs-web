@@ -19,6 +19,7 @@ import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
 import HomeFeaturedTournament from "~/components/home/HomeFeaturedTournament.vue";
+import HomePlayerOverview from "~/components/home/HomePlayerOverview.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { loginLinks } from "~/utilities/loginLinks";
@@ -29,9 +30,11 @@ import {
 
 definePageMeta({
   layout: "default",
+  pageTransition: { name: "page", mode: "out-in" },
 });
 
 const authStore = useAuthStore();
+const route = useRoute();
 
 if (!authStore.hasCheckedSession) {
   void authStore.getMe();
@@ -39,6 +42,23 @@ if (!authStore.hasCheckedSession) {
 
 const isLoggedIn = computed(
   () => authStore.hasCheckedSession && !!authStore.me?.steam_id,
+);
+
+const previewHomeState = computed(() => {
+  if (!import.meta.dev || isLoggedIn.value) return null;
+  const value = Array.isArray(route.query.previewHome)
+    ? route.query.previewHome[0]
+    : route.query.previewHome;
+  return value === "logged-in" || value === "logged-out" ? value : null;
+});
+
+const previewPlayer = {
+  name: "TricoN",
+  steam_id: "76561198029293543",
+} as const;
+
+const showLoggedInHome = computed(
+  () => isLoggedIn.value || previewHomeState.value === "logged-in",
 );
 
 const howItWorksSteps = [
@@ -107,44 +127,19 @@ const whyDeafcsFeatures = [
     class="min-h-[60vh]"
   />
 
-  <section
-    v-else-if="isLoggedIn"
-    class="relative flex min-h-[60vh] items-center justify-center overflow-hidden rounded-lg border border-border/70 bg-card/40 px-6 py-16 text-center [background-image:repeating-linear-gradient(135deg,transparent_0,transparent_12px,hsl(var(--muted-foreground)/0.025)_12px,hsl(var(--muted-foreground)/0.025)_13px)]"
-  >
-    <div
-      class="pointer-events-none absolute left-3 top-3 h-4 w-4 border-l-2 border-t-2 border-[hsl(var(--tac-amber)/0.7)]"
-      aria-hidden="true"
-    ></div>
-    <div
-      class="pointer-events-none absolute bottom-3 right-3 h-4 w-4 border-b-2 border-r-2 border-[hsl(var(--tac-amber)/0.7)]"
-      aria-hidden="true"
-    ></div>
-
-    <div class="relative max-w-xl">
-      <div
-        class="mb-4 inline-flex items-center gap-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.22em] text-[hsl(var(--tac-amber))]"
-      >
-        <span
-          class="inline-block h-1.5 w-1.5 rounded-full bg-[hsl(var(--tac-amber))]"
-          aria-hidden="true"
-        ></span>
-        Temporary homepage shell
-      </div>
-
-      <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">
-        Logged-in dashboard placeholder
-      </h1>
-      <p class="mt-3 text-sm leading-6 text-muted-foreground">
-        Your authenticated DEAFCS homepage will be built here in the next
-        implementation steps.
-      </p>
-    </div>
-  </section>
+  <HomePlayerOverview
+    v-else-if="showLoggedInHome"
+    :preview-player="
+      !isLoggedIn && previewHomeState === 'logged-in'
+        ? previewPlayer
+        : undefined
+    "
+  />
 
   <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
     <section
       aria-labelledby="home-hero-title"
-      class="relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
+      class="homepage-entry relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
     >
       <div
         class="pointer-events-none absolute inset-0 -z-10 opacity-60 [background-image:repeating-linear-gradient(135deg,transparent_0,transparent_14px,hsl(var(--muted-foreground)/0.025)_14px,hsl(var(--muted-foreground)/0.025)_15px)]"
@@ -217,11 +212,14 @@ const whyDeafcsFeatures = [
       </div>
     </section>
 
-    <section aria-labelledby="why-deafcs-title">
-      <div :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
-        Built with purpose
-      </div>
+    <div
+      class="homepage-entry homepage-entry--delay-100 space-y-16 sm:space-y-20"
+    >
+      <section aria-labelledby="why-deafcs-title">
+        <div :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
+          Built with purpose
+        </div>
       <h2
         id="why-deafcs-title"
         class="text-2xl font-bold tracking-tight sm:text-3xl"
@@ -249,13 +247,13 @@ const whyDeafcsFeatures = [
           </p>
         </Card>
       </div>
-    </section>
+      </section>
 
-    <section aria-labelledby="how-it-works-title">
-      <div :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
-        Getting started
-      </div>
+      <section aria-labelledby="how-it-works-title">
+        <div :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
+          Getting started
+        </div>
       <h2
         id="how-it-works-title"
         class="text-2xl font-bold tracking-tight sm:text-3xl"
@@ -289,15 +287,19 @@ const whyDeafcsFeatures = [
           </p>
         </Card>
       </div>
-    </section>
+      </section>
+    </div>
 
-    <HomeFeaturedTournament />
+    <div
+      class="homepage-entry homepage-entry--delay-200 space-y-16 sm:space-y-20"
+    >
+      <HomeFeaturedTournament />
 
-    <section aria-labelledby="community-title">
-      <div :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
-        Community activity
-      </div>
+      <section aria-labelledby="community-title">
+        <div :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
+          Community activity
+        </div>
       <h2
         id="community-title"
         class="text-2xl font-bold tracking-tight sm:text-3xl"
@@ -312,8 +314,51 @@ const whyDeafcsFeatures = [
         <HomeLatestResultsPreview />
         <HomeTopPlayersPreview />
       </div>
-    </section>
+      </section>
 
-    <HomeLatestHighlights />
+      <HomeLatestHighlights />
+    </div>
   </main>
 </template>
+
+<style>
+@keyframes homepage-entry {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes homepage-entry-reduced {
+  from,
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.homepage-entry {
+  animation: homepage-entry 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.homepage-entry--delay-100 {
+  animation-delay: 100ms;
+}
+
+.homepage-entry--delay-200 {
+  animation-delay: 200ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .homepage-entry {
+    animation-name: homepage-entry-reduced;
+    animation-duration: 1ms;
+    animation-delay: 0ms;
+  }
+}
+</style>
