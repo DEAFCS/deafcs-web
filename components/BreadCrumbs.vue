@@ -6,7 +6,7 @@
       <BreadcrumbItem class="shrink-0">
         <BreadcrumbLink as-child>
           <NuxtLink
-            :to="{ name: 'play' }"
+            to="/"
             class="inline-flex h-7 items-center rounded-md px-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors [&.router-link-active]:bg-transparent [&.router-link-exact-active]:bg-transparent"
           >
             {{ $t("breadcrumbs.dashboard") }}
