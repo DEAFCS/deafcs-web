@@ -564,26 +564,6 @@ const loginArrowClasses =
                             </a>
                           </NavigationMenuLink>
                         </li>
-                        <li v-if="showReportIssue">
-                          <NavigationMenuLink as-child>
-                            <a
-                              :href="githubUrl"
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              :class="[navItemClasses, navItemStackedClasses]"
-                            >
-                              <span :class="navItemChevronClasses">◢</span>
-                              <span :class="navItemContentClasses">
-                                <span :class="navItemLabelClasses">GitHub</span>
-                                <span :class="navItemSubClasses">
-                                  {{
-                                    $t("layouts.app_nav.footer.report_issue")
-                                  }}
-                                </span>
-                              </span>
-                            </a>
-                          </NavigationMenuLink>
-                        </li>
                       </ul>
                     </div>
                   </div>
@@ -799,12 +779,6 @@ export default {
     },
     inviteLink() {
       return `https://${useRuntimeConfig().public.webDomain}/discord-invite`;
-    },
-    githubUrl() {
-      return useApplicationSettingsStore().githubUrl;
-    },
-    showReportIssue() {
-      return useApplicationSettingsStore().showReportIssue;
     },
     newsEnabled() {
       return useApplicationSettingsStore().newsEnabled;
