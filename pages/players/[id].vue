@@ -79,7 +79,11 @@ import PlayerLeaderboardRank from "~/components/PlayerLeaderboardRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerEloHistoryDialog from "~/components/PlayerEloHistoryDialog.vue";
-import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
+import {
+  MATCH_TYPE_RGB,
+  matchTypeColorStyle,
+  matchTypeRgb,
+} from "~/utilities/matchTypeColors";
 import { eloTierColor } from "~/utils/eloTier";
 import PluginRemote from "~/components/plugins/PluginRemote.vue";
 import { usePluginsStore, type Plugin } from "~/stores/Plugins";
@@ -547,6 +551,11 @@ const providerModel = computed<string>({
 
 const modeFilterOptions = computed(() =>
   modeOptions.value.map((m) => ({ key: m.value, label: m.label })),
+);
+const modeFilterAccentRgb = computed(() =>
+  selectedModeRef.value in MATCH_TYPE_RGB
+    ? matchTypeRgb(selectedModeRef.value)
+    : "148 163 184",
 );
 const modeModel = computed<string>({
   get: () => selectedModeRef.value,
@@ -1945,7 +1954,7 @@ const playerHeroTeamChipDotClasses =
               <section
                 v-for="mode in eloSummaryModes"
                 :key="mode.type"
-                class="relative flex min-w-0 flex-col overflow-hidden rounded-md border border-[rgb(var(--mode-rgb)/0.38)] bg-[rgb(var(--mode-rgb)/0.045)] px-2.5 pb-2 pt-2 shadow-[inset_0_1px_0_rgb(var(--mode-rgb)/0.08)]"
+                class="relative flex min-w-0 flex-col overflow-hidden rounded-md border border-[rgb(var(--mode-rgb)/0.38)] bg-card/55 px-2.5 pb-2 pt-2 shadow-[inset_0_1px_0_rgb(var(--mode-rgb)/0.08)]"
                 :style="matchTypeColorStyle(mode.type)"
               >
                 <span
@@ -2292,6 +2301,7 @@ const playerHeroTeamChipDotClasses =
               v-model="modeModel"
               square
               :options="modeFilterOptions"
+              :accent-rgb="modeFilterAccentRgb"
             />
           </div>
 

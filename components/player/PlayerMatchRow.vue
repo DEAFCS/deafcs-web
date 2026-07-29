@@ -15,6 +15,16 @@ import MatchStatus from "~/components/match/MatchStatus.vue";
 import MatchPlayerDetailsPanel from "~/components/match/MatchPlayerDetailsPanel.vue";
 import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
 import { kdColor, hltvColor } from "~/utils/statTiers";
+import {
+  MATCH_TYPE_RGB,
+  matchTypeColorStyle,
+} from "~/utilities/matchTypeColors";
+
+function matchTypeBadgeStyle(type?: string | null) {
+  return type && type in MATCH_TYPE_RGB
+    ? matchTypeColorStyle(type)
+    : undefined;
+}
 
 // Shared grid track template — MUST stay in sync with the header row in
 // PlayerMatchesTable.vue so columns line up across every row. Every track
@@ -74,7 +84,13 @@ const wideGrid =
       <div class="flex min-w-0 items-center justify-center">
         <span
           v-if="matchTypeLabel"
-          class="relative inline-flex max-w-full items-center rounded border border-border/70 bg-muted/40 px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.08em] text-foreground/80"
+          class="relative inline-flex max-w-full items-center rounded border px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.08em]"
+          :class="
+            matchType && matchType in MATCH_TYPE_RGB
+              ? 'border-[rgb(var(--mode-rgb)/0.45)] bg-[rgb(var(--mode-rgb)/0.09)] text-[rgb(var(--mode-rgb))]'
+              : 'border-border/70 bg-muted/40 text-foreground/80'
+          "
+          :style="matchTypeBadgeStyle(matchType)"
           :title="
             isExternal
               ? `${matchType} · imported from ${sourceLabel}`
