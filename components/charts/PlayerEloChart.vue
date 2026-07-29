@@ -222,6 +222,7 @@ ChartJS.register({
     :class="collapsed ? 'scale-y-0' : 'scale-y-100'"
   >
     <div
+      v-if="showLegend"
       class="flex shrink-0 flex-wrap items-center justify-end gap-x-4 gap-y-1 px-3 pb-1.5 pt-2"
       aria-label="ELO history legend"
     >
@@ -313,6 +314,11 @@ export default {
       type: Boolean,
       required: false,
       default: false,
+    },
+    showLegend: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
   },
   data() {

@@ -53,20 +53,9 @@ const badgeNumberStyle = computed(() => ({
   textShadow: `0 0 8px color-mix(in srgb, ${levelColor.value} 40%, transparent)`,
 }));
 
-// `inline-grid` + columns going from `0fr` to `1fr` animates to the
-// natural content width (not an estimate), so the reveal moves at a
-// steady rate the whole way — `max-width` snapped because the visible
-// width was capped by the content well before the transition finished.
-const eloRevealClasses = [
-  "self-center inline-grid grid-cols-[0fr] opacity-0",
-  "transition-[grid-template-columns,opacity,margin-left] duration-300 ease-out",
-  "-ml-1.5",
-  "group-hover/faceit:grid-cols-[1fr] group-hover/faceit:opacity-100 group-hover/faceit:ml-0",
-  "group-focus-visible/faceit:grid-cols-[1fr] group-focus-visible/faceit:opacity-100 group-focus-visible/faceit:ml-0",
-].join(" ");
+const eloRevealClasses = "self-center inline-flex";
 
-const eloInnerClasses =
-  "min-w-0 overflow-hidden inline-flex items-center gap-1.5";
+const eloInnerClasses = "min-w-0 inline-flex items-center gap-1.5";
 
 const eloClasses =
   "font-mono text-[0.6rem] font-semibold uppercase tabular-nums tracking-[0.14em] text-[hsl(28_95%_55%/0.9)] whitespace-nowrap";

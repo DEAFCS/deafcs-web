@@ -36,7 +36,6 @@ import AnimatedStat from "~/components/AnimatedStat.vue";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import formatStatValue from "~/utilities/formatStatValue";
 import { resolveWeapon } from "~/utilities/weaponIcon";
-import { csRankIcon } from "~/utilities/csRank";
 import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
 import PlayerSearch from "~/components/PlayerSearch.vue";
 import { usePlayerCompareTarget } from "~/composables/usePlayerCompareTarget";
@@ -80,6 +79,8 @@ import PlayerLeaderboardRank from "~/components/PlayerLeaderboardRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerEloHistoryDialog from "~/components/PlayerEloHistoryDialog.vue";
+import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
+import { eloTierColor } from "~/utils/eloTier";
 import PluginRemote from "~/components/plugins/PluginRemote.vue";
 import { usePluginsStore, type Plugin } from "~/stores/Plugins";
 import { useApolloClient } from "@vue/apollo-composable";
@@ -668,18 +669,7 @@ const statTypeFilter = computed<string[] | null>(() => {
   return [mode];
 });
 
-const isSkillGroupMode = computed(() => false);
-function rankBadge(value: number | null | undefined): string | null {
-  if (value === null || value === undefined) return null;
-  return csRankIcon(selectedModeRef.value === "Wingman" ? 6 : 12, value);
-}
-const chartRankType = computed<number | null>(() =>
-  isSkillGroupMode.value
-    ? selectedModeRef.value === "Wingman"
-      ? 6
-      : 12
-    : null,
-);
+const chartRankType = computed<number | null>(() => null);
 
 const playerIdRef = computed<string | null>(() => {
   const p = route.params.id;
@@ -1571,6 +1561,16 @@ const windowedChartSeries = computed(() => {
     .filter((s) => s.history.length > 0);
 });
 
+const eloSummaryModes = [
+  { type: "Competitive", key: "competitive" },
+  { type: "Wingman", key: "wingman" },
+  { type: "Duel", key: "duel" },
+] as const;
+
+function formatEloSummaryValue(value: number | null | undefined): string {
+  return typeof value === "number" ? value.toLocaleString() : "—";
+}
+
 const bucketLabel = computed(() => {
   switch (bucketSize.value) {
     case "month":
@@ -1648,7 +1648,7 @@ definePageMeta({
 
 const { isMobile } = useSidebar();
 const playerHeroClasses =
-  "relative flex min-w-0 flex-col rounded-lg border border-border px-6 py-5 [background:radial-gradient(120%_140%_at_0%_0%,hsl(var(--tac-amber)_/_0.06)_0%,transparent_45%),linear-gradient(180deg,hsl(var(--card)_/_0.5)_0%,hsl(var(--card)_/_0.2)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:z-[1] before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:z-[1] after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
+  "relative self-start flex min-w-0 flex-col rounded-lg border border-border px-6 py-5 [background:radial-gradient(120%_140%_at_0%_0%,hsl(var(--tac-amber)_/_0.06)_0%,transparent_45%),linear-gradient(180deg,hsl(var(--card)_/_0.5)_0%,hsl(var(--card)_/_0.2)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:z-[1] before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:z-[1] after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
 const playerHeroBodyClasses =
   "flex flex-wrap items-center gap-5 max-md:items-start max-md:gap-4";
 const playerHeroInlineRoleChipClasses =
@@ -1690,8 +1690,8 @@ const playerHeroPlayIconClasses =
   "h-5 w-5 fill-current transition-transform duration-300 group-hover/play:translate-x-0.5 group-hover/play:scale-110";
 const playerHeroPlayGlowClasses =
   "pointer-events-none absolute inset-0 z-0 -translate-x-full bg-[linear-gradient(90deg,transparent_0%,hsl(0_0%_100%_/_0.4)_50%,transparent_100%)] transition-transform duration-500 group-hover/play:translate-x-full";
-const playerHeroFooterClasses = "mt-auto flex flex-col gap-4";
-const playerHeroFormClasses = "border-t border-border/60 pt-4";
+const playerHeroFooterClasses = "mt-4 flex w-full flex-col gap-4";
+const playerHeroFormClasses = "w-full border-t border-border/60 pt-4";
 const playerHeroFormLabelClasses =
   "inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground";
 const playerHeroFormTickClasses = "h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]";
@@ -1895,11 +1895,17 @@ const playerHeroTeamChipDotClasses =
               </div>
             </div>
 
-            <div v-if="hasRightColumn" :class="playerHeroRightActionsClasses">
+            <div
+              v-if="hasRightColumn"
+              :class="[
+                playerHeroRightActionsClasses,
+                { 'max-md:hidden': isSelfProfile },
+              ]"
+            >
               <NuxtLink
                 v-if="isSelfProfile"
                 to="/play"
-                :class="[playerHeroPlayClasses, 'max-md:hidden']"
+                :class="playerHeroPlayClasses"
               >
                 <span :class="playerHeroPlayInnerClasses">
                   <PlayIcon :class="playerHeroPlayIconClasses" />
@@ -1935,92 +1941,35 @@ const playerHeroTeamChipDotClasses =
           class="relative flex flex-col h-full p-2.5"
         >
           <CardContent class="flex flex-1 flex-col gap-2 p-0 sm:p-0">
-            <div
-              class="grid grid-cols-1 divide-y divide-border/40 overflow-hidden rounded-md border border-border/60 sm:grid-cols-2 sm:divide-x sm:divide-y-0"
-            >
-              <div class="relative min-h-[64px] px-3 py-2.5">
-                <div
-                  class="flex items-center justify-between gap-3 font-mono text-[0.55rem] uppercase tracking-[0.22em] text-muted-foreground"
-                >
-                  <span class="truncate">{{
-                    $t("pages.players.detail.current_elo")
-                  }}</span>
-                </div>
-                <div class="mt-1 flex items-center gap-2">
-                  <img
-                    v-if="isSkillGroupMode && rankBadge(windowedStats.current)"
-                    :src="rankBadge(windowedStats.current)!"
-                    :alt="fmtRangeStat(windowedStats.current)"
-                    :title="fmtRangeStat(windowedStats.current)"
-                    class="h-10 w-auto sm:h-12"
-                  />
-                  <AnimatedStat
-                    v-else
-                    :value="fmtRangeStat(windowedStats.current)"
-                    class="text-3xl font-bold leading-none tabular-nums tracking-tight sm:text-4xl"
-                  />
-                </div>
-              </div>
-
-              <div class="relative min-h-[64px] px-3 py-2.5 sm:pl-4">
+            <div class="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+              <section
+                v-for="mode in eloSummaryModes"
+                :key="mode.type"
+                class="relative flex min-w-0 flex-col overflow-hidden rounded-md border border-[rgb(var(--mode-rgb)/0.38)] bg-[rgb(var(--mode-rgb)/0.045)] px-2.5 pb-2 pt-2 shadow-[inset_0_1px_0_rgb(var(--mode-rgb)/0.08)]"
+                :style="matchTypeColorStyle(mode.type)"
+              >
                 <span
-                  class="pointer-events-none absolute left-0 top-3 bottom-3 hidden w-[2px] bg-[hsl(var(--tac-amber))] sm:block"
+                  class="absolute inset-x-0 top-0 h-[2px] bg-[rgb(var(--mode-rgb))] shadow-[0_0_12px_rgb(var(--mode-rgb)/0.55)]"
                   aria-hidden="true"
                 ></span>
                 <div
-                  class="font-mono text-[0.55rem] uppercase tracking-[0.22em] text-muted-foreground"
+                  class="font-mono text-[0.62rem] font-bold uppercase tracking-[0.22em] text-[rgb(var(--mode-rgb))]"
                 >
-                  {{ $t("pages.players.detail.peak_lowest") }}
+                  {{ mode.type }}
                 </div>
-                <div class="mt-1 flex items-center gap-2.5">
-                  <template
-                    v-if="isSkillGroupMode && rankBadge(windowedStats.peak)"
-                  >
-                    <img
-                      :src="rankBadge(windowedStats.peak)!"
-                      :alt="fmtRangeStat(windowedStats.peak)"
-                      :title="fmtRangeStat(windowedStats.peak)"
-                      class="h-7 w-auto [filter:drop-shadow(0_0_10px_hsl(var(--tac-amber)/0.45))]"
-                    />
-                    <span
-                      class="font-mono text-[hsl(var(--tac-amber)/0.35)]"
-                      aria-hidden="true"
-                      >/</span
-                    >
-                    <img
-                      v-if="rankBadge(windowedStats.lowest)"
-                      :src="rankBadge(windowedStats.lowest)!"
-                      :alt="fmtRangeStat(windowedStats.lowest)"
-                      :title="fmtRangeStat(windowedStats.lowest)"
-                      class="h-6 w-auto opacity-80"
-                    />
-                  </template>
-                  <template v-else>
-                    <AnimatedStat
-                      :value="fmtRangeStat(windowedStats.peak)"
-                      class="text-xl font-bold tabular-nums text-[hsl(var(--tac-amber))] [text-shadow:0_0_18px_hsl(var(--tac-amber)/0.35)]"
-                    />
-                    <span
-                      class="font-mono text-[hsl(var(--tac-amber)/0.35)]"
-                      aria-hidden="true"
-                      >/</span
-                    >
-                    <AnimatedStat
-                      :value="fmtRangeStat(windowedStats.lowest)"
-                      class="text-base font-semibold tabular-nums text-muted-foreground/80"
-                    />
-                  </template>
+                <AnimatedStat
+                  :value="formatEloSummaryValue(player.elo?.[mode.key])"
+                  class="mt-1 text-[1.75rem] font-bold leading-none tabular-nums tracking-tight sm:text-3xl"
+                  :style="{ color: eloTierColor(player.elo?.[mode.key]) }"
+                />
+
+                <div class="mt-1.5">
+                  <PlayerLeaderboardRank
+                    :player-steam-id="player.steam_id"
+                    :match-type="mode.type"
+                  />
                 </div>
-                <div
-                  class="mt-0.5 font-mono text-[0.5rem] uppercase tracking-[0.18em] text-muted-foreground"
-                >
-                  <template v-if="windowedStats.peakEntry">
-                    {{ $t("pages.players.detail.peak") }}
-                    {{ fmtDateShort(windowedStats.peakEntry.match_created_at) }}
-                  </template>
-                  <template v-else>&nbsp;</template>
-                </div>
-              </div>
+              </section>
             </div>
 
             <div
@@ -2085,6 +2034,7 @@ const playerHeroTeamChipDotClasses =
                 :series="windowedChartSeries"
                 :rank-type="chartRankType"
                 :loading="eloHistoryLoading"
+                :show-legend="false"
               />
 
               <div
@@ -2128,7 +2078,6 @@ const playerHeroTeamChipDotClasses =
                 v-if="player.steam_id"
                 class="flex flex-wrap items-center gap-2"
               >
-                <PlayerLeaderboardRank :playerSteamId="player.steam_id" />
                 <PlayerFaceitRank
                   :faceit-skill-level="player.faceit_skill_level"
                   :faceit-elo="player.faceit_elo"

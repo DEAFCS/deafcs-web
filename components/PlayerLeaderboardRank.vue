@@ -2,9 +2,11 @@
 import { ref, watch, computed, onBeforeUnmount } from "vue";
 import gql from "graphql-tag";
 import { useApolloClient } from "@vue/apollo-composable";
+import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 
 const props = defineProps<{
   playerSteamId: string;
+  matchType?: "Competitive" | "Wingman" | "Duel";
 }>();
 
 const { client: apolloClient } = useApolloClient();
@@ -49,7 +51,7 @@ async function fetchRank() {
       variables: {
         category: "elo",
         window_days: 0,
-        match_type: "Competitive",
+        match_type: props.matchType ?? "Competitive",
         exclude_tournaments: false,
         player_steam_id: props.playerSteamId,
       },
@@ -70,7 +72,7 @@ async function fetchRank() {
 }
 
 watch(
-  () => props.playerSteamId,
+  () => [props.playerSteamId, props.matchType],
   () => {
     fetchRank();
   },
@@ -91,55 +93,46 @@ const rankLabel = computed(() =>
 );
 
 const triggerClasses = [
-  "group/rank relative inline-flex items-center gap-1.5 cursor-pointer select-none leading-none",
-  "h-[26px] px-[0.6rem] rounded",
-  "border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--card)/0.55)]",
-  "[backdrop-filter:blur(6px)]",
-  "transition-[transform,border-color,box-shadow] duration-150",
-  "hover:border-[hsl(var(--tac-amber)/0.85)] hover:-translate-y-px",
-  "hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.25),0_6px_18px_-8px_hsl(var(--tac-amber)/0.55)]",
-  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.5)]",
+  "group/rank inline-flex h-[26px] items-center gap-1.5 rounded border px-[0.6rem]",
+  "border-[rgb(var(--mode-rgb)/0.35)] bg-[rgb(var(--mode-rgb)/0.06)]",
+  "font-mono text-[0.62rem] font-bold uppercase tabular-nums tracking-[0.1em]",
+  "transition-[transform,border-color,background-color,box-shadow] duration-150",
+  "hover:-translate-y-px hover:border-[rgb(var(--mode-rgb)/0.8)] hover:bg-[rgb(var(--mode-rgb)/0.11)]",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[rgb(var(--mode-rgb)/0.5)]",
 ].join(" ");
-
-const notchClasses =
-  "h-[7px] w-[7px] rounded-[1px] bg-[hsl(var(--tac-amber))] [box-shadow:0_0_8px_hsl(var(--tac-amber)/0.7)]";
-
-const labelClasses =
-  "font-mono text-[0.62rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground/85 group-hover/rank:text-[hsl(var(--tac-amber))]";
 
 const sepClasses = "h-3 w-px bg-border/70";
 
 const rankValueClasses =
-  "font-mono text-[0.75rem] font-bold tabular-nums tracking-[0.04em] text-[hsl(var(--tac-amber))] [text-shadow:0_0_10px_hsl(var(--tac-amber)/0.35)]";
+  "text-[rgb(var(--mode-rgb))] [text-shadow:0_0_10px_rgb(var(--mode-rgb)/0.3)]";
 
 const percentileClasses =
-  "font-mono text-[0.62rem] font-semibold uppercase tabular-nums tracking-[0.14em] text-[hsl(var(--tac-amber)/0.85)]";
+  "text-[rgb(var(--mode-rgb)/0.85)]";
 </script>
 
 <template>
   <NuxtLink
-    v-if="rankLabel"
+    v-if="playerSteamId"
     :to="{
       path: '/leaderboard',
       query: {
         tab: 'elo',
         period: '0',
-        type: 'Competitive',
+        type: matchType ?? 'Competitive',
         player: playerSteamId,
       },
     }"
     :class="triggerClasses"
+    :style="matchTypeColorStyle(matchType ?? 'Competitive')"
     :aria-label="`${$t('pages.players.detail.global_rank')} ${rankLabel}`"
     :title="$t('pages.players.detail.global_rank')"
     @click.stop
   >
-    <span :class="notchClasses" aria-hidden="true"></span>
-    <span :class="labelClasses">{{ $t("pages.players.detail.rank") }}</span>
-    <span :class="sepClasses" aria-hidden="true"></span>
-    <span :class="rankValueClasses">{{ rankLabel }}</span>
+    <span v-if="rankLabel" :class="rankValueClasses">{{ rankLabel }}</span>
     <span v-if="percentile" :class="sepClasses" aria-hidden="true"></span>
     <span v-if="percentile" :class="percentileClasses">
       {{ $t("pages.players.detail.top_percent", { percent: percentile }) }}
     </span>
+    <span v-if="!rankLabel" class="text-muted-foreground">Unranked</span>
   </NuxtLink>
 </template>
