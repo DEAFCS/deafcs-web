@@ -3097,7 +3097,11 @@
       "time_periods": {
         "last_7_days": "Ultimos 7 dias",
         "last_30_days": "Ultimos 30 dias",
-        "all_time": "Tempo Todo"
+        "all_time": "Tempo Todo",
+        "current": "Atual",
+        "days_7": "7 dias",
+        "days_30": "30 dias",
+        "peak": "Pico"
       },
       "match_types": {
         "all": "Todos",
@@ -3119,6 +3123,7 @@
       },
       "col": {
         "elo": "ELO",
+        "peak_elo": "ELO máximo",
         "elo_change": "Mudança no ELO",
         "win_streak": "Sequência de Vitórias",
         "kdr": "KDR",

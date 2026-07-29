@@ -217,6 +217,7 @@ const LEADERBOARD_QUERY = gql`
     $exclude_tournaments: Boolean!
     $role: String
     $season_id: uuid
+    $elo_view: String
     $limit: Int
     $offset: Int
     $order_by: [leaderboard_entries_order_by!]
@@ -229,6 +230,7 @@ const LEADERBOARD_QUERY = gql`
         _exclude_tournaments: $exclude_tournaments
         _role: $role
         _season_id: $season_id
+        _elo_view: $elo_view
       }
       limit: $limit
       offset: $offset
@@ -251,6 +253,7 @@ const LEADERBOARD_QUERY = gql`
         _exclude_tournaments: $exclude_tournaments
         _role: $role
         _season_id: $season_id
+        _elo_view: $elo_view
       }
     ) {
       aggregate {
@@ -267,6 +270,7 @@ const PLAYER_RANK_QUERY = gql`
     $match_type: String
     $exclude_tournaments: Boolean!
     $season_id: uuid
+    $elo_view: String
     $player_steam_id: String!
   ) {
     get_player_leaderboard_rank(
@@ -276,6 +280,7 @@ const PLAYER_RANK_QUERY = gql`
         _match_type: $match_type
         _exclude_tournaments: $exclude_tournaments
         _season_id: $season_id
+        _elo_view: $elo_view
         _player_steam_id: $player_steam_id
       }
     ) {
@@ -288,6 +293,7 @@ const PLAYER_RANK_QUERY = gql`
 const { t } = useI18n();
 const { client: apolloClient } = useApolloClient();
 const route = useRoute();
+const router = useRouter();
 const auth = useAuthStore();
 const loggedInSteamId = computed(() => auth.me?.steam_id ?? null);
 
@@ -348,11 +354,26 @@ const activeSeason = computed(() => {
     ) || null
   );
 });
+const requestedScope =
+  typeof route.query.period === "string" ? route.query.period : "";
 const scope = ref<string>(
-  typeof route.query.period === "string" ? route.query.period : "",
+  category.value === "elo" || requestedScope !== "peak"
+    ? requestedScope
+    : "0",
 );
 const derivedWindowDays = computed(() =>
   scope.value === "7" || scope.value === "30" ? parseInt(scope.value) : 0,
+);
+const eloView = computed<"current" | "peak">(() =>
+  category.value === "elo" && scope.value === "peak" ? "peak" : "current",
+);
+const isPeakElo = computed(
+  () => category.value === "elo" && eloView.value === "peak",
+);
+const isRollingElo = computed(
+  () =>
+    category.value === "elo" &&
+    (scope.value === "7" || scope.value === "30"),
 );
 const derivedSeasonId = computed(() =>
   scope.value.startsWith("season:")
@@ -369,7 +390,7 @@ const supportsRole = computed(() => ROLE_CATEGORIES.has(category.value));
 // Default to the current season when seasons are on and one is active; otherwise
 // fall back to All Time (systems without a current season).
 const defaultScope = computed(() =>
-  seasonsEnabled.value && activeSeason.value
+  category.value !== "elo" && seasonsEnabled.value && activeSeason.value
     ? `season:${activeSeason.value.id}`
     : "0",
 );
@@ -407,9 +428,19 @@ const scopeLabel = computed(() => {
   }
   return (
     {
-      "0": t("pages.leaderboard.time_periods.all_time"),
-      "7": t("pages.leaderboard.time_periods.last_7_days"),
-      "30": t("pages.leaderboard.time_periods.last_30_days"),
+      "0":
+        category.value === "elo"
+          ? t("pages.leaderboard.time_periods.current")
+          : t("pages.leaderboard.time_periods.all_time"),
+      "7":
+        category.value === "elo"
+          ? t("pages.leaderboard.time_periods.days_7")
+          : t("pages.leaderboard.time_periods.last_7_days"),
+      "30":
+        category.value === "elo"
+          ? t("pages.leaderboard.time_periods.days_30")
+          : t("pages.leaderboard.time_periods.last_30_days"),
+      peak: t("pages.leaderboard.time_periods.peak"),
     }[scope.value] ?? t("pages.leaderboard.time_periods.all_time")
   );
 });
@@ -458,7 +489,9 @@ const config = computed(() => CATEGORY_CONFIG[category.value]);
 const columnLabels = computed(() => {
   const cols = config.value.columns;
   return {
-    value: t(cols.value),
+    value: isPeakElo.value
+      ? t("pages.leaderboard.col.peak_elo")
+      : t(cols.value),
     secondary_value: cols.secondary_value ? t(cols.secondary_value) : null,
     tertiary_value: cols.tertiary_value ? t(cols.tertiary_value) : null,
     matches_played: cols.matches_played ? t(cols.matches_played) : null,
@@ -473,9 +506,24 @@ const columnGlossary = computed<Partial<Record<SortField, string>>>(
 
 const offset = computed(() => (page.value - 1) * perPage.value);
 
+const defaultSortField = computed<SortField>(() =>
+  isRollingElo.value ? "secondary_value" : "value",
+);
+const effectiveSortField = computed<SortField | null>(
+  () =>
+    sortBy.value ??
+    (category.value === "elo" ? defaultSortField.value : null),
+);
+const effectiveSortDir = computed<"asc" | "desc">(() =>
+  sortBy.value ? sortDir.value : "desc",
+);
+
 const orderBy = computed(() => {
   if (sortBy.value) {
     return [{ [sortBy.value]: sortDir.value }];
+  }
+  if (isRollingElo.value) {
+    return [{ secondary_value: "desc" }, { value: "desc" }];
   }
   if (category.value === "trophies") {
     return [
@@ -492,6 +540,7 @@ const queryVariables = computed(() => ({
   category: category.value,
   window_days: derivedWindowDays.value,
   season_id: derivedSeasonId.value,
+  elo_view: eloView.value,
   match_type: matchType.value === "all" ? null : matchType.value,
   exclude_tournaments: Boolean(excludeTournaments.value),
   role:
@@ -512,8 +561,8 @@ function statTier(field: SortField): StatTierConfig | undefined {
 }
 
 function sortIcon(field: SortField) {
-  if (sortBy.value !== field) return ArrowUpDown;
-  return sortDir.value === "asc" ? ArrowUp : ArrowDown;
+  if (effectiveSortField.value !== field) return ArrowUpDown;
+  return effectiveSortDir.value === "asc" ? ArrowUp : ArrowDown;
 }
 
 function toggleSort(field: SortField) {
@@ -576,6 +625,7 @@ async function alignPageToHighlightedPlayer(): Promise<boolean> {
         category: category.value,
         window_days: derivedWindowDays.value,
         season_id: derivedSeasonId.value,
+        elo_view: eloView.value,
         match_type: matchType.value === "all" ? null : matchType.value,
         exclude_tournaments: Boolean(excludeTournaments.value),
         player_steam_id: sid,
@@ -674,6 +724,7 @@ function formatValue(value: number): string {
 }
 
 function formatSecondary(value: number | null): string {
+  if (isPeakElo.value) return "—";
   if (value == null) return "—";
   if (category.value === "elo") {
     const rounded = Math.round(value);
@@ -723,9 +774,27 @@ watch(category, () => {
   if (!supportsRole.value && roleFilter.value !== "all") {
     roleFilter.value = "all";
   }
+  if (category.value !== "elo" && scope.value === "peak") {
+    scope.value = "0";
+    return;
+  }
   onFilterChange();
 });
-watch(scope, onFilterChange);
+watch(scope, () => {
+  if (category.value === "elo") {
+    sortBy.value = null;
+    sortDir.value = "desc";
+  }
+  const routePeriod = Array.isArray(route.query.period)
+    ? route.query.period[0]
+    : route.query.period;
+  if (routePeriod !== scope.value) {
+    void router.replace({
+      query: { ...route.query, period: scope.value },
+    });
+  }
+  onFilterChange();
+});
 watch(matchType, onFilterChange);
 watch(excludeTournaments, onFilterChange);
 watch(roleFilter, onFilterChange);
@@ -881,14 +950,23 @@ onMounted(async () => {
               </div>
             </SelectItem>
             <SelectItem value="0">{{
-              $t("pages.leaderboard.time_periods.all_time")
+              category === "elo"
+                ? $t("pages.leaderboard.time_periods.current")
+                : $t("pages.leaderboard.time_periods.all_time")
             }}</SelectItem>
             <SelectItem value="7">{{
-              $t("pages.leaderboard.time_periods.last_7_days")
+              category === "elo"
+                ? $t("pages.leaderboard.time_periods.days_7")
+                : $t("pages.leaderboard.time_periods.last_7_days")
             }}</SelectItem>
             <SelectItem value="30">{{
-              $t("pages.leaderboard.time_periods.last_30_days")
+              category === "elo"
+                ? $t("pages.leaderboard.time_periods.days_30")
+                : $t("pages.leaderboard.time_periods.last_30_days")
             }}</SelectItem>
+            <SelectItem v-if="category === 'elo'" value="peak">
+              {{ $t("pages.leaderboard.time_periods.peak") }}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -998,14 +1076,23 @@ onMounted(async () => {
                     >
                   </SelectItem>
                   <SelectItem value="0">{{
-                    $t("pages.leaderboard.time_periods.all_time")
+                    category === "elo"
+                      ? $t("pages.leaderboard.time_periods.current")
+                      : $t("pages.leaderboard.time_periods.all_time")
                   }}</SelectItem>
                   <SelectItem value="7">{{
-                    $t("pages.leaderboard.time_periods.last_7_days")
+                    category === "elo"
+                      ? $t("pages.leaderboard.time_periods.days_7")
+                      : $t("pages.leaderboard.time_periods.last_7_days")
                   }}</SelectItem>
                   <SelectItem value="30">{{
-                    $t("pages.leaderboard.time_periods.last_30_days")
+                    category === "elo"
+                      ? $t("pages.leaderboard.time_periods.days_30")
+                      : $t("pages.leaderboard.time_periods.last_30_days")
                   }}</SelectItem>
+                  <SelectItem v-if="category === 'elo'" value="peak">
+                    {{ $t("pages.leaderboard.time_periods.peak") }}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>

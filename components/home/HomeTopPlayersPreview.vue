@@ -51,6 +51,7 @@ const TOP_PLAYERS_QUERY = gql`
     $exclude_tournaments: Boolean!
     $role: String
     $season_id: uuid
+    $elo_view: String!
     $limit: Int
     $offset: Int
     $order_by: [leaderboard_entries_order_by!]
@@ -63,6 +64,7 @@ const TOP_PLAYERS_QUERY = gql`
         _exclude_tournaments: $exclude_tournaments
         _role: $role
         _season_id: $season_id
+        _elo_view: $elo_view
       }
       limit: $limit
       offset: $offset
@@ -82,6 +84,7 @@ const TOP_PLAYERS_QUERY = gql`
         _exclude_tournaments: $exclude_tournaments
         _role: $role
         _season_id: $season_id
+        _elo_view: $elo_view
       }
       limit: $limit
       offset: $offset
@@ -101,6 +104,7 @@ const TOP_PLAYERS_QUERY = gql`
         _exclude_tournaments: $exclude_tournaments
         _role: $role
         _season_id: $season_id
+        _elo_view: $elo_view
       }
       limit: $limit
       offset: $offset
@@ -126,13 +130,13 @@ let fetchGeneration = 0;
 const activeState = computed(() => modeStates.value[selectedMode.value]);
 const leaderboardLink = computed(() => ({
   path: "/leaderboard",
-  query: { type: selectedMode.value },
+  query: { tab: "elo", period: "0", type: selectedMode.value },
 }));
 
 function leaderboardLinkFor(mode: LeaderboardMode) {
   return {
     path: "/leaderboard",
-    query: { type: mode },
+    query: { tab: "elo", period: "0", type: mode },
   };
 }
 
@@ -173,6 +177,7 @@ async function fetchTopPlayers() {
         exclude_tournaments: false,
         role: null,
         season_id: null,
+        elo_view: "current",
         limit: 5,
         offset: 0,
         order_by: [{ value: "desc" }],
@@ -232,7 +237,7 @@ void fetchTopPlayers();
           Top Players
         </h3>
         <p class="mt-0.5 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted-foreground">
-          {{ selectedMode }} · All time
+          {{ selectedMode }} · Current
         </p>
       </div>
     </div>
@@ -400,7 +405,7 @@ void fetchTopPlayers();
           <p
             class="mt-0.5 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted-foreground"
           >
-            Top 5 · All time
+            Top 5 · Current
           </p>
         </div>
       </div>

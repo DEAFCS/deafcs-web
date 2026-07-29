@@ -2820,7 +2820,11 @@
       "time_periods": {
         "last_7_days": "最近 7 天",
         "last_30_days": "最近 30 天",
-        "all_time": "全部时间"
+        "all_time": "全部时间",
+        "current": "当前",
+        "days_7": "7天",
+        "days_30": "30天",
+        "peak": "巅峰"
       },
       "match_types": {
         "all": "全部类型",
@@ -2842,6 +2846,7 @@
       },
       "col": {
         "elo": "ELO",
+        "peak_elo": "巅峰 ELO",
         "elo_change": "ELO 变化",
         "win_streak": "连胜",
         "kdr": "K/D 比率",

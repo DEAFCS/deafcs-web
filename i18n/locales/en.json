@@ -2922,7 +2922,11 @@
       "time_periods": {
         "last_7_days": "Last 7 Days",
         "last_30_days": "Last 30 Days",
-        "all_time": "All Time"
+        "all_time": "All Time",
+        "current": "Current",
+        "days_7": "7 Days",
+        "days_30": "30 Days",
+        "peak": "Peak"
       },
       "match_types": {
         "all": "All Types",
@@ -2944,6 +2948,7 @@
       },
       "col": {
         "elo": "ELO",
+        "peak_elo": "Peak ELO",
         "elo_change": "ELO Change",
         "win_streak": "Win Streak",
         "kdr": "K/D Ratio",

@@ -17,6 +17,7 @@ const RANK_QUERY = gql`
     $window_days: Int!
     $match_type: String
     $exclude_tournaments: Boolean!
+    $elo_view: String!
     $player_steam_id: String!
   ) {
     get_player_leaderboard_rank(
@@ -25,6 +26,7 @@ const RANK_QUERY = gql`
         _window_days: $window_days
         _match_type: $match_type
         _exclude_tournaments: $exclude_tournaments
+        _elo_view: $elo_view
         _player_steam_id: $player_steam_id
       }
     ) {
@@ -53,6 +55,7 @@ async function fetchRank() {
         window_days: 0,
         match_type: props.matchType ?? "Competitive",
         exclude_tournaments: false,
+        elo_view: "current",
         player_steam_id: props.playerSteamId,
       },
       fetchPolicy: "cache-first",
