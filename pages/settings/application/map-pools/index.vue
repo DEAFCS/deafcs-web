@@ -73,7 +73,7 @@ const { isMobile } = useSidebar();
               {{ $t("pages.map_pools.pool.pool_heading", { type: pool.type }) }}
             </h2>
             <p class="text-sm text-muted-foreground mt-1">
-              {{ pool.maps.map((map) => map.label || map.name).join(", ") }}
+              {{ pool.maps.map((map) => map.name).join(", ") }}
             </p>
           </div>
           <Button variant="secondary" size="sm" as-child>
