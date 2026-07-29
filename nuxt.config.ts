@@ -53,6 +53,35 @@ export default defineNuxtConfig({
         { name: "twitter:description", content: description },
         { name: "twitter:image", content: image },
       ],
+      link: [
+        {
+          rel: "icon",
+          type: "image/x-icon",
+          href: "/favicon.ico?v=deafcs-1",
+        },
+        {
+          rel: "shortcut icon",
+          type: "image/x-icon",
+          href: "/favicon.ico?v=deafcs-1",
+        },
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "64x64",
+          href: "/favicon/64.png?v=deafcs-1",
+        },
+        {
+          rel: "icon",
+          type: "image/png",
+          sizes: "192x192",
+          href: "/favicon/192.png?v=deafcs-1",
+        },
+        {
+          rel: "apple-touch-icon",
+          sizes: "192x192",
+          href: "/favicon/192.png?v=deafcs-1",
+        },
+      ],
       htmlAttrs: {
         class: "dark",
         style: "background-color: hsl(240 10% 3.9%)",
@@ -259,21 +288,21 @@ export default defineNuxtConfig({
       suppressWarnings: true,
     },
     manifest: {
-      name: "5stack",
-      short_name: "5stack",
+      name: "DEAFCS",
+      short_name: "DEAFCS",
       icons: [
         {
-          src: "/favicon/64.png",
+          src: "/favicon/64.png?v=deafcs-1",
           sizes: "64x64",
           type: "image/png",
         },
         {
-          src: "/favicon/192.png",
+          src: "/favicon/192.png?v=deafcs-1",
           sizes: "192x192",
           type: "image/png",
         },
         {
-          src: "/favicon/512.png",
+          src: "/favicon/512.png?v=deafcs-1",
           sizes: "512x512",
           type: "image/png",
           purpose: "any",

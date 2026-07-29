@@ -68,14 +68,14 @@ export default defineEventHandler(async (event) => {
 
   const get = (name: string) => settings.find((s) => s.name === name)?.value;
 
-  const brandName = get("public.brand_name") || "5Stack";
+  const brandName = get("public.brand_name") || "DEAFCS";
   const pwaIcon = get("public.pwa_icon");
   const faviconUrl = get("public.favicon_url");
 
   // Icon source priority:
   //   1. The dedicated PWA icon (API-generated 192/512 PNGs) — best.
   //   2. A raster favicon (only if usable at install sizes).
-  //   3. The bundled 5Stack icons.
+  //   3. The bundled DEAFCS icons.
   // Cross-origin icons (API origin) are allowed; only the manifest itself must
   // be same-origin.
   let icons;
@@ -95,9 +95,13 @@ export default defineEventHandler(async (event) => {
     ];
   } else {
     icons = [
-      { src: "/favicon/192.png", sizes: "192x192", type: "image/png" },
       {
-        src: "/favicon/512.png",
+        src: "/favicon/192.png?v=deafcs-1",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "/favicon/512.png?v=deafcs-1",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
