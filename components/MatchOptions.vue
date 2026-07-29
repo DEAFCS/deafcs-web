@@ -2,7 +2,7 @@
 import MapDisplay from "~/components/MapDisplay.vue";
 import { FormControl } from "~/components/ui/form";
 import { Separator } from "~/components/ui/separator";
-import { Info, ExternalLink } from "lucide-vue-next";
+import { Info } from "lucide-vue-next";
 import {
   Check,
   ChevronsUpDown,
@@ -142,16 +142,6 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                             : $t("match.options.map_veto_settings.short_off")
                         }}
                       </span>
-                      <a
-                        href="https://docs.5stack.gg/features/map-veto"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        class="inline-flex items-center gap-0.5 text-[hsl(var(--tac-amber))] underline underline-offset-2 hover:text-[hsl(var(--tac-amber)/0.8)]"
-                        @click.stop
-                      >
-                        {{ $t("match.options.map_veto_settings.learn_more") }}
-                        <ExternalLink class="h-3 w-3" />
-                      </a>
                     </FormDescription>
                   </FormItem>
                 </FormField>
