@@ -246,6 +246,7 @@ export default {
           },
         ],
       }),
+      fetchPolicy: "network-only",
     },
   },
   methods: {

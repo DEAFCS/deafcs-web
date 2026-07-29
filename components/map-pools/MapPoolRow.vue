@@ -123,7 +123,7 @@ export default {
   methods: {
     async togglePoolType(map: Map, type: e_match_types_enum) {
       if (map.poolTypes.includes(type)) {
-        await this.$apollo.mutate({
+        const result = await this.$apollo.mutate({
           mutation: generateMutation({
             update_maps: [
               {
@@ -141,10 +141,39 @@ export default {
               },
               {
                 affected_rows: true,
+                returning: [{}, { id: true }],
               },
             ],
           }),
         });
+
+        // A disabled map's row also stops being selectable in the pool
+        // editor (it only lists enabled maps), so without this it would
+        // stay stuck as an unremovable member of every pool it was in.
+        // map.id can't be used here — it's an aggregate id for the map
+        // name across all its per-type rows, not necessarily this one.
+        const disabledMapIds = (result.data?.update_maps?.returning ?? []).map(
+          (m: { id: string }) => m.id,
+        );
+        if (disabledMapIds.length > 0) {
+          await this.$apollo.mutate({
+            mutation: generateMutation({
+              delete__map_pool: [
+                {
+                  where: {
+                    map_id: {
+                      _in: disabledMapIds,
+                    },
+                  },
+                },
+                {
+                  affected_rows: true,
+                },
+              ],
+            }),
+          });
+        }
+
         toast({
           title: this.$t("pages.map_pool.toggle_pool_type"),
         });

@@ -99,6 +99,7 @@ export default {
           id: this.$route.params.id,
         };
       },
+      fetchPolicy: "network-only",
     },
   },
   computed: {
