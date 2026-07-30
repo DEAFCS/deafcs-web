@@ -1,5 +1,10 @@
 {
     "pages": {
+        "leaderboard": {
+            "col": {
+                "last_match": "Останній матч"
+            }
+        },
         "system_metrics": {
             "node": "Вузол",
             "cpu_usage": "Використання ЦП",

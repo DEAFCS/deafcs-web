@@ -1,5 +1,10 @@
 {
     "pages": {
+        "leaderboard": {
+            "col": {
+                "last_match": "直近の試合"
+            }
+        },
         "system_metrics": {
             "node": "ノード",
             "cpu_usage": "CPU使用率",

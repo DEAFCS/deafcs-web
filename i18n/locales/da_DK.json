@@ -1,5 +1,10 @@
 {
     "pages": {
+        "leaderboard": {
+            "col": {
+                "last_match": "Seneste kamp"
+            }
+        },
         "system_metrics": {
             "node": "Node",
             "cpu_usage": "CPU-forbrug",

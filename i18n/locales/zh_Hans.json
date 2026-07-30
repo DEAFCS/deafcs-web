@@ -2848,6 +2848,7 @@
         "elo": "ELO",
         "peak_elo": "巅峰 ELO",
         "elo_change": "ELO 变化",
+        "last_match": "最近一场",
         "win_streak": "连胜",
         "kdr": "K/D 比率",
         "kills": "击杀",

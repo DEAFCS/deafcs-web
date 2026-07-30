@@ -3,6 +3,11 @@
         "items_per_page": "每頁項目數"
     },
     "pages": {
+        "leaderboard": {
+            "col": {
+                "last_match": "最近一場"
+            }
+        },
         "system_metrics": {
             "node": "節點",
             "cpu_usage": "CPU 使用率",

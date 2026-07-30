@@ -492,7 +492,12 @@ const columnLabels = computed(() => {
     value: isPeakElo.value
       ? t("pages.leaderboard.col.peak_elo")
       : t(cols.value),
-    secondary_value: cols.secondary_value ? t(cols.secondary_value) : null,
+    secondary_value:
+      category.value === "elo" && scope.value === "0"
+        ? t("pages.leaderboard.col.last_match")
+        : cols.secondary_value
+          ? t(cols.secondary_value)
+          : null,
     tertiary_value: cols.tertiary_value ? t(cols.tertiary_value) : null,
     matches_played: cols.matches_played ? t(cols.matches_played) : null,
   };
@@ -741,6 +746,19 @@ function formatSecondary(value: number | null): string {
     default:
       return Math.round(value).toLocaleString();
   }
+}
+
+function secondaryValueClass(value: number | null): string | undefined {
+  if (trophyTierColor("secondary_value")) return undefined;
+  const usesEloChangeColor =
+    category.value === "elo" &&
+    (scope.value === "0" || scope.value === "7" || scope.value === "30");
+  if (!usesEloChangeColor || value == null) return "text-muted-foreground";
+
+  const rounded = Math.round(value);
+  if (rounded > 0) return "text-success";
+  if (rounded < 0) return "text-destructive";
+  return "text-muted-foreground";
 }
 
 function formatTertiary(value: number | null): string {
@@ -1288,6 +1306,8 @@ onMounted(async () => {
                   :class="{
                     'cursor-pointer select-none hover:text-foreground':
                       isSortable('value'),
+                    'text-[hsl(var(--tac-amber))]':
+                      effectiveSortField === 'value',
                   }"
                   @click="toggleSort('value')"
                 >
@@ -1327,6 +1347,8 @@ onMounted(async () => {
                   :class="{
                     'cursor-pointer select-none hover:text-foreground':
                       isSortable('secondary_value'),
+                    'text-[hsl(var(--tac-amber))]':
+                      effectiveSortField === 'secondary_value',
                   }"
                   @click="toggleSort('secondary_value')"
                 >
@@ -1368,6 +1390,8 @@ onMounted(async () => {
                   :class="{
                     'cursor-pointer select-none hover:text-foreground':
                       isSortable('tertiary_value'),
+                    'text-[hsl(var(--tac-amber))]':
+                      effectiveSortField === 'tertiary_value',
                   }"
                   @click="toggleSort('tertiary_value')"
                 >
@@ -1401,6 +1425,8 @@ onMounted(async () => {
                   :class="{
                     'cursor-pointer select-none hover:text-foreground':
                       isSortable('matches_played'),
+                    'text-[hsl(var(--tac-amber))]':
+                      effectiveSortField === 'matches_played',
                   }"
                   @click="toggleSort('matches_played')"
                 >
@@ -1508,10 +1534,7 @@ onMounted(async () => {
                   <TableCell
                     v-if="columnLabels.secondary_value"
                     class="text-right font-mono tabular-nums"
-                    :class="{
-                      'text-muted-foreground':
-                        !trophyTierColor('secondary_value'),
-                    }"
+                    :class="secondaryValueClass(entry.secondary_value)"
                     :style="
                       trophyTierColor('secondary_value')
                         ? { color: trophyTierColor('secondary_value') }

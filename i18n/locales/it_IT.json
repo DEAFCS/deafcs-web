@@ -1,5 +1,10 @@
 {
     "pages": {
+        "leaderboard": {
+            "col": {
+                "last_match": "Ultima partita"
+            }
+        },
         "system_metrics": {
             "node": "Nodo",
             "cpu_usage": "Utilizzo CPU",

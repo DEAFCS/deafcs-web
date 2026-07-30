@@ -3125,6 +3125,7 @@
         "elo": "ELO",
         "peak_elo": "ELO máximo",
         "elo_change": "Mudança no ELO",
+        "last_match": "Última partida",
         "win_streak": "Sequência de Vitórias",
         "kdr": "KDR",
         "kills": "Kills",
