@@ -1226,5 +1226,8 @@
                 "revert": "Error reverting config to defaults"
             }
         }
-    }
+    },
+  "awards": {"title":"Ödüller","mvp":"MVP","first_place":"1. Sira","second_place":"2. Sira","third_place":"3. Sira","tournament":"Turnuva","placement":"Siralama","no_awards":"Henüz Ödül Yok","no_awards_description":"Bu vitrini doldurmak için bir turnuvada ilk 3\u0027e gir ya da bir ödül kazan.","granted":"Verildi","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award…","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award…","editing":"Editing: {name}"}},
+  "awards_modal": {"view_tournament":"TURNUVAYI GÖRÜNTÜLE"},
+  "awards_manage_form": {"team":"Takim","player":"Oyuncu","award":"Ödül","recipient":"Recipient"}
 }

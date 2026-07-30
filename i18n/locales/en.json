@@ -7081,5 +7081,8 @@
       "axis_hs": "HS%",
       "axis_assist": "Assist"
     }
-  }
+  },
+  "awards": {"title":"Awards","mvp":"MVP","first_place":"1st Place","second_place":"2nd Place","third_place":"3rd Place","tournament":"Tournament","placement":"Placement","no_awards":"No Awards Yet","no_awards_description":"Finish in the top 3 of a tournament, or be granted an award, to fill this case.","granted":"Granted","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award…","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award…","editing":"Editing: {name}"}},
+  "awards_modal": {"view_tournament":"VIEW TOURNAMENT"},
+  "awards_manage_form": {"team":"Team","player":"Player","award":"Award","recipient":"Recipient"}
 }

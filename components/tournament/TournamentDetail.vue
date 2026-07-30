@@ -12,8 +12,8 @@ import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
-import TournamentTrophiesConfig from "~/components/tournament/TournamentTrophiesConfig.vue";
-import TournamentTrophiesManage from "~/components/tournament/TournamentTrophiesManage.vue";
+import TournamentAwardsConfig from "~/components/tournament/TournamentAwardsConfig.vue";
+import TournamentAwardsManage from "~/components/tournament/TournamentAwardsManage.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchOptionsDisplay from "~/components/match/MatchOptionsDisplay.vue";
@@ -774,8 +774,8 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
         <TabsContent value="trophies" v-if="tournament?.is_organizer">
           <PageTransition>
             <div class="flex flex-col gap-4">
-              <TournamentTrophiesConfig :tournament="tournament" />
-              <TournamentTrophiesManage :tournament="tournament" />
+              <TournamentAwardsConfig :tournament="tournament" />
+              <TournamentAwardsManage :tournament="tournament" />
             </div>
           </PageTransition>
         </TabsContent>

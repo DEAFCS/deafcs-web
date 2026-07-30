@@ -36,7 +36,7 @@ import Pagination from "~/components/Pagination.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
-import TrophyCase from "~/components/trophy/TrophyCase.vue";
+import AwardCase from "~/components/award/AwardCase.vue";
 import TeamCareerStats from "~/components/team/TeamCareerStats.vue";
 import TeamVetoStats from "~/components/team/TeamVetoStats.vue";
 import TeamVetoSimulator from "~/components/team/TeamVetoSimulator.vue";
@@ -207,7 +207,7 @@ const teamHeroActionsClasses =
     v-if="teamTrophies && teamTrophies.length > 0"
     class="mt-6"
   >
-    <TrophyCase :trophies="teamTrophies" :hide-mvp="true" />
+    <AwardCase :trophies="teamTrophies" :hide-mvp="true" />
   </PageTransition>
 
   <Tabs v-if="team" v-model="tab" class="mt-6 w-full">
@@ -421,7 +421,7 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { simpleMatchFields } from "~/graphql/simpleMatchFields";
 import { playerFields } from "~/graphql/playerFields";
-import { trophyFields } from "~/graphql/trophyFields";
+import { awardFields } from "~/graphql/awardFields";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 
 const VALID_TABS = ["overview", "stats", "highlights", "scrim"];
@@ -596,7 +596,7 @@ export default {
                 },
               },
             },
-            trophyFields,
+            awardFields,
           ],
         }),
         variables: function () {

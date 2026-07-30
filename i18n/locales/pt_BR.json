@@ -7518,5 +7518,8 @@
       "axis_hs": "HS%",
       "axis_assist": "AssistÃªncia"
     }
-  }
+  },
+  "awards": {"title":"Prêmios e Títulos","gold":"Ouro","silver":"Prata","bronze":"Bronze","mvp":"MVP","first_place":"1º Lugar","second_place":"2º Lugar","third_place":"3º Lugar","tournament":"Torneio","placement":"Posicionamento","teammates":"Companheiros de Equipe","no_awards":"Ainda sem troféus","no_awards_description":"Termine como TOP3 em um torneio para ganhar um título a ser exibido em seu perfil.","granted":"MVP","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award…","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award…","editing":"Editing: {name}"}},
+  "awards_modal": {"view_tournament":"VER TORNEIO"},
+  "awards_manage_form": {"team":"Equipe","player":"Jogador","select_team":"Selecionar equipe…","select_player":"Selecionar jogador…","award":"Equipe","recipient":"Recipient"}
 }

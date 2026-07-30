@@ -1459,5 +1459,8 @@
     "demo_network_limiter": {
         "network_limit": "Limite rÃ©seau (Mbps)",
         "unlimited": "IllimitÃ©"
-    }
+    },
+  "awards": {"title":"Récompenses","mvp":"MVP","first_place":"1re place","second_place":"2e place","third_place":"3e place","tournament":"Tournoi","placement":"Classement","no_awards":"Aucune récompense pour l\u0027instant","no_awards_description":"Termine dans le top 3 d\u0027un tournoi, ou reçois une récompense, pour remplir cette vitrine.","granted":"Attribuée","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award…","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award…","editing":"Editing: {name}"}},
+  "awards_modal": {"view_tournament":"VOIR LE TOURNOI"},
+  "awards_manage_form": {"team":"Équipe","player":"Joueur","award":"Récompense","recipient":"Recipient"}
 }

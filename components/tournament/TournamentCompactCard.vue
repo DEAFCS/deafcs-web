@@ -9,7 +9,7 @@ import {
   UsersRound,
 } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
-import TrophyBadge from "~/components/trophy/TrophyBadge.vue";
+import AwardBadge from "~/components/award/AwardBadge.vue";
 import {
   matchTypeColorStyle,
   matchTypeLabel,
@@ -375,7 +375,7 @@ const runnerUps = computed(() => {
         <div
           class="relative grid h-14 w-14 shrink-0 place-items-center rounded-md border border-[hsl(var(--tac-amber)/0.4)] bg-[radial-gradient(ellipse_at_center,hsl(var(--tac-amber)/0.18)_0%,transparent_70%)]"
         >
-          <TrophyBadge
+          <AwardBadge
             v-if="trophiesEnabled"
             :tournament-id="tournament.id"
             :placement="1"
@@ -419,7 +419,7 @@ const runnerUps = computed(() => {
           :key="entry.placement"
           class="flex items-center gap-2"
         >
-          <TrophyBadge
+          <AwardBadge
             v-if="trophiesEnabled"
             :tournament-id="tournament.id"
             :placement="entry.placement"

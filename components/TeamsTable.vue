@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
-import TrophyBadge from "~/components/trophy/TrophyBadge.vue";
+import AwardBadge from "~/components/award/AwardBadge.vue";
 import {
   Tooltip,
   TooltipContent,
@@ -138,7 +138,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                   :aria-label="trophyAriaLabel(trophy)"
                   @click.stop.prevent="goToTournament(trophy.tournament_id)"
                 >
-                  <TrophyBadge
+                  <AwardBadge
                     :tournament-id="trophy.tournament_id"
                     :placement="trophy.placement"
                     :tournament-name="trophy.tournament?.name"

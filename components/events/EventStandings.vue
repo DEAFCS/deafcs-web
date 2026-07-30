@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { computed, ref, watch, onMounted } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { Users } from "lucide-vue-next";
-import TrophyBadge from "~/components/trophy/TrophyBadge.vue";
+import AwardBadge from "~/components/award/AwardBadge.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { Skeleton } from "~/components/ui/skeleton";
 import Empty from "~/components/ui/empty/Empty.vue";
@@ -309,7 +309,7 @@ const medalTable = computed<MedalRow[]>(() => {
                   :key="trophy.id"
                   class="flex flex-col items-center gap-1"
                 >
-                  <TrophyBadge
+                  <AwardBadge
                     :tournament-id="tournament.id"
                     :placement="trophy.placement"
                     :tournament-name="tournament.name"

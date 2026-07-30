@@ -1460,5 +1460,8 @@
     "demo_network_limiter": {
         "network_limit": "NÃ¤tverksgrÃ¤ns (Mbps)",
         "unlimited": "ObegrÃ¤nsad"
-    }
+    },
+  "awards": {"title":"Utmärkelser","mvp":"MVP","first_place":"1:a plats","second_place":"2:a plats","third_place":"3:e plats","tournament":"Turnering","placement":"Placering","no_awards":"Inga utmärkelser än","no_awards_description":"Placera dig topp 3 i en turnering, eller få en utmärkelse tilldelad, för att fylla den här montern.","granted":"Tilldelad","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award…","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award…","editing":"Editing: {name}"}},
+  "awards_modal": {"view_tournament":"VISA TURNERING"},
+  "awards_manage_form": {"team":"Lag","player":"Spelare","award":"Utmärkelse","recipient":"Recipient"}
 }

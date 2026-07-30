@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchTableRow from "~/components/MatchTableRow.vue";
-import TrophyBadge from "~/components/trophy/TrophyBadge.vue";
+import AwardBadge from "~/components/award/AwardBadge.vue";
 import StageStandings from "~/components/tournament/StageStandings.vue";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
@@ -90,7 +90,7 @@ function playerAvatarSrc(player: {
                   }"
                   aria-hidden="true"
                 ></div>
-                <TrophyBadge
+                <AwardBadge
                   :tournament-id="tournament.id"
                   :placement="entry.placement"
                   :tournament-name="tournament.name"
@@ -294,7 +294,7 @@ function playerAvatarSrc(player: {
               }"
               aria-hidden="true"
             ></div>
-            <TrophyBadge
+            <AwardBadge
               :tournament-id="tournament.id"
               :placement="0"
               :tournament-name="tournament.name"

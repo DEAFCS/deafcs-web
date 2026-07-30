@@ -25,7 +25,7 @@ const showDemoUpload = ref(false);
 import Pagination from "~/components/Pagination.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import RecentTournaments from "~/components/tournament/RecentTournaments.vue";
-import TrophyCase from "~/components/trophy/TrophyCase.vue";
+import AwardCase from "~/components/award/AwardCase.vue";
 import { CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { e_player_roles_enum } from "~/generated/zeus";
@@ -2121,7 +2121,7 @@ const playerHeroTeamChipDotClasses =
       :delay="50"
       v-if="playerTrophies && playerTrophies.length > 0"
     >
-      <TrophyCase :trophies="playerTrophies" />
+      <AwardCase :trophies="playerTrophies" />
     </PageTransition>
 
     <PageTransition :delay="75" v-if="playerId">
@@ -2943,7 +2943,7 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { e_team_roles_enum } from "~/generated/zeus";
 import { playerFields } from "~/graphql/playerFields";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
-import { trophyFields } from "~/graphql/trophyFields";
+import { awardFields } from "~/graphql/awardFields";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 export default {
@@ -3068,7 +3068,7 @@ export default {
                 },
               },
             },
-            trophyFields,
+            awardFields,
           ],
         }),
         variables: function () {

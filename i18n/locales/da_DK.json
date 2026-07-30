@@ -1459,5 +1459,8 @@
     "demo_network_limiter": {
         "network_limit": "NetvÃ¦rksgrÃ¦nse (Mbps)",
         "unlimited": "UbegrÃ¦nset"
-    }
+    },
+  "awards": {"title":"Trofæer","mvp":"MVP","first_place":"1.-plads","second_place":"2.-plads","third_place":"3.-plads","tournament":"Turnering","placement":"Placering","no_awards":"Ingen trofæer endnu","no_awards_description":"Slut i top 3 i en turnering for at vinde et trofæ.","granted":"MVP","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award…","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award…","editing":"Editing: {name}"}},
+  "awards_modal": {"view_tournament":"SE TURNERING"},
+  "awards_manage_form": {"team":"Hold","player":"Spiller","award":"Hold","recipient":"Recipient"}
 }
