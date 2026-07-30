@@ -209,6 +209,26 @@ const nextInlineClip = computed<Clip | null>(() => {
   return list[index + 1] ?? null;
 });
 
+const previousInlineClip = computed<Clip | null>(() => {
+  if (!featuredClip.value) return null;
+  const list = filteredClips.value.length ? filteredClips.value : clips.value;
+  const index = list.findIndex((c) => c.id === featuredClip.value?.id);
+  if (index <= 0) return null;
+  return list[index - 1] ?? null;
+});
+
+function playPreviousInlineClip() {
+  if (previousInlineClip.value) {
+    void playInlineClip(previousInlineClip.value.id);
+  }
+}
+
+function playNextInlineClip() {
+  if (nextInlineClip.value) {
+    void playInlineClip(nextInlineClip.value.id);
+  }
+}
+
 // Switch the featured clip and ask the shared player to start playing.
 // ClipPlayer's `tryPlay` handles the audio-fallback dance internally.
 async function playInlineClip(id: string) {
@@ -298,10 +318,14 @@ function clipTeamName(c: Clip): string | null {
         :src="featuredClip.download_url"
         :poster="featuredClipImage"
         :clip-key="featuredClip.id"
+        :can-prev="!!previousInlineClip"
+        :can-next="!!nextInlineClip"
         @play="onInlinePlay"
         @pause="onInlinePause"
         @ended="onInlineEnded"
         @progress="onInlineProgress"
+        @prev="playPreviousInlineClip"
+        @next="playNextInlineClip"
       >
         <template #empty>
           <NuxtImg

@@ -28,7 +28,7 @@ const { t } = useI18n();
 // (featured clip) and the clip detail modal. Encapsulates: custom
 // play/pause overlay, hover-armed center button, auto-hide controls
 // during playback, audio toggle + volume slider, fullscreen, and the
-// thin amber progress bar. Consumers contribute their own chrome via
+// draggable amber seek bar. Consumers contribute their own chrome via
 // slots (top-left / top-right / bottom) so each surface keeps its
 // unique controls (share, edit pencil, player display, etc.) without
 // duplicating the player UX.
@@ -48,14 +48,18 @@ const props = withDefaults(
     clipKey?: string | number | null;
     // Initial muted state. After mount the component owns mute/volume.
     initialMuted?: boolean;
+    canPrev?: boolean;
+    canNext?: boolean;
   }>(),
-  { initialMuted: false },
+  { initialMuted: false, canPrev: false, canNext: false },
 );
 
 const emit = defineEmits<{
   play: [];
   pause: [];
   ended: [];
+  prev: [];
+  next: [];
   // Fires roughly every animation frame while playing. Lets the parent
   // implement near-end behavior (auto-advance) without polling itself.
   progress: [info: { progress: number; currentTime: number; duration: number }];
@@ -71,7 +75,21 @@ const playing = ref(false);
 const muted = ref(props.initialMuted);
 const volume = ref(1);
 const progress = ref(0);
+const duration = ref(0);
 const isFullscreen = ref(false);
+const seekEl = ref<HTMLElement | null>(null);
+const fullscreenButtonRef = ref<HTMLButtonElement | null>(null);
+const scrubbing = ref(false);
+const scrubFrac = ref<number | null>(null);
+const hoverFrac = ref<number | null>(null);
+let deferredEndedDuringScrub = false;
+let activeSeekPointerId: number | null = null;
+
+const hasDuration = computed(() => duration.value > 0);
+const displayFrac = computed(() => scrubFrac.value ?? progress.value);
+const displayedSeekSeconds = computed(() =>
+  Math.max(0, (scrubFrac.value ?? progress.value) * duration.value),
+);
 // Once playback has actually started we treat subsequent clipKey changes
 // as auto-advances and suppress the big center play/pause button so the
 // transition just shows the bottom-left clip chip. Resets only if the
@@ -102,10 +120,10 @@ function clearControlsTimer() {
 function bumpControls() {
   controlsVisible.value = true;
   clearControlsTimer();
-  if (!playing.value) return;
+  if (!playing.value || scrubbing.value) return;
   controlsHideTimer = setTimeout(() => {
     controlsHideTimer = null;
-    if (!playing.value) return;
+    if (!playing.value || scrubbing.value) return;
     if (showIntroOverlay.value) {
       bumpControls();
       return;
@@ -114,6 +132,7 @@ function bumpControls() {
   }, CONTROLS_HIDE_DELAY);
 }
 function hideControls() {
+  if (scrubbing.value) return;
   clearControlsTimer();
   if (playing.value && !showIntroOverlay.value) {
     controlsVisible.value = false;
@@ -132,7 +151,7 @@ watch(showIntroOverlay, (showing) => {
   if (showing) {
     clearControlsTimer();
     controlsVisible.value = true;
-  } else if (playing.value) {
+  } else if (playing.value && !scrubbing.value) {
     // Intro just ended while still playing — DON'T bumpControls here
     // (that would briefly re-show the center pause button for a beat
     // before fading out). Hide the chrome straight away; mouse activity
@@ -146,6 +165,10 @@ watch(
   () => props.clipKey,
   () => {
     progress.value = 0;
+    duration.value = 0;
+    scrubFrac.value = null;
+    hoverFrac.value = null;
+    deferredEndedDuringScrub = false;
     // Don't reset `playing` here — the new <video> element is paused
     // naturally on mount and its @play event will flip the ref to true
     // as soon as playback actually starts. Resetting synchronously caused
@@ -172,6 +195,7 @@ function emitProgressSnapshot() {
   if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
     return;
   }
+  if (scrubbing.value) return;
   emit("progress", {
     progress: progress.value,
     currentTime: video.currentTime,
@@ -189,8 +213,11 @@ function syncProgress() {
   const video = videoRef.value;
   if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
     progress.value = 0;
+    duration.value = 0;
     return;
   }
+  duration.value = video.duration;
+  if (scrubbing.value) return;
   progress.value = Math.min(1, video.currentTime / video.duration);
   const now = Date.now();
   if (now - lastProgressEmitMs >= PROGRESS_EMIT_INTERVAL_MS) {
@@ -244,6 +271,10 @@ function onVideoEnded(e: Event) {
   playing.value = false;
   stopProgressLoop();
   progress.value = 1;
+  if (scrubbing.value) {
+    deferredEndedDuringScrub = true;
+    return;
+  }
   emitProgressSnapshot();
   emit("ended");
 }
@@ -353,6 +384,144 @@ function setVolume(value: number) {
   }
 }
 
+function formatTime(seconds: number) {
+  const total = Math.max(0, Math.floor(Number.isFinite(seconds) ? seconds : 0));
+  return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+}
+
+function fracFromPointer(e: PointerEvent) {
+  const rect = seekEl.value?.getBoundingClientRect();
+  if (!rect || rect.width <= 0) return null;
+  return Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
+}
+
+function seekToSeconds(seconds: number) {
+  const video = videoRef.value;
+  if (!video || !Number.isFinite(video.duration) || video.duration <= 0) return;
+  const nearEnd = Math.max(0, video.duration - 0.25);
+  const target = Math.min(Math.max(0, seconds), nearEnd);
+  if (target < nearEnd - 0.01) deferredEndedDuringScrub = false;
+  video.currentTime = target;
+  progress.value = video.duration > 0 ? target / video.duration : 0;
+}
+
+function seekToFrac(frac: number) {
+  seekToSeconds(frac * duration.value);
+}
+
+function removeSeekListeners() {
+  if (typeof window === "undefined") return;
+  window.removeEventListener("pointermove", onSeekMove);
+  window.removeEventListener("pointerup", onSeekUp);
+  window.removeEventListener("pointercancel", onSeekUp);
+}
+
+function onSeekMove(e: PointerEvent) {
+  if (!scrubbing.value || e.pointerId !== activeSeekPointerId) return;
+  const frac = fracFromPointer(e);
+  if (frac === null) return;
+  scrubFrac.value = frac;
+  hoverFrac.value = frac;
+  seekToFrac(frac);
+}
+
+function onSeekUp(e?: PointerEvent) {
+  if (
+    e &&
+    activeSeekPointerId !== null &&
+    e.pointerId !== activeSeekPointerId
+  ) {
+    return;
+  }
+  removeSeekListeners();
+  activeSeekPointerId = null;
+  if (!scrubbing.value) return;
+  scrubbing.value = false;
+  scrubFrac.value = null;
+  if (!e || e.pointerType !== "mouse") hoverFrac.value = null;
+  syncProgress();
+  bumpControls();
+  if (deferredEndedDuringScrub) {
+    deferredEndedDuringScrub = false;
+    emitProgressSnapshot();
+    emit("ended");
+  }
+}
+
+function onSeekDown(e: PointerEvent) {
+  if (e.button > 0 || !hasDuration.value || scrubbing.value) return;
+  const frac = fracFromPointer(e);
+  if (frac === null) return;
+  e.preventDefault();
+  e.stopPropagation();
+  scrubbing.value = true;
+  activeSeekPointerId = e.pointerId;
+  deferredEndedDuringScrub = false;
+  scrubFrac.value = frac;
+  hoverFrac.value = frac;
+  seekToFrac(frac);
+  bumpControls();
+  window.addEventListener("pointermove", onSeekMove);
+  window.addEventListener("pointerup", onSeekUp);
+  window.addEventListener("pointercancel", onSeekUp);
+}
+
+function onSeekHover(e: PointerEvent) {
+  if (scrubbing.value || !hasDuration.value) return;
+  hoverFrac.value = fracFromPointer(e);
+}
+
+function onSeekKeydown(e: KeyboardEvent) {
+  if (!hasDuration.value) return;
+  let target: number | null = null;
+  if (e.key === "ArrowLeft") target = displayedSeekSeconds.value - 5;
+  else if (e.key === "ArrowRight") target = displayedSeekSeconds.value + 5;
+  else if (e.key === "Home") target = 0;
+  else if (e.key === "End") target = duration.value;
+  if (target === null) return;
+  e.preventDefault();
+  e.stopPropagation();
+  seekToSeconds(target);
+  syncProgress();
+  bumpControls();
+}
+
+function isTypingTarget(target: EventTarget | null) {
+  return (
+    target instanceof HTMLInputElement ||
+    target instanceof HTMLTextAreaElement ||
+    target instanceof HTMLSelectElement ||
+    (target instanceof HTMLElement && target.isContentEditable)
+  );
+}
+
+function onStageKeydown(e: KeyboardEvent) {
+  if (e.altKey || e.ctrlKey || e.metaKey || isTypingTarget(e.target)) return;
+  const target = e.target as HTMLElement | null;
+  if (target?.closest("[role='slider']")) return;
+  if (target?.closest("button, a, [role='button']")) return;
+
+  const key = e.key.toLowerCase();
+  if (e.key === "ArrowLeft") {
+    if (!props.canPrev) return;
+    emit("prev");
+  } else if (e.key === "ArrowRight") {
+    if (!props.canNext) return;
+    emit("next");
+  } else if (key === " " || key === "k") {
+    void toggle();
+  } else if (key === "f") {
+    void toggleFullscreen();
+  } else if (key === "m") {
+    toggleMute();
+  } else {
+    return;
+  }
+
+  e.preventDefault();
+  e.stopPropagation();
+}
+
 type IosVideoEl = HTMLVideoElement & {
   webkitEnterFullscreen?: () => void;
   webkitExitFullscreen?: () => void;
@@ -381,8 +550,8 @@ function toggleNativeVideoFullscreen() {
     }
     return;
   }
-  // preload="none": webkitEnterFullscreen throws before metadata exists.
-  // Start playback and enter once it lands (still inside Safari's
+  // Metadata may still be in flight when the control is pressed. Start
+  // playback and enter once it lands (still inside Safari's
   // transient-activation window).
   video.addEventListener(
     "loadedmetadata",
@@ -448,8 +617,16 @@ function onFullscreenChange() {
   const doc = document as Document & {
     webkitFullscreenElement?: Element | null;
   };
+  const wasFullscreen = isFullscreen.value;
   const fsElement = doc.fullscreenElement ?? doc.webkitFullscreenElement;
   isFullscreen.value = fsElement === stageEl.value;
+  if (isFullscreen.value) {
+    stageEl.value?.focus({ preventScroll: true });
+  } else if (wasFullscreen) {
+    void nextTick().then(() =>
+      fullscreenButtonRef.value?.focus({ preventScroll: true }),
+    );
+  }
   if (!isFullscreen.value) {
     try {
       screen.orientation.unlock();
@@ -461,6 +638,9 @@ function onVideoWebkitBeginFullscreen() {
 }
 function onVideoWebkitEndFullscreen() {
   isFullscreen.value = false;
+  void nextTick().then(() =>
+    fullscreenButtonRef.value?.focus({ preventScroll: true }),
+  );
 }
 
 if (typeof document !== "undefined") {
@@ -513,6 +693,9 @@ watch(
 onBeforeUnmount(() => {
   stopProgressLoop();
   clearControlsTimer();
+  removeSeekListeners();
+  scrubbing.value = false;
+  activeSeekPointerId = null;
   if (introOverlayTimer) clearTimeout(introOverlayTimer);
   teardownVisibilityObserver();
   // Explicitly tear down playback before the element detaches. A
@@ -543,7 +726,8 @@ defineExpose({ play, pause, toggle, videoEl: videoRef, isFullscreen });
   <StreamCanvas
     ref="stageRef"
     :is-live="true"
-    class="group/player aspect-video w-full overflow-hidden rounded-md border border-border/60 text-left"
+    tabindex="-1"
+    class="group/player aspect-video w-full overflow-hidden rounded-md border border-border/60 text-left focus:outline-none"
     :class="
       isFullscreen
         ? 'flex items-center justify-center !aspect-auto !rounded-none !border-0'
@@ -552,6 +736,7 @@ defineExpose({ play, pause, toggle, videoEl: videoRef, isFullscreen });
     @mousemove="bumpControls"
     @mouseleave="hideControls"
     @touchstart="bumpControls"
+    @keydown="onStageKeydown"
   >
     <template #video>
       <!-- Crossfade clip swaps so next/prev and auto-advance don't hard-cut.
@@ -567,9 +752,10 @@ defineExpose({ play, pause, toggle, videoEl: videoRef, isFullscreen });
           class="absolute inset-0 h-full w-full cursor-pointer object-contain"
           :muted="muted"
           playsinline
-          preload="none"
+          preload="metadata"
           @ended="onVideoEnded"
           @loadedmetadata="syncProgress"
+          @seeked="syncProgress"
           @pause="onVideoPause"
           @play="onVideoPlay"
           @volumechange="onVideoVolumeChange"
@@ -644,7 +830,7 @@ defineExpose({ play, pause, toggle, videoEl: videoRef, isFullscreen });
     <!-- Audio + fullscreen tray — bottom-right, fixed. Volume slider
          expands on hover, mute hides the slider so muted-state isn't
          visually confusing. -->
-    <div class="absolute bottom-3 right-3 z-[3] flex items-center gap-2">
+    <div class="absolute bottom-3 right-3 z-[4] flex items-center gap-2">
       <div class="group/vol flex items-center">
         <button
           type="button"
@@ -670,6 +856,7 @@ defineExpose({ play, pause, toggle, videoEl: videoRef, isFullscreen });
         />
       </div>
       <button
+        ref="fullscreenButtonRef"
         type="button"
         class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/20 bg-black/70 text-white/85 backdrop-blur-md transition-colors hover:border-[hsl(var(--tac-amber)/0.55)] hover:text-[hsl(var(--tac-amber))]"
         :title="
@@ -684,15 +871,55 @@ defineExpose({ play, pause, toggle, videoEl: videoRef, isFullscreen });
       </button>
     </div>
 
-    <!-- Progress bar — thin amber strip glued to the bottom edge. -->
-    <span
-      class="pointer-events-none absolute inset-x-0 bottom-0 h-0.5 overflow-hidden bg-white/10"
+    <div
+      ref="seekEl"
+      role="slider"
+      :tabindex="hasDuration ? 0 : -1"
+      class="group/seek absolute inset-x-0 bottom-0 z-[3] flex h-11 touch-none select-none items-end px-1 pb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[hsl(var(--tac-amber)/0.75)]"
+      :class="
+        hasDuration
+          ? 'pointer-events-auto cursor-pointer'
+          : 'pointer-events-none'
+      "
+      :aria-label="$t('ui_extras.seek')"
+      :aria-disabled="!hasDuration"
+      aria-valuemin="0"
+      :aria-valuemax="Math.round(duration)"
+      :aria-valuenow="Math.round(displayedSeekSeconds)"
+      :aria-valuetext="`${formatTime(displayedSeekSeconds)} / ${formatTime(duration)}`"
+      @pointerdown="onSeekDown"
+      @pointermove="onSeekHover"
+      @pointerleave="hoverFrac = null"
+      @keydown="onSeekKeydown"
+      @click.stop
     >
-      <span
-        class="absolute inset-y-0 left-0 bg-[hsl(var(--tac-amber))] shadow-[0_0_12px_hsl(var(--tac-amber)/0.45)]"
-        :style="{ width: `${(progress * 100).toFixed(2)}%` }"
-      ></span>
-    </span>
+      <div
+        class="relative h-0.5 w-full rounded-full bg-white/15 transition-[height] duration-150 group-hover/seek:h-[5px] group-focus-visible/seek:h-[5px]"
+        :class="scrubbing ? '!h-[5px]' : ''"
+      >
+        <span
+          v-if="hoverFrac !== null && !scrubbing"
+          class="absolute inset-y-0 left-0 rounded-full bg-white/35"
+          :style="{ width: `${(hoverFrac * 100).toFixed(2)}%` }"
+        ></span>
+        <span
+          class="absolute inset-y-0 left-0 rounded-full bg-[hsl(var(--tac-amber))] shadow-[0_0_12px_hsl(var(--tac-amber)/0.45)]"
+          :style="{ width: `${(displayFrac * 100).toFixed(2)}%` }"
+        ></span>
+        <span
+          class="absolute top-1/2 h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/40 bg-[hsl(var(--tac-amber))] opacity-0 shadow-[0_0_10px_hsl(var(--tac-amber)/0.6)] transition-opacity duration-150 group-hover/seek:opacity-100 group-focus-visible/seek:opacity-100"
+          :class="scrubbing ? '!opacity-100' : ''"
+          :style="{ left: `${(displayFrac * 100).toFixed(2)}%` }"
+        ></span>
+        <span
+          v-if="hoverFrac !== null && hasDuration"
+          class="pointer-events-none absolute bottom-full mb-2 -translate-x-1/2 rounded border border-white/15 bg-black/85 px-1.5 py-0.5 font-mono text-[0.65rem] leading-none tabular-nums text-white/90 backdrop-blur-sm"
+          :style="{ left: `${(hoverFrac * 100).toFixed(2)}%` }"
+        >
+          {{ formatTime(hoverFrac * duration) }}
+        </span>
+      </div>
+    </div>
   </StreamCanvas>
 </template>
 

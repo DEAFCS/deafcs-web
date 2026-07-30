@@ -1,4 +1,7 @@
 {
+    "ui_extras": {
+        "seek": "播放位置"
+    },
     "pagination": {
         "items_per_page": "每頁項目數"
     },

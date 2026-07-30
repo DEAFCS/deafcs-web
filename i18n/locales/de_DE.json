@@ -1,4 +1,7 @@
 {
+    "ui_extras": {
+        "seek": "Im Video suchen"
+    },
     "pages": {
         "leaderboard": {
             "col": {

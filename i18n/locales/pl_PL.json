@@ -1,4 +1,7 @@
 {
+    "ui_extras": {
+        "seek": "Przewiń"
+    },
     "pages": {
         "leaderboard": {
             "col": {

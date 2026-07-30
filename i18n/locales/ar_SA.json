@@ -1,4 +1,7 @@
 {
+    "ui_extras": {
+        "seek": "التنقل في الفيديو"
+    },
     "pages": {
         "leaderboard": {
             "col": {

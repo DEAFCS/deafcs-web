@@ -1,4 +1,7 @@
 {
+    "ui_extras": {
+        "seek": "Sposta la riproduzione"
+    },
     "pages": {
         "leaderboard": {
             "col": {

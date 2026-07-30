@@ -1,4 +1,7 @@
 {
+    "ui_extras": {
+        "seek": "Videoda ara"
+    },
     "pages": {
         "leaderboard": {
             "col": {

@@ -1,4 +1,7 @@
 {
+    "ui_extras": {
+        "seek": "再生位置"
+    },
     "pages": {
         "leaderboard": {
             "col": {

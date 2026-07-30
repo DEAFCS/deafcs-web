@@ -747,8 +747,12 @@ onMounted(() => {
                   null
                 "
                 :clip-key="clip.id"
+                :can-prev="!!previousClip"
+                :can-next="!!nextClip"
                 @ended="onModalEnded"
                 @progress="onModalProgress"
+                @prev="openPreviousClip"
+                @next="openNextClip"
               >
                 <template #empty>
                   <div
