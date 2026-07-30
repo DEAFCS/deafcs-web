@@ -522,7 +522,7 @@ useHead({
         perPage = value;
         page = 1;
         saveFiltersToStorage();
-        searchPlayers();
+        queueSearch();
       }
     "
     :total="playersAggregate || 0"
@@ -534,6 +534,7 @@ useHead({
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import * as z from "zod";
+import debounce from "~/utilities/debounce";
 
 export default {
   data() {
@@ -545,6 +546,8 @@ export default {
       page: 1,
       perPage: this.loadFiltersFromStorage().perPage || 10,
       playersAggregate: 0,
+      searchToken: 0,
+      queueSearch: debounce(() => this.searchPlayers(), 150),
       sortField: this.loadFiltersFromStorage().sortField || "name",
       sortDirection: this.loadFiltersFromStorage().sortDirection || "asc",
       onlyPlayedMatches:
@@ -749,7 +752,7 @@ export default {
     page: {
       immediate: true,
       handler() {
-        this.searchPlayers();
+        this.queueSearch();
       },
     },
     "form.values.name": {
@@ -848,7 +851,7 @@ export default {
       this.sortDirection = "asc";
       this.page = 1;
       this.saveFiltersToStorage();
-      this.searchPlayers();
+      this.queueSearch();
     },
     toggleCountry(countryId: string) {
       const currentCountries = this.form.values.countries || [];
@@ -914,16 +917,16 @@ export default {
     onFilterChange() {
       this.page = 1;
       this.saveFiltersToStorage();
-      this.searchPlayers();
+      this.queueSearch();
     },
     toggleSort(field: "name" | "elo" | "last_sign_in_at") {
       if (this.sortField === field) {
         // If clicking the same column, toggle direction
         this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";
       } else {
-        // If clicking a different column, set it as active with default direction
+        // Names read best A-Z; ranked and dated columns read best highest-first.
         this.sortField = field;
-        this.sortDirection = "asc";
+        this.sortDirection = field === "name" ? "asc" : "desc";
       }
       this.saveFiltersToStorage();
     },
@@ -977,6 +980,7 @@ export default {
       return (kills / deaths).toFixed(2);
     },
     async searchPlayers() {
+      const token = ++this.searchToken;
       this.loading = true;
       this.saveFiltersToStorage();
 
@@ -1037,6 +1041,10 @@ export default {
           },
         });
 
+        if (token !== this.searchToken) {
+          return;
+        }
+
         const { found, hits } = response;
 
         this.playersAggregate = found || 0;
@@ -1044,11 +1052,16 @@ export default {
           return document;
         });
       } catch (error) {
+        if (token !== this.searchToken) {
+          return;
+        }
         console.error("Error searching players:", error);
         this.players = [];
         this.playersAggregate = 0;
       } finally {
-        this.loading = false;
+        if (token === this.searchToken) {
+          this.loading = false;
+        }
       }
     },
     getSortBy() {
