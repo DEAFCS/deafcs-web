@@ -71,7 +71,7 @@ const counts = computed(() => {
   return c;
 });
 
-function openAward(trophy: Trophy) {
+function openAward(trophy: Award) {
   selected.value = trophy;
   modalOpen.value = true;
 }

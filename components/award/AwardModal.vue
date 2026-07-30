@@ -47,7 +47,7 @@ interface Award {
 
 interface Props {
   open: boolean;
-  trophy: Trophy;
+  trophy: Award;
 }
 
 const props = defineProps<Props>();
