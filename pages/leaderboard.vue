@@ -790,12 +790,51 @@ watch(scope, () => {
     : route.query.period;
   if (routePeriod !== scope.value) {
     void router.replace({
-      query: { ...route.query, period: scope.value },
+      query: {
+        ...route.query,
+        period: scope.value,
+        type: matchType.value,
+      },
     });
   }
   onFilterChange();
 });
-watch(matchType, onFilterChange);
+watch(matchType, () => {
+  const routeType = Array.isArray(route.query.type)
+    ? route.query.type[0]
+    : route.query.type;
+  if (routeType !== matchType.value) {
+    void router.replace({
+      query: {
+        ...route.query,
+        type: matchType.value,
+      },
+    });
+  }
+  onFilterChange();
+});
+watch(
+  () => route.query.period,
+  (period) => {
+    const routePeriod = Array.isArray(period) ? period[0] : period;
+    if (typeof routePeriod === "string" && routePeriod !== scope.value) {
+      scope.value = routePeriod;
+    }
+  },
+);
+watch(
+  () => route.query.type,
+  () => {
+    const routeType = readQueryParam(
+      "type",
+      MATCH_TYPE_OPTIONS,
+      "Competitive",
+    );
+    if (routeType !== matchType.value) {
+      matchType.value = routeType;
+    }
+  },
+);
 watch(excludeTournaments, onFilterChange);
 watch(roleFilter, onFilterChange);
 watch(highlightedSteamId, (sid) => {
