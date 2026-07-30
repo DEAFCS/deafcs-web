@@ -13,12 +13,14 @@ const props = withDefaults(
     asChild?: boolean;
     delayDuration?: number;
     tapToggle?: boolean;
+    interactive?: boolean;
   }>(),
   {
     size: 12,
     asChild: false,
     delayDuration: 0,
     tapToggle: true,
+    interactive: false,
   },
 );
 
@@ -31,6 +33,7 @@ const props = withDefaults(
 const isTouch = ref(false);
 const open = ref(false);
 const rootEl = ref<HTMLElement | null>(null);
+const contentEl = ref<HTMLElement | null>(null);
 
 function onTriggerClick(event: Event) {
   // When the trigger has its own action (e.g. a metric tab that switches the
@@ -51,10 +54,10 @@ function onDocPointerDown(event: PointerEvent) {
   if (!open.value) return;
   const target = event.target as Node | null;
   // The opening tap lands on the trigger (inside rootEl) — let our click
-  // toggle handle it. Any other tap dismisses. Tooltip content is portalled
-  // out of rootEl, so tapping it also dismisses, which is fine for read-only
-  // info bubbles.
+  // toggle handle it. Interactive tooltip content is portalled out of rootEl,
+  // so explicitly keep it open while its links or controls are being used.
   if (target && rootEl.value?.contains(target)) return;
+  if (props.interactive && target && contentEl.value?.contains(target)) return;
   open.value = false;
 }
 
@@ -73,6 +76,7 @@ onBeforeUnmount(() => {
     <TooltipProvider
       :ignoreNonKeyboardFocus="true"
       :delay-duration="delayDuration"
+      :disable-hoverable-content="!interactive"
     >
       <Tooltip
         :open="isTouch ? open : undefined"
@@ -95,7 +99,9 @@ onBeforeUnmount(() => {
             :align="(align as any)"
             :collision-padding="8"
           >
-            <slot></slot>
+            <div ref="contentEl">
+              <slot></slot>
+            </div>
           </TooltipContent>
         </TooltipPortal>
       </Tooltip>
