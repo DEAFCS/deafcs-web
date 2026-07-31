@@ -21,6 +21,7 @@ import ManageSection from "~/components/common/ManageSection.vue";
       <PlayerSearch
         :label="$t('tournament.organizer.add')"
         :exclude="excludeOrganizers"
+        :registeredOnly="true"
         @selected="addOrganizer"
       ></PlayerSearch>
 

@@ -344,6 +344,7 @@ import { toast } from "~/components/ui/toast";
                 team.roster?.map((member) => member.player.steam_id) || []
               "
               :team-id="team.team_id"
+              :registeredOnly="true"
               @selected="addMember"
             />
           </div>

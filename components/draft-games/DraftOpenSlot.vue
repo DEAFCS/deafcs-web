@@ -22,6 +22,7 @@ const onSelected = (player: { steam_id: string }) => {
       :exclude="exclude"
       :group-by-friends="true"
       :self="true"
+      :registeredOnly="true"
       @selected="onSelected"
     >
       <button type="button" class="open-slot">

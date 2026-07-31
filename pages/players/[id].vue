@@ -2555,6 +2555,7 @@ const playerHeroTeamChipDotClasses =
                         :label="$t('pages.players.detail.compare.select_label')"
                         :exclude="[playerId]"
                         :selected="compareTarget"
+                        :registeredOnly="true"
                         @selected="onCompareSelected"
                       />
                     </div>

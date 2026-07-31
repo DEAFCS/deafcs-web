@@ -84,6 +84,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
         @selected="setOwnerTeamOwner"
         :selected="teamOwner"
         :exclude="existingTournamentPlayerSteamIds"
+        :registeredOnly="true"
         v-if="!form.values.add_self_to_lineup && form.values.new_team"
       ></PlayerSearch>
     </template>

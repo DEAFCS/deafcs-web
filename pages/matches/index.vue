@@ -259,6 +259,7 @@ function optionRowClass(active: boolean) {
             <PlayerSearch
               :label="$t('player.search.placeholder')"
               :exclude="form.players.map((p) => p.steam_id)"
+              :registeredOnly="true"
               @selected="addPlayer"
             >
               <button

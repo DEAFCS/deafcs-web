@@ -84,6 +84,7 @@ function formatEventDate(value?: string | null): string | null {
             <PlayerSearch
               :label="$t('event.membership.players.search_placeholder')"
               :exclude="attachedPlayerSteamIds"
+              :registeredOnly="true"
               @selected="attachPlayer"
             />
           </div>
@@ -190,6 +191,7 @@ function formatEventDate(value?: string | null): string | null {
           <PlayerSearch
             :label="$t('event.membership.organizers.search_placeholder')"
             :exclude="attachedOrganizerSteamIds"
+            :registeredOnly="true"
             @selected="attachOrganizer"
           />
         </div>

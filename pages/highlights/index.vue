@@ -686,6 +686,7 @@ const viewModeOptions = computed<
       <PlayerSearch
         v-else
         :label="$t('pages.highlights.filter_by_player')"
+        :registeredOnly="true"
         @selected="selectPlayer"
       >
         <button

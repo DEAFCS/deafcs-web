@@ -8,6 +8,7 @@ import PlayerSearch from "~/components/PlayerSearch.vue";
     :exclude="exclude.map((player) => player.steam_id)"
     :team-id="lineup.team_id"
     :self="true"
+    :registeredOnly="true"
     @selected="(player) => addMember(player.steam_id)"
   >
     <template v-if="$slots.default" #default>

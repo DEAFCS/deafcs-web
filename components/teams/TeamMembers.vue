@@ -217,6 +217,7 @@ const setEloSource = (key: string) => {
         v-if="team.can_invite"
         :label="$t('team.members.invite_player')"
         :exclude="team?.roster.map((m) => m.player.steam_id) || []"
+        :registeredOnly="true"
         @selected="onInvite"
       >
         <Button
