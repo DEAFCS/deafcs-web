@@ -34,7 +34,7 @@ import { ref } from "vue";
 const renderHighlightOpen = ref(false);
 
 const { visibility: overviewVis } = useOverviewColumns();
-const { rowClass, stickyCellClass } = useCurrentUserRow();
+const { rowClass, stickyCellClass, isCurrentUser } = useCurrentUserRow();
 
 const DASH = "—";
 </script>
@@ -167,6 +167,7 @@ const DASH = "—";
                       params: { id: member.player.steam_id },
                     }"
                     class="truncate text-xs font-medium hover:text-primary"
+                    :class="{ 'text-[#f99e2f] hover:text-[#f99e2f]': isCurrentUser(member) }"
                   >
                     {{ member.player.name }}
                   </NuxtLink>

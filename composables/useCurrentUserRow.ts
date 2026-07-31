@@ -1,12 +1,9 @@
 import { computed, type ComputedRef } from "vue";
 
-// Row + sticky-cell highlight classes for the currently logged-in player's
-// row in a lineup-stats table. Tac-amber accent, kept intentionally subtle
-// (low-alpha bg + 2px left rail on the sticky cell).
-const ROW_CLASS = "";
-
-const STICKY_CELL_CLASS =
-  "bg-card group-hover:bg-muted shadow-[inset_2px_0_0_hsl(var(--tac-amber)/0.55),3px_0_6px_-3px_hsl(0_0%_0%/0.7)]";
+// The currently logged-in player is identified by coloring their own name
+// text (see PlayerDisplay's `highlightSelf` prop and the mobile name link
+// below) rather than a row/cell background treatment — a left-edge shadow
+// rail there used to clash with the lobby/party color tick.
 
 export function useCurrentUserRow(): {
   isCurrentUser: (member: any) => boolean;
@@ -29,9 +26,8 @@ export function useCurrentUserRow(): {
 
   return {
     isCurrentUser,
-    rowClass: (member) => (isCurrentUser(member) ? ROW_CLASS : ""),
-    stickyCellClass: (member) =>
-      isCurrentUser(member) ? STICKY_CELL_CLASS : "",
+    rowClass: () => "",
+    stickyCellClass: () => "",
     meSteamId,
   };
 }

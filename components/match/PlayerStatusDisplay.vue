@@ -27,6 +27,7 @@ const { isMobile } = useSidebar();
     :match-type="match?.options?.type"
     :external="isExternalMatch"
     :historical-elo="historicalElo"
+    :highlight-self="true"
   >
     <template v-slot:avatar-corner v-if="member.captain">
       <span

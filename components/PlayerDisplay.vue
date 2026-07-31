@@ -139,7 +139,8 @@ import FiveStackToolTip from "./FiveStackToolTip.vue";
                   'truncate max-w-[80px] sm:max-w-none': compact,
                   'truncate min-w-0': truncateName,
                   'transition-colors group-hover/playerlink:text-[hsl(var(--tac-amber))]':
-                    linkable,
+                    linkable && !(highlightSelf && isMe),
+                  'text-[#f99e2f]': highlightSelf && isMe,
                 }"
               >
                 {{ player.name }}
@@ -304,6 +305,10 @@ export default {
       default: false,
     },
     linkable: {
+      type: Boolean,
+      default: false,
+    },
+    highlightSelf: {
       type: Boolean,
       default: false,
     },

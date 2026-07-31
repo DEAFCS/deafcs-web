@@ -11,16 +11,13 @@ export const EXPECTED_PLAYERS: Partial<Record<e_match_types_enum, number>> = {
 };
 
 /**
- * A party can queue a match type when it either fits inside a single lineup
- * (half the match, so the other half gets filled by matchmaking) or fills the
- * entire match on its own (both lineups, split in-house).
+ * A party may only queue a match type if it fits inside a single lineup (half
+ * the match, so the other half gets filled by matchmaking). A full-size party
+ * filling both lineups on its own used to be allowed as an "in-house scrim",
+ * but that let a party guarantee its own match outcome (ELO farming), so it's
+ * disallowed entirely regardless of match type.
  *
- * Duel is the one exception: a full-size (2) party filling both lineups would
- * just be the two of them dueling each other, which isn't a real match —
- * unlike Wingman/Competitive, there's no useful "scrim your own party" case
- * for a 1v1. Solo queue only for Duel.
- *
- * Wingman (4): 1-2 or 4 · Competitive (10): 1-5 or 10 · Duel (2): 1
+ * Wingman (4): 1-2 · Competitive (10): 1-5 · Duel (2): 1
  */
 export function canPartyQueue(
   type: e_match_types_enum,
@@ -32,9 +29,5 @@ export function canPartyQueue(
     return true;
   }
 
-  if (type === e_match_types_enum.Duel) {
-    return partySize === 1;
-  }
-
-  return partySize <= expected / 2 || partySize === expected;
+  return partySize <= expected / 2;
 }
