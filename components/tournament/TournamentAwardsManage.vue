@@ -1,9 +1,29 @@
 <script lang="ts">
 import { Button } from "~/components/ui/button";
+import { Input } from "~/components/ui/input";
 import TeamSearch from "~/components/teams/TeamSearch.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $ } from "~/generated/zeus";
+import gql from "graphql-tag";
+import { toast } from "~/components/ui/toast";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
+
+const REVOKE_AWARD = gql`
+  mutation RevokeManualTournamentAward($id: uuid!, $reason: String!) {
+    revokeAward(id: $id, reason: $reason) {
+      success
+    }
+  }
+`;
 
 const PLACEMENT_COLORS: Record<number, string> = {
   0: "hsl(195 85% 60%)",
@@ -13,7 +33,19 @@ const PLACEMENT_COLORS: Record<number, string> = {
 };
 
 export default {
-  components: { Button, TeamSearch, ManageSection },
+  components: {
+    AlertDialog,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    Button,
+    Input,
+    TeamSearch,
+    ManageSection,
+  },
   props: {
     tournament: { type: Object, required: true },
   },
@@ -23,6 +55,10 @@ export default {
       placements: [0, 1, 2, 3],
       adding: false,
       saving: false,
+      revokeTarget: null as any | null,
+      revokeReason: "",
+      revoking: false,
+      locallyRevokedIds: [] as string[],
       draft: {
         placement: 1 as 0 | 1 | 2 | 3,
         tournament_team_id: null as string | null,
@@ -44,7 +80,7 @@ export default {
     },
     manualTrophies(): any[] {
       return ((this.tournament?.trophies || []) as any[])
-        .filter((t) => t.manual)
+        .filter((t) => t.manual && !this.locallyRevokedIds.includes(t.id))
         .sort((a, b) => a.placement - b.placement);
     },
     teams(): any[] {
@@ -134,19 +170,48 @@ export default {
         this.saving = false;
       }
     },
-    async remove(trophyId: string) {
+    requestRevoke(trophy: any) {
+      if (!trophy?.manual) return;
+      this.revokeTarget = trophy;
+      this.revokeReason = "";
+    },
+    closeRevoke() {
+      if (this.revoking) return;
+      this.revokeTarget = null;
+      this.revokeReason = "";
+    },
+    async confirmRevoke() {
+      const reason = this.revokeReason.trim();
+      const target = this.revokeTarget;
+      if (!target?.manual || !target.id || !reason) return;
+
+      this.revoking = true;
       try {
         await this.$apollo.mutate({
-          mutation: typedGql("mutation")({
-            delete_tournament_trophies_by_pk: [
-              { id: $("id", "uuid!") },
-              { id: true },
-            ],
-          }),
-          variables: { id: trophyId },
+          mutation: REVOKE_AWARD,
+          variables: { id: target.id, reason },
         });
-      } catch (err) {
-        console.error("Failed to remove manual trophy", err);
+        this.locallyRevokedIds.push(target.id);
+        this.revokeTarget = null;
+        this.revokeReason = "";
+        toast({ title: "Manual award revoked" });
+        try {
+          await this.$apollo.refetchQueries({ include: "active" });
+        } catch (refetchError) {
+          // The local filter updates this list immediately; subscriptions will
+          // still reconcile it if a broad active-query refetch is unavailable.
+          console.warn("Failed to refresh award queries", refetchError);
+        }
+      } catch (error) {
+        console.error("Failed to revoke manual award", error);
+        toast({
+          title: "Could not revoke manual award",
+          description:
+            error instanceof Error ? error.message : "Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        this.revoking = false;
       }
     },
     playerNameFor(trophy: any): string {
@@ -293,11 +358,56 @@ export default {
             · {{ teamNameById[trophy.tournament_team_id] || "—" }}
           </span>
           <span class="flex-1"></span>
-          <Button variant="outline" size="sm" @click="remove(trophy.id)">
+          <Button
+            v-if="trophy.manual"
+            variant="outline"
+            size="sm"
+            @click="requestRevoke(trophy)"
+          >
             {{ $t("tournament.trophies_manage.remove") }}
           </Button>
         </li>
       </ul>
     </template>
+
+    <AlertDialog
+      :open="!!revokeTarget"
+      @update:open="(open) => !open && closeRevoke()"
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Revoke manual award?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This removes the manual award from the recipient while preserving
+            its history. A reason is required.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <label class="grid gap-2">
+          <span class="text-sm font-medium">Revocation reason</span>
+          <Input
+            v-model="revokeReason"
+            :disabled="revoking"
+            maxlength="500"
+            placeholder="Enter a reason"
+            autocomplete="off"
+            @keydown.enter.prevent="confirmRevoke"
+          />
+        </label>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel :disabled="revoking" @click="closeRevoke">
+            {{ $t("common.cancel") }}
+          </AlertDialogCancel>
+          <Button
+            variant="destructive"
+            :disabled="revoking || !revokeReason.trim()"
+            @click="confirmRevoke"
+          >
+            {{ revoking ? "Revoking…" : "Revoke award" }}
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </ManageSection>
 </template>
