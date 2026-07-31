@@ -3,9 +3,10 @@ import { ref, watch } from "vue";
 import { Loader2, Trash2, SlidersHorizontal } from "lucide-vue-next";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
-import { $ } from "~/generated/zeus";
+import { $, e_player_roles_enum } from "~/generated/zeus";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
+import { useAuthStore } from "~/stores/AuthStore";
 import {
   Sheet,
   SheetContent,
@@ -32,6 +33,12 @@ const canceling = ref(false);
 const load = async () => {
   loading.value = true;
   draftGame.value = undefined;
+  // elo_enabled is invisible at the API level to everyone below match
+  // organizer — requesting it for a plain host's own draft would fail the
+  // whole query (Hasura rejects unrecognized-for-role fields outright).
+  const canManageElo = useAuthStore().isRoleAbove(
+    e_player_roles_enum.match_organizer,
+  );
   const { data } = await getGraphqlClient().query({
     query: generateQuery({
       draft_games_by_pk: [
@@ -52,6 +59,7 @@ const load = async () => {
           require_approval: true,
           min_elo: true,
           max_elo: true,
+          ...(canManageElo ? { elo_enabled: true } : {}),
           options: {
             ...matchOptionsFields,
           },

@@ -53,6 +53,12 @@ const canHostForOthers = computed(() =>
   useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer),
 );
 
+// Same role gate as canHostForOthers (admin/match organizer/tournament
+// organizer), named separately since it governs a different setting.
+const canManageElo = computed(() =>
+  useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer),
+);
+
 const emit = defineEmits<{
   (event: "created"): void;
   (event: "back"): void;
@@ -93,6 +99,10 @@ const rankMax = computed(() =>
 const team1Id = ref<string | undefined>(source?.team_1_id);
 const team2Id = ref<string | undefined>(source?.team_2_id);
 const innerSquad = ref<boolean>(source?.inner_squad ?? false);
+
+// Admin/match organizer/tournament organizer only — invisible to everyone
+// else (the API doesn't even expose the column to lower roles). Defaults on.
+const eloEnabled = ref<boolean>(source?.elo_enabled ?? true);
 
 const rosterAssignment = ref<
   Array<{ steam_id: string; lineup: number | null; side: number | null }>
@@ -319,6 +329,7 @@ const settingsSnapshot = () =>
     roster: rosterAssignment.value,
     minElo: rankMin.value ?? null,
     maxElo: rankMax.value ?? null,
+    eloEnabled: eloEnabled.value,
   });
 const isDirty = computed(
   () =>
@@ -352,6 +363,7 @@ const discardEdits = () => {
   team2Id.value = source?.team_2_id;
   innerSquad.value = source?.inner_squad ?? false;
   rankRange.value = [source?.min_elo ?? RANK_MIN, source?.max_elo ?? RANK_MAX];
+  eloEnabled.value = source?.elo_enabled ?? true;
   nextTick(() => {
     editBaseline.value = settingsSnapshot();
   });
@@ -546,6 +558,9 @@ const submit = form.handleSubmit(async (values: any) => {
     require_approval: requireApproval.value,
     min_elo: rankMin.value,
     max_elo: rankMax.value,
+    // Backend silently ignores this unless the caller is admin/match
+    // organizer/tournament organizer, so it's safe to always include.
+    elo_enabled: eloEnabled.value,
     team_1_id: mode.value === "Teams" ? team1Id.value : undefined,
     team_2_id: mode.value === "Teams" ? team2Id.value : undefined,
     inner_squad:
@@ -619,7 +634,24 @@ const submit = form.handleSubmit(async (values: any) => {
         {{ $t("draft_games.room.back_to_room") }}
       </Button>
     </div>
-    <MatchOptions :form="form" />
+    <MatchOptions :form="form">
+      <template v-if="canManageElo" #before-overtime>
+        <div
+          class="flex flex-row items-center justify-between cursor-pointer"
+          @click="eloEnabled = !eloEnabled"
+        >
+          <div class="space-y-0.5">
+            <SettingHeader>{{
+              $t("draft_games.create.elo_enabled")
+            }}</SettingHeader>
+            <FormDescription>
+              {{ $t("draft_games.create.elo_enabled_desc") }}
+            </FormDescription>
+          </div>
+          <Switch class="pointer-events-none" :model-value="eloEnabled" />
+        </div>
+      </template>
+    </MatchOptions>
     <SettingsSaveBar :form="form" :submitting="submitting" @save="submit" />
   </form>
 
@@ -867,7 +899,24 @@ const submit = form.handleSubmit(async (values: any) => {
 
     <Transition name="step">
       <div v-show="step === 1">
-        <MatchOptions :form="form" />
+        <MatchOptions :form="form">
+          <template v-if="canManageElo" #before-overtime>
+            <div
+              class="flex flex-row items-center justify-between cursor-pointer"
+              @click="eloEnabled = !eloEnabled"
+            >
+              <div class="space-y-0.5">
+                <SettingHeader>{{
+                  $t("draft_games.create.elo_enabled")
+                }}</SettingHeader>
+                <FormDescription>
+                  {{ $t("draft_games.create.elo_enabled_desc") }}
+                </FormDescription>
+              </div>
+              <Switch class="pointer-events-none" :model-value="eloEnabled" />
+            </div>
+          </template>
+        </MatchOptions>
       </div>
     </Transition>
 
