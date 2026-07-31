@@ -17,11 +17,16 @@ export const EXPECTED_PLAYERS: Partial<Record<e_match_types_enum, number>> = {
  * but that let a party guarantee its own match outcome (ELO farming), so it's
  * disallowed entirely regardless of match type.
  *
- * Wingman (4): 1-2 · Competitive (10): 1-5 · Duel (2): 1
+ * Competitive additionally has its own admin-configurable cap (default 5) —
+ * a full 5-stack of strong players queueing together against a non-full-stack
+ * team is unfair, so admins can lower how many can party up for Competitive.
+ *
+ * Wingman (4): 1-2 · Competitive (10): 1-5 (admin-configurable) · Duel (2): 1
  */
 export function canPartyQueue(
   type: e_match_types_enum,
   partySize: number,
+  maxCompetitivePartySize = 5,
 ): boolean {
   const expected = EXPECTED_PLAYERS[type];
 
@@ -29,5 +34,10 @@ export function canPartyQueue(
     return true;
   }
 
-  return partySize <= expected / 2;
+  const limit =
+    type === e_match_types_enum.Competitive
+      ? Math.min(expected / 2, maxCompetitivePartySize)
+      : expected / 2;
+
+  return partySize <= limit;
 }

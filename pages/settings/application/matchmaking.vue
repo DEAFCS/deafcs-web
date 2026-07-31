@@ -55,6 +55,45 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
               </div>
             </div>
 
+            <FormField
+              v-slot="{ componentField }"
+              name="public.matchmaking_max_party_size_competitive"
+            >
+              <FormItem>
+                <FormLabel>{{
+                  $t(
+                    "pages.settings.application.matchmaking_max_party_size_competitive",
+                  )
+                }}</FormLabel>
+                <FormDescription>{{
+                  $t(
+                    "pages.settings.application.matchmaking_max_party_size_competitive_description",
+                  )
+                }}</FormDescription>
+                <FormControl>
+                  <Select v-bind="componentField">
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem
+                          :value="String(size)"
+                          v-for="size in [1, 2, 3, 4, 5]"
+                          :key="size"
+                        >
+                          {{ size }}
+                        </SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            </FormField>
+
             <Separator />
 
             <FormField
@@ -344,6 +383,9 @@ export default {
                 .default(e_player_roles_enum.user),
               max_acceptable_latency: z.number().default(100),
               map_veto_pick_seconds: z.number().default(20),
+              matchmaking_max_party_size_competitive: z
+                .string()
+                .default("5"),
             }),
           }),
         ),
@@ -521,6 +563,11 @@ export default {
                     value: String(
                       (this.form.values as any).public.max_acceptable_latency,
                     ),
+                  },
+                  {
+                    name: "public.matchmaking_max_party_size_competitive",
+                    value: (this.form.values as any).public
+                      .matchmaking_max_party_size_competitive,
                   },
                   {
                     name: "public.map_veto_pick_seconds",

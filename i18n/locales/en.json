@@ -1610,6 +1610,8 @@
         "map_veto_pick_seconds": "Map Veto Pick Time",
         "map_veto_pick_seconds_description": "How many seconds a team has to make each map veto pick.",
         "matchmaking_type_description": "Toggle matchmaking for each type that will allow players to join matchmaking for this type of match.",
+        "matchmaking_max_party_size_competitive": "Max Party Size for Competitive",
+        "matchmaking_max_party_size_competitive_description": "A full-size party queueing Competitive together against a non-full team is an unfair advantage. Caps how many players can be in one lobby when queueing Competitive.",
         "players": {
           "permissions_section": "Role Permissions",
           "force_name_registration": "Force Player Name Registration",
@@ -5551,7 +5553,7 @@
     "no_preferred_regions": "Please select at least one preferred region in matchmaking settings",
     "party_size": {
       "unavailable": "Party of {size} can't queue this mode",
-      "requirement": "Queue with {half} or fewer, or exactly {full} players",
+      "requirement": "Queue with {half} or fewer players",
       "duel_requirement": "Duel is solo queue only"
     }
   },

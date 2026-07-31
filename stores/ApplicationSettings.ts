@@ -589,6 +589,20 @@ export const useApplicationSettingsStore = defineStore(
       );
     };
 
+    // Max party size that can queue Competitive together (admin-configurable,
+    // 1-5). Defaults to 5 (the mechanical half-lineup limit) until an admin
+    // lowers it — see matchmaking-lobby.service.ts's getMaxCompetitivePartySize.
+    const maxCompetitivePartySize = computed(() => {
+      const parsed = parseInt(
+        settings.value?.find(
+          (setting) =>
+            setting.name === "public.matchmaking_max_party_size_competitive",
+        )?.value ?? "",
+        10,
+      );
+      return parsed >= 1 && parsed <= 5 ? parsed : 5;
+    });
+
     return {
       settings,
       availableRegions,
@@ -635,6 +649,7 @@ export const useApplicationSettingsStore = defineStore(
       globalStream,
       setGlobalStream,
       isMatchmakingTypeEnabled,
+      maxCompetitivePartySize,
     };
   },
 );

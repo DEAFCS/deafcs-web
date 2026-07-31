@@ -420,15 +420,27 @@ export default {
       return EXPECTED_PLAYERS[type] ?? 0;
     },
     canQueueType(type: e_match_types_enum): boolean {
-      return canPartyQueue(type, this.partySize);
+      return canPartyQueue(
+        type,
+        this.partySize,
+        useApplicationSettingsStore().maxCompetitivePartySize,
+      );
+    },
+    partySizeLimit(type: e_match_types_enum): number {
+      if (type === e_match_types_enum.Competitive) {
+        return Math.min(
+          this.expectedPlayers(type) / 2,
+          useApplicationSettingsStore().maxCompetitivePartySize,
+        );
+      }
+      return this.expectedPlayers(type) / 2;
     },
     partySizeRequirementText(type: e_match_types_enum): string {
       if (type === e_match_types_enum.Duel) {
         return this.$t("matchmaking.party_size.duel_requirement");
       }
       return this.$t("matchmaking.party_size.requirement", {
-        half: this.expectedPlayers(type) / 2,
-        full: this.expectedPlayers(type),
+        half: this.partySizeLimit(type),
       });
     },
     distinctInQueue(type: e_match_types_enum, regionValues: string[]): number {
