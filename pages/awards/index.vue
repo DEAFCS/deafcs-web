@@ -100,6 +100,14 @@ function imageUrl(path?: string | null) {
   return `https://${apiDomain.value}/avatars/awards/${filename}`;
 }
 
+function awardHref(id: string) {
+  return `/awards/${encodeURIComponent(id)}`;
+}
+
+function openAward(id: string) {
+  return navigateTo(awardHref(id));
+}
+
 async function loadAwards() {
   loading.value = true;
   error.value = null;
@@ -218,12 +226,13 @@ onMounted(loadAwards);
             </div>
 
             <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <NuxtLink
+              <a
                 v-for="award in group.awards"
                 :key="award.id"
-                :to="`/awards/${award.id}`"
-                class="group relative flex min-h-72 flex-col overflow-hidden rounded-lg border border-border bg-card/55 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none motion-reduce:transition-none"
+                :href="awardHref(award.id)"
+                class="group relative flex min-h-72 cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card/55 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none motion-reduce:transition-none"
                 :aria-label="`${award.name}, ${award.tier} award, ${activeGrantCount(award)} active grants`"
+                @keydown.space.prevent="openAward(award.id)"
               >
                 <div class="relative mb-4 flex h-36 items-center justify-center overflow-hidden rounded-md border border-border/70 bg-background/45">
                   <div
@@ -263,7 +272,7 @@ onMounted(loadAwards);
                 <p class="mt-1 line-clamp-3 text-sm text-muted-foreground">
                   {{ award.description || "No description provided." }}
                 </p>
-              </NuxtLink>
+              </a>
             </div>
           </section>
         </div>

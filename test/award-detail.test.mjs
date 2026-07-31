@@ -114,8 +114,11 @@ test("query excludes revoked recipients before loading active history", async ()
   );
 });
 
-test("catalog cards navigate to the implemented detail route", async () => {
+test("catalog cards use a full-card native detail link", async () => {
   const page = await catalogPage();
-  assert.match(page, /:to="`\/awards\/\$\{award\.id\}`"/);
+  assert.match(page, /<a[\s\S]*?v-for="award in group\.awards"/);
+  assert.match(page, /:href="awardHref\(award\.id\)"/);
+  assert.match(page, /@keydown\.space\.prevent="openAward\(award\.id\)"/);
+  assert.match(page, /cursor-pointer/);
   assert.match(page, /focus-visible:ring-2/);
 });
