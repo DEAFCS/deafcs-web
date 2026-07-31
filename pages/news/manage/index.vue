@@ -9,7 +9,6 @@ import { Plus, Trash2, Send, Undo2, Newspaper, Eye } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -262,9 +261,15 @@ onMounted(() => {
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{{ $t("common.cancel") }}</AlertDialogCancel>
-          <AlertDialogAction @click="confirmDelete">
+          <!-- Plain button — reka-ui's AlertDialogAction auto-closes (nulling
+               deleteTarget) before the async handler reads it. -->
+          <button
+            type="button"
+            class="inline-flex h-10 items-center justify-center rounded-md bg-red-600 px-4 text-sm font-medium text-white hover:bg-red-700 cursor-pointer"
+            @click="confirmDelete"
+          >
             {{ $t("pages.news.manage.delete") }}
-          </AlertDialogAction>
+          </button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
