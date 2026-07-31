@@ -47,7 +47,7 @@ const mmCardBase =
     <template v-else-if="!confirmationDetails">
       <div
         v-if="isInQueue && matchMakingQueueDetails"
-        class="relative mb-4 overflow-hidden rounded-lg border border-[rgb(var(--mode-rgb)/0.28)] px-6 py-10 sm:px-10 sm:py-12 [backdrop-filter:blur(6px)] [background:linear-gradient(180deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.3)_100%)] animate-fade-in"
+        class="search-ring relative mb-4 overflow-hidden rounded-lg border border-[rgb(var(--mode-rgb)/0.28)] px-6 py-10 sm:px-10 sm:py-12 [backdrop-filter:blur(6px)] [background:linear-gradient(180deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.3)_100%)] animate-fade-in"
         :style="matchTypeColorStyle(matchMakingQueueDetails.type)"
       >
         <span
@@ -68,15 +68,6 @@ const mmCardBase =
           aria-hidden="true"
           class="pointer-events-none absolute inset-0 [background:radial-gradient(circle_at_50%_55%,rgb(var(--mode-rgb)/0.12),transparent_65%)] animate-soft-pulse"
         ></span>
-
-        <span
-          aria-hidden="true"
-          class="pointer-events-none absolute left-0 right-0 top-0 h-[2px] overflow-hidden"
-        >
-          <span
-            class="block h-full w-1/2 bg-gradient-to-r from-transparent via-[rgb(var(--mode-rgb))] to-transparent animate-loading-bar"
-          ></span>
-        </span>
 
         <div class="relative z-10 flex flex-col items-center gap-6 text-center">
           <div
@@ -615,3 +606,54 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* A single glowing arc that continuously rotates around the panel's border —
+   replaces the old left-to-right sweep, which had to snap back to its start
+   position every 2s. A closed loop has no "start" to snap back to, so this
+   never jitters. */
+.search-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--ring-angle, 0deg),
+    transparent 0deg,
+    transparent 265deg,
+    rgb(var(--mode-rgb) / 0.7) 300deg,
+    rgb(var(--mode-rgb)) 320deg,
+    rgb(var(--mode-rgb) / 0.7) 340deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: search-ring-spin 3s linear infinite;
+}
+
+@keyframes search-ring-spin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-ring::after {
+    animation: none;
+  }
+}
+</style>
+
+<style>
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+</style>
