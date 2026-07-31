@@ -5551,7 +5551,8 @@
     "no_preferred_regions": "Please select at least one preferred region in matchmaking settings",
     "party_size": {
       "unavailable": "Party of {size} can't queue this mode",
-      "requirement": "Queue with {half} or fewer, or exactly {full} players"
+      "requirement": "Queue with {half} or fewer, or exactly {full} players",
+      "duel_requirement": "Duel is solo queue only"
     }
   },
   "game_server": {

@@ -248,12 +248,7 @@ const mmCardBase =
                       })
                     }}
                   </span>
-                  {{
-                    $t("matchmaking.party_size.requirement", {
-                      half: expectedPlayers(type.value) / 2,
-                      full: expectedPlayers(type.value),
-                    })
-                  }}
+                  {{ partySizeRequirementText(type.value) }}
                 </template>
               </p>
             </div>
@@ -427,6 +422,15 @@ export default {
     canQueueType(type: e_match_types_enum): boolean {
       return canPartyQueue(type, this.partySize);
     },
+    partySizeRequirementText(type: e_match_types_enum): string {
+      if (type === e_match_types_enum.Duel) {
+        return this.$t("matchmaking.party_size.duel_requirement");
+      }
+      return this.$t("matchmaking.party_size.requirement", {
+        half: this.expectedPlayers(type) / 2,
+        full: this.expectedPlayers(type),
+      });
+    },
     distinctInQueue(type: e_match_types_enum, regionValues: string[]): number {
       const lobbyIndexes = new Set<number>();
       for (const regionValue of regionValues) {
@@ -455,10 +459,7 @@ export default {
       }
       if (!this.canQueueType(matchType)) {
         toast({
-          title: this.$t("matchmaking.party_size.requirement", {
-            half: this.expectedPlayers(matchType) / 2,
-            full: this.expectedPlayers(matchType),
-          }) as string,
+          title: this.partySizeRequirementText(matchType),
           variant: "destructive",
         });
         return;

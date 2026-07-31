@@ -8,12 +8,17 @@ import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
       class="!max-w-md !gap-0 overflow-visible !border-0 !bg-transparent !p-0 !shadow-none"
     >
       <div
-        class="relative overflow-hidden rounded-lg border border-border px-6 py-8 [backdrop-filter:blur(10px)] [background:linear-gradient(180deg,hsl(var(--card)/0.95)_0%,hsl(var(--card)/0.85)_100%)]"
+        class="search-ring relative overflow-hidden rounded-lg border border-border px-6 py-8 [backdrop-filter:blur(10px)] [background:linear-gradient(180deg,hsl(var(--card)/0.95)_0%,hsl(var(--card)/0.85)_100%)]"
         :class="
           isCritical
             ? '[box-shadow:0_0_0_1px_hsl(var(--destructive)/0.45),0_0_40px_hsl(var(--destructive)/0.3)]'
             : '[box-shadow:0_0_0_1px_hsl(var(--tac-amber)/0.3),0_0_40px_hsl(var(--tac-amber)/0.18)]'
         "
+        :style="{
+          '--ring-color': isCritical
+            ? 'hsl(var(--destructive))'
+            : 'hsl(var(--tac-amber))',
+        }"
       >
         <span
           aria-hidden="true"
@@ -34,18 +39,6 @@ import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
           aria-hidden="true"
           class="pointer-events-none absolute inset-0 opacity-30 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,hsl(var(--tac-amber)/0.04)_3px,hsl(var(--tac-amber)/0.04)_4px)]"
         ></span>
-
-        <span
-          aria-hidden="true"
-          class="pointer-events-none absolute left-0 right-0 top-0 h-[2px] overflow-hidden"
-        >
-          <span
-            class="block h-full w-1/2 bg-gradient-to-r from-transparent to-transparent animate-loading-bar"
-            :class="
-              isCritical ? 'via-destructive' : 'via-[hsl(var(--tac-amber))]'
-            "
-          ></span>
-        </span>
 
         <div class="relative z-10 flex flex-col items-center gap-5 text-center">
           <div class="flex flex-col items-center gap-1.5">
@@ -255,3 +248,53 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* Same rotating-ring treatment as the searching panel (Matchmaking.vue) —
+   a single glowing arc that continuously rotates around the border instead
+   of a left-to-right sweep that had to snap back to loop. */
+.search-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: conic-gradient(
+    from var(--ring-angle, 0deg),
+    transparent 0deg,
+    transparent 265deg,
+    color-mix(in srgb, var(--ring-color) 70%, transparent) 300deg,
+    var(--ring-color) 320deg,
+    color-mix(in srgb, var(--ring-color) 70%, transparent) 340deg,
+    transparent 360deg
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: search-ring-spin 3s linear infinite;
+}
+
+@keyframes search-ring-spin {
+  to {
+    --ring-angle: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .search-ring::after {
+    animation: none;
+  }
+}
+</style>
+
+<style>
+@property --ring-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+</style>

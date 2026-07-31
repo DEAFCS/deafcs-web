@@ -15,7 +15,12 @@ export const EXPECTED_PLAYERS: Partial<Record<e_match_types_enum, number>> = {
  * (half the match, so the other half gets filled by matchmaking) or fills the
  * entire match on its own (both lineups, split in-house).
  *
- * Duel (2): 1 or 2 · Wingman (4): 1-2 or 4 · Competitive (10): 1-5 or 10
+ * Duel is the one exception: a full-size (2) party filling both lineups would
+ * just be the two of them dueling each other, which isn't a real match —
+ * unlike Wingman/Competitive, there's no useful "scrim your own party" case
+ * for a 1v1. Solo queue only for Duel.
+ *
+ * Wingman (4): 1-2 or 4 · Competitive (10): 1-5 or 10 · Duel (2): 1
  */
 export function canPartyQueue(
   type: e_match_types_enum,
@@ -25,6 +30,10 @@ export function canPartyQueue(
 
   if (!expected) {
     return true;
+  }
+
+  if (type === e_match_types_enum.Duel) {
+    return partySize === 1;
   }
 
   return partySize <= expected / 2 || partySize === expected;
