@@ -27,6 +27,7 @@ import {
   Megaphone,
   Leaf,
   CalendarRange,
+  Award,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -450,6 +451,23 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Trophy />
                   {{ $t("layouts.app_nav.navigation.leaderboard") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.awards')"
+              >
+                <NuxtLink
+                  to="/awards"
+                  :class="{
+                    'router-link-active': $route.path.startsWith('/awards'),
+                  }"
+                >
+                  <Award />
+                  {{ $t("layouts.app_nav.navigation.awards") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

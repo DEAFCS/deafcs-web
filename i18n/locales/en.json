@@ -3257,7 +3257,8 @@
         "highlights": "Highlights",
         "news": "News",
         "leagues": "League",
-        "events": "Events"
+        "events": "Events",
+        "awards": "Awards"
       },
       "community": {
         "title": "Community"
@@ -3304,6 +3305,7 @@
         "players": "Players",
         "teams": "Teams",
         "leaderboard": "Leaderboard",
+        "awards": "Awards",
         "news": "News",
         "public_servers": "Public Servers",
         "regions": "Regions",
@@ -3373,6 +3375,10 @@
         "leaderboard": {
           "title": "Leaderboard",
           "subtitle": "Top players and rankings"
+        },
+        "awards": {
+          "title": "Awards",
+          "subtitle": "Browse player and team honors"
         },
         "social": {
           "title": "Social",

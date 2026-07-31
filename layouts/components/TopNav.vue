@@ -482,6 +482,32 @@ const loginArrowClasses =
                             </NuxtLink>
                           </NavigationMenuLink>
                         </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/awards"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">â—¢</span>
+                              <span :class="navItemContentClasses">
+                                <span :class="navItemLabelClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.community.awards.title",
+                                    )
+                                  }}
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.community.awards.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
                       </ul>
                     </div>
 
