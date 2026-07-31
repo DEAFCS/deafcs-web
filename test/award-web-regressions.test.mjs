@@ -7,6 +7,7 @@ const manageUrl = new URL(
   import.meta.url,
 );
 const catalogUrl = new URL("../pages/awards/index.vue", import.meta.url);
+const detailUrl = new URL("../pages/awards/[id].vue", import.meta.url);
 
 test("manual award removal uses revokeAward instead of the legacy delete mutation", async () => {
   const component = await readFile(manageUrl, "utf8");
@@ -29,8 +30,10 @@ test("calculated awards do not expose manual revoke controls", async () => {
   assert.match(component, /if \(!trophy\?\.manual\) return/);
 });
 
-test("catalog cards do not navigate to the unimplemented detail route", async () => {
+test("catalog cards navigate once the detail route is implemented", async () => {
   const page = await readFile(catalogUrl, "utf8");
-  assert.doesNotMatch(page, /:to="`\/awards\/\$\{award\.id\}`"/);
-  assert.match(page, /<article[\s\S]*?v-for="award in group\.awards"/);
+  const detail = await readFile(detailUrl, "utf8");
+  assert.match(page, /:to="`\/awards\/\$\{award\.id\}`"/);
+  assert.match(page, /<NuxtLink[\s\S]*?v-for="award in group\.awards"/);
+  assert.match(detail, /query PublicAwardDetail/);
 });
