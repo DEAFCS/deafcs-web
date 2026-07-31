@@ -1,6 +1,14 @@
 import { $, order_by, Selector } from "~/generated/zeus";
 import { playerFields } from "~/graphql/playerFields";
 
+// generated/zeus predates the party_id/party_source columns (needs a live
+// Hasura codegen run to pick them up) — spread through `any` so the excess
+// property check on the selector literal below doesn't fail the build.
+const partyFields: any = {
+  party_id: true,
+  party_source: true,
+};
+
 // Shell-only lineup shape. Per-player stats live in matchAllMapsStatsGraphql
 // and matchMapStatsGraphql so the page shell doesn't wait on aggregates.
 export const matchLineups = Selector("match_lineups")({
@@ -51,6 +59,7 @@ export const matchLineups = Selector("match_lineups")({
       steam_id: true,
       checked_in: true,
       placeholder_name: true,
+      ...partyFields,
       player: playerFields,
     },
   ],

@@ -4740,6 +4740,10 @@
       "reset_to_knife": "Reset to Knife",
       "reset_to_warmup": "Reset to Warmup"
     },
+    "party": {
+      "queued": "Queued together",
+      "queued_lobby": "Queued together in a lobby"
+    },
     "picks": {
       "decider": "Decider",
       "empty": "No Veto Picks",
