@@ -8,6 +8,9 @@ import { useAuthStore } from "~/stores/AuthStore";
 const MatchmakingConfirm = defineAsyncComponent(
   () => import("~/components/matchmaking/MatchmakingConfirm.vue"),
 );
+const MatchmakingSearchToast = defineAsyncComponent(
+  () => import("~/components/matchmaking/MatchmakingSearchToast.vue"),
+);
 const MatchActiveAlert = defineAsyncComponent(
   () => import("~/components/match/MatchActiveAlert.vue"),
 );
@@ -109,6 +112,7 @@ function pageKeyWithoutTabQuery(route: {
   <div v-if="me" style="display: contents">
     <PlayerNameRegistration />
     <MatchmakingConfirm />
+    <MatchmakingSearchToast />
     <MatchActiveAlert />
     <DraftActiveAlert />
   </div>
