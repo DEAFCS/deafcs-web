@@ -1061,7 +1061,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 align="end"
                 :side-offset="4"
               >
-                <DropdownMenuGroup v-if="!isMobile && !sideBarOpen">
+                <DropdownMenuGroup>
                   <DropdownMenuItem class="p-3 font-normal" as-child>
                     <NuxtLink
                       :to="{
@@ -1073,6 +1073,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                     </NuxtLink>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
+                <DropdownMenuSeparator />
 
                 <DropdownMenuGroup>
                   <DropdownMenuItem class="flex gap-2" as-child>
