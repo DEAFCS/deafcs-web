@@ -173,7 +173,6 @@ export default {
         size="sm"
         variant="outline"
         @click="startAdd"
-        :disabled="!teams.length"
       >
         {{ $t("tournament.trophies_manage.add_award") }}
       </Button>
