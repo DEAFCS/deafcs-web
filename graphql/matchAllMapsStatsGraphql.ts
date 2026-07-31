@@ -1,6 +1,16 @@
 import { $, order_by, Selector } from "~/generated/zeus";
 import { playerFields } from "~/graphql/playerFields";
 
+// generated/zeus predates party_id/party_source (needs a live Hasura codegen
+// run) — spread through `any` so the excess property check on the selector
+// literal below doesn't fail the build. Needed here (not just the shell
+// query in matchLineupsGraphql.ts) because activeLineup1/2 in MatchTabs.vue
+// shallow-merge this query's lineup_players over the shell's, clobbering it.
+const partyFields: any = {
+  party_id: true,
+  party_source: true,
+};
+
 // All-maps Overview tab. Reads from player_match_stats_v scoped to the
 // current match (aggregate across all maps) AND player_match_map_stats
 // per-map rows so the row analysis zone can switch between aggregate
@@ -20,6 +30,7 @@ export const matchAllMapsStats = Selector("match_lineups")({
       steam_id: true,
       checked_in: true,
       placeholder_name: true,
+      ...partyFields,
       player: {
         ...playerFields,
         match_stats: [
