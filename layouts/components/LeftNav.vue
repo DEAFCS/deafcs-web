@@ -1062,9 +1062,16 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 :side-offset="4"
               >
                 <DropdownMenuGroup v-if="!isMobile && !sideBarOpen">
-                  <DropdownMenuLabel class="font-normal">
-                    <PlayerDisplay :player="me" :show-online="false" />
-                  </DropdownMenuLabel>
+                  <DropdownMenuItem class="p-3 font-normal" as-child>
+                    <NuxtLink
+                      :to="{
+                        name: 'players-id',
+                        params: { id: me.steam_id },
+                      }"
+                    >
+                      <PlayerDisplay :player="me" :show-online="false" />
+                    </NuxtLink>
+                  </DropdownMenuItem>
                 </DropdownMenuGroup>
 
                 <DropdownMenuGroup>
