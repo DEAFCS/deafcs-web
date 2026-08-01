@@ -1,10 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import {
-  getPrivateGateRedirect,
-  shouldRenderApplicationShell,
-} from "../utilities/authGate.mjs";
 
 const rootPage = await readFile(
   new URL("../pages/index.vue", import.meta.url),
@@ -40,59 +36,63 @@ const preloader = await readFile(
   "utf8",
 );
 
-test("shell policy is deterministic for loading, pending, verified, and admin states", () => {
-  assert.equal(
-    shouldRenderApplicationShell({ hasCheckedSession: false, canPassGate: false }),
-    false,
-  );
-  assert.equal(
-    shouldRenderApplicationShell({ hasCheckedSession: true, canPassGate: false }),
-    false,
-  );
-  assert.equal(
-    shouldRenderApplicationShell({ hasCheckedSession: true, canPassGate: true }),
-    true,
-  );
-});
-
-test("root keeps one default layout and renders the gate only inside it", () => {
+test("the root route always uses the normal homepage and default layout", () => {
   assert.match(rootPage, /layout:\s*["']default["']/);
-  assert.doesNotMatch(rootPage, /setPageLayout/);
-  assert.match(rootPage, /<PreLaunchGate v-if="showPreLaunchGate"/);
-  assert.match(rootPage, /<HomePlayerOverview/);
+  assert.match(rootPage, /<LoadingScreen/);
+  assert.match(rootPage, /<HomePlayerOverview[\s\S]*v-else-if="showLoggedInHome"/);
+  assert.match(rootPage, /<main v-else/);
+  assert.doesNotMatch(rootPage, /PreLaunchGate|Access Pending|showPreLaunchGate/);
+  assert.doesNotMatch(rootPage, /shouldRenderApplicationShell|setPageLayout/);
 });
 
-test("default layout owns shell visibility for top navigation and admin sidebar", () => {
-  assert.match(appLayout, /shouldRenderApplicationShell/);
-  assert.match(appLayout, /<template v-if="isPrivateGateActive">\s*<slot \/>/s);
-  assert.match(appLayout, /<TopNav v-if="!showLeftNav"/);
-  assert.match(appLayout, /<AppSidebar v-if="showLeftNav"/);
-  assert.match(app, /!isPrivateGateActive/);
+test("the default layout renders the normal shell without auth-status swapping", () => {
+  assert.match(appLayout, /<TopoBackground \/>/);
+  assert.match(appLayout, /<TopNav v-if="!showLeftNav" \/>/);
+  assert.match(appLayout, /<AppSidebar v-if="showLeftNav" \/>/);
+  assert.doesNotMatch(
+    appLayout,
+    /isPrivateGateActive|shouldRenderApplicationShell|PreLaunchGate|Access Pending/,
+  );
+  assert.match(app, /<StreamGlobal v-if="hasGlobalStream" \/>/);
+  assert.match(app, /<div v-if="me" style="display: contents">/);
 });
 
-test("root navigation is stable for direct, client, repeated, and logout flows", () => {
-  const verified = { hasMe: true, canPassGate: true };
-  const pending = { hasMe: true, canPassGate: false };
-  const loggedOut = { hasMe: false, canPassGate: false };
+test("public routes stay public and auth transport routes stay reachable", () => {
+  for (const path of [
+    "/",
+    "/information",
+    "/about",
+    "/rules",
+    "/contact",
+    "/verification",
+    "/awards",
+    "/awards/",
+    "/tournaments",
+  ]) {
+    assert.match(middleware, new RegExp(`['"]${path.replace("/", "\\/")}`));
+  }
 
-  assert.equal(getPrivateGateRedirect("/", verified), null);
-  assert.equal(getPrivateGateRedirect("/", verified), null);
-  assert.equal(getPrivateGateRedirect("/", pending), null);
-  assert.equal(getPrivateGateRedirect("/", loggedOut), null);
-  assert.equal(getPrivateGateRedirect("/play", verified), null);
-  assert.equal(getPrivateGateRedirect("/play", pending), "/");
-  assert.equal(getPrivateGateRedirect("/play", loggedOut), "/");
-  assert.equal(getPrivateGateRedirect("/logout", loggedOut), null);
+  assert.match(middleware, /isAuthTransportRoute/);
+  assert.doesNotMatch(
+    middleware,
+    /getPrivateGateRedirect|shouldRenderApplicationShell|isRoleAbove|PreLaunchGate|Access Pending/,
+  );
 });
 
-test("initial auth check has one owner and navigation does not force reloads", () => {
-  assert.equal((middleware.match(/authStore\.getMe\(\)/g) ?? []).length, 1);
+test("restricted routes keep their existing middleware permissions", () => {
+  assert.match(middleware, /!hasMe && !isPublicRoute\(to\.path\)/);
+  assert.match(rootPage, /HomePlayerOverview/);
+  assert.match(appLayout, /authStore\.isRoleAbove\(e_player_roles_enum\.match_organizer\)/);
+});
+
+test("auth initialization has one middleware owner and navigation does not force reloads", () => {
+  assert.equal((middleware.match(/getMe\(\)/g) ?? []).length, 1);
   assert.doesNotMatch(rootPage, /authStore\.getMe\(\)/);
   assert.match(authStore, /if \(getMePromise\) \{\s*return getMePromise;/);
   assert.doesNotMatch(authStore, /void fetchMe\(\)/);
-  assert.doesNotMatch(topNav, /onLogoClick|window\.location\.reload/);
-  assert.doesNotMatch(leftNav, /onLogoClick|window\.location\.reload/);
-  assert.doesNotMatch(logout, /window\.location\.reload/);
+  assert.doesNotMatch(topNav, /onLogoClick|window\.location\.reload|location\.replace/);
+  assert.doesNotMatch(leftNav, /onLogoClick|window\.location\.reload|location\.replace/);
+  assert.doesNotMatch(logout, /window\.location\.reload|location\.replace/);
   assert.match(logout, /await navigateTo\("\/", \{ replace: true \}\)/);
 });
 
@@ -104,16 +104,4 @@ test("the global preloader only fades once after the app mounts", () => {
     1,
   );
   assert.doesNotMatch(preloader, /useRoute|watch\(|navigateTo|setPageLayout/);
-});
-
-test("cached identity remains provisional until the single network check resolves", () => {
-  assert.match(
-    authStore,
-    /if \(hasCheckedSession\.value\) \{\s*return !!me\.value\?\.steam_id;/,
-  );
-  assert.match(
-    authStore,
-    /Cached identity is only a paint hint[\s\S]*global auth middleware owns starting/,
-  );
-  assert.match(middleware, /if \(!authStore\.hasCheckedSession\) \{\s*await authStore\.getMe\(\);/s);
 });

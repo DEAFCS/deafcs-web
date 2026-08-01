@@ -334,9 +334,9 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
     me.value = cachedMe;
     meSnapshot = JSON.stringify(cachedMe);
     // Cached identity is only a paint hint. Keep the session unresolved until
-    // the network check completes so the gate cannot flash protected content
-    // for an expired cached session. The global auth middleware owns starting
-    // that one network check for the initial navigation.
+    // the network check completes so normal shell permissions never rely on
+    // an expired cached session. The global auth middleware owns starting that
+    // one network check for the initial navigation.
   }
 
   return {

@@ -1,10 +1,109 @@
 import { useAuthStore } from "~/stores/AuthStore";
 import { toast } from "@/components/ui/toast";
-import { e_player_roles_enum } from "~/generated/zeus";
-import {
-  getPrivateGateRedirect,
-  isAuthTransportRoute,
-} from "~/utilities/authGate";
+
+let checkedMe = false;
+
+function isAuthTransportRoute(path: string): boolean {
+  return (
+    path === "/auth" ||
+    path.startsWith("/auth/") ||
+    path === "/logout" ||
+    path.startsWith("/logout/") ||
+    path === "/error" ||
+    path.startsWith("/error/")
+  );
+}
+
+function isPublicRoute(path: string): boolean {
+  const publicRoutes = [
+    "/",
+    "/login",
+    "/information",
+    "/about",
+    "/rules",
+    "/contact",
+    "/verification",
+    "/play",
+    "/watch",
+    "/public-servers",
+    "/stats-guide",
+    "/awards",
+  ];
+
+  if (publicRoutes.includes(path) || isAuthTransportRoute(path)) {
+    return true;
+  }
+
+  if (path.startsWith("/awards/") && path !== "/awards/manage") {
+    return true;
+  }
+
+  if (path.startsWith("/players")) {
+    return true;
+  }
+
+  if (path.startsWith("/leaderboard")) {
+    return true;
+  }
+
+  if (path.startsWith("/teams")) {
+    return true;
+  }
+
+  if (path === "/scrims" || path.startsWith("/scrims/")) {
+    return true;
+  }
+
+  if (path.startsWith("/tournaments")) {
+    return true;
+  }
+
+  if (path.startsWith("/matches")) {
+    return true;
+  }
+
+  if (path.startsWith("/draft-room/") && !path.endsWith("/edit")) {
+    return true;
+  }
+
+  if (path === "/news" || path.startsWith("/news/")) {
+    return true;
+  }
+
+  // Event data is row-gated by the visibility column (Private/Friends/
+  // Public) in Hasura and by the same SQL functions on the media routes;
+  // the pages just need to be reachable without a login bounce.
+  if (path === "/events" || path.startsWith("/events/")) {
+    return true;
+  }
+
+  if (path.startsWith("/match-popout")) {
+    return true;
+  }
+
+  if (path.startsWith("/embed/")) {
+    return true;
+  }
+
+  // Plugins are reachable without a login bounce; the loader page
+  // (pages/apps/[slug].vue) enforces per-plugin role and only mounts the remote
+  // for viewers who may see it. Public (null required_role) plugins must be
+  // reachable by guests.
+  if (path.startsWith("/apps/")) {
+    return true;
+  }
+
+  // Hasura row perms gate clip data by visibility; the routes just
+  // need to be reachable without a login bounce.
+  if (path === "/highlights" || path.startsWith("/highlights/")) {
+    return true;
+  }
+  if (path.startsWith("/clips/")) {
+    return true;
+  }
+
+  return false;
+}
 
 export default defineNuxtRouteMiddleware(async (to) => {
   if (process.server) return;
@@ -31,33 +130,29 @@ export default defineNuxtRouteMiddleware(async (to) => {
     });
   }
 
-  // Auth and error transport routes belong to the external auth flow. They
-  // must remain reachable even while the private pre-launch gate is active.
+  // Auth and error transport routes belong to the external auth flow.
   if (isAuthTransportRoute(to.path)) {
     return;
   }
 
-  const authStore = useAuthStore();
+  let hasMe: boolean = useAuthStore().me?.steam_id ? true : false;
 
-  // getMe() shares its in-flight promise with the auth store. Awaiting it here
-  // prevents a cached identity or a cold session from redirecting too early.
-  if (!authStore.hasCheckedSession) {
-    await authStore.getMe();
+  if (!checkedMe) {
+    checkedMe = true;
+    hasMe = await useAuthStore().getMe();
   }
 
-  const hasMe = !!authStore.me?.steam_id;
-  // This deliberately uses the existing role hierarchy. verified_user and
-  // every role above it (including moderator/organizer/administrator staff)
-  // pass the gate; the unverified user role does not.
-  const canPassPrivateGate =
-    hasMe && authStore.isRoleAbove(e_player_roles_enum.verified_user);
+  if (!hasMe && !isPublicRoute(to.path) && to.path !== "/login") {
+    return navigateTo(`/login${to.path === "/" ? "" : `?redirect=${to.path}`}`);
+  }
 
-  const gateRedirect = getPrivateGateRedirect(to.path, {
-    hasMe,
-    canPassGate: canPassPrivateGate,
-  });
-
-  if (gateRedirect) {
-    return navigateTo(gateRedirect);
+  if (hasMe && to.path === "/login") {
+    if (to.query.redirect) {
+      const redirectPath = decodeURIComponent(to.query.redirect as string);
+      if (redirectPath.startsWith("/") && !redirectPath.startsWith("//")) {
+        return navigateTo(redirectPath);
+      }
+    }
+    return navigateTo("/");
   }
 });

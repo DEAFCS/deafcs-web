@@ -4,8 +4,6 @@ import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 import { useBranding } from "~/composables/useBranding";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useAuthStore } from "~/stores/AuthStore";
-import { e_player_roles_enum } from "~/generated/zeus";
-import { shouldRenderApplicationShell } from "~/utilities/authGate";
 
 const MatchmakingConfirm = defineAsyncComponent(
   () => import("~/components/matchmaking/MatchmakingConfirm.vue"),
@@ -63,16 +61,6 @@ const applicationSettingsStore = useApplicationSettingsStore();
 
 const me = computed(() => authStore.me);
 const hasGlobalStream = computed(() => !!applicationSettingsStore.globalStream);
-const canPassPrivateGate = computed(() =>
-  authStore.isRoleAbove(e_player_roles_enum.verified_user),
-);
-const isPrivateGateActive = computed(
-  () =>
-    !shouldRenderApplicationShell({
-      hasCheckedSession: authStore.hasCheckedSession,
-      canPassGate: canPassPrivateGate.value,
-    }),
-);
 
 const TAB_QUERY_KEYS = new Set(["tab", "mode"]);
 
@@ -119,9 +107,9 @@ function pageKeyWithoutTabQuery(route: {
 </script>
 
 <template>
-  <StreamGlobal v-if="hasGlobalStream && !isPrivateGateActive" />
+  <StreamGlobal v-if="hasGlobalStream" />
 
-  <div v-if="me && !isPrivateGateActive" style="display: contents">
+  <div v-if="me" style="display: contents">
     <PlayerNameRegistration />
     <MatchmakingConfirm />
     <MatchmakingSearchToast />

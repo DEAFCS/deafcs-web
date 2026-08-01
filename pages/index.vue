@@ -13,9 +13,7 @@ import {
   VolumeX,
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
-import { e_player_roles_enum } from "~/generated/zeus";
-import PreLaunchGate from "~/components/auth/PreLaunchGate.vue";
-import { shouldRenderApplicationShell } from "~/utilities/authGate";
+import LoadingScreen from "~/components/LoadingScreen.vue";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
@@ -31,25 +29,12 @@ import {
 } from "~/utilities/tacticalClasses";
 
 definePageMeta({
-  // Keep the route on one deterministic Nuxt layout. The layout itself
-  // suppresses its shell while auth is unresolved or the account is pending.
   layout: "default",
   pageTransition: { name: "page", mode: "out-in" },
 });
 
 const authStore = useAuthStore();
 const route = useRoute();
-
-const canPassPrivateGate = computed(() =>
-  authStore.isRoleAbove(e_player_roles_enum.verified_user),
-);
-const showPreLaunchGate = computed(
-  () =>
-    !shouldRenderApplicationShell({
-      hasCheckedSession: authStore.hasCheckedSession,
-      canPassGate: canPassPrivateGate.value,
-    }),
-);
 
 const isLoggedIn = computed(
   () => authStore.hasCheckedSession && !!authStore.me?.steam_id,
@@ -133,19 +118,21 @@ const whyDeafcsFeatures = [
 </script>
 
 <template>
-  <PreLaunchGate v-if="showPreLaunchGate" />
+  <LoadingScreen
+    v-if="!authStore.hasCheckedSession"
+    class="min-h-[60vh]"
+  />
 
-  <template v-else>
-    <HomePlayerOverview
-      v-if="showLoggedInHome"
-      :preview-player="
-        !isLoggedIn && previewHomeState === 'logged-in'
-          ? previewPlayer
-          : undefined
-      "
-    />
+  <HomePlayerOverview
+    v-else-if="showLoggedInHome"
+    :preview-player="
+      !isLoggedIn && previewHomeState === 'logged-in'
+        ? previewPlayer
+        : undefined
+    "
+  />
 
-    <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
+  <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
     <section
       aria-labelledby="home-hero-title"
       class="homepage-entry relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
@@ -327,8 +314,7 @@ const whyDeafcsFeatures = [
 
       <HomeLatestHighlights />
     </div>
-    </main>
-  </template>
+  </main>
 </template>
 
 <style>

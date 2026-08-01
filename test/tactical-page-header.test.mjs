@@ -12,7 +12,6 @@ async function source(path) {
 const [
   header,
   tacticalClasses,
-  landing,
   homepage,
   play,
   tournaments,
@@ -22,7 +21,6 @@ const [
 ] = await Promise.all([
   source("../components/TacticalPageHeader.vue"),
   source("../utilities/tacticalClasses.ts"),
-  source("../components/auth/PreLaunchGate.vue"),
   source("../components/home/HomePlayerOverview.vue"),
   source("../pages/play/index.vue"),
   source("../pages/tournaments/index.vue"),
@@ -95,18 +93,10 @@ test("TacticalPageHeader renders default and named title content", async () => {
   assert.equal(defaultHtml.match(/DEFAULT HEADER TITLE/g)?.length, 2);
 });
 
-test("landing wordmark styling is isolated from TacticalPageHeader", () => {
+test("TacticalPageHeader keeps its shared styles isolated", () => {
   assert.doesNotMatch(
     tacticalClasses,
     /tacticalWordmark(?:Title|PageTitle|Foreground|Offset)Classes/,
-  );
-  assert.doesNotMatch(
-    landing,
-    /TacticalPageHeader|tacticalWordmark(?:Title|PageTitle|Foreground|Offset)Classes/,
-  );
-  assert.match(
-    landing,
-    /<h1 id="prelaunch-title">[\s\S]*\{\{ displayBrand \}\}[\s\S]*\.prelaunch-wordmark h1 \{[\s\S]*color: #f5f5f4;/,
   );
 });
 
