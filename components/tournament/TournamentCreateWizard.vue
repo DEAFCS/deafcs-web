@@ -22,6 +22,7 @@ import CategorySelect from "~/components/tournament/CategorySelect.vue";
 import DateTimePicker from "~/components/tournament/DateTimePicker.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import PrizeRowsEditor from "~/components/tournament/PrizeRowsEditor.vue";
+import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
 </script>
 
 <template>
@@ -250,6 +251,16 @@ import PrizeRowsEditor from "~/components/tournament/PrizeRowsEditor.vue";
       />
     </div>
 
+    <!-- Step 5: Awards -->
+    <div v-show="currentStep === 4" class="grid gap-4">
+      <TournamentAwardPicker
+        ref="awardPicker"
+        v-model="awardSelections"
+        :match-type="form.values.type || null"
+        @ready="awardPickerReady = $event"
+      />
+    </div>
+
     <!-- Navigation -->
     <div class="flex items-center justify-between border-t border-border pt-4">
       <Button
@@ -266,7 +277,13 @@ import PrizeRowsEditor from "~/components/tournament/PrizeRowsEditor.vue";
         {{ $t("common.next") }}
         <ChevronRight class="ml-1 h-4 w-4" />
       </Button>
-      <Button v-else type="button" :loading="submitting" @click="create">
+      <Button
+        v-else
+        type="button"
+        :loading="submitting"
+        :disabled="submitting || !awardPickerReady"
+        @click="create"
+      >
         {{ $t("tournament.form.create") }}
       </Button>
     </div>
@@ -295,6 +312,8 @@ export default {
       submitting: false,
       prizeRowSeq: 0,
       prizes: [] as Array<{ id: number; place: string; prize: string }>,
+      awardSelections: {} as Record<number, string>,
+      awardPickerReady: false,
       bannerBlob: null as Blob | null,
       form: useForm({
         keepValuesOnUnmount: true,
@@ -334,6 +353,7 @@ export default {
           label: this.$t("tournament.wizard.match_options"),
         },
         { key: "prizes", label: this.$t("tournament.wizard.prizes") },
+        { key: "awards", label: "Awards" },
       ];
     },
   },
@@ -503,9 +523,24 @@ export default {
             description: error?.message,
           });
         }
+        let awardMappingsFailed = false;
+        try {
+          await this.persistTournamentAwardSelections(tournamentId);
+        } catch (error: any) {
+          awardMappingsFailed = true;
+          toast({
+            variant: "destructive",
+            title: "Tournament created, but award mappings need attention",
+            description:
+              "Open the Trophies tab to review and save the mappings. Some selections may already have been saved.",
+          });
+        }
         await this.uploadBanner(tournamentId);
 
-        await this.$router.push(`/tournaments/${tournamentId}`);
+        await this.$router.push({
+          path: `/tournaments/${tournamentId}`,
+          query: awardMappingsFailed ? { tab: "trophies" } : undefined,
+        });
       } catch (error: any) {
         toast({
           variant: "destructive",
@@ -514,6 +549,17 @@ export default {
         });
         this.submitting = false;
       }
+    },
+    async persistTournamentAwardSelections(tournamentId: string) {
+      const picker = this.$refs.awardPicker as {
+        persistSelections?: (
+          tournamentId: string,
+          onlyOverrides?: boolean,
+        ) => Promise<number>;
+      };
+      if (!picker?.persistSelections) return;
+      // Built-in defaults need no rows: missing slots already resolve to them.
+      await picker.persistSelections(tournamentId, true);
     },
     async persistCategoriesAndPrizes(tournamentId: string) {
       const categories: string[] = this.form.values.categories ?? [];

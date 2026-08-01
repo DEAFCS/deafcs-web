@@ -1,5 +1,6 @@
 <script lang="ts">
 import AwardBadge from "~/components/award/AwardBadge.vue";
+import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
@@ -7,6 +8,7 @@ import { Switch } from "~/components/ui/switch";
 import ManageSection from "~/components/common/ManageSection.vue";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $ } from "~/generated/zeus";
+import type { TournamentAwardSelection } from "~/utilities/tournamentAwardPicker";
 
 const SILHOUETTE_OPTIONS = [
   { value: null, label: "Auto" },
@@ -20,6 +22,7 @@ const SILHOUETTE_OPTIONS = [
 export default {
   components: {
     AwardBadge,
+    TournamentAwardPicker,
     ImageUploadTile,
     Input,
     Button,
@@ -47,6 +50,7 @@ export default {
         boolean
       >,
       savingEnabled: false,
+      awardSelection: {} as TournamentAwardSelection,
     };
   },
   computed: {
@@ -229,6 +233,15 @@ export default {
     </div>
 
     <template v-else>
+      <TournamentAwardPicker
+        v-model="awardSelection"
+        class="mb-5"
+        :tournament-id="tournament.id"
+        :match-type="tournament.options?.type || null"
+        :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
+        :finished="tournament.status === 'Finished'"
+      />
+
       <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <div
           v-for="p in placements"
