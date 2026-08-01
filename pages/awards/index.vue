@@ -125,8 +125,8 @@ onMounted(loadAwards);
 </script>
 
 <template>
-  <PageTransition :delay="0">
-    <div class="space-y-5 py-6">
+  <div class="space-y-5 py-6">
+    <PageTransition>
       <TacticalPageHeader :inline-actions="canManageAwards">
         <template #title>Awards</template>
         <template #subtitle>
@@ -147,8 +147,11 @@ onMounted(loadAwards);
           </NuxtLink>
         </template>
       </TacticalPageHeader>
+    </PageTransition>
 
-      <section class="space-y-4" aria-labelledby="award-catalog-heading">
+    <section class="space-y-4" aria-labelledby="award-catalog-heading">
+      <PageTransition :delay="100">
+        <div class="space-y-4">
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2
             id="award-catalog-heading"
@@ -180,7 +183,11 @@ onMounted(loadAwards);
         </div>
 
         <AnimatedFilters v-model="tier" square :options="tierOptions" />
+        </div>
+      </PageTransition>
 
+      <PageTransition :delay="175">
+        <div>
         <div
           v-if="loading"
           class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
@@ -279,7 +286,8 @@ onMounted(loadAwards);
             </div>
           </section>
         </div>
-      </section>
-    </div>
-  </PageTransition>
+        </div>
+      </PageTransition>
+    </section>
+  </div>
 </template>

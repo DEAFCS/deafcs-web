@@ -413,8 +413,9 @@ onMounted(loadDefinitions);
 </script>
 
 <template>
-  <PageTransition :delay="0">
-    <main class="space-y-5 py-6">
+  <main class="space-y-5 py-6">
+    <PageTransition>
+      <div class="space-y-5">
       <NuxtLink
         to="/awards"
         class="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -445,8 +446,12 @@ onMounted(loadDefinitions);
           </Button>
         </template>
       </TacticalPageHeader>
+      </div>
+    </PageTransition>
 
       <section class="space-y-4" aria-labelledby="award-definitions-heading">
+        <PageTransition :delay="100">
+          <div>
         <div class="flex flex-wrap items-center justify-between gap-3">
           <h2
             id="award-definitions-heading"
@@ -486,7 +491,11 @@ onMounted(loadDefinitions);
             </label>
           </div>
         </div>
+          </div>
+        </PageTransition>
 
+        <PageTransition :delay="175">
+          <div class="space-y-4">
         <div
           v-if="loading"
           class="space-y-2"
@@ -600,9 +609,10 @@ onMounted(loadDefinitions);
             </tbody>
           </table>
         </div>
+          </div>
+        </PageTransition>
       </section>
-    </main>
-  </PageTransition>
+  </main>
 
   <Dialog v-model:open="formOpen">
     <DialogContent class="max-h-[90vh] max-w-2xl overflow-y-auto">

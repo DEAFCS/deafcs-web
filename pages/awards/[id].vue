@@ -169,8 +169,9 @@ onMounted(loadAward);
 </script>
 
 <template>
-  <PageTransition :delay="0">
-    <main class="space-y-5 py-6">
+  <main class="space-y-5 py-6">
+    <PageTransition>
+      <div class="space-y-5">
       <NuxtLink
         to="/awards"
         class="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -179,10 +180,8 @@ onMounted(loadAward);
         Back to Awards
       </NuxtLink>
 
-      <div v-if="loading" class="space-y-5" aria-busy="true" aria-label="Loading award">
+      <div v-if="loading" aria-busy="true" aria-label="Loading award">
         <Skeleton class="h-56 w-full rounded-lg" />
-        <Skeleton class="h-20 w-full rounded-lg" />
-        <Skeleton class="h-64 w-full rounded-lg" />
       </div>
 
       <Empty
@@ -249,8 +248,19 @@ onMounted(loadAward);
             </div>
           </div>
         </header>
+      </template>
 
-        <dl class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/70 bg-border/70 sm:grid-cols-4">
+      </div>
+    </PageTransition>
+
+    <PageTransition :delay="100">
+      <div>
+        <Skeleton
+          v-if="loading"
+          class="h-20 w-full rounded-lg"
+          aria-hidden="true"
+        />
+        <dl v-else-if="award" class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/70 bg-border/70 sm:grid-cols-4">
           <div class="bg-background/70 p-3">
             <dt class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-muted-foreground">Active grants</dt>
             <dd class="mt-1 font-mono text-lg font-bold tabular-nums" :style="{ color: accent }">{{ stats.totalActiveGrants }}</dd>
@@ -268,8 +278,17 @@ onMounted(loadAward);
             <dd class="mt-1 text-sm font-semibold">{{ formatDate(stats.latestGrantAt) }}</dd>
           </div>
         </dl>
+      </div>
+    </PageTransition>
 
-        <section class="space-y-3" aria-labelledby="holder-history-heading">
+    <PageTransition :delay="175">
+      <div>
+        <Skeleton
+          v-if="loading"
+          class="h-64 w-full rounded-lg"
+          aria-hidden="true"
+        />
+        <section v-else-if="award" class="space-y-3" aria-labelledby="holder-history-heading">
           <div class="flex items-center gap-2">
             <Users class="h-4 w-4 text-[hsl(var(--tac-amber))]" aria-hidden="true" />
             <h2 id="holder-history-heading" class="font-mono text-xs font-semibold uppercase tracking-[0.18em]">
@@ -354,9 +373,9 @@ onMounted(loadAward);
             </li>
           </TransitionGroup>
         </section>
-      </template>
-    </main>
-  </PageTransition>
+      </div>
+    </PageTransition>
+  </main>
 </template>
 
 <style scoped>
