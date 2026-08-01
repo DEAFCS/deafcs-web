@@ -6,9 +6,6 @@ import {
   tacticalTabIndicatorUpcomingClasses,
   tacticalTabsListClasses,
   tacticalTabsTriggerClasses,
-  tacticalWordmarkForegroundClasses,
-  tacticalWordmarkOffsetClasses,
-  tacticalWordmarkPageTitleClasses,
 } from "~/utilities/tacticalClasses";
 
 defineProps<{
@@ -63,18 +60,18 @@ const tacticalTabs = {
         </span>
 
         <h1
-          :class="tacticalWordmarkPageTitleClasses"
+          class="relative m-0 font-sans text-[clamp(1.75rem,4.2vw,3rem)] font-bold uppercase leading-[0.9] tracking-[0.02em] [font-stretch:80%]"
         >
           <span
             aria-hidden="true"
-            :class="tacticalWordmarkOffsetClasses"
+            class="pointer-events-none absolute left-[6px] right-[-6px] top-[6px] select-none overflow-hidden whitespace-nowrap text-transparent [-webkit-text-stroke:1px_hsl(var(--tac-amber)/0.35)]"
           >
-            <slot name="title"></slot>
+            <slot name="title"><slot></slot></slot>
           </span>
           <span
-            :class="tacticalWordmarkForegroundClasses"
+            class="relative bg-[linear-gradient(180deg,hsl(var(--foreground))_0%,hsl(var(--foreground)/0.75)_100%)] bg-clip-text text-transparent [-webkit-text-fill-color:transparent]"
           >
-            <slot name="title"></slot>
+            <slot name="title"><slot></slot></slot>
           </span>
         </h1>
 

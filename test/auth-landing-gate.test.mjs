@@ -63,7 +63,11 @@ test("landing gate exposes required access states and local assets", () => {
 test("landing gate renders a visible plain responsive wordmark and orange logo corners", () => {
   assert.match(
     gate,
-    /:class="landingWordmarkTitleClasses"[\s\S]*class="prelaunch-wordmark-foreground"/,
+    /<h1 id="prelaunch-title">[\s\S]*class="prelaunch-wordmark-foreground"/,
+  );
+  assert.match(
+    gate,
+    /\.prelaunch-wordmark h1 \{[\s\S]*font-family: "Oxanium"[\s\S]*font-size: clamp\(3rem, 9vw, 5\.5rem\);[\s\S]*-webkit-text-fill-color: currentColor;/,
   );
   assert.match(
     gate,
@@ -74,9 +78,7 @@ test("landing gate renders a visible plain responsive wordmark and orange logo c
   )?.[0];
   assert.ok(foregroundStyle);
   assert.doesNotMatch(foregroundStyle, /#ff9f30|-webkit-text-stroke|text-shadow/);
-  assert.doesNotMatch(gate, /tacticalWordmarkForegroundClasses|tacticalWordmarkOffsetClasses/);
-  assert.match(gate, /tacticalWordmarkTitleClasses/);
-  assert.match(gate, /text-\[clamp\(3rem,9vw,5\.5rem\)\]/);
+  assert.doesNotMatch(gate, /tacticalWordmark(?:Title|PageTitle|Foreground|Offset)Classes/);
   assert.match(gate, /@media \(max-width: 640px\)[\s\S]*\.prelaunch-wordmark h1 \{[\s\S]*font-size: clamp\(3\.2rem, 17vw, 5rem\);/);
   assert.match(
     gate,
