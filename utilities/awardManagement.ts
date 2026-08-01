@@ -39,7 +39,7 @@ export interface ManagedAwardDefinition {
 }
 
 export type AwardValidationErrors = Partial<
-  Record<"name" | "tier" | "scopeId", string>
+  Record<"name" | "tier" | "scope", string>
 >;
 
 export type AwardImageIntent = "preserve" | "upload" | "remove";
@@ -99,8 +99,8 @@ export function validateAwardDefinition(
   if (!AWARD_TIERS.includes(draft.tier)) {
     errors.tier = "Choose a supported award tier.";
   }
-  if (draft.scope !== "global" && !draft.scopeId) {
-    errors.scopeId = "Choose the definition that owns this award.";
+  if (!AWARD_MANAGEMENT_SCOPES.includes(draft.scope)) {
+    errors.scope = "Choose an award scope.";
   }
   return errors;
 }
@@ -118,11 +118,13 @@ export function awardSaveVariables(
     // the current value on edit instead of accidentally clearing it.
     silhouette: existing?.silhouette ?? null,
     allow_multiple: draft.repeatable,
-    tournament_id: draft.scope === "tournament" ? draft.scopeId : null,
-    event_id: draft.scope === "event" ? draft.scopeId : null,
-    elo_season_id: draft.scope === "elo_season" ? draft.scopeId : null,
+    tournament_id:
+      draft.scope === "tournament" ? draft.scopeId || null : null,
+    event_id: draft.scope === "event" ? draft.scopeId || null : null,
+    elo_season_id:
+      draft.scope === "elo_season" ? draft.scopeId || null : null,
     league_season_id:
-      draft.scope === "league_season" ? draft.scopeId : null,
+      draft.scope === "league_season" ? draft.scopeId || null : null,
   };
 }
 

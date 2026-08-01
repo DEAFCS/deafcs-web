@@ -77,6 +77,45 @@ test("create builds one reusable saveAward definition", () => {
   assert.doesNotMatch(manage, /grantAward|setTournamentAward|recipient_type/);
 });
 
+test("all supported scopes allow a reusable definition without one owner", () => {
+  for (const scope of [
+    "tournament",
+    "event",
+    "elo_season",
+    "league_season",
+  ]) {
+    const draft = {
+      ...emptyAwardDefinitionDraft(),
+      name: `${scope} champion`,
+      scope,
+      scopeId: "",
+      repeatable: true,
+    };
+    assert.deepEqual(validateAwardDefinition(draft), {});
+    assert.deepEqual(
+      {
+        tournament_id: awardSaveVariables(draft).tournament_id,
+        event_id: awardSaveVariables(draft).event_id,
+        elo_season_id: awardSaveVariables(draft).elo_season_id,
+        league_season_id: awardSaveVariables(draft).league_season_id,
+      },
+      {
+        tournament_id: null,
+        event_id: null,
+        elo_season_id: null,
+        league_season_id: null,
+      },
+    );
+  }
+
+  assert.match(manage, /<option value="">Global reusable award<\/option>/);
+  assert.match(
+    manage,
+    /This definition can be reused across multiple tournaments or seasons\./,
+  );
+  assert.match(manage, /Scope owner[\s\S]*\(optional\)/);
+});
+
 test("editing preserves supported fields that are not exposed by the form", () => {
   const existing = {
     id: "award-1",
@@ -95,6 +134,29 @@ test("editing preserves supported fields that are not exposed by the form", () =
   assert.equal(variables.silhouette, 3);
   assert.equal(variables.event_id, "event-1");
   assert.equal(variables.tournament_id, null);
+});
+
+test("existing specifically owned definitions retain every supported scope", () => {
+  const ownedScopes = [
+    ["tournament_id", "tournament", "tournament-1"],
+    ["event_id", "event", "event-1"],
+    ["elo_season_id", "elo_season", "elo-season-1"],
+    ["league_season_id", "league_season", "league-season-1"],
+  ];
+
+  for (const [field, scope, ownerId] of ownedScopes) {
+    const existing = {
+      id: `award-${scope}`,
+      name: "Owned award",
+      tier: "special",
+      [field]: ownerId,
+    };
+    const draft = awardDefinitionDraft(existing);
+    const variables = awardSaveVariables(draft, existing);
+    assert.equal(draft.scope, scope);
+    assert.equal(draft.scopeId, ownerId);
+    assert.equal(variables[field], ownerId);
+  }
 });
 
 test("image workflow preserves, replaces, and removes artwork explicitly", () => {
@@ -138,7 +200,7 @@ test("built-in and historical identity restrictions are represented", () => {
   assert.match(manage, /:disabled="identityLocked"/);
 });
 
-test("validation rejects missing names and scoped definitions without an owner", () => {
+test("validation requires a name and scope but not a scope owner", () => {
   assert.deepEqual(validateAwardDefinition(emptyAwardDefinitionDraft()), {
     name: "Award name is required.",
   });
@@ -148,7 +210,15 @@ test("validation rejects missing names and scoped definitions without an owner",
       name: "Scoped",
       scope: "tournament",
     }),
-    { scopeId: "Choose the definition that owns this award." },
+    {},
+  );
+  assert.deepEqual(
+    validateAwardDefinition({
+      ...emptyAwardDefinitionDraft(),
+      name: "Missing scope",
+      scope: "",
+    }),
+    { scope: "Choose an award scope." },
   );
 });
 

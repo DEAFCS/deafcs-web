@@ -253,7 +253,7 @@ function definitionScopeLabel(award: ManagedAward) {
 
 function onScopeChange() {
   draft.scopeId = "";
-  formErrors.value = { ...formErrors.value, scopeId: undefined };
+  formErrors.value = { ...formErrors.value, scope: undefined };
 }
 
 function openCreate() {
@@ -712,7 +712,10 @@ onMounted(loadDefinitions);
             <select
               id="award-scope"
               v-model="draft.scope"
+              required
               :disabled="identityLocked"
+              :aria-invalid="!!formErrors.scope"
+              :aria-describedby="formErrors.scope ? 'award-scope-error' : undefined"
               class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
               @change="onScopeChange"
             >
@@ -720,25 +723,27 @@ onMounted(loadDefinitions);
                 {{ label }}
               </option>
             </select>
+            <p v-if="formErrors.scope" id="award-scope-error" class="text-xs text-destructive" role="alert">
+              {{ formErrors.scope }}
+            </p>
           </div>
 
           <div v-if="draft.scope !== 'global'" class="space-y-1.5 sm:col-span-2">
-            <label for="award-scope-owner" class="text-sm font-medium">Scope owner</label>
+            <label for="award-scope-owner" class="text-sm font-medium">Scope owner <span class="text-muted-foreground">(optional)</span></label>
             <select
               id="award-scope-owner"
               v-model="draft.scopeId"
               :disabled="identityLocked"
-              :aria-invalid="!!formErrors.scopeId"
-              :aria-describedby="formErrors.scopeId ? 'award-scope-error' : undefined"
+              aria-describedby="award-scope-owner-help"
               class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
             >
-              <option value="">Select a scope owner</option>
+              <option value="">Global reusable award</option>
               <option v-for="owner in scopeOwners" :key="owner.id" :value="owner.id">
                 {{ owner.label }}
               </option>
             </select>
-            <p v-if="formErrors.scopeId" id="award-scope-error" class="text-xs text-destructive" role="alert">
-              {{ formErrors.scopeId }}
+            <p id="award-scope-owner-help" class="text-xs text-muted-foreground">
+              This definition can be reused across multiple tournaments or seasons.
             </p>
           </div>
         </div>
