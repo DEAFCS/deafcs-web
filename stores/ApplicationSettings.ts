@@ -209,6 +209,34 @@ export const useApplicationSettingsStore = defineStore(
       return create_events_role?.value || e_player_roles_enum.match_organizer;
     });
 
+    const awardCreateRole = computed<e_player_roles_enum>(() => {
+      const setting = settings.value.find(
+        ({ name }) => name === "public.create_awards_role",
+      );
+      return (setting?.value ||
+        e_player_roles_enum.administrator) as e_player_roles_enum;
+    });
+
+    const awardGrantRole = computed<e_player_roles_enum>(() => {
+      const setting = settings.value.find(
+        ({ name }) => name === "public.grant_awards_role",
+      );
+      return (setting?.value ||
+        e_player_roles_enum.administrator) as e_player_roles_enum;
+    });
+
+    const canManageSharedAwards = computed(() => {
+      const authStore = useAuthStore();
+      if (!authStore.me) return false;
+
+      // saveAward checks the configurable floor first, then reserves shared
+      // (unscoped) award definitions for administrators.
+      return (
+        authStore.isRoleAbove(awardCreateRole.value) &&
+        authStore.isRoleAbove(e_player_roles_enum.administrator)
+      );
+    });
+
     // Panel on/off flag only, no role gating — used to show guests "fake"
     // matchmaking cards that prompt login on click.
     const matchmakingEnabled = computed(() => {
@@ -614,6 +642,9 @@ export const useApplicationSettingsStore = defineStore(
       matchmakingEnabled,
       tournamentCreateRole,
       eventCreateRole,
+      awardCreateRole,
+      awardGrantRole,
+      canManageSharedAwards,
       eventsEnabled,
       supportsDiscordBot,
       supportsGameServerNodes,

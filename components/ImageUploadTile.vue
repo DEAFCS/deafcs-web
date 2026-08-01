@@ -25,6 +25,7 @@ const props = withDefaults(
     fit?: "cover" | "contain";
     hasCustom?: boolean;
     label?: string;
+    imageAlt?: string;
     hint?: string;
     disabled?: boolean;
     accept?: string;
@@ -120,7 +121,8 @@ const displaySrc = computed(() => deferredPreview.value ?? props.currentSrc);
 const hasImage = computed(() => !!displaySrc.value);
 const showRemove = computed(
   () =>
-    (props.mode === "deferred" && !!deferredPreview.value) ||
+    (props.mode === "deferred" &&
+      (!!deferredPreview.value || props.hasCustom)) ||
     (props.mode !== "deferred" && props.hasCustom),
 );
 const busy = computed(() => isUploading.value || isRemoving.value);
@@ -339,20 +341,20 @@ onBeforeUnmount(() => {
           />
           <img
             :src="displaySrc as string"
-            alt=""
+            :alt="imageAlt || ''"
             class="absolute inset-0 z-[1] h-full w-full object-contain"
           />
         </template>
         <img
           v-else-if="effectiveFit === 'contain'"
           :src="displaySrc as string"
-          alt=""
+          :alt="imageAlt || ''"
           class="absolute inset-0 h-full w-full object-contain p-2"
         />
         <img
           v-else
           :src="displaySrc as string"
-          alt=""
+          :alt="imageAlt || ''"
           class="absolute inset-0 h-full w-full object-cover"
         />
 
@@ -362,23 +364,25 @@ onBeforeUnmount(() => {
         >
           <button
             type="button"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/90 hover:text-[hsl(var(--tac-amber))] disabled:opacity-50"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/90 hover:text-[hsl(var(--tac-amber))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-50"
             :title="$t('image_upload.replace')"
+            :aria-label="$t('image_upload.replace')"
             :disabled="busy"
             @click.stop="triggerPicker"
           >
-            <Pencil class="h-3.5 w-3.5" />
+            <Pencil class="h-3.5 w-3.5" aria-hidden="true" />
           </button>
           <button
             v-if="showRemove"
             type="button"
-            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/90 hover:text-destructive disabled:opacity-50"
+            class="inline-flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white/90 backdrop-blur-sm transition-colors hover:bg-black/90 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-50"
             :title="$t('image_upload.remove')"
+            :aria-label="$t('image_upload.remove')"
             :disabled="busy"
             @click.stop="remove"
           >
             <Spinner v-if="isRemoving" class="h-3.5 w-3.5" />
-            <Trash2 v-else class="h-3.5 w-3.5" />
+            <Trash2 v-else class="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
       </template>
@@ -387,10 +391,11 @@ onBeforeUnmount(() => {
       <button
         v-else
         type="button"
-        class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-3 text-center text-muted-foreground"
+        class="absolute inset-0 flex flex-col items-center justify-center gap-1.5 p-3 text-center text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        :aria-label="label || defaultHint"
         @click="triggerPicker"
       >
-        <Upload class="h-5 w-5 text-[hsl(var(--tac-amber))]" />
+        <Upload class="h-5 w-5 text-[hsl(var(--tac-amber))]" aria-hidden="true" />
         <span class="font-mono text-[0.6rem] uppercase tracking-[0.16em]">
           {{ isDragOver ? $t("image_upload.drop_to_upload") : defaultHint }}
         </span>
@@ -410,6 +415,7 @@ onBeforeUnmount(() => {
       type="file"
       class="hidden"
       :accept="ACCEPT"
+      :aria-label="label || defaultHint"
       @change="onFileSelected"
     />
 

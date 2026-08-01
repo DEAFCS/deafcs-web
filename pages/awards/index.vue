@@ -2,7 +2,7 @@
 import gql from "graphql-tag";
 import { computed, onMounted, ref } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
-import { Award, Search, Trophy } from "lucide-vue-next";
+import { Award, Search, Settings2, Trophy } from "lucide-vue-next";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
@@ -18,11 +18,18 @@ import {
   type AwardScopeKind,
 } from "~/utilities/awardCatalog";
 import {
+  tacticalCtaButtonClasses,
+  tacticalHeaderActionClasses,
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 
 useHead({ title: "Awards" });
+
+const applicationSettingsStore = useApplicationSettingsStore();
+const canManageAwards = computed(
+  () => applicationSettingsStore.canManageSharedAwards,
+);
 
 const AWARDS_QUERY = gql`
   query PublicAwardCatalog {
@@ -131,10 +138,24 @@ onMounted(loadAwards);
 <template>
   <PageTransition :delay="0">
     <div class="container mx-auto max-w-6xl space-y-5 py-6">
-      <TacticalPageHeader>
+      <TacticalPageHeader :inline-actions="canManageAwards">
         <template #title>Awards</template>
         <template #subtitle>
           Browse the awards earned by players and teams across DEAFCS.
+        </template>
+        <template v-if="canManageAwards" #actions>
+          <NuxtLink
+            to="/awards/manage"
+            :class="[
+              tacticalCtaButtonClasses,
+              tacticalHeaderActionClasses,
+              'max-sm:aspect-square max-sm:!px-0',
+            ]"
+            title="Manage Awards"
+          >
+            <Settings2 class="h-4 w-4" aria-hidden="true" />
+            <span class="max-sm:sr-only">Manage Awards</span>
+          </NuxtLink>
         </template>
       </TacticalPageHeader>
 
