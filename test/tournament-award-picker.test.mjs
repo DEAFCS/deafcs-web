@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import {
@@ -16,9 +17,9 @@ const picker = await readFile(
   ),
   "utf8",
 );
-const config = await readFile(
+const manualAwards = await readFile(
   new URL(
-    "../components/tournament/TournamentAwardsConfig.vue",
+    "../components/tournament/TournamentAwardsManage.vue",
     import.meta.url,
   ),
   "utf8",
@@ -33,6 +34,14 @@ const wizard = await readFile(
     import.meta.url,
   ),
   "utf8",
+);
+const legacyAwardConfig = new URL(
+  "../components/tournament/TournamentAwardsConfig.vue",
+  import.meta.url,
+);
+const legacyTrophyConfig = new URL(
+  "../components/tournament/TournamentTrophiesConfig.vue",
+  import.meta.url,
 );
 
 const awards = [
@@ -93,8 +102,40 @@ const awards = [
 
 test("organizers see the picker in the existing Trophies tab", () => {
   assert.match(detail, /value="trophies" v-if="tournament\?\.is_organizer"/);
-  assert.match(config, /v-if="!isOrganizer"[\s\S]*?<template v-else>[\s\S]*?<TournamentAwardPicker/);
-  assert.match(config, /:tournament-id="tournament\.id"/);
+  assert.match(detail, /<TournamentAwardPicker[\s\S]*v-model="tournamentAwardSelection"/);
+  assert.match(detail, /:tournament-id="tournament\.id"/);
+  assert.match(detail, /:match-type="tournament\.options\?\.type \|\| null"/);
+  assert.match(detail, /:min-players-per-lineup="tournament\.min_players_per_lineup \?\? null"/);
+});
+
+test("legacy automatic placement override editors and cards are removed", () => {
+  assert.equal(existsSync(legacyAwardConfig), false);
+  assert.equal(existsSync(legacyTrophyConfig), false);
+  assert.doesNotMatch(detail, /TournamentAwardsConfig|TournamentTrophiesConfig/);
+  assert.doesNotMatch(detail, /v-for="p in placements"/);
+  assert.doesNotMatch(detail, /trophies_enabled|toggleEnabled|savingEnabled/);
+  assert.doesNotMatch(detail, /Trophy Configuration|automatic trophy appearance/i);
+});
+
+test("automatic placement image, name, silhouette, and individual controls are absent", () => {
+  const activeAutomaticUi = `${detail}\n${picker}`;
+  assert.doesNotMatch(activeAutomaticUi, /ImageUploadTile|:upload-url|uploadUrl\(/);
+  assert.doesNotMatch(activeAutomaticUi, /v-model="drafts\[p\]\.custom_name"/);
+  assert.doesNotMatch(activeAutomaticUi, /SILHOUETTE_OPTIONS|silhouetteOptions/);
+  assert.doesNotMatch(activeAutomaticUi, /resetDraft|save\(p as|saving\[p\]/);
+  assert.doesNotMatch(
+    activeAutomaticUi,
+    /(?:insert|update|delete)_tournament_trophy_configs/,
+  );
+  assert.match(picker, /Reset all to defaults/);
+  assert.match(picker, /Save award mappings/);
+});
+
+test("Manual Awards remains mounted with its add and revoke workflows", () => {
+  assert.match(detail, /<TournamentAwardsManage :tournament="tournament"/);
+  assert.match(manualAwards, /tournament\.trophies_manage\.manual_awards/);
+  assert.match(manualAwards, /insert_tournament_trophies_one/);
+  assert.match(manualAwards, /revokeAward\(id: \$id, reason: \$reason\)/);
 });
 
 test("existing slots load and missing slots use explicit built-in defaults", () => {
@@ -155,7 +196,7 @@ test("reset and save submit explicit IDs while preserving presentation overrides
 });
 
 test("finished tournament mappings are visible but locked", () => {
-  assert.match(config, /:finished="tournament\.status === 'Finished'"/);
+  assert.match(detail, /:finished="tournament\.status === 'Finished'"/);
   assert.match(
     picker,
     /Award mappings cannot be changed after completion because existing award[\s\S]*occurrences are not automatically recalculated\./,

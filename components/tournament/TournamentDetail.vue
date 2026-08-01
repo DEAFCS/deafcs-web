@@ -12,7 +12,7 @@ import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
-import TournamentAwardsConfig from "~/components/tournament/TournamentAwardsConfig.vue";
+import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
 import TournamentAwardsManage from "~/components/tournament/TournamentAwardsManage.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -774,7 +774,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
         <TabsContent value="trophies" v-if="tournament?.is_organizer">
           <PageTransition>
             <div class="flex flex-col gap-4">
-              <TournamentAwardsConfig :tournament="tournament" />
+              <TournamentAwardPicker
+                v-model="tournamentAwardSelection"
+                :tournament-id="tournament.id"
+                :match-type="tournament.options?.type || null"
+                :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
+                :finished="tournament.status === 'Finished'"
+              />
               <TournamentAwardsManage :tournament="tournament" />
             </div>
           </PageTransition>
@@ -901,6 +907,7 @@ import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { formatPrizePool } from "~/utilities/prizePool";
+import type { TournamentAwardSelection } from "~/utilities/tournamentAwardPicker";
 import {
   getRequestedRouteTab,
   getRouteTabValue,
@@ -924,6 +931,7 @@ export default {
       resumeDialogOpen: false,
       organizerPopoversOpen: {},
       activeTab: "overview",
+      tournamentAwardSelection: {} as TournamentAwardSelection,
       myTeamLoaded: false,
       e_match_types: [],
     };
@@ -965,7 +973,6 @@ export default {
               status: true,
               auto_start: true,
               scheduling_mode: true,
-              trophies_enabled: true,
               e_tournament_status: {
                 description: true,
               },
