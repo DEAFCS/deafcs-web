@@ -70,22 +70,6 @@ const isLogoRouteActive = computed(() => {
 
   return route.path === logoPath.value;
 });
-function onLogoClick(event: MouseEvent) {
-  if (
-    logoPath.value !== "/" ||
-    route.path !== "/" ||
-    event.button !== 0 ||
-    event.ctrlKey ||
-    event.shiftKey ||
-    event.altKey ||
-    event.metaKey
-  ) {
-    return;
-  }
-
-  event.preventDefault();
-  window.location.reload();
-}
 const swipeStartX = ref(0);
 const swipeStartY = ref(0);
 function onLeftNavTouchStart(e: TouchEvent) {
@@ -125,7 +109,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             }"
             :aria-label="customBrandName || $t('layouts.app_nav.brand')"
             :aria-current="isLogoRouteActive ? 'page' : undefined"
-            @click="onLogoClick"
           >
             <NuxtImg
               class="shrink-0 rounded max-w-8 max-h-8"

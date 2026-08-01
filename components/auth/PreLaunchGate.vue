@@ -9,6 +9,11 @@ import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import Logout from "~/layouts/components/Logout.vue";
 import TopoBackground from "~/layouts/components/TopoBackground.vue";
+import {
+  tacticalWordmarkForegroundClasses,
+  tacticalWordmarkOffsetClasses,
+  tacticalWordmarkTitleClasses,
+} from "~/utilities/tacticalClasses";
 
 const authStore = useAuthStore();
 const { brandName, logoUrl } = useBranding();
@@ -51,6 +56,7 @@ const steamLoginHref = computed(() => {
 const signOut = () => {
   signOutOpen.value = true;
 };
+const landingWordmarkTitleClasses = `${tacticalWordmarkTitleClasses} mt-[0.35rem] text-[clamp(3rem,9vw,5.5rem)]`;
 </script>
 
 <template>
@@ -91,12 +97,12 @@ const signOut = () => {
               <span aria-hidden="true">◆</span>
               PRIVATE PRE-LAUNCH ACCESS
             </p>
-            <h1 id="prelaunch-title">
+            <h1 id="prelaunch-title" :class="landingWordmarkTitleClasses">
               <span
-                class="prelaunch-wordmark-offset"
+                :class="tacticalWordmarkOffsetClasses"
                 aria-hidden="true"
               >{{ displayBrand }}</span>
-              <span class="prelaunch-wordmark-foreground">{{ displayBrand }}</span>
+              <span :class="tacticalWordmarkForegroundClasses">{{ displayBrand }}</span>
             </h1>
             <div class="prelaunch-rule" aria-hidden="true">
               <span></span>
@@ -345,37 +351,6 @@ const signOut = () => {
   margin-right: 0.4rem;
   color: #ff9f30;
   font-size: 0.55rem;
-}
-
-.prelaunch-wordmark h1 {
-  position: relative;
-  margin: 0.35rem 0 0;
-  color: #f5f5f4;
-  font-size: clamp(3rem, 9vw, 5.5rem);
-  font-weight: 700;
-  letter-spacing: 0.025em;
-  line-height: 0.95;
-  text-transform: uppercase;
-  -webkit-text-fill-color: currentColor;
-}
-
-.prelaunch-wordmark-offset {
-  position: absolute;
-  z-index: 0;
-  inset: 0;
-  color: transparent;
-  pointer-events: none;
-  -webkit-text-fill-color: transparent;
-  -webkit-text-stroke: 1px rgb(255 159 48 / 0.34);
-  transform: translate(0.15rem, 0.15rem);
-}
-
-.prelaunch-wordmark-foreground {
-  position: relative;
-  z-index: 1;
-  inset: auto;
-  color: #f5f5f4;
-  -webkit-text-fill-color: currentColor;
 }
 
 .prelaunch-rule {

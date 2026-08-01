@@ -31,6 +31,14 @@ const logout = await readFile(
   new URL("../layouts/components/Logout.vue", import.meta.url),
   "utf8",
 );
+const leftNav = await readFile(
+  new URL("../layouts/components/LeftNav.vue", import.meta.url),
+  "utf8",
+);
+const preloader = await readFile(
+  new URL("../plugins/preloader.client.ts", import.meta.url),
+  "utf8",
+);
 
 test("shell policy is deterministic for loading, pending, verified, and admin states", () => {
   assert.equal(
@@ -83,8 +91,19 @@ test("initial auth check has one owner and navigation does not force reloads", (
   assert.match(authStore, /if \(getMePromise\) \{\s*return getMePromise;/);
   assert.doesNotMatch(authStore, /void fetchMe\(\)/);
   assert.doesNotMatch(topNav, /onLogoClick|window\.location\.reload/);
+  assert.doesNotMatch(leftNav, /onLogoClick|window\.location\.reload/);
   assert.doesNotMatch(logout, /window\.location\.reload/);
   assert.match(logout, /await navigateTo\("\/", \{ replace: true \}\)/);
+});
+
+test("the global preloader only fades once after the app mounts", () => {
+  assert.match(preloader, /app\.hook\("app:mounted"/);
+  assert.equal((preloader.match(/document\.body\.classList\.add/g) ?? []).length, 1);
+  assert.equal(
+    (preloader.match(/document\.body\.classList\.remove/g) ?? []).length,
+    1,
+  );
+  assert.doesNotMatch(preloader, /useRoute|watch\(|navigateTo|setPageLayout/);
 });
 
 test("cached identity remains provisional until the single network check resolves", () => {

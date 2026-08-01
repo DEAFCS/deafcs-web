@@ -76,6 +76,21 @@ export const tacticalCtaButtonClasses =
 export const tacticalHeaderActionClasses =
   "!py-0 h-[clamp(1.75rem,4.2vw,3rem)]";
 
+// Shared title layers used by the page headers and the pre-launch wordmark.
+// Keeping these values in one place prevents the landing page from drifting
+// away from the established DEAFCS header treatment.
+export const tacticalWordmarkTitleClasses =
+  "relative m-0 font-sans font-bold uppercase leading-[0.9] tracking-[0.02em] [font-stretch:80%]";
+
+export const tacticalWordmarkPageTitleClasses =
+  `${tacticalWordmarkTitleClasses} text-[clamp(1.75rem,4.2vw,3rem)]`;
+
+export const tacticalWordmarkOffsetClasses =
+  "pointer-events-none absolute left-[6px] right-[-6px] top-[6px] select-none overflow-hidden whitespace-nowrap text-transparent [-webkit-text-stroke:1px_hsl(var(--tac-amber)/0.35)]";
+
+export const tacticalWordmarkForegroundClasses =
+  "relative bg-[linear-gradient(180deg,hsl(var(--foreground))_0%,hsl(var(--foreground)/0.75)_100%)] bg-clip-text text-transparent [-webkit-text-fill-color:transparent]";
+
 // Tactical veto tile — rounded frame for map/region pick-ban tiles.
 // Combine the base with hover + active + disabled as needed.
 export const vetoTileClasses =

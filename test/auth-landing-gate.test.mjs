@@ -15,6 +15,14 @@ const gate = await readFile(
   new URL("../components/auth/PreLaunchGate.vue", import.meta.url),
   "utf8",
 );
+const tacticalClasses = await readFile(
+  new URL("../utilities/tacticalClasses.ts", import.meta.url),
+  "utf8",
+);
+const tacticalHeader = await readFile(
+  new URL("../components/TacticalPageHeader.vue", import.meta.url),
+  "utf8",
+);
 
 test("private gate keeps only landing and auth transport routes public", () => {
   assert.equal(isPrivateGatePublicRoute("/"), true);
@@ -57,23 +65,30 @@ test("landing gate exposes required access states and local assets", () => {
   assert.match(gate, /\/favicon\/512\.png/);
   assert.match(gate, /prefers-reduced-motion/);
   assert.doesNotMatch(gate, /steamstatic\.com/);
+  assert.doesNotMatch(gate, /window\.location\.reload|location\.reload|window\.reload/);
 });
 
 test("landing gate uses a restrained orange wordmark offset and orange logo corners", () => {
-  assert.match(gate, /\.prelaunch-wordmark h1 \{[\s\S]*color: #f5f5f4;/);
   assert.match(
     gate,
-    /\.prelaunch-wordmark-offset \{[\s\S]*position: absolute;[\s\S]*z-index: 0;[\s\S]*-webkit-text-stroke: 1px rgb\(255 159 48 \/ 0\.34\);[\s\S]*transform: translate\(0\.15rem, 0\.15rem\);/,
+    /:class="landingWordmarkTitleClasses"[\s\S]*:class="tacticalWordmarkOffsetClasses"[\s\S]*:class="tacticalWordmarkForegroundClasses"/,
   );
   assert.match(
-    gate,
-    /\.prelaunch-wordmark-foreground \{[\s\S]*position: relative;[\s\S]*z-index: 1;/,
+    tacticalClasses,
+    /tacticalWordmarkTitleClasses[\s\S]*font-sans font-bold uppercase leading-\[0\.9\] tracking-\[0\.02em\] \[font-stretch:80%\]/,
   );
-  assert.doesNotMatch(
-    gate,
-    /\.prelaunch-wordmark-foreground \{[\s\S]*-webkit-text-stroke/,
+  assert.match(
+    tacticalClasses,
+    /tacticalWordmarkOffsetClasses[\s\S]*left-\[6px\] right-\[-6px\] top-\[6px\][\s\S]*-webkit-text-stroke:1px_hsl\(var\(--tac-amber\)\/0\.35\)/,
   );
-  assert.doesNotMatch(gate, /translate\(0\.24rem, 0\.24rem\)/);
+  assert.match(
+    tacticalClasses,
+    /tacticalWordmarkForegroundClasses[\s\S]*linear-gradient\(180deg,hsl\(var\(--foreground\)\)_0%,hsl\(var\(--foreground\)\/0\.75\)_100%\)/,
+  );
+  assert.match(tacticalHeader, /:class="tacticalWordmarkPageTitleClasses"/);
+  assert.match(tacticalHeader, /:class="tacticalWordmarkOffsetClasses"/);
+  assert.match(tacticalHeader, /:class="tacticalWordmarkForegroundClasses"/);
+  assert.doesNotMatch(gate, /prelaunch-wordmark-offset|prelaunch-wordmark-foreground/);
   assert.match(
     gate,
     /\.prelaunch-corner \{[\s\S]*border-color: #ff9f30;/,
