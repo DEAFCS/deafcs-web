@@ -41,10 +41,9 @@ export default {
 
       useAuthStore().clearMe();
 
-      // Redirect to home page or login page after successful logout
-      navigateTo("/");
-
-      window.location.reload();
+      // Return through the router so the landing gate can react to the
+      // cleared session without restarting the entire application.
+      await navigateTo("/", { replace: true });
     },
   },
 };

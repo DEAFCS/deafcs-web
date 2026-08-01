@@ -296,9 +296,8 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
       return getMePromise;
     }
 
-    if (me.value?.steam_id) {
-      hasCheckedSession.value = true;
-      return true;
+    if (hasCheckedSession.value) {
+      return !!me.value?.steam_id;
     }
 
     return fetchMe();
@@ -336,8 +335,8 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
     meSnapshot = JSON.stringify(cachedMe);
     // Cached identity is only a paint hint. Keep the session unresolved until
     // the network check completes so the gate cannot flash protected content
-    // for an expired cached session.
-    void fetchMe();
+    // for an expired cached session. The global auth middleware owns starting
+    // that one network check for the initial navigation.
   }
 
   return {

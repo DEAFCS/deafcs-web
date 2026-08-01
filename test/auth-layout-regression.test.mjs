@@ -15,6 +15,22 @@ const appLayout = await readFile(
   "utf8",
 );
 const app = await readFile(new URL("../app.vue", import.meta.url), "utf8");
+const middleware = await readFile(
+  new URL("../middleware/auth.global.ts", import.meta.url),
+  "utf8",
+);
+const authStore = await readFile(
+  new URL("../stores/AuthStore.ts", import.meta.url),
+  "utf8",
+);
+const topNav = await readFile(
+  new URL("../layouts/components/TopNav.vue", import.meta.url),
+  "utf8",
+);
+const logout = await readFile(
+  new URL("../layouts/components/Logout.vue", import.meta.url),
+  "utf8",
+);
 
 test("shell policy is deterministic for loading, pending, verified, and admin states", () => {
   assert.equal(
@@ -59,4 +75,26 @@ test("root navigation is stable for direct, client, repeated, and logout flows",
   assert.equal(getPrivateGateRedirect("/play", pending), "/");
   assert.equal(getPrivateGateRedirect("/play", loggedOut), "/");
   assert.equal(getPrivateGateRedirect("/logout", loggedOut), null);
+});
+
+test("initial auth check has one owner and navigation does not force reloads", () => {
+  assert.equal((middleware.match(/authStore\.getMe\(\)/g) ?? []).length, 1);
+  assert.doesNotMatch(rootPage, /authStore\.getMe\(\)/);
+  assert.match(authStore, /if \(getMePromise\) \{\s*return getMePromise;/);
+  assert.doesNotMatch(authStore, /void fetchMe\(\)/);
+  assert.doesNotMatch(topNav, /onLogoClick|window\.location\.reload/);
+  assert.doesNotMatch(logout, /window\.location\.reload/);
+  assert.match(logout, /await navigateTo\("\/", \{ replace: true \}\)/);
+});
+
+test("cached identity remains provisional until the single network check resolves", () => {
+  assert.match(
+    authStore,
+    /if \(hasCheckedSession\.value\) \{\s*return !!me\.value\?\.steam_id;/,
+  );
+  assert.match(
+    authStore,
+    /Cached identity is only a paint hint[\s\S]*global auth middleware owns starting/,
+  );
+  assert.match(middleware, /if \(!authStore\.hasCheckedSession\) \{\s*await authStore\.getMe\(\);/s);
 });

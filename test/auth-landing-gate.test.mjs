@@ -63,7 +63,15 @@ test("landing gate uses a restrained orange wordmark offset and orange logo corn
   assert.match(gate, /\.prelaunch-wordmark h1 \{[\s\S]*color: #f5f5f4;/);
   assert.match(
     gate,
-    /\.prelaunch-wordmark h1 span \{[\s\S]*top: 0\.2rem;[\s\S]*left: 0\.2rem;[\s\S]*-webkit-text-stroke: 1px rgb\(255 159 48 \/ 0\.34\);/,
+    /\.prelaunch-wordmark-offset \{[\s\S]*position: absolute;[\s\S]*z-index: 0;[\s\S]*-webkit-text-stroke: 1px rgb\(255 159 48 \/ 0\.34\);[\s\S]*transform: translate\(0\.15rem, 0\.15rem\);/,
+  );
+  assert.match(
+    gate,
+    /\.prelaunch-wordmark-foreground \{[\s\S]*position: relative;[\s\S]*z-index: 1;/,
+  );
+  assert.doesNotMatch(
+    gate,
+    /\.prelaunch-wordmark-foreground \{[\s\S]*-webkit-text-stroke/,
   );
   assert.doesNotMatch(gate, /translate\(0\.24rem, 0\.24rem\)/);
   assert.match(

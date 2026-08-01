@@ -92,8 +92,11 @@ const signOut = () => {
               PRIVATE PRE-LAUNCH ACCESS
             </p>
             <h1 id="prelaunch-title">
-              <span aria-hidden="true">{{ displayBrand }}</span>
-              {{ displayBrand }}
+              <span
+                class="prelaunch-wordmark-offset"
+                aria-hidden="true"
+              >{{ displayBrand }}</span>
+              <span class="prelaunch-wordmark-foreground">{{ displayBrand }}</span>
             </h1>
             <div class="prelaunch-rule" aria-hidden="true">
               <span></span>
@@ -356,13 +359,23 @@ const signOut = () => {
   -webkit-text-fill-color: currentColor;
 }
 
-.prelaunch-wordmark h1 span {
+.prelaunch-wordmark-offset {
   position: absolute;
-  top: 0.2rem;
-  left: 0.2rem;
+  z-index: 0;
+  inset: 0;
   color: transparent;
   pointer-events: none;
+  -webkit-text-fill-color: transparent;
   -webkit-text-stroke: 1px rgb(255 159 48 / 0.34);
+  transform: translate(0.15rem, 0.15rem);
+}
+
+.prelaunch-wordmark-foreground {
+  position: relative;
+  z-index: 1;
+  inset: auto;
+  color: #f5f5f4;
+  -webkit-text-fill-color: currentColor;
 }
 
 .prelaunch-rule {

@@ -40,10 +40,6 @@ definePageMeta({
 const authStore = useAuthStore();
 const route = useRoute();
 
-if (!authStore.hasCheckedSession) {
-  void authStore.getMe();
-}
-
 const canPassPrivateGate = computed(() =>
   authStore.isRoleAbove(e_player_roles_enum.verified_user),
 );
