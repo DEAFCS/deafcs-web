@@ -471,7 +471,7 @@ const loginArrowClasses =
                               to="/awards"
                               :class="[navItemClasses, navItemStackedClasses]"
                             >
-                              <span :class="navItemChevronClasses">â—¢</span>
+                              <span :class="navItemChevronClasses">◢</span>
                               <span :class="navItemContentClasses">
                                 <span :class="navItemLabelClasses">
                                   {{
