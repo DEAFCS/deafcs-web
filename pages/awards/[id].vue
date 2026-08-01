@@ -169,8 +169,8 @@ onMounted(loadAward);
 </script>
 
 <template>
-  <main class="container mx-auto max-w-5xl space-y-5 py-6">
-    <PageTransition>
+  <PageTransition :delay="0">
+    <main class="container mx-auto max-w-5xl space-y-5 py-6">
       <NuxtLink
         to="/awards"
         class="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -178,10 +178,7 @@ onMounted(loadAward);
         <ArrowLeft class="h-4 w-4" aria-hidden="true" />
         Back to Awards
       </NuxtLink>
-    </PageTransition>
 
-    <PageTransition :delay="100">
-      <div>
       <div v-if="loading" class="space-y-5" aria-busy="true" aria-label="Loading award">
         <Skeleton class="h-56 w-full rounded-lg" />
         <Skeleton class="h-20 w-full rounded-lg" />
@@ -358,9 +355,8 @@ onMounted(loadAward);
           </TransitionGroup>
         </section>
       </template>
-      </div>
-    </PageTransition>
-  </main>
+    </main>
+  </PageTransition>
 </template>
 
 <style scoped>

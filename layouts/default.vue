@@ -96,36 +96,35 @@ provide("containContent", containContent);
 </script>
 
 <template>
-  <!-- The slot (routed page) must render at exactly one point in this tree.
-       Toggling it between two v-if/v-else branches makes Vue treat it as a
-       different vnode position, so it unmounts and remounts the page on every
-       isPrivateGateActive change (e.g. right after hasCheckedSession resolves
-       on a hard refresh) — the page's onMounted fetches then run twice. -->
-  <TopoBackground v-if="!isPrivateGateActive" />
+  <template v-if="isPrivateGateActive">
+    <slot />
+  </template>
 
-  <SidebarProvider class="relative z-10 !bg-transparent">
-    <AppSidebar v-if="showLeftNav && !isPrivateGateActive" />
+  <template v-else>
+    <TopoBackground />
 
-    <SidebarInset
-      class="flex flex-col overflow-y-auto overflow-x-hidden !bg-transparent"
-      style="height: 100svh"
-    >
-      <TopNav v-if="!showLeftNav && !isPrivateGateActive" />
-      <AppHeader class="px-6" v-if="showLeftNav && !isPrivateGateActive" />
+    <SidebarProvider class="relative z-10 !bg-transparent">
+      <AppSidebar v-if="showLeftNav" />
 
-      <MainContent class="flex-1">
-        <ApplicationSettingsShell v-if="isApplicationSettings">
-          <slot></slot>
-        </ApplicationSettingsShell>
-        <ProfileSettingsShell v-else-if="isProfileSettings">
-          <slot></slot>
-        </ProfileSettingsShell>
-        <slot v-else></slot>
-      </MainContent>
-    </SidebarInset>
-  </SidebarProvider>
+      <SidebarInset
+        class="flex flex-col overflow-y-auto overflow-x-hidden !bg-transparent"
+        style="height: 100svh"
+      >
+        <TopNav v-if="!showLeftNav" />
+        <AppHeader class="px-6" v-if="showLeftNav" />
 
-  <template v-if="!isPrivateGateActive">
+        <MainContent class="flex-1">
+          <ApplicationSettingsShell v-if="isApplicationSettings">
+            <slot></slot>
+          </ApplicationSettingsShell>
+          <ProfileSettingsShell v-else-if="isProfileSettings">
+            <slot></slot>
+          </ProfileSettingsShell>
+          <slot v-else></slot>
+        </MainContent>
+      </SidebarInset>
+    </SidebarProvider>
+
     <div id="global-chat-container"></div>
 
     <ClipDetailModal :clip-id="activeClipId" />
