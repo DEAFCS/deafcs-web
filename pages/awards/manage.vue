@@ -9,7 +9,6 @@ import {
   Pencil,
   Plus,
   Search,
-  Trophy,
 } from "lucide-vue-next";
 import { toast } from "~/components/ui/toast";
 import { Button } from "~/components/ui/button";
@@ -34,6 +33,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
@@ -57,6 +57,7 @@ import {
   type AwardValidationErrors,
   type ManagedAwardDefinition,
 } from "~/utilities/awardManagement";
+import { resolveAwardImageUrl } from "~/utilities/awardArtwork";
 import {
   tacticalCtaButtonClasses,
   tacticalHeaderActionClasses,
@@ -214,7 +215,10 @@ const filteredDefinitions = computed(() => {
 const identityLocked = computed(() => awardIdentityLocked(editingAward.value));
 const currentImageSrc = computed(() => {
   if (removeImage.value) return null;
-  return awardImageUrl(editingAward.value?.image_url);
+  return resolveAwardImageUrl(
+    editingAward.value?.image_url,
+    useRuntimeConfig().public.apiDomain as string,
+  );
 });
 
 const scopeOwners = computed(() => {
@@ -238,13 +242,6 @@ const scopeOwners = computed(() => {
   }
   return [];
 });
-
-function awardImageUrl(path?: string | null) {
-  if (!path) return null;
-  if (path.startsWith("http")) return path;
-  const filename = path.replace(/^(awards|trophies)\//, "");
-  return `https://${useRuntimeConfig().public.apiDomain}/avatars/awards/${filename}`;
-}
 
 function definitionScopeLabel(award: ManagedAward) {
   const scope = awardScope(award);
@@ -545,13 +542,7 @@ onMounted(loadDefinitions);
               >
                 <td class="px-3 py-3">
                   <div class="flex h-12 w-12 items-center justify-center overflow-hidden rounded-md border border-border bg-background/60">
-                    <img
-                      v-if="awardImageUrl(award.image_url)"
-                      :src="awardImageUrl(award.image_url)!"
-                      :alt="`${award.name} award artwork`"
-                      class="h-11 w-11 object-contain"
-                    />
-                    <Trophy v-else class="h-7 w-7 text-muted-foreground" aria-hidden="true" />
+                    <AwardArtwork :award="award" size="xs" />
                   </div>
                 </td>
                 <td class="max-w-xs px-3 py-3">

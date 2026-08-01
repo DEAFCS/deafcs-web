@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, watch } from "vue";
 import {
   fnv1a,
   createSeededRng,
@@ -7,6 +7,10 @@ import {
   placementToTier,
   type AwardTier,
 } from "~/utilities/awardSeed";
+import {
+  resolveAwardImageUrl,
+  systemKeyForTournamentAwardPlacement,
+} from "~/utilities/awardArtwork";
 
 interface Props {
   tournamentId: string;
@@ -14,11 +18,12 @@ interface Props {
   tournamentName?: string | null;
   tournamentStart?: string | null;
   tournamentType?: string | null;
-  size?: "xs" | "sm" | "md" | "lg";
+  size?: "xs" | "sm" | "md" | "hero" | "lg";
   interactive?: boolean;
   silhouetteOverride?: number | null;
   customName?: string | null;
   imageUrl?: string | null;
+  altText?: string | null;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -30,30 +35,44 @@ const props = withDefaults(defineProps<Props>(), {
   silhouetteOverride: null,
   customName: null,
   imageUrl: null,
+  altText: null,
 });
 
 const apiDomain = computed(() => useRuntimeConfig().public.apiDomain);
-const resolvedImageSrc = computed(() => {
-  if (!props.imageUrl) return null;
-  if (props.imageUrl.startsWith("http")) return props.imageUrl;
-  if (props.imageUrl.startsWith("awards/")) {
-    const filename = props.imageUrl.replace(/^awards\//, "");
-    return `https://${apiDomain.value}/avatars/awards/${filename}`;
-  }
-  const filename = props.imageUrl.replace(/^trophies\//, "");
-  return `https://${apiDomain.value}/trophies/${filename}`;
-});
+const imageLoadFailed = ref(false);
+const resolvedImageSrc = computed(() =>
+  imageLoadFailed.value
+    ? null
+    : resolveAwardImageUrl(props.imageUrl, apiDomain.value, "trophies"),
+);
+
+watch(
+  () => props.imageUrl,
+  () => {
+    imageLoadFailed.value = false;
+  },
+);
 
 const SIZES = {
   xs: 32,
   sm: 56,
   md: 112,
+  hero: 144,
   lg: 192,
 } as const;
 
 const tier = computed<AwardTier>(() => placementToTier(props.placement));
 const palette = computed(() => TIER_PALETTES[tier.value]);
-const seed = computed(() => fnv1a(props.tournamentId));
+const seedSource = computed(() => {
+  const usesDefaultBuiltInArtwork =
+    !props.imageUrl &&
+    !props.customName &&
+    props.silhouetteOverride == null;
+  return usesDefaultBuiltInArtwork
+    ? systemKeyForTournamentAwardPlacement(props.placement)
+    : props.tournamentId;
+});
+const seed = computed(() => fnv1a(seedSource.value));
 
 const variants = computed(() => {
   const rng = createSeededRng(seed.value);
@@ -97,8 +116,8 @@ const specularId = computed(
 const plinthId = computed(() => `trophy-plinth-${seed.value}-${tier.value}`);
 
 const pixelSize = computed(() => SIZES[props.size]);
-const showEngraving = computed(
-  () => props.size === "md" || props.size === "lg",
+const showEngraving = computed(() =>
+  ["md", "hero", "lg"].includes(props.size),
 );
 const showOverlay = computed(() => props.size !== "xs");
 </script>
@@ -120,9 +139,10 @@ const showOverlay = computed(() => props.size !== "xs");
     >
       <img
         :src="resolvedImageSrc"
-        :alt="customName || tournamentName || palette.label"
+        :alt="altText || customName || tournamentName || palette.label"
         class="h-full w-full object-contain"
         loading="lazy"
+        @error="imageLoadFailed = true"
       />
       <!-- shine sweep on hover -->
       <span
@@ -135,7 +155,7 @@ const showOverlay = computed(() => props.size !== "xs");
       :viewBox="`0 0 200 ${showEngraving ? 260 : 220}`"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
-      :aria-label="`${palette.label} trophy${tournamentName ? ' for ' + tournamentName : ''}`"
+      :aria-label="altText || `${palette.label} trophy${tournamentName ? ' for ' + tournamentName : ''}`"
       class="h-full w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
     >
       <defs>

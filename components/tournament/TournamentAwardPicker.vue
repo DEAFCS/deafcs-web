@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { computed, onMounted, ref, watch } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { LoaderCircle, RotateCcw, Save, Trophy } from "lucide-vue-next";
-import AwardBadge from "~/components/award/AwardBadge.vue";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import { Button } from "~/components/ui/button";
 import {
   Select,
@@ -514,14 +514,10 @@ watch(() => props.tournamentId, loadPicker);
               v-if="selectedAward(config.placement)"
               class="flex min-w-0 items-center gap-2 text-left"
             >
-              <AwardBadge
-                :tournament-id="tournamentId || selectedAward(config.placement)?.id || config.slot"
-                :placement="config.placement"
-                :custom-name="selectedAward(config.placement)?.name"
-                :image-url="selectedAward(config.placement)?.image_url"
+              <AwardArtwork
+                :award="selectedAward(config.placement)!"
                 size="xs"
-                :interactive="false"
-                aria-hidden="true"
+                decorative
               />
               <span class="min-w-0">
                 <span class="block truncate font-semibold">
@@ -542,14 +538,10 @@ watch(() => props.tournamentId, loadPicker);
               class="h-auto py-2"
             >
               <span class="flex items-center gap-3 pr-2">
-                <AwardBadge
-                  :tournament-id="tournamentId || award.id"
-                  :placement="config.placement"
-                  :custom-name="award.name"
-                  :image-url="award.image_url"
+                <AwardArtwork
+                  :award="award"
                   size="xs"
-                  :interactive="false"
-                  aria-hidden="true"
+                  decorative
                 />
                 <span class="min-w-0">
                   <span class="block font-semibold">{{ award.name }}</span>

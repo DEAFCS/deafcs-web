@@ -3,7 +3,8 @@ import gql from "graphql-tag";
 import { computed, onMounted, ref } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { validate as validateUuid } from "uuid";
-import { ArrowLeft, CalendarDays, Trophy, Users } from "lucide-vue-next";
+import { ArrowLeft, CalendarDays, Users } from "lucide-vue-next";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -19,6 +20,7 @@ import {
   type ActiveAwardHolder,
   type AwardDetail,
 } from "~/utilities/awardDetail";
+import { AWARD_TIER_COLORS } from "~/utilities/awardArtwork";
 
 const AWARD_DETAIL_QUERY = gql`
   query PublicAwardDetail($id: uuid!) {
@@ -27,6 +29,7 @@ const AWARD_DETAIL_QUERY = gql`
       name
       description
       tier
+      silhouette
       image_url
       system_key
       tournament_id
@@ -97,24 +100,12 @@ const scopeLabel = computed(() =>
 );
 const apiDomain = computed(() => useRuntimeConfig().public.apiDomain as string);
 
-const tierColors: Record<string, string> = {
-  mvp: "hsl(195 85% 60%)",
-  gold: "hsl(45 95% 60%)",
-  silver: "hsl(0 0% 78%)",
-  bronze: "hsl(28 70% 52%)",
-  special: "hsl(258 90% 74%)",
-};
+const tierColors = AWARD_TIER_COLORS;
 const accent = computed(
   () => tierColors[award.value?.tier || "special"] || tierColors.special,
 );
 
 useHead({ title: computed(() => award.value?.name || "Award") });
-
-function awardImageUrl(path?: string | null) {
-  if (!path) return null;
-  if (path.startsWith("http")) return path;
-  return `https://${apiDomain.value}/avatars/awards/${path.replace(/^(awards|trophies)\//, "")}`;
-}
 
 function holderTeam(holder: ActiveAwardHolder) {
   return (
@@ -229,18 +220,10 @@ onMounted(loadAward);
                 :style="{ background: accent, opacity: 0.25 }"
                 aria-hidden="true"
               ></div>
-              <img
-                v-if="awardImageUrl(award.image_url)"
-                :src="awardImageUrl(award.image_url)!"
-                :alt="`${award.name} award`"
-                class="relative h-36 w-36 object-contain drop-shadow-[0_6px_16px_rgba(0,0,0,0.45)]"
-              />
-              <Trophy
-                v-else
-                class="relative h-28 w-28 drop-shadow-[0_6px_16px_rgba(0,0,0,0.45)]"
-                :style="{ color: accent }"
-                role="img"
-                :aria-label="`${award.tier} award artwork`"
+              <AwardArtwork
+                :award="award"
+                size="hero"
+                class="relative drop-shadow-[0_6px_16px_rgba(0,0,0,0.45)]"
               />
             </div>
 

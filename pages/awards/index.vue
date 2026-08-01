@@ -2,7 +2,8 @@
 import gql from "graphql-tag";
 import { computed, onMounted, ref } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
-import { Award, Search, Settings2, Trophy } from "lucide-vue-next";
+import { Award, Search, Settings2 } from "lucide-vue-next";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
@@ -17,6 +18,7 @@ import {
   type AwardCatalogAward,
   type AwardScopeKind,
 } from "~/utilities/awardCatalog";
+import { AWARD_TIER_COLORS } from "~/utilities/awardArtwork";
 import {
   tacticalCtaButtonClasses,
   tacticalHeaderActionClasses,
@@ -41,7 +43,9 @@ const AWARDS_QUERY = gql`
       name
       description
       tier
+      silhouette
       image_url
+      system_key
       archived_at
       tournament_id
       event_id
@@ -83,8 +87,6 @@ const visibleAwards = computed(() =>
   filterAwards(awards.value, search.value, tier.value),
 );
 const groups = computed(() => groupAwards(visibleAwards.value));
-const apiDomain = computed(() => useRuntimeConfig().public.apiDomain);
-
 const scopeLabels: Record<AwardScopeKind, string> = {
   global: "Global",
   tournament: "Tournament",
@@ -92,20 +94,7 @@ const scopeLabels: Record<AwardScopeKind, string> = {
   elo_season: "ELO season",
   league_season: "League season",
 };
-const tierColors: Record<string, string> = {
-  mvp: "hsl(195 85% 60%)",
-  gold: "hsl(45 95% 60%)",
-  silver: "hsl(0 0% 78%)",
-  bronze: "hsl(28 70% 52%)",
-  special: "hsl(258 90% 74%)",
-};
-
-function imageUrl(path?: string | null) {
-  if (!path) return null;
-  if (path.startsWith("http")) return path;
-  const filename = path.replace(/^(awards|trophies)\//, "");
-  return `https://${apiDomain.value}/avatars/awards/${filename}`;
-}
+const tierColors = AWARD_TIER_COLORS;
 
 function awardHref(id: string) {
   return `/awards/${encodeURIComponent(id)}`;
@@ -260,18 +249,11 @@ onMounted(loadAwards);
                     class="pointer-events-none absolute inset-x-8 bottom-0 h-20 blur-2xl"
                     :style="{ background: tierColors[award.tier] || tierColors.special, opacity: 0.25 }"
                   ></div>
-                  <img
-                    v-if="imageUrl(award.image_url)"
-                    :src="imageUrl(award.image_url)!"
-                    :alt="`${award.name} award`"
-                    class="relative h-28 w-28 object-contain"
-                    loading="lazy"
-                  />
-                  <Trophy
-                    v-else
-                    class="relative h-20 w-20"
-                    :style="{ color: tierColors[award.tier] || tierColors.special }"
-                    aria-hidden="true"
+                  <AwardArtwork
+                    :award="award"
+                    size="md"
+                    decorative
+                    class="relative"
                   />
                 </div>
 

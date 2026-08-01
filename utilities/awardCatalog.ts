@@ -13,7 +13,9 @@ export interface AwardCatalogAward {
   name: string;
   description?: string | null;
   tier: string;
+  silhouette?: number | null;
   image_url?: string | null;
+  system_key?: string | null;
   archived_at?: string | null;
   tournament_id?: string | null;
   event_id?: string | null;
