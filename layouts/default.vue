@@ -5,6 +5,7 @@ import { computed, defineAsyncComponent, provide } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
+import { shouldRenderApplicationShell } from "~/utilities/authGate";
 import { useGtm } from "@/layouts/composables/useGtm";
 import { useChatTabSetup } from "~/composables/useChatTabSetup";
 
@@ -45,6 +46,17 @@ useChatTabSetup();
 const route = useRoute();
 const authStore = useAuthStore();
 
+const canPassPrivateGate = computed(() =>
+  authStore.isRoleAbove(e_player_roles_enum.verified_user),
+);
+const isPrivateGateActive = computed(
+  () =>
+    !shouldRenderApplicationShell({
+      hasCheckedSession: authStore.hasCheckedSession,
+      canPassGate: canPassPrivateGate.value,
+    }),
+);
+
 const showLeftNav = computed(() => {
   return authStore.isRoleAbove(e_player_roles_enum.match_organizer);
 });
@@ -84,37 +96,43 @@ provide("containContent", containContent);
 </script>
 
 <template>
-  <TopoBackground />
+  <template v-if="isPrivateGateActive">
+    <slot />
+  </template>
 
-  <SidebarProvider class="relative z-10 !bg-transparent">
-    <AppSidebar v-if="showLeftNav" />
+  <template v-else>
+    <TopoBackground />
 
-    <SidebarInset
-      class="flex flex-col overflow-y-auto overflow-x-hidden !bg-transparent"
-      style="height: 100svh"
-    >
-      <TopNav v-if="!showLeftNav" />
-      <AppHeader class="px-6" v-if="showLeftNav" />
+    <SidebarProvider class="relative z-10 !bg-transparent">
+      <AppSidebar v-if="showLeftNav" />
 
-      <MainContent class="flex-1">
-        <ApplicationSettingsShell v-if="isApplicationSettings">
-          <slot></slot>
-        </ApplicationSettingsShell>
-        <ProfileSettingsShell v-else-if="isProfileSettings">
-          <slot></slot>
-        </ProfileSettingsShell>
-        <slot v-else></slot>
-      </MainContent>
-    </SidebarInset>
-  </SidebarProvider>
+      <SidebarInset
+        class="flex flex-col overflow-y-auto overflow-x-hidden !bg-transparent"
+        style="height: 100svh"
+      >
+        <TopNav v-if="!showLeftNav" />
+        <AppHeader class="px-6" v-if="showLeftNav" />
 
-  <div id="global-chat-container"></div>
+        <MainContent class="flex-1">
+          <ApplicationSettingsShell v-if="isApplicationSettings">
+            <slot></slot>
+          </ApplicationSettingsShell>
+          <ProfileSettingsShell v-else-if="isProfileSettings">
+            <slot></slot>
+          </ProfileSettingsShell>
+          <slot v-else></slot>
+        </MainContent>
+      </SidebarInset>
+    </SidebarProvider>
 
-  <ClipDetailModal :clip-id="activeClipId" />
+    <div id="global-chat-container"></div>
 
-  <OrphanedUploadsDialog />
+    <ClipDetailModal :clip-id="activeClipId" />
 
-  <ActionToasts />
+    <OrphanedUploadsDialog />
+
+    <ActionToasts />
+  </template>
 </template>
 
 <script lang="ts">

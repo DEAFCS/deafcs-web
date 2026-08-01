@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, watch } from "vue";
+import { computed } from "vue";
 import {
   ArrowRight,
   BadgeCheck,
@@ -15,6 +15,7 @@ import {
 import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
 import PreLaunchGate from "~/components/auth/PreLaunchGate.vue";
+import { shouldRenderApplicationShell } from "~/utilities/authGate";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
@@ -30,9 +31,9 @@ import {
 } from "~/utilities/tacticalClasses";
 
 definePageMeta({
-  // The page selects the shell after the session/role check. Starting without
-  // a layout prevents the normal website shell from flashing on the gate.
-  layout: false,
+  // Keep the route on one deterministic Nuxt layout. The layout itself
+  // suppresses its shell while auth is unresolved or the account is pending.
+  layout: "default",
   pageTransition: { name: "page", mode: "out-in" },
 });
 
@@ -43,18 +44,15 @@ if (!authStore.hasCheckedSession) {
   void authStore.getMe();
 }
 
+const canPassPrivateGate = computed(() =>
+  authStore.isRoleAbove(e_player_roles_enum.verified_user),
+);
 const showPreLaunchGate = computed(
   () =>
-    !authStore.hasCheckedSession ||
-    !authStore.isRoleAbove(e_player_roles_enum.verified_user),
-);
-
-watch(
-  showPreLaunchGate,
-  (showGate) => {
-    setPageLayout(showGate ? "gate" : "default");
-  },
-  { immediate: true },
+    !shouldRenderApplicationShell({
+      hasCheckedSession: authStore.hasCheckedSession,
+      canPassGate: canPassPrivateGate.value,
+    }),
 );
 
 const isLoggedIn = computed(

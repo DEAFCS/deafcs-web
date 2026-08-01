@@ -26,3 +26,7 @@ export function getPrivateGateRedirect(path, { hasMe, canPassGate }) {
 
   return canPassGate ? null : "/";
 }
+
+export function shouldRenderApplicationShell({ hasCheckedSession, canPassGate }) {
+  return hasCheckedSession && canPassGate;
+}

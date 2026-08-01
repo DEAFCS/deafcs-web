@@ -5,6 +5,7 @@ import { useBranding } from "~/composables/useBranding";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
+import { shouldRenderApplicationShell } from "~/utilities/authGate";
 
 const MatchmakingConfirm = defineAsyncComponent(
   () => import("~/components/matchmaking/MatchmakingConfirm.vue"),
@@ -62,10 +63,15 @@ const applicationSettingsStore = useApplicationSettingsStore();
 
 const me = computed(() => authStore.me);
 const hasGlobalStream = computed(() => !!applicationSettingsStore.globalStream);
+const canPassPrivateGate = computed(() =>
+  authStore.isRoleAbove(e_player_roles_enum.verified_user),
+);
 const isPrivateGateActive = computed(
   () =>
-    !authStore.hasCheckedSession ||
-    !authStore.isRoleAbove(e_player_roles_enum.verified_user),
+    !shouldRenderApplicationShell({
+      hasCheckedSession: authStore.hasCheckedSession,
+      canPassGate: canPassPrivateGate.value,
+    }),
 );
 
 const TAB_QUERY_KEYS = new Set(["tab", "mode"]);
