@@ -15,14 +15,6 @@ const gate = await readFile(
   new URL("../components/auth/PreLaunchGate.vue", import.meta.url),
   "utf8",
 );
-const tacticalClasses = await readFile(
-  new URL("../utilities/tacticalClasses.ts", import.meta.url),
-  "utf8",
-);
-const tacticalHeader = await readFile(
-  new URL("../components/TacticalPageHeader.vue", import.meta.url),
-  "utf8",
-);
 
 test("private gate keeps only landing and auth transport routes public", () => {
   assert.equal(isPrivateGatePublicRoute("/"), true);
@@ -68,27 +60,24 @@ test("landing gate exposes required access states and local assets", () => {
   assert.doesNotMatch(gate, /window\.location\.reload|location\.reload|window\.reload/);
 });
 
-test("landing gate uses a restrained orange wordmark offset and orange logo corners", () => {
+test("landing gate renders a visible plain responsive wordmark and orange logo corners", () => {
   assert.match(
     gate,
-    /:class="landingWordmarkTitleClasses"[\s\S]*:class="tacticalWordmarkOffsetClasses"[\s\S]*:class="tacticalWordmarkForegroundClasses"/,
+    /:class="landingWordmarkTitleClasses"[\s\S]*class="prelaunch-wordmark-foreground"/,
   );
   assert.match(
-    tacticalClasses,
-    /tacticalWordmarkTitleClasses[\s\S]*font-sans font-bold uppercase leading-\[0\.9\] tracking-\[0\.02em\] \[font-stretch:80%\]/,
+    gate,
+    /\.prelaunch-wordmark-foreground \{[\s\S]*display: inline-block;[\s\S]*color: #f5f5f4;[\s\S]*-webkit-text-fill-color: #f5f5f4;/,
   );
-  assert.match(
-    tacticalClasses,
-    /tacticalWordmarkOffsetClasses[\s\S]*left-\[6px\] right-\[-6px\] top-\[6px\][\s\S]*-webkit-text-stroke:1px_hsl\(var\(--tac-amber\)\/0\.35\)/,
-  );
-  assert.match(
-    tacticalClasses,
-    /tacticalWordmarkForegroundClasses[\s\S]*linear-gradient\(180deg,hsl\(var\(--foreground\)\)_0%,hsl\(var\(--foreground\)\/0\.75\)_100%\)/,
-  );
-  assert.match(tacticalHeader, /:class="tacticalWordmarkPageTitleClasses"/);
-  assert.match(tacticalHeader, /:class="tacticalWordmarkOffsetClasses"/);
-  assert.match(tacticalHeader, /:class="tacticalWordmarkForegroundClasses"/);
-  assert.doesNotMatch(gate, /prelaunch-wordmark-offset|prelaunch-wordmark-foreground/);
+  const foregroundStyle = gate.match(
+    /\.prelaunch-wordmark-foreground \{[\s\S]*?\n\}/,
+  )?.[0];
+  assert.ok(foregroundStyle);
+  assert.doesNotMatch(foregroundStyle, /#ff9f30|-webkit-text-stroke|text-shadow/);
+  assert.doesNotMatch(gate, /tacticalWordmarkForegroundClasses|tacticalWordmarkOffsetClasses/);
+  assert.match(gate, /tacticalWordmarkTitleClasses/);
+  assert.match(gate, /text-\[clamp\(3rem,9vw,5\.5rem\)\]/);
+  assert.match(gate, /@media \(max-width: 640px\)[\s\S]*\.prelaunch-wordmark h1 \{[\s\S]*font-size: clamp\(3\.2rem, 17vw, 5rem\);/);
   assert.match(
     gate,
     /\.prelaunch-corner \{[\s\S]*border-color: #ff9f30;/,

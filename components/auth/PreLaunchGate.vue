@@ -9,11 +9,7 @@ import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import Logout from "~/layouts/components/Logout.vue";
 import TopoBackground from "~/layouts/components/TopoBackground.vue";
-import {
-  tacticalWordmarkForegroundClasses,
-  tacticalWordmarkOffsetClasses,
-  tacticalWordmarkTitleClasses,
-} from "~/utilities/tacticalClasses";
+import { tacticalWordmarkTitleClasses } from "~/utilities/tacticalClasses";
 
 const authStore = useAuthStore();
 const { brandName, logoUrl } = useBranding();
@@ -98,11 +94,7 @@ const landingWordmarkTitleClasses = `${tacticalWordmarkTitleClasses} mt-[0.35rem
               PRIVATE PRE-LAUNCH ACCESS
             </p>
             <h1 id="prelaunch-title" :class="landingWordmarkTitleClasses">
-              <span
-                :class="tacticalWordmarkOffsetClasses"
-                aria-hidden="true"
-              >{{ displayBrand }}</span>
-              <span :class="tacticalWordmarkForegroundClasses">{{ displayBrand }}</span>
+              <span class="prelaunch-wordmark-foreground">{{ displayBrand }}</span>
             </h1>
             <div class="prelaunch-rule" aria-hidden="true">
               <span></span>
@@ -351,6 +343,12 @@ const landingWordmarkTitleClasses = `${tacticalWordmarkTitleClasses} mt-[0.35rem
   margin-right: 0.4rem;
   color: #ff9f30;
   font-size: 0.55rem;
+}
+
+.prelaunch-wordmark-foreground {
+  display: inline-block;
+  color: #f5f5f4;
+  -webkit-text-fill-color: #f5f5f4;
 }
 
 .prelaunch-rule {
