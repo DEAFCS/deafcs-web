@@ -334,7 +334,9 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
   if (cachedMe?.steam_id) {
     me.value = cachedMe;
     meSnapshot = JSON.stringify(cachedMe);
-    hasCheckedSession.value = true;
+    // Cached identity is only a paint hint. Keep the session unresolved until
+    // the network check completes so the gate cannot flash protected content
+    // for an expired cached session.
     void fetchMe();
   }
 

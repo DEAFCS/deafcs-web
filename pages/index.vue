@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, watch } from "vue";
 import {
   ArrowRight,
   BadgeCheck,
@@ -13,7 +13,8 @@ import {
   VolumeX,
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
-import LoadingScreen from "~/components/LoadingScreen.vue";
+import { e_player_roles_enum } from "~/generated/zeus";
+import PreLaunchGate from "~/components/auth/PreLaunchGate.vue";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
@@ -29,7 +30,9 @@ import {
 } from "~/utilities/tacticalClasses";
 
 definePageMeta({
-  layout: "default",
+  // The page selects the shell after the session/role check. Starting without
+  // a layout prevents the normal website shell from flashing on the gate.
+  layout: false,
   pageTransition: { name: "page", mode: "out-in" },
 });
 
@@ -39,6 +42,20 @@ const route = useRoute();
 if (!authStore.hasCheckedSession) {
   void authStore.getMe();
 }
+
+const showPreLaunchGate = computed(
+  () =>
+    !authStore.hasCheckedSession ||
+    !authStore.isRoleAbove(e_player_roles_enum.verified_user),
+);
+
+watch(
+  showPreLaunchGate,
+  (showGate) => {
+    setPageLayout(showGate ? "gate" : "default");
+  },
+  { immediate: true },
+);
 
 const isLoggedIn = computed(
   () => authStore.hasCheckedSession && !!authStore.me?.steam_id,
@@ -122,21 +139,19 @@ const whyDeafcsFeatures = [
 </script>
 
 <template>
-  <LoadingScreen
-    v-if="!authStore.hasCheckedSession"
-    class="min-h-[60vh]"
-  />
+  <PreLaunchGate v-if="showPreLaunchGate" />
 
-  <HomePlayerOverview
-    v-else-if="showLoggedInHome"
-    :preview-player="
-      !isLoggedIn && previewHomeState === 'logged-in'
-        ? previewPlayer
-        : undefined
-    "
-  />
+  <template v-else>
+    <HomePlayerOverview
+      v-if="showLoggedInHome"
+      :preview-player="
+        !isLoggedIn && previewHomeState === 'logged-in'
+          ? previewPlayer
+          : undefined
+      "
+    />
 
-  <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
+    <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
     <section
       aria-labelledby="home-hero-title"
       class="homepage-entry relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
@@ -318,7 +333,8 @@ const whyDeafcsFeatures = [
 
       <HomeLatestHighlights />
     </div>
-  </main>
+    </main>
+  </template>
 </template>
 
 <style>
