@@ -58,3 +58,13 @@ test("landing gate exposes required access states and local assets", () => {
   assert.match(gate, /prefers-reduced-motion/);
   assert.doesNotMatch(gate, /steamstatic\.com/);
 });
+
+test("landing gate keeps its wordmark and Steam control visually crisp", () => {
+  assert.match(gate, /\.prelaunch-wordmark h1 \{[\s\S]*color: #f5f5f4;/);
+  assert.match(gate, /\.prelaunch-wordmark h1 span \{\s*display: none;/);
+  assert.doesNotMatch(gate, /translate\(0\.24rem, 0\.24rem\)/);
+  assert.doesNotMatch(gate, /-webkit-text-stroke: 1px rgb\(255 159 48/);
+  assert.match(gate, /\.prelaunch-steam-icon \{[\s\S]*background: transparent;/);
+  assert.match(gate, /\.prelaunch-steam-icon svg \{[\s\S]*fill: #fff;/);
+  assert.doesNotMatch(gate, /background: #1b2838/);
+});

@@ -340,23 +340,17 @@ const signOut = () => {
 .prelaunch-wordmark h1 {
   position: relative;
   margin: 0.35rem 0 0;
-  color: transparent;
+  color: #f5f5f4;
   font-size: clamp(3rem, 9vw, 5.5rem);
   font-weight: 700;
   letter-spacing: 0.025em;
   line-height: 0.95;
   text-transform: uppercase;
-  -webkit-text-fill-color: transparent;
-  background: linear-gradient(180deg, #fafaf9 0%, #a8a29e 100%);
-  background-clip: text;
+  -webkit-text-fill-color: currentColor;
 }
 
 .prelaunch-wordmark h1 span {
-  position: absolute;
-  inset: 0;
-  color: transparent;
-  transform: translate(0.24rem, 0.24rem);
-  -webkit-text-stroke: 1px rgb(255 159 48 / 0.42);
+  display: none;
 }
 
 .prelaunch-rule {
@@ -537,13 +531,14 @@ const signOut = () => {
   height: 2.15rem;
   flex: 0 0 auto;
   place-items: center;
-  background: #1b2838;
+  background: transparent;
   color: #fff;
 }
 
 .prelaunch-steam-icon svg {
   width: 1.05rem;
   height: 1.05rem;
+  fill: #fff;
 }
 
 .prelaunch-button-copy {
