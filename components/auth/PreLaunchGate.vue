@@ -71,7 +71,10 @@ const signOut = () => {
         <span>DEAFCS.NET <b>//</b> 00.01</span>
       </div>
 
-      <section class="prelaunch-panel">
+      <section
+        class="prelaunch-panel"
+        :class="{ 'prelaunch-panel--pending': isPending }"
+      >
         <div class="prelaunch-brand">
           <div class="prelaunch-logo-frame">
             <span class="prelaunch-corner prelaunch-corner--tl"></span>
@@ -119,7 +122,7 @@ const signOut = () => {
                 />
                 <span v-else>{{ initials }}</span>
               </div>
-              <div>
+              <div class="prelaunch-identity-copy">
                 <span class="prelaunch-micro-label">IDENTITY DETECTED</span>
                 <strong>{{ displayName }}</strong>
               </div>
@@ -270,6 +273,10 @@ const signOut = () => {
   text-align: center;
 }
 
+.prelaunch-panel--pending {
+  width: min(100%, 52rem);
+}
+
 .prelaunch-brand {
   display: flex;
   align-items: center;
@@ -299,7 +306,7 @@ const signOut = () => {
   position: absolute;
   width: 1rem;
   height: 1rem;
-  border-color: rgb(255 159 48 / 0.8);
+  border-color: #ff9f30;
 }
 
 .prelaunch-corner--tl {
@@ -350,7 +357,12 @@ const signOut = () => {
 }
 
 .prelaunch-wordmark h1 span {
-  display: none;
+  position: absolute;
+  top: 0.2rem;
+  left: 0.2rem;
+  color: transparent;
+  pointer-events: none;
+  -webkit-text-stroke: 1px rgb(255 159 48 / 0.34);
 }
 
 .prelaunch-rule {
@@ -383,6 +395,17 @@ const signOut = () => {
   border: 1px solid rgb(231 229 228 / 0.13);
   background: linear-gradient(180deg, rgb(255 255 255 / 0.035), rgb(255 255 255 / 0.012));
   box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 0.2);
+}
+
+.prelaunch-access--pending {
+  display: grid;
+  width: min(100%, 50rem);
+  min-height: 8rem;
+  grid-template-columns: minmax(11rem, 1fr) minmax(15rem, 1.35fr) auto;
+  align-items: center;
+  column-gap: clamp(1.5rem, 4vw, 2.75rem);
+  padding: 1.5rem 1.75rem;
+  text-align: left;
 }
 
 .prelaunch-access::before,
@@ -426,10 +449,15 @@ const signOut = () => {
 
 .prelaunch-identity {
   display: flex;
+  min-width: 0;
   align-items: center;
-  gap: 0.8rem;
+  gap: 1rem;
   align-self: stretch;
   text-align: left;
+}
+
+.prelaunch-identity-copy {
+  min-width: 0;
 }
 
 .prelaunch-avatar {
@@ -465,7 +493,8 @@ const signOut = () => {
 }
 
 .prelaunch-pending-copy {
-  margin: 1.25rem 0;
+  min-width: 0;
+  margin: 0;
   text-align: left;
 }
 
@@ -486,6 +515,7 @@ const signOut = () => {
 
 .prelaunch-pending-copy p {
   margin: 0.4rem 0 0;
+  max-width: 24rem;
   color: rgb(231 229 228 / 0.62);
   font-family: ui-sans-serif, system-ui, sans-serif;
   font-size: 0.82rem;
@@ -573,7 +603,8 @@ const signOut = () => {
 
 .prelaunch-button--quiet {
   min-height: 2.45rem;
-  margin-left: auto;
+  justify-self: end;
+  margin-left: 0;
   padding: 0 0.8rem;
   border-color: rgb(231 229 228 / 0.17);
   background: transparent;
@@ -582,6 +613,7 @@ const signOut = () => {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .prelaunch-button--quiet svg {
@@ -626,6 +658,34 @@ const signOut = () => {
 @keyframes prelaunch-spin {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 900px) {
+  .prelaunch-panel--pending {
+    width: min(100%, 42rem);
+  }
+
+  .prelaunch-access--pending {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: 1.25rem;
+    column-gap: 1.5rem;
+    padding: 1.4rem;
+  }
+
+  .prelaunch-access--pending .prelaunch-identity {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .prelaunch-access--pending .prelaunch-pending-copy {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .prelaunch-access--pending .prelaunch-button--quiet {
+    grid-column: 2;
+    grid-row: 1;
   }
 }
 
@@ -677,6 +737,30 @@ const signOut = () => {
 
   .prelaunch-access {
     width: min(100%, 22rem);
+  }
+
+  .prelaunch-access--pending {
+    display: flex;
+    width: min(100%, 22rem);
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+
+  .prelaunch-access--pending .prelaunch-identity {
+    align-self: auto;
+  }
+
+  .prelaunch-access--pending .prelaunch-pending-copy {
+    width: 100%;
+  }
+
+  .prelaunch-access--pending .prelaunch-button--quiet {
+    align-self: flex-start;
+    justify-self: auto;
   }
 
   .prelaunch-footer-status {

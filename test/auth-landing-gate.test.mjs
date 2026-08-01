@@ -59,11 +59,43 @@ test("landing gate exposes required access states and local assets", () => {
   assert.doesNotMatch(gate, /steamstatic\.com/);
 });
 
-test("landing gate keeps its wordmark and Steam control visually crisp", () => {
+test("landing gate uses a restrained orange wordmark offset and orange logo corners", () => {
   assert.match(gate, /\.prelaunch-wordmark h1 \{[\s\S]*color: #f5f5f4;/);
-  assert.match(gate, /\.prelaunch-wordmark h1 span \{\s*display: none;/);
+  assert.match(
+    gate,
+    /\.prelaunch-wordmark h1 span \{[\s\S]*top: 0\.2rem;[\s\S]*left: 0\.2rem;[\s\S]*-webkit-text-stroke: 1px rgb\(255 159 48 \/ 0\.34\);/,
+  );
   assert.doesNotMatch(gate, /translate\(0\.24rem, 0\.24rem\)/);
-  assert.doesNotMatch(gate, /-webkit-text-stroke: 1px rgb\(255 159 48/);
+  assert.match(
+    gate,
+    /\.prelaunch-corner \{[\s\S]*border-color: #ff9f30;/,
+  );
+});
+
+test("landing gate gives pending access a spacious responsive layout", () => {
+  assert.match(gate, /prelaunch-panel--pending/);
+  assert.match(
+    gate,
+    /\.prelaunch-panel--pending \{[\s\S]*width: min\(100%, 52rem\);/,
+  );
+  assert.match(
+    gate,
+    /\.prelaunch-access--pending \{[\s\S]*display: grid;[\s\S]*grid-template-columns: minmax\(11rem, 1fr\) minmax\(15rem, 1\.35fr\) auto;[\s\S]*column-gap:/,
+  );
+  assert.match(gate, /prelaunch-identity-copy/);
+  assert.match(gate, /prelaunch-state-title/);
+  assert.match(gate, /prelaunch-button prelaunch-button--quiet/);
+  assert.match(
+    gate,
+    /@media \(max-width: 900px\) \{[\s\S]*grid-template-columns: minmax\(0, 1fr\) auto;[\s\S]*grid-row: 2;/,
+  );
+  assert.match(
+    gate,
+    /@media \(max-width: 640px\) \{[\s\S]*\.prelaunch-access--pending \{[\s\S]*flex-direction: column;/,
+  );
+});
+
+test("landing gate keeps the Steam control visually crisp", () => {
   assert.match(gate, /\.prelaunch-steam-icon \{[\s\S]*background: transparent;/);
   assert.match(gate, /\.prelaunch-steam-icon svg \{[\s\S]*fill: #fff;/);
   assert.doesNotMatch(gate, /background: #1b2838/);
