@@ -126,7 +126,7 @@ onMounted(loadAwards);
 
 <template>
   <PageTransition :delay="0">
-    <div class="container mx-auto max-w-6xl space-y-5 py-6">
+    <div class="space-y-5 py-6">
       <TacticalPageHeader :inline-actions="canManageAwards">
         <template #title>Awards</template>
         <template #subtitle>

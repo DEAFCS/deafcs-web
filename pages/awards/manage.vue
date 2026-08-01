@@ -414,7 +414,7 @@ onMounted(loadDefinitions);
 
 <template>
   <PageTransition :delay="0">
-    <main class="container mx-auto max-w-7xl space-y-5 py-6">
+    <main class="space-y-5 py-6">
       <NuxtLink
         to="/awards"
         class="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
