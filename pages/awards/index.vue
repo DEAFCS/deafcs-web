@@ -67,6 +67,7 @@ const AWARDS_QUERY = gql`
 const { resolveClient } = useApolloClient();
 const awards = ref<AwardCatalogAward[]>([]);
 const loading = ref(true);
+const initialContentReady = ref(false);
 const error = ref<Error | null>(null);
 const search = ref("");
 const tier = ref("all");
@@ -118,6 +119,9 @@ async function loadAwards() {
     error.value = caught instanceof Error ? caught : new Error(String(caught));
   } finally {
     loading.value = false;
+    if (!initialContentReady.value) {
+      initialContentReady.value = true;
+    }
   }
 }
 
@@ -186,106 +190,106 @@ onMounted(loadAwards);
         </div>
       </PageTransition>
 
-      <PageTransition :delay="175">
-        <div>
-        <div
-          v-if="loading"
-          class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
-          aria-label="Loading awards"
-          aria-busy="true"
-        >
-          <Skeleton v-for="index in 8" :key="index" class="h-72 rounded-lg" />
-        </div>
+      <div
+        v-if="loading"
+        class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+        aria-label="Loading awards"
+        aria-busy="true"
+      >
+        <Skeleton v-for="index in 8" :key="index" class="h-72 rounded-lg" />
+      </div>
 
-        <Empty
-          v-else-if="error"
-          class="min-h-52 border border-dashed border-destructive/50"
-          role="alert"
-        >
-          <EmptyTitle>Could not load awards</EmptyTitle>
-          <EmptyDescription>Please try again in a moment.</EmptyDescription>
-          <button
-            type="button"
-            class="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            @click="loadAwards"
+      <PageTransition :delay="175" :show="initialContentReady">
+        <div v-if="!loading">
+          <Empty
+            v-if="error"
+            class="min-h-52 border border-dashed border-destructive/50"
+            role="alert"
           >
-            Try again
-          </button>
-        </Empty>
+            <EmptyTitle>Could not load awards</EmptyTitle>
+            <EmptyDescription>Please try again in a moment.</EmptyDescription>
+            <button
+              type="button"
+              class="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              @click="loadAwards"
+            >
+              Try again
+            </button>
+          </Empty>
 
-        <Empty
-          v-else-if="!awards.length"
-          class="min-h-52 border border-dashed border-border"
-        >
-          <EmptyTitle>No awards yet</EmptyTitle>
-          <EmptyDescription>
-            Award definitions will appear here when they become available.
-          </EmptyDescription>
-        </Empty>
+          <Empty
+            v-else-if="!awards.length"
+            class="min-h-52 border border-dashed border-border"
+          >
+            <EmptyTitle>No awards yet</EmptyTitle>
+            <EmptyDescription>
+              Award definitions will appear here when they become available.
+            </EmptyDescription>
+          </Empty>
 
-        <Empty
-          v-else-if="!groups.length"
-          class="min-h-52 border border-dashed border-border"
-        >
-          <EmptyTitle>No matching awards</EmptyTitle>
-          <EmptyDescription>Try another search or tier filter.</EmptyDescription>
-        </Empty>
+          <Empty
+            v-else-if="!groups.length"
+            class="min-h-52 border border-dashed border-border"
+          >
+            <EmptyTitle>No matching awards</EmptyTitle>
+            <EmptyDescription>Try another search or tier filter.</EmptyDescription>
+          </Empty>
 
-        <div v-else class="space-y-7">
-          <section v-for="group in groups" :key="`${group.kind}:${group.ownerKey}`">
-            <div class="mb-3 flex items-center gap-2">
-              <h3 class="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                {{ scopeLabels[group.kind] }}
-                <span v-if="group.ownerName" class="text-foreground">/ {{ group.ownerName }}</span>
-              </h3>
-              <span class="h-px flex-1 bg-border/60"></span>
-              <span class="font-mono text-xs text-muted-foreground">{{ group.awards.length }}</span>
-            </div>
+          <div v-else class="space-y-7">
+            <section v-for="group in groups" :key="`${group.kind}:${group.ownerKey}`">
+              <div class="mb-3 flex items-center gap-2">
+                <h3 class="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                  {{ scopeLabels[group.kind] }}
+                  <span v-if="group.ownerName" class="text-foreground">/ {{ group.ownerName }}</span>
+                </h3>
+                <span class="h-px flex-1 bg-border/60"></span>
+                <span class="font-mono text-xs text-muted-foreground">{{ group.awards.length }}</span>
+              </div>
 
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              <a
-                v-for="award in group.awards"
-                :key="award.id"
-                :href="awardHref(award.id)"
-                class="group relative flex min-h-72 cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card/55 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none motion-reduce:transition-none"
-                :aria-label="`${award.name}, ${award.tier} award, ${activeGrantCount(award)} active grants`"
-                @keydown.space.prevent="openAward(award.id)"
-              >
-                <div class="relative mb-4 flex h-36 items-center justify-center overflow-hidden rounded-md border border-border/70 bg-background/45">
-                  <div
-                    class="pointer-events-none absolute inset-x-8 bottom-0 h-20 blur-2xl"
-                    :style="{ background: tierColors[award.tier] || tierColors.special, opacity: 0.25 }"
-                  ></div>
-                  <AwardArtwork
-                    :award="award"
-                    size="md"
-                    decorative
-                    class="relative"
-                  />
-                </div>
+              <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                <a
+                  v-for="award in group.awards"
+                  :key="award.id"
+                  :href="awardHref(award.id)"
+                  class="group relative flex min-h-72 cursor-pointer flex-col overflow-hidden rounded-lg border border-border bg-card/55 p-4 transition-[border-color,transform,background-color] hover:-translate-y-0.5 hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transform-none motion-reduce:transition-none"
+                  :aria-label="`${award.name}, ${award.tier} award, ${activeGrantCount(award)} active grants`"
+                  @keydown.space.prevent="openAward(award.id)"
+                >
+                  <div class="relative mb-4 flex h-36 items-center justify-center overflow-hidden rounded-md border border-border/70 bg-background/45">
+                    <div
+                      class="pointer-events-none absolute inset-x-8 bottom-0 h-20 blur-2xl"
+                      :style="{ background: tierColors[award.tier] || tierColors.special, opacity: 0.25 }"
+                    ></div>
+                    <AwardArtwork
+                      :award="award"
+                      size="md"
+                      decorative
+                      class="relative"
+                    />
+                  </div>
 
-                <div class="mb-2 flex items-center justify-between gap-2">
-                  <span
-                    class="inline-flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em]"
-                    :style="{ color: tierColors[award.tier] || tierColors.special }"
-                  >
-                    <Award class="h-3.5 w-3.5" aria-hidden="true" />
-                    {{ award.tier }}
-                  </span>
-                  <span class="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground">
-                    {{ activeGrantCount(award) }} grants
-                  </span>
-                </div>
-                <h4 class="text-lg font-bold uppercase tracking-[0.03em] group-hover:text-[hsl(var(--tac-amber))]">
-                  {{ award.name }}
-                </h4>
-                <p class="mt-1 line-clamp-3 text-sm text-muted-foreground">
-                  {{ award.description || "No description provided." }}
-                </p>
-              </a>
-            </div>
-          </section>
-        </div>
+                  <div class="mb-2 flex items-center justify-between gap-2">
+                    <span
+                      class="inline-flex items-center gap-1.5 font-mono text-[0.62rem] uppercase tracking-[0.18em]"
+                      :style="{ color: tierColors[award.tier] || tierColors.special }"
+                    >
+                      <Award class="h-3.5 w-3.5" aria-hidden="true" />
+                      {{ award.tier }}
+                    </span>
+                    <span class="font-mono text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground">
+                      {{ activeGrantCount(award) }} grants
+                    </span>
+                  </div>
+                  <h4 class="text-lg font-bold uppercase tracking-[0.03em] group-hover:text-[hsl(var(--tac-amber))]">
+                    {{ award.name }}
+                  </h4>
+                  <p class="mt-1 line-clamp-3 text-sm text-muted-foreground">
+                    {{ award.description || "No description provided." }}
+                  </p>
+                </a>
+              </div>
+            </section>
+          </div>
         </div>
       </PageTransition>
     </section>

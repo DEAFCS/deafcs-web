@@ -175,6 +175,7 @@ const events = ref<ScopeOwner[]>([]);
 const seasons = ref<ScopeOwner[]>([]);
 const leagueSeasons = ref<ScopeOwner[]>([]);
 const loading = ref(true);
+const initialContentReady = ref(false);
 const loadError = ref<Error | null>(null);
 const search = ref("");
 const status = ref<"all" | "active" | "archived">("all");
@@ -305,6 +306,9 @@ async function loadDefinitions() {
       caught instanceof Error ? caught : new Error(String(caught));
   } finally {
     loading.value = false;
+    if (!initialContentReady.value) {
+      initialContentReady.value = true;
+    }
   }
 }
 
@@ -494,8 +498,6 @@ onMounted(loadDefinitions);
           </div>
         </PageTransition>
 
-        <PageTransition :delay="175">
-          <div class="space-y-4">
         <div
           v-if="loading"
           class="space-y-2"
@@ -505,31 +507,33 @@ onMounted(loadDefinitions);
           <Skeleton v-for="index in 6" :key="index" class="h-20 w-full" />
         </div>
 
-        <Empty
-          v-else-if="loadError"
-          class="min-h-52 border border-dashed border-destructive/50"
-          role="alert"
-        >
-          <EmptyTitle>Could not load award definitions</EmptyTitle>
-          <EmptyDescription>{{ loadError.message }}</EmptyDescription>
-          <Button variant="outline" @click="loadDefinitions">Try again</Button>
-        </Empty>
+        <PageTransition :delay="175" :show="initialContentReady">
+          <div v-if="!loading" class="space-y-4">
+            <Empty
+              v-if="loadError"
+              class="min-h-52 border border-dashed border-destructive/50"
+              role="alert"
+            >
+              <EmptyTitle>Could not load award definitions</EmptyTitle>
+              <EmptyDescription>{{ loadError.message }}</EmptyDescription>
+              <Button variant="outline" @click="loadDefinitions">Try again</Button>
+            </Empty>
 
-        <Empty
-          v-else-if="!filteredDefinitions.length"
-          class="min-h-52 border border-dashed border-border"
-        >
-          <EmptyTitle>No matching definitions</EmptyTitle>
-          <EmptyDescription>
-            Create an award or change the current filters.
-          </EmptyDescription>
-        </Empty>
+            <Empty
+              v-else-if="!filteredDefinitions.length"
+              class="min-h-52 border border-dashed border-border"
+            >
+              <EmptyTitle>No matching definitions</EmptyTitle>
+              <EmptyDescription>
+                Create an award or change the current filters.
+              </EmptyDescription>
+            </Empty>
 
-        <div
-          v-else
-          class="overflow-x-auto rounded-lg border border-border bg-card/30"
-        >
-          <table class="w-full min-w-[74rem] text-left text-sm">
+            <div
+              v-else
+              class="overflow-x-auto rounded-lg border border-border bg-card/30"
+            >
+              <table class="w-full min-w-[74rem] text-left text-sm">
             <thead class="border-b border-border bg-muted/30">
               <tr class="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground">
                 <th scope="col" class="px-3 py-2">Image</th>
@@ -607,8 +611,8 @@ onMounted(loadDefinitions);
                 </td>
               </tr>
             </tbody>
-          </table>
-        </div>
+              </table>
+            </div>
           </div>
         </PageTransition>
       </section>

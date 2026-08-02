@@ -80,6 +80,7 @@ const route = useRoute();
 const { resolveClient } = useApolloClient();
 const award = ref<AwardDetail | null>(null);
 const loading = ref(true);
+const initialLoadComplete = ref(false);
 const error = ref<Error | null>(null);
 
 const holders = computed(() =>
@@ -94,6 +95,9 @@ const stats = computed(() =>
         firstGrantAt: null,
         latestGrantAt: null,
       },
+);
+const detailContentReady = computed(
+  () => initialLoadComplete.value && !!award.value,
 );
 const scopeLabel = computed(() =>
   award.value ? awardDefinitionScope(award.value) : "",
@@ -148,6 +152,7 @@ async function loadAward() {
   if (typeof id !== "string" || !validateUuid(id)) {
     award.value = null;
     loading.value = false;
+    initialLoadComplete.value = true;
     return;
   }
 
@@ -162,6 +167,9 @@ async function loadAward() {
     error.value = caught instanceof Error ? caught : new Error(String(caught));
   } finally {
     loading.value = false;
+    if (!initialLoadComplete.value) {
+      initialLoadComplete.value = true;
+    }
   }
 }
 
@@ -170,7 +178,7 @@ onMounted(loadAward);
 
 <template>
   <main class="space-y-5 py-6">
-    <PageTransition>
+    <PageTransition :show="initialLoadComplete">
       <div class="space-y-5">
       <NuxtLink
         to="/awards"
@@ -180,12 +188,8 @@ onMounted(loadAward);
         Back to Awards
       </NuxtLink>
 
-      <div v-if="loading" aria-busy="true" aria-label="Loading award">
-        <Skeleton class="h-56 w-full rounded-lg" />
-      </div>
-
       <Empty
-        v-else-if="error"
+        v-if="!loading && error"
         class="min-h-52 border border-dashed border-destructive/50"
         role="alert"
       >
@@ -201,14 +205,14 @@ onMounted(loadAward);
       </Empty>
 
       <Empty
-        v-else-if="!award"
+        v-else-if="!loading && !award"
         class="min-h-52 border border-dashed border-border"
       >
         <EmptyTitle>Award not found</EmptyTitle>
         <EmptyDescription>This award does not exist or is no longer available.</EmptyDescription>
       </Empty>
 
-      <template v-else>
+      <template v-else-if="!loading && award">
         <header
           class="relative overflow-hidden rounded-lg border border-border px-5 py-5 sm:px-7 sm:py-6 [background:linear-gradient(180deg,hsl(var(--card)/0.82)_0%,hsl(var(--card)/0.6)_100%)] [backdrop-filter:blur(10px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-['']"
         >
@@ -253,14 +257,14 @@ onMounted(loadAward);
       </div>
     </PageTransition>
 
-    <PageTransition :delay="100">
-      <div>
-        <Skeleton
-          v-if="loading"
-          class="h-20 w-full rounded-lg"
-          aria-hidden="true"
-        />
-        <dl v-else-if="award" class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/70 bg-border/70 sm:grid-cols-4">
+    <div v-if="loading" aria-busy="true" aria-label="Loading award">
+      <Skeleton class="h-56 w-full rounded-lg" />
+      <Skeleton class="mt-5 h-20 w-full rounded-lg" aria-hidden="true" />
+      <Skeleton class="mt-5 h-64 w-full rounded-lg" aria-hidden="true" />
+    </div>
+
+    <PageTransition :delay="100" :show="detailContentReady">
+      <dl v-if="award" class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/70 bg-border/70 sm:grid-cols-4">
           <div class="bg-background/70 p-3">
             <dt class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-muted-foreground">Active grants</dt>
             <dd class="mt-1 font-mono text-lg font-bold tabular-nums" :style="{ color: accent }">{{ stats.totalActiveGrants }}</dd>
@@ -277,18 +281,12 @@ onMounted(loadAward);
             <dt class="font-mono text-[0.58rem] uppercase tracking-[0.18em] text-muted-foreground">Latest grant</dt>
             <dd class="mt-1 text-sm font-semibold">{{ formatDate(stats.latestGrantAt) }}</dd>
           </div>
-        </dl>
-      </div>
+      </dl>
     </PageTransition>
 
-    <PageTransition :delay="175">
-      <div>
-        <Skeleton
-          v-if="loading"
-          class="h-64 w-full rounded-lg"
-          aria-hidden="true"
-        />
-        <section v-else-if="award" class="space-y-3" aria-labelledby="holder-history-heading">
+    <PageTransition :delay="175" :show="detailContentReady">
+      <div v-if="award">
+        <section class="space-y-3" aria-labelledby="holder-history-heading">
           <div class="flex items-center gap-2">
             <Users class="h-4 w-4 text-[hsl(var(--tac-amber))]" aria-hidden="true" />
             <h2 id="holder-history-heading" class="font-mono text-xs font-semibold uppercase tracking-[0.18em]">
