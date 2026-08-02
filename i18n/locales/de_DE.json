@@ -1091,7 +1091,7 @@
         "vs": "gegen",
         "auto_canceling": "Automatisches Abbrechen",
         "actions": {
-            "call_support": "Support anfordern",
+            "call_support": "Support kontaktieren",
             "start_veto": "Veto starten",
             "skip_checkin": "Check-In überspringen",
             "cancel": "Match abbrechen",

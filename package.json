@@ -8,6 +8,7 @@
     "dev": "nuxt dev --host 0.0.0.0",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
+    "test:matches": "node test/match-cancellation.test.mjs",
     "postinstall": "nuxt prepare",
     "codegen": "bash -c '. ./.env && zeus https://$NUXT_PUBLIC_API_DOMAIN/v1/graphql ./generated --ts --td --header=x-hasura-admin-secret:$HASURA_GRAPHQL_ADMIN_SECRET && ./scripts/patch-zeus-codegen.sh'",
     "check-translations": "node scripts/check-translations.js",

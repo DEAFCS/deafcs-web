@@ -636,7 +636,16 @@ export default {
               status: true,
               source: true,
               invite_code: true,
-              draft_games: [{}, { id: true }],
+              draft_games: [
+                {},
+                {
+                  id: true,
+                  match_id: true,
+                  host_steam_id: true,
+                  status: true,
+                  is_organizer: true,
+                },
+              ],
               e_match_status: {
                 description: true,
               },
@@ -654,7 +663,6 @@ export default {
               requested_organizer: true,
               is_tournament_match: true,
               label: true,
-              can_cancel: true,
               can_assign_server: true,
               can_stream_live: true,
               min_players_per_lineup: true,

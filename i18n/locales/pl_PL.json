@@ -1042,7 +1042,7 @@
         "vs": "vs",
         "auto_canceling": "Automatyczne anulowanie",
         "actions": {
-            "call_support": "Zadzwoń do wsparcia",
+            "call_support": "Skontaktuj się z pomocą",
             "start_veto": "Rozpocznij veto",
             "skip_checkin": "Pomiń check-in",
             "cancel": "Anuluj"

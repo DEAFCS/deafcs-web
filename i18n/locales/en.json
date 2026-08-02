@@ -4777,7 +4777,7 @@
     },
     "auto_canceling": "Auto Canceling",
     "actions": {
-      "call_support": "Call for Support",
+    "call_support": "Contact Support",
       "start_veto": "Start Veto",
       "skip_checkin": "Skip Check In",
       "cancel": "Cancel Match",

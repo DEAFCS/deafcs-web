@@ -5041,7 +5041,7 @@
       "short_label": "Status do Servidor"
     },
     "actions": {
-      "call_support": "Chamar Suporte",
+      "call_support": "Contatar suporte",
       "start_veto": "Iniciar Veto",
       "skip_checkin": "Pular Check In",
       "cancel": "Cancelar",

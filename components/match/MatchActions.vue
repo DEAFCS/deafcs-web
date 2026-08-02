@@ -249,7 +249,7 @@ import {
         <DropdownMenuSeparator
           v-if="
             match.can_start ||
-            match.can_cancel ||
+            canCancelMatch ||
             canDeleteMatch ||
             canReparseDemos
           "
@@ -279,7 +279,7 @@ import {
           </DropdownMenuItem>
         </template>
 
-        <template v-if="match.can_cancel">
+        <template v-if="canCancelMatch">
           <DropdownMenuItem class="text-destructive" @click="cancelMatch">
             <XCircle />
             {{ $t("match.actions.cancel") }}
@@ -419,6 +419,12 @@ export default {
 
         toast({
           title: this.$t("match.actions.canceled"),
+        });
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: error?.message,
         });
       } finally {
         this.cancellingMatch = false;
@@ -712,7 +718,57 @@ export default {
   },
   computed: {
     canAct() {
-      return this.match.is_in_lineup || this.match.is_organizer;
+      return (
+        this.match.is_in_lineup ||
+        this.match.is_organizer ||
+        this.canCancelMatch
+      );
+    },
+    canCancelMatch() {
+      const match = this.match as any;
+      const terminalStatuses = [
+        e_match_status_enum.Finished,
+        e_match_status_enum.Canceled,
+        e_match_status_enum.Forfeit,
+        e_match_status_enum.Tie,
+        e_match_status_enum.Surrendered,
+      ];
+
+      if (
+        !match?.status ||
+        terminalStatuses.includes(match.status) ||
+        match.ended_at != null ||
+        match.winning_lineup_id != null
+      ) {
+        return false;
+      }
+
+      // This is the existing session-aware organizer permission. The API
+      // remains authoritative and also verifies the draft's ELO setting.
+      if (match.is_organizer) {
+        return true;
+      }
+
+      const draft = (match.draft_games ?? []).find(
+        (candidate: any) =>
+          String(candidate?.match_id) === String(match.id),
+      );
+
+      // draft_games.is_organizer is visible to the host, while elo_enabled is
+      // intentionally hidden from ordinary users. The backend re-checks the
+      // trusted non-ELO flag before accepting the mutation.
+      return Boolean(
+        draft?.is_organizer === true &&
+          draft.status === "Completed" &&
+          match.is_tournament_match !== true &&
+          [
+            e_match_status_enum.Scheduled,
+            e_match_status_enum.WaitingForCheckIn,
+            e_match_status_enum.WaitingForServer,
+            e_match_status_enum.Veto,
+            e_match_status_enum.PickingPlayers,
+          ].includes(match.status),
+      );
     },
     canSetMatchWinner() {
       return (

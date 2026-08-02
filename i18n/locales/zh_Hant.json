@@ -1229,7 +1229,7 @@
         "vs": "對戰",
         "auto_canceling": "自動取消中",
         "actions": {
-            "call_support": "請求支援",
+            "call_support": "聯絡支援",
             "start_veto": "開始投票",
             "skip_checkin": "跳過報到",
             "cancel": "取消比賽",

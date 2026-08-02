@@ -932,7 +932,7 @@
         "vs": "대",
         "auto_canceling": "자동 취소 중",
         "actions": {
-            "call_support": "지원 요청",
+            "call_support": "지원팀에 문의",
             "start_veto": "밴 시작",
             "skip_checkin": "체크인 건너뛰기",
             "cancel": "취소"

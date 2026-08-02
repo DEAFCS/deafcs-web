@@ -1091,7 +1091,7 @@
         "vs": "vs",
         "auto_canceling": "Automatisk annullering",
         "actions": {
-            "call_support": "Ring til support",
+            "call_support": "Kontakt support",
             "start_veto": "Start veto",
             "skip_checkin": "Spring check-in over",
             "cancel": "Annuller",

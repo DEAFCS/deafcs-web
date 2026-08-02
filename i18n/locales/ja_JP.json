@@ -1091,7 +1091,7 @@
         "vs": "対",
         "auto_canceling": "自動キャンセル中",
         "actions": {
-            "call_support": "サポートを呼び出す",
+            "call_support": "サポートに連絡",
             "start_veto": "ベートを開始",
             "skip_checkin": "チェックインをスキップ",
             "cancel": "キャンセル",

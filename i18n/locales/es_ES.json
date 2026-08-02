@@ -1091,7 +1091,7 @@
         "vs": "vs",
         "auto_canceling": "Cancelación automática",
         "actions": {
-            "call_support": "Llamar soporte",
+            "call_support": "Contactar con soporte",
             "start_veto": "Iniciar veto",
             "skip_checkin": "Omitir check-in",
             "cancel": "Cancelar",

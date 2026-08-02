@@ -4548,7 +4548,7 @@
     },
     "auto_canceling": "自动取消中",
     "actions": {
-      "call_support": "请求支持",
+      "call_support": "联系支持",
       "start_veto": "开始 BP",
       "skip_checkin": "跳过签到",
       "cancel": "取消比赛",

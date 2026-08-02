@@ -942,7 +942,7 @@
         "vs": "vs",
         "auto_canceling": "Auto Canceling",
         "actions": {
-            "call_support": "Call for Support",
+            "call_support": "Destek ile iletişime geç",
             "start_veto": "Start Veto",
             "skip_checkin": "Skip Check In",
             "cancel": "Cancel Match"

@@ -1092,7 +1092,7 @@
         "vs": "mot",
         "auto_canceling": "Auto avbryter",
         "actions": {
-            "call_support": "Ring efter support",
+            "call_support": "Kontakta support",
             "start_veto": "Starta veto",
             "skip_checkin": "Hoppa över incheckning",
             "cancel": "Avbryt match",
