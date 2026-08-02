@@ -58,12 +58,16 @@ const recurringAward = {
   ],
 };
 
-test("route queries exactly one award by id using nested occurrences", async () => {
+test("route queries core award data separately from nested history", async () => {
   const page = await detailPage();
-  assert.match(page, /query PublicAwardDetail\(\$id: uuid!\)/);
+  assert.match(page, /query PublicAwardCore\(\$id: uuid!\)/);
+  assert.match(page, /query PublicAwardHistory\(\$id: uuid!\)/);
   assert.match(page, /awards_by_pk\(id: \$id\)/);
   assert.match(page, /occurrences\(order_by:/);
   assert.match(page, /occurrences[\s\S]*recipients\(/);
+  assert.match(page, /const historyReady = ref\(false\)/);
+  assert.match(page, /award\.value = \{ \.\.\.coreAward, occurrences: previousOccurrences \}/);
+  assert.match(page, /historyReady\.value = true/);
   assert.doesNotMatch(page, /mutation\s/);
 });
 

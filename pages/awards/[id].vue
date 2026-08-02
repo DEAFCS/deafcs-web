@@ -21,8 +21,8 @@ import {
 } from "~/utilities/awardDetail";
 import { AWARD_TIER_COLORS } from "~/utilities/awardArtwork";
 
-const AWARD_DETAIL_QUERY = gql`
-  query PublicAwardDetail($id: uuid!) {
+const AWARD_CORE_QUERY = gql`
+  query PublicAwardCore($id: uuid!) {
     awards_by_pk(id: $id) {
       id
       name
@@ -39,6 +39,14 @@ const AWARD_DETAIL_QUERY = gql`
       event { id name }
       elo_season { id number }
       league_season { id name season_number }
+    }
+  }
+`;
+
+const AWARD_HISTORY_QUERY = gql`
+  query PublicAwardHistory($id: uuid!) {
+    awards_by_pk(id: $id) {
+      id
       occurrences(order_by: [{ effective_at: desc }, { created_at: desc }]) {
         id
         effective_at
@@ -80,7 +88,9 @@ const { resolveClient } = useApolloClient();
 const award = ref<AwardDetail | null>(null);
 const loading = ref(true);
 const initialLoadComplete = ref(false);
+const historyReady = ref(false);
 const error = ref<Error | null>(null);
+const historyError = ref<Error | null>(null);
 
 const holders = computed(() =>
   award.value ? activeAwardHolders(award.value) : [],
@@ -96,7 +106,7 @@ const stats = computed(() =>
       },
 );
 const detailContentReady = computed(
-  () => initialLoadComplete.value && !!award.value,
+  () => historyReady.value && !!award.value,
 );
 const scopeLabel = computed(() =>
   award.value ? awardDefinitionScope(award.value) : "",
@@ -147,27 +157,75 @@ function formatYear(value?: string | null) {
 async function loadAward() {
   loading.value = true;
   error.value = null;
+  historyError.value = null;
+  if (!award.value) {
+    initialLoadComplete.value = false;
+    historyReady.value = false;
+  }
   const id = Array.isArray(route.params.id) ? route.params.id[0] : route.params.id;
   if (typeof id !== "string" || !validateUuid(id)) {
     award.value = null;
     loading.value = false;
     initialLoadComplete.value = true;
+    historyReady.value = true;
     return;
   }
 
+  const client = resolveClient();
+  const variables = { id };
+  const historyRequest = client.query<{
+    awards_by_pk: Pick<AwardDetail, "id" | "occurrences"> | null;
+  }>({
+    query: AWARD_HISTORY_QUERY,
+    variables,
+    fetchPolicy: "cache-first",
+  });
+
   try {
-    const result = await resolveClient().query<{ awards_by_pk: AwardDetail | null }>({
-      query: AWARD_DETAIL_QUERY,
+    const result = await client.query<{
+      awards_by_pk: Omit<AwardDetail, "occurrences"> | null;
+    }>({
+      query: AWARD_CORE_QUERY,
       variables: { id },
       fetchPolicy: "cache-first",
     });
-    award.value = result.data.awards_by_pk;
+
+    const coreAward = result.data.awards_by_pk;
+    if (!coreAward) {
+      award.value = null;
+      await historyRequest.catch(() => undefined);
+      return;
+    }
+
+    const previousOccurrences =
+      award.value?.id === coreAward.id ? award.value.occurrences : undefined;
+    award.value = { ...coreAward, occurrences: previousOccurrences };
+    initialLoadComplete.value = true;
+
+    try {
+      const historyResult = await historyRequest;
+      const occurrences = historyResult.data.awards_by_pk?.occurrences || [];
+      if (award.value?.id === coreAward.id) {
+        award.value = { ...award.value, occurrences };
+      }
+    } catch (caught) {
+      historyError.value = caught instanceof Error ? caught : new Error(String(caught));
+      if (previousOccurrences === undefined && award.value?.id === coreAward.id) {
+        award.value = { ...award.value, occurrences: [] };
+      }
+    } finally {
+      historyReady.value = true;
+    }
   } catch (caught) {
     error.value = caught instanceof Error ? caught : new Error(String(caught));
+    await historyRequest.catch(() => undefined);
   } finally {
     loading.value = false;
     if (!initialLoadComplete.value) {
       initialLoadComplete.value = true;
+    }
+    if (!award.value) {
+      historyReady.value = true;
     }
   }
 }
@@ -289,7 +347,16 @@ onMounted(loadAward);
             <span class="font-mono text-xs text-muted-foreground">{{ holders.length }}</span>
           </div>
 
-          <Empty v-if="!holders.length" class="min-h-44 border border-dashed border-border">
+          <Empty
+            v-if="historyError"
+            class="min-h-44 border border-dashed border-destructive/50"
+            role="alert"
+          >
+            <EmptyTitle>Could not load holder history</EmptyTitle>
+            <EmptyDescription>Please try again in a moment.</EmptyDescription>
+          </Empty>
+
+          <Empty v-else-if="!holders.length" class="min-h-44 border border-dashed border-border">
             <EmptyTitle>No holders yet</EmptyTitle>
             <EmptyDescription>This award has not been granted to anyone yet.</EmptyDescription>
           </Empty>

@@ -225,7 +225,8 @@ test("validation requires a name and scope but not a scope owner", () => {
 test("public award catalog and detail routes retain their read-only contracts", () => {
   assert.match(catalog, /query PublicAwardCatalog/);
   assert.match(catalog, /archived_at: \{ _is_null: true \}/);
-  assert.match(detail, /query PublicAwardDetail/);
+  assert.match(detail, /query PublicAwardCore/);
+  assert.match(detail, /query PublicAwardHistory/);
   assert.match(detail, /awards_by_pk\(id: \$id\)/);
   assert.doesNotMatch(detail, /saveAward|archiveAward/);
 });

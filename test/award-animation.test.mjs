@@ -68,7 +68,10 @@ test("Award detail has one initial loading owner and keeps cached content stable
   assert.match(detail, /const loading = ref\(true\)/);
   assert.match(detail, /<PageTransition :show="initialLoadComplete">/);
   assert.match(detail, /fetchPolicy: "cache-first"/);
-  assert.match(detail, /const detailContentReady = computed\([\s\S]*initialLoadComplete\.value && !!award\.value/);
+  assert.match(detail, /const detailContentReady = computed\([\s\S]*historyReady\.value && !!award\.value/);
+  assert.match(detail, /const historyReady = ref\(false\)/);
+  assert.match(detail, /query PublicAwardCore\(\$id: uuid!\)/);
+  assert.match(detail, /query PublicAwardHistory\(\$id: uuid!\)/);
   assert.match(detail, /v-if="!award && error"/);
   assert.match(detail, /v-else-if="!award && initialLoadComplete && !loading"/);
   assert.match(detail, /v-else-if="award"/);
@@ -76,6 +79,17 @@ test("Award detail has one initial loading owner and keeps cached content stable
   assert.doesNotMatch(readinessBlock, /loading/);
   assert.doesNotMatch(detail, /<PageTransition[^>]*:key=/);
   assert.doesNotMatch(detail, /window\.location|location\.reload/);
+});
+
+test("Award detail starts the first section without an artificial reveal delay", () => {
+  const firstTransitionStart = detail.indexOf("<PageTransition");
+  const firstDelayedTransition = detail.indexOf('<PageTransition :delay="100"');
+  const firstTransition = detail.slice(firstTransitionStart, firstDelayedTransition);
+
+  assert.match(firstTransition, /<PageTransition :show="initialLoadComplete">/);
+  assert.doesNotMatch(firstTransition, /:delay|transitionDelay|setTimeout|nextTick|requestAnimationFrame/);
+  assert.match(detail, /<PageTransition :delay="100" :show="detailContentReady">/);
+  assert.match(detail, /<PageTransition :delay="175" :show="detailContentReady">/);
 });
 
 test("Shared transition keeps the visible stagger subtle and reduced-motion safe", () => {

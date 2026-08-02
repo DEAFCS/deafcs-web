@@ -42,5 +42,6 @@ test("a zero-grant award still has a complete interactive detail card", async ()
   assert.match(page, /<a[\s\S]*?v-for="award in group\.awards"[\s\S]*?:href="awardHref\(award\.id\)"/);
   assert.match(page, /:href="awardHref\(award\.id\)"[\s\S]*?<\/a>/);
   assert.doesNotMatch(page, /activeGrantCount\(award\)[\s\S]*?\?\s*awardHref/);
-  assert.match(detail, /query PublicAwardDetail/);
+  assert.match(detail, /query PublicAwardCore/);
+  assert.match(detail, /query PublicAwardHistory/);
 });
