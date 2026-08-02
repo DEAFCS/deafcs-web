@@ -7,7 +7,6 @@ import { ArrowLeft, CalendarDays, Users } from "lucide-vue-next";
 import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
-import { Skeleton } from "~/components/ui/skeleton";
 import Empty from "~/components/ui/empty/Empty.vue";
 import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
 import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
@@ -160,7 +159,7 @@ async function loadAward() {
     const result = await resolveClient().query<{ awards_by_pk: AwardDetail | null }>({
       query: AWARD_DETAIL_QUERY,
       variables: { id },
-      fetchPolicy: "network-only",
+      fetchPolicy: "cache-first",
     });
     award.value = result.data.awards_by_pk;
   } catch (caught) {
@@ -189,7 +188,7 @@ onMounted(loadAward);
       </NuxtLink>
 
       <Empty
-        v-if="!loading && error"
+        v-if="!award && error"
         class="min-h-52 border border-dashed border-destructive/50"
         role="alert"
       >
@@ -205,14 +204,14 @@ onMounted(loadAward);
       </Empty>
 
       <Empty
-        v-else-if="!loading && !award"
+        v-else-if="!award && initialLoadComplete && !loading"
         class="min-h-52 border border-dashed border-border"
       >
         <EmptyTitle>Award not found</EmptyTitle>
         <EmptyDescription>This award does not exist or is no longer available.</EmptyDescription>
       </Empty>
 
-      <template v-else-if="!loading && award">
+      <template v-else-if="award">
         <header
           class="relative overflow-hidden rounded-lg border border-border px-5 py-5 sm:px-7 sm:py-6 [background:linear-gradient(180deg,hsl(var(--card)/0.82)_0%,hsl(var(--card)/0.6)_100%)] [backdrop-filter:blur(10px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-['']"
         >
@@ -256,12 +255,6 @@ onMounted(loadAward);
 
       </div>
     </PageTransition>
-
-    <div v-if="loading" aria-busy="true" aria-label="Loading award">
-      <Skeleton class="h-56 w-full rounded-lg" />
-      <Skeleton class="mt-5 h-20 w-full rounded-lg" aria-hidden="true" />
-      <Skeleton class="mt-5 h-64 w-full rounded-lg" aria-hidden="true" />
-    </div>
 
     <PageTransition :delay="100" :show="detailContentReady">
       <dl v-if="award" class="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-border/70 bg-border/70 sm:grid-cols-4">

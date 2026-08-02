@@ -60,8 +60,22 @@ test("Awards pages gate first result content and keep the entrance one-shot", ()
   assert.match(detail, /<PageTransition :delay="175" :show="detailContentReady">/);
   assert.match(manage, /<PageTransition :delay="175" :show="initialContentReady">/);
   assert.match(catalog, /<div\s+v-if="loading"[\s\S]*aria-label="Loading awards"/);
-  assert.match(detail, /<div v-if="loading" aria-busy="true" aria-label="Loading award">/);
+  assert.doesNotMatch(detail, /Skeleton|Loading award/);
   assert.match(manage, /<div\s+v-if="loading"[\s\S]*aria-label="Loading award definitions"/);
+});
+
+test("Award detail has one initial loading owner and keeps cached content stable", () => {
+  assert.match(detail, /const loading = ref\(true\)/);
+  assert.match(detail, /<PageTransition :show="initialLoadComplete">/);
+  assert.match(detail, /fetchPolicy: "cache-first"/);
+  assert.match(detail, /const detailContentReady = computed\([\s\S]*initialLoadComplete\.value && !!award\.value/);
+  assert.match(detail, /v-if="!award && error"/);
+  assert.match(detail, /v-else-if="!award && initialLoadComplete && !loading"/);
+  assert.match(detail, /v-else-if="award"/);
+  const readinessBlock = detail.match(/const detailContentReady = computed\([\s\S]*?\);/)?.[0] || "";
+  assert.doesNotMatch(readinessBlock, /loading/);
+  assert.doesNotMatch(detail, /<PageTransition[^>]*:key=/);
+  assert.doesNotMatch(detail, /window\.location|location\.reload/);
 });
 
 test("Shared transition keeps the visible stagger subtle and reduced-motion safe", () => {
@@ -106,7 +120,7 @@ test("Award updates stay inside stable wrappers and do not replay the full entra
   assert.match(manage, /v-model="search"/);
   assert.match(manage, /v-model="status"/);
   assert.match(catalog, /fetchPolicy: "cache-first"/);
-  assert.match(detail, /fetchPolicy: "network-only"/);
+  assert.match(detail, /fetchPolicy: "cache-first"/);
   assert.match(manage, /fetchPolicy: "network-only"/);
   assert.match(manage, /<Dialog v-model:open="formOpen">/);
   assert.doesNotMatch(pages.join("\n"), /window\.location|location\.reload|navigateTo\([^)]*replace/);
