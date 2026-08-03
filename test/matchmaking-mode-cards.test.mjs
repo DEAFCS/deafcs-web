@@ -9,8 +9,13 @@ const matchmaking = await readFile(
 
 test("matchmaking mode cards use the intended mode icons", () => {
   assert.match(matchmaking, /Competitive:\s*Users/);
-  assert.match(matchmaking, /Wingman:\s*UsersRound/);
+  assert.match(matchmaking, /Wingman:\s*UserRoundPlus/);
   assert.match(matchmaking, /Duel:\s*UserRound/);
+});
+
+test("mode icons are decorative and anchored in the card corner", () => {
+  assert.match(matchmaking, /<component[\s\S]*absolute bottom-4 right-4/);
+  assert.match(matchmaking, /h-3\.5 w-3\.5 border-r-2 border-t-2/);
 });
 
 test("matchmaking cards preserve native queue behavior", () => {

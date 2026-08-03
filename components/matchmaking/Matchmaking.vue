@@ -5,8 +5,8 @@ import {
   AlertTriangle,
   ArrowRight,
   UserRound,
+  UserRoundPlus,
   Users,
-  UsersRound,
 } from "lucide-vue-next";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
 import { Button } from "~/components/ui/button";
@@ -17,7 +17,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
 const matchTypeIcons: Record<string, Component> = {
   Competitive: Users,
-  Wingman: UsersRound,
+  Wingman: UserRoundPlus,
   Duel: UserRound,
 };
 
@@ -211,9 +211,14 @@ const mmCardBase =
               aria-hidden="true"
             ></span>
             <span
-              class="pointer-events-none absolute right-3 top-3 z-[1] h-4 w-4 border-r border-t border-[rgb(var(--mode-rgb)/0.42)] transition-colors duration-200 group-hover/mmc-enabled:border-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:border-[rgb(var(--mode-rgb))]"
+              class="pointer-events-none absolute right-2 top-2 z-[1] h-3.5 w-3.5 border-r-2 border-t-2 border-[rgb(var(--mode-rgb)/0.55)] transition-colors duration-200 group-hover/mmc-enabled:border-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:border-[rgb(var(--mode-rgb))]"
               aria-hidden="true"
             ></span>
+            <component
+              :is="matchTypeIcon(type.value)"
+              class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb)/0.18)] transition-[color,filter,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
+              aria-hidden="true"
+            />
 
             <Badge
               variant="secondary"
@@ -237,22 +242,14 @@ const mmCardBase =
             <div
               class="relative z-[1] flex min-w-0 flex-1 flex-col gap-3"
             >
-              <div class="flex min-w-0 items-start gap-3">
+              <div
+                class="inline-flex min-w-0 items-center gap-[0.55rem] pt-1 font-mono text-[0.72rem] font-bold uppercase tracking-[0.24em] text-muted-foreground transition-colors duration-200 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb))]"
+              >
                 <span
-                  class="grid size-10 shrink-0 place-items-center rounded-md border border-[rgb(var(--mode-rgb)/0.35)] bg-[rgb(var(--mode-rgb)/0.08)] text-[rgb(var(--mode-rgb)/0.78)] transition-[border-color,color,filter,transform] duration-200 group-hover/mmc-enabled:border-[rgb(var(--mode-rgb)/0.65)] group-hover/mmc-enabled:text-[rgb(var(--mode-rgb))] group-hover/mmc-enabled:drop-shadow-[0_0_8px_rgb(var(--mode-rgb)/0.28)] group-hover/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:border-[rgb(var(--mode-rgb)/0.65)] group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:drop-shadow-[0_0_8px_rgb(var(--mode-rgb)/0.28)]"
+                  class="inline-block h-[2px] w-[10px] shrink-0 bg-[rgb(var(--mode-rgb))]"
                   aria-hidden="true"
-                >
-                  <component :is="matchTypeIcon(type.value)" class="size-5" />
-                </span>
-                <div
-                  class="inline-flex min-w-0 items-center gap-[0.55rem] pt-1 font-mono text-[0.72rem] font-bold uppercase tracking-[0.24em] text-muted-foreground transition-colors duration-200 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb))]"
-                >
-                  <span
-                    class="inline-block h-[2px] w-[10px] shrink-0 bg-[rgb(var(--mode-rgb))]"
-                    aria-hidden="true"
-                  ></span>
-                  <span class="min-w-0 break-words">{{ type.value }}</span>
-                </div>
+                ></span>
+                <span class="min-w-0 break-words">{{ type.value }}</span>
               </div>
               <p class="m-0 text-[0.78rem] leading-[1.5] text-muted-foreground">
                 <template v-if="canQueueType(type.value)">
