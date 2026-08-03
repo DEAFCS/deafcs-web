@@ -57,6 +57,7 @@ const containContentValue = computed(() => containContent?.value ?? true);
 // strips, filters) calls capture() and this wrapper reserves the height so the
 // browser can't yank the scroll upward. Reset on navigation.
 const route = useRoute();
+const isMatchDetailRoute = computed(() => route.name === "matches-id");
 // Keyed on path, not fullPath: tab strips and filters persist their state in
 // the query string, so a query-only change IS the shrink we're reserving for.
 const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
@@ -82,6 +83,7 @@ const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
             class="mx-auto p-1 sm:p-4 w-full self-center"
             :class="{
               'lg:max-w-7xl': containContentValue,
+              'lg:max-w-[calc(1600px+2rem)]': isMatchDetailRoute,
             }"
             :style="
               scrollFloorMinHeight
