@@ -1,24 +1,30 @@
 <script setup lang="ts">
 import { useMediaQuery } from "@vueuse/core";
-import { AlertTriangle } from "lucide-vue-next";
+import type { Component } from "vue";
+import {
+  AlertTriangle,
+  ArrowRight,
+  UserRound,
+  Users,
+  UsersRound,
+} from "lucide-vue-next";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
 import { Button } from "~/components/ui/button";
 import TimeAgo from "../TimeAgo.vue";
+import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
 
-const matchTypeColors: Record<string, string> = {
-  Competitive: "249 158 47",
-  Wingman: "217 70 239",
-  Duel: "34 211 238",
+const matchTypeIcons: Record<string, Component> = {
+  Competitive: Users,
+  Wingman: UsersRound,
+  Duel: UserRound,
 };
 
-const matchTypeColorStyle = (type: string): Record<string, string> => ({
-  "--mode-rgb": matchTypeColors[type] ?? matchTypeColors.Competitive,
-});
+const matchTypeIcon = (type: string) => matchTypeIcons[type] ?? UserRound;
 
 const mmCardBase =
-  "group/mmc relative flex flex-col flex-1 min-h-[120px] px-[1.1rem] pt-4 pb-5 text-left cursor-pointer overflow-hidden isolate border border-border text-foreground [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_60%,rgb(var(--mode-rgb)/0.05)_100%)] [transition:border-color_180ms_ease,background_220ms_ease,box-shadow_220ms_ease] hover:border-[rgb(var(--mode-rgb)/0.55)] hover:[background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,rgb(var(--mode-rgb)/0.10)_100%)] hover:shadow-[0_0_24px_rgb(var(--mode-rgb)/0.12)] focus-visible:outline-none focus-visible:border-[rgb(var(--mode-rgb))] focus-visible:shadow-[0_0_0_2px_rgb(var(--mode-rgb)/0.35)]";
+  "group/mmc relative flex min-h-[176px] flex-1 flex-col overflow-hidden isolate rounded-lg border border-[rgb(var(--mode-rgb)/0.28)] px-5 pb-4 pt-5 text-left text-foreground cursor-pointer [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_60%,rgb(var(--mode-rgb)/0.05)_100%)] [transition:border-color_180ms_ease,background_220ms_ease,box-shadow_220ms_ease,transform_180ms_ease] hover:border-[rgb(var(--mode-rgb)/0.55)] hover:shadow-[0_0_24px_rgb(var(--mode-rgb)/0.12)] focus-visible:outline-none focus-visible:border-[rgb(var(--mode-rgb))] focus-visible:shadow-[0_0_0_2px_rgb(var(--mode-rgb)/0.35)]";
 
 </script>
 
@@ -189,21 +195,29 @@ const mmCardBase =
             :style="matchTypeColorStyle(type.value)"
             :class="[
               mmCardBase,
-              'transition-all duration-300 ease-out',
-              canQueueType(type.value) && 'hover:scale-[1.015]',
+              canQueueType(type.value) &&
+                'group/mmc-enabled hover:scale-[1.01] active:scale-[0.995]',
               !canQueueType(type.value) &&
                 '!cursor-not-allowed opacity-45 grayscale hover:!border-border hover:!shadow-none',
             ]"
             @click="handleMatchTypeClick(type.value)"
           >
             <span
-              class="absolute inset-0 z-0 pointer-events-none opacity-0 transition-opacity [transition-duration:220ms] [transition-timing-function:ease] [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,rgb(var(--mode-rgb)/0.03)_3px,rgb(var(--mode-rgb)/0.03)_4px)] group-hover/mmc:opacity-100"
+              class="pointer-events-none absolute inset-0 z-0 opacity-0 [background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,rgb(var(--mode-rgb)/0.10)_100%)] transition-opacity [transition-duration:220ms] [transition-timing-function:ease] group-hover/mmc-enabled:opacity-100 group-focus-visible/mmc-enabled:opacity-100"
+              aria-hidden="true"
+            ></span>
+            <span
+              class="pointer-events-none absolute inset-0 z-0 opacity-0 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,rgb(var(--mode-rgb)/0.03)_3px,rgb(var(--mode-rgb)/0.03)_4px)] transition-opacity [transition-duration:220ms] [transition-timing-function:ease] group-hover/mmc-enabled:opacity-100 group-focus-visible/mmc-enabled:opacity-100"
+              aria-hidden="true"
+            ></span>
+            <span
+              class="pointer-events-none absolute right-3 top-3 z-[1] h-4 w-4 border-r border-t border-[rgb(var(--mode-rgb)/0.42)] transition-colors duration-200 group-hover/mmc-enabled:border-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:border-[rgb(var(--mode-rgb))]"
               aria-hidden="true"
             ></span>
 
             <Badge
               variant="secondary"
-              class="absolute top-2 right-2 px-2 py-0.5 text-[0.65rem] tracking-[0.12em] uppercase transition-opacity duration-200"
+              class="absolute right-2 top-2 z-[2] px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.12em] transition-opacity duration-200"
               v-if="
                 distinctInQueue(
                   type.value,
@@ -221,16 +235,24 @@ const mmCardBase =
             </Badge>
 
             <div
-              class="relative z-[1] flex-1 min-w-0 flex flex-col gap-[0.4rem]"
+              class="relative z-[1] flex min-w-0 flex-1 flex-col gap-3"
             >
-              <div
-                class="inline-flex items-center gap-[0.55rem] font-mono text-[0.72rem] font-bold tracking-[0.24em] uppercase text-muted-foreground transition-colors [transition-duration:180ms] group-hover/mmc:text-[rgb(var(--mode-rgb))]"
-              >
+              <div class="flex min-w-0 items-start gap-3">
                 <span
-                  class="inline-block w-[10px] h-[2px] bg-[rgb(var(--mode-rgb))]"
+                  class="grid size-10 shrink-0 place-items-center rounded-md border border-[rgb(var(--mode-rgb)/0.35)] bg-[rgb(var(--mode-rgb)/0.08)] text-[rgb(var(--mode-rgb)/0.78)] transition-[border-color,color,filter,transform] duration-200 group-hover/mmc-enabled:border-[rgb(var(--mode-rgb)/0.65)] group-hover/mmc-enabled:text-[rgb(var(--mode-rgb))] group-hover/mmc-enabled:drop-shadow-[0_0_8px_rgb(var(--mode-rgb)/0.28)] group-hover/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:border-[rgb(var(--mode-rgb)/0.65)] group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:drop-shadow-[0_0_8px_rgb(var(--mode-rgb)/0.28)]"
                   aria-hidden="true"
-                ></span>
-                {{ type.value.toUpperCase() }}
+                >
+                  <component :is="matchTypeIcon(type.value)" class="size-5" />
+                </span>
+                <div
+                  class="inline-flex min-w-0 items-center gap-[0.55rem] pt-1 font-mono text-[0.72rem] font-bold uppercase tracking-[0.24em] text-muted-foreground transition-colors duration-200 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb))]"
+                >
+                  <span
+                    class="inline-block h-[2px] w-[10px] shrink-0 bg-[rgb(var(--mode-rgb))]"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="min-w-0 break-words">{{ type.value }}</span>
+                </div>
               </div>
               <p class="m-0 text-[0.78rem] leading-[1.5] text-muted-foreground">
                 <template v-if="canQueueType(type.value)">
@@ -251,6 +273,15 @@ const mmCardBase =
                   {{ partySizeRequirementText(type.value) }}
                 </template>
               </p>
+              <span
+                class="mt-auto inline-flex items-center gap-1 self-start pt-1 font-mono text-[0.65rem] font-bold uppercase tracking-[0.16em] text-[rgb(var(--mode-rgb)/0.72)] transition-colors duration-200 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb))]"
+              >
+                {{ $t("matchmaking.confirm_selection") }}
+                <ArrowRight
+                  class="size-3 transition-transform duration-200 group-hover/mmc-enabled:translate-x-1 group-focus-visible/mmc-enabled:translate-x-1"
+                  aria-hidden="true"
+                />
+              </span>
             </div>
           </button>
         </div>
