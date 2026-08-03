@@ -80,10 +80,7 @@ const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
           <SystemAlertBanner />
           <div
             ref="scrollFloorRootEl"
-            class="main-content-frame mx-auto p-1 sm:p-4 w-full self-center"
-            :data-destination-width="
-              isMatchDetailRoute ? 'match-detail' : undefined
-            "
+            class="mx-auto p-1 sm:p-4 w-full self-center"
             :class="{
               'lg:max-w-7xl': containContentValue,
               'lg:max-w-[calc(1600px+2rem)]': isMatchDetailRoute,
@@ -104,13 +101,3 @@ const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
     </SidebarProvider>
   </div>
 </template>
-
-<style>
-@media (min-width: 1024px) {
-  .main-content-frame[data-destination-width="match-detail"]:has(
-      > [data-page-width="homepage-contained"].page-leave-active
-    ) {
-    max-width: 80rem;
-  }
-}
-</style>
