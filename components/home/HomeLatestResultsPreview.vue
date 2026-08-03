@@ -248,7 +248,7 @@ void fetchLatestResults();
           v-for="match in matches"
           :key="match.id"
           :to="{ name: 'matches-id', params: { id: match.id } }"
-          class="group/result block min-w-0 rounded-md border border-border/60 bg-background/25 p-3 outline-none transition-colors hover:border-[hsl(var(--tac-amber)/0.4)] hover:bg-background/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+          class="group/result block min-w-0 rounded-lg border border-border bg-muted/30 p-3 outline-none transition-colors hover:border-primary/30 hover:bg-muted/20 hover:shadow-lg hover:shadow-primary/10 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
           :aria-label="`View ${match.lineup_1.name} versus ${match.lineup_2.name}`"
         >
           <div class="flex min-w-0 items-center justify-between gap-3">
@@ -328,7 +328,7 @@ void fetchLatestResults();
       <NuxtLink
         v-if="!loading"
         to="/matches"
-        class="mt-3 inline-flex min-h-10 items-center gap-1 self-start rounded-md font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+        class="mt-auto inline-flex min-h-10 items-center gap-1 self-start rounded-md pt-4 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
       >
         View all results
         <ArrowRight class="h-3 w-3" aria-hidden="true" />
