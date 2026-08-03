@@ -214,7 +214,7 @@ const mmCardBase =
             ></span>
             <svg
               v-if="type.value === 'Competitive'"
-              class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb)/0.18)] transition-[color,filter,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
+              class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb))] opacity-[0.18] transition-[color,filter,opacity,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:opacity-[0.3] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:opacity-[0.3] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
               viewBox="0 0 24 24"
               aria-hidden="true"
             >
@@ -223,7 +223,7 @@ const mmCardBase =
             <component
               v-else
               :is="matchTypeIcon(type.value)"
-              class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb)/0.18)] transition-[color,filter,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
+              class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb))] opacity-[0.18] transition-[color,filter,opacity,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:opacity-[0.3] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:opacity-[0.3] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
               aria-hidden="true"
             />
 

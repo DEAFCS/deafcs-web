@@ -30,6 +30,15 @@ test("mode icons are decorative and anchored in the card corner", () => {
   assert.match(matchmaking, /h-3\.5 w-3\.5 border-r-2 border-t-2/);
 });
 
+test("decorative icons apply opacity once to avoid darker overlapping strokes", () => {
+  assert.equal(
+    (matchmaking.match(/text-\[rgb\(var\(--mode-rgb\)\)\] opacity-\[0\.18\]/g) ?? [])
+      .length,
+    2,
+  );
+  assert.doesNotMatch(matchmaking, /text-\[rgb\(var\(--mode-rgb\)\/0\.18\)\]/);
+});
+
 test("matchmaking cards preserve native queue behavior", () => {
   assert.match(matchmaking, /<button[\s\S]*type="button"/);
   assert.match(matchmaking, /:disabled="!canQueueType\(type\.value\)"/);
