@@ -74,6 +74,7 @@ const debouncedSearch = debounce(async (searchQuery: string) => {
       body: {
         query: searchQuery,
         per_page: 10,
+        registeredOnly: true,
       },
     });
 

@@ -91,7 +91,7 @@ export default defineEventHandler(async (event) => {
       : `${sortField}:${sortDirection}`;
 
   if (body.registeredOnly || sortField === "last_sign_in_at") {
-    filterBy.push(`last_sign_in_at:!=~~`);
+    filterBy.push(`is_registered:=true`);
   }
 
   // Filter by team
