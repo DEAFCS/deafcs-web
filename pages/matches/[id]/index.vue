@@ -12,6 +12,7 @@ import MatchInfo from "~/components/match/MatchInfo.vue";
 import MatchHighlightsReel from "~/components/match/MatchHighlightsReel.vue";
 import MatchActions from "~/components/match/MatchActions.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
+import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
 import { e_match_status_enum } from "~/generated/zeus";
 import MatchMapVeto from "~/components/match/MatchMapVeto.vue";
@@ -197,12 +198,10 @@ const vsBaseClasses =
           </NuxtLink>
 
           <div class="inline-flex items-center gap-2 ml-auto">
-            <span
-              v-if="match.options?.type"
-              class="inline-flex items-center self-stretch px-[0.7rem] py-[0.25rem] font-mono text-[0.62rem] font-bold uppercase tracking-[0.14em] leading-none rounded border border-border/70 bg-muted/35 text-muted-foreground"
-            >
-              {{ match.options.type }}
-            </span>
+            <MatchTypeBadge
+              :type="match.options?.type"
+              class="self-stretch"
+            />
             <MatchSourceBadge
               v-if="match.source !== 'faceit'"
               :source="match.source"

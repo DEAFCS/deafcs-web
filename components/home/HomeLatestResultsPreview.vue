@@ -12,6 +12,7 @@ import { generateQuery } from "~/graphql/graphqlGen";
 import { Card } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import TimeAgo from "~/components/TimeAgo.vue";
+import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import cleanMapName from "~/utilities/cleanMapName";
 
 interface ResultMap {
@@ -80,14 +81,14 @@ function clipCountFor(match: MatchResult): number {
   );
 }
 
-function matchContextFor(match: MatchResult): string {
+function mapContextFor(match: MatchResult): string {
   const maps = match.match_maps
     .map((matchMap) =>
       cleanMapName(matchMap.map?.label || matchMap.map?.name || ""),
     )
     .filter(Boolean);
 
-  return [match.options?.type, ...maps].filter(Boolean).join(" · ");
+  return maps.join(" · ");
 }
 
 function scoreColorFor(
@@ -279,12 +280,29 @@ void fetchLatestResults();
           </div>
 
           <div
-            v-if="matchContextFor(match)"
-            class="mt-3 flex min-w-0 items-center gap-1.5 font-mono text-[0.6rem] uppercase leading-none tracking-[0.14em] text-muted-foreground"
-            :title="matchContextFor(match)"
+            v-if="match.options?.type || mapContextFor(match)"
+            class="mt-3 flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-muted-foreground"
+            :title="mapContextFor(match)"
           >
             <ListChecks class="h-3 w-3 shrink-0 opacity-50" aria-hidden="true" />
-            <span class="truncate">{{ matchContextFor(match) }}</span>
+            <MatchTypeBadge
+              v-if="match.options?.type"
+              :type="match.options.type"
+              size="compact"
+            />
+            <span
+              v-if="match.options?.type && mapContextFor(match)"
+              aria-hidden="true"
+              class="text-muted-foreground/60"
+            >
+              ·
+            </span>
+            <span
+              v-if="mapContextFor(match)"
+              class="min-w-0 flex-1 break-words leading-relaxed"
+            >
+              {{ mapContextFor(match) }}
+            </span>
           </div>
 
           <div class="mt-3 space-y-2">

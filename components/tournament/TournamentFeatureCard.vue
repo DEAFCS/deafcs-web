@@ -4,10 +4,7 @@ import { useI18n } from "vue-i18n";
 import { GitBranch, Trophy, UsersRound } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import { formatPrizePool } from "~/utilities/prizePool";
-import {
-  matchTypeColorStyle,
-  matchTypeLabel,
-} from "~/utilities/matchTypeColors";
+import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 
 type TournamentStatusVariant = "default" | "finished" | "live" | "registration";
 
@@ -79,8 +76,6 @@ const teamsCount = computed(
 );
 
 const matchType = computed(() => props.tournament?.options?.type || null);
-const matchTypeDisplay = computed(() => matchTypeLabel(matchType.value));
-const matchTypeStyle = computed(() => matchTypeColorStyle(matchType.value));
 
 const primaryStage = computed(() => {
   return [...(props.tournament?.stages || [])].sort(
@@ -215,13 +210,7 @@ const statusChipClasses = computed(() => {
           <span class="font-bold text-white">{{ teamsCount }}</span>
           {{ $t("tournament.feature_card.teams") }}
         </span>
-        <span
-          v-if="matchTypeDisplay"
-          class="inline-flex items-center rounded border border-[rgb(var(--mode-rgb)/0.5)] bg-[rgb(var(--mode-rgb)/0.14)] px-1.5 py-0.5 font-bold text-[rgb(var(--mode-rgb))]"
-          :style="matchTypeStyle"
-        >
-          {{ matchTypeDisplay }}
-        </span>
+        <MatchTypeBadge v-if="matchType" :type="matchType" size="compact" />
         <span class="inline-flex items-center gap-1.5">
           <GitBranch class="h-3.5 w-3.5 text-white/55" />
           {{ stageLabel }}

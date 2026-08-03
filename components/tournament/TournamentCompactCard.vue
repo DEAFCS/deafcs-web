@@ -10,10 +10,7 @@ import {
 } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import AwardBadge from "~/components/award/AwardBadge.vue";
-import {
-  matchTypeColorStyle,
-  matchTypeLabel,
-} from "~/utilities/matchTypeColors";
+import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 
 const { t } = useI18n();
 
@@ -76,8 +73,6 @@ const hiddenCategoryCount = computed(() =>
   Math.max(categories.value.length - visibleCategories.value.length, 0),
 );
 const matchType = computed(() => props.tournament?.options?.type || null);
-const matchTypeDisplay = computed(() => matchTypeLabel(matchType.value));
-const matchTypeStyle = computed(() => matchTypeColorStyle(matchType.value));
 
 const teamsCount = computed(
   () => props.tournament?.teams_aggregate?.aggregate?.count || 0,
@@ -345,16 +340,10 @@ const runnerUps = computed(() => {
     </div>
 
     <div
-      v-if="matchTypeDisplay || visibleCategories.length"
+      v-if="matchType || visibleCategories.length"
       class="flex flex-wrap items-center gap-1.5 border-b border-border/40 px-3 py-1.5"
     >
-      <span
-        v-if="matchTypeDisplay"
-        class="inline-flex items-center rounded border border-[rgb(var(--mode-rgb)/0.5)] bg-[rgb(var(--mode-rgb)/0.12)] px-1.5 py-0.5 font-mono text-[0.55rem] font-bold uppercase tracking-[0.14em] text-[rgb(var(--mode-rgb))]"
-        :style="matchTypeStyle"
-      >
-        {{ matchTypeDisplay }}
-      </span>
+      <MatchTypeBadge v-if="matchType" :type="matchType" size="compact" />
       <span
         v-for="category in visibleCategories"
         :key="category.category"

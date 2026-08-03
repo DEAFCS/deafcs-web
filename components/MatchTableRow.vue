@@ -22,6 +22,7 @@ import YouTubeIcon from "~/components/icons/YouTubeIcon.vue";
 import KickIcon from "~/components/icons/KickIcon.vue";
 import MatchStatus from "~/components/match/MatchStatus.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
+import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import { ref } from "vue";
 import MatchPlayerDetailsPanel from "~/components/match/MatchPlayerDetailsPanel.vue";
 import HighlightCard from "~/components/clips/HighlightCard.vue";
@@ -55,9 +56,11 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
     >
       <div class="flex sm:hidden items-start justify-between gap-2">
         <div class="flex min-w-0 flex-wrap items-center gap-2">
-          <span v-if="!compact" :class="matchTypePillClasses">
-            {{ match.options.type }}
-          </span>
+          <MatchTypeBadge
+            v-if="match.options?.type"
+            :type="match.options.type"
+            :size="compact ? 'compact' : 'default'"
+          />
 
           <MatchSourceBadge :source="match.source" />
 
@@ -116,9 +119,11 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
         class="hidden sm:flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2"
       >
         <div class="flex items-center space-x-2 sm:space-x-3 flex-wrap gap-y-1">
-          <span v-if="!compact" :class="matchTypePillClasses">
-            {{ match.options.type }}
-          </span>
+          <MatchTypeBadge
+            v-if="match.options?.type"
+            :type="match.options.type"
+            :size="compact ? 'compact' : 'default'"
+          />
 
           <MatchSourceBadge :source="match.source" />
 
