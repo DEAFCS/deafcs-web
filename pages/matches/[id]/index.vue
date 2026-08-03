@@ -984,7 +984,10 @@ export default {
       return (
         this.match?.cancels_at &&
         this.match.status !== e_match_status_enum.Canceled &&
-        this.match.status !== e_match_status_enum.Veto
+        this.match.status !== e_match_status_enum.Veto &&
+        // Live shows its own large "Time to connect" countdown next to the
+        // Join Server button (MatchInfo.vue) instead of this small header one.
+        this.match.status !== e_match_status_enum.Live
       );
     },
     formattedAutoCancelCountdown() {

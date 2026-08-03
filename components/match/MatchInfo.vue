@@ -20,6 +20,25 @@ import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
       <CheckIntoMatch :match="match" v-if="showCheckInSection" />
     </div>
 
+    <!-- Time to connect — live countdown before the match auto-cancels,
+         shown big/bold (Faceit-style) since the small header version was
+         hard to read. -->
+    <div
+      v-if="showQuickConnectSection && match.cancels_at"
+      class="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4"
+    >
+      <span
+        class="font-mono text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground"
+      >
+        {{ $t("match.time_to_connect") }}
+      </span>
+      <span
+        class="font-mono text-3xl font-bold leading-none tabular-nums text-destructive"
+      >
+        {{ formattedAutoCancelCountdown }}
+      </span>
+    </div>
+
     <!-- Server Connect — standalone -->
     <QuickMatchConnect
       :match="match"
@@ -71,7 +90,57 @@ export default {
       default: false,
     },
   },
+  data() {
+    return {
+      autoCancelRemainingSeconds: 0,
+      autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
+    };
+  },
+  unmounted() {
+    if (this.autoCancelInterval) {
+      clearInterval(this.autoCancelInterval);
+    }
+  },
+  watch: {
+    "match.cancels_at": {
+      immediate: true,
+      handler(cancelsAt) {
+        if (this.autoCancelInterval) {
+          clearInterval(this.autoCancelInterval);
+          this.autoCancelInterval = undefined;
+        }
+        if (!cancelsAt) {
+          this.autoCancelRemainingSeconds = 0;
+          return;
+        }
+        this.updateAutoCancelCountdown();
+        this.autoCancelInterval = setInterval(this.updateAutoCancelCountdown, 1000);
+      },
+    },
+  },
+  methods: {
+    updateAutoCancelCountdown() {
+      const cancelsAt = this.match?.cancels_at;
+      if (!cancelsAt) {
+        this.autoCancelRemainingSeconds = 0;
+        return;
+      }
+      const diff = Math.floor(
+        (new Date(cancelsAt).getTime() - Date.now()) / 1000,
+      );
+      this.autoCancelRemainingSeconds = Math.max(0, diff);
+    },
+  },
   computed: {
+    formattedAutoCancelCountdown() {
+      const total = Math.max(0, this.autoCancelRemainingSeconds);
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
+      const ss = String(s).padStart(2, "0");
+      return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+    },
     me() {
       return useAuthStore().me;
     },
