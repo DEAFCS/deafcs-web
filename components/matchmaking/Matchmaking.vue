@@ -5,8 +5,7 @@ import {
   AlertTriangle,
   ArrowRight,
   UserRound,
-  UserRoundPlus,
-  Users,
+  UsersRound,
 } from "lucide-vue-next";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
 import { Button } from "~/components/ui/button";
@@ -16,8 +15,7 @@ import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 const isMobile = useMediaQuery("(max-width: 768px)");
 
 const matchTypeIcons: Record<string, Component> = {
-  Competitive: Users,
-  Wingman: UserRoundPlus,
+  Wingman: UsersRound,
   Duel: UserRound,
 };
 
@@ -214,7 +212,16 @@ const mmCardBase =
               class="pointer-events-none absolute right-2 top-2 z-[1] h-3.5 w-3.5 border-r-2 border-t-2 border-[rgb(var(--mode-rgb)/0.55)] transition-colors duration-200 group-hover/mmc-enabled:border-[rgb(var(--mode-rgb))] group-focus-visible/mmc-enabled:border-[rgb(var(--mode-rgb))]"
               aria-hidden="true"
             ></span>
+            <svg
+              v-if="type.value === 'Competitive'"
+              class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb)/0.18)] transition-[color,filter,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <use href="/img/icons/competitive-team.svg#competitive-team" />
+            </svg>
             <component
+              v-else
               :is="matchTypeIcon(type.value)"
               class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb)/0.18)] transition-[color,filter,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:text-[rgb(var(--mode-rgb)/0.3)] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
               aria-hidden="true"

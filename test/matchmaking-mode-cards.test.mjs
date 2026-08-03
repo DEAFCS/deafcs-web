@@ -6,11 +6,23 @@ const matchmaking = await readFile(
   new URL("../components/matchmaking/Matchmaking.vue", import.meta.url),
   "utf8",
 );
+const competitiveIcon = await readFile(
+  new URL("../public/img/icons/competitive-team.svg", import.meta.url),
+  "utf8",
+);
 
 test("matchmaking mode cards use the intended mode icons", () => {
-  assert.match(matchmaking, /Competitive:\s*Users/);
-  assert.match(matchmaking, /Wingman:\s*UserRoundPlus/);
+  assert.match(matchmaking, /type\.value === 'Competitive'/);
+  assert.match(matchmaking, /href="\/img\/icons\/competitive-team\.svg#competitive-team"/);
+  assert.match(matchmaking, /Wingman:\s*UsersRound/);
   assert.match(matchmaking, /Duel:\s*UserRound/);
+});
+
+test("competitive icon is a currentColor three-person outline asset", () => {
+  assert.match(competitiveIcon, /<symbol id="competitive-team"/);
+  assert.match(competitiveIcon, /stroke="currentColor"/);
+  assert.equal((competitiveIcon.match(/<circle\b/g) ?? []).length, 3);
+  assert.doesNotMatch(competitiveIcon, /#[0-9a-f]{3,8}\b/i);
 });
 
 test("mode icons are decorative and anchored in the card corner", () => {
