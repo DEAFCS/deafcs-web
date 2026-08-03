@@ -14,6 +14,10 @@ const latestResults = await readFile(
   new URL("../components/home/HomeLatestResultsPreview.vue", import.meta.url),
   "utf8",
 );
+const homepage = await readFile(
+  new URL("../pages/index.vue", import.meta.url),
+  "utf8",
+);
 const pageTransition = await readFile(
   new URL("../components/ui/transitions/PageTransition.vue", import.meta.url),
   "utf8",
@@ -37,6 +41,27 @@ test("MainContent scopes the match-width cap to matches-id", () => {
     mainContent,
     /'lg:max-w-\[calc\(1600px\+2rem\)\]':\s*!containContentValue/,
   );
+});
+
+test("homepage leave keeps its contained width during match navigation", () => {
+  assert.match(mainContent, /class="main-content-frame[^\"]*"/);
+  assert.match(
+    mainContent,
+    /:data-destination-width="[\s\S]*isMatchDetailRoute\s*\?\s*'match-detail'\s*:\s*undefined[\s\S]*"/,
+  );
+  assert.match(
+    mainContent,
+    /\.main-content-frame\[data-destination-width="match-detail"\]:has\(\s*>\s*\[data-page-width="homepage-contained"\]\.page-leave-active\s*\)\s*\{[\s\S]*max-width:\s*80rem;/,
+  );
+  assert.match(
+    homepage,
+    /<main\s+v-else\s+data-page-width="homepage-contained"[^>]*>/,
+  );
+  assert.doesNotMatch(
+    mainContent,
+    /data-page-width="homepage-contained"[^\n]*max-width/,
+  );
+  assert.doesNotMatch(mainContent, /setTimeout\s*\(|window\.location|:key=/);
 });
 
 test("match detail keeps its stable width shell outside match data", () => {

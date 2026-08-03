@@ -132,7 +132,11 @@ const whyDeafcsFeatures = [
     "
   />
 
-  <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
+  <main
+    v-else
+    data-page-width="homepage-contained"
+    class="min-w-0 space-y-16 pb-12 sm:space-y-20"
+  >
     <section
       aria-labelledby="home-hero-title"
       class="homepage-entry relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
