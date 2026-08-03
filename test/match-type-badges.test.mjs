@@ -35,6 +35,10 @@ const homepageResults = await readFile(
   ),
   "utf8",
 );
+const matchDetail = await readFile(
+  new URL("../pages/matches/[id]/index.vue", import.meta.url),
+  "utf8",
+);
 
 test("mode badges use the existing RGB mappings", () => {
   assert.deepEqual(MATCH_TYPE_RGB, {
@@ -63,11 +67,16 @@ test("unknown badge types remain neutral instead of using the Competitive fallba
   assert.match(badge, /hasKnownColor \? matchTypeColorStyle\(type\) : undefined/);
 });
 
-test("compact match rows include a compact match-type badge and keep BO pills neutral", () => {
+test("match rows keep mode and BO pills at the same full row size", () => {
   assert.equal((matchTableRow.match(/<MatchTypeBadge/g) || []).length, 2);
-  assert.match(matchTableRow, /:size="compact \? 'compact' : 'default'"/);
+  assert.equal((matchTableRow.match(/size="default"/g) || []).length, 2);
   assert.equal((matchTableRow.match(/match\.options\?\.best_of/g) || []).length, 2);
   assert.equal((matchTableRow.match(/:class="matchTypePillClasses"/g) || []).length, 2);
+});
+
+test("match detail uses the status-sized mode badge variant", () => {
+  assert.match(matchDetail, /<MatchTypeBadge[\s\S]*size="detail"/);
+  assert.match(matchDetail, /const statusBaseClasses =/);
 });
 
 test("tournament cards render actual mode names through the shared badge", () => {
@@ -81,5 +90,10 @@ test("homepage results keep mode badge and map context separate", () => {
   assert.match(homepageResults, /function mapContextFor\(match: MatchResult\)/);
   assert.match(homepageResults, /<MatchTypeBadge[\s\S]*:type="match\.options\.type"/);
   assert.match(homepageResults, /{{ mapContextFor\(match\) }}/);
+  assert.ok(
+    homepageResults.indexOf("<MatchTypeBadge") <
+      homepageResults.indexOf("BO{{ match.options?.best_of ?? 1 }}"),
+  );
+  assert.match(homepageResults, /flex min-w-0 flex-wrap items-center gap-2/);
   assert.doesNotMatch(homepageResults, /function matchContextFor/);
 });

@@ -252,7 +252,12 @@ void fetchLatestResults();
           :aria-label="`View ${match.lineup_1.name} versus ${match.lineup_2.name}`"
         >
           <div class="flex min-w-0 items-center justify-between gap-3">
-            <div class="flex min-w-0 items-center gap-2">
+            <div class="flex min-w-0 flex-wrap items-center gap-2">
+              <MatchTypeBadge
+                v-if="match.options?.type"
+                :type="match.options.type"
+                size="default"
+              />
               <span
                 class="inline-flex min-w-0 items-center rounded-md border border-border/70 bg-muted/35 px-2.5 py-1 font-mono text-[0.62rem] font-bold uppercase leading-none tracking-[0.14em] text-foreground"
               >
@@ -280,25 +285,12 @@ void fetchLatestResults();
           </div>
 
           <div
-            v-if="match.options?.type || mapContextFor(match)"
-            class="mt-3 flex min-w-0 flex-wrap items-center gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-muted-foreground"
+            v-if="mapContextFor(match)"
+            class="mt-3 flex min-w-0 items-start gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-muted-foreground"
             :title="mapContextFor(match)"
           >
             <ListChecks class="h-3 w-3 shrink-0 opacity-50" aria-hidden="true" />
-            <MatchTypeBadge
-              v-if="match.options?.type"
-              :type="match.options.type"
-              size="compact"
-            />
             <span
-              v-if="match.options?.type && mapContextFor(match)"
-              aria-hidden="true"
-              class="text-muted-foreground/60"
-            >
-              ·
-            </span>
-            <span
-              v-if="mapContextFor(match)"
               class="min-w-0 flex-1 break-words leading-relaxed"
             >
               {{ mapContextFor(match) }}

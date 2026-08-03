@@ -200,6 +200,7 @@ const vsBaseClasses =
           <div class="inline-flex items-center gap-2 ml-auto">
             <MatchTypeBadge
               :type="match.options?.type"
+              size="detail"
               class="self-stretch"
             />
             <MatchSourceBadge

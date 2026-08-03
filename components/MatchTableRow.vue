@@ -59,7 +59,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
           <MatchTypeBadge
             v-if="match.options?.type"
             :type="match.options.type"
-            :size="compact ? 'compact' : 'default'"
+            size="default"
           />
 
           <MatchSourceBadge :source="match.source" />
@@ -122,7 +122,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
           <MatchTypeBadge
             v-if="match.options?.type"
             :type="match.options.type"
-            :size="compact ? 'compact' : 'default'"
+            size="default"
           />
 
           <MatchSourceBadge :source="match.source" />
