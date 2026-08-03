@@ -410,7 +410,9 @@ const vsBaseClasses =
           >
             <AlertTriangle class="w-2.5 h-2.5 shrink-0" />
             <span>{{ $t("match.auto_canceling") }}</span>
-            <TimeAgo :date="match.cancels_at" hide-icon />
+            <span class="font-mono tabular-nums">{{
+              formattedAutoCancelCountdown
+            }}</span>
           </span>
           <span
             v-if="showAutoCancel && isNative && match.options?.best_of"
@@ -608,12 +610,47 @@ import { useMatchContext } from "~/composables/useMatchContext";
 export default {
   unmounted() {
     useMatchContext().value = null;
+    if (this.autoCancelInterval) {
+      clearInterval(this.autoCancelInterval);
+    }
   },
   data() {
     return {
       match: undefined,
       vetoPickCount: undefined,
+      autoCancelRemainingSeconds: 0,
+      autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
     };
+  },
+  watch: {
+    "match.cancels_at": {
+      immediate: true,
+      handler(cancelsAt) {
+        if (this.autoCancelInterval) {
+          clearInterval(this.autoCancelInterval);
+          this.autoCancelInterval = undefined;
+        }
+        if (!cancelsAt) {
+          this.autoCancelRemainingSeconds = 0;
+          return;
+        }
+        this.updateAutoCancelCountdown();
+        this.autoCancelInterval = setInterval(this.updateAutoCancelCountdown, 1000);
+      },
+    },
+  },
+  methods: {
+    updateAutoCancelCountdown() {
+      const cancelsAt = this.match?.cancels_at;
+      if (!cancelsAt) {
+        this.autoCancelRemainingSeconds = 0;
+        return;
+      }
+      const diff = Math.floor(
+        (new Date(cancelsAt).getTime() - Date.now()) / 1000,
+      );
+      this.autoCancelRemainingSeconds = Math.max(0, diff);
+    },
   },
   apollo: {
     $subscribe: {
@@ -946,8 +983,18 @@ export default {
     showAutoCancel() {
       return (
         this.match?.cancels_at &&
-        this.match.status !== e_match_status_enum.Canceled
+        this.match.status !== e_match_status_enum.Canceled &&
+        this.match.status !== e_match_status_enum.Veto
       );
+    },
+    formattedAutoCancelCountdown() {
+      const total = Math.max(0, this.autoCancelRemainingSeconds);
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
+      const ss = String(s).padStart(2, "0");
+      return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
     },
     formattedSchedule() {
       const when = this.match?.scheduled_at || this.match?.ended_at;
