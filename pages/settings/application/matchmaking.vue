@@ -94,6 +94,25 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
               </FormItem>
             </FormField>
 
+            <div
+              class="flex flex-row items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer hover:bg-accent/40 transition-colors"
+              @click="toggleDisableVac"
+            >
+              <div>
+                <h4 class="text-sm font-medium">
+                  {{ $t("pages.settings.application.disable_vac") }}
+                </h4>
+                <p class="text-sm text-muted-foreground">
+                  {{ $t("pages.settings.application.disable_vac_description") }}
+                </p>
+              </div>
+              <Switch
+                :model-value="vacDisabled"
+                @update:model-value="toggleDisableVac"
+                @click.stop
+              />
+            </div>
+
             <Separator />
 
             <FormField
@@ -513,6 +532,31 @@ export default {
         title: this.$t("pages.settings.application.matchmaking.updated"),
       });
     },
+    async toggleDisableVac() {
+      await (this as any).$apollo.mutate({
+        mutation: generateMutation({
+          insert_settings_one: [
+            {
+              object: {
+                name: "public.disable_vac",
+                value: this.vacDisabled ? "false" : "true",
+              },
+              on_conflict: {
+                constraint: settings_constraint.settings_pkey,
+                update_columns: [settings_update_column.value],
+              },
+            },
+            {
+              __typename: true,
+            },
+          ],
+        }),
+      });
+
+      toast({
+        title: this.$t("pages.settings.application.matchmaking.updated"),
+      });
+    },
     async toggleDefaultModels() {
       await (this as any).$apollo.mutate({
         mutation: generateMutation({
@@ -646,6 +690,14 @@ export default {
       }
 
       return true;
+    },
+    vacDisabled() {
+      const setting = this.settings.find(
+        (setting: { name: string; value: string | null }) =>
+          setting.name === "public.disable_vac",
+      );
+
+      return setting?.value === "true";
     },
     defaultModelsEnabled() {
       const defaultModelsSetting = this.settings.find(

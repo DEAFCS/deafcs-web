@@ -1612,6 +1612,8 @@
         "matchmaking_type_description": "Toggle matchmaking for each type that will allow players to join matchmaking for this type of match.",
         "matchmaking_max_party_size_competitive": "Max Party Size for Competitive",
         "matchmaking_max_party_size_competitive_description": "A full-size party queueing Competitive together against a non-full team is an unfair advantage. Caps how many players can be in one lobby when queueing Competitive.",
+        "disable_vac": "Disable VAC",
+        "disable_vac_description": "Launches new match servers with -insecure, disabling Valve Anti-Cheat. Meant as a temporary toggle for testing — turn it back off for real matches.",
         "players": {
           "permissions_section": "Role Permissions",
           "force_name_registration": "Force Player Name Registration",
