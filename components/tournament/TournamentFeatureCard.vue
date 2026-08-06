@@ -210,7 +210,7 @@ const statusChipClasses = computed(() => {
           <span class="font-bold text-white">{{ teamsCount }}</span>
           {{ $t("tournament.feature_card.teams") }}
         </span>
-        <MatchTypeBadge v-if="matchType" :type="matchType" size="compact" />
+        <MatchTypeBadge v-if="matchType" :type="matchType" size="default" />
         <span class="inline-flex items-center gap-1.5">
           <GitBranch class="h-3.5 w-3.5 text-white/55" />
           {{ stageLabel }}

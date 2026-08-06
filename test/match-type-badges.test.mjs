@@ -86,6 +86,28 @@ test("tournament cards render actual mode names through the shared badge", () =>
   }
 });
 
+test("tournament card mode badges use the same 'default' size as /matches, not the smaller 'compact' variant", () => {
+  // TournamentCompactCard backs RecentTournaments (recent/finished cards)
+  // and TournamentFeatureCard backs the live/registration/upcoming and
+  // filtered-results cards on /tournaments -- both are the single shared
+  // source for their respective card's mode badge, so fixing size here
+  // fixes every card that renders through them.
+  for (const source of [compactTournament, featureTournament]) {
+    assert.match(
+      source,
+      /<MatchTypeBadge v-if="matchType" :type="matchType" size="default" \/>/,
+    );
+    assert.doesNotMatch(
+      source,
+      /<MatchTypeBadge v-if="matchType" :type="matchType" size="compact" \/>/,
+    );
+  }
+  // Matches MatchTableRow's own size="default" usage exactly -- same badge
+  // component, same size prop, so height/padding/font/radius/tracking are
+  // pixel-identical by construction (badgeClasses only branches on `size`).
+  assert.equal((matchTableRow.match(/size="default"/g) || []).length, 2);
+});
+
 test("homepage results keep mode badge and map context separate", () => {
   assert.match(homepageResults, /function mapContextFor\(match: MatchResult\)/);
   assert.match(homepageResults, /<MatchTypeBadge[\s\S]*:type="match\.options\.type"/);

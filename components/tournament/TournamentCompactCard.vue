@@ -343,7 +343,7 @@ const runnerUps = computed(() => {
       v-if="matchType || visibleCategories.length"
       class="flex flex-wrap items-center gap-1.5 border-b border-border/40 px-3 py-1.5"
     >
-      <MatchTypeBadge v-if="matchType" :type="matchType" size="compact" />
+      <MatchTypeBadge v-if="matchType" :type="matchType" size="default" />
       <span
         v-for="category in visibleCategories"
         :key="category.category"
