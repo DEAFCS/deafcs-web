@@ -520,30 +520,27 @@ const columnLabels = computed(() => {
       : category.value === "elo" && isCompletedSeasonSelected.value
         ? t("pages.leaderboard.col.final_elo")
         : t(cols.value),
-    // Peak/All Time has no meaningful secondary figure — the backend
-    // reports a flat 0 for it, and showing that under "ELO Change" would
-    // read as a real (zero) change rather than "not applicable." Hidden
-    // entirely rather than mislabeled, per the temporary All Time design.
-    // An ACTIVE named season now has a real backend-computed Last Match
-    // (the change on the player's latest eligible match this season,
-    // already following the Exclude Tournaments toggle through the normal
-    // query variables) and shows it under that label. A COMPLETED season
-    // keeps its existing "ELO Change" (final − starting) label and figure,
-    // unchanged. Every other scope/category keeps its normal column.
+    // Peak/All Time's secondary and tertiary columns now carry real
+    // backend-computed figures: Current ELO (the player's rating in
+    // whichever named season is active right now) and Record Win Streak
+    // (the longest historical run of consecutive wins) — both already
+    // following the Exclude Tournaments toggle through the normal query
+    // variables, no second query involved. An ACTIVE named season shows
+    // Last Match instead (the change on the player's latest eligible match
+    // this season). A COMPLETED season keeps its existing "ELO Change"
+    // (final − starting) label and figure, unchanged. Every other
+    // scope/category keeps its normal column.
     secondary_value:
       category.value === "elo" && isPeakElo.value
-        ? null
+        ? t("pages.leaderboard.col.current_elo")
         : category.value === "elo" && isActiveSeasonSelected.value
           ? t("pages.leaderboard.col.last_match")
           : cols.secondary_value
             ? t(cols.secondary_value)
             : null,
-    // Win Streak is likewise hidden for Peak/All Time in this temporary
-    // design (Rank | Player | Peak ELO | Matches only); every other
-    // scope/category is unaffected.
     tertiary_value:
       category.value === "elo" && isPeakElo.value
-        ? null
+        ? t("pages.leaderboard.col.record_win_streak")
         : cols.tertiary_value
           ? t(cols.tertiary_value)
           : null,
@@ -554,12 +551,20 @@ const columnLabels = computed(() => {
 // Glossary key per column for the current category (empty object if none),
 // so headers can render a StatLabel tooltip on the cryptic stat columns.
 // The active season's secondary column swaps to the "last_match" glossary
-// entry (a different tooltip than the generic "elo_change" one used by
-// completed seasons and the rolling 7/30-day windows).
+// entry, and Peak/All Time's secondary/tertiary columns swap to
+// "current_elo"/"record_win_streak" — each a different tooltip than the
+// generic "elo_change"/"win_streak" ones used elsewhere.
 const columnGlossary = computed<Partial<Record<SortField, string>>>(() => {
   const base = config.value.glossary ?? {};
   if (category.value === "elo" && isActiveSeasonSelected.value) {
     return { ...base, secondary_value: "last_match" };
+  }
+  if (category.value === "elo" && isPeakElo.value) {
+    return {
+      ...base,
+      secondary_value: "current_elo",
+      tertiary_value: "record_win_streak",
+    };
   }
   return base;
 });
@@ -784,8 +789,14 @@ function formatValue(value: number): string {
 }
 
 function formatSecondary(value: number | null): string {
-  if (isPeakElo.value) return "—";
   if (value == null) return "—";
+  // Peak/All Time's secondary_value is Current ELO — a plain rating, not a
+  // delta — so it uses the same unsigned formatting as the main ELO column
+  // rather than the "+123"/"-45" delta formatting every other ELO scope's
+  // secondary_value (ELO Change / Last Match) uses below.
+  if (category.value === "elo" && isPeakElo.value) {
+    return Math.round(value).toLocaleString();
+  }
   if (category.value === "elo") {
     const rounded = Math.round(value);
     return (rounded >= 0 ? "+" : "") + rounded.toLocaleString();
@@ -1474,7 +1485,13 @@ onMounted(async () => {
                         boxShadow: `0 0 4px ${trophyTierColor('tertiary_value')}`,
                       }"
                     ></span>
-                    {{ columnLabels.tertiary_value }}
+                    <StatLabel
+                      v-if="columnGlossary.tertiary_value"
+                      :stat="columnGlossary.tertiary_value"
+                      :label="columnLabels.tertiary_value ?? ''"
+                      header
+                    />
+                    <template v-else>{{ columnLabels.tertiary_value }}</template>
                     <component
                       v-if="isSortable('tertiary_value')"
                       :is="sortIcon('tertiary_value')"

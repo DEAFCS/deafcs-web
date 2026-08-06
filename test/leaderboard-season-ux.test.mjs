@@ -138,7 +138,7 @@ test("completed seasons show a Final ELO value column; active seasons keep the p
 test("an active named season shows the secondary column labeled 'Last Match', backed by the real backend field", () => {
   assert.match(
     source,
-    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*null\s*:\s*category\.value === "elo" && isActiveSeasonSelected\.value\s*\?\s*t\("pages\.leaderboard\.col\.last_match"\)\s*:\s*cols\.secondary_value\s*\?\s*t\(cols\.secondary_value\)\s*:\s*null,/,
+    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*t\("pages\.leaderboard\.col\.current_elo"\)\s*:\s*category\.value === "elo" && isActiveSeasonSelected\.value\s*\?\s*t\("pages\.leaderboard\.col\.last_match"\)\s*:\s*cols\.secondary_value\s*\?\s*t\(cols\.secondary_value\)\s*:\s*null,/,
   );
   assert.equal(getPath(enLocale, "pages.leaderboard.col.last_match"), "Last Match");
   // No second/new query is introduced to fetch it — it rides the existing
@@ -153,7 +153,7 @@ test("an active named season shows the secondary column labeled 'Last Match', ba
 test("the Last Match header/tooltip uses a dedicated glossary entry, distinct from the generic ELO Change tooltip", () => {
   assert.match(
     source,
-    /const columnGlossary = computed<Partial<Record<SortField, string>>>\(\(\) => \{\s*const base = config\.value\.glossary \?\? \{\};\s*if \(category\.value === "elo" && isActiveSeasonSelected\.value\) \{\s*return \{ \.\.\.base, secondary_value: "last_match" \};\s*\}\s*return base;\s*\}\);/,
+    /const columnGlossary = computed<Partial<Record<SortField, string>>>\(\(\) => \{\s*const base = config\.value\.glossary \?\? \{\};\s*if \(category\.value === "elo" && isActiveSeasonSelected\.value\) \{\s*return \{ \.\.\.base, secondary_value: "last_match" \};\s*\}/,
   );
   assert.equal(
     getPath(enLocale, "stat_glossary.last_match.description"),
@@ -161,14 +161,80 @@ test("the Last Match header/tooltip uses a dedicated glossary entry, distinct fr
   );
 });
 
-test("Peak/All Time hides both the secondary (ELO Change) and tertiary (Win Streak) columns rather than showing zeroed/useless figures", () => {
+test("All Time (Peak) shows Current ELO and Record Win Streak, backed by the real backend fields, instead of hiding the columns", () => {
   assert.match(
     source,
-    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*null/,
+    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*t\("pages\.leaderboard\.col\.current_elo"\)/,
   );
   assert.match(
     source,
-    /tertiary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*null\s*:\s*cols\.tertiary_value\s*\?\s*t\(cols\.tertiary_value\)\s*:\s*null,/,
+    /tertiary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*t\("pages\.leaderboard\.col\.record_win_streak"\)\s*:\s*cols\.tertiary_value\s*\?\s*t\(cols\.tertiary_value\)\s*:\s*null,/,
+  );
+  assert.equal(
+    getPath(enLocale, "pages.leaderboard.col.current_elo"),
+    "Current ELO",
+  );
+  assert.equal(
+    getPath(enLocale, "pages.leaderboard.col.record_win_streak"),
+    "Record Win Streak",
+  );
+  // No second/new query is introduced to fetch either -- both ride the
+  // existing secondary_value/tertiary_value fields already returned by the
+  // current leaderboard query.
+  assert.equal(
+    (source.match(/query GetLeaderboard/g) || []).length,
+    1,
+    "only one leaderboard query definition exists",
+  );
+});
+
+test("All Time's Current ELO and Record Win Streak use dedicated glossary tooltips, distinct from the generic ELO Change/Win Streak ones", () => {
+  assert.match(
+    source,
+    /if \(category\.value === "elo" && isPeakElo\.value\) \{\s*return \{\s*\.\.\.base,\s*secondary_value: "current_elo",\s*tertiary_value: "record_win_streak",\s*\};\s*\}/,
+  );
+  assert.equal(
+    getPath(enLocale, "stat_glossary.current_elo.description"),
+    "The player's rating in whichever named season is active right now.",
+  );
+  assert.equal(
+    getPath(enLocale, "stat_glossary.record_win_streak.description"),
+    "The longest run of consecutive match wins in the player's history for this mode.",
+  );
+  // The tertiary header didn't previously render a StatLabel/tooltip at
+  // all -- it now does, wired the same way as the value/secondary headers.
+  assert.match(
+    source,
+    /<StatLabel\s*\n\s*v-if="columnGlossary\.tertiary_value"\s*\n\s*:stat="columnGlossary\.tertiary_value"\s*\n\s*:label="columnLabels\.tertiary_value \?\? ''"\s*\n\s*header\s*\n\s*\/>/,
+  );
+});
+
+test("Current ELO uses plain unsigned ELO formatting (not a +/- delta) and stays uncolored, unlike ELO Change/Last Match", () => {
+  assert.match(
+    source,
+    /if \(category\.value === "elo" && isPeakElo\.value\) \{\s*return Math\.round\(value\)\.toLocaleString\(\);\s*\}/,
+  );
+  // secondaryValueClass's green/red/neutral coloring only ever checks
+  // scope "7"/"30" and isActiveSeasonSelected -- isPeakElo is deliberately
+  // absent, so Current ELO always falls through to the neutral class.
+  assert.doesNotMatch(
+    source,
+    /usesEloChangeColor[\s\S]{0,200}isPeakElo/,
+  );
+});
+
+test("Record Win Streak renders as a plain neutral integer via the existing generic tertiary formatter", () => {
+  assert.match(
+    source,
+    /function formatTertiary\(value: number \| null\): string \{\s*if \(value == null\) return "—";\s*return Math\.round\(value\)\.toLocaleString\(\);\s*\}/,
+  );
+});
+
+test("All Time still sends elo_view = peak through the unchanged query variables", () => {
+  assert.equal(
+    (source.match(/elo_view: eloView\.value,/g) || []).length,
+    2,
+    "queryVariables + alignPageToHighlightedPlayer both send eloView",
   );
 });
 

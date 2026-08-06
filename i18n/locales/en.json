@@ -700,6 +700,14 @@
       "label": "Last Match",
       "description": "ELO gained or lost in the player's latest eligible match within this season."
     },
+    "current_elo": {
+      "label": "Current ELO",
+      "description": "The player's rating in whichever named season is active right now."
+    },
+    "record_win_streak": {
+      "label": "Record Win Streak",
+      "description": "The longest run of consecutive match wins in the player's history for this mode."
+    },
     "elo_impact": {
       "label": "ELO Impact",
       "description": "A 0.8–1.2 multiplier on your ELO change from how you performed relative to your team (KDA and damage share)."
@@ -2960,6 +2968,8 @@
         "final_elo": "Final ELO",
         "elo_change": "ELO Change",
         "last_match": "Last Match",
+        "current_elo": "Current ELO",
+        "record_win_streak": "Record Win Streak",
         "win_streak": "Win Streak",
         "kdr": "K/D Ratio",
         "kills": "Kills",
