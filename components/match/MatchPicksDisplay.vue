@@ -181,6 +181,7 @@ export default {
             map: {
               id: true,
               name: true,
+              label: true,
               patch: true,
               poster: true,
             },
