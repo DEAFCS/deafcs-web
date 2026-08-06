@@ -2953,6 +2953,7 @@
       "col": {
         "elo": "ELO",
         "peak_elo": "Peak ELO",
+        "final_elo": "Final ELO",
         "elo_change": "ELO Change",
         "last_match": "Last Match",
         "win_streak": "Win Streak",

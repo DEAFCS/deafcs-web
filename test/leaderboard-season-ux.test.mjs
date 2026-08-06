@@ -1,0 +1,188 @@
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
+
+const source = await readFile(
+  new URL("../pages/leaderboard.vue", import.meta.url),
+  "utf8",
+);
+const enLocale = JSON.parse(
+  await readFile(new URL("../i18n/locales/en.json", import.meta.url), "utf8"),
+);
+
+const getPath = (object, path) =>
+  path.split(".").reduce((value, key) => value?.[key], object);
+
+test("the hardcoded 'Current' option is removed for ELO, All Time (non-ELO) is untouched", () => {
+  assert.doesNotMatch(source, /time_periods\.current/);
+  // scope="0" is hidden entirely for ELO — it's no longer a valid ELO view.
+  assert.match(
+    source,
+    /<SelectItem v-if="category !== 'elo'" value="0">\{\{\s*\$t\("pages\.leaderboard\.time_periods\.all_time"\)\s*\}\}<\/SelectItem>/,
+  );
+  const zeroScopeItems = [
+    ...source.matchAll(/<SelectItem v-if="category !== 'elo'" value="0">/g),
+  ];
+  assert.equal(
+    zeroScopeItems.length,
+    2,
+    "expected desktop + mobile scope=0 items, both hidden for elo",
+  );
+});
+
+test("Peak is renamed to All Time for ELO, without changing its query/behavior", () => {
+  assert.doesNotMatch(source, /time_periods\.peak/);
+  const peakItems = [
+    ...source.matchAll(
+      /<SelectItem v-if="category === 'elo'" value="peak">\s*\{\{\s*\$t\("pages\.leaderboard\.time_periods\.all_time"\)\s*\}\}\s*<\/SelectItem>/g,
+    ),
+  ];
+  assert.equal(peakItems.length, 2, "expected desktop + mobile peak items");
+  // The underlying eloView/isPeakElo wiring (query behavior) is untouched.
+  assert.match(
+    source,
+    /const eloView = computed<"current" \| "peak">\(\(\) =>\s*category\.value === "elo" && scope\.value === "peak" \? "peak" : "current",\s*\);/,
+  );
+  assert.match(
+    source,
+    /const isPeakElo = computed\(\s*\(\) => category\.value === "elo" && eloView\.value === "peak",\s*\);/,
+  );
+});
+
+test("'All Time' is available as a translation and reused for both scope=0 (non-ELO) and scope=peak (ELO)", () => {
+  assert.ok(getPath(enLocale, "pages.leaderboard.time_periods.all_time"));
+  assert.equal(
+    (source.match(/pages\.leaderboard\.time_periods\.all_time/g) || [])
+      .length,
+    // scopeLabel: unresolved-season fallback, "0" entry, "peak" entry,
+    // final ?? fallback; desktop scope=0 item, desktop peak item; mobile
+    // scope=0 item, mobile peak item.
+    8,
+  );
+});
+
+test("the active season is auto-selected by default, for every category including ELO, falling back to All Time (peak for ELO)", () => {
+  assert.doesNotMatch(
+    source,
+    /category\.value !== "elo" && seasonsEnabled\.value && activeSeason\.value/,
+  );
+  assert.match(
+    source,
+    /const defaultScope = computed\(\(\) => \{\s*if \(seasonsEnabled\.value && activeSeason\.value\) \{\s*return `season:\$\{activeSeason\.value\.id\}`;\s*\}\s*return category\.value === "elo" \? "peak" : "0";\s*\}\);/,
+  );
+});
+
+test("legacy/URL requests for the removed ELO 'Current' scope (period=0) redirect to All Time instead of being honored", () => {
+  // Initial ref computation.
+  assert.match(
+    source,
+    /category\.value === "elo" && requestedScope === "0"\s*\?\s*""/,
+  );
+  // Switching onto the ELO tab while scope is still "0".
+  assert.match(
+    source,
+    /if \(category\.value === "elo" && scope\.value === "0"\) \{\s*scope\.value = "peak";\s*return;\s*\}/,
+  );
+  // Browser back/forward or a hand-typed ?period=0 while on ELO.
+  assert.match(
+    source,
+    /category\.value === "elo" && routePeriod === "0" \? "peak" : routePeriod/,
+  );
+});
+
+test("a deliberate user/URL scope selection is not overwritten on mount", () => {
+  assert.match(
+    source,
+    /if \(scope\.value\) \{\s*\/\/ Scope came from the URL[\s\S]*?fetchLeaderboard\(\);\s*\} else \{\s*\/\/[\s\S]*?scope\.value = defaultScope\.value;\s*\}/,
+  );
+});
+
+test("the active named season queries its real season UUID, never season_id = null", () => {
+  // No hack that overrides the season id sent to the backend when the
+  // active season is selected — derivedSeasonId (the real UUID) is used
+  // directly and unconditionally.
+  assert.doesNotMatch(source, /queriedSeasonId/);
+  assert.equal(
+    (source.match(/season_id: derivedSeasonId\.value,/g) || []).length,
+    2,
+    "queryVariables + alignPageToHighlightedPlayer both send the real season id",
+  );
+  assert.match(source, /const isActiveSeasonSelected = computed\(/);
+  assert.match(source, /const isCompletedSeasonSelected = computed\(/);
+});
+
+test("All Time (peak) and an active named season can never collapse onto the same dataset", () => {
+  // All Time only ever sends season_id via derivedSeasonId, which is null
+  // for scope "peak" (it doesn't start with "season:"), while any selected
+  // season — active or completed — always sends its own real, distinct
+  // UUID. There is no code path that forces an active season's query back
+  // to null.
+  assert.doesNotMatch(source, /isActiveSeasonSelected\.value \? null/);
+});
+
+test("completed seasons show a Final ELO value column; active seasons keep the plain ELO label", () => {
+  assert.match(
+    source,
+    /category\.value === "elo" && isCompletedSeasonSelected\.value\s*\?\s*t\("pages\.leaderboard\.col\.final_elo"\)/,
+  );
+  assert.equal(
+    getPath(enLocale, "pages.leaderboard.col.final_elo"),
+    "Final ELO",
+  );
+  assert.equal(
+    getPath(enLocale, "pages.leaderboard.col.elo_change"),
+    "ELO Change",
+  );
+});
+
+test("Last Match is not shown until the backend supports a real latest-match delta for season-scoped queries", () => {
+  // No frontend code claims "Last Match" for any currently-reachable scope
+  // — it depended entirely on the removed season_id=null "Current" query.
+  assert.doesNotMatch(source, /col\.last_match/);
+});
+
+test("the active season's secondary column is hidden entirely rather than showing a misleading partial ELO Change", () => {
+  assert.match(
+    source,
+    /secondary_value:\s*category\.value === "elo" && isActiveSeasonSelected\.value\s*\?\s*null\s*:\s*cols\.secondary_value\s*\?\s*t\(cols\.secondary_value\)\s*:\s*null,/,
+  );
+});
+
+test("ELO Change coloring is unchanged from before the season-selector work (rolling 7/30-day windows only)", () => {
+  assert.match(
+    source,
+    /const usesEloChangeColor =\s*category\.value === "elo" &&\s*\(scope\.value === "7" \|\| scope\.value === "30"\);/,
+  );
+  assert.match(source, /if \(rounded > 0\) return "text-success";/);
+  assert.match(source, /if \(rounded < 0\) return "text-destructive";/);
+  assert.match(source, /return "text-muted-foreground";/);
+});
+
+test("Competitive / Wingman / Duel mode selector is untouched", () => {
+  assert.match(
+    source,
+    /const MATCH_TYPE_OPTIONS = \["all", "Competitive", "Wingman", "Duel"\] as const;/,
+  );
+  assert.equal((source.match(/match_types\.competitive/g) || []).length, 2);
+  assert.equal((source.match(/match_types\.wingman/g) || []).length, 2);
+  assert.equal((source.match(/match_types\.duel/g) || []).length, 2);
+});
+
+test("the Exclude Tournaments toggle remains present with no new explanatory text", () => {
+  assert.match(source, /function toggleExcludeTournaments\(\)/);
+  assert.equal(
+    (source.match(/pages\.leaderboard\.exclude_tournaments/g) || []).length,
+    3,
+  );
+  assert.equal(
+    (source.match(/v-model="excludeTournaments"/g) || []).length,
+    2,
+  );
+});
+
+test("category tabs, sorting, highlighting, and PageTransition wiring are untouched", () => {
+  assert.match(source, /<PageTransition>/);
+  assert.match(source, /function toggleSort\(field: SortField\)/);
+  assert.match(source, /leaderboard-row--highlight/);
+  assert.match(source, /leaderboard-row--me/);
+});

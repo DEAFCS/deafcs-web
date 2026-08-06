@@ -357,9 +357,14 @@ const activeSeason = computed(() => {
 const requestedScope =
   typeof route.query.period === "string" ? route.query.period : "";
 const scope = ref<string>(
-  category.value === "elo" || requestedScope !== "peak"
-    ? requestedScope
-    : "0",
+  // "Current" (scope "0") no longer exists for ELO — treat a legacy/URL
+  // request for it as unset so onMounted resolves the real default (the
+  // active named season, or All Time).
+  category.value === "elo" && requestedScope === "0"
+    ? ""
+    : category.value === "elo" || requestedScope !== "peak"
+      ? requestedScope
+      : "0",
 );
 const derivedWindowDays = computed(() =>
   scope.value === "7" || scope.value === "30" ? parseInt(scope.value) : 0,
@@ -380,6 +385,23 @@ const derivedSeasonId = computed(() =>
     ? scope.value.slice("season:".length)
     : null,
 );
+// True when the selected named season is the one currently active.
+// derivedSeasonId is always sent to the backend as-is (the real season
+// UUID) — an active season must query its own real season/date scope,
+// never season_id = null, so it can never accidentally collapse onto the
+// same dataset as All Time. Today that real season-scoped query only
+// covers regular (non-tournament) matches within the season's dates;
+// including eligible tournament matches requires a backend predicate
+// change (see leaderboard audit) and is intentionally not faked here.
+const isActiveSeasonSelected = computed(
+  () =>
+    !!derivedSeasonId.value &&
+    !!activeSeason.value &&
+    derivedSeasonId.value === activeSeason.value.id,
+);
+const isCompletedSeasonSelected = computed(
+  () => !!derivedSeasonId.value && !isActiveSeasonSelected.value,
+);
 const matchType = ref<string>(
   readQueryParam("type", MATCH_TYPE_OPTIONS, "Competitive"),
 );
@@ -387,13 +409,18 @@ const excludeTournaments = ref(false);
 const roleFilter = ref<string>(readQueryParam("role", ROLE_OPTIONS, "all"));
 const supportsRole = computed(() => ROLE_CATEGORIES.has(category.value));
 
-// Default to the current season when seasons are on and one is active; otherwise
-// fall back to All Time (systems without a current season).
-const defaultScope = computed(() =>
-  category.value !== "elo" && seasonsEnabled.value && activeSeason.value
-    ? `season:${activeSeason.value.id}`
-    : "0",
-);
+// Default to the active season when seasons are on and one is active; otherwise
+// fall back to All Time (systems without a current season). Applies to every
+// category, including ELO, so the leaderboard opens on the active named
+// season instead of a separate "Current" scope. For ELO, All Time is the
+// renamed Peak view ("peak"); "0" is All Time only for the non-ELO
+// categories, which keep their own unrelated all-time path.
+const defaultScope = computed(() => {
+  if (seasonsEnabled.value && activeSeason.value) {
+    return `season:${activeSeason.value.id}`;
+  }
+  return category.value === "elo" ? "peak" : "0";
+});
 function seasonScopeLabel(s: Season): string {
   return t("pages.seasons.season_number", { number: s.number ?? "?" });
 }
@@ -428,10 +455,7 @@ const scopeLabel = computed(() => {
   }
   return (
     {
-      "0":
-        category.value === "elo"
-          ? t("pages.leaderboard.time_periods.current")
-          : t("pages.leaderboard.time_periods.all_time"),
+      "0": t("pages.leaderboard.time_periods.all_time"),
       "7":
         category.value === "elo"
           ? t("pages.leaderboard.time_periods.days_7")
@@ -440,7 +464,9 @@ const scopeLabel = computed(() => {
         category.value === "elo"
           ? t("pages.leaderboard.time_periods.days_30")
           : t("pages.leaderboard.time_periods.last_30_days"),
-      peak: t("pages.leaderboard.time_periods.peak"),
+      // "Peak" is the renamed All Time view for ELO — same query/behavior,
+      // new label.
+      peak: t("pages.leaderboard.time_periods.all_time"),
     }[scope.value] ?? t("pages.leaderboard.time_periods.all_time")
   );
 });
@@ -491,10 +517,22 @@ const columnLabels = computed(() => {
   return {
     value: isPeakElo.value
       ? t("pages.leaderboard.col.peak_elo")
-      : t(cols.value),
+      : category.value === "elo" && isCompletedSeasonSelected.value
+        ? t("pages.leaderboard.col.final_elo")
+        : t(cols.value),
+    // Neither a true "Last Match" nor an honest "ELO Change" exists yet for
+    // the ACTIVE season: "Last Match" has no data source since the
+    // unbounded "Current" query is gone, and the season-scoped aggregate
+    // (current - starting_elo) is a partial, still-moving figure — showing
+    // it under the "ELO Change" label would misrepresent it as a settled
+    // value the way a completed season's ELO Change is. So the column is
+    // hidden entirely for the active season until the pending backend
+    // predicate change (see leaderboard audit) adds real latest-match
+    // support. Completed seasons (and every other existing scope/category)
+    // keep showing their normal secondary column unchanged.
     secondary_value:
-      category.value === "elo" && scope.value === "0"
-        ? t("pages.leaderboard.col.last_match")
+      category.value === "elo" && isActiveSeasonSelected.value
+        ? null
         : cols.secondary_value
           ? t(cols.secondary_value)
           : null,
@@ -752,7 +790,7 @@ function secondaryValueClass(value: number | null): string | undefined {
   if (trophyTierColor("secondary_value")) return undefined;
   const usesEloChangeColor =
     category.value === "elo" &&
-    (scope.value === "0" || scope.value === "7" || scope.value === "30");
+    (scope.value === "7" || scope.value === "30");
   if (!usesEloChangeColor || value == null) return "text-muted-foreground";
 
   const rounded = Math.round(value);
@@ -796,6 +834,13 @@ watch(category, () => {
     scope.value = "0";
     return;
   }
+  // "Current" (scope "0") no longer exists for ELO — moving to the ELO tab
+  // while it's selected (e.g. from a non-ELO category's All Time) lands on
+  // the ELO All Time view (the renamed Peak) instead.
+  if (category.value === "elo" && scope.value === "0") {
+    scope.value = "peak";
+    return;
+  }
   onFilterChange();
 });
 watch(scope, () => {
@@ -835,9 +880,12 @@ watch(
   () => route.query.period,
   (period) => {
     const routePeriod = Array.isArray(period) ? period[0] : period;
-    if (typeof routePeriod === "string" && routePeriod !== scope.value) {
-      scope.value = routePeriod;
+    if (typeof routePeriod !== "string" || routePeriod === scope.value) {
+      return;
     }
+    // "Current" (scope "0") no longer exists for ELO — treat it as All Time.
+    scope.value =
+      category.value === "elo" && routePeriod === "0" ? "peak" : routePeriod;
   },
 );
 watch(
@@ -1006,10 +1054,8 @@ onMounted(async () => {
                 </span>
               </div>
             </SelectItem>
-            <SelectItem value="0">{{
-              category === "elo"
-                ? $t("pages.leaderboard.time_periods.current")
-                : $t("pages.leaderboard.time_periods.all_time")
+            <SelectItem v-if="category !== 'elo'" value="0">{{
+              $t("pages.leaderboard.time_periods.all_time")
             }}</SelectItem>
             <SelectItem value="7">{{
               category === "elo"
@@ -1022,7 +1068,7 @@ onMounted(async () => {
                 : $t("pages.leaderboard.time_periods.last_30_days")
             }}</SelectItem>
             <SelectItem v-if="category === 'elo'" value="peak">
-              {{ $t("pages.leaderboard.time_periods.peak") }}
+              {{ $t("pages.leaderboard.time_periods.all_time") }}
             </SelectItem>
           </SelectContent>
         </Select>
@@ -1132,10 +1178,8 @@ onMounted(async () => {
                       · {{ $t("pages.seasons.active") }}</span
                     >
                   </SelectItem>
-                  <SelectItem value="0">{{
-                    category === "elo"
-                      ? $t("pages.leaderboard.time_periods.current")
-                      : $t("pages.leaderboard.time_periods.all_time")
+                  <SelectItem v-if="category !== 'elo'" value="0">{{
+                    $t("pages.leaderboard.time_periods.all_time")
                   }}</SelectItem>
                   <SelectItem value="7">{{
                     category === "elo"
@@ -1148,7 +1192,7 @@ onMounted(async () => {
                       : $t("pages.leaderboard.time_periods.last_30_days")
                   }}</SelectItem>
                   <SelectItem v-if="category === 'elo'" value="peak">
-                    {{ $t("pages.leaderboard.time_periods.peak") }}
+                    {{ $t("pages.leaderboard.time_periods.all_time") }}
                   </SelectItem>
                 </SelectContent>
               </Select>
