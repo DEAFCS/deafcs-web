@@ -13,7 +13,6 @@ import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.v
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
-import TournamentAwardsManage from "~/components/tournament/TournamentAwardsManage.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchOptionsDisplay from "~/components/match/MatchOptionsDisplay.vue";
@@ -781,7 +780,6 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
                 :finished="tournament.status === 'Finished'"
               />
-              <TournamentAwardsManage :tournament="tournament" />
             </div>
           </PageTransition>
         </TabsContent>

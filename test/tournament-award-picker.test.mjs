@@ -17,13 +17,6 @@ const picker = await readFile(
   ),
   "utf8",
 );
-const manualAwards = await readFile(
-  new URL(
-    "../components/tournament/TournamentAwardsManage.vue",
-    import.meta.url,
-  ),
-  "utf8",
-);
 const detail = await readFile(
   new URL("../components/tournament/TournamentDetail.vue", import.meta.url),
   "utf8",
@@ -131,11 +124,26 @@ test("automatic placement image, name, silhouette, and individual controls are a
   assert.match(picker, /Save award mappings/);
 });
 
-test("Manual Awards remains mounted with its add and revoke workflows", () => {
-  assert.match(detail, /<TournamentAwardsManage :tournament="tournament"/);
-  assert.match(manualAwards, /tournament\.trophies_manage\.manual_awards/);
-  assert.match(manualAwards, /insert_tournament_trophies_one/);
-  assert.match(manualAwards, /revokeAward\(id: \$id, reason: \$reason\)/);
+test("Manual Award management is no longer reachable from tournament management", () => {
+  // The tournament-specific manual grant/revoke UI (button, form, and revoke
+  // dialog) has been removed from the Trophies tab: no import, no mount.
+  assert.doesNotMatch(detail, /TournamentAwardsManage/);
+  assert.doesNotMatch(detail, /tournament\.trophies_manage\.add_award/);
+  assert.doesNotMatch(detail, /insert_tournament_trophies_one/);
+  assert.doesNotMatch(detail, /revokeAward\(id: \$id, reason: \$reason\)/);
+});
+
+test("automatic placement mapping (Champion, Runner-up, Third place, MVP) remains the only control in the Trophies tab", () => {
+  // TournamentAwardPicker is still mounted and is the sole child of the
+  // Trophies tab content -- the configured/calculated award workflow is
+  // preserved even though the manual grant/revoke workflow is gone.
+  const trophiesTab = detail.match(
+    /<TabsContent value="trophies"[\s\S]*?<\/TabsContent>/,
+  );
+  assert.ok(trophiesTab, "trophies tab content is present");
+  assert.match(trophiesTab[0], /<TournamentAwardPicker/);
+  assert.doesNotMatch(trophiesTab[0], /<TournamentAwardsManage/);
+  assert.match(picker, /placementForTournamentAwardSlot|TOURNAMENT_AWARD_PLACEMENTS/);
 });
 
 test("existing slots load and missing slots use explicit built-in defaults", () => {
