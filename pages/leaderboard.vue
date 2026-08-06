@@ -520,32 +520,49 @@ const columnLabels = computed(() => {
       : category.value === "elo" && isCompletedSeasonSelected.value
         ? t("pages.leaderboard.col.final_elo")
         : t(cols.value),
-    // Neither a true "Last Match" nor an honest "ELO Change" exists yet for
-    // the ACTIVE season: "Last Match" has no data source since the
-    // unbounded "Current" query is gone, and the season-scoped aggregate
-    // (current - starting_elo) is a partial, still-moving figure — showing
-    // it under the "ELO Change" label would misrepresent it as a settled
-    // value the way a completed season's ELO Change is. So the column is
-    // hidden entirely for the active season until the pending backend
-    // predicate change (see leaderboard audit) adds real latest-match
-    // support. Completed seasons (and every other existing scope/category)
-    // keep showing their normal secondary column unchanged.
+    // Peak/All Time has no meaningful secondary figure — the backend
+    // reports a flat 0 for it, and showing that under "ELO Change" would
+    // read as a real (zero) change rather than "not applicable." Hidden
+    // entirely rather than mislabeled, per the temporary All Time design.
+    // An ACTIVE named season now has a real backend-computed Last Match
+    // (the change on the player's latest eligible match this season,
+    // already following the Exclude Tournaments toggle through the normal
+    // query variables) and shows it under that label. A COMPLETED season
+    // keeps its existing "ELO Change" (final − starting) label and figure,
+    // unchanged. Every other scope/category keeps its normal column.
     secondary_value:
-      category.value === "elo" && isActiveSeasonSelected.value
+      category.value === "elo" && isPeakElo.value
         ? null
-        : cols.secondary_value
-          ? t(cols.secondary_value)
+        : category.value === "elo" && isActiveSeasonSelected.value
+          ? t("pages.leaderboard.col.last_match")
+          : cols.secondary_value
+            ? t(cols.secondary_value)
+            : null,
+    // Win Streak is likewise hidden for Peak/All Time in this temporary
+    // design (Rank | Player | Peak ELO | Matches only); every other
+    // scope/category is unaffected.
+    tertiary_value:
+      category.value === "elo" && isPeakElo.value
+        ? null
+        : cols.tertiary_value
+          ? t(cols.tertiary_value)
           : null,
-    tertiary_value: cols.tertiary_value ? t(cols.tertiary_value) : null,
     matches_played: cols.matches_played ? t(cols.matches_played) : null,
   };
 });
 
 // Glossary key per column for the current category (empty object if none),
 // so headers can render a StatLabel tooltip on the cryptic stat columns.
-const columnGlossary = computed<Partial<Record<SortField, string>>>(
-  () => config.value.glossary ?? {},
-);
+// The active season's secondary column swaps to the "last_match" glossary
+// entry (a different tooltip than the generic "elo_change" one used by
+// completed seasons and the rolling 7/30-day windows).
+const columnGlossary = computed<Partial<Record<SortField, string>>>(() => {
+  const base = config.value.glossary ?? {};
+  if (category.value === "elo" && isActiveSeasonSelected.value) {
+    return { ...base, secondary_value: "last_match" };
+  }
+  return base;
+});
 
 const offset = computed(() => (page.value - 1) * perPage.value);
 
@@ -790,7 +807,9 @@ function secondaryValueClass(value: number | null): string | undefined {
   if (trophyTierColor("secondary_value")) return undefined;
   const usesEloChangeColor =
     category.value === "elo" &&
-    (scope.value === "7" || scope.value === "30");
+    (scope.value === "7" ||
+      scope.value === "30" ||
+      isActiveSeasonSelected.value);
   if (!usesEloChangeColor || value == null) return "text-muted-foreground";
 
   const rounded = Math.round(value);

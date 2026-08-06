@@ -135,23 +135,47 @@ test("completed seasons show a Final ELO value column; active seasons keep the p
   );
 });
 
-test("Last Match is not shown until the backend supports a real latest-match delta for season-scoped queries", () => {
-  // No frontend code claims "Last Match" for any currently-reachable scope
-  // — it depended entirely on the removed season_id=null "Current" query.
-  assert.doesNotMatch(source, /col\.last_match/);
-});
-
-test("the active season's secondary column is hidden entirely rather than showing a misleading partial ELO Change", () => {
+test("an active named season shows the secondary column labeled 'Last Match', backed by the real backend field", () => {
   assert.match(
     source,
-    /secondary_value:\s*category\.value === "elo" && isActiveSeasonSelected\.value\s*\?\s*null\s*:\s*cols\.secondary_value\s*\?\s*t\(cols\.secondary_value\)\s*:\s*null,/,
+    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*null\s*:\s*category\.value === "elo" && isActiveSeasonSelected\.value\s*\?\s*t\("pages\.leaderboard\.col\.last_match"\)\s*:\s*cols\.secondary_value\s*\?\s*t\(cols\.secondary_value\)\s*:\s*null,/,
+  );
+  assert.equal(getPath(enLocale, "pages.leaderboard.col.last_match"), "Last Match");
+  // No second/new query is introduced to fetch it — it rides the existing
+  // secondary_value field already returned by the current leaderboard query.
+  assert.equal(
+    (source.match(/query GetLeaderboard/g) || []).length,
+    1,
+    "only one leaderboard query definition exists",
   );
 });
 
-test("ELO Change coloring is unchanged from before the season-selector work (rolling 7/30-day windows only)", () => {
+test("the Last Match header/tooltip uses a dedicated glossary entry, distinct from the generic ELO Change tooltip", () => {
   assert.match(
     source,
-    /const usesEloChangeColor =\s*category\.value === "elo" &&\s*\(scope\.value === "7" \|\| scope\.value === "30"\);/,
+    /const columnGlossary = computed<Partial<Record<SortField, string>>>\(\(\) => \{\s*const base = config\.value\.glossary \?\? \{\};\s*if \(category\.value === "elo" && isActiveSeasonSelected\.value\) \{\s*return \{ \.\.\.base, secondary_value: "last_match" \};\s*\}\s*return base;\s*\}\);/,
+  );
+  assert.equal(
+    getPath(enLocale, "stat_glossary.last_match.description"),
+    "ELO gained or lost in the player's latest eligible match within this season.",
+  );
+});
+
+test("Peak/All Time hides both the secondary (ELO Change) and tertiary (Win Streak) columns rather than showing zeroed/useless figures", () => {
+  assert.match(
+    source,
+    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*null/,
+  );
+  assert.match(
+    source,
+    /tertiary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*null\s*:\s*cols\.tertiary_value\s*\?\s*t\(cols\.tertiary_value\)\s*:\s*null,/,
+  );
+});
+
+test("ELO Change/Last Match coloring covers the rolling 7/30-day windows and the active season alike, unchanged for everything else", () => {
+  assert.match(
+    source,
+    /const usesEloChangeColor =\s*category\.value === "elo" &&\s*\(scope\.value === "7" \|\|\s*scope\.value === "30" \|\|\s*isActiveSeasonSelected\.value\);/,
   );
   assert.match(source, /if \(rounded > 0\) return "text-success";/);
   assert.match(source, /if \(rounded < 0\) return "text-destructive";/);

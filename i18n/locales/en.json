@@ -696,6 +696,10 @@
       "label": "ELO Change",
       "description": "How much your ELO moved after a match — scaled by the result, your performance and the series length."
     },
+    "last_match": {
+      "label": "Last Match",
+      "description": "ELO gained or lost in the player's latest eligible match within this season."
+    },
     "elo_impact": {
       "label": "ELO Impact",
       "description": "A 0.8–1.2 multiplier on your ELO change from how you performed relative to your team (KDA and damage share)."
