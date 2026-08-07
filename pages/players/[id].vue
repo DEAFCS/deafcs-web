@@ -1580,6 +1580,92 @@ function formatEloSummaryValue(value: number | null | undefined): string {
   return typeof value === "number" ? value.toLocaleString() : "—";
 }
 
+// Active-season display fallback for the ELO summary cards. players.elo's
+// season branch (get_player_season_elo_by_type) falls back to the player's
+// lifetime-latest row when they have no player_elo row for the active
+// season -- a separate backend behavior, out of scope here. This queries
+// v_player_elo (the same canonical player_elo table) directly for a
+// season-scoped row instead: if one exists, its updated_elo is shown; if
+// not, the display falls back to the season starting ELO (5000) rather
+// than the stale lifetime/previous-season value. Read-only -- no
+// player_elo row is created. Seasons-disabled / no-active-season keeps the
+// existing player.elo value untouched.
+const SEASON_ELO_DEFAULT = 5000;
+
+const SEASON_ELO_QUERY = gql`
+  query PlayerActiveSeasonElo($where: v_player_elo_bool_exp!) {
+    v_player_elo(
+      where: $where
+      distinct_on: [type]
+      order_by: [{ type: asc }, { match_created_at: desc }]
+    ) {
+      type
+      updated_elo
+    }
+  }
+`;
+
+const seasonEloByType = ref<Record<string, number>>({});
+let seasonEloFetchGen = 0;
+
+async function fetchSeasonElo() {
+  const gen = ++seasonEloFetchGen;
+  seasonEloByType.value = {};
+
+  if (
+    !seasonsEnabled.value ||
+    !activeSeason.value?.id ||
+    !playerIdRef.value
+  ) {
+    return;
+  }
+
+  try {
+    const { data } = await apolloClient.query({
+      query: SEASON_ELO_QUERY,
+      variables: {
+        where: {
+          player_steam_id: { _eq: playerIdRef.value },
+          season_id: { _eq: activeSeason.value.id },
+        },
+      },
+      fetchPolicy: "network-only",
+    });
+    if (gen !== seasonEloFetchGen) return;
+
+    const rows = (data as any)?.v_player_elo ?? [];
+    const map: Record<string, number> = {};
+    for (const row of rows) {
+      if (
+        typeof row?.type === "string" &&
+        typeof row?.updated_elo === "number"
+      ) {
+        map[row.type] = row.updated_elo;
+      }
+    }
+    seasonEloByType.value = map;
+  } catch {
+    if (gen === seasonEloFetchGen) seasonEloByType.value = {};
+  }
+}
+
+watch(
+  () => [playerIdRef.value, activeSeason.value?.id, seasonsEnabled.value],
+  fetchSeasonElo,
+  { immediate: true },
+);
+
+function eloSummaryValue(
+  mode: { type: string; key: string },
+  lifetimeOrSeasonValue: number | null | undefined,
+): number | null {
+  if (!seasonsEnabled.value || !activeSeason.value) {
+    return lifetimeOrSeasonValue ?? null;
+  }
+  const seasonValue = seasonEloByType.value[mode.type];
+  return typeof seasonValue === "number" ? seasonValue : SEASON_ELO_DEFAULT;
+}
+
 const bucketLabel = computed(() => {
   switch (bucketSize.value) {
     case "month":
@@ -1967,9 +2053,17 @@ const playerHeroTeamChipDotClasses =
                   {{ mode.type }}
                 </div>
                 <AnimatedStat
-                  :value="formatEloSummaryValue(player.elo?.[mode.key])"
+                  :value="
+                    formatEloSummaryValue(
+                      eloSummaryValue(mode, player.elo?.[mode.key]),
+                    )
+                  "
                   class="mt-1 text-[1.75rem] font-bold leading-none tabular-nums tracking-tight sm:text-3xl"
-                  :style="{ color: eloTierColor(player.elo?.[mode.key]) }"
+                  :style="{
+                    color: eloTierColor(
+                      eloSummaryValue(mode, player.elo?.[mode.key]),
+                    ),
+                  }"
                 />
 
                 <div class="mt-1.5">
