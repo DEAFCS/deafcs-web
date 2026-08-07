@@ -859,17 +859,16 @@ export default {
         ) ?? null
       );
     },
-    // Mobile row shows ELO without going through PlayerDisplay, so it needs
-    // its own override: the rating this player had right after THIS match,
-    // not their live current rating (which drifts once they play more games).
+    // Mobile row shows ELO without going through PlayerDisplay. The hover
+    // always shows the player's full current canonical per-mode ELO --
+    // Competitive/Wingman/Duel alike -- never collapsed down to just this
+    // match's mode. (This used to substitute a single-mode
+    // `{ [modeKey]: updated_elo }` object once the match finished, which
+    // made the other two modes vanish from the hover as "--".) This
+    // match's own historical result still displays separately via
+    // EloChangeBadge (`memberEloChange`), which is unaffected by this.
     mobileEloForDisplay() {
-      if (!this.memberEloChange?.updated_elo) {
-        return this.member?.player?.elo;
-      }
-      const type = (this.match?.options?.type ?? "").toLowerCase();
-      const modeKey =
-        type === "wingman" || type === "duel" ? type : "competitive";
-      return { [modeKey]: this.memberEloChange.updated_elo };
+      return this.member?.player?.elo;
     },
   },
 };

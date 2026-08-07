@@ -356,11 +356,13 @@ export default {
       type: Boolean,
       default: false,
     },
-    // Overrides the ELO shown for `matchType`'s ladder with the rating the
-    // player actually had for a specific past match (its player_elo row's
-    // `updated_elo`), instead of `player.elo` — which is always today's
-    // live rating and would otherwise misrepresent an old match once the
-    // player has since played more games.
+    // A specific past match's own player_elo result (its row's
+    // `updated_elo`) for `matchType`'s ladder. NOT used for the ELO hover
+    // (see `eloForDisplay` below) -- the hover always shows the player's
+    // current canonical per-mode ELO. Historical per-match results belong
+    // on the match row itself (EloChangeBadge, fed directly from
+    // `match.elo_changes`), which reads its own data independently of this
+    // prop.
     historicalElo: {
       type: Number,
       default: null,
@@ -388,20 +390,16 @@ export default {
     },
   },
   computed: {
-    // Same mode normalization PlayerElo.vue applies internally: Premier/
-    // Faceit/unknown types rank on the competitive ladder.
-    eloModeKey(): "competitive" | "wingman" | "duel" {
-      const normalized = (this.matchType ?? "").toLowerCase();
-      if (normalized === "wingman" || normalized === "duel") {
-        return normalized;
-      }
-      return "competitive";
-    },
+    // The ELO hover (PlayerElo's `elo` prop) always shows the player's full
+    // current canonical per-mode ELO -- Competitive/Wingman/Duel alike --
+    // regardless of match status. It previously collapsed to a single
+    // `{ [eloModeKey]: historicalElo }` object once a match finished and a
+    // historical result existed, which made the other two modes vanish
+    // from the hover ("--") even though the player has real ratings for
+    // them. That single-mode result belongs on the match row (already
+    // handled separately by EloChangeBadge), not in this hover object.
     eloForDisplay(): { competitive?: number; wingman?: number; duel?: number } {
-      if (this.historicalElo === null || this.historicalElo === undefined) {
-        return this.player?.elo;
-      }
-      return { [this.eloModeKey]: this.historicalElo };
+      return this.player?.elo;
     },
     faceitSkillLevel(): number | null {
       return (
