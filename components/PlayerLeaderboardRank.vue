@@ -7,6 +7,15 @@ import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 const props = defineProps<{
   playerSteamId: string;
   matchType?: "Competitive" | "Wingman" | "Duel";
+  // The active ELO season's UUID, resolved by the parent from the same
+  // `activeSeason` source the profile page and the leaderboard page both
+  // already use (players/[id].vue's own `activeSeason` computed / the
+  // leaderboard's identical one). Passing this keeps the rank/percentile
+  // shown here scoped to the same season the leaderboard would compute
+  // them against -- omit/null when seasons are disabled or no season is
+  // currently active, matching how the leaderboard's own season_id goes
+  // null in that case too.
+  seasonId?: string | null;
 }>();
 
 const { client: apolloClient } = useApolloClient();
@@ -18,6 +27,7 @@ const RANK_QUERY = gql`
     $match_type: String
     $exclude_tournaments: Boolean!
     $elo_view: String!
+    $season_id: uuid
     $player_steam_id: String!
   ) {
     get_player_leaderboard_rank(
@@ -27,6 +37,7 @@ const RANK_QUERY = gql`
         _match_type: $match_type
         _exclude_tournaments: $exclude_tournaments
         _elo_view: $elo_view
+        _season_id: $season_id
         _player_steam_id: $player_steam_id
       }
     ) {
@@ -56,6 +67,10 @@ async function fetchRank() {
         match_type: props.matchType ?? "Competitive",
         exclude_tournaments: false,
         elo_view: "current",
+        // _source is intentionally not sent -- the backend already
+        // defaults it to 'overall', matching the leaderboard's own
+        // default behavior with no explicit Source filter applied.
+        season_id: props.seasonId ?? null,
         player_steam_id: props.playerSteamId,
       },
       fetchPolicy: "cache-first",
@@ -75,7 +90,7 @@ async function fetchRank() {
 }
 
 watch(
-  () => [props.playerSteamId, props.matchType],
+  () => [props.playerSteamId, props.matchType, props.seasonId],
   () => {
     fetchRank();
   },

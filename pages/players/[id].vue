@@ -1976,6 +1976,7 @@ const playerHeroTeamChipDotClasses =
                   <PlayerLeaderboardRank
                     :player-steam-id="player.steam_id"
                     :match-type="mode.type"
+                    :season-id="seasonsEnabled ? (activeSeason?.id ?? null) : null"
                   />
                 </div>
               </section>
