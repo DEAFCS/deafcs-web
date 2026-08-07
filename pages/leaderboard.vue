@@ -442,7 +442,10 @@ const leaderboardFilterCount = computed(() => {
   let n = 0;
   if (scope.value && scope.value !== defaultScope.value) n++;
   if (matchType.value !== "Competitive") n++;
-  if (excludeTournaments.value) n++;
+  // Exclude Tournaments has no effect on the elo category's canonical
+  // ranking (its control is hidden there too), so it shouldn't inflate the
+  // mobile filter badge while viewing elo.
+  if (excludeTournaments.value && category.value !== "elo") n++;
   if (supportsRole.value && roleFilter.value !== "all") n++;
   return n;
 });
@@ -607,7 +610,11 @@ const queryVariables = computed(() => ({
   season_id: derivedSeasonId.value,
   elo_view: eloView.value,
   match_type: matchType.value === "all" ? null : matchType.value,
-  exclude_tournaments: Boolean(excludeTournaments.value),
+  // The backend now ignores exclude_tournaments for the elo category
+  // (canonical ELO always includes every eligible source), but send false
+  // explicitly rather than a possibly-stale true from another category.
+  exclude_tournaments:
+    category.value === "elo" ? false : Boolean(excludeTournaments.value),
   role:
     supportsRole.value && roleFilter.value !== "all" ? roleFilter.value : null,
   limit: perPage.value,
@@ -692,7 +699,8 @@ async function alignPageToHighlightedPlayer(): Promise<boolean> {
         season_id: derivedSeasonId.value,
         elo_view: eloView.value,
         match_type: matchType.value === "all" ? null : matchType.value,
-        exclude_tournaments: Boolean(excludeTournaments.value),
+        exclude_tournaments:
+          category.value === "elo" ? false : Boolean(excludeTournaments.value),
         player_steam_id: sid,
       },
       fetchPolicy: "network-only",
@@ -1136,7 +1144,13 @@ onMounted(async () => {
           </SelectContent>
         </Select>
 
+        <!-- Canonical ELO always includes every eligible source (matchmaking,
+             tournament, league) -- there is no longer a separate
+             tournament-excluded ELO ranking to toggle to, so this control is
+             hidden for the elo category. It remains fully functional for the
+             other, still source-filterable, stat categories. -->
         <div
+          v-if="category !== 'elo'"
           class="ml-auto flex h-8 cursor-pointer items-center gap-2 rounded-full border px-3 text-xs tracking-[0.06em] transition-colors duration-150"
           :class="
             excludeTournaments
@@ -1278,6 +1292,7 @@ onMounted(async () => {
             </div>
 
             <div
+              v-if="category !== 'elo'"
               class="flex h-11 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm transition-colors duration-150"
               :class="
                 excludeTournaments
@@ -1331,7 +1346,7 @@ onMounted(async () => {
             <X class="h-3 w-3 opacity-70" />
           </button>
           <button
-            v-if="excludeTournaments"
+            v-if="excludeTournaments && category !== 'elo'"
             type="button"
             class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
             @click="toggleExcludeTournaments"

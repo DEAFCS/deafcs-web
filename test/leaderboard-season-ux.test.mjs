@@ -270,6 +270,38 @@ test("the Exclude Tournaments toggle remains present with no new explanatory tex
   );
 });
 
+test("the Exclude Tournaments toggle is hidden for the elo category (canonical ELO always includes every source)", () => {
+  // Desktop toggle wrapper and mobile popover toggle wrapper both gate on
+  // category !== 'elo' (2 more than the 2 pre-existing "0" scope
+  // SelectItem guards already using the same condition); the mobile
+  // active-filter chip additionally requires it via a compound v-if.
+  assert.equal(
+    (source.match(/v-if="category !== 'elo'"/g) || []).length,
+    4,
+  );
+  assert.match(
+    source,
+    /v-if="excludeTournaments && category !== 'elo'"/,
+  );
+  // The mobile filter-count badge no longer counts a stale
+  // excludeTournaments=true while viewing the elo category.
+  assert.match(
+    source,
+    /if \(excludeTournaments\.value && category\.value !== "elo"\) n\+\+;/,
+  );
+  // Both places that send exclude_tournaments to the backend force it to
+  // false for elo, regardless of the (now hidden, possibly stale) toggle
+  // state left over from another category.
+  assert.equal(
+    (
+      source.match(
+        /category\.value === "elo" \? false : Boolean\(excludeTournaments\.value\)/g,
+      ) || []
+    ).length,
+    2,
+  );
+});
+
 test("category tabs, sorting, highlighting, and PageTransition wiring are untouched", () => {
   assert.match(source, /<PageTransition>/);
   assert.match(source, /function toggleSort\(field: SortField\)/);
