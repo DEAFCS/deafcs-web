@@ -258,47 +258,76 @@ test("Competitive / Wingman / Duel mode selector is untouched", () => {
   assert.equal((source.match(/match_types\.duel/g) || []).length, 2);
 });
 
-test("the Exclude Tournaments toggle remains present with no new explanatory text", () => {
-  assert.match(source, /function toggleExcludeTournaments\(\)/);
+test("the old Exclude Tournaments toggle has been fully removed from the web leaderboard UI", () => {
+  assert.doesNotMatch(source, /function toggleExcludeTournaments\(/);
+  assert.doesNotMatch(source, /excludeTournaments/);
+  assert.doesNotMatch(source, /pages\.leaderboard\.exclude_tournaments/);
+  assert.doesNotMatch(source, /v-model="excludeTournaments"/);
+  assert.doesNotMatch(source, /<Trophy\b/);
+  assert.doesNotMatch(source, /from "~\/components\/ui\/switch"/);
+  // exclude_tournaments is still sent to the backend (compatibility with
+  // the existing, still-accepted parameter) but always as the neutral
+  // default, never as a user-controlled value.
   assert.equal(
-    (source.match(/pages\.leaderboard\.exclude_tournaments/g) || []).length,
-    3,
-  );
-  assert.equal(
-    (source.match(/v-model="excludeTournaments"/g) || []).length,
+    (source.match(/exclude_tournaments: false,/g) || []).length,
     2,
+    "queryVariables + alignPageToHighlightedPlayer both send the neutral default",
   );
 });
 
-test("the Exclude Tournaments toggle is hidden for the elo category (canonical ELO always includes every source)", () => {
-  // Desktop toggle wrapper and mobile popover toggle wrapper both gate on
-  // category !== 'elo' (2 more than the 2 pre-existing "0" scope
-  // SelectItem guards already using the same condition); the mobile
-  // active-filter chip additionally requires it via a compound v-if.
-  assert.equal(
-    (source.match(/v-if="category !== 'elo'"/g) || []).length,
-    4,
+test("Source (Overall/Matchmaking/Tournament/League) replaces Exclude Tournaments, defaults to Overall, and appears after Mode on desktop and mobile", () => {
+  assert.match(
+    source,
+    /const SOURCE_OPTIONS = \[\s*"overall",\s*"matchmaking",\s*"tournament",\s*"league",\s*\] as const;/,
   );
   assert.match(
     source,
-    /v-if="excludeTournaments && category !== 'elo'"/,
+    /const source = ref<string>\(\s*readQueryParam\("source", SOURCE_OPTIONS, "overall"\),\s*\);/,
   );
-  // The mobile filter-count badge no longer counts a stale
-  // excludeTournaments=true while viewing the elo category.
-  assert.match(
-    source,
-    /if \(excludeTournaments\.value && category\.value !== "elo"\) n\+\+;/,
-  );
-  // Both places that send exclude_tournaments to the backend force it to
-  // false for elo, regardless of the (now hidden, possibly stale) toggle
-  // state left over from another category.
+  // Desktop: the Source Select sits between the Mode Select and the
+  // (optional) Role Select in source order.
+  const modeIdx = source.indexOf('<Select v-model="matchType">');
+  const sourceIdxDesktop = source.indexOf('<Select v-model="source">');
+  const roleIdx = source.indexOf('<Select v-if="supportsRole" v-model="roleFilter">');
+  assert.ok(modeIdx > -1 && sourceIdxDesktop > -1 && roleIdx > -1);
+  assert.ok(modeIdx < sourceIdxDesktop && sourceIdxDesktop < roleIdx);
+  // Both desktop and mobile Source selects render all four options.
   assert.equal(
-    (
-      source.match(
-        /category\.value === "elo" \? false : Boolean\(excludeTournaments\.value\)/g,
-      ) || []
-    ).length,
+    (source.match(/pages\.leaderboard\.sources\.\$\{opt\}/g) || []).length,
     2,
+  );
+  assert.equal(
+    (source.match(/v-for="opt of SOURCE_OPTIONS"/g) || []).length,
+    2,
+  );
+  // Mobile filter badge/chip use Source instead of Exclude Tournaments.
+  assert.match(source, /if \(source\.value !== "overall"\) n\+\+;/);
+  assert.match(source, /v-if="source !== 'overall'"/);
+  // source is threaded through both places that talk to the backend, plus
+  // the URL query-sync watcher (mirroring how matchType does it).
+  assert.equal((source.match(/source: source\.value,/g) || []).length, 3);
+});
+
+test("Source translations exist for all four options, following the match_types convention", () => {
+  assert.equal(getPath(enLocale, "pages.leaderboard.sources.overall"), "Overall");
+  assert.equal(
+    getPath(enLocale, "pages.leaderboard.sources.matchmaking"),
+    "Matchmaking",
+  );
+  assert.equal(
+    getPath(enLocale, "pages.leaderboard.sources.tournament"),
+    "Tournament",
+  );
+  assert.equal(getPath(enLocale, "pages.leaderboard.sources.league"), "League");
+});
+
+test("Source selection never changes how the ELO value column is computed/labeled -- the canonical rating stays the single source of truth on the web side too", () => {
+  // formatValue/eloValueColor/columnLabels.value only ever branch on
+  // category/isPeakElo/isCompletedSeasonSelected -- never on source.value.
+  assert.doesNotMatch(source, /formatValue[\s\S]{0,400}source\.value/);
+  assert.doesNotMatch(
+    source,
+    /value:\s*isPeakElo\.value[\s\S]{0,200}source\.value/,
   );
 });
 

@@ -9,7 +9,6 @@ import StatLabel from "~/components/common/StatLabel.vue";
 import StatChevron from "~/components/StatChevron.vue";
 import Pagination from "~/components/Pagination.vue";
 import {
-  Trophy,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -31,7 +30,6 @@ import {
 import { Button } from "~/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { Skeleton } from "~/components/ui/skeleton";
-import { Switch } from "~/components/ui/switch";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
 import { useAuthStore } from "~/stores/AuthStore";
@@ -218,6 +216,7 @@ const LEADERBOARD_QUERY = gql`
     $role: String
     $season_id: uuid
     $elo_view: String
+    $source: String
     $limit: Int
     $offset: Int
     $order_by: [leaderboard_entries_order_by!]
@@ -231,6 +230,7 @@ const LEADERBOARD_QUERY = gql`
         _role: $role
         _season_id: $season_id
         _elo_view: $elo_view
+        _source: $source
       }
       limit: $limit
       offset: $offset
@@ -254,6 +254,7 @@ const LEADERBOARD_QUERY = gql`
         _role: $role
         _season_id: $season_id
         _elo_view: $elo_view
+        _source: $source
       }
     ) {
       aggregate {
@@ -271,6 +272,7 @@ const PLAYER_RANK_QUERY = gql`
     $exclude_tournaments: Boolean!
     $season_id: uuid
     $elo_view: String
+    $source: String
     $player_steam_id: String!
   ) {
     get_player_leaderboard_rank(
@@ -281,6 +283,7 @@ const PLAYER_RANK_QUERY = gql`
         _exclude_tournaments: $exclude_tournaments
         _season_id: $season_id
         _elo_view: $elo_view
+        _source: $source
         _player_steam_id: $player_steam_id
       }
     ) {
@@ -307,6 +310,16 @@ const category = useRouteTab({
 });
 
 const MATCH_TYPE_OPTIONS = ["all", "Competitive", "Wingman", "Duel"] as const;
+// Overall/Matchmaking/Tournament/League match/statistics filter. Replaces
+// the old Exclude Tournaments toggle -- for the elo category this only
+// scopes the contribution columns (ELO change, matches), never the
+// canonical current/peak rating itself (see CATEGORY_CONFIG/backend).
+const SOURCE_OPTIONS = [
+  "overall",
+  "matchmaking",
+  "tournament",
+  "league",
+] as const;
 const ROLE_OPTIONS = ["all", "Sniper", "Entry", "Support", "Rifler"] as const;
 // Categories backed by per-map stats — the only ones the role view can scope.
 const ROLE_CATEGORIES = new Set([
@@ -405,7 +418,9 @@ const isCompletedSeasonSelected = computed(
 const matchType = ref<string>(
   readQueryParam("type", MATCH_TYPE_OPTIONS, "Competitive"),
 );
-const excludeTournaments = ref(false);
+const source = ref<string>(
+  readQueryParam("source", SOURCE_OPTIONS, "overall"),
+);
 const roleFilter = ref<string>(readQueryParam("role", ROLE_OPTIONS, "all"));
 const supportsRole = computed(() => ROLE_CATEGORIES.has(category.value));
 
@@ -442,10 +457,7 @@ const leaderboardFilterCount = computed(() => {
   let n = 0;
   if (scope.value && scope.value !== defaultScope.value) n++;
   if (matchType.value !== "Competitive") n++;
-  // Exclude Tournaments has no effect on the elo category's canonical
-  // ranking (its control is hidden there too), so it shouldn't inflate the
-  // mobile filter badge while viewing elo.
-  if (excludeTournaments.value && category.value !== "elo") n++;
+  if (source.value !== "overall") n++;
   if (supportsRole.value && roleFilter.value !== "all") n++;
   return n;
 });
@@ -482,6 +494,9 @@ const matchTypeLabel = computed(() =>
 );
 const roleLabel = computed(() =>
   t(`pages.leaderboard.roles.${roleFilter.value}`),
+);
+const sourceLabel = computed(() =>
+  t(`pages.leaderboard.sources.${source.value}`),
 );
 
 const entries = ref<LeaderboardEntry[]>([]);
@@ -610,13 +625,14 @@ const queryVariables = computed(() => ({
   season_id: derivedSeasonId.value,
   elo_view: eloView.value,
   match_type: matchType.value === "all" ? null : matchType.value,
-  // The backend now ignores exclude_tournaments for the elo category
-  // (canonical ELO always includes every eligible source), but send false
-  // explicitly rather than a possibly-stale true from another category.
-  exclude_tournaments:
-    category.value === "elo" ? false : Boolean(excludeTournaments.value),
+  // exclude_tournaments is no longer a user-controlled filter -- Source
+  // fully replaces it. Always send the neutral default (false) so it never
+  // conflicts with the selected Source; the backend keeps the parameter
+  // for other/legacy callers only.
+  exclude_tournaments: false,
   role:
     supportsRole.value && roleFilter.value !== "all" ? roleFilter.value : null,
+  source: source.value,
   limit: perPage.value,
   offset: offset.value,
   order_by: orderBy.value,
@@ -660,10 +676,6 @@ function onFilterChange() {
   fetchLeaderboard();
 }
 
-function toggleExcludeTournaments() {
-  excludeTournaments.value = !excludeTournaments.value;
-}
-
 function onPageChange(newPage: number) {
   page.value = newPage;
   fetchLeaderboard();
@@ -699,8 +711,8 @@ async function alignPageToHighlightedPlayer(): Promise<boolean> {
         season_id: derivedSeasonId.value,
         elo_view: eloView.value,
         match_type: matchType.value === "all" ? null : matchType.value,
-        exclude_tournaments:
-          category.value === "elo" ? false : Boolean(excludeTournaments.value),
+        exclude_tournaments: false,
+        source: source.value,
         player_steam_id: sid,
       },
       fetchPolicy: "network-only",
@@ -914,6 +926,20 @@ watch(matchType, () => {
   }
   onFilterChange();
 });
+watch(source, () => {
+  const routeSource = Array.isArray(route.query.source)
+    ? route.query.source[0]
+    : route.query.source;
+  if (routeSource !== source.value) {
+    void router.replace({
+      query: {
+        ...route.query,
+        source: source.value,
+      },
+    });
+  }
+  onFilterChange();
+});
 watch(
   () => route.query.period,
   (period) => {
@@ -939,7 +965,15 @@ watch(
     }
   },
 );
-watch(excludeTournaments, onFilterChange);
+watch(
+  () => route.query.source,
+  () => {
+    const routeSource = readQueryParam("source", SOURCE_OPTIONS, "overall");
+    if (routeSource !== source.value) {
+      source.value = routeSource;
+    }
+  },
+);
 watch(roleFilter, onFilterChange);
 watch(highlightedSteamId, (sid) => {
   // A different player was deep-linked — re-resolve their page.
@@ -1133,6 +1167,17 @@ onMounted(async () => {
           </SelectContent>
         </Select>
 
+        <Select v-model="source">
+          <SelectTrigger class="h-8 w-[160px]">
+            <SelectValue :placeholder="$t('pages.leaderboard.sources.overall')" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="opt of SOURCE_OPTIONS" :key="opt" :value="opt">
+              {{ $t(`pages.leaderboard.sources.${opt}`) }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+
         <Select v-if="supportsRole" v-model="roleFilter">
           <SelectTrigger class="h-8 w-[160px]">
             <SelectValue :placeholder="$t('pages.leaderboard.roles.all')" />
@@ -1143,33 +1188,6 @@ onMounted(async () => {
             </SelectItem>
           </SelectContent>
         </Select>
-
-        <!-- Canonical ELO always includes every eligible source (matchmaking,
-             tournament, league) -- there is no longer a separate
-             tournament-excluded ELO ranking to toggle to, so this control is
-             hidden for the elo category. It remains fully functional for the
-             other, still source-filterable, stat categories. -->
-        <div
-          v-if="category !== 'elo'"
-          class="ml-auto flex h-8 cursor-pointer items-center gap-2 rounded-full border px-3 text-xs tracking-[0.06em] transition-colors duration-150"
-          :class="
-            excludeTournaments
-              ? 'border-[hsl(var(--tac-amber)/0.55)] bg-[hsl(var(--tac-amber)/0.13)] text-[hsl(var(--tac-amber))]'
-              : 'border-border bg-muted/30 text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-          "
-          @click="toggleExcludeTournaments"
-        >
-          <Trophy class="h-3.5 w-3.5" />
-          <span id="leaderboard-exclude-tournaments-label">
-            {{ $t("pages.leaderboard.exclude_tournaments") }}
-          </span>
-          <Switch
-            v-model="excludeTournaments"
-            aria-labelledby="leaderboard-exclude-tournaments-label"
-            class="ml-1 data-[state=checked]:bg-[hsl(var(--tac-amber))] data-[state=unchecked]:bg-muted/70"
-            @click.stop
-          />
-        </div>
       </div>
 
       <!-- Mobile: collapse filters behind a Filters button + chips -->
@@ -1269,6 +1287,28 @@ onMounted(async () => {
               </Select>
             </div>
 
+            <div class="space-y-2">
+              <span
+                class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
+              >
+                {{ $t("pages.leaderboard.sources.overall") }}
+              </span>
+              <Select v-model="source">
+                <SelectTrigger class="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="opt of SOURCE_OPTIONS"
+                    :key="opt"
+                    :value="opt"
+                  >
+                    {{ $t(`pages.leaderboard.sources.${opt}`) }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div v-if="supportsRole" class="space-y-2">
               <span
                 class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
@@ -1289,27 +1329,6 @@ onMounted(async () => {
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div
-              v-if="category !== 'elo'"
-              class="flex h-11 cursor-pointer items-center gap-2 rounded-md border px-3 text-sm transition-colors duration-150"
-              :class="
-                excludeTournaments
-                  ? 'border-[hsl(var(--tac-amber)/0.55)] bg-[hsl(var(--tac-amber)/0.13)] text-[hsl(var(--tac-amber))]'
-                  : 'border-border bg-muted/30 text-muted-foreground'
-              "
-              @click="toggleExcludeTournaments"
-            >
-              <Trophy class="h-4 w-4 shrink-0" />
-              <span class="truncate">{{
-                $t("pages.leaderboard.exclude_tournaments")
-              }}</span>
-              <Switch
-                v-model="excludeTournaments"
-                class="ml-auto shrink-0 data-[state=checked]:bg-[hsl(var(--tac-amber))] data-[state=unchecked]:bg-muted/70"
-                @click.stop
-              />
             </div>
           </PopoverContent>
         </Popover>
@@ -1346,13 +1365,12 @@ onMounted(async () => {
             <X class="h-3 w-3 opacity-70" />
           </button>
           <button
-            v-if="excludeTournaments && category !== 'elo'"
+            v-if="source !== 'overall'"
             type="button"
             class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
-            @click="toggleExcludeTournaments"
+            @click="source = 'overall'"
           >
-            <Trophy class="h-3 w-3" />
-            {{ $t("pages.leaderboard.exclude_tournaments") }}
+            {{ sourceLabel }}
             <X class="h-3 w-3 opacity-70" />
           </button>
         </div>

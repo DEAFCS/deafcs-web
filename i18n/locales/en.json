@@ -2958,6 +2958,12 @@
         "Support": "Support",
         "Rifler": "Rifler"
       },
+      "sources": {
+        "overall": "Overall",
+        "matchmaking": "Matchmaking",
+        "tournament": "Tournament",
+        "league": "League"
+      },
       "columns": {
         "rank": "#",
         "matches": "Matches"
@@ -2990,8 +2996,7 @@
         "udr": "UDR",
         "util_damage": "Util Dmg",
         "rounds": "Rounds"
-      },
-      "exclude_tournaments": "Exclude Tournaments"
+      }
     },
     "database": {
       "query_copied": "Query copied to clipboard",
