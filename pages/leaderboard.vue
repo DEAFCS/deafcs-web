@@ -545,17 +545,22 @@ const columnLabels = computed(() => {
     // following the Exclude Tournaments toggle through the normal query
     // variables, no second query involved. An ACTIVE named season shows
     // Last Match instead (the change on the player's latest eligible match
-    // this season). A COMPLETED season keeps its existing "ELO Change"
-    // (final − starting) label and figure, unchanged. Every other
-    // scope/category keeps its normal column.
+    // this season) -- but only for Source=Overall. Any non-Overall Source
+    // always shows ELO Change (a source-scoped SUM, not "Last Match" --
+    // the backend never returns Last Match semantics for a filtered
+    // source, so the label must not claim it does). A COMPLETED season
+    // keeps its existing "ELO Change" (final − starting) label and figure,
+    // unchanged. Every other scope/category keeps its normal column.
     secondary_value:
       category.value === "elo" && isPeakElo.value
         ? t("pages.leaderboard.col.current_elo")
-        : category.value === "elo" && isActiveSeasonSelected.value
-          ? t("pages.leaderboard.col.last_match")
-          : cols.secondary_value
-            ? t(cols.secondary_value)
-            : null,
+        : category.value === "elo" && source.value !== "overall"
+          ? t("pages.leaderboard.col.elo_change")
+          : category.value === "elo" && isActiveSeasonSelected.value
+            ? t("pages.leaderboard.col.last_match")
+            : cols.secondary_value
+              ? t(cols.secondary_value)
+              : null,
     tertiary_value:
       category.value === "elo" && isPeakElo.value
         ? t("pages.leaderboard.col.record_win_streak")
@@ -574,15 +579,22 @@ const columnLabels = computed(() => {
 // generic "elo_change"/"win_streak" ones used elsewhere.
 const columnGlossary = computed<Partial<Record<SortField, string>>>(() => {
   const base = config.value.glossary ?? {};
-  if (category.value === "elo" && isActiveSeasonSelected.value) {
-    return { ...base, secondary_value: "last_match" };
-  }
   if (category.value === "elo" && isPeakElo.value) {
     return {
       ...base,
       secondary_value: "current_elo",
       tertiary_value: "record_win_streak",
     };
+  }
+  // A non-Overall Source always shows ELO Change (base already carries the
+  // "elo_change" glossary entry) -- never swap to the Last Match tooltip,
+  // matching the columnLabels fix above.
+  if (
+    category.value === "elo" &&
+    source.value === "overall" &&
+    isActiveSeasonSelected.value
+  ) {
+    return { ...base, secondary_value: "last_match" };
   }
   return base;
 });
@@ -838,9 +850,11 @@ function secondaryValueClass(value: number | null): string | undefined {
   if (trophyTierColor("secondary_value")) return undefined;
   const usesEloChangeColor =
     category.value === "elo" &&
+    !isPeakElo.value &&
     (scope.value === "7" ||
       scope.value === "30" ||
-      isActiveSeasonSelected.value);
+      isActiveSeasonSelected.value ||
+      source.value !== "overall");
   if (!usesEloChangeColor || value == null) return "text-muted-foreground";
 
   const rounded = Math.round(value);

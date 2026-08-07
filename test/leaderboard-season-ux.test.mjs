@@ -138,7 +138,7 @@ test("completed seasons show a Final ELO value column; active seasons keep the p
 test("an active named season shows the secondary column labeled 'Last Match', backed by the real backend field", () => {
   assert.match(
     source,
-    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*t\("pages\.leaderboard\.col\.current_elo"\)\s*:\s*category\.value === "elo" && isActiveSeasonSelected\.value\s*\?\s*t\("pages\.leaderboard\.col\.last_match"\)\s*:\s*cols\.secondary_value\s*\?\s*t\(cols\.secondary_value\)\s*:\s*null,/,
+    /secondary_value:\s*category\.value === "elo" && isPeakElo\.value\s*\?\s*t\("pages\.leaderboard\.col\.current_elo"\)\s*:\s*category\.value === "elo" && source\.value !== "overall"\s*\?\s*t\("pages\.leaderboard\.col\.elo_change"\)\s*:\s*category\.value === "elo" && isActiveSeasonSelected\.value\s*\?\s*t\("pages\.leaderboard\.col\.last_match"\)\s*:\s*cols\.secondary_value\s*\?\s*t\(cols\.secondary_value\)\s*:\s*null,/,
   );
   assert.equal(getPath(enLocale, "pages.leaderboard.col.last_match"), "Last Match");
   // No second/new query is introduced to fetch it — it rides the existing
@@ -153,7 +153,7 @@ test("an active named season shows the secondary column labeled 'Last Match', ba
 test("the Last Match header/tooltip uses a dedicated glossary entry, distinct from the generic ELO Change tooltip", () => {
   assert.match(
     source,
-    /const columnGlossary = computed<Partial<Record<SortField, string>>>\(\(\) => \{\s*const base = config\.value\.glossary \?\? \{\};\s*if \(category\.value === "elo" && isActiveSeasonSelected\.value\) \{\s*return \{ \.\.\.base, secondary_value: "last_match" \};\s*\}/,
+    /const columnGlossary = computed<Partial<Record<SortField, string>>>\(\(\) => \{\s*const base = config\.value\.glossary \?\? \{\};[\s\S]{0,400}if \(\s*category\.value === "elo" &&\s*source\.value === "overall" &&\s*isActiveSeasonSelected\.value\s*\) \{\s*return \{ \.\.\.base, secondary_value: "last_match" \};\s*\}/,
   );
   assert.equal(
     getPath(enLocale, "stat_glossary.last_match.description"),
@@ -214,12 +214,12 @@ test("Current ELO uses plain unsigned ELO formatting (not a +/- delta) and stays
     source,
     /if \(category\.value === "elo" && isPeakElo\.value\) \{\s*return Math\.round\(value\)\.toLocaleString\(\);\s*\}/,
   );
-  // secondaryValueClass's green/red/neutral coloring only ever checks
-  // scope "7"/"30" and isActiveSeasonSelected -- isPeakElo is deliberately
-  // absent, so Current ELO always falls through to the neutral class.
-  assert.doesNotMatch(
+  // secondaryValueClass explicitly excludes Peak (!isPeakElo.value) from
+  // usesEloChangeColor, so Current ELO always falls through to the neutral
+  // class regardless of which Source is selected alongside Peak.
+  assert.match(
     source,
-    /usesEloChangeColor[\s\S]{0,200}isPeakElo/,
+    /const usesEloChangeColor =\s*category\.value === "elo" &&\s*!isPeakElo\.value &&/,
   );
 });
 
@@ -238,10 +238,10 @@ test("All Time still sends elo_view = peak through the unchanged query variables
   );
 });
 
-test("ELO Change/Last Match coloring covers the rolling 7/30-day windows and the active season alike, unchanged for everything else", () => {
+test("ELO Change/Last Match coloring covers the rolling 7/30-day windows, the active season, and any non-Overall Source alike, unchanged for everything else", () => {
   assert.match(
     source,
-    /const usesEloChangeColor =\s*category\.value === "elo" &&\s*\(scope\.value === "7" \|\|\s*scope\.value === "30" \|\|\s*isActiveSeasonSelected\.value\);/,
+    /const usesEloChangeColor =\s*category\.value === "elo" &&\s*!isPeakElo\.value &&\s*\(scope\.value === "7" \|\|\s*scope\.value === "30" \|\|\s*isActiveSeasonSelected\.value \|\|\s*source\.value !== "overall"\);/,
   );
   assert.match(source, /if \(rounded > 0\) return "text-success";/);
   assert.match(source, /if \(rounded < 0\) return "text-destructive";/);
@@ -328,6 +328,34 @@ test("Source selection never changes how the ELO value column is computed/labele
   assert.doesNotMatch(
     source,
     /value:\s*isPeakElo\.value[\s\S]{0,200}source\.value/,
+  );
+});
+
+test("a non-Overall Source always labels secondary_value as ELO Change, never Last Match, even during an active named season", () => {
+  // Regression: the label previously checked isActiveSeasonSelected without
+  // checking source.value, so Source=Tournament/Matchmaking/League during
+  // an active season incorrectly kept showing "Last Match" even though the
+  // backend was already returning a source-scoped ELO Change total.
+  assert.match(
+    source,
+    /category\.value === "elo" && isPeakElo\.value\s*\?\s*t\("pages\.leaderboard\.col\.current_elo"\)\s*:\s*category\.value === "elo" && source\.value !== "overall"\s*\?\s*t\("pages\.leaderboard\.col\.elo_change"\)\s*:\s*category\.value === "elo" && isActiveSeasonSelected\.value/,
+  );
+  // Peak still takes priority over Source (Current ELO label unaffected) --
+  // already implied by the single combined regex above matching isPeakElo
+  // before source.value in the ternary chain.
+});
+
+test("columnGlossary never attaches the Last Match tooltip for a non-Overall Source", () => {
+  assert.match(
+    source,
+    /if \(\s*category\.value === "elo" &&\s*source\.value === "overall" &&\s*isActiveSeasonSelected\.value\s*\)\s*\{\s*return \{ \.\.\.base, secondary_value: "last_match" \};\s*\}/,
+  );
+});
+
+test("the ELO Change +/- color treatment also applies to a source-scoped secondary_value (not just rolling windows/active season)", () => {
+  assert.match(
+    source,
+    /const usesEloChangeColor =\s*category\.value === "elo" &&\s*!isPeakElo\.value &&\s*\(scope\.value === "7" \|\|\s*scope\.value === "30" \|\|\s*isActiveSeasonSelected\.value \|\|\s*source\.value !== "overall"\);/,
   );
 });
 
