@@ -469,9 +469,21 @@ export default {
       });
     },
     activeSanctionType(): "ban" | "mute" | "gag" | null {
-      // Severity order: ban > mute > (silence) > gag. Driven by the cheap,
-      // already-loaded enforcement booleans (no per-row sanction query).
-      if (this.player?.is_banned) return "ban";
+      // Severity order: ban > mute > (silence) > gag. "ban" only shows
+      // publicly for a real admin Sanction, not an automated Abandoned
+      // leaver ban -- player_sanctions here is already pre-filtered to
+      // admin-issued bans only (see playerFields). Falls back to the
+      // blanket is_banned if some query path hasn't fetched
+      // player_sanctions (kept working, just not Sanction/Abandoned-aware).
+      const sanctions = this.player?.player_sanctions;
+      const hasActiveBan = Array.isArray(sanctions)
+        ? sanctions.some(
+            (s: any) =>
+              !s.remove_sanction_date ||
+              new Date(s.remove_sanction_date) > new Date(),
+          )
+        : this.player?.is_banned;
+      if (hasActiveBan) return "ban";
       if (this.player?.is_muted) return "mute";
       if (this.player?.is_gagged) return "gag";
       return null;

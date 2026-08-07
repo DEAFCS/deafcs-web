@@ -331,19 +331,44 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
                 <div class="flex items-center justify-between py-2">
                   <div class="flex flex-col gap-1 flex-1">
                     <NuxtLink
+                      v-if="abandonedMatch.match_id"
                       :to="{
                         name: 'matches-id',
-                        params: { id: abandonedMatch.id },
+                        params: { id: abandonedMatch.match_id },
                       }"
                       class="text-sm font-medium hover:underline text-primary"
                     >
                       {{ $t("player.sanctions.match") }}
-                      {{ abandonedMatch.id.slice(0, 8) }}
+                      {{ abandonedMatch.match_id.slice(0, 8) }}
                     </NuxtLink>
+                    <span
+                      v-else
+                      class="text-sm font-medium text-muted-foreground"
+                    >
+                      {{ $t("player.sanctions.match") }}
+                    </span>
+                    <p
+                      v-if="abandonedMatch.reason"
+                      class="text-xs text-muted-foreground"
+                    >
+                      {{ abandonedMatch.reason }}
+                    </p>
                     <div
-                      class="text-xs text-muted-foreground flex items-center gap-2"
+                      class="text-xs text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1"
                     >
                       <TimeAgo :date="abandonedMatch.abandoned_at" />
+                      <span
+                        v-if="abandonedMatch.remove_sanction_date"
+                        class="inline-flex items-center gap-1.5"
+                      >
+                        <Clock class="h-3.5 w-3.5" />
+                        {{
+                          isExpired(abandonedMatch)
+                            ? $t("player.sanctions.expired_on")
+                            : $t("player.sanctions.expires")
+                        }}
+                        <TimeAgo :date="abandonedMatch.remove_sanction_date" />
+                      </span>
                     </div>
                   </div>
                   <div
@@ -639,6 +664,9 @@ export default {
               id: true,
               steam_id: true,
               abandoned_at: true,
+              match_id: true,
+              reason: true,
+              remove_sanction_date: true,
             },
           ],
         }),
