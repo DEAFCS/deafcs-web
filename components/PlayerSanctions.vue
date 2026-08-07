@@ -592,6 +592,14 @@ export default {
                 player_steam_id: {
                   _eq: $("playerId", "bigint!"),
                 },
+                // Automated leaver/no-show bans show under the Abandoned
+                // tab (abandoned_matches) instead -- exclude them here so
+                // the same ban doesn't also show as a Sanction. Steam id
+                // "0" is the reserved system player used exclusively for
+                // those (see SYSTEM_STEAM_ID in disconnect-budget.service.ts).
+                sanctioned_by_steam_id: {
+                  _neq: "0",
+                },
               },
             },
             {
