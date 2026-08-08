@@ -81,23 +81,29 @@ export default {
   },
   methods: {
     async updateMatchWinner() {
-      await this.$apollo.mutate({
-        mutation: generateMutation({
-          update_matches_by_pk: [
-            {
-              pk_columns: {
-                id: this.match.id,
+      const winningLineupId = this.form.values.lineup_id;
+
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            setMatchWinner: [
+              {
+                match_id: this.match.id,
+                winning_lineup_id: winningLineupId,
               },
-              _set: {
-                winning_lineup_id: this.form.values.lineup_id,
-              },
-            },
-            {
-              id: true,
-            },
-          ],
-        }),
-      });
+              { success: true },
+            ],
+          }),
+        });
+      } catch (error: any) {
+        this.form.setFieldValue("lineup_id", this.match.winning_lineup_id);
+        toast({
+          title: this.$t("toasts.match_winner_update_failed"),
+          description: error?.message || this.$t("toasts.please_try_again"),
+          variant: "destructive",
+        });
+        return;
+      }
 
       toast({
         title: this.$t("match.winner.set"),
