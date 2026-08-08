@@ -22,10 +22,30 @@ import { resolveInitialLocale } from "@/utilities/resolveInitialLocale";
 // old auto-detected value apart from a genuine user choice, and
 // resetting either indiscriminately would either erase real preferences
 // or fail to fix anything.
-export default defineNuxtPlugin((nuxtApp) => {
-  const localeCookie = useCookie<string | undefined>("i18n_redirected");
+//
+// `enforce: "pre"` is required, not cosmetic: @nuxtjs/i18n's own plugins
+// (`i18n:plugin`, then `i18n:plugin:route-locale-detect`) register via
+// addPlugin(), which unshifts them ahead of this file in the raw plugin
+// list, and route-locale-detect fires the initial i18n:beforeLocaleSwitch
+// synchronously during ITS setup() -- before a plain plugins/*.client.ts
+// file (default `enforce`, i.e. order 0, same as i18n's plugins) would
+// ever get a chance to attach a listener. Nuxt sorts the full plugin list
+// by enforce ("pre" = -20, "default" = 0, "post" = 20) before running it,
+// so "pre" is what actually guarantees this plugin's hook is registered
+// before route-locale-detect's setup() runs and fires it. Without this,
+// a fresh Danish/Russian/etc. browser session detects and applies that
+// language before this override ever exists to catch it -- which is
+// exactly the bug this fixes (see the investigation that traced
+// route-locale-detect.js's dependsOn: ["i18n:plugin"] and Nuxt's
+// order-based plugin sort for the full mechanism).
+export default defineNuxtPlugin({
+  name: "default-locale",
+  enforce: "pre",
+  setup(nuxtApp) {
+    const localeCookie = useCookie<string | undefined>("i18n_redirected");
 
-  nuxtApp.hook("i18n:beforeLocaleSwitch", ({ initialSetup }) =>
-    resolveInitialLocale(!!localeCookie.value, initialSetup),
-  );
+    nuxtApp.hook("i18n:beforeLocaleSwitch", ({ initialSetup }) =>
+      resolveInitialLocale(!!localeCookie.value, initialSetup),
+    );
+  },
 });
