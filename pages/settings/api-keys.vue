@@ -8,6 +8,14 @@ import {
 import TimeAgo from "~/components/TimeAgo.vue";
 import ClipBoard from "~/components/ClipBoard.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+
+// The API Keys nav entry is hidden (ProfileSettingsShell.vue no longer lists
+// it) because DEAFCS doesn't currently want to expose this feature. The
+// backend/API keys system itself is untouched -- this only stops someone
+// from reaching the page by typing the URL directly.
+definePageMeta({
+  middleware: [() => navigateTo("/settings", { replace: true })],
+});
 </script>
 
 <template>

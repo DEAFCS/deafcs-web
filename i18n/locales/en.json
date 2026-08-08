@@ -1120,7 +1120,7 @@
     "active_duty": "Active Duty",
     "no_maps_match": "No maps match your filters.",
     "accepted_elo_range": "Accepted ELO Range",
-    "fivestack_elo": "5stack ELO",
+    "fivestack_elo": "DEAFCS ELO",
     "weekly_availability": "Weekly Availability",
     "allow_outside_hours": "Allow requests outside these hours",
     "outside_hours_help": "Opponents can propose any time, not just your painted availability. Leave your availability empty to take requests at any time.",
@@ -1398,10 +1398,10 @@
         "linked_accounts": "Linked Accounts",
         "api_keys_management": {
           "add_api_key": "Add API Key",
-          "description": "Keys authenticate requests to the 5Stack API — treat them like passwords.",
+          "description": "Keys authenticate requests to the DEAFCS API — treat them like passwords.",
           "view_docs": "View API docs",
           "no_api_keys": "No API keys yet",
-          "no_api_keys_hint": "Create your first key to start making authenticated requests to the 5Stack API.",
+          "no_api_keys_hint": "Create your first key to start making authenticated requests to the DEAFCS API.",
           "add_first_api_key": "Create your first key",
           "create_new_api_key": "Create New API Key",
           "create_new_description": "Create a new API key with a descriptive label to identify its purpose.",
@@ -1447,7 +1447,7 @@
           "link": "Link Discord",
           "unlink_dialog": {
             "title": "Unlink Discord Account",
-            "description": "Are you sure you want to unlink your Discord account? This will remove the connection between your 5Stack and Discord accounts.",
+            "description": "Are you sure you want to unlink your Discord account? This will remove the connection between your DEAFCS and Discord accounts.",
             "confirm": "Unlink"
           },
           "unlinked": "Discord account unlinked successfully"
@@ -1455,7 +1455,7 @@
       },
       "notifications": {
         "title": "Sound Settings",
-        "description": "Preview and adjust the alert sounds 5Stack plays for chat, matches, and more.",
+        "description": "Preview and adjust the alert sounds DEAFCS plays for chat, matches, and more.",
         "enabled": {
           "title": "Notification sounds",
           "description": "Play a sound for chat messages, match events, and other alerts."
@@ -1495,7 +1495,7 @@
         "telemetry": {
           "title": "Telemetry",
           "telemetry": "Telemetry",
-          "telemetry_description": "Help improve 5stack by sharing anonymous usage data.",
+          "telemetry_description": "Help improve DEAFCS by sharing anonymous usage data.",
           "update": "Update Telemetry Settings",
           "update_success": "Telemetry settings updated successfully",
           "google_tag_manager_code": "Google Tag Manager Code",
@@ -1508,8 +1508,8 @@
           "updated": "Settings updated successfully"
         },
         "fivestack_ranks": {
-          "title": "5stack Ranks",
-          "description": "Send each player's 5stack ELO to the server so the plugin can display ranks in-game.",
+          "title": "DEAFCS Ranks",
+          "description": "Send each player's DEAFCS ELO to the server so the plugin can display ranks in-game.",
           "matches": "Show ranks in regular matches",
           "tournaments": "Show ranks in tournament matches",
           "warning_title": "Warning: this can get your Steam GSLTs banned",
@@ -1702,7 +1702,7 @@
           "save_branding": "Save Branding",
           "reset_to_defaults": "Reset to Defaults",
           "reset_confirm_title": "Reset branding to defaults?",
-          "reset_confirm_description": "This clears your brand name, colors, login footer, and uploaded logo/favicon/app icon, restoring the default 5Stack theme. This cannot be undone.",
+          "reset_confirm_description": "This clears your brand name, colors, login footer, and uploaded logo/favicon/app icon, restoring the default DEAFCS theme. This cannot be undone.",
           "export_theme": "Export Theme",
           "import_theme": "Import Theme",
           "upload_failed": "Upload failed",
@@ -1929,7 +1929,7 @@
           "auto_generate_match_clips": "Auto-generate match highlights",
           "auto_generate_match_clips_description": "Queue a match-recap highlight for each player after their match finishes.",
           "auto_generate_match_clips_imported": "Include imported matches",
-          "auto_generate_match_clips_imported_description": "Also auto-generate highlights for matches imported from outside 5stack (e.g. Valve match history). Off by default so imported matches don't flood the render queue.",
+          "auto_generate_match_clips_imported_description": "Also auto-generate highlights for matches imported from outside DEAFCS (e.g. Valve match history). Off by default so imported matches don't flood the render queue.",
           "pause_renders_during_active_match": "Pause Highlight Renders During Active Match",
           "pause_renders_during_active_match_description": "When a match goes Live on a server backed by a GPU node, auto-pause in-flight highlight renders so the game server isn't competing with the render pod for GPU. Renders resume automatically once the match ends.",
           "auto_clip_default_visibility": "Default visibility for auto-generated highlights",
@@ -2039,7 +2039,7 @@
           "docs_link": "Read the plugin docs",
           "add": "Add Plugin",
           "empty_title": "No plugins yet",
-          "empty_description": "Point 5Stack at a plugin's URL and it renders as a native page inside your panel.",
+          "empty_description": "Point DEAFCS at a plugin's URL and it renders as a native page inside your panel.",
           "public": "Public",
           "add_title": "Add Plugin",
           "edit_title": "Edit Plugin",
@@ -2072,7 +2072,7 @@
             "profile_tab_label_hint": "Show this plugin as a tab on player profiles, using this label. Leave blank for no tab. The plugin receives the profile's Steam ID.",
             "deployments": "Deployments",
             "deployments_placeholder": "inventory-frontend, inventory-backend",
-            "deployments_hint": "Kubernetes deployment names to watch for image updates. Comma separated. Updates show in the header alongside 5stack's own services."
+            "deployments_hint": "Kubernetes deployment names to watch for image updates. Comma separated. Updates show in the header alongside DEAFCS's own services."
           },
           "detect_label": "Auto-detect from URL",
           "detect": "Detect",
@@ -2118,7 +2118,7 @@
         }
       },
       "linked_accounts": {
-        "presence_title": "5stack Steam bot",
+        "presence_title": "DEAFCS Steam bot",
         "presence_description": "Add the bot as a Steam friend to auto-import your Competitive & Premier matches the moment they end.",
         "presence_connect": "Add bot as friend",
         "presence_add_bot": "Open the bot on Steam",
@@ -2126,7 +2126,7 @@
         "presence_connected": "Connected — imports are instant.",
         "presence_not_connected": "Not connected yet.",
         "presence_self_label": "As your friends see you",
-        "presence_unavailable": "The 5stack bot isn't available right now — please try again later or contact an admin.",
+        "presence_unavailable": "The DEAFCS bot isn't available right now — please try again later or contact an admin.",
         "need_two_codes": "You'll need two codes from Valve:",
         "step_auth_prefix": "Your",
         "steam_auth_code": "Steam Game Authentication Code",
@@ -2771,7 +2771,7 @@
       "only_enabled": "Only Enabled Nodes",
       "setup_dialog": {
         "title": "Game Server Node Setup",
-        "description": "Run this installation script on your server to connect it to 5Stack",
+        "description": "Run this installation script on your server to connect it to DEAFCS",
         "installation_script": "Installation Script",
         "waiting_title": "Waiting for node to connect...",
         "waiting_description": "Run the installation script on your server. The status will update automatically when the node connects.",
@@ -2801,7 +2801,7 @@
     },
     "dedicated_servers": {
       "title": "Dedicated Servers",
-      "description": "Dedicated servers stay connected to 5Stack and are automatically used to host matches, tournaments, and public play.",
+      "description": "Dedicated servers stay connected to DEAFCS and are automatically used to host matches, tournaments, and public play.",
       "docs_link": "View setup guide",
       "no_servers_title": "No Dedicated Servers",
       "no_servers": "No dedicated servers found.",
@@ -2833,7 +2833,7 @@
         "player_management": "Player Management",
         "no_players": "No players currently on this server",
         "sanctions_wip_title": "Work in progress",
-        "sanctions_wip": "Kicks work today. Live mute/gag enforcement on public servers is a work in progress — a new 5Stack public server plugin is coming soon, and mutes/gags will apply automatically once it ships.",
+        "sanctions_wip": "Kicks work today. Live mute/gag enforcement on public servers is a work in progress — a new DEAFCS public server plugin is coming soon, and mutes/gags will apply automatically once it ships.",
         "status": {
           "disconnected": "Server is disconnected",
           "no_rcon": "Server is connected but RCON is not available",
@@ -2933,7 +2933,7 @@
         "best_kdr": "KDR",
         "best_win_rate": "Win Rate",
         "highest_hs_pct": "HS%",
-        "trophies": "Trophies"
+        "trophies": "Awards"
       },
       "time_periods": {
         "last_7_days": "Last 7 Days",
@@ -3263,7 +3263,7 @@
       }
     },
     "app_nav": {
-      "brand": "5stack",
+      "brand": "DEAFCS",
       "systems_online": "{count} System Online | {count} Systems Online",
       "navigation": {
         "dashboard": "My Stats",
@@ -5240,7 +5240,7 @@
       "all": "All"
     },
     "source_badge": {
-      "imported_external": "Imported from an external source — not a 5stack match"
+      "imported_external": "Imported from an external source — not a DEAFCS match"
     },
     "scoreboard_overlay": {
       "final": "Final",
@@ -5770,7 +5770,7 @@
       "csgo_ranked_unavailable_title": "Ranked Not Available",
       "csgo_ranked_unavailable_description": "Ranked mode is not yet available for CS:GO servers.",
       "ranked_server": "Ranked Server",
-      "ranked_server_description": "Fully managed ranked experience by 5stack.",
+      "ranked_server_description": "Fully managed ranked experience by DEAFCS.",
       "valve_presets": "Valve Presets",
       "valve_presets_description": "Choose from casual/competitive and other Valve-presets.",
       "connect_password": "Connect Password",
