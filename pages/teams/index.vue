@@ -327,6 +327,14 @@ export default {
               name: true,
               short_name: true,
               avatar_url: true,
+              // The corrected, season-aware Competitive average (v_team_ranks
+              // via _team_rank_competitive_elo) -- same source the team
+              // detail page already uses. Do not recompute this from
+              // roster[].player.elo client-side; that raw field can fall
+              // back to a player's lifetime ELO outside the active season.
+              ranks: {
+                avg_elo: true,
+              },
               roster: [
                 {},
                 {
@@ -443,6 +451,9 @@ export default {
                     name: true,
                     short_name: true,
                     avatar_url: true,
+                    ranks: {
+                      avg_elo: true,
+                    },
                     roster: [
                       {},
                       {

@@ -340,13 +340,12 @@ export default {
     extraCount(team: { roster?: RosterEntry[] }): number {
       return Math.max(0, (team.roster?.length ?? 0) - 5);
     },
-    avgElo(team: { roster?: RosterEntry[] }): number | null {
-      const roster = this.topStarters(team);
-      const values = roster
-        .map((r) => r.player?.elo?.competitive)
-        .filter((v): v is number => typeof v === "number" && v > 0);
-      if (values.length === 0) return null;
-      return Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+    // Sourced from teams.ranks.avg_elo (v_team_ranks), the same
+    // season-aware Competitive average the team detail page shows -- not
+    // recomputed from roster[].player.elo, which can fall back to a
+    // player's lifetime ELO outside the active season.
+    avgElo(team: { ranks?: { avg_elo?: number | null } | null }): number | null {
+      return team.ranks?.avg_elo ?? null;
     },
     topCountries(team: { roster?: RosterEntry[] }): string[] {
       const counts = new Map<string, number>();
