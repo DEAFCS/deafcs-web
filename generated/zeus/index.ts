@@ -40810,6 +40810,8 @@ assited_by_players_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ValueTypes["player_assists_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["player_assists_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["player_assists_aggregate"]],
 	avatar_url?:boolean | `@${string}`,
+	/** A computed field, executes function "banned_until" */
+	banned_until?:boolean | `@${string}`,
 coach_lineups?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["match_lineups_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -41381,6 +41383,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 	assited_by_players?: ValueTypes["player_assists_bool_exp"] | undefined | null | Variable<any, string>,
 	assited_by_players_aggregate?: ValueTypes["player_assists_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	avatar_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	banned_until?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	coach_lineups?: ValueTypes["match_lineups_bool_exp"] | undefined | null | Variable<any, string>,
 	coach_lineups_aggregate?: ValueTypes["match_lineups_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	country?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -41595,6 +41598,8 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 	/** aggregate max on columns */
 ["players_max_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
+	/** A computed field, executes function "banned_until" */
+	banned_until?:boolean | `@${string}`,
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -41648,6 +41653,8 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 	/** aggregate min on columns */
 ["players_min_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
+	/** A computed field, executes function "banned_until" */
+	banned_until?:boolean | `@${string}`,
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -41725,6 +41732,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 	assists_aggregate?: ValueTypes["player_assists_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	assited_by_players_aggregate?: ValueTypes["player_assists_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	banned_until?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	coach_lineups_aggregate?: ValueTypes["match_lineups_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	country?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -106563,6 +106571,8 @@ assited_by_players_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ResolverInputTypes["player_assists_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["player_assists_bool_exp"] | undefined | null},ResolverInputTypes["player_assists_aggregate"]],
 	avatar_url?:boolean | `@${string}`,
+	/** A computed field, executes function "banned_until" */
+	banned_until?:boolean | `@${string}`,
 coach_lineups?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["match_lineups_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -107134,6 +107144,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 	assited_by_players?: ResolverInputTypes["player_assists_bool_exp"] | undefined | null,
 	assited_by_players_aggregate?: ResolverInputTypes["player_assists_aggregate_bool_exp"] | undefined | null,
 	avatar_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	banned_until?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	coach_lineups?: ResolverInputTypes["match_lineups_bool_exp"] | undefined | null,
 	coach_lineups_aggregate?: ResolverInputTypes["match_lineups_aggregate_bool_exp"] | undefined | null,
 	country?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
@@ -107348,6 +107359,8 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 	/** aggregate max on columns */
 ["players_max_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
+	/** A computed field, executes function "banned_until" */
+	banned_until?:boolean | `@${string}`,
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -107401,6 +107414,8 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 	/** aggregate min on columns */
 ["players_min_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
+	/** A computed field, executes function "banned_until" */
+	banned_until?:boolean | `@${string}`,
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -107478,6 +107493,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 	assists_aggregate?: ResolverInputTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: ResolverInputTypes["player_assists_aggregate_order_by"] | undefined | null,
 	avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
+	banned_until?: ResolverInputTypes["order_by"] | undefined | null,
 	coach_lineups_aggregate?: ResolverInputTypes["match_lineups_aggregate_order_by"] | undefined | null,
 	country?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
@@ -169172,6 +169188,8 @@ export type ModelTypes = {
 	/** An aggregate relationship */
 	assited_by_players_aggregate: ModelTypes["player_assists_aggregate"],
 	avatar_url?: string | undefined | null,
+	/** A computed field, executes function "banned_until" */
+	banned_until?: ModelTypes["timestamptz"] | undefined | null,
 	/** An array relationship */
 	coach_lineups: Array<ModelTypes["match_lineups"]>,
 	/** An aggregate relationship */
@@ -169451,6 +169469,7 @@ export type ModelTypes = {
 	assited_by_players?: ModelTypes["player_assists_bool_exp"] | undefined | null,
 	assited_by_players_aggregate?: ModelTypes["player_assists_aggregate_bool_exp"] | undefined | null,
 	avatar_url?: ModelTypes["String_comparison_exp"] | undefined | null,
+	banned_until?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	coach_lineups?: ModelTypes["match_lineups_bool_exp"] | undefined | null,
 	coach_lineups_aggregate?: ModelTypes["match_lineups_aggregate_bool_exp"] | undefined | null,
 	country?: ModelTypes["String_comparison_exp"] | undefined | null,
@@ -169664,6 +169683,8 @@ export type ModelTypes = {
 	/** aggregate max on columns */
 ["players_max_fields"]: {
 		avatar_url?: string | undefined | null,
+	/** A computed field, executes function "banned_until" */
+	banned_until?: ModelTypes["timestamptz"] | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -169716,6 +169737,8 @@ export type ModelTypes = {
 	/** aggregate min on columns */
 ["players_min_fields"]: {
 		avatar_url?: string | undefined | null,
+	/** A computed field, executes function "banned_until" */
+	banned_until?: ModelTypes["timestamptz"] | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -169791,6 +169814,7 @@ export type ModelTypes = {
 	assists_aggregate?: ModelTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: ModelTypes["player_assists_aggregate_order_by"] | undefined | null,
 	avatar_url?: ModelTypes["order_by"] | undefined | null,
+	banned_until?: ModelTypes["order_by"] | undefined | null,
 	coach_lineups_aggregate?: ModelTypes["match_lineups_aggregate_order_by"] | undefined | null,
 	country?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
@@ -228828,6 +228852,8 @@ export type GraphQLTypes = {
 	/** An aggregate relationship */
 	assited_by_players_aggregate: GraphQLTypes["player_assists_aggregate"],
 	avatar_url?: string | undefined | null,
+	/** A computed field, executes function "banned_until" */
+	banned_until?: GraphQLTypes["timestamptz"] | undefined | null,
 	/** An array relationship */
 	coach_lineups: Array<GraphQLTypes["match_lineups"]>,
 	/** An aggregate relationship */
@@ -229110,6 +229136,7 @@ export type GraphQLTypes = {
 	assited_by_players?: GraphQLTypes["player_assists_bool_exp"] | undefined | null,
 	assited_by_players_aggregate?: GraphQLTypes["player_assists_aggregate_bool_exp"] | undefined | null,
 	avatar_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	banned_until?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	coach_lineups?: GraphQLTypes["match_lineups_bool_exp"] | undefined | null,
 	coach_lineups_aggregate?: GraphQLTypes["match_lineups_aggregate_bool_exp"] | undefined | null,
 	country?: GraphQLTypes["String_comparison_exp"] | undefined | null,
@@ -229325,6 +229352,8 @@ export type GraphQLTypes = {
 ["players_max_fields"]: {
 	__typename: "players_max_fields",
 	avatar_url?: string | undefined | null,
+	/** A computed field, executes function "banned_until" */
+	banned_until?: GraphQLTypes["timestamptz"] | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -229378,6 +229407,8 @@ export type GraphQLTypes = {
 ["players_min_fields"]: {
 	__typename: "players_min_fields",
 	avatar_url?: string | undefined | null,
+	/** A computed field, executes function "banned_until" */
+	banned_until?: GraphQLTypes["timestamptz"] | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	/** A computed field, executes function "get_player_current_lobby_id" */
@@ -229454,6 +229485,7 @@ export type GraphQLTypes = {
 	assists_aggregate?: GraphQLTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: GraphQLTypes["player_assists_aggregate_order_by"] | undefined | null,
 	avatar_url?: GraphQLTypes["order_by"] | undefined | null,
+	banned_until?: GraphQLTypes["order_by"] | undefined | null,
 	coach_lineups_aggregate?: GraphQLTypes["match_lineups_aggregate_order_by"] | undefined | null,
 	country?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,

@@ -32,7 +32,11 @@ const mmCardBase =
       <Alert class="my-3">
         <AlertDescription class="flex items-center gap-2">
           <AlertTriangle class="h-4 w-4" />
-          {{ $t("matchmaking.banned") }}
+          {{
+            bannedUntilDisplay
+              ? $t("matchmaking.banned_until", { date: bannedUntilDisplay })
+              : $t("matchmaking.banned")
+          }}
         </AlertDescription>
       </Alert>
     </template>
@@ -621,6 +625,23 @@ export default {
         return DEV_QUEUE_PREVIEW_USER;
       }
       return useAuthStore().me;
+    },
+    // null here means either "not banned" (irrelevant, this is only shown
+    // when me.is_banned is already true) or "banned with no end date" --
+    // a permanent Sanction -- in which case the generic "banned" message
+    // (no date) is still correct, so no message is dropped either way.
+    bannedUntilDisplay(): string | null {
+      const bannedUntil = (this.me as any)?.banned_until;
+      if (!bannedUntil) return null;
+      const d = new Date(bannedUntil);
+      if (Number.isNaN(d.getTime())) return null;
+      return d.toLocaleString(undefined, {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      });
     },
     isGuest(): boolean {
       if (this.isQueuePreview) {

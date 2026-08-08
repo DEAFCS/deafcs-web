@@ -5573,6 +5573,7 @@
       "title": "Others"
     },
     "banned": "You are banned from matchmaking",
+    "banned_until": "You are banned from matchmaking until {date}",
     "confirm_selection": "Join Queue",
     "in_queue": "in queue",
     "temp_banned": "You are temporarily banned from matchmaking",

@@ -17,6 +17,10 @@ export const playerFields = Selector("players")({
   // exposed to guest/match_organizer/user, same as is_banned above -- true
   // only for a real admin Sanction, not an automated Abandoned leaver ban.
   is_admin_sanctioned: true,
+  // When the player's active ban(s) actually expire -- null means either
+  // not banned, or banned with no end date (a permanent Sanction). Same
+  // exposure as is_banned/is_admin_sanctioned; check is_banned first.
+  banned_until: true,
   is_gagged: true,
   is_muted: true,
   vac_banned: true,
