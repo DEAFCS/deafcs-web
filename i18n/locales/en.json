@@ -5456,14 +5456,9 @@
       "no_sanctions": "No sanctions",
       "remove_abandoned": "Remove Abandoned Match",
       "confirm_remove_abandoned": "Remove Abandoned Match",
-      "remove_abandoned_description": "Are you sure you want to remove this abandoned match record? This action cannot be undone.",
+      "remove_abandoned_description": "This removes the record, lifts the player's active ban from this violation (if any), and undoes one step of their leaver ban stage. This action cannot be undone.",
       "abandoned_removed": "Abandoned match removed",
-      "abandoned_remove_failed": "Failed to remove abandoned match",
-      "reset_stage": "Reset leaver ban stage",
-      "confirm_reset_stage": "Reset Leaver Ban Stage",
-      "reset_stage_description": "This resets the player's automated leaver/no-show escalation counter back to 0, independent of any specific ban. It does not remove or lift any existing ban.",
-      "stage_reset": "Leaver ban stage reset",
-      "stage_reset_failed": "Failed to reset leaver ban stage"
+      "abandoned_remove_failed": "Failed to remove abandoned match"
     },
     "registration": {
       "title": "Register your name",
