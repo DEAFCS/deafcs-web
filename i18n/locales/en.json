@@ -5426,6 +5426,7 @@
       "muted": "Muted",
       "gagged": "Gagged",
       "silenced": "Silenced",
+      "leaver": "Leaver",
       "duration_label": "Duration",
       "select_duration": "Select duration",
       "sanctions": "Sanctions",

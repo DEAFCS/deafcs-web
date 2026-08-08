@@ -28,6 +28,7 @@ const { isMobile } = useSidebar();
     :external="isExternalMatch"
     :historical-elo="historicalElo"
     :highlight-self="true"
+    :show-leaver-badge="true"
   >
     <template v-slot:avatar-corner v-if="member.captain">
       <span

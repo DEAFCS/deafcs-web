@@ -314,6 +314,16 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Only meaningful for an automated Abandoned (leaver) ban, never for a
+    // real admin Sanction -- a Sanction always shows "BANNED" regardless of
+    // this prop. Default false hides Abandoned-only bans entirely (profile
+    // pages, search, rosters, everywhere that isn't the match itself).
+    // Match-page contexts (PlayerStatusDisplay) opt in so a currently-live
+    // leaver still shows up as "LEAVER" there.
+    showLeaverBadge: {
+      type: Boolean,
+      default: false,
+    },
     showOnline: {
       type: Boolean,
       default: true,
@@ -457,22 +467,15 @@ export default {
         return friend.steam_id == this.player.steam_id;
       });
     },
-    activeSanctionType(): "ban" | "mute" | "gag" | null {
-      // Severity order: ban > mute > (silence) > gag. "ban" only shows
-      // publicly for a real admin Sanction, not an automated Abandoned
-      // leaver ban -- player_sanctions here is already pre-filtered to
-      // admin-issued bans only (see playerFields). Falls back to the
-      // blanket is_banned if some query path hasn't fetched
-      // player_sanctions (kept working, just not Sanction/Abandoned-aware).
-      const sanctions = this.player?.player_sanctions;
-      const hasActiveBan = Array.isArray(sanctions)
-        ? sanctions.some(
-            (s: any) =>
-              !s.remove_sanction_date ||
-              new Date(s.remove_sanction_date) > new Date(),
-          )
-        : this.player?.is_banned;
-      if (hasActiveBan) return "ban";
+    activeSanctionType(): "ban" | "mute" | "gag" | "leaver" | null {
+      // Severity order: ban > leaver > mute > (silence) > gag. is_banned is
+      // true for either a real admin Sanction OR an automated Abandoned
+      // (leaver) ban -- is_admin_sanctioned narrows that down to a real
+      // Sanction only. A leaver-only ban never shows "BANNED" publicly;
+      // outside match context it's fully hidden, and on the match page
+      // (showLeaverBadge) it shows "LEAVER" instead.
+      if (this.player?.is_admin_sanctioned) return "ban";
+      if (this.player?.is_banned && this.showLeaverBadge) return "leaver";
       if (this.player?.is_muted) return "mute";
       if (this.player?.is_gagged) return "gag";
       return null;

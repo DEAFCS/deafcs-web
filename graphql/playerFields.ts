@@ -9,6 +9,14 @@ export const playerFields = Selector("players")({
   custom_avatar_url: true,
   roster_image_url: true,
   is_banned: true,
+  // Plain boolean computed field, unlike the player_sanctions relation this
+  // replaced (see revert commit 1ac898a) -- that only had a select_permission
+  // for the guest role, so including it in this shared fragment (used by
+  // every role site-wide) broke every non-guest query. is_admin_sanctioned
+  // carries no sensitive detail (reason, who banned them, etc.) and is
+  // exposed to guest/match_organizer/user, same as is_banned above -- true
+  // only for a real admin Sanction, not an automated Abandoned leaver ban.
+  is_admin_sanctioned: true,
   is_gagged: true,
   is_muted: true,
   vac_banned: true,

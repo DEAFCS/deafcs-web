@@ -3257,21 +3257,13 @@ export default {
       );
     },
     activeSanctionType(): "ban" | "mute" | "gag" | null {
-      // Severity order ban > mute > (silence) > gag. "ban" only shows
-      // publicly for a real admin Sanction, not an automated Abandoned
-      // leaver ban -- player_sanctions here is already pre-filtered to
-      // admin-issued bans only (see playerFields). Falls back to the
-      // blanket is_banned if player_sanctions wasn't fetched for some
-      // reason (kept working, just not Sanction/Abandoned-aware).
-      const sanctions = (this.player as any)?.player_sanctions;
-      const hasActiveBan = Array.isArray(sanctions)
-        ? sanctions.some(
-            (s: any) =>
-              !s.remove_sanction_date ||
-              new Date(s.remove_sanction_date) > new Date(),
-          )
-        : this.player?.is_banned;
-      if (hasActiveBan) return "ban";
+      // Severity order ban > mute > (silence) > gag. is_banned is true for
+      // either a real admin Sanction OR an automated Abandoned (leaver)
+      // ban -- is_admin_sanctioned narrows that to a real Sanction only.
+      // The profile page is outside match context, so a leaver-only ban
+      // never shows any badge here (no "leaver" option, unlike PlayerDisplay
+      // in match context).
+      if ((this.player as any)?.is_admin_sanctioned) return "ban";
       if (this.player?.is_muted) return "mute";
       if (this.player?.is_gagged) return "gag";
       return null;

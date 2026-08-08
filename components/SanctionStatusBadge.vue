@@ -5,7 +5,7 @@ import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 
 const props = withDefaults(
   defineProps<{
-    type: "ban" | "mute" | "gag" | "silence";
+    type: "ban" | "mute" | "gag" | "silence" | "leaver";
     variant?: "inline" | "overlay";
   }>(),
   {
@@ -15,6 +15,9 @@ const props = withDefaults(
 
 const { t } = useI18n();
 
+// "leaver" gets the amber "warn" tone, not the red "ban" tone -- it's an
+// automated no-show/abandon flag, not an actual admin Sanction, and
+// shouldn't visually read as one.
 const tone = computed<"ban" | "warn">(() =>
   props.type === "ban" ? "ban" : "warn",
 );
@@ -25,6 +28,7 @@ const label = computed(() => {
     mute: "muted",
     gag: "gagged",
     silence: "silenced",
+    leaver: "leaver",
   }[props.type];
   return t(`player.sanctions.${key}`);
 });
