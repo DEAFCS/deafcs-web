@@ -2424,6 +2424,7 @@
       "is_gagged": "Gagged",
       "is_muted": "Muted",
       "table": {
+        "team": "Team",
         "elo": "Elo",
         "elo_track_season": "Season",
         "elo_track_tournament": "Tournament",

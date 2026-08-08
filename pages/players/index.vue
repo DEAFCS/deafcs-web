@@ -39,12 +39,10 @@ import {
 } from "~/components/ui/command";
 import Pagination from "~/components/Pagination.vue";
 import { Slider } from "~/components/ui/slider";
-import { e_player_roles_enum } from "~/generated/zeus";
+import { e_player_roles_enum, e_team_roles_enum } from "~/generated/zeus";
 import { useAuthStore } from "~/stores/AuthStore";
 import PlayerRoleForm from "~/components/PlayerRoleForm.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
-import StatChevron from "~/components/StatChevron.vue";
-import { KD_TIER } from "~/utils/statTiers";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { getAllCountries } from "countries-and-timezones";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
@@ -409,9 +407,7 @@ useHead({
                 />
               </div>
             </TableHead>
-            <TableHead>{{ $t("common.stats.wins") }}</TableHead>
-            <TableHead>{{ $t("common.stats.losses") }}</TableHead>
-            <TableHead>{{ $t("pages.players.table.kdr") }}</TableHead>
+            <TableHead>{{ $t("pages.players.table.team") }}</TableHead>
             <TableHead class="cursor-pointer" @click="toggleSort('elo')">
               <div class="flex items-center gap-1">
                 {{ $t("pages.players.table.elo") }}
@@ -470,17 +466,46 @@ useHead({
                   :show-elo="false"
                 ></PlayerDisplay>
               </TableCell>
-              <TableCell>{{ player.wins ?? 0 }}</TableCell>
-              <TableCell>{{ player.losses ?? 0 }}</TableCell>
-              <TableCell>
-                <span class="inline-flex items-center gap-0.5">
-                  {{ calculateKDR(player) }}
-                  <StatChevron
-                    :cfg="KD_TIER"
-                    :value="Number(calculateKDR(player))"
+            </NuxtLink>
+            <TableCell>
+              <NuxtLink
+                v-if="teamFor(player)"
+                :to="{ name: 'teams-id', params: { id: teamFor(player).id } }"
+                class="inline-flex items-center gap-2 min-w-0 hover:text-[hsl(var(--tac-amber))] transition-colors"
+              >
+                <span
+                  class="relative flex h-5 w-5 shrink-0 items-center justify-center overflow-hidden rounded border border-border bg-muted/40"
+                >
+                  <img
+                    v-if="teamAvatarSrc(teamFor(player))"
+                    :src="teamAvatarSrc(teamFor(player))"
+                    :alt="teamFor(player).name"
+                    class="h-full w-full object-cover"
                   />
+                  <span
+                    v-else
+                    class="font-mono text-[0.5rem] font-bold uppercase text-muted-foreground"
+                  >
+                    {{
+                      (
+                        teamFor(player).short_name ||
+                        teamFor(player).name ||
+                        "?"
+                      ).slice(0, 2)
+                    }}
+                  </span>
                 </span>
-              </TableCell>
+                <span class="truncate">{{ teamFor(player).name }}</span>
+              </NuxtLink>
+              <span v-else class="text-muted-foreground">—</span>
+            </TableCell>
+            <NuxtLink
+              :to="{
+                name: 'players-id',
+                params: { id: String(player.steam_id) },
+              }"
+              class="contents"
+            >
               <TableCell>
                 <PlayerElo
                   :elo="
@@ -541,6 +566,14 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import * as z from "zod";
 import debounce from "~/utilities/debounce";
+import { generateQuery } from "~/graphql/graphqlGen";
+
+type PlayerTeam = {
+  id: string;
+  name: string;
+  short_name?: string | null;
+  avatar_url?: string | null;
+};
 
 export default {
   data() {
@@ -548,6 +581,11 @@ export default {
       eloSliderMin: 0,
       eloSliderMax: 20000,
       players: [] as any[],
+      // Current active team membership per steam_id, resolved separately
+      // from the Typesense player-search results (the search index only
+      // stores team IDs, not display data) via a small batched team_roster
+      // lookup for whichever players are on the current page.
+      teamsByPlayer: {} as Record<string, PlayerTeam | null>,
       loading: false,
       page: 1,
       perPage: this.loadFiltersFromStorage().perPage || 10,
@@ -591,6 +629,9 @@ export default {
     };
   },
   computed: {
+    apiDomain() {
+      return useRuntimeConfig().public.apiDomain;
+    },
     availableRoles() {
       return [
         { value: e_player_roles_enum.user, display: this.$t("roles.user") },
@@ -977,13 +1018,64 @@ export default {
       const roleObj = this.availableRoles.find((r) => r.value === role);
       return roleObj ? roleObj.display : role;
     },
-    calculateKDR(player: any) {
-      const kills = player.stats?.kills ?? 0;
-      const deaths = player.stats?.deaths ?? 0;
-      if (deaths === 0) {
-        return kills > 0 ? kills.toFixed(2) : "0.00";
+    teamFor(player: { steam_id: string | number }): PlayerTeam | null {
+      return this.teamsByPlayer[String(player.steam_id)] ?? null;
+    },
+    teamAvatarSrc(team: { avatar_url?: string | null }): string | null {
+      if (!team.avatar_url) return null;
+      return `https://${this.apiDomain}/${team.avatar_url}`;
+    },
+    async fetchTeams(steamIds: Array<string | number>, token: number) {
+      if (steamIds.length === 0) {
+        if (token === this.searchToken) {
+          this.teamsByPlayer = {};
+        }
+        return;
       }
-      return (kills / deaths).toFixed(2);
+      try {
+        const { data } = await this.$apollo.query({
+          fetchPolicy: "network-only",
+          query: generateQuery({
+            team_roster: [
+              {
+                where: {
+                  player_steam_id: { _in: steamIds },
+                  // A pending invite isn't real membership yet -- matches
+                  // pages/players/[id].vue's own current-team query.
+                  role: { _neq: e_team_roles_enum.Invite },
+                },
+              },
+              {
+                player_steam_id: true,
+                team: {
+                  id: true,
+                  name: true,
+                  short_name: true,
+                  avatar_url: true,
+                },
+              },
+            ],
+          }),
+        });
+        if (token !== this.searchToken) {
+          return;
+        }
+        const byPlayer: Record<string, PlayerTeam | null> = {};
+        for (const row of (data as any)?.team_roster ?? []) {
+          const steamId = String(row.player_steam_id);
+          // A player is only ever shown on one team here; first match wins.
+          if (!byPlayer[steamId]) {
+            byPlayer[steamId] = row.team;
+          }
+        }
+        this.teamsByPlayer = byPlayer;
+      } catch (error) {
+        if (token !== this.searchToken) {
+          return;
+        }
+        console.error("Error fetching player teams:", error);
+        this.teamsByPlayer = {};
+      }
     },
     async searchPlayers() {
       const token = ++this.searchToken;
@@ -1057,6 +1149,10 @@ export default {
         this.players = (hits || []).map(({ document }) => {
           return document;
         });
+        await this.fetchTeams(
+          this.players.map((p) => p.steam_id),
+          token,
+        );
       } catch (error) {
         if (token !== this.searchToken) {
           return;
