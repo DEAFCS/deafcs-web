@@ -12,6 +12,7 @@ import {
   VolumeX,
   Clock,
   Infinity as InfinityIcon,
+  RotateCcw,
 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import {
@@ -381,6 +382,23 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
                           <Button
                             variant="ghost"
                             size="icon"
+                            class="h-8 w-8"
+                            @click="showResetStageDialog = true"
+                          >
+                            <RotateCcw class="h-4 w-4" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {{ $t("player.sanctions.reset_stage") }}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger as-child>
+                          <Button
+                            variant="ghost"
+                            size="icon"
                             class="h-8 w-8 text-destructive"
                             @click="removeAbandonedMatch(abandonedMatch)"
                           >
@@ -554,6 +572,36 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <!-- Reset Leaver Ban Stage Alert Dialog -->
+    <AlertDialog
+      :open="showResetStageDialog"
+      @update:open="showResetStageDialog = $event"
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{
+            $t("player.sanctions.confirm_reset_stage")
+          }}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {{ $t("player.sanctions.reset_stage_description") }}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showResetStageDialog = false">
+            {{ $t("common.cancel") }}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            @click="
+              confirmResetStage();
+              showResetStageDialog = false;
+            "
+          >
+            {{ $t("common.confirm") }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
@@ -605,6 +653,8 @@ export default {
       removingSanction: false,
       removingAbandonedMatch: false,
       updatingSanction: false,
+      showResetStageDialog: false,
+      resettingStage: false,
     };
   },
   apollo: {
@@ -959,6 +1009,39 @@ export default {
         });
       } finally {
         this.removingAbandonedMatch = false;
+      }
+    },
+    async confirmResetStage() {
+      if (this.resettingStage) {
+        return;
+      }
+      this.resettingStage = true;
+
+      try {
+        await (this as any).$apollo.mutate({
+          mutation: gql`
+            mutation ResetLeaverBanStage($steam_id: String!) {
+              resetLeaverBanStage(steam_id: $steam_id) {
+                success
+              }
+            }
+          `,
+          variables: {
+            steam_id: this.playerId,
+          },
+        });
+
+        toast({
+          title: this.$t("player.sanctions.stage_reset"),
+        });
+      } catch (error) {
+        console.error("Failed to reset leaver ban stage:", error);
+        toast({
+          title: this.$t("player.sanctions.stage_reset_failed"),
+          variant: "destructive",
+        });
+      } finally {
+        this.resettingStage = false;
       }
     },
   },
