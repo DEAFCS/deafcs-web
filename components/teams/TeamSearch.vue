@@ -335,7 +335,7 @@ const { height: viewportHeight } = useVisualViewport();
 
 <script lang="ts">
 import { generateQuery } from "~/graphql/graphqlGen";
-import { teamAvgElo, teamAvgPremier } from "~/utilities/teamElo";
+import { teamAvgPremier } from "~/utilities/teamElo";
 
 interface Team {
   id: string;
@@ -545,12 +545,19 @@ export default {
             {
               id: true,
               avatar_url: true,
+              // Canonical, season-aware Competitive average (v_team_ranks
+              // via _team_rank_competitive_elo) -- the same source /teams
+              // and the team detail page already use. Do not recompute
+              // this from roster player.elo, which can fall back to a
+              // player's lifetime ELO outside the active season.
+              ranks: {
+                avg_elo: true,
+              },
               roster: [
                 { where: { status: { _in: ["Starter", "Substitute"] } } },
                 {
                   player: {
                     steam_id: true,
-                    elo: true,
                     premier_rank: true,
                   },
                 },
@@ -569,7 +576,7 @@ export default {
           ...team,
           avatar_url: team.avatar_url ?? details?.avatar_url ?? null,
           player_count: roster.length,
-          avg_elo: teamAvgElo(roster),
+          avg_elo: details?.ranks?.avg_elo ?? null,
           avg_premier: teamAvgPremier(roster),
         };
       });
