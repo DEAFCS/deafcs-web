@@ -6,11 +6,13 @@ import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 defineProps<{
   player: any;
 }>();
+
+const { eloForPlayer } = usePlayerActiveSeasonElo();
 </script>
 
 <template>
   <div class="flex flex-wrap items-center gap-1.5">
-    <PlayerElo :elo="player?.elo" :bordered="true" />
+    <PlayerElo :elo="eloForPlayer(player)" :bordered="true" />
     <PlayerPremierRank
       :premier-rank="player?.premier_rank"
       :premier-rank-updated-at="player?.premier_rank_updated_at"

@@ -35,6 +35,7 @@ const renderHighlightOpen = ref(false);
 
 const { visibility: overviewVis } = useOverviewColumns();
 const { rowClass, stickyCellClass, isCurrentUser } = useCurrentUserRow();
+const { eloForPlayer } = usePlayerActiveSeasonElo();
 
 const DASH = "—";
 </script>
@@ -181,7 +182,7 @@ const DASH = "—";
                     />
                     <PlayerElo
                       v-if="!isExternalMatch"
-                      :elo="mobileEloForDisplay"
+                      :elo="eloForPlayer(member?.player)"
                       :type="match?.options?.type"
                     />
                     <PlayerFaceitRank
@@ -858,17 +859,6 @@ export default {
           (ec: any) => String(ec.player_steam_id) === String(steamId),
         ) ?? null
       );
-    },
-    // Mobile row shows ELO without going through PlayerDisplay. The hover
-    // always shows the player's full current canonical per-mode ELO --
-    // Competitive/Wingman/Duel alike -- never collapsed down to just this
-    // match's mode. (This used to substitute a single-mode
-    // `{ [modeKey]: updated_elo }` object once the match finished, which
-    // made the other two modes vanish from the hover as "--".) This
-    // match's own historical result still displays separately via
-    // EloChangeBadge (`memberEloChange`), which is unaffected by this.
-    mobileEloForDisplay() {
-      return this.member?.player?.elo;
     },
   },
 };

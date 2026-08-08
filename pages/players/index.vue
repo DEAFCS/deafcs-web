@@ -57,6 +57,7 @@ import {
 } from "~/utilities/tacticalClasses";
 
 const { t } = useI18n();
+const { eloForPlayer } = usePlayerActiveSeasonElo();
 
 useHead({
   title: () => t("pages.players.title"),
@@ -482,11 +483,16 @@ useHead({
               </TableCell>
               <TableCell>
                 <PlayerElo
-                  :elo="{
-                    competitive: player.elo_competitive,
-                    wingman: player.elo_wingman,
-                    duel: player.elo_duel,
-                  }"
+                  :elo="
+                    eloForPlayer({
+                      steam_id: player.steam_id,
+                      elo: {
+                        competitive: player.elo_competitive,
+                        wingman: player.elo_wingman,
+                        duel: player.elo_duel,
+                      },
+                    })
+                  "
                 ></PlayerElo>
               </TableCell>
             </NuxtLink>

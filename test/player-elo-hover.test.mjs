@@ -2,24 +2,35 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-// Regression coverage for the finished-match ELO hover bug: hovering a
-// player's ELO badge on a match page showed all 3 mode ratings
-// (Competitive/Wingman/Duel) while the match was live/pre-finish, but once
-// the match finished, only the mode that was played kept a value -- the
-// other two rendered as "--" -- even though the player has real current
-// ratings for them.
+// Regression coverage for the ELO hover card (PlayerElo.vue's HoverCardContent,
+// mounted via PlayerDisplay.vue, LineupOverviewRow.vue's mobile row,
+// pages/players/index.vue's search table, and draft-games/PlayerRanks.vue).
 //
-// Root cause: PlayerDisplay.vue's `eloForDisplay` computed (feeding
-// PlayerElo's `elo` prop, which drives BOTH the trigger badge and the
-// hover card's three rows) collapsed from the full `player.elo` object
-// down to a single-key `{ [eloModeKey]: historicalElo }` object once a
-// `historicalElo` value existed (i.e. once `match.elo_changes` had a row
-// for this match). LineupOverviewRow.vue's mobile-only `mobileEloForDisplay`
-// had the identical bug. The hover must always show the player's full
-// current canonical per-mode ELO; the match's own historical result
-// belongs on the row instead (EloChangeBadge, fed directly from
-// `match.elo_changes`, independent of this prop) and must be unaffected.
+// Bug 1 (fixed previously): the hover collapsed to a single-mode object once
+// a match finished, hiding the other two modes' ratings. Fixed by always
+// passing the player's full current per-mode ELO object through.
+//
+// Bug 2 (fixed here): the "full current per-mode ELO object" was
+// `player.elo` -- the players.elo computed field, whose season branch
+// (get_player_elo.sql's get_player_season_elo_by_type) falls back to a
+// player's lifetime-latest player_elo row when they have no row for the
+// active season. This showed a stale/previous-season rating in the hover
+// (e.g. TricoN's Competitive: 4905) even after the profile summary was
+// fixed to show the season starting ELO (5000) for the same case.
+//
+// Fix: every direct PlayerElo mount now sources its `elo` prop through the
+// shared usePlayerActiveSeasonElo() composable's eloForPlayer(player)
+// instead of reading player.elo directly -- reusing the same
+// season-row-wins / else-5000 / else-passthrough logic already proven on
+// the profile page, rather than duplicating a second implementation. No new
+// SQL/schema/migration/write-path change; read-only, batched + cached
+// per-player-per-season to avoid a query-per-badge storm on list-heavy
+// pages.
 
+const composableSource = await readFile(
+  new URL("../composables/usePlayerActiveSeasonElo.ts", import.meta.url),
+  "utf8",
+);
 const playerDisplaySource = await readFile(
   new URL("../components/PlayerDisplay.vue", import.meta.url),
   "utf8",
@@ -28,96 +39,148 @@ const lineupRowSource = await readFile(
   new URL("../components/match/LineupOverviewRow.vue", import.meta.url),
   "utf8",
 );
+const playersIndexSource = await readFile(
+  new URL("../pages/players/index.vue", import.meta.url),
+  "utf8",
+);
+const playerRanksSource = await readFile(
+  new URL("../components/draft-games/PlayerRanks.vue", import.meta.url),
+  "utf8",
+);
 const eloChangeBadgeSource = await readFile(
   new URL("../components/EloChangeBadge.vue", import.meta.url),
   "utf8",
 );
 
-// Mirrors PlayerDisplay.vue's `eloForDisplay` computed exactly (post-fix):
-// it no longer branches on historicalElo at all.
-function eloForDisplay(player) {
-  return player?.elo;
-}
-
-// Mirrors LineupOverviewRow.vue's `mobileEloForDisplay` computed exactly
-// (post-fix): same simplification.
-function mobileEloForDisplay(member) {
-  return member?.player?.elo;
-}
-
-const fullElo = { competitive: 4905, wingman: 5131, duel: 5970 };
-const fullEloAfterMatch = { competitive: 4905, wingman: 5131, duel: 6152 };
-
-test("live/pre-match: the hover shows all 3 current mode values", () => {
-  const player = { elo: fullElo };
-  const result = eloForDisplay(player);
-  assert.deepEqual(result, fullElo);
-  assert.equal(result.competitive, 4905);
-  assert.equal(result.wingman, 5131);
-  assert.equal(result.duel, 5970);
-});
-
-test("finished Duel match: the hover keeps Competitive + Wingman + the updated Duel value", () => {
-  // Player just finished a Duel match, moving their Duel rating from 5970
-  // to 6152; player.elo already reflects that (it's the live canonical
-  // computed field, unaffected by match status).
-  const player = { elo: fullEloAfterMatch };
-  const result = eloForDisplay(player);
-  assert.deepEqual(result, fullEloAfterMatch);
-  assert.equal(result.competitive, 4905, "Competitive must not disappear");
-  assert.equal(result.wingman, 5131, "Wingman must not disappear");
-  assert.equal(result.duel, 6152, "Duel must reflect the just-finished match");
-});
-
-test("finished Wingman match: the hover keeps Competitive + Duel alongside the updated Wingman value", () => {
-  const player = {
-    elo: { competitive: 4905, wingman: 5320, duel: 5970 },
-  };
-  const result = eloForDisplay(player);
-  assert.equal(result.competitive, 4905, "Competitive must not disappear");
-  assert.equal(result.wingman, 5320);
-  assert.equal(result.duel, 5970, "Duel must not disappear");
-});
-
-test("mobile row hover matches the same full-object behavior as the desktop hover", () => {
-  const member = { player: { elo: fullEloAfterMatch } };
-  assert.deepEqual(mobileEloForDisplay(member), fullEloAfterMatch);
-});
-
-test("PlayerDisplay.vue's eloForDisplay no longer collapses to a single-mode object", () => {
-  // The old buggy branch built `{ [this.eloModeKey]: this.historicalElo }`.
-  // That pattern -- and the eloModeKey computed that only existed to
-  // support it -- must be gone.
-  assert.doesNotMatch(
-    playerDisplaySource,
-    /return \{ \[this\.eloModeKey\]: this\.historicalElo \};/,
-  );
-  assert.doesNotMatch(playerDisplaySource, /eloModeKey\(\)/);
+test("usePlayerActiveSeasonElo passes player.elo through unchanged when seasons are disabled", () => {
   assert.match(
-    playerDisplaySource,
-    /eloForDisplay\(\)[\s\S]{0,120}\{\s*return this\.player\?\.elo;\s*\}/,
+    composableSource,
+    /if \(!appSettings\.seasonsEnabled\) \{\s*\n\s*return player\?\.elo;\s*\n\s*\}/,
   );
 });
 
-test("LineupOverviewRow.vue's mobileEloForDisplay no longer collapses to a single-mode object", () => {
-  assert.doesNotMatch(
-    lineupRowSource,
-    /return \{ \[modeKey\]: this\.memberEloChange\.updated_elo \};/,
+test("usePlayerActiveSeasonElo passes player.elo through unchanged when there is no active season", () => {
+  assert.match(
+    composableSource,
+    /if \(!seasonId \|\| !player\?\.steam_id\) \{\s*\n\s*return player\?\.elo;\s*\n\s*\}/,
+  );
+});
+
+test("usePlayerActiveSeasonElo resolves a season row's updated_elo, or exactly 5000 per mode when there is none -- never the lifetime value", () => {
+  assert.match(composableSource, /const SEASON_ELO_DISPLAY_DEFAULT = 5000;/);
+  assert.match(
+    composableSource,
+    /competitive:\s*\n\s*typeof entry\.data\.Competitive === "number"\s*\n\s*\? entry\.data\.Competitive\s*\n\s*: SEASON_ELO_DISPLAY_DEFAULT,/,
   );
   assert.match(
-    lineupRowSource,
-    /mobileEloForDisplay\(\)[^{]*\{\s*return this\.member\?\.player\?\.elo;\s*\}/,
+    composableSource,
+    /wingman:\s*\n\s*typeof entry\.data\.Wingman === "number"\s*\n\s*\? entry\.data\.Wingman\s*\n\s*: SEASON_ELO_DISPLAY_DEFAULT,/,
   );
+  assert.match(
+    composableSource,
+    /duel:\s*\n\s*typeof entry\.data\.Duel === "number"\s*\n\s*\? entry\.data\.Duel\s*\n\s*: SEASON_ELO_DISPLAY_DEFAULT,/,
+  );
+});
+
+test("usePlayerActiveSeasonElo reads v_player_elo (the same canonical player_elo table) scoped to the active season -- read-only, no mutation", () => {
+  assert.match(
+    composableSource,
+    /query PlayersActiveSeasonElo\(\$where: v_player_elo_bool_exp!\) \{/,
+  );
+  assert.match(composableSource, /distinct_on: \[player_steam_id, type\]/);
+  assert.doesNotMatch(composableSource, /mutation/i);
+  assert.doesNotMatch(composableSource, /insert_player_elo/);
+});
+
+test("requests for distinct players are coalesced into one batched query per tick, not one query per badge", () => {
+  assert.match(composableSource, /player_steam_id: \{ _in: ids \}/);
+  assert.match(composableSource, /queueMicrotask\(\(\) => flush\(apolloClient\)\)/);
+  assert.match(composableSource, /if \(inFlight\.has\(key\)\) return;/);
+});
+
+test("cached results carry a fetchedAt timestamp and are keyed module-wide by steamId+seasonId, so repeated mounts of the same fresh player share one fetch", () => {
+  assert.match(
+    composableSource,
+    /type CacheEntry = \{ data: SeasonEloByType; fetchedAt: number \};/,
+  );
+  assert.match(
+    composableSource,
+    /const resultCache = reactive\(new Map<string, CacheEntry>\(\)\);/,
+  );
+});
+
+test("cached results are NOT cached indefinitely -- they expire on a short TTL instead of relying on polling or a manual invalidation hook", () => {
+  assert.match(composableSource, /const CACHE_TTL_MS = 30_000;/);
+  assert.match(
+    composableSource,
+    /function isFresh\(entry: CacheEntry \| undefined\): boolean \{\s*\n\s*return !!entry && Date\.now\(\) - entry\.fetchedAt < CACHE_TTL_MS;\s*\n\s*\}/,
+  );
+  // No timers anywhere in the file -- staleness is checked lazily on read,
+  // never polled in the background.
+  assert.doesNotMatch(composableSource, /setInterval/);
+  assert.doesNotMatch(composableSource, /setTimeout/);
+});
+
+test("an expired entry triggers exactly one background refetch on next read (via the same inFlight dedup as a first-time fetch), while still rendering the last known value instead of flickering", () => {
+  assert.match(
+    composableSource,
+    /const entry = resultCache\.get\(key\);\s*\n\s*if \(!isFresh\(entry\)\) \{/,
+  );
+  assert.match(
+    composableSource,
+    /requestSeasonElo\(apolloClient, steamId, seasonId\);\s*\n\s*\}\s*\n\s*if \(!entry\) \{\s*\n\s*return player\?\.elo; \/\/ nothing resolved yet at all\s*\n\s*\}/,
+  );
+});
+
+test("PlayerDisplay.vue's PlayerElo mounts source elo from the shared composable, not player.elo directly", () => {
+  assert.match(
+    playerDisplaySource,
+    /const \{ eloForPlayer \} = usePlayerActiveSeasonElo\(\);/,
+  );
+  assert.match(playerDisplaySource, /:elo="eloForPlayer\(player\)"/);
+  const eloForPlayerMatches = playerDisplaySource.match(
+    /:elo="eloForPlayer\(player\)"/g,
+  );
+  assert.equal(
+    eloForPlayerMatches?.length,
+    2,
+    "both PlayerElo mounts (matchRank branch and default branch) must use eloForPlayer",
+  );
+  assert.doesNotMatch(playerDisplaySource, /eloForDisplay/);
+});
+
+test("LineupOverviewRow.vue's mobile PlayerElo mount sources elo from the shared composable, not member.player.elo directly", () => {
+  assert.match(
+    lineupRowSource,
+    /const \{ eloForPlayer \} = usePlayerActiveSeasonElo\(\);/,
+  );
+  assert.match(lineupRowSource, /:elo="eloForPlayer\(member\?\.player\)"/);
+  assert.doesNotMatch(lineupRowSource, /mobileEloForDisplay/);
+});
+
+test("pages/players/index.vue's table PlayerElo mount sources elo from the shared composable, mapping in the Typesense-mirrored fields", () => {
+  assert.match(
+    playersIndexSource,
+    /const \{ eloForPlayer \} = usePlayerActiveSeasonElo\(\);/,
+  );
+  assert.match(
+    playersIndexSource,
+    /eloForPlayer\(\{\s*\n\s*steam_id: player\.steam_id,\s*\n\s*elo: \{\s*\n\s*competitive: player\.elo_competitive,\s*\n\s*wingman: player\.elo_wingman,\s*\n\s*duel: player\.elo_duel,\s*\n\s*\},\s*\n\s*\}\)/,
+  );
+});
+
+test("draft-games/PlayerRanks.vue's PlayerElo mount sources elo from the shared composable, not player.elo directly", () => {
+  assert.match(
+    playerRanksSource,
+    /const \{ eloForPlayer \} = usePlayerActiveSeasonElo\(\);/,
+  );
+  assert.match(playerRanksSource, /:elo="eloForPlayer\(player\)"/);
 });
 
 test("the match row's historical ELO result (EloChangeBadge) is untouched by this fix", () => {
-  // EloChangeBadge reads elo_changes fields directly and independently of
-  // PlayerDisplay's eloForDisplay/historicalElo -- it must keep doing so,
-  // proving the row's historical before/change/after display is unaffected
-  // by making the hover always show the full current object.
   assert.match(eloChangeBadgeSource, /eloChange/);
-  assert.doesNotMatch(eloChangeBadgeSource, /eloForDisplay/);
-  assert.doesNotMatch(eloChangeBadgeSource, /eloModeKey/);
+  assert.doesNotMatch(eloChangeBadgeSource, /eloForPlayer/);
+  assert.doesNotMatch(eloChangeBadgeSource, /usePlayerActiveSeasonElo/);
 });
 
 test("memberEloChange (the row's historical source) is still wired from match.elo_changes, unrelated to the hover fix", () => {

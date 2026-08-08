@@ -17,6 +17,8 @@ import {
   Podcast,
 } from "lucide-vue-next";
 import FiveStackToolTip from "./FiveStackToolTip.vue";
+
+const { eloForPlayer } = usePlayerActiveSeasonElo();
 </script>
 <template>
   <NuxtLink
@@ -221,7 +223,7 @@ import FiveStackToolTip from "./FiveStackToolTip.vue";
               />
               <PlayerElo
                 v-else-if="!external"
-                :elo="eloForDisplay"
+                :elo="eloForPlayer(player)"
                 :type="matchType"
               />
             </template>
@@ -245,7 +247,7 @@ import FiveStackToolTip from "./FiveStackToolTip.vue";
             />
             <PlayerElo
               v-else-if="showElo && !external"
-              :elo="eloForDisplay"
+              :elo="eloForPlayer(player)"
               :type="matchType"
             />
             <slot name="elo-postfix"></slot>
@@ -358,11 +360,11 @@ export default {
     },
     // A specific past match's own player_elo result (its row's
     // `updated_elo`) for `matchType`'s ladder. NOT used for the ELO hover
-    // (see `eloForDisplay` below) -- the hover always shows the player's
-    // current canonical per-mode ELO. Historical per-match results belong
-    // on the match row itself (EloChangeBadge, fed directly from
-    // `match.elo_changes`), which reads its own data independently of this
-    // prop.
+    // (see `eloForPlayer` in the script-setup block above) -- the hover
+    // always shows the player's current canonical per-mode ELO. Historical
+    // per-match results belong on the match row itself (EloChangeBadge, fed
+    // directly from `match.elo_changes`), which reads its own data
+    // independently of this prop.
     historicalElo: {
       type: Number,
       default: null,
@@ -390,17 +392,6 @@ export default {
     },
   },
   computed: {
-    // The ELO hover (PlayerElo's `elo` prop) always shows the player's full
-    // current canonical per-mode ELO -- Competitive/Wingman/Duel alike --
-    // regardless of match status. It previously collapsed to a single
-    // `{ [eloModeKey]: historicalElo }` object once a match finished and a
-    // historical result existed, which made the other two modes vanish
-    // from the hover ("--") even though the player has real ratings for
-    // them. That single-mode result belongs on the match row (already
-    // handled separately by EloChangeBadge), not in this hover object.
-    eloForDisplay(): { competitive?: number; wingman?: number; duel?: number } {
-      return this.player?.elo;
-    },
     faceitSkillLevel(): number | null {
       return (
         (this.player as any)?.faceit_rank_history?.[0]?.skill_level ??
