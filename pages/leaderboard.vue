@@ -879,7 +879,7 @@ function trophyTierColor(
   return null;
 }
 
-// Tint the primary value with its ELO rank-tier color (Recruit → Apex),
+// Tint the primary value with its ELO rank-tier color (Grey → Gold),
 // matching the player ELO display. Only the ELO category's value column.
 function eloValueColor(value: number): string | undefined {
   if (category.value !== "elo") return undefined;

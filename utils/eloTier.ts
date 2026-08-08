@@ -7,23 +7,26 @@ export interface RankTier {
   rgb: string;
 }
 
-// ELO baseline — every player starts here. Tiers anchor at 5000 and climb;
-// values below 5000 surface as "Provisional".
-export const ELO_BASELINE = 5000;
+// Below this, a rating is still shown as the flat "Grey"/Provisional color
+// rather than a tier color. Distinct from a player's actual starting ELO
+// (5000, set server-side in get_player_elo_by_type) -- that's an unrelated
+// backend fact this display constant no longer mirrors now that 5000 sits
+// inside the Medium Blue tier below.
+export const ELO_BASELINE = 2500;
 
 export const RANK_TIERS: RankTier[] = [
-  { threshold: 22000, label: "Apex", rgb: "235 75 75" },
-  { threshold: 17000, label: "Phantom", rgb: "210 44 230" },
-  { threshold: 13000, label: "Legend", rgb: "254 215 0" },
-  { threshold: 10000, label: "Master", rgb: "136 70 255" },
-  { threshold: 7500, label: "Veteran", rgb: "75 105 255" },
-  { threshold: 6000, label: "Operator", rgb: "94 152 215" },
-  { threshold: ELO_BASELINE, label: "Recruit", rgb: "177 195 217" },
+  { threshold: 20000, label: "Gold", rgb: "254 215 0" },
+  { threshold: 15000, label: "Red", rgb: "235 75 75" },
+  { threshold: 12500, label: "Magenta", rgb: "210 44 230" },
+  { threshold: 10000, label: "Purple", rgb: "136 70 255" },
+  { threshold: 7500, label: "Strong Blue", rgb: "75 105 255" },
+  { threshold: 5000, label: "Medium Blue", rgb: "94 152 215" },
+  { threshold: ELO_BASELINE, label: "Light Steel", rgb: "177 195 217" },
 ];
 
 export const PROVISIONAL_TIER: RankTier = {
   threshold: 0,
-  label: "Provisional",
+  label: "Grey",
   rgb: "120 130 140",
 };
 
