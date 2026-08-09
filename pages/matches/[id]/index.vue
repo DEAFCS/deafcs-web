@@ -471,6 +471,21 @@ const vsBaseClasses =
         </PageTransition>
 
         <PageTransition :delay="200">
+          <div v-if="canJoinLobby && myLineupChatId" class="flex flex-col gap-2">
+            <span class="text-sm font-medium text-muted-foreground">
+              {{ $t("chat.team_chat") }}
+            </span>
+            <ChatLobby
+              class="max-h-96"
+              instance="matches/id"
+              type="match_team"
+              :lobby-id="myLineupChatId"
+              :play-notification-sound="match.status !== e_match_status_enum.Live"
+            />
+          </div>
+        </PageTransition>
+
+        <PageTransition :delay="200">
           <div
             v-if="match.options.best_of && match.options.best_of > 0"
             class="flex flex-col gap-3"
@@ -924,6 +939,35 @@ export default {
     },
     lineup2TeamId() {
       return this.match?.lineup_2?.team_id ?? null;
+    },
+    // Which lineup (if any) the current viewer belongs to -- as a player
+    // (is_on_lineup) or as that lineup's coach. Matchmaking/draft lineups
+    // are ad-hoc, not backed by a persistent Team, so this can't reuse the
+    // "team" chat type -- it's keyed off the lineup itself instead.
+    myLineup() {
+      if (this.match?.lineup_1?.is_on_lineup) {
+        return this.match.lineup_1;
+      }
+      if (this.match?.lineup_2?.is_on_lineup) {
+        return this.match.lineup_2;
+      }
+      const mySteamId = useAuthStore().me?.steam_id;
+      if (!mySteamId) {
+        return null;
+      }
+      if (String(this.match?.lineup_1?.coach?.steam_id) === String(mySteamId)) {
+        return this.match.lineup_1;
+      }
+      if (String(this.match?.lineup_2?.coach?.steam_id) === String(mySteamId)) {
+        return this.match.lineup_2;
+      }
+      return null;
+    },
+    myLineupChatId() {
+      if (!this.myLineup?.id) {
+        return null;
+      }
+      return `${this.match.id}:${this.myLineup.id}`;
     },
     mapScores() {
       const maps = this.match?.match_maps || [];

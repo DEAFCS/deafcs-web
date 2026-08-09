@@ -300,7 +300,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
 <script lang="ts">
 import type { PropType } from "vue";
 import socket from "~/web-sockets/Socket";
-import type { Lobby } from "~/web-sockets/Socket";
+import type { Lobby, ChatType } from "~/web-sockets/Socket";
 
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { useSound } from "~/composables/useSound";
@@ -336,6 +336,7 @@ export default {
           "organizers",
           "tournament",
           "draft",
+          "match_team",
         ].includes(value),
     },
     global: {
@@ -493,7 +494,15 @@ export default {
         return "relative flex flex-1 min-h-0 flex-col rounded-b-xl bg-transparent px-3 pb-3 pt-2";
       }
 
-      return "relative flex min-h-[25vh] flex-col rounded-xl bg-muted/50 p-4";
+      // Bounded height so ChatMessages' own flex-1/min-h-0/overflow-y-auto
+      // actually gets to scroll internally -- without a ceiling here, the
+      // whole card (including the input, which sits right after the
+      // message list in the same flex column) just kept growing taller
+      // with every new message, pushing the input further down the page
+      // each time instead of staying pinned in place. Reported bug: the
+      // input appeared to "shrink" -- it wasn't shrinking, it was sliding
+      // out of view below the fold as the card grew.
+      return "relative flex min-h-[25vh] max-h-96 flex-col rounded-xl bg-muted/50 p-4";
     },
   },
   methods: {
@@ -518,12 +527,7 @@ export default {
     },
     handleSendMessage(message: string) {
       socket.chat(
-        this.type as
-          | "match"
-          | "team"
-          | "matchmaking"
-          | "organizers"
-          | "tournament",
+        this.type as ChatType,
         this.lobbyId,
         message,
       );
@@ -566,12 +570,7 @@ export default {
         this.lobby?.leave();
         this.lobby = socket.joinLobby(
           this.instance,
-          this.type as
-            | "match"
-            | "team"
-            | "matchmaking"
-            | "organizers"
-            | "tournament",
+          this.type as ChatType,
           this.lobbyId,
         );
         this.updateLobbyMessages(this.lobby.messages);

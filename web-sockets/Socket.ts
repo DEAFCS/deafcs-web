@@ -18,7 +18,11 @@ export type ChatType =
   | "matchmaking"
   | "organizers"
   | "tournament"
-  | "draft";
+  | "draft"
+  // Per-match, per-lineup chat -- id is `${matchId}:${lineupId}`. Distinct
+  // from "team" (a persistent Team entity's own chat, which matchmaking/
+  // draft lineups don't have). Never relayed to the in-game CS2 server.
+  | "match_team";
 
 class Socket extends EventEmitter {
   private listening = new Set();
