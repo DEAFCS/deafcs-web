@@ -5732,6 +5732,7 @@
   "chat": {
     "readonly": "Chat is read-only.",
     "lobby_chat": "Lobby Chat",
+    "global_chat": "Global Chat",
     "team_chat": "Team Chat",
     "message_placeholder": "Type a message...",
     "new_since_last_visit": "New",

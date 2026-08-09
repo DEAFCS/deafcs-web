@@ -494,15 +494,14 @@ export default {
         return "relative flex flex-1 min-h-0 flex-col rounded-b-xl bg-transparent px-3 pb-3 pt-2";
       }
 
-      // Bounded height so ChatMessages' own flex-1/min-h-0/overflow-y-auto
-      // actually gets to scroll internally -- without a ceiling here, the
-      // whole card (including the input, which sits right after the
-      // message list in the same flex column) just kept growing taller
-      // with every new message, pushing the input further down the page
-      // each time instead of staying pinned in place. Reported bug: the
-      // input appeared to "shrink" -- it wasn't shrinking, it was sliding
-      // out of view below the fold as the card grew.
-      return "relative flex min-h-[25vh] max-h-96 flex-col rounded-xl bg-muted/50 p-4";
+      // Fixed height, not a min/max range -- matches the floating/global
+      // variant above (h-96, toggled to h-12 when minimized), which never
+      // had this problem. A min-height plus a separate max-height still
+      // left room for the card to visibly grow between those two points
+      // before ChatMessages' overflow-y-auto took over; a single fixed
+      // height removes that window entirely so the card is always exactly
+      // this size and the message list is the only thing that scrolls.
+      return "relative flex h-96 flex-col rounded-xl bg-muted/50 p-4";
     },
   },
   methods: {

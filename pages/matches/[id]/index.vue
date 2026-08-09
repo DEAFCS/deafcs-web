@@ -460,14 +460,17 @@ const vsBaseClasses =
         </PageTransition>
 
         <PageTransition :delay="200">
-          <ChatLobby
-            class="max-h-96"
-            instance="matches/id"
-            type="match"
-            :lobby-id="match.id"
-            :play-notification-sound="match.status !== e_match_status_enum.Live"
-            v-if="canJoinLobby"
-          />
+          <div v-if="canJoinLobby" class="flex flex-col gap-2">
+            <span class="text-sm font-medium text-muted-foreground">
+              {{ $t("chat.global_chat") }}
+            </span>
+            <ChatLobby
+              instance="matches/id"
+              type="match"
+              :lobby-id="match.id"
+              :play-notification-sound="match.status !== e_match_status_enum.Live"
+            />
+          </div>
         </PageTransition>
 
         <PageTransition :delay="200">
@@ -476,7 +479,6 @@ const vsBaseClasses =
               {{ $t("chat.team_chat") }}
             </span>
             <ChatLobby
-              class="max-h-96"
               instance="matches/id"
               type="match_team"
               :lobby-id="myLineupChatId"
