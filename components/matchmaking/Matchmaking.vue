@@ -639,8 +639,9 @@ export default {
         year: "numeric",
         month: "short",
         day: "numeric",
-        hour: "numeric",
+        hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
       });
     },
     isGuest(): boolean {
