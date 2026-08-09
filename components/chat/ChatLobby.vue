@@ -501,7 +501,9 @@ export default {
       // before ChatMessages' overflow-y-auto took over; a single fixed
       // height removes that window entirely so the card is always exactly
       // this size and the message list is the only thing that scrolls.
-      return "relative flex h-96 flex-col rounded-xl bg-muted/50 p-4";
+      // 307px = 96 (384px) sized down ~20%, per feedback that h-96 read
+      // too tall for the match-page chats specifically.
+      return "relative flex h-[307px] flex-col rounded-xl bg-muted/50 p-4";
     },
   },
   methods: {
