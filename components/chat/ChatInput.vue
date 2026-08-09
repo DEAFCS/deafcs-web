@@ -14,7 +14,7 @@ import { CornerDownLeft } from "lucide-vue-next";
           <div class="flex gap-2">
             <Input
               ref="inputRef"
-              :placeholder="$t('chat.message_placeholder')"
+              :placeholder="placeholder || $t('chat.message_placeholder')"
               v-bind="componentField"
               class="flex-1 transition-all duration-200 focus:scale-[1.02]"
             />
@@ -43,7 +43,7 @@ import { CornerDownLeft } from "lucide-vue-next";
           <div class="flex items-center gap-2 p-2">
             <Input
               ref="inputRef"
-              :placeholder="$t('chat.message_placeholder')"
+              :placeholder="placeholder || $t('chat.message_placeholder')"
               v-bind="componentField"
               class="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
             />
@@ -75,6 +75,11 @@ export default {
       type: String,
       default: "embedded",
       validator: (value: string) => ["global", "embedded"].includes(value),
+    },
+    placeholder: {
+      type: String,
+      required: false,
+      default: undefined,
     },
   },
   emits: ["sendMessage"],

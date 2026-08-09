@@ -162,6 +162,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
           v-if="canSend"
           ref="chatInputRef"
           variant="global"
+          :placeholder="messagePlaceholder"
           @send-message="handleSendMessage"
         />
         <div
@@ -285,6 +286,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
         v-if="canSend"
         ref="chatInputRef"
         variant="embedded"
+        :placeholder="messagePlaceholder"
         @send-message="handleSendMessage"
       />
       <div
@@ -424,6 +426,15 @@ export default {
     },
     participantsCount() {
       return this.participants.length;
+    },
+    messagePlaceholder() {
+      if (this.type === "match") {
+        return this.$t("chat.message_placeholder_global");
+      }
+      if (this.type === "match_team") {
+        return this.$t("chat.message_placeholder_team");
+      }
+      return undefined;
     },
     matchInfo() {
       if (this.type !== "match") {

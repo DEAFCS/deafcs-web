@@ -5735,6 +5735,8 @@
     "global_chat": "Global Chat",
     "team_chat": "Team Chat",
     "message_placeholder": "Type a message...",
+    "message_placeholder_global": "Message everyone...",
+    "message_placeholder_team": "Message your team...",
     "new_since_last_visit": "New",
     "no_participants": "No one else is in this chat yet.",
     "no_messages_yet": "No messages yet",
