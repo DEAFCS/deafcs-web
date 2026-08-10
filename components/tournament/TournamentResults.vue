@@ -211,6 +211,7 @@ function playerAvatarSrc(player: {
               >
                 <PlayerDisplay
                   :player="p"
+                  :allow-roster-image="true"
                   :show-flag="true"
                   :show-role="false"
                   :show-elo="false"
@@ -330,6 +331,7 @@ function playerAvatarSrc(player: {
             <PlayerDisplay
               v-if="mvp.player"
               :player="mvp.player"
+              :allow-roster-image="true"
               :show-flag="true"
               :show-role="false"
               :show-elo="true"

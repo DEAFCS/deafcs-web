@@ -735,6 +735,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
                                 ?.steam_id,
                             )
                           "
+                          :allow-roster-image="isTournamentMatch"
                           :size="compact ? 'xs' : 'sm'"
                           :compact="compact"
                         />
@@ -921,6 +922,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
                                 ?.steam_id,
                             )
                           "
+                          :allow-roster-image="isTournamentMatch"
                           :size="compact ? 'xs' : 'sm'"
                           :compact="compact"
                         />

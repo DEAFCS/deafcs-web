@@ -119,6 +119,11 @@ const deferredPreview = ref<string | null>(null);
 
 const displaySrc = computed(() => deferredPreview.value ?? props.currentSrc);
 const hasImage = computed(() => !!displaySrc.value);
+// Roster-image tiles are managed by Administrator/Tournament Organizer and
+// must have an obvious, always-visible way to replace/remove the existing
+// image - hover-only controls left no visible affordance once an image was
+// already set (the pencil/trash icons only appeared on :hover).
+const alwaysShowActions = computed(() => props.mode === "roster");
 const showRemove = computed(
   () =>
     (props.mode === "deferred" &&
@@ -360,7 +365,12 @@ onBeforeUnmount(() => {
 
         <div
           v-if="!disabled"
-          class="absolute right-2 top-2 z-[3] flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+          :class="[
+            'absolute right-2 top-2 z-[3] flex items-center gap-1 transition-opacity duration-150',
+            alwaysShowActions
+              ? 'opacity-100'
+              : 'opacity-0 group-hover:opacity-100 group-focus-within:opacity-100',
+          ]"
         >
           <button
             type="button"
@@ -384,6 +394,12 @@ onBeforeUnmount(() => {
             <Spinner v-if="isRemoving" class="h-3.5 w-3.5" />
             <Trash2 v-else class="h-3.5 w-3.5" aria-hidden="true" />
           </button>
+        </div>
+        <div
+          v-if="alwaysShowActions && !disabled"
+          class="pointer-events-none absolute inset-x-0 bottom-0 z-[2] bg-gradient-to-t from-black/70 to-transparent px-2 pb-1.5 pt-4 text-center text-[0.6rem] font-medium uppercase tracking-[0.08em] text-white/90"
+        >
+          {{ $t("image_upload.replace") }}
         </div>
       </template>
 

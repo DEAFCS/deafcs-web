@@ -343,6 +343,7 @@ import {
                                 ?.steam_id,
                             )
                           "
+                          :allow-roster-image="isTournamentMatch"
                           size="sm"
                           linkable
                           @click="$emit('update:open', false)"

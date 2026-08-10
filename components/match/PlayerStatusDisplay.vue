@@ -6,7 +6,10 @@ import {
   e_match_status_enum,
 } from "~/generated/zeus";
 import { useSidebar } from "../ui/sidebar";
-import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
+import {
+  buildLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 import { Crown } from "lucide-vue-next";
 
 const { isMobile } = useSidebar();
@@ -16,6 +19,7 @@ const { isMobile } = useSidebar();
   <PlayerDisplay
     :player="member.player"
     :avatar-override="teamRosterAvatar"
+    :allow-roster-image="allowRosterImage"
     :show-online="showStatus"
     :show-flag="showDetails"
     :show-name="showDetails"
@@ -198,6 +202,12 @@ export default {
         return buildLineupAvatarOverride(lineup)(steamId);
       }
       return null;
+    },
+    // MM/Draft matches must stay avatar-only; only a real tournament match
+    // (real team or temporary tournament team, both linked via
+    // tournament_brackets) may fall through to a roster image.
+    allowRosterImage() {
+      return matchAllowsRosterImage(this.match);
     },
     lobby() {
       return useMatchLobbyStore().lobbyChat[`match:${this.match?.id}`];

@@ -4,7 +4,10 @@ import { useApolloClient } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import AnimatedStat from "~/components/AnimatedStat.vue";
-import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
+import {
+  buildLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 type Pair = {
@@ -21,6 +24,10 @@ const props = defineProps<{
   match: any;
   pairs: Pair[];
 }>();
+
+// MM/Draft matches must stay avatar-only; only a real tournament match may
+// fall through to a roster image.
+const allowRosterImage = computed(() => matchAllowsRosterImage(props.match));
 
 // One player picked per side. Exposed via v-model so the radar comparison
 // below the tab can mirror the same matchup instead of carrying its own
@@ -393,6 +400,7 @@ function damageWidth(v: number) {
           <PlayerDisplay
             :player="memberA.player"
             :avatar-override="avatarFor(selectedA)"
+            :allow-roster-image="allowRosterImage"
             :show-online="false"
             :show-flag="false"
             :show-role="false"
@@ -443,6 +451,7 @@ function damageWidth(v: number) {
           <PlayerDisplay
             :player="memberB.player"
             :avatar-override="avatarFor(selectedB)"
+            :allow-roster-image="allowRosterImage"
             :show-online="false"
             :show-flag="false"
             :show-role="false"

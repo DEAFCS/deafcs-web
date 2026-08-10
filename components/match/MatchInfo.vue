@@ -6,7 +6,10 @@ import ScheduleMatch from "~/components/match/ScheduleMatch.vue";
 import CheckIntoMatch from "~/components/match/CheckIntoMatch.vue";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
 import { e_match_status_enum } from "~/generated/zeus";
-import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
+import {
+  buildLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 </script>
 
 <template>
@@ -63,6 +66,7 @@ import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
               :avatar-override="
                 buildLineupAvatarOverride(lineup)(lineup.coach.steam_id)
               "
+              :allow-roster-image="allowRosterImage"
             />
             <AssignCoachToLineup
               v-if="lineup.can_update_lineup"
@@ -132,6 +136,11 @@ export default {
     },
   },
   computed: {
+    // MM/Draft matches must stay avatar-only; only a real tournament match
+    // may fall through to a roster image.
+    allowRosterImage() {
+      return matchAllowsRosterImage(this.match);
+    },
     formattedAutoCancelCountdown() {
       const total = Math.max(0, this.autoCancelRemainingSeconds);
       const h = Math.floor(total / 3600);

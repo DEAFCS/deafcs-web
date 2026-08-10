@@ -133,6 +133,7 @@ const teamHeroActionsClasses =
                 :linkable="true"
                 size="sm"
                 :avatar-override="teamCaptainRosterImageSrc"
+                :allow-roster-image="true"
               />
             </div>
 

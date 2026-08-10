@@ -360,6 +360,15 @@ export default {
       type: String,
       default: null,
     },
+    // Roster images (general and team-specific) must never leak into normal
+    // identity UI (sidebar, matchmaking, draft, player search, leaderboards,
+    // etc.) - only real team-assigned match contexts and tournament rosters
+    // opt in. When false, playerAvatarSrc ignores player.roster_image_url
+    // entirely and only ever resolves to the avatar.
+    allowRosterImage: {
+      type: Boolean,
+      default: false,
+    },
     matchType: {
       type: String,
       default: null,
@@ -435,10 +444,16 @@ export default {
         return resolveAvatarUrl(this.avatarOverride, this.apiDomain);
       }
       if (!this.player) return null;
+      if (this.allowRosterImage) {
+        return resolveAvatarUrl(
+          this.player.roster_image_url ||
+            this.player.custom_avatar_url ||
+            this.player.avatar_url,
+          this.apiDomain,
+        );
+      }
       return resolveAvatarUrl(
-        this.player.roster_image_url ||
-          this.player.custom_avatar_url ||
-          this.player.avatar_url,
+        this.player.custom_avatar_url || this.player.avatar_url,
         this.apiDomain,
       );
     },

@@ -2995,7 +2995,7 @@ const playerHeroTeamChipDotClasses =
           />
         </div>
 
-        <div v-if="canEditAvatar" class="space-y-2">
+        <div v-if="canEditRosterImages" class="space-y-2">
           <div
             class="inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground"
           >
@@ -3344,6 +3344,13 @@ export default {
     canEditAvatar() {
       return this.isSelfProfile || this.isAdmin;
     },
+    // Roster images (general and team-specific) are Administrator/Tournament
+    // Organizer only - unlike the avatar above, self-service is not allowed.
+    canEditRosterImages() {
+      return useAuthStore().isRoleAbove(
+        e_player_roles_enum.tournament_organizer,
+      );
+    },
     canEditName() {
       return this.isSelfProfile || this.isAdmin;
     },
@@ -3365,32 +3372,20 @@ export default {
     canEditPlayer() {
       return (
         this.canEditAvatar ||
+        this.canEditRosterImages ||
         this.canEditName ||
         this.canEditCountry ||
         this.canEditRole
       );
     },
     bulkApplyTeams() {
-      const me = useAuthStore().me;
-      if (!me) return [];
-      const isGlobalOrganizer = useAuthStore().isRoleAbove(
-        e_player_roles_enum.match_organizer,
-      );
+      if (!this.canEditRosterImages) return [];
       const memberships = this.playerTeamMemberships ?? [];
-      return memberships
-        .filter((m) => {
-          if (isGlobalOrganizer) return true;
-          if (String(m.team.owner_steam_id) === String(me.steam_id))
-            return true;
-          return m.team.viewer_roster.some(
-            (r) => r.role === e_team_roles_enum.Admin,
-          );
-        })
-        .map((m) => ({
-          teamId: m.team.id,
-          teamName: m.team.name,
-          hasCustomImage: !!m.roster_image_url,
-        }));
+      return memberships.map((m) => ({
+        teamId: m.team.id,
+        teamName: m.team.name,
+        hasCustomImage: !!m.roster_image_url,
+      }));
     },
     kd() {
       if (!this.player?.stats) {

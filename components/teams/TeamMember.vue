@@ -65,6 +65,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
         :player="member.player"
         :linkable="true"
         :avatar-override="rosterImageSrc"
+        :allow-roster-image="true"
         :match-type="matchType"
       >
         <template #name-postfix>
@@ -281,7 +282,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
         </DialogDescription>
       </DialogHeader>
       <ImageUploadTile
-        class="mx-auto max-w-[12rem]"
+        class="mx-auto w-full max-w-[12rem]"
         aspect="square"
         fit="contain"
         mode="roster"
@@ -327,6 +328,7 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 
 <script lang="ts">
 import { generateMutation } from "~/graphql/graphqlGen";
+import { e_player_roles_enum } from "~/generated/zeus";
 import type { e_team_roles_enum } from "~/generated/zeus";
 
 interface Role {
@@ -401,8 +403,14 @@ export default {
     canRemoveMember(): boolean {
       return !!this.team.can_remove && !this.isSelf;
     },
+    // Independent of team.can_change_role (which also gates role assignment,
+    // remove-member, and set-captain for team owners/Admins) - roster images
+    // are Administrator/Tournament Organizer only, with no team self-service.
     canEditRosterImage(): boolean {
-      return !!this.team.can_change_role && !this.isInvite;
+      return (
+        !this.isInvite &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
+      );
     },
     showActionMenu(): boolean {
       return !!(

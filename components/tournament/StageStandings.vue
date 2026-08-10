@@ -147,6 +147,7 @@ import { kdColor } from "~/utils/statTiers";
                             <td class="px-4 py-2">
                               <PlayerDisplay
                                 :player="member.player"
+                                :allow-roster-image="true"
                                 :show-flag="true"
                                 :show-role="false"
                                 :show-elo="true"

@@ -7,7 +7,10 @@ import PlayerDisplay from "../PlayerDisplay.vue";
     class="flex items-center justify-between gap-4 px-[0.85rem] py-[0.65rem] border border-dashed border-border bg-muted/15 rounded-md"
   >
     <div class="flex items-center gap-[0.65rem] min-w-0">
-      <PlayerDisplay :player="invite.player"></PlayerDisplay>
+      <PlayerDisplay
+        :player="invite.player"
+        :allow-roster-image="true"
+      ></PlayerDisplay>
       <span
         class="px-[0.45rem] py-[0.1rem] font-mono text-[0.6rem] font-bold tracking-[0.2em] uppercase bg-muted/40 text-muted-foreground rounded-full"
       >

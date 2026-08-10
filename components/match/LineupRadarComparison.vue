@@ -36,6 +36,10 @@ import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
+import {
+  buildLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 
 ChartJS.register(
   RadialLinearScale,
@@ -58,6 +62,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+
+// MM/Draft matches must stay avatar-only; only a real tournament match may
+// fall through to a roster image.
+const allowRosterImage = computed(() => matchAllowsRosterImage(props.match));
 
 const RATING_MAX = 2.0;
 const KAST_MAX = 100;
@@ -346,6 +354,14 @@ const metricsB = computed(() => metricsFor(selectedB.value));
 
 const playerA = computed(() => entryFor(selectedA.value)?.member?.player ?? null);
 const playerB = computed(() => entryFor(selectedB.value)?.member?.player ?? null);
+const playerAAvatarOverride = computed(() => {
+  const entry = entryFor(selectedA.value);
+  return entry ? buildLineupAvatarOverride(entry.lineup)(entry.steamId) : null;
+});
+const playerBAvatarOverride = computed(() => {
+  const entry = entryFor(selectedB.value);
+  return entry ? buildLineupAvatarOverride(entry.lineup)(entry.steamId) : null;
+});
 
 const activeAxes = computed(() =>
   axisDefs.filter((axis) => {
@@ -559,6 +575,8 @@ function betterSide(axis: AxisDef): "a" | "b" | null {
             <PlayerDisplay
               v-if="playerA"
               :player="playerA"
+              :avatar-override="playerAAvatarOverride"
+              :allow-roster-image="allowRosterImage"
               size="xs"
               :show-flag="false"
               :show-role="false"
@@ -568,6 +586,8 @@ function betterSide(axis: AxisDef): "a" | "b" | null {
             <PlayerDisplay
               v-if="playerB"
               :player="playerB"
+              :avatar-override="playerBAvatarOverride"
+              :allow-roster-image="allowRosterImage"
               size="xs"
               :show-flag="false"
               :show-role="false"

@@ -16,6 +16,10 @@ import {
   tacticalSectionTickClasses,
   tacticalSectionDescriptionClasses,
 } from "~/utilities/tacticalClasses";
+import {
+  buildLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 
 interface Signals {
   rounds: number;
@@ -29,6 +33,7 @@ interface RolePlayer {
   player: any;
   role: CombatRole;
   sig: Signals;
+  avatarOverride: string | null;
 }
 
 interface ViewRow {
@@ -49,6 +54,10 @@ const props = defineProps<{
 }>();
 
 const { t } = useI18n();
+
+// MM/Draft matches must stay avatar-only; only a real tournament match may
+// fall through to a roster image.
+const allowRosterImage = computed(() => matchAllowsRosterImage(props.match));
 const { client: apolloClient } = useApolloClient();
 
 const ROLE_META: Record<CombatRole, { color: string; bg: string }> = {
@@ -140,6 +149,7 @@ function teamRoles(lineup: any): RolePlayer[] {
   if (!lineup) {
     return [];
   }
+  const rosterOverride = buildLineupAvatarOverride(lineup);
   const players: RolePlayer[] = [];
   for (const member of lineup.lineup_players ?? []) {
     if (!member.player) {
@@ -157,6 +167,7 @@ function teamRoles(lineup: any): RolePlayer[] {
         entryRate: agg?.entryRate ?? 0,
         supportIdx: agg?.supportIdx ?? 0,
       },
+      avatarOverride: rosterOverride(sid),
     });
   }
   return players.sort(
@@ -223,6 +234,8 @@ function bar(value: number, max: number): number {
               <div class="flex items-center justify-between gap-2">
                 <PlayerDisplay
                   :player="p.player"
+                  :avatar-override="p.avatarOverride"
+                  :allow-roster-image="allowRosterImage"
                   size="xs"
                   :show-flag="false"
                   :show-role="false"

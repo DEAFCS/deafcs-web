@@ -654,7 +654,7 @@ const expandedRows = computed(() =>
               :key="entry.member.steam_id"
               class="flex items-center justify-between gap-2"
             >
-              <lineup-member :member="entry.member" :lineup_id="lp.id" />
+              <lineup-member :member="entry.member" :match="props.match" />
               <div
                 class="flex items-center gap-3 shrink-0 tabular-nums text-xs"
               >

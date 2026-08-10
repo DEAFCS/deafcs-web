@@ -7,7 +7,7 @@
           'bg-card group-hover:bg-muted shadow-[3px_0_6px_-3px_hsl(0_0%_0%/0.7)]',
       ]"
     >
-      <lineup-member :member="member" :lineup_id="lineup.id"></lineup-member>
+      <lineup-member :member="member" :match="match"></lineup-member>
     </TableCell>
     <TableCell>
       <span class="inline-flex items-baseline gap-1">
@@ -52,6 +52,8 @@
       >
         <PlayerDisplay
           :player="mostKilled.member.player"
+          :avatar-override="avatarOverrideFor(mostKilled.member.steam_id)"
+          :allow-roster-image="allowRosterImage"
           :show-flag="false"
           :show-role="false"
           :show-online="false"
@@ -96,6 +98,8 @@
       >
         <PlayerDisplay
           :player="mostDiedTo.member.player"
+          :avatar-override="avatarOverrideFor(mostDiedTo.member.steam_id)"
+          :allow-roster-image="allowRosterImage"
           :show-flag="false"
           :show-role="false"
           :show-online="false"
@@ -122,6 +126,10 @@ import { resolveWeapon } from "~/utilities/weaponIcon";
 import { useMatchSide } from "~/composables/useMatchSide";
 import { useOpeningDuelsColumns } from "~/composables/useMatchTableColumns";
 import { useCurrentUserRow } from "~/composables/useCurrentUserRow";
+import {
+  buildLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 
 export default {
   components: {
@@ -180,6 +188,11 @@ export default {
     },
   },
   computed: {
+    // MM/Draft matches must stay avatar-only; only a real tournament match
+    // may fall through to a roster image.
+    allowRosterImage(): boolean {
+      return matchAllowsRosterImage(this.match);
+    },
     totalRounds(): number {
       return this.lineupRounds;
     },
@@ -264,6 +277,11 @@ export default {
   methods: {
     onWeaponIconError(event: Event) {
       (event.target as HTMLImageElement).style.display = "none";
+    },
+    avatarOverrideFor(steamId: string | number | null | undefined) {
+      const lineup1Override = buildLineupAvatarOverride(this.match?.lineup_1);
+      const lineup2Override = buildLineupAvatarOverride(this.match?.lineup_2);
+      return lineup1Override(steamId) ?? lineup2Override(steamId);
     },
   },
 };

@@ -6,6 +6,9 @@ import {
   teamCareerLineupsQuery,
   teamCareerHltvQuery,
 } from "~/graphql/teamCareerStatsGraphql";
+import { $ } from "~/generated/zeus";
+import { generateQuery } from "~/graphql/graphqlGen";
+import { pickRosterImagePath } from "~/utilities/rosterImage";
 import { useTableSort } from "~/composables/useTableSort";
 import SortableTableHead from "~/components/common/SortableTableHead.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
@@ -50,6 +53,7 @@ interface PlayerAgg {
 
 const loading = ref(true);
 const players = ref<PlayerAgg[]>([]);
+const rosterImageByPlayer = ref<Record<string, string | null>>({});
 const matchesPlayed = ref(0);
 const mapsPlayed = ref(0);
 const mapsWon = ref(0);
@@ -201,7 +205,41 @@ async function load() {
   }
 }
 
+const teamRosterImagesQuery = generateQuery({
+  team_roster: [
+    { where: { team_id: { _eq: $("teamId", "uuid!") } } },
+    { player_steam_id: true, roster_image_url: true },
+  ],
+});
+
+async function loadRosterImages() {
+  if (!props.teamId) {
+    rosterImageByPlayer.value = {};
+    return;
+  }
+  try {
+    const { data } = await apolloClient.query({
+      query: teamRosterImagesQuery,
+      variables: { teamId: props.teamId },
+      fetchPolicy: "network-only",
+    });
+    const rows = ((data as any)?.team_roster ?? []) as Array<{
+      player_steam_id: string;
+      roster_image_url: string | null;
+    }>;
+    rosterImageByPlayer.value = Object.fromEntries(
+      rows.map((r) => [
+        String(r.player_steam_id),
+        pickRosterImagePath(r, null),
+      ]),
+    );
+  } catch {
+    rosterImageByPlayer.value = {};
+  }
+}
+
 watch(() => props.teamId, load, { immediate: true });
+watch(() => props.teamId, loadRosterImages, { immediate: true });
 
 const { sortKey, sortDir, toggle, sortRows } = useTableSort<
   | "player"
@@ -403,6 +441,8 @@ function kd(p: PlayerAgg): number {
                     <PlayerDisplay
                       v-if="p.player"
                       :player="p.player"
+                      :avatar-override="rosterImageByPlayer[p.steamId]"
+                      :allow-roster-image="true"
                       size="xs"
                       :show-flag="false"
                       :show-role="false"
