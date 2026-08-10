@@ -253,4 +253,48 @@ for (const path of UNCONDITIONAL_TRUE) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// leaderboard.vue must query and forward player_custom_avatar_url (not just
+// player_avatar_url) so /leaderboard shows a player's custom avatar the same
+// way /players and player profiles already do, while staying roster-image-
+// disabled (already asserted via MUST_STAY_AVATAR_ONLY above).
+// ---------------------------------------------------------------------------
+{
+  const src = await read("pages/leaderboard.vue");
+
+  assert.match(
+    src,
+    /player_custom_avatar_url:\s*string\s*\|\s*null/,
+    "LeaderboardEntry must type player_custom_avatar_url",
+  );
+
+  const queryMatch = src.match(
+    /const LEADERBOARD_QUERY = gql`([\s\S]*?)`;/,
+  );
+  assert.ok(queryMatch, "LEADERBOARD_QUERY not found");
+  assert.match(
+    queryMatch[1],
+    /player_custom_avatar_url/,
+    "LEADERBOARD_QUERY must select player_custom_avatar_url",
+  );
+
+  const playerObjectMatch = src.match(
+    /:player="\{\s*steam_id:\s*entry\.player_steam_id,([\s\S]*?)\}"/,
+  );
+  assert.ok(
+    playerObjectMatch,
+    "synthetic PlayerDisplay player object not found",
+  );
+  assert.match(
+    playerObjectMatch[1],
+    /custom_avatar_url:\s*entry\.player_custom_avatar_url/,
+    "the synthetic player object must map custom_avatar_url from entry.player_custom_avatar_url",
+  );
+  assert.match(
+    playerObjectMatch[1],
+    /avatar_url:\s*entry\.player_avatar_url/,
+    "the synthetic player object must still map avatar_url from entry.player_avatar_url (Steam fallback)",
+  );
+}
+
 console.log("roster image resolution + opt-in wiring checks passed");

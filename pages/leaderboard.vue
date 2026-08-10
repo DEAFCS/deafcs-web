@@ -61,6 +61,7 @@ interface LeaderboardEntry {
   player_steam_id: string;
   player_name: string;
   player_avatar_url: string | null;
+  player_custom_avatar_url: string | null;
   player_country: string | null;
   value: number;
   secondary_value: number | null;
@@ -239,6 +240,7 @@ const LEADERBOARD_QUERY = gql`
       player_steam_id
       player_name
       player_avatar_url
+      player_custom_avatar_url
       player_country
       value
       secondary_value
@@ -1625,6 +1627,7 @@ onMounted(async () => {
                       :player="{
                         steam_id: entry.player_steam_id,
                         name: entry.player_name,
+                        custom_avatar_url: entry.player_custom_avatar_url,
                         avatar_url: entry.player_avatar_url,
                         country: entry.player_country,
                       }"
