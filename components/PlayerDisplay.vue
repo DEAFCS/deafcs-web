@@ -475,7 +475,14 @@ export default {
       // outside match context it's fully hidden, and on the match page
       // (showLeaverBadge) it shows "LEAVER" instead.
       if (this.player?.is_admin_sanctioned) return "ban";
-      if (this.player?.is_banned && this.showLeaverBadge) return "leaver";
+      // Match-scoped, not the global is_banned: is_banned stays true for
+      // the whole escalating matchmaking_cooldown window regardless of
+      // which match actually triggered it, which showed "LEAVER" on every
+      // match the player appeared in while it was active, not just the one
+      // they abandoned. is_leaver_in_match(args: {match_id}) is queried
+      // specifically for the match this badge is rendered on.
+      if (this.showLeaverBadge && this.player?.is_leaver_in_match)
+        return "leaver";
       if (this.player?.is_muted) return "mute";
       if (this.player?.is_gagged) return "gag";
       return null;
