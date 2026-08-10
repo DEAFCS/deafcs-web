@@ -3040,7 +3040,9 @@ import { e_team_roles_enum } from "~/generated/zeus";
 import { playerFields } from "~/graphql/playerFields";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { awardFields } from "~/graphql/awardFields";
+import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
+import { mapAwardRecipientToTrophy } from "~/utilities/awardOccurrenceResolution";
 
 export default {
   apollo: {
@@ -3154,9 +3156,9 @@ export default {
           this.playerTeamMemberships = data.team_roster || [];
         },
       },
-      playerTrophies: {
+      playerAwardRecipients: {
         query: typedGql("subscription")({
-          tournament_trophies: [
+          award_recipients: [
             {
               where: {
                 player_steam_id: {
@@ -3176,7 +3178,33 @@ export default {
           return !this.playerId;
         },
         result: function ({ data }: { data: any }) {
-          this.playerTrophies = data.tournament_trophies || [];
+          this.playerAwardRecipients = data.award_recipients || [];
+        },
+      },
+      playerAwardSlots: {
+        query: typedGql("query")({
+          tournament_award_slots: [
+            {
+              where: {
+                tournament_id: {
+                  _in: $("tournamentIds", "[uuid!]!"),
+                },
+              },
+            },
+            tournamentAwardSlotLookupFields,
+          ],
+        }),
+        variables: function () {
+          return {
+            tournamentIds: (this as any).playerAwardTournamentIds,
+          };
+        },
+        skip: function () {
+          return (this as any).playerAwardTournamentIds.length === 0;
+        },
+        fetchPolicy: "network-only",
+        result: function ({ data }: { data: any }) {
+          this.playerAwardSlots = data.tournament_award_slots || [];
         },
       },
     },
@@ -3195,7 +3223,8 @@ export default {
   data() {
     return {
       player: undefined,
-      playerTrophies: undefined,
+      playerAwardRecipients: undefined as any[] | undefined,
+      playerAwardSlots: [] as any[],
       highlightsResolved: false,
       pageContentTimedOut: false,
       pageContentTimeout: null as number | null,
@@ -3216,7 +3245,22 @@ export default {
   computed: {
     pageContentReady(): boolean {
       if (this.pageContentTimedOut) return true;
-      return this.playerTrophies !== undefined && this.highlightsResolved;
+      return (
+        this.playerAwardRecipients !== undefined && this.highlightsResolved
+      );
+    },
+    playerAwardTournamentIds(): string[] {
+      const ids = new Set<string>();
+      for (const recipient of this.playerAwardRecipients || []) {
+        const tournamentId = (recipient as any).occurrence?.tournament_id;
+        if (tournamentId) ids.add(tournamentId);
+      }
+      return [...ids];
+    },
+    playerTrophies(): any[] {
+      return (this.playerAwardRecipients || []).map((recipient) =>
+        mapAwardRecipientToTrophy(recipient as any, this.playerAwardSlots),
+      );
     },
     playerId() {
       return this.$route.params.id || this.me?.steam_id || null;

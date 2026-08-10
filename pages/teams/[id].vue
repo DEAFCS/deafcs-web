@@ -422,7 +422,9 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { simpleMatchFields } from "~/graphql/simpleMatchFields";
 import { playerFields } from "~/graphql/playerFields";
 import { awardFields } from "~/graphql/awardFields";
+import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import { mapAwardRecipientToTrophy } from "~/utilities/awardOccurrenceResolution";
 
 const VALID_TABS = ["overview", "stats", "highlights", "scrim"];
 
@@ -433,7 +435,8 @@ export default {
       tab: VALID_TABS.includes(useRoute().query.tab as string)
         ? (useRoute().query.tab as string)
         : "overview",
-      teamTrophies: [] as any[],
+      teamAwardRecipients: [] as any[],
+      teamAwardSlots: [] as any[],
       tournamentMatches: [] as any[],
       matchesPage: 1,
       matchesPerPage: 5,
@@ -581,18 +584,16 @@ export default {
           this.tournamentMatches = data.matches || [];
         },
       },
-      teamTrophies: {
+      teamAwardRecipients: {
         query: typedGql("subscription")({
-          tournament_trophies: [
+          award_recipients: [
             {
               where: {
                 player_steam_id: {
                   _is_null: true,
                 },
-                tournament_team: {
-                  team_id: {
-                    _eq: $("teamId", "uuid!"),
-                  },
+                team_id: {
+                  _eq: $("teamId", "uuid!"),
                 },
               },
             },
@@ -605,7 +606,33 @@ export default {
           };
         },
         result: function ({ data }) {
-          this.teamTrophies = data.tournament_trophies || [];
+          this.teamAwardRecipients = data.award_recipients || [];
+        },
+      },
+      teamAwardSlots: {
+        query: typedGql("query")({
+          tournament_award_slots: [
+            {
+              where: {
+                tournament_id: {
+                  _in: $("tournamentIds", "[uuid!]!"),
+                },
+              },
+            },
+            tournamentAwardSlotLookupFields,
+          ],
+        }),
+        variables: function () {
+          return {
+            tournamentIds: (this as any).teamAwardTournamentIds,
+          };
+        },
+        skip: function () {
+          return (this as any).teamAwardTournamentIds.length === 0;
+        },
+        fetchPolicy: "network-only",
+        result: function ({ data }) {
+          this.teamAwardSlots = data.tournament_award_slots || [];
         },
       },
     },
@@ -614,6 +641,19 @@ export default {
     useTeamContext().value = null;
   },
   computed: {
+    teamAwardTournamentIds(): string[] {
+      const ids = new Set<string>();
+      for (const recipient of this.teamAwardRecipients as any[]) {
+        const tournamentId = recipient.occurrence?.tournament_id;
+        if (tournamentId) ids.add(tournamentId);
+      }
+      return [...ids];
+    },
+    teamTrophies(): any[] {
+      return (this.teamAwardRecipients as any[]).map((recipient) =>
+        mapAwardRecipientToTrophy(recipient, this.teamAwardSlots as any[]),
+      );
+    },
     me() {
       return useAuthStore().me;
     },

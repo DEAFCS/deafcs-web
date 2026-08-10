@@ -466,6 +466,8 @@ import { $, e_tournament_status_enum, order_by } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { mapFields } from "~/graphql/mapGraphql";
 import { playerFields } from "~/graphql/playerFields";
+import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
+import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
 
 export default {
   props: {
@@ -486,6 +488,8 @@ export default {
     return {
       tournamentMatches: [] as any[],
       tournamentPlayerStats: [] as any[],
+      awardOccurrences: [] as any[],
+      tournamentAwardSlots: [] as any[],
     };
   },
   apollo: {
@@ -643,6 +647,99 @@ export default {
             data?.v_tournament_player_stats || [];
         },
       },
+      awardOccurrences: {
+        query: typedGql("subscription")({
+          award_occurrences: [
+            {
+              where: {
+                tournament_id: {
+                  _eq: $("tournamentId", "uuid!"),
+                },
+              },
+            },
+            {
+              id: true,
+              placement: true,
+              award: {
+                image_url: true,
+              },
+              recipients: [
+                {},
+                {
+                  id: true,
+                  team_id: true,
+                  player_steam_id: true,
+                  tournament_team_id: true,
+                  player: playerFields,
+                  team: {
+                    id: true,
+                    name: true,
+                    short_name: true,
+                  },
+                  tournament_team: {
+                    id: true,
+                    name: true,
+                    team: {
+                      id: true,
+                      name: true,
+                    },
+                    roster: [
+                      {},
+                      {
+                        player_steam_id: true,
+                        player: playerFields,
+                      },
+                    ],
+                  },
+                },
+              ],
+            },
+          ],
+        }),
+        variables: function () {
+          return {
+            tournamentId: (this as any).tournament?.id,
+          };
+        },
+        skip: function () {
+          const self = this as any;
+          return !self.showStandings || !self.tournament?.id;
+        },
+        result: function ({ data }: { data: { award_occurrences: any[] } }) {
+          (this as any).awardOccurrences = data?.award_occurrences || [];
+        },
+      },
+      tournamentAwardSlots: {
+        query: typedGql("subscription")({
+          tournament_award_slots: [
+            {
+              where: {
+                tournament_id: {
+                  _eq: $("tournamentId", "uuid!"),
+                },
+              },
+            },
+            tournamentAwardSlotLookupFields,
+          ],
+        }),
+        variables: function () {
+          return {
+            tournamentId: (this as any).tournament?.id,
+          };
+        },
+        skip: function () {
+          const self = this as any;
+          return !self.showStandings || !self.tournament?.id;
+        },
+        result: function ({
+          data,
+        }: {
+          data: { tournament_award_slots: any[] };
+        }) {
+          (this as any).tournamentAwardSlots =
+            data?.tournament_award_slots || [];
+        },
+      },
     },
   },
   methods: {
@@ -659,8 +756,20 @@ export default {
       return this.$t("trophies.third_place");
     },
     trophyConfigFor(placement: number) {
-      const configs = (this.tournament as any)?.trophy_configs || [];
-      return configs.find((c: any) => c.placement === placement) || null;
+      const occurrence = ((this as any).awardOccurrences || []).find(
+        (o: any) => o.placement === placement,
+      );
+      const artwork = resolveAwardArtwork(
+        placement,
+        occurrence?.award?.image_url,
+        (this.tournament as any)?.id,
+        (this as any).tournamentAwardSlots,
+      );
+      return {
+        custom_name: artwork.custom_name,
+        silhouette: artwork.silhouette,
+        image_url: artwork.image_url,
+      };
     },
     displayTeamName(tournamentTeam: any, fallbackId?: string) {
       const underlying = tournamentTeam?.team?.name;
@@ -697,50 +806,51 @@ export default {
       return stages.length ? stages[stages.length - 1]?.type || null : null;
     },
     podium() {
-      const trophies = (this.tournament as any)?.trophies || [];
-      if (trophies.length === 0) return [];
-      const byPlacement = new Map();
-      for (const t of trophies) {
-        if (t.placement === 0) continue;
-        const existing = byPlacement.get(t.placement);
-        if (existing) {
-          if (
-            t.player &&
-            !existing.players.some(
-              (p: any) => String(p.steam_id) === String(t.player.steam_id),
-            )
-          ) {
-            existing.players.push(t.player);
-          }
-          continue;
-        }
-        const rosterPlayers = (t.tournament_team?.roster || [])
+      const occurrences = (this as any).awardOccurrences || [];
+      const entries = [];
+      for (const occ of occurrences) {
+        if (occ.placement === 0) continue;
+        const recipients = occ.recipients || [];
+        const primary =
+          recipients.find((r: any) => r.tournament_team) || recipients[0];
+        const rosterPlayers = (primary?.tournament_team?.roster || [])
           .map((r: any) => r.player)
           .filter(Boolean);
-        const players = rosterPlayers.length
-          ? rosterPlayers
-          : t.player
-            ? [t.player]
-            : [];
-        byPlacement.set(t.placement, {
-          placement: t.placement,
-          teamId: t.tournament_team_id,
-          realTeamId: t.tournament_team?.team?.id || null,
-          teamName: this.displayTeamName(
-            t.tournament_team,
-            t.tournament_team_id,
-          ),
+        const directPlayers = recipients
+          .map((r: any) => r.player)
+          .filter(Boolean);
+        const players = rosterPlayers.length ? rosterPlayers : directPlayers;
+        entries.push({
+          placement: occ.placement,
+          teamId: primary?.tournament_team_id ?? null,
+          realTeamId:
+            primary?.tournament_team?.team?.id || primary?.team?.id || null,
+          teamName:
+            this.displayTeamName(
+              primary?.tournament_team,
+              primary?.tournament_team_id,
+            ) ||
+            primary?.team?.name ||
+            primary?.team?.short_name ||
+            "",
           tournamentType: this.finalStageType,
           players,
         });
       }
-      return Array.from(byPlacement.values()).sort(
-        (a: any, b: any) => a.placement - b.placement,
-      );
+      return entries.sort((a: any, b: any) => a.placement - b.placement);
     },
     mvp() {
-      const trophies = (this.tournament as any)?.trophies || [];
-      return trophies.find((t: any) => t.placement === 0) || null;
+      const occurrences = (this as any).awardOccurrences || [];
+      const occ = occurrences.find((o: any) => o.placement === 0);
+      if (!occ) return null;
+      const recipient = (occ.recipients || [])[0];
+      if (!recipient) return null;
+      return {
+        player: recipient.player,
+        player_steam_id: recipient.player_steam_id,
+        tournament_team: recipient.tournament_team,
+        tournament_team_id: recipient.tournament_team_id,
+      };
     },
     mvpTeamName() {
       if (!this.mvp?.tournament_team) return "";

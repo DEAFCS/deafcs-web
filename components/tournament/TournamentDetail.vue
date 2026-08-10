@@ -1061,44 +1061,6 @@ export default {
                   },
                 },
               ],
-              trophies: [
-                {},
-                {
-                  id: true,
-                  placement: true,
-                  placement_tier: true,
-                  tournament_team_id: true,
-                  player_steam_id: true,
-                  manual: true,
-                  player: playerFields,
-                  tournament_team: {
-                    id: true,
-                    name: true,
-                    team: {
-                      id: true,
-                      name: true,
-                    },
-                    roster: [
-                      {},
-                      {
-                        player_steam_id: true,
-                        player: playerFields,
-                      },
-                    ],
-                  },
-                },
-              ],
-              trophy_configs: [
-                {},
-                {
-                  id: true,
-                  tournament_id: true,
-                  placement: true,
-                  custom_name: true,
-                  silhouette: true,
-                  image_url: true,
-                },
-              ],
               stages: [
                 {
                   order_by: [
