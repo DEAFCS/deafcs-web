@@ -129,7 +129,6 @@ export default {
       autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
       statsRemainingSeconds: 0,
       statsInterval: undefined as ReturnType<typeof setInterval> | undefined,
-      statsProcessingStartedAt: null as number | null,
     };
   },
   unmounted() {
@@ -190,32 +189,29 @@ export default {
         clearInterval(this.statsInterval);
         this.statsInterval = undefined;
       }
-      if (!this.isProcessingStats) {
+      if (!this.isProcessingStats || !this.currentMatchMap?.demo_processing_started_at) {
         this.statsRemainingSeconds = 0;
-        this.statsProcessingStartedAt = null;
         return;
-      }
-      // No DB timestamp marks exactly when WaitingForTV/UploadingDemo
-      // started, so anchor the estimate on the moment this component
-      // first observed it -- close enough for a "roughly how long left"
-      // indicator, and it disappears as soon as the map is actually
-      // Finished regardless of whether the estimate ran out first.
-      if (!this.statsProcessingStartedAt) {
-        this.statsProcessingStartedAt = Date.now();
       }
       this.updateStatsCountdown();
       this.statsInterval = setInterval(this.updateStatsCountdown, 1000);
     },
     updateStatsCountdown() {
-      if (!this.isProcessingStats || !this.statsProcessingStartedAt) {
+      const startedAt = this.currentMatchMap?.demo_processing_started_at;
+      if (!this.isProcessingStats || !startedAt) {
         this.statsRemainingSeconds = 0;
         return;
       }
       // tv_delay covers the recording/broadcast window; the demo still
       // needs to upload after that (~15-20s, see HandleEndOfMap).
+      // Anchored on the real DB timestamp (demo_processing_started_at,
+      // set the moment the map actually entered WaitingForTV) instead of
+      // a client-only Date.now() -- that reset back to the full estimate
+      // on every page refresh (reported live: "STATS READY IN" jumped
+      // back up to 2:15 on F5).
       const estimatedWaitSeconds = (this.match?.options?.tv_delay || 115) + 20;
       const readyAt =
-        this.statsProcessingStartedAt + estimatedWaitSeconds * 1000;
+        new Date(startedAt).getTime() + estimatedWaitSeconds * 1000;
       const diff = Math.floor((readyAt - Date.now()) / 1000);
       this.statsRemainingSeconds = Math.max(0, diff);
     },

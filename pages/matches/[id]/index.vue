@@ -624,6 +624,14 @@ import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { eloFields } from "~/graphql/eloFields";
 import { useMatchContext } from "~/composables/useMatchContext";
 
+// generated/zeus predates demo_processing_started_at (needs a live Hasura
+// codegen run to pick it up, same reason as partyFields in
+// matchLineupsGraphql.ts) -- spread as `any` so the excess property check
+// on the match_maps selector below doesn't fail the build.
+const demoProcessingFields: any = {
+  demo_processing_started_at: true,
+};
+
 export default {
   unmounted() {
     useMatchContext().value = null;
@@ -776,6 +784,7 @@ export default {
                   demos_total_size: true,
                   demos_download_url: true,
                   status: true,
+                  ...demoProcessingFields,
                   lineup_1_score: true,
                   lineup_2_score: true,
                   winning_lineup_id: true,
