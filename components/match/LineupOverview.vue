@@ -4,7 +4,6 @@ import SortableTableHead from "~/components/common/SortableTableHead.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import { useTableSort } from "~/composables/useTableSort";
 import { useMatchSide } from "~/composables/useMatchSide";
-import { teamAvgElo } from "~/utilities/teamElo";
 
 const matchSide = useMatchSide();
 import {
@@ -654,14 +653,33 @@ export default {
     canAddToLineupFor(lp: any): boolean {
       return lp.can_update_lineup && lp.lineup_players.length < this.maxPlayers;
     },
-    // Average ELO (for this match's ladder — competitive/wingman/duel) across
-    // a lineup's roster, shown next to the team name in the header.
+    // Historical pre-match team average, shown next to the team name in the
+    // header. Reads the backend-computed player_team_elo_avg already stored
+    // on each teammate's match.elo_changes row (see EloChangeBadge.vue's
+    // "TEAM ELO" popup field, hasura/functions/match/match_player_elo.sql)
+    // instead of averaging live/current player.elo -- every teammate on a
+    // lineup shares the identical value for that match, so any one matching
+    // row is authoritative; no client-side re-averaging needed. Returns
+    // null (hides the header, per the existing template) when the match has
+    // no historical ELO data for this lineup at all -- never falls back to
+    // live ELO.
     teamAvgRank(lp: any): number | null {
-      const eloKey = this.match?.options?.type?.toLowerCase();
-      if (!eloKey) {
+      const steamIds = (lp?.lineup_players ?? [])
+        .map((member: any) => member?.steam_id ?? member?.player?.steam_id)
+        .filter(Boolean)
+        .map((steamId: any) => String(steamId));
+      if (!steamIds.length) {
         return null;
       }
-      return teamAvgElo(lp?.lineup_players ?? [], eloKey);
+      const eloChange = this.match?.elo_changes?.find?.((ec: any) =>
+        steamIds.includes(String(ec.player_steam_id)),
+      );
+      const rawAvg = eloChange?.player_team_elo_avg;
+      if (rawAvg === null || rawAvg === undefined) {
+        return null;
+      }
+      const teamAvg = typeof rawAvg === "number" ? rawAvg : Number(rawAvg);
+      return Number.isFinite(teamAvg) ? Math.round(teamAvg) : null;
     },
     canEditTeamName(lp: any): boolean {
       if (!lp?.can_update_lineup) return false;

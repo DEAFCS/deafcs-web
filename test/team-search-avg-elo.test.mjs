@@ -55,11 +55,23 @@ test("avg_premier still uses teamAvgPremier(roster) -- Premier averaging is unre
   assert.match(searchSource, /avg_premier:\s*teamAvgPremier\(roster\),/);
 });
 
-test("teamElo.ts itself is untouched -- teamAvgElo still exists, still used by LineupOverview.vue's per-match-lineup average (a different, mode-aware concept from a persistent team's v_team_ranks average)", () => {
+test("teamElo.ts itself is untouched -- teamAvgElo/teamAvgPremier still exported, unrelated to this fix", () => {
   assert.match(teamEloSource, /export function teamAvgElo\(/);
   assert.match(teamEloSource, /export function teamAvgPremier\(/);
-  assert.match(lineupOverviewSource, /import \{ teamAvgElo \} from "~\/utilities\/teamElo";/);
-  assert.match(lineupOverviewSource, /teamAvgElo\(lp\?\.lineup_players \?\? \[\], eloKey\)/);
+});
+
+// LineupOverview.vue's TEAM AVG header was a separate, later fix (freezing
+// it to the match's historical player_team_elo_avg instead of live
+// player.elo) -- it no longer uses teamAvgElo/teamElo.ts at all, since the
+// backend already stores and shares the authoritative pre-match average
+// across every teammate's match.elo_changes row.
+test("LineupOverview.vue's TEAM AVG header no longer imports or calls teamAvgElo", () => {
+  assert.doesNotMatch(
+    lineupOverviewSource,
+    /import \{ teamAvgElo \} from "~\/utilities\/teamElo";/,
+  );
+  assert.doesNotMatch(lineupOverviewSource, /\bteamAvgElo\(/);
+  assert.match(lineupOverviewSource, /eloChange\?\.player_team_elo_avg/);
 });
 
 test("TeamSearch workflow behavior is unchanged: search, selection, eligibility, my-teams-only, and player_count all still wired the same way", () => {
