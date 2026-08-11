@@ -10,6 +10,7 @@ import {
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
+import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 import { kdColor } from "~/utils/statTiers";
 import {
   tacticalSectionLabelClasses,
@@ -18,13 +19,33 @@ import {
 
 const apiDomain = useRuntimeConfig().public.apiDomain;
 
-function playerAvatarSrc(player: {
-  custom_avatar_url?: string | null;
-  avatar_url?: string | null;
-}) {
-  return resolveAvatarUrl(
-    player.custom_avatar_url || player.avatar_url,
-    apiDomain,
+// Same team-specific -> general -> avatar priority as the HoverCardContent
+// PlayerDisplay row below (teamRosterImageFor in the Options API block) --
+// this is the visible #01/#02/#03 podium card's own small stacked-avatar
+// row, which previously bypassed resolveRosterImageUrl entirely and only
+// ever showed the raw custom_avatar_url/avatar_url.
+function playerAvatarSrc(
+  player: {
+    steam_id?: string | number | null;
+    roster_image_url?: string | null;
+    custom_avatar_url?: string | null;
+    avatar_url?: string | null;
+  },
+  realTeamRoster?: Array<{
+    player_steam_id?: string | number | null;
+    roster_image_url?: string | null;
+  }> | null,
+) {
+  const rosterRow =
+    (realTeamRoster || []).find(
+      (r) => String(r.player_steam_id) === String(player?.steam_id),
+    ) ?? null;
+  return (
+    resolveRosterImageUrl(rosterRow, player ?? null, apiDomain) ??
+    resolveAvatarUrl(
+      player.roster_image_url || player.custom_avatar_url || player.avatar_url,
+      apiDomain,
+    )
   );
 }
 </script>
@@ -157,8 +178,8 @@ function playerAvatarSrc(player: {
                       :title="p.name"
                     >
                       <img
-                        v-if="playerAvatarSrc(p)"
-                        :src="playerAvatarSrc(p)"
+                        v-if="playerAvatarSrc(p, entry.realTeamRoster)"
+                        :src="playerAvatarSrc(p, entry.realTeamRoster)"
                         :alt="p.name"
                         class="h-full w-full object-cover"
                       />
