@@ -225,6 +225,9 @@ import { useAuthStore } from "#imports";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { useForm } from "vee-validate";
 import { playerFields } from "~/graphql/playerFields";
+import { awardFields } from "~/graphql/awardFields";
+import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
+import { mapAwardRecipientToTrophy } from "~/utilities/awardOccurrenceResolution";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import * as z from "zod";
 
@@ -237,7 +240,8 @@ export default {
       teams: undefined as any,
       teams_aggregate: undefined as any,
       myTeams: undefined as any,
-      teamTrophies: [] as Array<any>,
+      teamAwardRecipients: [] as Array<any>,
+      teamAwardSlots: [] as Array<any>,
       showOnlyMyTeams: false,
       tournamentWinnersOnly: false,
       scrimsOnly: false,
@@ -255,10 +259,31 @@ export default {
     me() {
       return useAuthStore().me;
     },
+    // The tournaments backing the currently-loaded team awards, so the
+    // per-tournament slot-override lookup (image_override/custom_name) only
+    // ever fetches rows this page can actually use -- same dependent-query
+    // pattern as pages/teams/[id].vue's teamAwardTournamentIds.
+    teamAwardTournamentIds(): string[] {
+      const ids = new Set<string>();
+      for (const recipient of this.teamAwardRecipients as Array<any>) {
+        const tournamentId = recipient.occurrence?.tournament_id;
+        if (tournamentId) ids.add(tournamentId);
+      }
+      return [...ids];
+    },
+    // Flattens the live award_recipients rows into the same trophy_config
+    // shape TeamsTable/AwardBadge already consume, resolving artwork fresh
+    // on every read: slot.image_override -> live awards.image_url -> null
+    // (AwardBadge's procedural fallback). See utilities/awardOccurrenceResolution.ts.
+    teamTrophies(): any[] {
+      return (this.teamAwardRecipients as Array<any>).map((recipient) =>
+        mapAwardRecipientToTrophy(recipient, this.teamAwardSlots as any[]),
+      );
+    },
     trophiesByTeamId(): Record<string, any[]> {
       const map: Record<string, any[]> = {};
       for (const t of this.teamTrophies) {
-        const teamId = t.tournament_team?.team_id;
+        const teamId = t.team_id;
         if (!teamId) continue;
         (map[teamId] ??= []).push(t);
       }
@@ -390,46 +415,49 @@ export default {
       },
     },
     $subscribe: {
-      teamTrophies: {
+      teamAwardRecipients: {
         query: function () {
           return typedGql("subscription")({
-            tournament_trophies: [
+            award_recipients: [
               {
                 where: {
+                  // Team awards only -- matches the prior legacy-view filter
+                  // exactly (a player-recipient row has team_id null per
+                  // award_recipients_exactly_one_recipient).
                   player_steam_id: { _is_null: true },
                 },
               },
-              {
-                id: true,
-                placement: true,
-                placement_tier: true,
-                tournament_id: true,
-                tournament: {
-                  id: true,
-                  name: true,
-                  start: true,
-                  stages: [
-                    {
-                      order_by: [{ order: order_by.desc }],
-                      limit: 1,
-                    },
-                    { type: true },
-                  ],
-                },
-                trophy_config: {
-                  custom_name: true,
-                  silhouette: true,
-                  image_url: true,
-                },
-                tournament_team: {
-                  team_id: true,
-                },
-              },
+              awardFields,
             ],
           });
         },
         result: function (this: any, { data }: { data: any }) {
-          this.teamTrophies = data.tournament_trophies || [];
+          this.teamAwardRecipients = data.award_recipients || [];
+        },
+      },
+      teamAwardSlots: {
+        query: function () {
+          return typedGql("subscription")({
+            tournament_award_slots: [
+              {
+                where: {
+                  tournament_id: { _in: $("tournamentIds", "[uuid!]!") },
+                },
+              },
+              tournamentAwardSlotLookupFields,
+            ],
+          });
+        },
+        variables: function (this: any) {
+          return {
+            tournamentIds: this.teamAwardTournamentIds,
+          };
+        },
+        skip: function (this: any) {
+          return this.teamAwardTournamentIds.length === 0;
+        },
+        result: function (this: any, { data }: { data: any }) {
+          this.teamAwardSlots = data.tournament_award_slots || [];
         },
       },
       myTeams: {

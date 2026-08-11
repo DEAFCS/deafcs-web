@@ -297,4 +297,58 @@ for (const path of UNCONDITIONAL_TRUE) {
   );
 }
 
+// ---------------------------------------------------------------------------
+// TeamsTable (the /teams list-page cards) is a real team context, so roster
+// images are allowed -- rosterPlayerImage() must resolve the full 4-tier
+// priority: team-specific roster image -> player's general roster image ->
+// custom avatar -> Steam avatar, mirroring PlayerDisplay's
+// allow-roster-image branch instead of jumping straight from the
+// team-specific override to the Steam avatar.
+// ---------------------------------------------------------------------------
+{
+  const src = await read("components/TeamsTable.vue");
+
+  const methodMatch = src.match(
+    /rosterPlayerImage\(rosterItem: RosterEntry\): string \| null \{([\s\S]*?)\n {4}\},/,
+  );
+  assert.ok(methodMatch, "rosterPlayerImage method not found");
+  const body = methodMatch[1];
+
+  const teamSpecificIdx = body.indexOf("resolveRosterImageUrl(");
+  const generalRosterIdx = body.indexOf("rosterItem.player?.roster_image_url");
+  const customAvatarIdx = body.indexOf("rosterItem.player?.custom_avatar_url");
+  const steamAvatarIdx = body.indexOf("rosterItem.player?.avatar_url");
+
+  assert.ok(
+    teamSpecificIdx >= 0 &&
+      generalRosterIdx >= 0 &&
+      customAvatarIdx >= 0 &&
+      steamAvatarIdx >= 0,
+    "rosterPlayerImage must reference all four fallback tiers",
+  );
+  assert.ok(
+    teamSpecificIdx < generalRosterIdx &&
+      generalRosterIdx < customAvatarIdx &&
+      customAvatarIdx < steamAvatarIdx,
+    "rosterPlayerImage must resolve team-specific -> general roster image -> custom avatar -> Steam avatar, in that order",
+  );
+
+  // The team-specific tier stays delegated to the shared, narrowly-scoped
+  // resolveRosterImageUrl helper (its own "no personal-roster-image
+  // fallback" contract is unchanged) -- only the later tiers were added.
+  assert.match(
+    body,
+    /resolveRosterImageUrl\(\s*rosterItem,\s*rosterItem\.player \?\? null,\s*this\.apiDomain,?\s*\)/,
+  );
+
+  // PlayerDisplay.vue and utilities/rosterImage.ts's contracts are untouched
+  // by this fix -- TeamsTable owns its own resolution, same as before.
+  const rosterImageUtilSrc = await read("utilities/rosterImage.ts");
+  assert.match(
+    rosterImageUtilSrc,
+    /is NOT a fallback here/,
+    "resolveRosterImageUrl's narrow team-specific-only contract must stay unchanged",
+  );
+}
+
 console.log("roster image resolution + opt-in wiring checks passed");

@@ -135,7 +135,14 @@ const showOverlay = computed(() => props.size !== "xs");
     <!-- Custom uploaded image -->
     <div
       v-if="resolvedImageSrc"
-      class="relative h-full w-full overflow-hidden drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]"
+      :class="[
+        'relative h-full w-full overflow-hidden',
+        // At xs (32px, dense list/badge rows like /teams cards and
+        // standings), a 10px blur drop-shadow reads as an ugly dark box
+        // behind the icon rather than depth. Larger sizes are hero/profile
+        // displays where the shadow is proportioned correctly -- keep it there.
+        size !== 'xs' && 'drop-shadow-[0_4px_10px_rgba(0,0,0,0.45)]',
+      ]"
     >
       <img
         :src="resolvedImageSrc"
@@ -156,7 +163,10 @@ const showOverlay = computed(() => props.size !== "xs");
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       :aria-label="altText || `${palette.label} trophy${tournamentName ? ' for ' + tournamentName : ''}`"
-      class="h-full w-full drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]"
+      :class="[
+        'h-full w-full',
+        size !== 'xs' && 'drop-shadow-[0_4px_10px_rgba(0,0,0,0.35)]',
+      ]"
     >
       <defs>
         <linearGradient :id="gradId" x1="0%" y1="0%" x2="0%" y2="100%">

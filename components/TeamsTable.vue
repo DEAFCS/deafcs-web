@@ -10,6 +10,7 @@ import {
 } from "~/components/ui/tooltip";
 import { Users } from "lucide-vue-next";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 </script>
 
 <template>
@@ -208,6 +209,7 @@ interface RosterPlayer {
   steam_id?: string;
   name?: string;
   avatar_url?: string;
+  custom_avatar_url?: string | null;
   roster_image_url?: string | null;
 }
 
@@ -255,6 +257,11 @@ export default {
       if (!team.avatar_url) return null;
       return `https://${this.apiDomain}/${team.avatar_url}`;
     },
+    // Real team context, so roster images are allowed. Priority: team-
+    // specific roster image (resolveRosterImageUrl deliberately does NOT
+    // fall back to the player's own roster image -- see utilities/rosterImage.ts)
+    // -> player's general roster image -> custom avatar -> Steam avatar.
+    // Mirrors PlayerDisplay's playerAvatarSrc allow-roster-image branch.
     rosterPlayerImage(rosterItem: RosterEntry): string | null {
       return (
         resolveRosterImageUrl(
@@ -262,7 +269,9 @@ export default {
           rosterItem.player ?? null,
           this.apiDomain,
         ) ??
-        rosterItem.player?.avatar_url ??
+        resolveAvatarUrl(rosterItem.player?.roster_image_url, this.apiDomain) ??
+        resolveAvatarUrl(rosterItem.player?.custom_avatar_url, this.apiDomain) ??
+        resolveAvatarUrl(rosterItem.player?.avatar_url, this.apiDomain) ??
         null
       );
     },

@@ -9,6 +9,7 @@ const teamSource = await read("pages/teams/[id].vue");
 const playerSource = await read("pages/players/[id].vue");
 const podiumSource = await read("components/tournament/TournamentResults.vue");
 const detailSource = await read("components/tournament/TournamentDetail.vue");
+const teamsListSource = await read("pages/teams/index.vue");
 
 // Shared selector now reads through the modern award_recipients type, not
 // the legacy tournament_trophies compatibility view.
@@ -56,5 +57,29 @@ for (const [label, source, blockPattern] of [
   assert.ok(match, `expected a skip() guard for ${label}`);
   assert.doesNotMatch(match[1], /useAuthStore/);
 }
+
+// Teams list: reads award_recipients (team-only, via the shared awardFields
+// selector) + tournament_award_slots directly, no dependency on the legacy
+// tournament_trophies compatibility view, and resolves artwork through the
+// same mapAwardRecipientToTrophy/resolveAwardArtwork chain as the team
+// profile and podium surfaces.
+assert.match(teamsListSource, /award_recipients: \[/);
+assert.match(teamsListSource, /awardFields/);
+assert.match(teamsListSource, /tournament_award_slots: \[/);
+assert.match(teamsListSource, /mapAwardRecipientToTrophy/);
+assert.doesNotMatch(teamsListSource, /tournament_trophies/);
+
+// Team-only filter preserved exactly: a player-recipient row must never
+// surface here, matching the prior tournament_trophies filter's intent.
+assert.match(
+  teamsListSource,
+  /player_steam_id:\s*\{\s*_is_null:\s*true\s*,?\s*\}/,
+);
+
+// Grouping keys off award_recipients.team_id (the real, direct team FK —
+// exactly one of player_steam_id/team_id is non-null per
+// award_recipients_exactly_one_recipient), not the legacy
+// tournament_team.team_id hop.
+assert.match(teamsListSource, /const teamId = t\.team_id;/);
 
 console.log("award surface query wiring checks passed");
