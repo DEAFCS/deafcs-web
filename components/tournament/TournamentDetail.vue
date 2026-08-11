@@ -429,9 +429,9 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                           >
                             <Avatar shape="square" class="h-6 w-6">
                               <AvatarImage
-                                :src="organizer.avatar_url"
+                                :src="organizerAvatarSrc(organizer)"
                                 :alt="organizer.name"
-                                v-if="organizer?.avatar_url"
+                                v-if="organizerAvatarSrc(organizer)"
                               />
                               <AvatarFallback class="text-[0.6rem]">
                                 {{ organizer?.name.slice(0, 2) }}
@@ -905,6 +905,7 @@ import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { formatPrizePool } from "~/utilities/prizePool";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import type { TournamentAwardSelection } from "~/utilities/tournamentAwardPicker";
 import {
   getRequestedRouteTab,
@@ -1333,6 +1334,9 @@ export default {
     },
   },
   computed: {
+    apiDomain() {
+      return useRuntimeConfig().public.apiDomain;
+    },
     leagueSeasonId() {
       return this.$route.params.seasonId ?? null;
     },
@@ -1541,6 +1545,18 @@ export default {
     },
   },
   methods: {
+    // Current identity avatar for the "Organized by" trigger icon -- same
+    // custom_avatar_url -> avatar_url priority PlayerDisplay already uses
+    // internally (confirmed correct in the popover just below this trigger,
+    // which renders <PlayerDisplay :player="organizer">). This is a normal
+    // identity context, not a team/tournament roster context -- no roster
+    // image involved.
+    organizerAvatarSrc(organizer: any): string | null {
+      return resolveAvatarUrl(
+        organizer?.custom_avatar_url || organizer?.avatar_url,
+        this.apiDomain,
+      );
+    },
     syncActiveTabFromRoute() {
       if (!this.tournament) {
         return;
