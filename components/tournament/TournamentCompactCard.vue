@@ -11,6 +11,7 @@ import {
 import TimeAgo from "~/components/TimeAgo.vue";
 import AwardBadge from "~/components/award/AwardBadge.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
+import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
 
 const { t } = useI18n();
 
@@ -21,10 +22,19 @@ const props = withDefaults(
     statusLabel?: string;
     statusVariant?: TournamentStatusVariant;
     tournament: any;
+    // Tournament-scoped award_occurrences (placements 1-3) and
+    // tournament_award_slots for this card's tournament, fetched by the
+    // parent RecentTournaments.vue — see resolveAwardArtwork/
+    // mapAwardRecipientToTrophy for the shared resolution logic (same
+    // artwork priority as pages/teams/index.vue and TournamentResults.vue).
+    awardOccurrences?: any[];
+    awardSlots?: any[];
   }>(),
   {
     statusLabel: undefined,
     statusVariant: "default",
+    awardOccurrences: () => [],
+    awardSlots: () => [],
   },
 );
 
@@ -82,11 +92,16 @@ const isLive = computed(() => props.statusVariant === "live");
 const isFinished = computed(() => props.statusVariant === "finished");
 const isRegistration = computed(() => props.statusVariant === "registration");
 
-function teamNameForTrophy(trophy: any): string | null {
+function teamNameForOccurrence(occurrence: any): string | null {
+  const recipients = occurrence?.recipients || [];
+  const primary =
+    recipients.find((r: any) => r.tournament_team) || recipients[0];
   return (
-    trophy?.tournament_team?.team?.name ||
-    trophy?.tournament_team?.team?.short_name ||
-    trophy?.tournament_team?.name ||
+    primary?.tournament_team?.team?.name ||
+    primary?.tournament_team?.team?.short_name ||
+    primary?.tournament_team?.name ||
+    primary?.team?.name ||
+    primary?.team?.short_name ||
     null
   );
 }
@@ -100,17 +115,23 @@ function teamNameForResult(row: any): string | null {
   );
 }
 
+function occurrenceForPlacement(placement: number) {
+  return (props.awardOccurrences || []).find(
+    (o: any) => o.placement === placement,
+  );
+}
+
 const podium = computed(() => {
-  const trophies = (props.tournament?.trophies || []) as any[];
+  const occurrences = (props.awardOccurrences || []) as any[];
   const byPlacement: Record<number, string | null> = {};
-  for (const t of trophies) {
-    if (t.placement >= 1 && t.placement <= 3) {
-      byPlacement[t.placement] = teamNameForTrophy(t);
+  for (const occ of occurrences) {
+    if (occ.placement >= 1 && occ.placement <= 3) {
+      byPlacement[occ.placement] = teamNameForOccurrence(occ);
     }
   }
   if (!byPlacement[1] && !byPlacement[2] && !byPlacement[3]) {
-    // Fall back to the final stage's standings when trophies were never
-    // generated (organizer didn't issue them, or trophies are disabled).
+    // Fall back to the final stage's standings when no awards were ever
+    // granted for this tournament (organizer didn't issue any).
     const stages = [...(props.tournament?.stages || [])].sort(
       (a: any, b: any) => (Number(b.order) || 0) - (Number(a.order) || 0),
     );
@@ -135,8 +156,12 @@ const podium = computed(() => {
 const hasPodium = computed(() => !!podium.value.gold);
 
 const trophyConfigFor = (placement: number) => {
-  return (props.tournament?.trophy_configs || []).find(
-    (c: any) => c.placement === placement,
+  const occurrence = occurrenceForPlacement(placement);
+  return resolveAwardArtwork(
+    placement,
+    occurrence?.award?.image_url,
+    props.tournament?.id,
+    props.awardSlots,
   );
 };
 
@@ -145,12 +170,6 @@ const primaryStage = computed(() => {
     (a: any, b: any) => (a.order || 0) - (b.order || 0),
   )[0];
 });
-
-// When the tournament organizer disabled trophies, fall back to plain
-// rank boxes (1ST / 2ND / 3RD) instead of the procedural trophy art.
-const trophiesEnabled = computed(
-  () => props.tournament?.trophies_enabled !== false,
-);
 
 const statusIcon = computed(() => {
   if (props.statusVariant === "registration") return TicketCheck;
@@ -365,7 +384,6 @@ const runnerUps = computed(() => {
           class="relative grid h-14 w-14 shrink-0 place-items-center rounded-md border border-[hsl(var(--tac-amber)/0.4)] bg-[radial-gradient(ellipse_at_center,hsl(var(--tac-amber)/0.18)_0%,transparent_70%)]"
         >
           <AwardBadge
-            v-if="trophiesEnabled"
             :tournament-id="tournament.id"
             :placement="1"
             :tournament-name="tournament.name"
@@ -377,12 +395,6 @@ const runnerUps = computed(() => {
             size="sm"
             :interactive="false"
           />
-          <span
-            v-else
-            class="font-mono text-base font-bold leading-none tracking-tight text-[hsl(var(--tac-amber))]"
-          >
-            1<span class="text-xs align-super">st</span>
-          </span>
         </div>
         <div class="min-w-0 flex-1">
           <div
@@ -409,7 +421,6 @@ const runnerUps = computed(() => {
           class="flex items-center gap-2"
         >
           <AwardBadge
-            v-if="trophiesEnabled"
             :tournament-id="tournament.id"
             :placement="entry.placement"
             :tournament-name="tournament.name"
@@ -421,12 +432,6 @@ const runnerUps = computed(() => {
             size="xs"
             :interactive="false"
           />
-          <span
-            v-else
-            class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/30 font-mono text-[0.65rem] font-bold uppercase tracking-tight text-foreground/85"
-          >
-            {{ entry.label }}
-          </span>
           <span
             class="min-w-0 flex-1 truncate text-xs font-medium text-foreground/85"
             :title="entry.name"

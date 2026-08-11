@@ -6,6 +6,7 @@ import { generateQuery } from "~/graphql/graphqlGen";
 import { simpleTournamentFields } from "~/graphql/simpleTournamentFields";
 import { excludeLeagueTournaments } from "~/graphql/tournamentFilters";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
+import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { $, order_by, e_tournament_status_enum } from "~/generated/zeus";
 import { Skeleton } from "~/components/ui/skeleton";
 import TournamentFeatureCard from "~/components/tournament/TournamentFeatureCard.vue";
@@ -61,6 +62,12 @@ const emit = defineEmits<{ loaded: [count: number] }>();
 
 const tournaments = ref<any[]>([]);
 const loading = ref(true);
+// Recent-tournament podium/runner-up artwork now comes from the current
+// Award system (award_occurrences + tournament_award_slots) instead of the
+// legacy trophy relations, mirroring TournamentResults.vue's
+// tournament-scoped award query.
+const awardOccurrences = ref<any[]>([]);
+const tournamentAwardSlots = ref<any[]>([]);
 
 // Load-more pattern — extendedLimit grows when the user approaches
 // the right edge so the next batch is ready before they get there.
@@ -81,19 +88,6 @@ async function fetchData() {
           } as any,
           {
             ...simpleTournamentFields,
-            trophies: [
-              { where: { placement: { _in: [1, 2, 3] } } } as any,
-              {
-                id: true,
-                placement: true,
-                tournament_team_id: true,
-                tournament_team: {
-                  id: true,
-                  name: true,
-                  team: { name: true, short_name: true },
-                },
-              },
-            ],
             stages: [
               { order_by: [{ order: order_by.asc }] } as any,
               {
@@ -162,12 +156,76 @@ async function fetchData() {
     tournaments.value = ((data as any)?.tournaments ?? []) as any[];
     // Heuristic — fewer rows than requested = we've hit the end.
     reachedEnd.value = tournaments.value.length < extendedLimit.value;
+    await fetchAwardData(tournaments.value.map((t: any) => t.id).filter(Boolean));
   } catch (err) {
     console.error("[recent-tournaments] fetch error:", err);
   } finally {
     loading.value = false;
     inFlight.value = false;
     emit("loaded", tournaments.value.length);
+  }
+}
+
+// Tournament-scoped award data for the currently-loaded cards, following
+// the same award_occurrences/tournament_award_slots pattern as
+// TournamentResults.vue's podium query, just batched across many
+// tournaments instead of scoped to a single one.
+async function fetchAwardData(tournamentIds: string[]) {
+  if (!tournamentIds.length) {
+    awardOccurrences.value = [];
+    tournamentAwardSlots.value = [];
+    return;
+  }
+  try {
+    const { data } = await getGraphqlClient().query({
+      query: generateQuery({
+        award_occurrences: [
+          {
+            where: {
+              tournament_id: { _in: $("tournamentIds", "[uuid!]!") },
+              placement: { _in: [1, 2, 3] },
+            },
+          } as any,
+          {
+            id: true,
+            tournament_id: true,
+            placement: true,
+            award: { image_url: true },
+            recipients: [
+              {} as any,
+              {
+                id: true,
+                team_id: true,
+                tournament_team_id: true,
+                tournament_team: {
+                  name: true,
+                  team_id: true,
+                  team: { id: true, name: true, short_name: true },
+                },
+                team: { id: true, name: true, short_name: true },
+              },
+            ],
+          },
+        ],
+        tournament_award_slots: [
+          {
+            where: {
+              tournament_id: { _in: $("tournamentIds", "[uuid!]!") },
+            },
+          } as any,
+          tournamentAwardSlotLookupFields,
+        ],
+      } as any),
+      variables: { tournamentIds },
+      fetchPolicy: "network-only",
+    });
+    awardOccurrences.value = ((data as any)?.award_occurrences ?? []) as any[];
+    tournamentAwardSlots.value = ((data as any)?.tournament_award_slots ??
+      []) as any[];
+  } catch (err) {
+    console.error("[recent-tournaments] award fetch error:", err);
+    awardOccurrences.value = [];
+    tournamentAwardSlots.value = [];
   }
 }
 
@@ -195,6 +253,16 @@ watch(
   },
   { deep: true },
 );
+
+const occurrencesByTournamentId = computed(() => {
+  const map: Record<string, any[]> = {};
+  for (const occ of awardOccurrences.value) {
+    const tournamentId = occ?.tournament_id;
+    if (!tournamentId) continue;
+    (map[tournamentId] ??= []).push(occ);
+  }
+  return map;
+});
 
 const hasTournaments = computed(() => tournaments.value.length > 0);
 // Hide-when-empty sections stay hidden during loading to avoid the
@@ -273,6 +341,8 @@ const shouldRender = computed(() => {
         :tournament="tournament"
         :status-variant="statusVariant"
         :status-label="statusLabel"
+        :award-occurrences="occurrencesByTournamentId[tournament.id] || []"
+        :award-slots="tournamentAwardSlots"
         class="aspect-video w-96 shrink-0 snap-start"
       />
     </HorizontalScrollRow>
@@ -287,6 +357,8 @@ const shouldRender = computed(() => {
           :tournament="tournament"
           :status-variant="statusVariant"
           :status-label="statusLabel"
+          :award-occurrences="occurrencesByTournamentId[tournament.id] || []"
+          :award-slots="tournamentAwardSlots"
         />
         <TournamentFeatureCard
           v-else
