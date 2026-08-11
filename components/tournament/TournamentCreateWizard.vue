@@ -532,7 +532,7 @@ export default {
             variant: "destructive",
             title: "Tournament created, but award mappings need attention",
             description:
-              "Open the Trophies tab to review and save the mappings. Some selections may already have been saved.",
+              "Open the Awards tab to review and save the mappings. Some selections may already have been saved.",
           });
         }
         await this.uploadBanner(tournamentId);
