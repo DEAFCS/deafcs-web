@@ -32,7 +32,7 @@ const { height: viewportHeight } = useVisualViewport();
           ]"
         >
           <template v-if="selected">
-            <PlayerDisplay :player="selected" />
+            <PlayerDisplay :player="selected" :match-type="matchType" />
           </template>
           <template v-else>
             {{ label }}
@@ -93,7 +93,7 @@ const { height: viewportHeight } = useVisualViewport();
                       )
                     "
                   >
-                    <PlayerDisplay :player="player" />
+                    <PlayerDisplay :player="player" :match-type="matchType" />
                   </div>
                 </div>
               </div>
@@ -120,7 +120,7 @@ const { height: viewportHeight } = useVisualViewport();
                 @click="select(player)"
                 @mouseenter="selectedIndex = index"
               >
-                <PlayerDisplay :player="player" />
+                <PlayerDisplay :player="player" :match-type="matchType" />
               </div>
             </div>
           </template>
@@ -189,7 +189,7 @@ const { height: viewportHeight } = useVisualViewport();
             ]"
           >
             <template v-if="selected">
-              <PlayerDisplay :player="selected" />
+              <PlayerDisplay :player="selected" :match-type="matchType" />
             </template>
             <template v-else>
               {{ label }}
@@ -269,7 +269,7 @@ const { height: viewportHeight } = useVisualViewport();
                       )
                     "
                   >
-                    <PlayerDisplay :player="player" />
+                    <PlayerDisplay :player="player" :match-type="matchType" />
                   </div>
                 </div>
               </div>
@@ -302,7 +302,7 @@ const { height: viewportHeight } = useVisualViewport();
                   @click="select(player)"
                   @mouseenter="selectedIndex = index"
                 >
-                  <PlayerDisplay :player="player" />
+                  <PlayerDisplay :player="player" :match-type="matchType" />
                 </div>
               </div>
             </div>
@@ -375,6 +375,20 @@ export default {
       type: Boolean,
       required: false,
       default: false,
+    },
+    // Optional tournament/match mode (Competitive/Wingman/Duel) forwarded
+    // into every PlayerDisplay below, so the primary ELO shown for each
+    // search result follows the caller's mode instead of always defaulting
+    // to Competitive. null/omitted (the default) preserves this
+    // component's existing behavior for every non-tournament consumer --
+    // PlayerDisplay's own matchType prop already defaults to null/
+    // competitive on its own. Does not affect the hover tooltip, which
+    // PlayerDisplay always sources from current active-season data for all
+    // three modes regardless of this prop.
+    matchType: {
+      type: String,
+      required: false,
+      default: null,
     },
   },
   data() {

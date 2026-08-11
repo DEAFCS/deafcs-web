@@ -345,6 +345,7 @@ import { toast } from "~/components/ui/toast";
               "
               :team-id="team.team_id"
               :registeredOnly="true"
+              :match-type="tournament?.options?.type"
               @selected="addMember"
             />
           </div>
