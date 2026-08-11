@@ -484,6 +484,8 @@ export default {
                 avg_elo: true,
                 min_elo: true,
                 max_elo: true,
+                avg_wingman_elo: true,
+                avg_duel_elo: true,
                 avg_faceit_level: true,
                 avg_faceit_elo: true,
                 avg_premier: true,
