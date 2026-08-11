@@ -264,6 +264,39 @@ export default {
 
       return this.currentMatchMap?.status === "Warmup";
     },
+    // BO3/BO5: every map goes through WaitingForTV/UploadingDemo, not
+    // just the deciding one -- a non-deciding map (e.g. 1-0 in a BO3)
+    // finishing recording/uploading its demo is "next map starts soon",
+    // not "stats are ready". Same majority-of-best_of check the
+    // game-server itself uses (AnnounceSeriesProgress) to pick between
+    // its two chat messages, mirrored here from match_maps' own
+    // winning_lineup_id (matches.winning_lineup_id/status don't reflect
+    // this yet -- they only ever describe the whole series, and stay
+    // Live/unset until it's actually over).
+    isSeriesDecided() {
+      const bestOf = this.match?.options?.best_of;
+      const maps = this.match?.match_maps;
+      if (!bestOf || !maps) {
+        return false;
+      }
+
+      const mapsToWinSeries = Math.floor(bestOf / 2) + 1;
+      let lineup1Wins = 0;
+      let lineup2Wins = 0;
+
+      for (const map of maps) {
+        if (!map.winning_lineup_id) {
+          continue;
+        }
+        if (map.winning_lineup_id === this.match.lineup_1_id) {
+          lineup1Wins++;
+        } else if (map.winning_lineup_id === this.match.lineup_2_id) {
+          lineup2Wins++;
+        }
+      }
+
+      return lineup1Wins >= mapsToWinSeries || lineup2Wins >= mapsToWinSeries;
+    },
     // The current map is done playing but still recording/uploading its
     // demo (matches.status has no equivalent value for this -- it's Live
     // right up until the whole series is actually Finished, same gap as
@@ -271,8 +304,9 @@ export default {
     // yet" wait; once the map reaches Finished, stats are already there.
     isProcessingStats() {
       return (
-        this.currentMatchMap?.status === e_match_map_status_enum.WaitingForTV ||
-        this.currentMatchMap?.status === e_match_map_status_enum.UploadingDemo
+        this.isSeriesDecided &&
+        (this.currentMatchMap?.status === e_match_map_status_enum.WaitingForTV ||
+          this.currentMatchMap?.status === e_match_map_status_enum.UploadingDemo)
       );
     },
     showStatsCountdown() {
