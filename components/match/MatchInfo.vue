@@ -23,16 +23,35 @@ import {
       <CheckIntoMatch :match="match" v-if="showCheckInSection" />
     </div>
 
-    <!-- Stats-ready countdown — same slot/styling the old "time to
-         connect" auto-cancel countdown used to occupy. That one got
-         removed: it showed match.cancels_at, which while the match is
-         Live actually holds the "hung live match" safety-net deadline
-         (~3h out), not a meaningful connect deadline for players already
-         in the match -- confusing, not useful, hidden entirely now.
-         This instead counts down the ~2min stats-processing window
+    <!-- Time to connect — live countdown before the match auto-cancels
+         (Auto Cancel Duration), shown big/bold (Faceit-style). Only
+         while match.cancels_at is actually a connect deadline (pre-live:
+         WaitingForCheckIn/Scheduled/PickingPlayers/WaitingForServer) --
+         excluded once Live, where cancels_at instead holds the much
+         longer "hung live match" safety-net deadline (~3h out, see
+         tbu_match_maps.sql's Knife/Live branch), which isn't a
+         connect deadline at all and was confusing shown here. Same
+         exclusion list as the small header "Auto Canceling" badge
+         (pages/matches/[id]/index.vue's showAutoCancel). -->
+    <div
+      v-if="showConnectCountdown"
+      class="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4"
+    >
+      <span
+        class="font-mono text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground"
+      >
+        {{ $t("match.time_to_connect") }}
+      </span>
+      <span
+        class="font-mono text-3xl font-bold leading-none tabular-nums text-destructive"
+      >
+        {{ formattedAutoCancelCountdown }}
+      </span>
+    </div>
+
+    <!-- Stats-ready countdown — shown once the match has actually ended
          (mirrors the game-server's own "Stats will be available in ~2
-         minutes" chat message, see AnnounceSeriesProgress) once the
-         match has actually ended. -->
+         minutes" chat message, see AnnounceSeriesProgress). -->
     <div
       v-if="showStatsCountdown"
       class="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4"
@@ -103,16 +122,36 @@ export default {
   },
   data() {
     return {
+      autoCancelRemainingSeconds: 0,
+      autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
       statsRemainingSeconds: 0,
       statsInterval: undefined as ReturnType<typeof setInterval> | undefined,
     };
   },
   unmounted() {
+    if (this.autoCancelInterval) {
+      clearInterval(this.autoCancelInterval);
+    }
     if (this.statsInterval) {
       clearInterval(this.statsInterval);
     }
   },
   watch: {
+    "match.cancels_at": {
+      immediate: true,
+      handler(cancelsAt) {
+        if (this.autoCancelInterval) {
+          clearInterval(this.autoCancelInterval);
+          this.autoCancelInterval = undefined;
+        }
+        if (!cancelsAt) {
+          this.autoCancelRemainingSeconds = 0;
+          return;
+        }
+        this.updateAutoCancelCountdown();
+        this.autoCancelInterval = setInterval(this.updateAutoCancelCountdown, 1000);
+      },
+    },
     "match.ended_at": {
       immediate: true,
       handler() {
@@ -126,6 +165,17 @@ export default {
     },
   },
   methods: {
+    updateAutoCancelCountdown() {
+      const cancelsAt = this.match?.cancels_at;
+      if (!cancelsAt) {
+        this.autoCancelRemainingSeconds = 0;
+        return;
+      }
+      const diff = Math.floor(
+        (new Date(cancelsAt).getTime() - Date.now()) / 1000,
+      );
+      this.autoCancelRemainingSeconds = Math.max(0, diff);
+    },
     setupStatsCountdown() {
       if (this.statsInterval) {
         clearInterval(this.statsInterval);
@@ -156,6 +206,26 @@ export default {
     // may fall through to a roster image.
     allowRosterImage() {
       return matchAllowsRosterImage(this.match);
+    },
+    formattedAutoCancelCountdown() {
+      const total = Math.max(0, this.autoCancelRemainingSeconds);
+      const h = Math.floor(total / 3600);
+      const m = Math.floor((total % 3600) / 60);
+      const s = total % 60;
+      const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
+      const ss = String(s).padStart(2, "0");
+      return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+    },
+    // Same exclusion list as showAutoCancel (pages/matches/[id]/index.vue's
+    // small header badge): cancels_at is only a genuine connect deadline
+    // outside Live/Veto/Canceled.
+    showConnectCountdown() {
+      return (
+        !!this.match?.cancels_at &&
+        this.match.status !== e_match_status_enum.Live &&
+        this.match.status !== e_match_status_enum.Veto &&
+        this.match.status !== e_match_status_enum.Canceled
+      );
     },
     // A finished/decided match -- Canceled is deliberately excluded, no
     // stats get generated for a match that never actually played out.
@@ -207,6 +277,7 @@ export default {
         this.match.can_schedule ||
         this.showCheckInSection ||
         this.showQuickConnectSection ||
+        this.showConnectCountdown ||
         this.showStatsCountdown
       );
     },
