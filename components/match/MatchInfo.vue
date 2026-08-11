@@ -216,16 +216,34 @@ export default {
       const ss = String(s).padStart(2, "0");
       return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
     },
-    // Same exclusion list as showAutoCancel (pages/matches/[id]/index.vue's
-    // small header badge): cancels_at is only a genuine connect deadline
-    // outside Live/Veto/Canceled.
+    // matches.status has no separate "Warmup" value -- it flips straight
+    // from WaitingForServer to Live the moment a server is assigned/booted,
+    // and STAYS Live for the rest of the map (through Knife and actual live
+    // rounds) and the rest of the series. So match.status === Live does NOT
+    // mean "already playing" -- it can just as easily mean "server's up,
+    // still waiting for everyone to connect during warmup". Warmup is only
+    // tracked at the per-map level (match_maps.status), which is what
+    // actually determines whether cancels_at is a genuine connect deadline
+    // (Warmup) or the unrelated "hung live match" safety net (Knife/Live/
+    // Overtime, see tbu_match_maps.sql) -- so once matches.status is Live,
+    // fall through to checking the current map's own status instead.
+    currentMatchMap() {
+      return this.match?.match_maps?.find((m: any) => m.is_current_map);
+    },
     showConnectCountdown() {
-      return (
-        !!this.match?.cancels_at &&
-        this.match.status !== e_match_status_enum.Live &&
-        this.match.status !== e_match_status_enum.Veto &&
-        this.match.status !== e_match_status_enum.Canceled
-      );
+      if (
+        !this.match?.cancels_at ||
+        this.match.status === e_match_status_enum.Veto ||
+        this.match.status === e_match_status_enum.Canceled
+      ) {
+        return false;
+      }
+
+      if (this.match.status !== e_match_status_enum.Live) {
+        return true;
+      }
+
+      return this.currentMatchMap?.status === "Warmup";
     },
     // A finished/decided match -- Canceled is deliberately excluded, no
     // stats get generated for a match that never actually played out.
