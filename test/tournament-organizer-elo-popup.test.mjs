@@ -2,13 +2,15 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-// The organizer avatar in the tournament hero opened a Popover containing a
+// The organizer avatar in the tournament hero opened a popup containing a
 // PlayerDisplay, whose own PlayerElo unconditionally rendered a second,
 // nested HoverCard -- a popup inside a popup. PlayerDisplay also had no
 // matchType there, so the ELO shown defaulted to Competitive regardless of
 // the tournament's actual mode. The small trigger button also had no
 // explicit focus-visible style, so keyboard focus fell back to the native
-// browser outline (a stray white border).
+// browser outline (a stray white border). This file covers the ELO/
+// matchType/focus-ring fixes specifically; the outer Popover-vs-HoverCard
+// wrapper fix is covered by tournament-organizer-hovercard.test.mjs.
 
 const tournamentDetail = await readFile(
   new URL("../components/tournament/TournamentDetail.vue", import.meta.url),

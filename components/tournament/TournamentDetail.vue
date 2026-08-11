@@ -36,10 +36,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  HoverCard,
+  HoverCardContent,
+  HoverCardTrigger,
+} from "@/components/ui/hover-card";
 import {
   Sheet,
   SheetContent,
@@ -416,16 +416,17 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   </span>
                   <div :class="tournamentHeroOrganizersClasses">
                     <template
-                      v-for="(organizer, index) in organizersList"
+                      v-for="organizer in organizersList"
                       :key="organizer.steam_id"
                     >
-                      <Popover v-model:open="organizerPopoversOpen[index]">
-                        <PopoverTrigger as-child>
-                          <button
-                            type="button"
+                      <HoverCard :open-delay="80" :close-delay="140">
+                        <HoverCardTrigger as-child>
+                          <NuxtLink
+                            :to="{
+                              name: 'players-id',
+                              params: { id: organizer.steam_id },
+                            }"
                             :class="tournamentHeroOrganizerClasses"
-                            @mouseenter="organizerPopoversOpen[index] = true"
-                            @mouseleave="organizerPopoversOpen[index] = false"
                           >
                             <Avatar shape="square" class="h-6 w-6">
                               <AvatarImage
@@ -437,13 +438,9 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                                 {{ organizer?.name.slice(0, 2) }}
                               </AvatarFallback>
                             </Avatar>
-                          </button>
-                        </PopoverTrigger>
-                        <PopoverContent
-                          class="w-64 p-0"
-                          @mouseenter="organizerPopoversOpen[index] = true"
-                          @mouseleave="organizerPopoversOpen[index] = false"
-                        >
+                          </NuxtLink>
+                        </HoverCardTrigger>
+                        <HoverCardContent class="w-64 p-0">
                           <div class="p-4">
                             <PlayerDisplay
                               :player="organizer"
@@ -453,8 +450,8 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                               :elo-interactive="false"
                             />
                           </div>
-                        </PopoverContent>
-                      </Popover>
+                        </HoverCardContent>
+                      </HoverCard>
                     </template>
                   </div>
                 </div>
@@ -930,7 +927,6 @@ export default {
       deleteDialogOpen: false,
       pauseDialogOpen: false,
       resumeDialogOpen: false,
-      organizerPopoversOpen: {},
       activeTab: "overview",
       tournamentAwardSelection: {} as TournamentAwardSelection,
       myTeamLoaded: false,
@@ -1702,17 +1698,6 @@ export default {
       handler(newTournament) {
         if (newTournament) {
           this.syncActiveTabFromRoute();
-        }
-      },
-      immediate: true,
-    },
-    organizersList: {
-      handler(newList) {
-        if (newList && newList.length > 0) {
-          this.organizerPopoversOpen = newList.reduce((acc, _, index) => {
-            acc[index] = false;
-            return acc;
-          }, {});
         }
       },
       immediate: true,
