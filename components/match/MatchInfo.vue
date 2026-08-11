@@ -5,7 +5,7 @@ import AssignCoachToLineup from "~/components/match/AssignCoachToLineup.vue";
 import ScheduleMatch from "~/components/match/ScheduleMatch.vue";
 import CheckIntoMatch from "~/components/match/CheckIntoMatch.vue";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
-import { e_match_status_enum } from "~/generated/zeus";
+import { e_match_status_enum, e_match_map_status_enum } from "~/generated/zeus";
 import {
   buildLineupAvatarOverride,
   matchAllowsRosterImage,
@@ -49,9 +49,12 @@ import {
       </span>
     </div>
 
-    <!-- Stats-ready countdown — shown once the match has actually ended
-         (mirrors the game-server's own "Stats will be available in ~2
-         minutes" chat message, see AnnounceSeriesProgress). -->
+    <!-- Stats-ready countdown — shown only while the current map is
+         still recording/uploading its demo (WaitingForTV/UploadingDemo).
+         Mirrors the game-server's own "Stats will be available in ~2
+         minutes" chat message (AnnounceSeriesProgress) -- and disappears
+         the moment the map is actually Finished, since stats are already
+         computed and available by then. -->
     <div
       v-if="showStatsCountdown"
       class="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4"
@@ -126,6 +129,7 @@ export default {
       autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
       statsRemainingSeconds: 0,
       statsInterval: undefined as ReturnType<typeof setInterval> | undefined,
+      statsProcessingStartedAt: null as number | null,
     };
   },
   unmounted() {
@@ -152,13 +156,18 @@ export default {
         this.autoCancelInterval = setInterval(this.updateAutoCancelCountdown, 1000);
       },
     },
-    "match.ended_at": {
+    // Fires when the current map actually enters the post-game
+    // processing window (WaitingForTV/UploadingDemo) -- see
+    // isProcessingStats. That's the real ~tv_delay+upload wait (the same
+    // one the game-server announces in chat as "~2 minutes",
+    // AnnounceSeriesProgress); by the time match.status reaches a
+    // terminal value (Finished/Forfeit/Surrendered/Tie), stats are
+    // already computed and available -- confirmed live: the scoreboard
+    // was already fully populated while a naive "wait 2min after
+    // ended_at" countdown (previous version of this code) kept ticking
+    // pointlessly on top of a wait that had already happened.
+    "currentMatchMap.status": {
       immediate: true,
-      handler() {
-        this.setupStatsCountdown();
-      },
-    },
-    "match.status": {
       handler() {
         this.setupStatsCountdown();
       },
@@ -181,23 +190,33 @@ export default {
         clearInterval(this.statsInterval);
         this.statsInterval = undefined;
       }
-      if (!this.isMatchOver || !this.match?.ended_at) {
+      if (!this.isProcessingStats) {
         this.statsRemainingSeconds = 0;
+        this.statsProcessingStartedAt = null;
         return;
+      }
+      // No DB timestamp marks exactly when WaitingForTV/UploadingDemo
+      // started, so anchor the estimate on the moment this component
+      // first observed it -- close enough for a "roughly how long left"
+      // indicator, and it disappears as soon as the map is actually
+      // Finished regardless of whether the estimate ran out first.
+      if (!this.statsProcessingStartedAt) {
+        this.statsProcessingStartedAt = Date.now();
       }
       this.updateStatsCountdown();
       this.statsInterval = setInterval(this.updateStatsCountdown, 1000);
     },
     updateStatsCountdown() {
-      if (!this.isMatchOver || !this.match?.ended_at) {
+      if (!this.isProcessingStats || !this.statsProcessingStartedAt) {
         this.statsRemainingSeconds = 0;
         return;
       }
-      // Mirrors the ~2min window the game-server announces in chat
-      // (AnnounceSeriesProgress) once a map decides the match.
-      const statsReadyAt =
-        new Date(this.match.ended_at).getTime() + 2 * 60 * 1000;
-      const diff = Math.floor((statsReadyAt - Date.now()) / 1000);
+      // tv_delay covers the recording/broadcast window; the demo still
+      // needs to upload after that (~15-20s, see HandleEndOfMap).
+      const estimatedWaitSeconds = (this.match?.options?.tv_delay || 115) + 20;
+      const readyAt =
+        this.statsProcessingStartedAt + estimatedWaitSeconds * 1000;
+      const diff = Math.floor((readyAt - Date.now()) / 1000);
       this.statsRemainingSeconds = Math.max(0, diff);
     },
   },
@@ -245,18 +264,19 @@ export default {
 
       return this.currentMatchMap?.status === "Warmup";
     },
-    // A finished/decided match -- Canceled is deliberately excluded, no
-    // stats get generated for a match that never actually played out.
-    isMatchOver() {
-      return [
-        e_match_status_enum.Finished,
-        e_match_status_enum.Forfeit,
-        e_match_status_enum.Surrendered,
-        e_match_status_enum.Tie,
-      ].includes(this.match?.status);
+    // The current map is done playing but still recording/uploading its
+    // demo (matches.status has no equivalent value for this -- it's Live
+    // right up until the whole series is actually Finished, same gap as
+    // showConnectCountdown above). This is the real "why aren't stats up
+    // yet" wait; once the map reaches Finished, stats are already there.
+    isProcessingStats() {
+      return (
+        this.currentMatchMap?.status === e_match_map_status_enum.WaitingForTV ||
+        this.currentMatchMap?.status === e_match_map_status_enum.UploadingDemo
+      );
     },
     showStatsCountdown() {
-      return this.isMatchOver && this.statsRemainingSeconds > 0;
+      return this.isProcessingStats && this.statsRemainingSeconds > 0;
     },
     formattedStatsCountdown() {
       const total = Math.max(0, this.statsRemainingSeconds);
