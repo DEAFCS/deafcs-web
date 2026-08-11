@@ -128,10 +128,46 @@ const matchChatReady = computed(
     ((props.match?.lineup_1?.lineup_players?.length ?? 0) > 0 ||
       (props.match?.lineup_2?.lineup_players?.length ?? 0) > 0),
 );
-const chatType = computed(() => (matchChatReady.value ? "match" : "draft"));
-const chatLobbyId = computed(() =>
-  matchChatReady.value ? props.room.match_id : props.room.id,
+// Reported gap: once veto/match phase starts (matchChatReady), the room
+// only ever offered the single global/match conversation -- no team-only
+// channel, unlike the regular match page (pages/matches/[id]/index.vue),
+// which shows Global Chat and Team Chat as two separate boxes. Reusing
+// that same two-box layout here risked squeezing/breaking this panel's
+// fixed-height flex layout without being able to preview it live, so
+// instead: a tab toggle within the same panel, only shown once there's
+// an actual team channel to switch to (myMembership already tracks
+// which side -- 1 or 2 -- the viewer is on, once accepted onto a lineup).
+const activeChatTab = ref<"global" | "team">("global");
+const myMatchLineupId = computed(() => {
+  if (!matchChatReady.value || myMembership.value?.lineup == null) {
+    return null;
+  }
+  return myMembership.value.lineup === 1
+    ? props.match?.lineup_1_id
+    : props.match?.lineup_2_id;
+});
+const teamChatLobbyId = computed(() =>
+  myMatchLineupId.value ? `${props.match.id}:${myMatchLineupId.value}` : null,
 );
+const showChatTabs = computed(
+  () => matchChatReady.value && !!teamChatLobbyId.value,
+);
+const chatType = computed(() => {
+  if (!matchChatReady.value) {
+    return "draft";
+  }
+  return activeChatTab.value === "team" && teamChatLobbyId.value
+    ? "match_team"
+    : "match";
+});
+const chatLobbyId = computed(() => {
+  if (!matchChatReady.value) {
+    return props.room.id;
+  }
+  return activeChatTab.value === "team" && teamChatLobbyId.value
+    ? teamChatLobbyId.value
+    : props.room.match_id;
+});
 const inLineup = computed(
   () =>
     myMembership.value?.lineup != null &&
@@ -1587,10 +1623,37 @@ const start = () => {
           >
             <MessagesSquare class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
             <h3
+              v-if="!showChatTabs"
               class="font-sans text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground"
             >
               {{ $t("draft_games.room.comms") }}
             </h3>
+            <div v-else class="flex items-center gap-1">
+              <button
+                type="button"
+                class="rounded px-2 py-0.5 font-sans text-[0.68rem] font-semibold uppercase tracking-[0.18em] transition-colors"
+                :class="
+                  activeChatTab === 'global'
+                    ? 'bg-[hsl(var(--tac-amber))]/15 text-[hsl(var(--tac-amber))]'
+                    : 'text-muted-foreground hover:text-foreground'
+                "
+                @click="activeChatTab = 'global'"
+              >
+                {{ $t("chat.global_chat") }}
+              </button>
+              <button
+                type="button"
+                class="rounded px-2 py-0.5 font-sans text-[0.68rem] font-semibold uppercase tracking-[0.18em] transition-colors"
+                :class="
+                  activeChatTab === 'team'
+                    ? 'bg-[hsl(var(--tac-amber))]/15 text-[hsl(var(--tac-amber))]'
+                    : 'text-muted-foreground hover:text-foreground'
+                "
+                @click="activeChatTab = 'team'"
+              >
+                {{ $t("chat.team_chat") }}
+              </button>
+            </div>
           </div>
           <ChatLobby
             v-if="me"
