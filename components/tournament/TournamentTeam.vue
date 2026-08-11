@@ -371,6 +371,8 @@ import { toast } from "~/components/ui/toast";
             v-for="invite in team.invites"
             :key="invite.id"
             :invite="invite"
+            :team="team"
+            :tournament="tournament"
           ></TournamentTeamInvite>
         </div>
       </div>

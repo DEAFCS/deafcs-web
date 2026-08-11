@@ -1109,6 +1109,17 @@ export default {
                           id: true,
                           name: true,
                           avatar_url: true,
+                          // The real team's roster -- the only place a
+                          // team-specific roster image can live. See
+                          // graphql/tournamentTeamFields.ts for the same
+                          // pattern.
+                          roster: [
+                            {},
+                            {
+                              player_steam_id: true,
+                              roster_image_url: true,
+                            },
+                          ],
                         },
                         roster: [
                           {},

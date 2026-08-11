@@ -212,6 +212,7 @@ function playerAvatarSrc(player: {
                 <PlayerDisplay
                   :player="p"
                   :allow-roster-image="true"
+                  :avatar-override="teamRosterImageFor(p, entry.realTeamRoster)"
                   :show-flag="true"
                   :show-role="false"
                   :show-elo="false"
@@ -332,6 +333,13 @@ function playerAvatarSrc(player: {
               v-if="mvp.player"
               :player="mvp.player"
               :allow-roster-image="true"
+              :avatar-override="
+                teamRosterImageFor(
+                  mvp.player,
+                  mvp.tournament_team?.team?.roster || [],
+                )
+              "
+              :match-type="tournamentMatchType"
               :show-flag="true"
               :show-role="false"
               :show-elo="true"
@@ -428,6 +436,7 @@ function playerAvatarSrc(player: {
         <CardContent>
           <StageStandings
             :stage="stage"
+            :tournament="tournament"
             :player-stats="tournamentPlayerStats"
           />
         </CardContent>
@@ -471,6 +480,7 @@ import { playerFields } from "~/graphql/playerFields";
 import { eloFields } from "~/graphql/eloFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
+import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 
 export default {
   props: {
@@ -693,6 +703,17 @@ export default {
                     team: {
                       id: true,
                       name: true,
+                      // The real team's roster -- the only place a
+                      // team-specific roster image can live. See
+                      // graphql/tournamentTeamFields.ts for the same
+                      // pattern.
+                      roster: [
+                        {},
+                        {
+                          player_steam_id: true,
+                          roster_image_url: true,
+                        },
+                      ],
                     },
                     roster: [
                       {},
@@ -789,6 +810,22 @@ export default {
       if (ownName) return ownName;
       return fallbackId ? `Team ${fallbackId}` : "";
     },
+    // Team-specific -> general -> avatar priority, same as
+    // TournamentTeamMemberRow.vue, resolved per-player against the real
+    // team's roster carried on the podium entry (see `podium` computed).
+    teamRosterImageFor(
+      player: { steam_id?: string | number | null } | null | undefined,
+      realTeamRoster: Array<{
+        player_steam_id?: string | number | null;
+        roster_image_url?: string | null;
+      }>,
+    ): string | null {
+      const rosterRow =
+        (realTeamRoster || []).find(
+          (r) => String(r.player_steam_id) === String(player?.steam_id),
+        ) ?? null;
+      return resolveRosterImageUrl(rosterRow, player ?? null, this.apiDomain);
+    },
     playerStatFor(steamId: string | number) {
       if (!steamId) return null;
       const stats = (this as any).tournamentPlayerStats || [];
@@ -809,6 +846,12 @@ export default {
     },
   },
   computed: {
+    apiDomain() {
+      return useRuntimeConfig().public.apiDomain;
+    },
+    tournamentMatchType(): string | null {
+      return (this.tournament as any)?.options?.type ?? null;
+    },
     isLive() {
       return (this.tournament as any)?.status === e_tournament_status_enum.Live;
     },
@@ -846,6 +889,7 @@ export default {
             "",
           tournamentType: this.finalStageType,
           players,
+          realTeamRoster: primary?.tournament_team?.team?.roster || [],
         });
       }
       return entries.sort((a: any, b: any) => a.placement - b.placement);

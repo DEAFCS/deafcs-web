@@ -66,6 +66,7 @@ const MUST_OPT_IN = [
   "components/tournament/TournamentResults.vue",
   "components/tournament/TournamentTeamInvite.vue",
   "components/tournament/TournamentTeamMemberRow.vue",
+  "components/tournament/TournamentJoinForm.vue",
   "pages/teams/[id].vue",
 ];
 
@@ -98,7 +99,6 @@ const MUST_STAY_AVATAR_ONLY = [
   "pages/league/seasons/[seasonId]/index.vue",
   "pages/settings/linked-accounts.vue",
   "pages/awards/[id].vue",
-  "components/tournament/TournamentJoinForm.vue",
   "components/tournament/TournamentDetail.vue",
   "components/tournament/TournamentOrganizerRow.vue",
   "components/tournament/TournamentServerRow.vue",

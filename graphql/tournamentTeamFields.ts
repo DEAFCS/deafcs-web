@@ -16,6 +16,17 @@ export default {
     name: true,
     short_name: true,
     avatar_url: true,
+    // The real team's roster -- the only place a team-specific roster image
+    // lives (tournament_team_roster has no roster_image_url column). Used
+    // to resolve the team-specific tier of the roster-image priority for
+    // each tournament roster row via resolveRosterImageUrl().
+    roster: [
+      {},
+      {
+        player_steam_id: true,
+        roster_image_url: true,
+      },
+    ],
   },
   roster: [
     {},

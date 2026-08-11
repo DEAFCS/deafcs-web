@@ -131,7 +131,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
             {{ $t(`tournament.join.group.${group.key}`) }} ·
             {{ group.members.length }}
           </div>
-          <ul class="grid gap-1.5 sm:grid-cols-2">
+          <ul class="grid gap-1.5">
             <li
               v-for="member in group.members"
               :key="member.player_steam_id"
@@ -147,10 +147,16 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
                 "
                 @click.stop="togglePlayer(member)"
               />
-              <PlayerDisplay :player="member.player" />
+              <PlayerDisplay
+                :player="member.player"
+                :allow-roster-image="true"
+                :avatar-override="teamRosterImageFor(member)"
+                :match-type="tournamentMatchType"
+                class="min-w-0 flex-1"
+              />
               <span
                 v-if="isTaken(member)"
-                class="ml-auto text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground"
+                class="ml-auto shrink-0 text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground"
               >
                 {{ $t("tournament.join.already_rostered") }}
               </span>
@@ -217,6 +223,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { e_match_types_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
+import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 
 export default {
   emits: ["close"],
@@ -297,6 +304,12 @@ export default {
     };
   },
   computed: {
+    apiDomain() {
+      return useRuntimeConfig().public.apiDomain;
+    },
+    tournamentMatchType(): string | null {
+      return (this.tournament as any)?.options?.type ?? null;
+    },
     me() {
       return useAuthStore().me;
     },
@@ -419,6 +432,12 @@ export default {
     isTaken(member) {
       return this.takenSteamIds.has(member.player_steam_id);
     },
+    // `member` is itself a team_roster row (it carries its own
+    // roster_image_url), so it can be passed directly as the team-specific
+    // source -- same as components/teams/TeamMember.vue's rosterImageSrc.
+    teamRosterImageFor(member: any): string | null {
+      return resolveRosterImageUrl(member, member?.player ?? null, this.apiDomain);
+    },
     rosterItemClass(member) {
       if (this.isTaken(member)) {
         return "cursor-not-allowed opacity-40";
@@ -450,10 +469,21 @@ export default {
               player_steam_id: true,
               status: true,
               coach: true,
+              // Team-specific roster image (tier 1 of the established
+              // priority: team-specific -> general -> avatar).
+              roster_image_url: true,
               player: {
                 steam_id: true,
                 name: true,
                 avatar_url: true,
+                // General roster image (tier 2) and custom avatar (tier 3),
+                // consumed by PlayerDisplay's allow-roster-image chain.
+                roster_image_url: true,
+                custom_avatar_url: true,
+                // Mode-specific active-season ELO, resolved by
+                // usePlayerActiveSeasonElo()'s eloForPlayer() inside
+                // PlayerDisplay -- same field PlayerElo already expects.
+                elo: true,
               },
             },
           ],

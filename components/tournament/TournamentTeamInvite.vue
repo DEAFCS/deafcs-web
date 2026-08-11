@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import PlayerDisplay from "../PlayerDisplay.vue";
+import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 </script>
 
 <template>
@@ -10,6 +11,8 @@ import PlayerDisplay from "../PlayerDisplay.vue";
       <PlayerDisplay
         :player="invite.player"
         :allow-roster-image="true"
+        :avatar-override="teamRosterImage"
+        :match-type="tournamentMatchType"
       ></PlayerDisplay>
       <span
         class="px-[0.45rem] py-[0.1rem] font-mono text-[0.6rem] font-bold tracking-[0.2em] uppercase bg-muted/40 text-muted-foreground rounded-full"
@@ -54,6 +57,38 @@ export default {
     invite: {
       type: Object,
       required: true,
+    },
+    team: {
+      type: Object,
+      default: null,
+    },
+    tournament: {
+      type: Object,
+      default: null,
+    },
+  },
+  computed: {
+    apiDomain() {
+      return useRuntimeConfig().public.apiDomain;
+    },
+    // Same team-specific -> general -> avatar priority as
+    // TournamentTeamMemberRow.vue, keyed off the invited player instead of
+    // an already-rostered member.
+    teamRosterImage(): string | null {
+      const realTeamRoster = (this.team as any)?.team?.roster || [];
+      const rosterRow =
+        realTeamRoster.find(
+          (r: any) =>
+            String(r.player_steam_id) === String(this.invite.player?.steam_id),
+        ) ?? null;
+      return resolveRosterImageUrl(
+        rosterRow,
+        this.invite.player ?? null,
+        this.apiDomain,
+      );
+    },
+    tournamentMatchType(): string | null {
+      return (this.tournament as any)?.options?.type ?? null;
     },
   },
   methods: {

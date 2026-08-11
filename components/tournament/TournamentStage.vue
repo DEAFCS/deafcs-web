@@ -53,6 +53,7 @@ import {
           v-if="shouldShowStandings"
           class="mb-4"
           :stage="stage"
+          :tournament="tournament"
           :only-group="division"
         />
 

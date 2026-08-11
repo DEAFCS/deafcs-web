@@ -11,6 +11,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import { ChevronRight } from "lucide-vue-next";
 import { kdColor } from "~/utils/statTiers";
+import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 </script>
 
 <template>
@@ -148,6 +149,13 @@ import { kdColor } from "~/utils/statTiers";
                               <PlayerDisplay
                                 :player="member.player"
                                 :allow-roster-image="true"
+                                :avatar-override="
+                                  teamRosterImageFor(
+                                    member.player,
+                                    entry.realTeamRoster,
+                                  )
+                                "
+                                :match-type="tournamentMatchType"
                                 :show-flag="true"
                                 :show-role="false"
                                 :show-elo="true"
@@ -255,6 +263,13 @@ export default {
       type: Object,
       required: true,
     },
+    // Optional: not every caller has it in scope. Used only for the
+    // roster-panel's mode-specific primary ELO (match-type) and to key the
+    // apiDomain computed used by team-specific roster-image resolution.
+    tournament: {
+      type: Object,
+      default: null,
+    },
     // When false, group headings are hidden (useful for single-group stages).
     // When true, headings render even for a single group.
     forceGroupHeading: {
@@ -278,6 +293,12 @@ export default {
     };
   },
   computed: {
+    apiDomain() {
+      return useRuntimeConfig().public.apiDomain;
+    },
+    tournamentMatchType(): string | null {
+      return (this.tournament as any)?.options?.type ?? null;
+    },
     totalGroups() {
       return Number((this.stage as any)?.groups) || 1;
     },
@@ -350,6 +371,7 @@ export default {
           matchesPlayed: Number(row.matches_played) || 0,
           tied: (placementCounts.get(Number(row.placement) || 0) || 0) > 1,
           roster: (row.team?.roster || []).filter((m: any) => m?.player),
+          realTeamRoster: row.team?.team?.roster || [],
         }));
         out.push({
           number: gn,
@@ -384,6 +406,22 @@ export default {
       const ownName = tournamentTeam?.name;
       if (ownName) return ownName;
       return fallbackId ? `Team ${fallbackId}` : "";
+    },
+    // Team-specific -> general -> avatar priority, same as
+    // TournamentTeamMemberRow.vue/TournamentResults.vue, resolved per-player
+    // against the real team's roster carried on the standings entry.
+    teamRosterImageFor(
+      player: { steam_id?: string | number | null } | null | undefined,
+      realTeamRoster: Array<{
+        player_steam_id?: string | number | null;
+        roster_image_url?: string | null;
+      }>,
+    ): string | null {
+      const rosterRow =
+        (realTeamRoster || []).find(
+          (r) => String(r.player_steam_id) === String(player?.steam_id),
+        ) ?? null;
+      return resolveRosterImageUrl(rosterRow, player ?? null, this.apiDomain);
     },
     isExpanded(teamId: string | undefined) {
       if (!teamId) return false;

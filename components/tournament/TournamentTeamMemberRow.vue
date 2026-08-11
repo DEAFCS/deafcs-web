@@ -39,6 +39,7 @@ import {
 } from "~/components/ui/dropdown-menu";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import Separator from "../ui/separator/Separator.vue";
+import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 </script>
 
 <template>
@@ -49,6 +50,8 @@ import Separator from "../ui/separator/Separator.vue";
       <PlayerDisplay
         :player="member.player"
         :allow-roster-image="true"
+        :avatar-override="teamRosterImage"
+        :match-type="tournamentMatchType"
         :linkable="true"
       />
     </div>
@@ -240,6 +243,33 @@ export default {
     },
   },
   computed: {
+    apiDomain() {
+      return useRuntimeConfig().public.apiDomain;
+    },
+    // Team-specific roster image for this exact real team, per the
+    // established priority (utilities/rosterImage.ts): team-specific ->
+    // general -> avatar. tournamentTeamFields.ts's `team.roster` is the
+    // real team's team_roster (the only place a team-specific image can
+    // live -- tournament_team_roster itself has no roster_image_url
+    // column). Falls through to null when there's no team-specific row/
+    // image, letting PlayerDisplay's own allow-roster-image chain resolve
+    // the player's general roster image, then avatar.
+    teamRosterImage(): string | null {
+      const realTeamRoster = (this.team as any)?.team?.roster || [];
+      const rosterRow =
+        realTeamRoster.find(
+          (r: any) =>
+            String(r.player_steam_id) === String(this.member.player?.steam_id),
+        ) ?? null;
+      return resolveRosterImageUrl(
+        rosterRow,
+        this.member.player ?? null,
+        this.apiDomain,
+      );
+    },
+    tournamentMatchType(): string | null {
+      return (this.tournament as any)?.options?.type ?? null;
+    },
     isCaptain() {
       return this.member.player.steam_id === this.team.captain_steam_id;
     },
