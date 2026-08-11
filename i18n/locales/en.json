@@ -4801,6 +4801,7 @@
     },
     "auto_canceling": "Auto Canceling",
     "time_to_connect": "Time to connect",
+    "stats_ready_in": "Stats ready in",
     "actions": {
     "call_support": "Contact Support",
       "start_veto": "Start Veto",

@@ -23,22 +23,29 @@ import {
       <CheckIntoMatch :match="match" v-if="showCheckInSection" />
     </div>
 
-    <!-- Time to connect — live countdown before the match auto-cancels,
-         shown big/bold (Faceit-style) since the small header version was
-         hard to read. -->
+    <!-- Stats-ready countdown — same slot/styling the old "time to
+         connect" auto-cancel countdown used to occupy. That one got
+         removed: it showed match.cancels_at, which while the match is
+         Live actually holds the "hung live match" safety-net deadline
+         (~3h out), not a meaningful connect deadline for players already
+         in the match -- confusing, not useful, hidden entirely now.
+         This instead counts down the ~2min stats-processing window
+         (mirrors the game-server's own "Stats will be available in ~2
+         minutes" chat message, see AnnounceSeriesProgress) once the
+         match has actually ended. -->
     <div
-      v-if="showQuickConnectSection && match.cancels_at"
+      v-if="showStatsCountdown"
       class="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4"
     >
       <span
         class="font-mono text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground"
       >
-        {{ $t("match.time_to_connect") }}
+        {{ $t("match.stats_ready_in") }}
       </span>
       <span
-        class="font-mono text-3xl font-bold leading-none tabular-nums text-destructive"
+        class="font-mono text-3xl font-bold leading-none tabular-nums text-primary"
       >
-        {{ formattedAutoCancelCountdown }}
+        {{ formattedStatsCountdown }}
       </span>
     </div>
 
@@ -96,43 +103,52 @@ export default {
   },
   data() {
     return {
-      autoCancelRemainingSeconds: 0,
-      autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
+      statsRemainingSeconds: 0,
+      statsInterval: undefined as ReturnType<typeof setInterval> | undefined,
     };
   },
   unmounted() {
-    if (this.autoCancelInterval) {
-      clearInterval(this.autoCancelInterval);
+    if (this.statsInterval) {
+      clearInterval(this.statsInterval);
     }
   },
   watch: {
-    "match.cancels_at": {
+    "match.ended_at": {
       immediate: true,
-      handler(cancelsAt) {
-        if (this.autoCancelInterval) {
-          clearInterval(this.autoCancelInterval);
-          this.autoCancelInterval = undefined;
-        }
-        if (!cancelsAt) {
-          this.autoCancelRemainingSeconds = 0;
-          return;
-        }
-        this.updateAutoCancelCountdown();
-        this.autoCancelInterval = setInterval(this.updateAutoCancelCountdown, 1000);
+      handler() {
+        this.setupStatsCountdown();
+      },
+    },
+    "match.status": {
+      handler() {
+        this.setupStatsCountdown();
       },
     },
   },
   methods: {
-    updateAutoCancelCountdown() {
-      const cancelsAt = this.match?.cancels_at;
-      if (!cancelsAt) {
-        this.autoCancelRemainingSeconds = 0;
+    setupStatsCountdown() {
+      if (this.statsInterval) {
+        clearInterval(this.statsInterval);
+        this.statsInterval = undefined;
+      }
+      if (!this.isMatchOver || !this.match?.ended_at) {
+        this.statsRemainingSeconds = 0;
         return;
       }
-      const diff = Math.floor(
-        (new Date(cancelsAt).getTime() - Date.now()) / 1000,
-      );
-      this.autoCancelRemainingSeconds = Math.max(0, diff);
+      this.updateStatsCountdown();
+      this.statsInterval = setInterval(this.updateStatsCountdown, 1000);
+    },
+    updateStatsCountdown() {
+      if (!this.isMatchOver || !this.match?.ended_at) {
+        this.statsRemainingSeconds = 0;
+        return;
+      }
+      // Mirrors the ~2min window the game-server announces in chat
+      // (AnnounceSeriesProgress) once a map decides the match.
+      const statsReadyAt =
+        new Date(this.match.ended_at).getTime() + 2 * 60 * 1000;
+      const diff = Math.floor((statsReadyAt - Date.now()) / 1000);
+      this.statsRemainingSeconds = Math.max(0, diff);
     },
   },
   computed: {
@@ -141,14 +157,24 @@ export default {
     allowRosterImage() {
       return matchAllowsRosterImage(this.match);
     },
-    formattedAutoCancelCountdown() {
-      const total = Math.max(0, this.autoCancelRemainingSeconds);
-      const h = Math.floor(total / 3600);
-      const m = Math.floor((total % 3600) / 60);
+    // A finished/decided match -- Canceled is deliberately excluded, no
+    // stats get generated for a match that never actually played out.
+    isMatchOver() {
+      return [
+        e_match_status_enum.Finished,
+        e_match_status_enum.Forfeit,
+        e_match_status_enum.Surrendered,
+        e_match_status_enum.Tie,
+      ].includes(this.match?.status);
+    },
+    showStatsCountdown() {
+      return this.isMatchOver && this.statsRemainingSeconds > 0;
+    },
+    formattedStatsCountdown() {
+      const total = Math.max(0, this.statsRemainingSeconds);
+      const m = Math.floor(total / 60);
       const s = total % 60;
-      const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
-      const ss = String(s).padStart(2, "0");
-      return h > 0 ? `${h}:${mm}:${ss}` : `${mm}:${ss}`;
+      return `${m}:${String(s).padStart(2, "0")}`;
     },
     me() {
       return useAuthStore().me;
@@ -180,7 +206,8 @@ export default {
       return (
         this.match.can_schedule ||
         this.showCheckInSection ||
-        this.showQuickConnectSection
+        this.showQuickConnectSection ||
+        this.showStatsCountdown
       );
     },
     hasContent() {
