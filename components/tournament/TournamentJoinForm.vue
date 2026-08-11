@@ -484,6 +484,9 @@ export default {
                 // usePlayerActiveSeasonElo()'s eloForPlayer() inside
                 // PlayerDisplay -- same field PlayerElo already expects.
                 elo: true,
+                // Player's own country, for TimezoneFlag -- without this,
+                // it silently falls back to the 🌍 default for every row.
+                country: true,
               },
             },
           ],
