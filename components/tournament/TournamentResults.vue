@@ -468,6 +468,7 @@ import { $, e_tournament_status_enum, order_by } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { mapFields } from "~/graphql/mapGraphql";
 import { playerFields } from "~/graphql/playerFields";
+import { eloFields } from "~/graphql/eloFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
 
@@ -586,12 +587,19 @@ export default {
                   is_game_streamer: true,
                 },
               ],
+              // Scoped to the logged-in viewer only -- the ELO +/- badge on
+              // a result card must show the viewer's own delta, not an
+              // arbitrary participant's. See RecentGamesPanel.vue's matches
+              // subscription for the same viewer-relative filter pattern.
+              // Passing a null steamId (logged out) makes the _eq filter
+              // match no rows, rather than requiring a separate skip().
               elo_changes: [
-                {},
                 {
-                  player_steam_id: true,
-                  elo_change: true,
-                },
+                  where: {
+                    player_steam_id: { _eq: $("viewerSteamId", "bigint") },
+                  },
+                } as any,
+                eloFields,
               ],
             },
           ],
@@ -599,6 +607,7 @@ export default {
         variables: function () {
           return {
             tournamentId: (this as any).tournament?.id,
+            viewerSteamId: useAuthStore().me?.steam_id ?? null,
           };
         },
         skip: function () {
