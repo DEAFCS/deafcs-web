@@ -205,6 +205,20 @@ export default {
       required: false,
       default: false,
     },
+    // A specific past match's frozen pre-match ELO for `type`'s ladder
+    // (e.g. elo_changes[].current_elo). When present, overrides ONLY the
+    // primary visible number (primaryElo below) so a historical match row
+    // stays fixed to what the player's rating actually was at that match,
+    // instead of drifting as they play more matches later. The hover
+    // tooltip (competitiveElo/wingmanElo/duelElo/eloRows) intentionally
+    // keeps reading the live `elo` prop unconditionally -- it must always
+    // show today's current active-season ratings, even on a historical
+    // match page.
+    historicalElo: {
+      type: Number,
+      required: false,
+      default: null,
+    },
   },
 
   computed: {
@@ -226,6 +240,9 @@ export default {
       return "competitive";
     },
     primaryElo(): number | undefined {
+      if (this.historicalElo != null) {
+        return this.historicalElo;
+      }
       return (
         this.elo?.[this.modeKey] ??
         this.competitiveElo ??

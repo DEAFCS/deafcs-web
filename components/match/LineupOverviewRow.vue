@@ -121,7 +121,7 @@ const DASH = "—";
             <LineupMember
               :match="match"
               :member="member"
-              :historical-elo="memberEloChange?.updated_elo"
+              :historical-elo="memberEloChange?.current_elo"
             >
               <template v-if="member.player?.steam_id" #avatar-badge>
                 <PlayerMatchClipsButton :steam-id="member.player.steam_id" />
@@ -184,6 +184,7 @@ const DASH = "—";
                       v-if="!isExternalMatch"
                       :elo="eloForPlayer(member?.player)"
                       :type="match?.options?.type"
+                      :historical-elo="memberEloChange?.current_elo"
                     />
                     <PlayerFaceitRank
                       v-else-if="

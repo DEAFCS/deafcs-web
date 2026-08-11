@@ -225,6 +225,7 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
                 v-else-if="!external"
                 :elo="eloForPlayer(player)"
                 :type="matchType"
+                :historical-elo="historicalElo"
               />
             </template>
             <PlayerPremierRank
@@ -249,6 +250,7 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
               v-else-if="showElo && !external"
               :elo="eloForPlayer(player)"
               :type="matchType"
+              :historical-elo="historicalElo"
             />
             <slot name="elo-postfix"></slot>
             <p
@@ -377,13 +379,15 @@ export default {
       type: Boolean,
       default: false,
     },
-    // A specific past match's own player_elo result (its row's
-    // `updated_elo`) for `matchType`'s ladder. NOT used for the ELO hover
-    // (see `eloForPlayer` in the script-setup block above) -- the hover
-    // always shows the player's current canonical per-mode ELO. Historical
-    // per-match results belong on the match row itself (EloChangeBadge, fed
-    // directly from `match.elo_changes`), which reads its own data
-    // independently of this prop.
+    // A specific past match's own pre-match ELO (its elo_changes row's
+    // `current_elo`) for `matchType`'s ladder -- forwarded into PlayerElo's
+    // own `historicalElo` prop below, which uses it in place of the live
+    // per-mode ELO for the PRIMARY visible number only. NOT used for the
+    // ELO hover tooltip (see `eloForPlayer` in the script-setup block
+    // above) -- the hover always shows the player's current canonical
+    // per-mode ELO, on match pages too. The match delta itself is separate
+    // (EloChangeBadge, fed directly from `match.elo_changes`), independent
+    // of this prop.
     historicalElo: {
       type: Number,
       default: null,
