@@ -115,7 +115,7 @@ const tournamentHeroMetaLabelClasses =
   "font-mono text-[0.65rem] uppercase tracking-[0.22em]";
 const tournamentHeroOrganizersClasses = "inline-flex items-center gap-[0.3rem]";
 const tournamentHeroOrganizerClasses =
-  "inline-flex cursor-pointer transition-[opacity,transform] duration-150 hover:-translate-y-px hover:opacity-85";
+  "inline-flex cursor-pointer transition-[opacity,transform] duration-150 hover:-translate-y-px hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.5)]";
 const tournamentHeroActionsClasses =
   "flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-2 max-sm:w-full max-sm:justify-start";
 const tournamentHeroStatusClasses =
@@ -449,6 +449,8 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                               :player="organizer"
                               :linkable="true"
                               :tooltip="false"
+                              :match-type="tournament.options?.type || null"
+                              :elo-interactive="false"
                             />
                           </div>
                         </PopoverContent>

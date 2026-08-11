@@ -44,10 +44,10 @@ test("no roster-image resolution is introduced for the organizer avatar -- this 
   assert.doesNotMatch(methodBlock, /roster_image_url|resolveRosterImageUrl|allow-roster-image/);
 });
 
-test("the hover popover's PlayerDisplay (already correct) is untouched", () => {
+test("the hover popover's PlayerDisplay keeps its linkable/tooltip identity behavior (avatar resolution here is untouched by the organizer ELO popup fix)", () => {
   assert.match(
     source,
-    /<PlayerDisplay\s*\n\s*:player="organizer"\s*\n\s*:linkable="true"\s*\n\s*:tooltip="false"\s*\n\s*\/>/,
+    /<PlayerDisplay\s*\n\s*:player="organizer"\s*\n\s*:linkable="true"\s*\n\s*:tooltip="false"\s*\n\s*:match-type="tournament\.options\?\.type \|\| null"\s*\n\s*:elo-interactive="false"\s*\n\s*\/>/,
   );
 });
 

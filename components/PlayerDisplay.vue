@@ -226,6 +226,7 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
                 :elo="eloForPlayer(player)"
                 :type="matchType"
                 :historical-elo="historicalElo"
+                :interactive="eloInteractive"
               />
             </template>
             <PlayerPremierRank
@@ -251,6 +252,7 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
               :elo="eloForPlayer(player)"
               :type="matchType"
               :historical-elo="historicalElo"
+              :interactive="eloInteractive"
             />
             <slot name="elo-postfix"></slot>
             <p
@@ -391,6 +393,15 @@ export default {
     historicalElo: {
       type: Number,
       default: null,
+    },
+    // Forwarded straight into every PlayerElo's own `interactive` prop.
+    // Default true preserves the existing HoverCard on every current
+    // consumer; set false where an outer container (e.g. a tournament
+    // organizer Popover) already owns the hover/click surface, so PlayerElo
+    // can't open a second, nested popup inside it.
+    eloInteractive: {
+      type: Boolean,
+      default: true,
     },
   },
   inject: {

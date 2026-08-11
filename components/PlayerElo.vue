@@ -13,7 +13,7 @@ const isMobile = useMediaQuery("(max-width: 768px)");
 
 <template>
   <HoverCard
-    v-if="competitiveElo || wingmanElo || duelElo"
+    v-if="interactive && (competitiveElo || wingmanElo || duelElo)"
     :open-delay="80"
     :close-delay="140"
   >
@@ -140,6 +140,20 @@ const isMobile = useMediaQuery("(max-width: 768px)");
     </HoverCardContent>
   </HoverCard>
 
+  <div
+    v-else-if="competitiveElo || wingmanElo || duelElo"
+    :class="triggerClasses"
+    :style="{ '--tier-rgb': primaryTier.rgb }"
+    :aria-label="`ELO, primary ${primaryTier.label} ${primaryElo}`"
+  >
+    <template v-if="bordered">
+      <span :class="triggerNotchClasses" aria-hidden="true"></span>
+    </template>
+    <span :class="triggerValueClasses">
+      {{ primaryElo ?? "—" }}
+    </span>
+  </div>
+
   <span v-else class="text-sm text-muted-foreground">—</span>
 </template>
 
@@ -218,6 +232,16 @@ export default {
       type: Number,
       required: false,
       default: null,
+    },
+    // When false, renders the same primary ELO value with no HoverCard --
+    // used where an outer container (e.g. a tournament organizer popover)
+    // already owns the hover/click surface and a nested popup would be
+    // unreachable or visually stacked on top of it. Defaults to true so
+    // every existing consumer keeps its current hover-card behavior.
+    interactive: {
+      type: Boolean,
+      required: false,
+      default: true,
     },
   },
 
