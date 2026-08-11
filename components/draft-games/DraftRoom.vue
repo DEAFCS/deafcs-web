@@ -6,7 +6,6 @@ import {
   Swords,
   Play,
   X,
-  MessagesSquare,
   Inbox,
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
@@ -128,16 +127,17 @@ const matchChatReady = computed(
     ((props.match?.lineup_1?.lineup_players?.length ?? 0) > 0 ||
       (props.match?.lineup_2?.lineup_players?.length ?? 0) > 0),
 );
+const chatType = computed(() => (matchChatReady.value ? "match" : "draft"));
+const chatLobbyId = computed(() =>
+  matchChatReady.value ? props.room.match_id : props.room.id,
+);
 // Reported gap: once veto/match phase starts (matchChatReady), the room
 // only ever offered the single global/match conversation -- no team-only
-// channel, unlike the regular match page (pages/matches/[id]/index.vue),
-// which shows Global Chat and Team Chat as two separate boxes. Reusing
-// that same two-box layout here risked squeezing/breaking this panel's
-// fixed-height flex layout without being able to preview it live, so
-// instead: a tab toggle within the same panel, only shown once there's
-// an actual team channel to switch to (myMembership already tracks
-// which side -- 1 or 2 -- the viewer is on, once accepted onto a lineup).
-const activeChatTab = ref<"global" | "team">("global");
+// channel, unlike the regular match page (pages/matches/[id]/index.vue).
+// Mirrors that page's own approach exactly: a second, separate chat box
+// (same non-frameless ChatLobby styling -- fixed height, doesn't grow
+// per message) rather than a tab toggle. myMembership already tracks
+// which side -- 1 or 2 -- the viewer is on, once accepted onto a lineup.
 const myMatchLineupId = computed(() => {
   if (!matchChatReady.value || myMembership.value?.lineup == null) {
     return null;
@@ -149,25 +149,6 @@ const myMatchLineupId = computed(() => {
 const teamChatLobbyId = computed(() =>
   myMatchLineupId.value ? `${props.match.id}:${myMatchLineupId.value}` : null,
 );
-const showChatTabs = computed(
-  () => matchChatReady.value && !!teamChatLobbyId.value,
-);
-const chatType = computed(() => {
-  if (!matchChatReady.value) {
-    return "draft";
-  }
-  return activeChatTab.value === "team" && teamChatLobbyId.value
-    ? "match_team"
-    : "match";
-});
-const chatLobbyId = computed(() => {
-  if (!matchChatReady.value) {
-    return props.room.id;
-  }
-  return activeChatTab.value === "team" && teamChatLobbyId.value
-    ? teamChatLobbyId.value
-    : props.room.match_id;
-});
 const inLineup = computed(
   () =>
     myMembership.value?.lineup != null &&
@@ -1610,64 +1591,41 @@ const start = () => {
           </div>
         </div>
 
+        <!-- Same format/size as the match page's chats
+             (pages/matches/[id]/index.vue): two separate, labeled,
+             non-frameless ChatLobby boxes -- fixed height, doesn't grow
+             per message, unlike the old single frameless panel here. -->
         <div
-          class="flex flex-col"
-          :class="
-            showQueue
-              ? 'h-72 shrink-0 border-t border-border/60'
-              : 'min-h-0 flex-1'
-          "
+          class="flex flex-col gap-4 p-4"
+          :class="showQueue ? 'border-t border-border/60' : ''"
         >
-          <div
-            class="flex items-center gap-2 border-b border-border/60 px-4 py-2.5"
-          >
-            <MessagesSquare class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
-            <h3
-              v-if="!showChatTabs"
-              class="font-sans text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground"
-            >
-              {{ $t("draft_games.room.comms") }}
-            </h3>
-            <div v-else class="flex items-center gap-1">
-              <button
-                type="button"
-                class="rounded px-2 py-0.5 font-sans text-[0.68rem] font-semibold uppercase tracking-[0.18em] transition-colors"
-                :class="
-                  activeChatTab === 'global'
-                    ? 'bg-[hsl(var(--tac-amber))]/15 text-[hsl(var(--tac-amber))]'
-                    : 'text-muted-foreground hover:text-foreground'
-                "
-                @click="activeChatTab = 'global'"
-              >
-                {{ $t("chat.global_chat") }}
-              </button>
-              <button
-                type="button"
-                class="rounded px-2 py-0.5 font-sans text-[0.68rem] font-semibold uppercase tracking-[0.18em] transition-colors"
-                :class="
-                  activeChatTab === 'team'
-                    ? 'bg-[hsl(var(--tac-amber))]/15 text-[hsl(var(--tac-amber))]'
-                    : 'text-muted-foreground hover:text-foreground'
-                "
-                @click="activeChatTab = 'team'"
-              >
-                {{ $t("chat.team_chat") }}
-              </button>
-            </div>
+          <div v-if="me" class="flex flex-col gap-2">
+            <span class="text-sm font-medium text-muted-foreground">
+              {{ $t("chat.global_chat") }}
+            </span>
+            <ChatLobby
+              instance="draft-room"
+              :type="chatType"
+              :lobby-id="chatLobbyId"
+              :can-send="canChat"
+              :readonly-hint="$t('draft_games.room.chat_players_only')"
+            />
           </div>
-          <ChatLobby
-            v-if="me"
-            class="min-h-0 flex-1"
-            instance="draft-room"
-            :type="chatType"
-            :lobby-id="chatLobbyId"
-            :frameless="true"
-            :can-send="canChat"
-            :readonly-hint="$t('draft_games.room.chat_players_only')"
-          />
+          <div v-if="me && teamChatLobbyId" class="flex flex-col gap-2">
+            <span class="text-sm font-medium text-muted-foreground">
+              {{ $t("chat.team_chat") }}
+            </span>
+            <ChatLobby
+              instance="draft-room"
+              type="match_team"
+              :lobby-id="teamChatLobbyId"
+              :can-send="inLineup || isOrganizer"
+              :readonly-hint="$t('draft_games.room.chat_players_only')"
+            />
+          </div>
           <div
-            v-else
-            class="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-4 py-6 text-center"
+            v-if="!me"
+            class="flex flex-col items-center justify-center gap-2 px-4 py-6 text-center"
           >
             <p class="text-xs text-muted-foreground">
               {{ $t("draft_games.room.login_to_chat") }}
