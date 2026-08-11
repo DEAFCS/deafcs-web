@@ -8,9 +8,10 @@ import {
   UsersRound,
 } from "lucide-vue-next";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
-import { Button } from "~/components/ui/button";
+import MatchStatus from "~/components/match/MatchStatus.vue";
 import TimeAgo from "../TimeAgo.vue";
 import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
+import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -296,23 +297,20 @@ const mmCardBase =
       </div>
     </template>
     <template v-else-if="match">
-      <div class="flex justify-between items-center">
-        <div>
-          <Badge variant="secondary" class="text-lg">
-            {{ match.status }}
-          </Badge>
-
-          <QuickMatchConnect :match="match" />
+      <div
+        class="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-muted/30 px-4 py-3"
+      >
+        <div class="flex min-w-0 flex-1 flex-wrap items-center gap-3">
+          <MatchStatus :match="match" />
+          <QuickMatchConnect :match="match" bare />
         </div>
 
-        <Button>
-          <NuxtLink
-            :to="{ name: 'matches-id', params: { id: match.id } }"
-            class="text-xl font-bold bg-foreground"
-          >
-            {{ $t("matchmaking.go_to_match") }}
-          </NuxtLink>
-        </Button>
+        <NuxtLink
+          :to="{ name: 'matches-id', params: { id: match.id } }"
+          :class="[tacticalCtaButtonClasses, 'shrink-0']"
+        >
+          {{ $t("matchmaking.go_to_match") }}
+        </NuxtLink>
       </div>
     </template>
   </div>
@@ -431,6 +429,15 @@ export default {
               options: {
                 tv_delay: true,
               },
+              // For MatchStatus's dynamic status label/styling (VETO, LIVE,
+              // PAUSED, etc.) -- see components/match/MatchStatus.vue.
+              e_match_status: {
+                description: true,
+              },
+              winning_lineup_id: true,
+              scheduled_at: true,
+              is_match_server_available: true,
+              match_maps: [{}, { status: true }],
             },
           ],
         }),

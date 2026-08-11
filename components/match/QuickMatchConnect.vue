@@ -95,7 +95,8 @@ import { e_match_status_enum } from "~/generated/zeus";
       </template>
       <template v-else>
         <div
-          class="flex items-center gap-2 p-4 rounded-lg border bg-foreground/10"
+          class="flex items-center gap-2"
+          :class="bare ? '' : 'p-4 rounded-lg border bg-foreground/10'"
           v-if="match.connection_string"
         >
           <ClipBoard
@@ -166,6 +167,16 @@ export default {
     // Suppress the booting spinner when the surrounding UI already shows a
     // booting indicator (e.g. the draft room's "Match Starting" panel).
     hideBooting: {
+      type: Boolean,
+      default: false,
+    },
+    // Drop the connected-state Copy/Join Server row's own border/background/
+    // padding so it can sit flush inside a parent row that already provides
+    // one (e.g. /play's compact current-match row). Only affects that one
+    // wrapper's styling -- the buttons, icons, and connection logic inside
+    // are unchanged. Booting/offline alert states keep their own box
+    // regardless, since they carry their own state message.
+    bare: {
       type: Boolean,
       default: false,
     },
