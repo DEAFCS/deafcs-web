@@ -387,7 +387,18 @@ test("Top 5 Leaderboards main section header uses the shared tactical section la
 });
 
 test("the feature card title itself (Play/Tournaments/League) also uses the shared tacticalCardHeadingClasses, so the two can't drift apart again", () => {
-  assert.match(playerOverview, /tacticalCardHeadingClasses,\s*\n\s*destination\.comingSoon/);
+  const featureCards = playerOverview.slice(
+    playerOverview.indexOf('aria-label="Main platform destinations"'),
+    playerOverview.indexOf(
+      "</nav>",
+      playerOverview.indexOf('aria-label="Main platform destinations"'),
+    ),
+  );
+  assert.equal(
+    (featureCards.match(/tacticalCardHeadingClasses/g) || []).length,
+    2,
+    "expected both explicit card branches to share the heading classes",
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -402,7 +413,7 @@ test("feature card order is Play, Tournaments, League", () => {
   assert.doesNotMatch(playerOverview, /label:\s*"MATCHMAKING"/);
 });
 
-test("Play card mentions matchmaking, rankings, draft, and schedule; still routes to /play", () => {
+test("Play renders through the enabled NuxtLink branch, retains /play, and mentions matchmaking, rankings, draft, and schedule", () => {
   const description = playerOverview.match(
     /label: "PLAY"[\s\S]*?description:\s*\n\s*"([^"]+)"/,
   )?.[1];
@@ -413,35 +424,78 @@ test("Play card mentions matchmaking, rankings, draft, and schedule; still route
       `expected Play description to mention "${word}", got: ${description}`,
     );
   }
-  assert.match(playerOverview, /label: "PLAY",\s*\n\s*to: "\/play",/);
+  assert.match(
+    playerOverview,
+    /label: "PLAY",\s*\n\s*to: "\/play",[\s\S]*?comingSoon: false,/,
+  );
+  assert.match(
+    playerOverview,
+    /<NuxtLink\s*\n\s*v-if="!destination\.comingSoon"\s*\n\s*:to="destination\.to"/,
+  );
 });
 
-test("League card shows Coming Q1-Q2 2027 and does not use the misleading OPEN wording, but keeps /league as its destination", () => {
+test("Tournaments renders through the enabled NuxtLink branch and retains its existing /tournaments route", () => {
+  assert.match(
+    playerOverview,
+    /label: "TOURNAMENTS",\s*\n\s*to: "\/tournaments",[\s\S]*?comingSoon: false,/,
+  );
+  assert.match(
+    playerOverview,
+    /<NuxtLink\s*\n\s*v-if="!destination\.comingSoon"\s*\n\s*:to="destination\.to"/,
+  );
+});
+
+test("League card shows Coming Q1-Q2 2027 and keeps /league as data without making it a link", () => {
   assert.match(playerOverview, /comingSoonLabel:\s*"Coming Q1–Q2 2027"/);
-  assert.match(playerOverview, /to:\s*"\/league",/);
-  assert.match(playerOverview, /destination\.comingSoon/);
+  assert.match(
+    playerOverview,
+    /label: "LEAGUE",\s*\n\s*to: "\/league",[\s\S]*?comingSoon: true,/,
+  );
+  assert.match(
+    playerOverview,
+    /<div\s*\n\s*v-else\s*\n\s*aria-disabled="true"/,
+  );
 });
 
-test("League card is not rendered as a NuxtLink and carries no interactive/hover affordances", () => {
-  assert.match(
-    playerOverview,
-    /:is="destination\.comingSoon \? 'div' : 'NuxtLink'"/,
+test("League renders as the non-clickable div branch while interactive hover/focus/cursor classes stay on NuxtLink only", () => {
+  const featureCards = playerOverview.slice(
+    playerOverview.indexOf('aria-label="Main platform destinations"'),
+    playerOverview.indexOf(
+      "</nav>",
+      playerOverview.indexOf('aria-label="Main platform destinations"'),
+    ),
   );
-  assert.match(
-    playerOverview,
-    /:to="destination\.comingSoon \? undefined : destination\.to"/,
-  );
-  assert.match(
-    playerOverview,
-    /:aria-disabled="destination\.comingSoon \? 'true' : undefined"/,
-  );
-  // Interactive classes (hover scale/glow, cursor-pointer, active/focus rings)
-  // are only applied when NOT comingSoon.
-  assert.match(
-    playerOverview,
-    /destination\.comingSoon \? '' : featureCardInteractiveClasses/,
+  const linkOpeningTag = featureCards.match(/<NuxtLink\s+[\s\S]*?>/)?.[0];
+  const leagueOpeningTag = featureCards.match(
+    /<div\s*\n\s*v-else\s*\n\s*aria-disabled="true"[\s\S]*?>/,
+  )?.[0];
+
+  assert.ok(linkOpeningTag, "expected an explicit NuxtLink card branch");
+  assert.ok(leagueOpeningTag, "expected an explicit disabled div card branch");
+  assert.match(linkOpeningTag, /featureCardInteractiveClasses/);
+  assert.doesNotMatch(leagueOpeningTag, /featureCardInteractiveClasses/);
+  assert.doesNotMatch(
+    leagueOpeningTag,
+    /:to=|active-class|cursor-pointer|hover:|focus-visible:/,
   );
   assert.match(playerOverview, /const featureCardInteractiveClasses =\s*\n\s*"group\/feature cursor-pointer/);
+});
+
+test("comingSoon state disables only League and cannot accidentally disable Play or Tournaments", () => {
+  const destinationsBlock = playerOverview.match(
+    /const destinations = \[([\s\S]*?)\n\] as const;/,
+  )?.[1];
+  assert.ok(destinationsBlock, "expected to find the feature destinations array");
+  assert.equal((destinationsBlock.match(/comingSoon: false/g) || []).length, 2);
+  assert.equal((destinationsBlock.match(/comingSoon: true/g) || []).length, 1);
+  assert.match(
+    destinationsBlock,
+    /label: "PLAY"[\s\S]*?comingSoon: false,[\s\S]*?label: "TOURNAMENTS"[\s\S]*?comingSoon: false,[\s\S]*?label: "LEAGUE"[\s\S]*?comingSoon: true,/,
+  );
+  assert.doesNotMatch(
+    playerOverview,
+    /<component\s+[\s\S]*?:is="destination\.comingSoon \? 'div' : 'NuxtLink'"/,
+  );
 });
 
 test('the profile header button reads "MY STATS", not "VIEW MY PROFILE", and its destination is unchanged', () => {

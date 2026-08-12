@@ -128,85 +128,124 @@ const profilePath = computed(() => ({
             aria-label="Main platform destinations"
             class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
           >
-            <component
-              :is="destination.comingSoon ? 'div' : 'NuxtLink'"
+            <template
               v-for="(destination, index) in destinations"
               :key="destination.to"
-              :to="destination.comingSoon ? undefined : destination.to"
-              :aria-disabled="destination.comingSoon ? 'true' : undefined"
-              :class="[
-                featureCardBaseClasses,
-                destination.comingSoon ? '' : featureCardInteractiveClasses,
-                { 'sm:col-span-2 lg:col-span-1': index === 2 },
-              ]"
-              :active-class="
-                destination.comingSoon
-                  ? undefined
-                  : '!border-[hsl(var(--tac-amber)/0.75)]'
-              "
             >
-              <span
-                class="pointer-events-none absolute inset-0 z-0 opacity-0 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,hsl(var(--tac-amber)/0.03)_3px,hsl(var(--tac-amber)/0.03)_4px)] transition-opacity duration-200 group-hover/feature:opacity-100"
-                aria-hidden="true"
-              ></span>
-              <span
-                class="pointer-events-none absolute right-2 top-2 h-3.5 w-3.5 border-r-2 border-t-2 border-[hsl(var(--tac-amber)/0.55)] transition-colors group-hover/feature:border-[hsl(var(--tac-amber))]"
-                aria-hidden="true"
-              ></span>
-              <component
-                :is="destination.icon"
-                class="pointer-events-none absolute z-0 text-[hsl(31_72%_40%)] drop-shadow-[0_0_6px_hsl(var(--tac-amber)/0.18)] transition-[color,filter,transform] duration-300 group-hover/feature:scale-105 group-hover/feature:text-[hsl(var(--tac-amber))] group-hover/feature:drop-shadow-[0_0_8px_hsl(var(--tac-amber)/0.28)]"
-                :class="destination.iconClass"
-                aria-hidden="true"
-              />
+              <NuxtLink
+                v-if="!destination.comingSoon"
+                :to="destination.to"
+                :class="[
+                  featureCardBaseClasses,
+                  featureCardInteractiveClasses,
+                  { 'sm:col-span-2 lg:col-span-1': index === 2 },
+                ]"
+                active-class="!border-[hsl(var(--tac-amber)/0.75)]"
+              >
+                <span
+                  class="pointer-events-none absolute inset-0 z-0 opacity-0 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,hsl(var(--tac-amber)/0.03)_3px,hsl(var(--tac-amber)/0.03)_4px)] transition-opacity duration-200 group-hover/feature:opacity-100"
+                  aria-hidden="true"
+                ></span>
+                <span
+                  class="pointer-events-none absolute right-2 top-2 h-3.5 w-3.5 border-r-2 border-t-2 border-[hsl(var(--tac-amber)/0.55)] transition-colors group-hover/feature:border-[hsl(var(--tac-amber))]"
+                  aria-hidden="true"
+                ></span>
+                <component
+                  :is="destination.icon"
+                  class="pointer-events-none absolute z-0 text-[hsl(31_72%_40%)] drop-shadow-[0_0_6px_hsl(var(--tac-amber)/0.18)] transition-[color,filter,transform] duration-300 group-hover/feature:scale-105 group-hover/feature:text-[hsl(var(--tac-amber))] group-hover/feature:drop-shadow-[0_0_8px_hsl(var(--tac-amber)/0.28)]"
+                  :class="destination.iconClass"
+                  aria-hidden="true"
+                />
 
-              <div class="relative z-[1] flex min-w-0 flex-1 flex-col">
-                <div class="flex items-start justify-between gap-4">
-                  <div
-                    :class="[
-                      'inline-flex items-center gap-2',
-                      tacticalCardHeadingClasses,
-                      destination.comingSoon
-                        ? ''
-                        : 'transition-colors duration-200 group-hover/feature:text-[hsl(var(--tac-amber))]',
-                    ]"
-                  >
-                    <span
-                      class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
-                      aria-hidden="true"
-                    ></span>
-                    {{ destination.label }}
+                <div class="relative z-[1] flex min-w-0 flex-1 flex-col">
+                  <div class="flex items-start justify-between gap-4">
+                    <div
+                      :class="[
+                        'inline-flex items-center gap-2',
+                        tacticalCardHeadingClasses,
+                        'transition-colors duration-200 group-hover/feature:text-[hsl(var(--tac-amber))]',
+                      ]"
+                    >
+                      <span
+                        class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
+                        aria-hidden="true"
+                      ></span>
+                      {{ destination.label }}
+                    </div>
                   </div>
-                  <span
-                    v-if="destination.comingSoon"
-                    class="shrink-0 rounded-full border border-border/70 bg-muted/40 px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-muted-foreground"
+                  <p
+                    class="mt-3 max-w-xl text-[0.8rem] leading-5 text-muted-foreground"
                   >
-                    Coming Soon
+                    {{ destination.description }}
+                  </p>
+                  <span
+                    class="mt-auto pt-3 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber)/0.72)] transition-colors group-hover/feature:text-[hsl(var(--tac-amber))]"
+                  >
+                    OPEN
+                    <ArrowRight
+                      class="ml-1 inline size-3 transition-transform group-hover/feature:translate-x-1"
+                      aria-hidden="true"
+                    />
                   </span>
                 </div>
-                <p
-                  class="mt-3 max-w-xl text-[0.8rem] leading-5 text-muted-foreground"
-                >
-                  {{ destination.description }}
-                </p>
+              </NuxtLink>
+
+              <div
+                v-else
+                aria-disabled="true"
+                :class="[
+                  featureCardBaseClasses,
+                  { 'sm:col-span-2 lg:col-span-1': index === 2 },
+                ]"
+              >
                 <span
-                  v-if="destination.comingSoon"
-                  class="mt-auto pt-3 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground"
-                >
-                  {{ destination.comingSoonLabel }}
-                </span>
+                  class="pointer-events-none absolute inset-0 z-0 opacity-0 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,hsl(var(--tac-amber)/0.03)_3px,hsl(var(--tac-amber)/0.03)_4px)] transition-opacity duration-200 group-hover/feature:opacity-100"
+                  aria-hidden="true"
+                ></span>
                 <span
-                  v-else
-                  class="mt-auto pt-3 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber)/0.72)] transition-colors group-hover/feature:text-[hsl(var(--tac-amber))]"
-                >
-                  OPEN
-                  <ArrowRight
-                    class="ml-1 inline size-3 transition-transform group-hover/feature:translate-x-1"
-                    aria-hidden="true"
-                  />
-                </span>
+                  class="pointer-events-none absolute right-2 top-2 h-3.5 w-3.5 border-r-2 border-t-2 border-[hsl(var(--tac-amber)/0.55)] transition-colors group-hover/feature:border-[hsl(var(--tac-amber))]"
+                  aria-hidden="true"
+                ></span>
+                <component
+                  :is="destination.icon"
+                  class="pointer-events-none absolute z-0 text-[hsl(31_72%_40%)] drop-shadow-[0_0_6px_hsl(var(--tac-amber)/0.18)] transition-[color,filter,transform] duration-300 group-hover/feature:scale-105 group-hover/feature:text-[hsl(var(--tac-amber))] group-hover/feature:drop-shadow-[0_0_8px_hsl(var(--tac-amber)/0.28)]"
+                  :class="destination.iconClass"
+                  aria-hidden="true"
+                />
+
+                <div class="relative z-[1] flex min-w-0 flex-1 flex-col">
+                  <div class="flex items-start justify-between gap-4">
+                    <div
+                      :class="[
+                        'inline-flex items-center gap-2',
+                        tacticalCardHeadingClasses,
+                      ]"
+                    >
+                      <span
+                        class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
+                        aria-hidden="true"
+                      ></span>
+                      {{ destination.label }}
+                    </div>
+                    <span
+                      class="shrink-0 rounded-full border border-border/70 bg-muted/40 px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-muted-foreground"
+                    >
+                      Coming Soon
+                    </span>
+                  </div>
+                  <p
+                    class="mt-3 max-w-xl text-[0.8rem] leading-5 text-muted-foreground"
+                  >
+                    {{ destination.description }}
+                  </p>
+                  <span
+                    class="mt-auto pt-3 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground"
+                  >
+                    {{ destination.comingSoonLabel }}
+                  </span>
+                </div>
               </div>
-            </component>
+            </template>
           </nav>
           </section>
 
