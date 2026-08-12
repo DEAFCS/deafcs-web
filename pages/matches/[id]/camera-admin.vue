@@ -181,30 +181,33 @@ onBeforeUnmount(() => {
               >
                 Not connected
               </div>
-
-              <button
-                type="button"
-                :disabled="callState(player.steamId).connecting"
-                :title="callState(player.steamId).talking ? 'End call' : 'Video call'"
-                class="absolute bottom-2 right-2 z-10 flex items-center justify-center w-9 h-9 rounded-full text-white shadow-lg transition-colors disabled:opacity-50"
-                :class="callState(player.steamId).talking ? 'bg-red-600 hover:bg-red-500' : 'bg-black/60 hover:bg-black/80'"
-                @click="
-                  callState(player.steamId).talking
-                    ? endCall(player.steamId)
-                    : startCall(player.steamId)
-                "
-              >
-                <VideoOff v-if="callState(player.steamId).talking" class="w-4 h-4" />
-                <Video v-else class="w-4 h-4" />
-              </button>
             </div>
             <div class="px-2 py-1.5 flex items-center gap-2 text-sm">
               <span
                 class="w-2 h-2 rounded-full flex-shrink-0"
                 :class="player.ready ? 'bg-green-500' : 'bg-muted-foreground/40'"
               />
-              <span class="truncate">{{ player.name || player.steamId }}</span>
+              <span class="truncate flex-1">{{ player.name || player.steamId }}</span>
             </div>
+            <!-- Call button lives below the video, not overlaid on top
+                 of it — a small corner icon on the picture itself was
+                 easy to miss entirely. Same "controls below the frame,
+                 not on it" layout as the player's own join page. -->
+            <button
+              type="button"
+              :disabled="callState(player.steamId).connecting"
+              class="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-white transition-colors disabled:opacity-50"
+              :class="callState(player.steamId).talking ? 'bg-red-600 hover:bg-red-500' : 'bg-primary hover:opacity-90'"
+              @click="
+                callState(player.steamId).talking
+                  ? endCall(player.steamId)
+                  : startCall(player.steamId)
+              "
+            >
+              <VideoOff v-if="callState(player.steamId).talking" class="w-4 h-4" />
+              <Video v-else class="w-4 h-4" />
+              {{ callState(player.steamId).talking ? "End call" : "Video call" }}
+            </button>
           </div>
         </div>
       </div>

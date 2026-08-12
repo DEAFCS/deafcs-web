@@ -80,15 +80,14 @@ watch(
   { immediate: true },
 );
 
-let popupWindow: Window | null = null;
+// Deliberately not keeping a reference to the opened window — this
+// overlay must never be the one deciding when that window closes (see
+// the onBeforeUnmount comment below). The join page manages its own
+// lifecycle entirely on its own.
 function connectOnThisComputer() {
   step.value = "pc";
   if (!joinUrl.value) return;
-  popupWindow = window.open(
-    joinUrl.value,
-    "camera-connect",
-    "width=480,height=800",
-  );
+  window.open(joinUrl.value, "camera-connect", "width=480,height=800");
 }
 
 let statusTimer: ReturnType<typeof setTimeout> | null = null;
@@ -130,7 +129,6 @@ watch(
 onBeforeUnmount(() => {
   if (statusTimer) clearTimeout(statusTimer);
   if (tokenPollTimer) clearTimeout(tokenPollTimer);
-  if (popupWindow && !popupWindow.closed) popupWindow.close();
 });
 </script>
 

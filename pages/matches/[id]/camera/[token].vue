@@ -257,29 +257,40 @@ onBeforeUnmount(() => {
   >
     <h1 class="text-lg font-semibold text-center">Connect your camera</h1>
 
+    <!--
+      No forced aspect-ratio on this container, and no object-cover on
+      the main video — both crop/zoom the picture to fill a box whose
+      ratio doesn't match the actual camera stream, which is exactly
+      the "too zoomed in" look reported before. The fix mirrors what
+      already works on the join page this replaced: request a
+      resolution matching the phone's orientation (videoConstraints
+      above) AND let the video render at its own natural size instead
+      of being force-fit into a fixed box.
+    -->
     <div
-      class="relative w-full max-w-[420px] aspect-[3/4] sm:aspect-video rounded-xl overflow-hidden bg-black border border-border"
+      class="relative w-full max-w-[420px] rounded-xl overflow-hidden bg-black border border-border"
     >
       <!-- During a call the admin's video takes over the main frame and
            the player's own camera shrinks to a small corner preview —
            same layout every video-call app uses, so it needs no
-           explanation on-screen. -->
+           explanation on-screen. The small PiP corner is the one place
+           object-cover is fine: it's a tiny fixed-size thumbnail, not
+           the frame someone's trying to actually see themselves in. -->
       <video
         v-show="talkActive"
         ref="adminVideoEl"
         autoplay
         playsinline
-        class="w-full h-full object-cover"
+        class="w-full h-auto block"
       />
       <video
         ref="previewEl"
         autoplay
         playsinline
         muted
-        class="object-cover"
         :class="talkActive
-          ? 'absolute bottom-2 right-2 w-24 h-32 rounded-lg border-2 border-white shadow-lg z-10'
-          : 'w-full h-full'"
+          ? 'absolute bottom-2 right-2 w-24 h-32 rounded-lg border-2 border-white shadow-lg z-10 object-cover'
+          : 'w-full h-auto block'"
       />
 
       <div
