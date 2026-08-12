@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { ref, onBeforeUnmount, onMounted } from "vue";
 import { Button } from "~/components/ui/button";
-import { LucideRefreshCw, LucideX, LucideCheck } from "lucide-vue-next";
+import { LucideRefreshCw, LucideX, LucideCheck, LucideVideo } from "lucide-vue-next";
 import {
   cameraPlayerWhipUrl,
   fetchCameraStatus,
+  cameraPlayerTalkWhepUrl,
+  cameraPlayerTalkStatusUrl,
+  cameraPlayerTalkHangupUrl,
+  fetchCameraTalkStatus,
 } from "~/composables/useCameraApi";
 
 // Standalone, chrome-free tool page — reached either by scanning the
@@ -86,6 +90,7 @@ async function startCamera() {
 
     phase.value = "connected";
     pollStatus();
+    pollTalk(); // start watching for an admin video call now that a user gesture has happened
   } catch (err) {
     phase.value = "error";
     errorMessage.value = err instanceof Error ? err.message : String(err);
@@ -143,6 +148,11 @@ function teardownStream() {
     clearTimeout(statusPollTimer);
     statusPollTimer = null;
   }
+  if (talkPollTimer) {
+    clearTimeout(talkPollTimer);
+    talkPollTimer = null;
+  }
+  stopTalkPlayback();
   if (camPc) {
     camPc.close();
     camPc = null;
@@ -157,6 +167,77 @@ function teardownStream() {
 function disconnect() {
   teardownStream();
   phase.value = "idle";
+}
+
+// --- Incoming admin video call ("talk mode") ---
+// No accept/decline step: the moment admin starts a call it just
+// appears, same as the requirement overlay itself does — proven UX
+// from the POC this replaces.
+const adminVideoEl = ref<HTMLVideoElement | null>(null);
+const talkActive = ref(false);
+let talkPc: RTCPeerConnection | null = null;
+let talkPollTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function startTalkPlayback() {
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  });
+  talkPc = pc;
+  pc.addTransceiver("video", { direction: "recvonly" });
+  pc.addTransceiver("audio", { direction: "recvonly" });
+  pc.ontrack = (e) => {
+    if (adminVideoEl.value) adminVideoEl.value.srcObject = e.streams[0];
+  };
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  await new Promise<void>((resolve) => {
+    if (pc.iceGatheringState === "complete") return resolve();
+    pc.addEventListener("icegatheringstatechange", () => {
+      if (pc.iceGatheringState === "complete") resolve();
+    });
+    setTimeout(resolve, 1500);
+  });
+  const res = await fetch(cameraPlayerTalkWhepUrl(token.value), {
+    method: "POST",
+    headers: { "Content-Type": "application/sdp" },
+    body: pc.localDescription?.sdp ?? "",
+  });
+  const answer = await res.text();
+  await pc.setRemoteDescription({ type: "answer", sdp: answer });
+}
+
+function stopTalkPlayback() {
+  if (talkPc) {
+    talkPc.close();
+    talkPc = null;
+  }
+  if (adminVideoEl.value) adminVideoEl.value.srcObject = null;
+}
+
+function pollTalk() {
+  talkPollTimer = setTimeout(async () => {
+    const { ready } = await fetchCameraTalkStatus(
+      cameraPlayerTalkStatusUrl(token.value),
+    );
+    if (ready && !talkActive.value) {
+      talkActive.value = true;
+      startTalkPlayback();
+    } else if (!ready && talkActive.value) {
+      talkActive.value = false;
+      stopTalkPlayback();
+    }
+    if (phase.value === "connected") pollTalk();
+  }, 1500);
+}
+
+async function hangUpTalk() {
+  talkActive.value = false;
+  stopTalkPlayback();
+  try {
+    await fetch(cameraPlayerTalkHangupUrl(token.value), { method: "POST" });
+  } catch {
+    /* best-effort */
+  }
 }
 
 onMounted(() => {
@@ -179,16 +260,38 @@ onBeforeUnmount(() => {
     <div
       class="relative w-full max-w-[420px] aspect-[3/4] sm:aspect-video rounded-xl overflow-hidden bg-black border border-border"
     >
+      <!-- During a call the admin's video takes over the main frame and
+           the player's own camera shrinks to a small corner preview —
+           same layout every video-call app uses, so it needs no
+           explanation on-screen. -->
+      <video
+        v-show="talkActive"
+        ref="adminVideoEl"
+        autoplay
+        playsinline
+        class="w-full h-full object-cover"
+      />
       <video
         ref="previewEl"
         autoplay
         playsinline
         muted
-        class="w-full h-full object-cover"
+        class="object-cover"
+        :class="talkActive
+          ? 'absolute bottom-2 right-2 w-24 h-32 rounded-lg border-2 border-white shadow-lg z-10'
+          : 'w-full h-full'"
       />
 
+      <div
+        v-if="talkActive"
+        class="absolute top-2.5 left-2.5 z-10 inline-flex items-center gap-1.5 rounded-full bg-green-600/90 text-white px-3 py-1 text-xs font-bold"
+      >
+        <LucideVideo class="w-3.5 h-3.5" />
+        Admin is calling
+      </div>
+
       <button
-        v-if="phase === 'connected'"
+        v-if="phase === 'connected' && !talkActive"
         type="button"
         title="Switch camera"
         aria-label="Switch camera"
@@ -197,10 +300,21 @@ onBeforeUnmount(() => {
       >
         <LucideRefreshCw class="w-5 h-5" />
       </button>
+
+      <button
+        v-if="talkActive"
+        type="button"
+        title="Hang up"
+        aria-label="Hang up"
+        class="absolute bottom-2 left-2 z-10 flex items-center justify-center w-11 h-11 rounded-full bg-red-600 text-white hover:bg-red-500 transition-colors shadow-lg"
+        @click="hangUpTalk"
+      >
+        <LucideX class="w-5 h-5" />
+      </button>
     </div>
 
     <button
-      v-if="phase === 'connected'"
+      v-if="phase === 'connected' && !talkActive"
       type="button"
       title="Disconnect"
       aria-label="Disconnect"

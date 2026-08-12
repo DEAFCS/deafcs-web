@@ -49,6 +49,50 @@ export async function fetchCameraStatus(
   }
 }
 
+// --- Talk mode: admin video-calls a specific player ---
+
+export function cameraAdminTalkWhipUrl(matchId: string, steamId: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/matches/camera/admin/${matchId}/${steamId}/talk/whip`;
+}
+
+export function cameraAdminTalkStatusUrl(matchId: string, steamId: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/matches/camera/admin/${matchId}/${steamId}/talk/status`;
+}
+
+export function cameraAdminTalkHangupUrl(matchId: string, steamId: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/matches/camera/admin/${matchId}/${steamId}/talk/hangup`;
+}
+
+export function cameraPlayerTalkWhepUrl(token: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/matches/camera/player/${token}/talk/whep`;
+}
+
+export function cameraPlayerTalkStatusUrl(token: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/matches/camera/player/${token}/talk/status`;
+}
+
+export function cameraPlayerTalkHangupUrl(token: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/matches/camera/player/${token}/talk/hangup`;
+}
+
+export async function fetchCameraTalkStatus(
+  statusUrl: string,
+): Promise<{ ready: boolean }> {
+  try {
+    const res = await fetch(statusUrl, { credentials: "include" });
+    if (!res.ok) return { ready: false };
+    return (await res.json()) as { ready: boolean };
+  } catch {
+    return { ready: false };
+  }
+}
+
 export type CameraPlayerStatus = {
   steamId: string;
   name: string | null;
