@@ -519,7 +519,16 @@ export default {
   },
   methods: {
     updateLobbyMessages(newMessages: any) {
-      this.messages = newMessages.sort((a: any, b: any) => {
+      // Clone rather than alias: `newMessages` is the shared array living on
+      // the socket module's `lobby` object, reused by every ChatLobby
+      // instance watching this same (type, lobbyId) pair (e.g. the embedded
+      // page chat + the floating global-chat widget for the same match).
+      // Assigning it directly made every instance's `this.messages` point
+      // at the SAME array, so each instance's own per-message push (below,
+      // and in the lobbyId watcher's listenChat callback) landed in that one
+      // shared array once per mounted instance -- every message rendered
+      // duplicated as many times as there were concurrent widgets for it.
+      this.messages = [...newMessages].sort((a: any, b: any) => {
         return a.timestamp - b.timestamp;
       });
     },
