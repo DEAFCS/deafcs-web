@@ -36,21 +36,29 @@ const { result: tokenResult, refetch: refetchToken } = useQuery<{
 const token = computed(() => tokenResult.value?.match_camera_tokens?.[0]?.token ?? null);
 
 // The token row is minted server-side the moment the match goes Live
-// (see MatchesController.generateCameraTokensIfRequired) — normally
-// already there by the time this overlay mounts, but retry briefly in
-// case this component renders in the same instant as that transition.
-let tokenRetryTimer: ReturnType<typeof setTimeout> | null = null;
-watch(
-  token,
-  (value) => {
-    if (value || tokenRetryTimer) return;
-    tokenRetryTimer = setTimeout(() => {
-      tokenRetryTimer = null;
-      void refetchToken();
-    }, 1500);
-  },
-  { immediate: true },
-);
+// (see MatchesController.generateCameraTokensIfRequired), via a
+// Hasura event trigger -> NestJS webhook -> insert — a real, sometimes
+// multi-second gap after the match row itself already reads status
+// Live over the subscription. This overlay can easily mount before
+// that insert lands.
+//
+// IMPORTANT: this is a plain self-rescheduling setTimeout loop, not a
+// `watch(token, ...)`. A `watch` only re-fires on a *value change* —
+// if the token is still missing after a retry, `token` goes from
+// undefined to undefined again, which Vue does not consider a change,
+// so the watch callback silently never fires a second time and the
+// overlay is stuck forever (until a full reload re-runs everything
+// fresh, which is exactly why F5 "fixed" it). Polling unconditionally
+// here sidesteps that pitfall entirely.
+let tokenPollTimer: ReturnType<typeof setTimeout> | null = null;
+function pollForToken() {
+  if (token.value) return;
+  tokenPollTimer = setTimeout(async () => {
+    await refetchToken();
+    pollForToken();
+  }, 1500);
+}
+pollForToken();
 
 type Step = "choose" | "mobile" | "pc";
 const step = ref<Step>("choose");
@@ -121,7 +129,7 @@ watch(
 
 onBeforeUnmount(() => {
   if (statusTimer) clearTimeout(statusTimer);
-  if (tokenRetryTimer) clearTimeout(tokenRetryTimer);
+  if (tokenPollTimer) clearTimeout(tokenPollTimer);
   if (popupWindow && !popupWindow.closed) popupWindow.close();
 });
 </script>

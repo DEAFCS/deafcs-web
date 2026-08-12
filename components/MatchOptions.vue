@@ -859,7 +859,11 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                   </FormItem>
                 </FormField>
 
-                <FormField v-slot="{ value, handleChange }" name="camera_required">
+                <FormField
+                  v-if="canSetCameraRequired"
+                  v-slot="{ value, handleChange }"
+                  name="camera_required"
+                >
                   <FormItem>
                     <div
                       class="flex flex-row items-center justify-between cursor-pointer"
@@ -1652,6 +1656,12 @@ export default {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
     },
     canSetcheckInSettings() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
+    },
+    // Regular players never see this at all — only the roles that can
+    // actually act on the resulting camera feed (watch it, organize
+    // around it) should even know the option exists.
+    canSetCameraRequired() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
     },
     canSetMatchCancellation() {

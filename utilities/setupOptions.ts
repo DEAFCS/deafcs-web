@@ -188,7 +188,13 @@ export function setupOptionsVariables(
     tv_delay: values.tv_delay,
     round_restart_delay: values.round_restart_delay ?? null,
     halftime_pausematch: values.halftime_pausematch ?? false,
-    camera_required: values.camera_required ?? false,
+    // Hasura only grants match_organizer+ write access to this column
+    // (see public_match_options.yaml) — sending it as a plain "user"
+    // would fail the whole mutation, not just silently ignore the
+    // field, so it has to be omitted entirely below that threshold.
+    ...(useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
+      ? { camera_required: values.camera_required ?? false }
+      : {}),
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
       ? {
           check_in_setting: values.check_in_setting,
@@ -243,7 +249,9 @@ export function setupOptionsSetMutation(hasMapPoolId: boolean = true) {
     tv_delay: $("tv_delay", "Int!"),
     round_restart_delay: $("round_restart_delay", "Int"),
     halftime_pausematch: $("halftime_pausematch", "Boolean!"),
-    camera_required: $("camera_required", "Boolean!"),
+    ...(useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
+      ? { camera_required: $("camera_required", "Boolean!") }
+      : {}),
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
       ? {
           check_in_setting: $("check_in_setting", "e_check_in_settings_enum!"),
