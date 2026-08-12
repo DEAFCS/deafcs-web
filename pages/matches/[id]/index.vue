@@ -11,6 +11,7 @@ import MatchAdminBottomBar from "~/components/match/MatchAdminBottomBar.vue";
 import MatchInfo from "~/components/match/MatchInfo.vue";
 import MatchHighlightsReel from "~/components/match/MatchHighlightsReel.vue";
 import MatchActions from "~/components/match/MatchActions.vue";
+import CameraRequirementOverlay from "~/components/match/CameraRequirementOverlay.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
@@ -162,6 +163,11 @@ const vsBaseClasses =
 
 <template>
   <div class="flex flex-col gap-4 md:gap-6 w-full max-w-[1600px] mx-auto">
+    <CameraRequirementOverlay
+      v-if="showCameraOverlay"
+      :match-id="match.id"
+      @ready="cameraReady = true"
+    />
     <template v-if="match">
     <PageTransition>
       <header :class="heroClasses">
@@ -645,6 +651,10 @@ export default {
       vetoPickCount: undefined,
       autoCancelRemainingSeconds: 0,
       autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
+      // Flips true once CameraRequirementOverlay confirms this player's
+      // own camera is live (either already was, on mount, or just
+      // connected) — that's what actually makes the overlay disappear.
+      cameraReady: false,
     };
   },
   watch: {
@@ -979,6 +989,24 @@ export default {
         return null;
       }
       return `${this.match.id}:${this.myLineup.id}`;
+    },
+    // Deliberately stricter than myLineup: is_on_lineup is only true
+    // for an actual rostered player row (see is_on_lineup.sql), not a
+    // coach — coaches never publish a webcam, so they should never be
+    // blocked by the overlay.
+    isCameraPlayer() {
+      return !!(
+        this.match?.lineup_1?.is_on_lineup || this.match?.lineup_2?.is_on_lineup
+      );
+    },
+    showCameraOverlay() {
+      const activeStatuses = ["Veto", "Live", "WaitingForServer"];
+      return (
+        !!this.match?.options?.camera_required &&
+        this.isCameraPlayer &&
+        activeStatuses.includes(this.match?.status) &&
+        !this.cameraReady
+      );
     },
     mapScores() {
       const maps = this.match?.match_maps || [];

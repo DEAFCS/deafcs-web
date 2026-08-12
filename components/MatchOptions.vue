@@ -858,6 +858,31 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                     </div>
                   </FormItem>
                 </FormField>
+
+                <FormField v-slot="{ value, handleChange }" name="camera_required">
+                  <FormItem>
+                    <div
+                      class="flex flex-row items-center justify-between cursor-pointer"
+                      @click="handleChange(!value)"
+                    >
+                      <div class="space-y-0.5">
+                        <SettingHeader>{{
+                          $t("match.options.advanced.camera_required.label")
+                        }}</SettingHeader>
+                        <FormDescription>{{
+                          $t("match.options.advanced.camera_required.description")
+                        }}</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          class="pointer-events-none"
+                          :model-value="value"
+                          @update:model-value="handleChange"
+                        />
+                      </FormControl>
+                    </div>
+                  </FormItem>
+                </FormField>
               </div>
             </Card>
 

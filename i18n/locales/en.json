@@ -3482,6 +3482,7 @@
     "none": "No players available"
   },
   "common": {
+    "loading": "Loading",
     "manage_custom_plugins_and_shared_files": "These files are moutned to `csgo` directory when the server is started.",
     "any": "Any",
     "remove": "Remove",
@@ -4532,6 +4533,10 @@
         "halftime_pausematch": {
           "label": "Pause at Halftime",
           "description": "Pauses the match at halftime until an admin resumes it — useful for streamed broadcasts."
+        },
+        "camera_required": {
+          "label": "Require Webcam",
+          "description": "Players must connect a webcam before they can see the server connect info. Admins and tournament organizers can view player cameras from the match page."
         }
       },
       "max_rounds": "Max Rounds",
@@ -4844,7 +4849,8 @@
       "resume_renders_started": "Resuming highlight renders",
       "clips_started": "Player highlight renders queued",
       "reparse_demos": "Reparse Match Demos",
-      "reparse_demos_started": "Reparsing all demos for this match"
+      "reparse_demos_started": "Reparsing all demos for this match",
+      "watch_camera": "Watch Camera"
     },
     "delete_confirm": {
       "title": "Delete Match",

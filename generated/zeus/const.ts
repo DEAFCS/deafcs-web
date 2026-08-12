@@ -6376,6 +6376,9 @@ export const AllTypesProps: Record<string,any> = {
 		_neq:"inet",
 		_nin:"inet"
 	},
+	is_leaver_in_match_players_args:{
+		match_id:"uuid"
+	},
 	json: `scalar.json` as const,
 	json_comparison_exp:{
 		_eq:"json",
@@ -6416,6 +6419,7 @@ export const AllTypesProps: Record<string,any> = {
 		matches_played:"Int_comparison_exp",
 		player_avatar_url:"String_comparison_exp",
 		player_country:"String_comparison_exp",
+		player_custom_avatar_url:"String_comparison_exp",
 		player_name:"String_comparison_exp",
 		player_steam_id:"String_comparison_exp",
 		secondary_value:"float8_comparison_exp",
@@ -6436,6 +6440,7 @@ export const AllTypesProps: Record<string,any> = {
 		matches_played:"order_by",
 		player_avatar_url:"order_by",
 		player_country:"order_by",
+		player_custom_avatar_url:"order_by",
 		player_name:"order_by",
 		player_steam_id:"order_by",
 		secondary_value:"order_by",
@@ -8530,6 +8535,138 @@ export const AllTypesProps: Record<string,any> = {
 		_set:"maps_set_input",
 		where:"maps_bool_exp"
 	},
+	match_camera_tokens_aggregate_bool_exp:{
+		count:"match_camera_tokens_aggregate_bool_exp_count"
+	},
+	match_camera_tokens_aggregate_bool_exp_count:{
+		arguments:"match_camera_tokens_select_column",
+		filter:"match_camera_tokens_bool_exp",
+		predicate:"Int_comparison_exp"
+	},
+	match_camera_tokens_aggregate_fields:{
+		count:{
+			columns:"match_camera_tokens_select_column"
+		}
+	},
+	match_camera_tokens_aggregate_order_by:{
+		avg:"match_camera_tokens_avg_order_by",
+		count:"order_by",
+		max:"match_camera_tokens_max_order_by",
+		min:"match_camera_tokens_min_order_by",
+		stddev:"match_camera_tokens_stddev_order_by",
+		stddev_pop:"match_camera_tokens_stddev_pop_order_by",
+		stddev_samp:"match_camera_tokens_stddev_samp_order_by",
+		sum:"match_camera_tokens_sum_order_by",
+		var_pop:"match_camera_tokens_var_pop_order_by",
+		var_samp:"match_camera_tokens_var_samp_order_by",
+		variance:"match_camera_tokens_variance_order_by"
+	},
+	match_camera_tokens_arr_rel_insert_input:{
+		data:"match_camera_tokens_insert_input",
+		on_conflict:"match_camera_tokens_on_conflict"
+	},
+	match_camera_tokens_avg_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_bool_exp:{
+		_and:"match_camera_tokens_bool_exp",
+		_not:"match_camera_tokens_bool_exp",
+		_or:"match_camera_tokens_bool_exp",
+		created_at:"timestamptz_comparison_exp",
+		id:"uuid_comparison_exp",
+		match:"matches_bool_exp",
+		match_id:"uuid_comparison_exp",
+		steam_id:"bigint_comparison_exp",
+		token:"uuid_comparison_exp"
+	},
+	match_camera_tokens_constraint: "enum" as const,
+	match_camera_tokens_inc_input:{
+		steam_id:"bigint"
+	},
+	match_camera_tokens_insert_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		match:"matches_obj_rel_insert_input",
+		match_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	match_camera_tokens_max_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		match_id:"order_by",
+		steam_id:"order_by",
+		token:"order_by"
+	},
+	match_camera_tokens_min_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		match_id:"order_by",
+		steam_id:"order_by",
+		token:"order_by"
+	},
+	match_camera_tokens_on_conflict:{
+		constraint:"match_camera_tokens_constraint",
+		update_columns:"match_camera_tokens_update_column",
+		where:"match_camera_tokens_bool_exp"
+	},
+	match_camera_tokens_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		match:"matches_order_by",
+		match_id:"order_by",
+		steam_id:"order_by",
+		token:"order_by"
+	},
+	match_camera_tokens_pk_columns_input:{
+		id:"uuid"
+	},
+	match_camera_tokens_select_column: "enum" as const,
+	match_camera_tokens_set_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		match_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	match_camera_tokens_stddev_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_stddev_pop_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_stddev_samp_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_stream_cursor_input:{
+		initial_value:"match_camera_tokens_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	match_camera_tokens_stream_cursor_value_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		match_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	match_camera_tokens_sum_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_update_column: "enum" as const,
+	match_camera_tokens_updates:{
+		_inc:"match_camera_tokens_inc_input",
+		_set:"match_camera_tokens_set_input",
+		where:"match_camera_tokens_bool_exp"
+	},
+	match_camera_tokens_var_pop_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_var_samp_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_variance_order_by:{
+		steam_id:"order_by"
+	},
 	match_clips:{
 		render_jobs:{
 			distinct_on:"clip_render_jobs_select_column",
@@ -10225,6 +10362,7 @@ export const AllTypesProps: Record<string,any> = {
 		_or:"match_maps_bool_exp",
 		clips_count:"Int_comparison_exp",
 		created_at:"timestamptz_comparison_exp",
+		demo_processing_started_at:"timestamptz_comparison_exp",
 		demos:"match_map_demos_bool_exp",
 		demos_aggregate:"match_map_demos_aggregate_bool_exp",
 		demos_download_url:"String_comparison_exp",
@@ -10277,6 +10415,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	match_maps_insert_input:{
 		created_at:"timestamptz",
+		demo_processing_started_at:"timestamptz",
 		demos:"match_map_demos_arr_rel_insert_input",
 		e_match_map_status:"e_match_map_status_obj_rel_insert_input",
 		ended_at:"timestamptz",
@@ -10306,6 +10445,7 @@ export const AllTypesProps: Record<string,any> = {
 	match_maps_max_order_by:{
 		clips_count:"order_by",
 		created_at:"order_by",
+		demo_processing_started_at:"order_by",
 		ended_at:"order_by",
 		id:"order_by",
 		latest_clip_at:"order_by",
@@ -10322,6 +10462,7 @@ export const AllTypesProps: Record<string,any> = {
 	match_maps_min_order_by:{
 		clips_count:"order_by",
 		created_at:"order_by",
+		demo_processing_started_at:"order_by",
 		ended_at:"order_by",
 		id:"order_by",
 		latest_clip_at:"order_by",
@@ -10347,6 +10488,7 @@ export const AllTypesProps: Record<string,any> = {
 	match_maps_order_by:{
 		clips_count:"order_by",
 		created_at:"order_by",
+		demo_processing_started_at:"order_by",
 		demos_aggregate:"match_map_demos_aggregate_order_by",
 		demos_download_url:"order_by",
 		demos_total_size:"order_by",
@@ -10388,6 +10530,7 @@ export const AllTypesProps: Record<string,any> = {
 	match_maps_select_column: "enum" as const,
 	match_maps_set_input:{
 		created_at:"timestamptz",
+		demo_processing_started_at:"timestamptz",
 		ended_at:"timestamptz",
 		id:"uuid",
 		latest_clip_at:"timestamptz",
@@ -10427,6 +10570,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	match_maps_stream_cursor_value_input:{
 		created_at:"timestamptz",
+		demo_processing_started_at:"timestamptz",
 		ended_at:"timestamptz",
 		id:"uuid",
 		latest_clip_at:"timestamptz",
@@ -10497,6 +10641,7 @@ export const AllTypesProps: Record<string,any> = {
 		auto_cancel_duration:"Int_comparison_exp",
 		auto_cancellation:"Boolean_comparison_exp",
 		best_of:"Int_comparison_exp",
+		camera_required:"Boolean_comparison_exp",
 		check_in_setting:"e_check_in_settings_enum_comparison_exp",
 		coaches:"Boolean_comparison_exp",
 		default_models:"Boolean_comparison_exp",
@@ -10560,6 +10705,7 @@ export const AllTypesProps: Record<string,any> = {
 		auto_cancel_duration:"order_by",
 		auto_cancellation:"order_by",
 		best_of:"order_by",
+		camera_required:"order_by",
 		check_in_setting:"order_by",
 		coaches:"order_by",
 		default_models:"order_by",
@@ -10977,6 +11123,16 @@ export const AllTypesProps: Record<string,any> = {
 		where:"match_type_cfgs_bool_exp"
 	},
 	matches:{
+		camera_tokens:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
+		camera_tokens_aggregate:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
 		clutches:{
 			distinct_on:"v_match_clutches_select_column",
 			order_by:"v_match_clutches_order_by",
@@ -11193,6 +11349,8 @@ export const AllTypesProps: Record<string,any> = {
 		_and:"matches_bool_exp",
 		_not:"matches_bool_exp",
 		_or:"matches_bool_exp",
+		camera_tokens:"match_camera_tokens_bool_exp",
+		camera_tokens_aggregate:"match_camera_tokens_aggregate_bool_exp",
 		can_assign_server:"Boolean_comparison_exp",
 		can_cancel:"Boolean_comparison_exp",
 		can_check_in:"Boolean_comparison_exp",
@@ -11294,6 +11452,7 @@ export const AllTypesProps: Record<string,any> = {
 		organizer_steam_id:"bigint"
 	},
 	matches_insert_input:{
+		camera_tokens:"match_camera_tokens_arr_rel_insert_input",
 		cancels_at:"timestamptz",
 		clutches:"v_match_clutches_arr_rel_insert_input",
 		created_at:"timestamptz",
@@ -11388,6 +11547,7 @@ export const AllTypesProps: Record<string,any> = {
 		where:"matches_bool_exp"
 	},
 	matches_order_by:{
+		camera_tokens_aggregate:"match_camera_tokens_aggregate_order_by",
 		can_assign_server:"order_by",
 		can_cancel:"order_by",
 		can_check_in:"order_by",
@@ -12206,6 +12366,12 @@ export const AllTypesProps: Record<string,any> = {
 			where:"maps_bool_exp"
 		},
 		delete_maps_by_pk:{
+			id:"uuid"
+		},
+		delete_match_camera_tokens:{
+			where:"match_camera_tokens_bool_exp"
+		},
+		delete_match_camera_tokens_by_pk:{
 			id:"uuid"
 		},
 		delete_match_clips:{
@@ -13361,6 +13527,14 @@ export const AllTypesProps: Record<string,any> = {
 			object:"maps_insert_input",
 			on_conflict:"maps_on_conflict"
 		},
+		insert_match_camera_tokens:{
+			objects:"match_camera_tokens_insert_input",
+			on_conflict:"match_camera_tokens_on_conflict"
+		},
+		insert_match_camera_tokens_one:{
+			object:"match_camera_tokens_insert_input",
+			on_conflict:"match_camera_tokens_on_conflict"
+		},
 		insert_match_clips:{
 			objects:"match_clips_insert_input",
 			on_conflict:"match_clips_on_conflict"
@@ -14015,6 +14189,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		registerName:{
 
+		},
+		removeAbandonedMatch:{
+			id:"uuid"
 		},
 		removeSteamPresenceBotAccount:{
 
@@ -15227,6 +15404,19 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_maps_many:{
 			updates:"maps_updates"
+		},
+		update_match_camera_tokens:{
+			_inc:"match_camera_tokens_inc_input",
+			_set:"match_camera_tokens_set_input",
+			where:"match_camera_tokens_bool_exp"
+		},
+		update_match_camera_tokens_by_pk:{
+			_inc:"match_camera_tokens_inc_input",
+			_set:"match_camera_tokens_set_input",
+			pk_columns:"match_camera_tokens_pk_columns_input"
+		},
+		update_match_camera_tokens_many:{
+			updates:"match_camera_tokens_updates"
 		},
 		update_match_clips:{
 			_inc:"match_clips_inc_input",
@@ -22520,6 +22710,9 @@ export const AllTypesProps: Record<string,any> = {
 			order_by:"team_invites_order_by",
 			where:"team_invites_bool_exp"
 		},
+		is_leaver_in_match:{
+			args:"is_leaver_in_match_players_args"
+		},
 		kills:{
 			distinct_on:"player_kills_select_column",
 			order_by:"player_kills_order_by",
@@ -24348,6 +24541,19 @@ export const AllTypesProps: Record<string,any> = {
 			where:"maps_bool_exp"
 		},
 		maps_by_pk:{
+			id:"uuid"
+		},
+		match_camera_tokens:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
+		match_camera_tokens_aggregate:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
+		match_camera_tokens_by_pk:{
 			id:"uuid"
 		},
 		match_clips:{
@@ -27850,6 +28056,23 @@ export const AllTypesProps: Record<string,any> = {
 		maps_stream:{
 			cursor:"maps_stream_cursor_input",
 			where:"maps_bool_exp"
+		},
+		match_camera_tokens:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
+		match_camera_tokens_aggregate:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
+		match_camera_tokens_by_pk:{
+			id:"uuid"
+		},
+		match_camera_tokens_stream:{
+			cursor:"match_camera_tokens_stream_cursor_input",
+			where:"match_camera_tokens_bool_exp"
 		},
 		match_clips:{
 			distinct_on:"match_clips_select_column",
@@ -36422,10 +36645,12 @@ export const AllTypesProps: Record<string,any> = {
 		_and:"v_team_ranks_bool_exp",
 		_not:"v_team_ranks_bool_exp",
 		_or:"v_team_ranks_bool_exp",
+		avg_duel_elo:"Int_comparison_exp",
 		avg_elo:"Int_comparison_exp",
 		avg_faceit_elo:"Int_comparison_exp",
 		avg_faceit_level:"float8_comparison_exp",
 		avg_premier:"Int_comparison_exp",
+		avg_wingman_elo:"Int_comparison_exp",
 		max_elo:"Int_comparison_exp",
 		min_elo:"Int_comparison_exp",
 		roster_size:"bigint_comparison_exp",
@@ -36442,10 +36667,12 @@ export const AllTypesProps: Record<string,any> = {
 		data:"v_team_ranks_insert_input"
 	},
 	v_team_ranks_order_by:{
+		avg_duel_elo:"order_by",
 		avg_elo:"order_by",
 		avg_faceit_elo:"order_by",
 		avg_faceit_level:"order_by",
 		avg_premier:"order_by",
+		avg_wingman_elo:"order_by",
 		max_elo:"order_by",
 		min_elo:"order_by",
 		roster_size:"order_by",
@@ -41214,6 +41441,7 @@ export const ReturnTypes: Record<string,any> = {
 		matches_played:"Int",
 		player_avatar_url:"String",
 		player_country:"String",
+		player_custom_avatar_url:"String",
 		player_name:"String",
 		player_steam_id:"String",
 		secondary_value:"float8",
@@ -41247,6 +41475,7 @@ export const ReturnTypes: Record<string,any> = {
 		matches_played:"Int",
 		player_avatar_url:"String",
 		player_country:"String",
+		player_custom_avatar_url:"String",
 		player_name:"String",
 		player_steam_id:"String",
 		secondary_value:"float8",
@@ -41257,6 +41486,7 @@ export const ReturnTypes: Record<string,any> = {
 		matches_played:"Int",
 		player_avatar_url:"String",
 		player_country:"String",
+		player_custom_avatar_url:"String",
 		player_name:"String",
 		player_steam_id:"String",
 		secondary_value:"float8",
@@ -42375,6 +42605,73 @@ export const ReturnTypes: Record<string,any> = {
 		affected_rows:"Int",
 		returning:"maps"
 	},
+	match_camera_tokens:{
+		created_at:"timestamptz",
+		id:"uuid",
+		match:"matches",
+		match_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	match_camera_tokens_aggregate:{
+		aggregate:"match_camera_tokens_aggregate_fields",
+		nodes:"match_camera_tokens"
+	},
+	match_camera_tokens_aggregate_fields:{
+		avg:"match_camera_tokens_avg_fields",
+		count:"Int",
+		max:"match_camera_tokens_max_fields",
+		min:"match_camera_tokens_min_fields",
+		stddev:"match_camera_tokens_stddev_fields",
+		stddev_pop:"match_camera_tokens_stddev_pop_fields",
+		stddev_samp:"match_camera_tokens_stddev_samp_fields",
+		sum:"match_camera_tokens_sum_fields",
+		var_pop:"match_camera_tokens_var_pop_fields",
+		var_samp:"match_camera_tokens_var_samp_fields",
+		variance:"match_camera_tokens_variance_fields"
+	},
+	match_camera_tokens_avg_fields:{
+		steam_id:"Float"
+	},
+	match_camera_tokens_max_fields:{
+		created_at:"timestamptz",
+		id:"uuid",
+		match_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	match_camera_tokens_min_fields:{
+		created_at:"timestamptz",
+		id:"uuid",
+		match_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	match_camera_tokens_mutation_response:{
+		affected_rows:"Int",
+		returning:"match_camera_tokens"
+	},
+	match_camera_tokens_stddev_fields:{
+		steam_id:"Float"
+	},
+	match_camera_tokens_stddev_pop_fields:{
+		steam_id:"Float"
+	},
+	match_camera_tokens_stddev_samp_fields:{
+		steam_id:"Float"
+	},
+	match_camera_tokens_sum_fields:{
+		steam_id:"bigint"
+	},
+	match_camera_tokens_var_pop_fields:{
+		steam_id:"Float"
+	},
+	match_camera_tokens_var_samp_fields:{
+		steam_id:"Float"
+	},
+	match_camera_tokens_variance_fields:{
+		steam_id:"Float"
+	},
 	match_clips:{
 		created_at:"timestamptz",
 		download_url:"String",
@@ -43128,6 +43425,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_maps:{
 		clips_count:"Int",
 		created_at:"timestamptz",
+		demo_processing_started_at:"timestamptz",
 		demos:"match_map_demos",
 		demos_aggregate:"match_map_demos_aggregate",
 		demos_download_url:"String",
@@ -43204,6 +43502,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_maps_max_fields:{
 		clips_count:"Int",
 		created_at:"timestamptz",
+		demo_processing_started_at:"timestamptz",
 		demos_download_url:"String",
 		demos_total_size:"Int",
 		ended_at:"timestamptz",
@@ -43224,6 +43523,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_maps_min_fields:{
 		clips_count:"Int",
 		created_at:"timestamptz",
+		demo_processing_started_at:"timestamptz",
 		demos_download_url:"String",
 		demos_total_size:"Int",
 		ended_at:"timestamptz",
@@ -43319,6 +43619,7 @@ export const ReturnTypes: Record<string,any> = {
 		auto_cancel_duration:"Int",
 		auto_cancellation:"Boolean",
 		best_of:"Int",
+		camera_required:"Boolean",
 		check_in_setting:"e_check_in_settings_enum",
 		coaches:"Boolean",
 		default_models:"Boolean",
@@ -43623,6 +43924,8 @@ export const ReturnTypes: Record<string,any> = {
 		returning:"match_type_cfgs"
 	},
 	matches:{
+		camera_tokens:"match_camera_tokens",
+		camera_tokens_aggregate:"match_camera_tokens_aggregate",
 		can_assign_server:"Boolean",
 		can_cancel:"Boolean",
 		can_check_in:"Boolean",
@@ -44086,6 +44389,8 @@ export const ReturnTypes: Record<string,any> = {
 		delete_map_pools_by_pk:"map_pools",
 		delete_maps:"maps_mutation_response",
 		delete_maps_by_pk:"maps",
+		delete_match_camera_tokens:"match_camera_tokens_mutation_response",
+		delete_match_camera_tokens_by_pk:"match_camera_tokens",
 		delete_match_clips:"match_clips_mutation_response",
 		delete_match_clips_by_pk:"match_clips",
 		delete_match_demo_sessions:"match_demo_sessions_mutation_response",
@@ -44404,6 +44709,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_map_pools_one:"map_pools",
 		insert_maps:"maps_mutation_response",
 		insert_maps_one:"maps",
+		insert_match_camera_tokens:"match_camera_tokens_mutation_response",
+		insert_match_camera_tokens_one:"match_camera_tokens",
 		insert_match_clips:"match_clips_mutation_response",
 		insert_match_clips_one:"match_clips",
 		insert_match_demo_sessions:"match_demo_sessions_mutation_response",
@@ -44582,6 +44889,7 @@ export const ReturnTypes: Record<string,any> = {
 		refreshFaceitRank:"SuccessOutput",
 		refreshLiveHud:"SuccessOutput",
 		registerName:"SuccessOutput",
+		removeAbandonedMatch:"SuccessOutput",
 		removeFixtures:"SuccessOutput",
 		removeSteamPresenceBotAccount:"SuccessOutput",
 		remove_league_team_from_season:"league_team_seasons",
@@ -44895,6 +45203,9 @@ export const ReturnTypes: Record<string,any> = {
 		update_maps:"maps_mutation_response",
 		update_maps_by_pk:"maps",
 		update_maps_many:"maps_mutation_response",
+		update_match_camera_tokens:"match_camera_tokens_mutation_response",
+		update_match_camera_tokens_by_pk:"match_camera_tokens",
+		update_match_camera_tokens_many:"match_camera_tokens_mutation_response",
 		update_match_clips:"match_clips_mutation_response",
 		update_match_clips_by_pk:"match_clips",
 		update_match_clips_many:"match_clips_mutation_response",
@@ -50379,6 +50690,7 @@ export const ReturnTypes: Record<string,any> = {
 		is_in_another_match:"Boolean",
 		is_in_draft:"Boolean",
 		is_in_lobby:"Boolean",
+		is_leaver_in_match:"Boolean",
 		is_muted:"Boolean",
 		kills:"player_kills",
 		kills_aggregate:"player_kills_aggregate",
@@ -51057,6 +51369,9 @@ export const ReturnTypes: Record<string,any> = {
 		maps:"maps",
 		maps_aggregate:"maps_aggregate",
 		maps_by_pk:"maps",
+		match_camera_tokens:"match_camera_tokens",
+		match_camera_tokens_aggregate:"match_camera_tokens_aggregate",
+		match_camera_tokens_by_pk:"match_camera_tokens",
 		match_clips:"match_clips",
 		match_clips_aggregate:"match_clips_aggregate",
 		match_clips_by_pk:"match_clips",
@@ -52148,6 +52463,10 @@ export const ReturnTypes: Record<string,any> = {
 		maps_aggregate:"maps_aggregate",
 		maps_by_pk:"maps",
 		maps_stream:"maps",
+		match_camera_tokens:"match_camera_tokens",
+		match_camera_tokens_aggregate:"match_camera_tokens_aggregate",
+		match_camera_tokens_by_pk:"match_camera_tokens",
+		match_camera_tokens_stream:"match_camera_tokens",
 		match_clips:"match_clips",
 		match_clips_aggregate:"match_clips_aggregate",
 		match_clips_by_pk:"match_clips",
@@ -57740,10 +58059,12 @@ export const ReturnTypes: Record<string,any> = {
 		total_accounts:"Float"
 	},
 	v_team_ranks:{
+		avg_duel_elo:"Int",
 		avg_elo:"Int",
 		avg_faceit_elo:"Int",
 		avg_faceit_level:"float8",
 		avg_premier:"Int",
+		avg_wingman_elo:"Int",
 		max_elo:"Int",
 		min_elo:"Int",
 		roster_size:"bigint",
@@ -57768,93 +58089,113 @@ export const ReturnTypes: Record<string,any> = {
 		variance:"v_team_ranks_variance_fields"
 	},
 	v_team_ranks_avg_fields:{
+		avg_duel_elo:"Float",
 		avg_elo:"Float",
 		avg_faceit_elo:"Float",
 		avg_faceit_level:"Float",
 		avg_premier:"Float",
+		avg_wingman_elo:"Float",
 		max_elo:"Float",
 		min_elo:"Float",
 		roster_size:"Float"
 	},
 	v_team_ranks_max_fields:{
+		avg_duel_elo:"Int",
 		avg_elo:"Int",
 		avg_faceit_elo:"Int",
 		avg_faceit_level:"float8",
 		avg_premier:"Int",
+		avg_wingman_elo:"Int",
 		max_elo:"Int",
 		min_elo:"Int",
 		roster_size:"bigint",
 		team_id:"uuid"
 	},
 	v_team_ranks_min_fields:{
+		avg_duel_elo:"Int",
 		avg_elo:"Int",
 		avg_faceit_elo:"Int",
 		avg_faceit_level:"float8",
 		avg_premier:"Int",
+		avg_wingman_elo:"Int",
 		max_elo:"Int",
 		min_elo:"Int",
 		roster_size:"bigint",
 		team_id:"uuid"
 	},
 	v_team_ranks_stddev_fields:{
+		avg_duel_elo:"Float",
 		avg_elo:"Float",
 		avg_faceit_elo:"Float",
 		avg_faceit_level:"Float",
 		avg_premier:"Float",
+		avg_wingman_elo:"Float",
 		max_elo:"Float",
 		min_elo:"Float",
 		roster_size:"Float"
 	},
 	v_team_ranks_stddev_pop_fields:{
+		avg_duel_elo:"Float",
 		avg_elo:"Float",
 		avg_faceit_elo:"Float",
 		avg_faceit_level:"Float",
 		avg_premier:"Float",
+		avg_wingman_elo:"Float",
 		max_elo:"Float",
 		min_elo:"Float",
 		roster_size:"Float"
 	},
 	v_team_ranks_stddev_samp_fields:{
+		avg_duel_elo:"Float",
 		avg_elo:"Float",
 		avg_faceit_elo:"Float",
 		avg_faceit_level:"Float",
 		avg_premier:"Float",
+		avg_wingman_elo:"Float",
 		max_elo:"Float",
 		min_elo:"Float",
 		roster_size:"Float"
 	},
 	v_team_ranks_sum_fields:{
+		avg_duel_elo:"Int",
 		avg_elo:"Int",
 		avg_faceit_elo:"Int",
 		avg_faceit_level:"float8",
 		avg_premier:"Int",
+		avg_wingman_elo:"Int",
 		max_elo:"Int",
 		min_elo:"Int",
 		roster_size:"bigint"
 	},
 	v_team_ranks_var_pop_fields:{
+		avg_duel_elo:"Float",
 		avg_elo:"Float",
 		avg_faceit_elo:"Float",
 		avg_faceit_level:"Float",
 		avg_premier:"Float",
+		avg_wingman_elo:"Float",
 		max_elo:"Float",
 		min_elo:"Float",
 		roster_size:"Float"
 	},
 	v_team_ranks_var_samp_fields:{
+		avg_duel_elo:"Float",
 		avg_elo:"Float",
 		avg_faceit_elo:"Float",
 		avg_faceit_level:"Float",
 		avg_premier:"Float",
+		avg_wingman_elo:"Float",
 		max_elo:"Float",
 		min_elo:"Float",
 		roster_size:"Float"
 	},
 	v_team_ranks_variance_fields:{
+		avg_duel_elo:"Float",
 		avg_elo:"Float",
 		avg_faceit_elo:"Float",
 		avg_faceit_level:"Float",
 		avg_premier:"Float",
+		avg_wingman_elo:"Float",
 		max_elo:"Float",
 		min_elo:"Float",
 		roster_size:"Float"

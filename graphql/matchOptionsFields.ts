@@ -25,6 +25,7 @@ export const matchOptionsFields = Selector("match_options")({
   timeout_setting: true,
   tech_timeout_setting: true,
   ready_setting: true,
+  camera_required: true,
   map_pool_id: true,
   map_pool: {
     id: true,
