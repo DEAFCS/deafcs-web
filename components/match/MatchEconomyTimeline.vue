@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, ref, watch } from "vue";
+import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import {
   Chart as ChartJS,
@@ -19,13 +19,6 @@ import {
   CardHeader,
   CardTitle,
 } from "~/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import Empty from "~/components/ui/empty/Empty.vue";
 import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
 import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
@@ -34,7 +27,7 @@ import {
   tacticalSectionTickClasses,
   tacticalSectionDescriptionClasses,
 } from "~/utilities/tacticalClasses";
-import cleanMapName from "~/utilities/cleanMapName";
+import mapLabel from "~/utilities/mapLabel";
 import { ECO_MAX, FULL_MIN, moneyOf } from "~/utilities/buyType";
 
 ChartJS.register(
@@ -67,33 +60,13 @@ interface RoundEntry {
   lineup_2_side: string | null;
 }
 
-const statsMaps = computed(() => {
-  const maps = (props.match?.match_maps ?? []) as any[];
-  return maps.filter((m) => (m.rounds ?? []).length > 0);
-});
-
-const localMapId = ref<string | null>(null);
-
-watch(
-  () => props.selectedMapId,
-  (value) => {
-    localMapId.value = value ?? null;
-  },
-  { immediate: true },
-);
-
-const activeMapId = computed<string | null>(() => {
-  if (localMapId.value) {
-    const exists = statsMaps.value.some((m) => m.id === localMapId.value);
-    if (exists) {
-      return localMapId.value;
-    }
-  }
-  return statsMaps.value[0]?.id ?? null;
-});
-
 const activeMap = computed(() => {
-  return statsMaps.value.find((m) => m.id === activeMapId.value) ?? null;
+  if (!props.selectedMapId) return null;
+  return (
+    (props.match?.match_maps ?? []).find(
+      (matchMap: any) => matchMap.id === props.selectedMapId,
+    ) ?? null
+  );
 });
 
 const lineup1Id = computed<string | null>(
@@ -344,10 +317,6 @@ const buyBandPlugin = {
 };
 
 const plugins = [buyBandPlugin];
-
-function onMapSelect(value: string) {
-  localMapId.value = value;
-}
 </script>
 
 <template>
@@ -365,20 +334,12 @@ function onMapSelect(value: string) {
             {{ $t("match.economy.description") }}
           </div>
         </div>
-        <Select
-          v-if="statsMaps.length > 1"
-          :model-value="activeMapId ?? undefined"
-          @update:model-value="onMapSelect"
+        <span
+          v-if="activeMap"
+          class="rounded border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.08)] px-2 py-1 font-mono text-[0.62rem] font-semibold uppercase tracking-[0.12em] text-[hsl(var(--tac-amber))]"
         >
-          <SelectTrigger class="w-[180px]">
-            <SelectValue :placeholder="$t('match.economy.select_map')" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="m of statsMaps" :key="m.id" :value="m.id">
-              {{ cleanMapName(m.map.name) }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
+          {{ mapLabel(activeMap.map) || $t("match.map_number", { count: activeMap.order + 1 }) }}
+        </span>
       </div>
     </CardHeader>
     <CardContent>

@@ -41,9 +41,9 @@ import mapLabel from "~/utilities/mapLabel";
     }"
     :role="canOpenStats ? 'button' : undefined"
     :tabindex="canOpenStats ? 0 : undefined"
-    @click="canOpenStats && $emit('open-stats', matchMap)"
-    @keydown.enter="canOpenStats && $emit('open-stats', matchMap)"
-    @keydown.space.prevent="canOpenStats && $emit('open-stats', matchMap)"
+    @click="canOpenStats && $emit('open-stats', matchMap.id)"
+    @keydown.enter="canOpenStats && $emit('open-stats', matchMap.id)"
+    @keydown.space.prevent="canOpenStats && $emit('open-stats', matchMap.id)"
   >
     <!-- Map image header -->
     <div class="relative aspect-[16/5]">
@@ -334,6 +334,7 @@ import {
 import { useAuthStore } from "~/stores/AuthStore";
 import { useGpuPoolStatusStore } from "~/stores/GpuPoolStatusStore";
 import { hasMeshForMap, hasRadarForMap } from "~/utilities/mapAssets";
+import { isStatsEligibleMatchMap } from "~/utilities/matchMapScope";
 
 export default {
   emits: ["open-stats"],
@@ -375,10 +376,10 @@ export default {
   },
   computed: {
     canOpenStats() {
-      if (this.matchMap.status === e_match_status_enum.Scheduled) {
-        return false;
-      }
-      return (this.match.options?.best_of ?? 1) > 1;
+      return (
+        isStatsEligibleMatchMap(this.matchMap) &&
+        (this.match.options?.best_of ?? 1) > 1
+      );
     },
     hasDemo() {
       return (

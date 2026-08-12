@@ -14,7 +14,8 @@ import { Card, CardContent } from "~/components/ui/card";
 import { Empty, EmptyTitle, EmptyDescription } from "~/components/ui/empty";
 import MatchSideFilter from "~/components/match/MatchSideFilter.vue";
 import { useMatchSide } from "~/composables/useMatchSide";
-import cleanMapName from "~/utilities/cleanMapName";
+import mapLabel from "~/utilities/mapLabel";
+import { statsEligibleMatchMaps } from "~/utilities/matchMapScope";
 import { hasMeshForMap } from "~/utilities/mapAssets";
 import {
   tacticalSectionLabelClasses,
@@ -119,8 +120,6 @@ const renderStyle = ref<"heat" | "dots">("dots");
 
 const calibrations = ref<Record<string, RadarMeta> | null>(null);
 const radarFailed = ref(false);
-const selectedMapId = ref<string | null>(null);
-
 const selectedSteamId = ref<string>("all");
 const selectedRound = ref<number | null>(null);
 
@@ -149,48 +148,19 @@ const sideFilter = ref<"both" | "ct" | "t">("both");
 const teamFilter = ref<"all" | "lineup_1" | "lineup_2">("all");
 const windowSeconds = ref<number>(30);
 
-const matchMaps = computed<any[]>(() => props.match?.match_maps ?? []);
-
-watch(
-  () => props.selectedMapId,
-  (value) => {
-    if (value) {
-      selectedMapId.value = value;
-    }
-  },
-  { immediate: true },
-);
-
-watch(
-  matchMaps,
-  (maps) => {
-    if (!maps.length) {
-      selectedMapId.value = null;
-      return;
-    }
-    const ids = maps.map((m) => m.id);
-    if (!selectedMapId.value || !ids.includes(selectedMapId.value)) {
-      selectedMapId.value = props.selectedMapId ?? ids[0];
-    }
-  },
-  { immediate: true },
+const matchMaps = computed<any[]>(() =>
+  statsEligibleMatchMaps(props.match?.match_maps),
 );
 
 const activeMatchMap = computed<any | null>(() => {
   if (!matchMaps.value.length) {
     return null;
   }
-  return (
-    matchMaps.value.find((m) => m.id === selectedMapId.value) ??
-    matchMaps.value[0]
-  );
+  if (props.selectedMapId) {
+    return matchMaps.value.find((m) => m.id === props.selectedMapId) ?? null;
+  }
+  return matchMaps.value.length === 1 ? matchMaps.value[0] : null;
 });
-
-// Hide the map dropdown when there's nothing to switch between: a single map,
-// or a map already chosen from the left-side match cards (passed via prop).
-const showMapSelector = computed(
-  () => matchMaps.value.length > 1 && !props.selectedMapId,
-);
 
 // The 2D replay lives in its own popout window (same launcher MatchMaps uses);
 // from the analysis view we just point the operator at it for the active map.
@@ -312,6 +282,30 @@ async function loadHeatmap() {
 
 let loadGen = 0;
 
+watch(
+  () => activeMatchMap.value?.id ?? null,
+  (mapId) => {
+    // Invalidate the previous map's movement request before clearing its data.
+    loadGen += 1;
+    selectedRound.value = null;
+    positions.value = [];
+    roundTicks.value = [];
+    grenades.value = [];
+    loadedDemoMapId.value = null;
+    blobLoading.value = false;
+    radarFailed.value = false;
+
+    if (
+      mapId &&
+      (mode.value === "movement" ||
+        (mode.value === "heatmap" && showTrajectories.value))
+    ) {
+      void loadBlob();
+    }
+  },
+  { immediate: true },
+);
+
 async function loadBlob() {
   const mapId = activeMatchMap.value?.id;
   if (!mapId) {
@@ -374,7 +368,7 @@ watch(
 // reads kill/death/utility coordinates straight from the DB so it never
 // downloads the 1-3MB playback file.
 watch(
-  [() => activeMatchMap.value?.id, mode, showTrajectories],
+  [mode, showTrajectories],
   () => {
     if (mode.value === "movement") {
       void loadBlob();
@@ -1104,7 +1098,10 @@ function onKeyDown(e: KeyboardEvent) {
 }
 
 onMounted(() => window.addEventListener("keydown", onKeyDown));
-onUnmounted(() => window.removeEventListener("keydown", onKeyDown));
+onUnmounted(() => {
+  loadGen += 1;
+  window.removeEventListener("keydown", onKeyDown);
+});
 </script>
 
 <template>
@@ -1117,27 +1114,11 @@ onUnmounted(() => window.removeEventListener("keydown", onKeyDown));
               <span :class="tacticalSectionTickClasses" />
               {{ $t("match.map_analysis.title") }}
             </span>
-            <Select v-if="showMapSelector" v-model="selectedMapId">
-              <SelectTrigger class="w-[180px]">
-                <SelectValue :placeholder="$t('match.heatmaps.select_map')" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  <SelectItem
-                    v-for="mm of matchMaps"
-                    :key="mm.id"
-                    :value="mm.id"
-                  >
-                    {{ cleanMapName(mm.map.name) }}
-                  </SelectItem>
-                </SelectGroup>
-              </SelectContent>
-            </Select>
             <span
-              v-else-if="activeMatchMap"
+              v-if="activeMatchMap"
               class="font-sans text-sm font-semibold uppercase tracking-[0.1em] text-foreground"
             >
-              {{ cleanMapName(activeMatchMap.map.name) }}
+              {{ mapLabel(activeMatchMap.map) || $t("match.map_number", { count: activeMatchMap.order + 1 }) }}
             </span>
           </div>
 

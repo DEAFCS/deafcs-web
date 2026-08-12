@@ -4339,6 +4339,8 @@
     }
   },
   "match": {
+    "overall": "Overall",
+    "head_to_head_overall_only": "Head to Head uses Overall statistics.",
     "open_match": "Open match",
     "picks_label": "Picks",
     "full_page": "Full page",
@@ -4662,6 +4664,7 @@
     },
     "map_analysis": {
       "title": "Map Analysis",
+      "select_map_scope": "Select a map to analyze",
       "mode_heatmap": "Heatmap",
       "mode_movement": "Paths",
       "filter_stat": "Stat",

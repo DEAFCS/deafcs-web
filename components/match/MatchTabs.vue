@@ -51,14 +51,13 @@ import {
 } from "~/components/ui/select";
 import MatchOptionsDisplay from "~/components/match//MatchOptionsDisplay.vue";
 import MatchServerRebootControl from "~/components/match/MatchServerRebootControl.vue";
-import { Cross2Icon } from "@radix-icons/vue";
 import { ScrollArea } from "~/components/ui/scroll-area";
 import { Skeleton } from "~/components/ui/skeleton";
 import ServiceLogs from "~/components/ServiceLogs.vue";
 import { e_match_types_enum } from "~/generated/zeus";
 import MatchForm from "~/components/match/MatchForm.vue";
 import MatchLiveStreams from "~/components/match/MatchLiveStreams.vue";
-import cleanMapName from "~/utilities/cleanMapName";
+import mapLabel from "~/utilities/mapLabel";
 import { MoreVertical, AlertTriangle, ExternalLink } from "lucide-vue-next";
 import {
   DropdownMenu,
@@ -76,57 +75,7 @@ provide("commander", commander);
 
 <template>
   <Tabs v-model="activeTab" class="match-tabs">
-    <div
-      v-if="statsEligibleMaps.length > 1"
-      class="map-filter-banner max-w-[1500px]"
-      :class="{ 'is-active': !!activeMap }"
-      aria-live="polite"
-    >
-      <div
-        class="relative flex items-center justify-between gap-3 px-3 py-2 border border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]"
-      >
-        <div class="flex items-center gap-3 min-w-0">
-          <span
-            class="shrink-0 inline-block w-[6px] h-[6px] rounded-full bg-[hsl(var(--tac-amber))]"
-          ></span>
-          <div class="flex flex-col gap-0.5 min-w-0">
-            <span
-              class="font-mono text-[0.6rem] font-bold tracking-[0.28em] uppercase text-[hsl(var(--tac-amber))]"
-            >
-              {{ $t("match.map_filter_active") }}
-            </span>
-            <div class="map-filter-flip relative min-w-0">
-              <Transition name="map-flip" mode="out-in">
-                <span
-                  v-if="activeMap"
-                  :key="activeMap.id"
-                  class="block font-mono text-[0.75rem] tracking-[0.12em] uppercase text-foreground truncate"
-                >
-                  {{ cleanMapName(activeMap.map.name) }}
-                  <span
-                    v-if="typeof activeMap.lineup_1_score === 'number'"
-                    class="text-muted-foreground ml-2"
-                  >
-                    {{ activeMap.lineup_1_score }} :
-                    {{ activeMap.lineup_2_score }}
-                  </span>
-                </span>
-              </Transition>
-            </div>
-          </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          class="shrink-0 font-mono text-[0.65rem] tracking-[0.2em] uppercase gap-2 border border-transparent hover:border-[hsl(var(--tac-amber)/0.5)] hover:bg-[hsl(var(--tac-amber)/0.12)] hover:text-[hsl(var(--tac-amber))]"
-          @click="$emit('clear-active-map')"
-        >
-          <Cross2Icon class="w-3 h-3" />
-          {{ $t("common.close") }}
-        </Button>
-      </div>
-    </div>
-    <!-- Mobile: map filter selector -->
+    <!-- Mobile: canonical map-scope selector -->
     <div
       v-if="statsEligibleMaps.length > 1"
       class="mb-3 lg:hidden flex flex-col gap-1"
@@ -141,14 +90,22 @@ provide("commander", commander);
           class="w-full"
           :aria-label="$t('match.tabs.mobile_label_map')"
         >
-          <SelectValue :placeholder="$t('match.all_maps') || 'All Maps'" />
+          <SelectValue :placeholder="$t('match.overall')" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="__all__">
-            {{ $t("match.all_maps") }}
+          <SelectItem
+            value="__all__"
+            class="data-[state=checked]:bg-[hsl(var(--tac-amber)/0.12)] data-[state=checked]:text-[hsl(var(--tac-amber))]"
+          >
+            {{ $t("match.overall") }}
           </SelectItem>
-          <SelectItem v-for="m in statsEligibleMaps" :key="m.id" :value="m.id">
-            {{ cleanMapName(m.map.name) }}
+          <SelectItem
+            v-for="m in statsEligibleMaps"
+            :key="m.id"
+            :value="m.id"
+            class="data-[state=checked]:bg-[hsl(var(--tac-amber)/0.12)] data-[state=checked]:text-[hsl(var(--tac-amber))]"
+          >
+            {{ mapLabel(m.map) || $t("match.map_number", { count: m.order + 1 }) }}
             <span
               v-if="typeof m.lineup_1_score === 'number'"
               class="text-muted-foreground ml-2"
@@ -221,6 +178,39 @@ provide("commander", commander);
     <div
       class="hidden lg:flex items-center gap-3 mb-4 max-w-full match-tabs__header"
     >
+      <Select
+        v-if="statsEligibleMaps.length > 1"
+        :model-value="mapSelectValue"
+        @update:model-value="onMapSelect"
+      >
+        <SelectTrigger
+          class="h-8 w-[11rem] shrink-0 border-border bg-card/40 px-2.5 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.12em] hover:border-[hsl(var(--tac-amber)/0.55)] focus:ring-[hsl(var(--tac-amber)/0.45)]"
+          :class="
+            selectedMapId
+              ? 'border-[hsl(var(--tac-amber)/0.55)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))]'
+              : ''
+          "
+          :aria-label="$t('match.tabs.mobile_label_map')"
+        >
+          <SelectValue :placeholder="$t('match.overall')" />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem
+            value="__all__"
+            class="data-[state=checked]:bg-[hsl(var(--tac-amber)/0.12)] data-[state=checked]:text-[hsl(var(--tac-amber))]"
+          >
+            {{ $t("match.overall") }}
+          </SelectItem>
+          <SelectItem
+            v-for="m in statsEligibleMaps"
+            :key="m.id"
+            :value="m.id"
+            class="data-[state=checked]:bg-[hsl(var(--tac-amber)/0.12)] data-[state=checked]:text-[hsl(var(--tac-amber))]"
+          >
+            {{ mapLabel(m.map) || $t("match.map_number", { count: m.order + 1 }) }}
+          </SelectItem>
+        </SelectContent>
+      </Select>
       <div class="min-w-0 flex-1 overflow-x-auto match-tabs__scroll">
         <TabsList variant="underline" class="h-auto flex-nowrap">
           <TabsTrigger value="scoreboard">
@@ -469,7 +459,12 @@ provide("commander", commander);
         <div v-if="showStatsControls" class="flex justify-end gap-2">
           <MatchSideFilter />
         </div>
-        <MatchEconomyTimeline :match="match" :selected-map-id="activeMap?.id" />
+        <MatchEconomyTimeline
+          v-for="matchMap in economyTimelineMaps"
+          :key="matchMap.id"
+          :match="match"
+          :selected-map-id="matchMap.id"
+        />
         <MatchTeamStats
           :match="mapScopedMatch"
           :lineup="activeLineup1"
@@ -512,18 +507,22 @@ provide("commander", commander);
     <TabsContent value="head-to-head">
       <div
         class="grid gap-4 max-w-[1500px] transition-opacity duration-200"
-        :class="{ 'opacity-60': activeMap && !mapStats }"
       >
+        <p
+          class="font-mono text-[0.65rem] uppercase tracking-[0.12em] text-muted-foreground"
+        >
+          {{ $t("match.head_to_head_overall_only") }}
+        </p>
         <HeadToHead
           :match="match"
           v-model:selected-a="h2hSelectedA"
           v-model:selected-b="h2hSelectedB"
         />
         <LineupRadarComparison
-          :match="mapScopedMatch"
-          :lineup="activeLineup1"
-          :combine-with="activeLineup2"
-          :selected-map-id="activeMap?.id"
+          :match="match"
+          :lineup="overallLineup1"
+          :combine-with="overallLineup2"
+          :selected-map-id="null"
           :hide-selectors="true"
           v-model:selected-a="h2hSelectedA"
           v-model:selected-b="h2hSelectedB"
@@ -545,7 +544,21 @@ provide("commander", commander);
     </TabsContent>
     <TabsContent value="map-analysis">
       <div class="grid gap-4 max-w-[1500px]">
-        <MatchMapAnalysis :match="match" :selected-map-id="activeMap?.id" />
+        <div
+          v-if="!selectedMapId && statsEligibleMaps.length > 1"
+          class="rounded-lg border border-dashed border-border bg-card/20 px-6 py-12 text-center"
+        >
+          <p
+            class="font-mono text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+          >
+            {{ $t("match.map_analysis.select_map_scope") }}
+          </p>
+        </div>
+        <MatchMapAnalysis
+          v-else
+          :match="match"
+          :selected-map-id="selectedMapId"
+        />
       </div>
     </TabsContent>
     <TabsContent
@@ -715,52 +728,6 @@ provide("commander", commander);
 </template>
 
 <style scoped>
-.map-filter-banner {
-  display: grid;
-  grid-template-rows: 0fr;
-  opacity: 0;
-  margin-bottom: 0;
-  transition:
-    grid-template-rows 220ms ease,
-    opacity 180ms ease,
-    margin-bottom 220ms ease;
-}
-
-.map-filter-banner > * {
-  min-height: 0;
-  overflow: hidden;
-}
-
-.map-filter-banner.is-active {
-  grid-template-rows: 1fr;
-  opacity: 1;
-  margin-bottom: 1rem;
-}
-
-.map-filter-flip {
-  perspective: 600px;
-}
-
-.map-flip-enter-active,
-.map-flip-leave-active {
-  transition:
-    transform 240ms cubic-bezier(0.4, 0, 0.2, 1),
-    opacity 160ms ease;
-  transform-style: preserve-3d;
-  backface-visibility: hidden;
-  will-change: transform, opacity;
-}
-
-.map-flip-enter-from {
-  transform: rotateX(-90deg);
-  opacity: 0;
-}
-
-.map-flip-leave-to {
-  transform: rotateX(90deg);
-  opacity: 0;
-}
-
 .server-info-panel {
   position: relative;
   display: flex;
@@ -869,6 +836,10 @@ import {
   matchCommandsForStatus,
   effectivePluginRuntime,
 } from "~/constants/rconCommands";
+import {
+  statsEligibleMatchMaps,
+  validSelectedStatsMapId,
+} from "~/utilities/matchMapScope";
 
 // Hasura subscriptions require one top-level field, so we query the
 // match_lineups list and split by id client-side.
@@ -887,19 +858,14 @@ const allMapsStatsQuery = generateQuery({
 });
 
 export default {
-  emits: ["clear-active-map", "select-map"],
+  emits: ["update:selectedMapId"],
   props: {
     match: {
       type: Object,
       required: true,
     },
-    activeMap: {
-      type: Object as () => {
-        id: string;
-        map: { name: string };
-        lineup_1_score?: number;
-        lineup_2_score?: number;
-      } | null,
+    selectedMapId: {
+      type: String as () => string | null,
       default: null,
     },
   },
@@ -909,6 +875,7 @@ export default {
       scoreboardLens: "general",
       mapStats: null as null | { lineup_1: any; lineup_2: any },
       mapStatsLoading: false,
+      mapStatsRequestGeneration: 0,
       allMapsStats: null as null | { lineup_1: any; lineup_2: any },
       hasLogs: false,
       showConfirmDialog: false,
@@ -917,7 +884,6 @@ export default {
         | undefined
         | { action: RconAction; display: string; confirm?: boolean },
       executePending: undefined as undefined | (() => void),
-      cleanMapName,
     };
   },
   apollo: {
@@ -954,11 +920,14 @@ export default {
     },
   },
   watch: {
-    activeMap: {
+    activeMapId: {
       immediate: true,
-      handler(map, prev) {
-        if (map) {
-          void this.fetchMapStats();
+      handler(mapId: string | null, previousMapId: string | null) {
+        const requestGeneration = ++this.mapStatsRequestGeneration;
+        this.mapStats = null;
+
+        if (mapId) {
+          void this.fetchMapStats(mapId, requestGeneration);
           const statsTabs = [
             "scoreboard",
             "economy",
@@ -967,11 +936,11 @@ export default {
             "roles",
             "map-analysis",
           ];
-          if (!prev && !statsTabs.includes(this.activeTab)) {
+          if (!previousMapId && !statsTabs.includes(this.activeTab)) {
             this.activeTab = "scoreboard";
           }
         } else {
-          this.mapStats = null;
+          this.mapStatsLoading = false;
           if (this.isMatchTerminal) {
             void this.fetchAllMapsStats();
           }
@@ -985,11 +954,6 @@ export default {
           void this.fetchAllMapsStats();
         }
       },
-    },
-    "activeMap.id"() {
-      if (this.activeMap) {
-        void this.fetchMapStats();
-      }
     },
     activeTab(newTab) {
       if (!this.availableMatchTabs.includes(newTab)) {
@@ -1008,6 +972,18 @@ export default {
       immediate: true,
       handler() {
         this.syncActiveTabFromRoute();
+      },
+    },
+    statsEligibleMapIds: {
+      immediate: true,
+      handler(eligibleMapIds) {
+        const valid = validSelectedStatsMapId(
+          this.selectedMapId,
+          eligibleMapIds,
+        );
+        if (valid !== this.selectedMapId) {
+          this.$emit("update:selectedMapId", valid);
+        }
       },
     },
   },
@@ -1040,35 +1016,51 @@ export default {
         match_maps: scopedMap ? [scopedMap] : [this.activeMap],
       };
     },
+    activeMap() {
+      if (!this.selectedMapId) return null;
+      return (
+        this.match.match_maps?.find(
+          (matchMap: any) => matchMap.id === this.selectedMapId,
+        ) ?? null
+      );
+    },
+    activeMapId() {
+      return this.activeMap?.id ?? null;
+    },
+    overallLineup1() {
+      if (!this.allMapsStats?.lineup_1) return this.match.lineup_1;
+      return {
+        ...this.match.lineup_1,
+        ...this.allMapsStats.lineup_1,
+      };
+    },
+    overallLineup2() {
+      if (!this.allMapsStats?.lineup_2) return this.match.lineup_2;
+      return {
+        ...this.match.lineup_2,
+        ...this.allMapsStats.lineup_2,
+      };
+    },
     activeLineup1() {
       if (this.activeMap && this.mapStats?.lineup_1) {
         return this.mapStats.lineup_1;
       }
-      if (!this.activeMap && this.allMapsStats?.lineup_1) {
-        // Keep shell fields (team, captain flags, is_ready); add stats players.
-        return {
-          ...this.match.lineup_1,
-          ...this.allMapsStats.lineup_1,
-        };
-      }
-      return this.match.lineup_1;
+      return this.activeMap ? this.match.lineup_1 : this.overallLineup1;
     },
     activeLineup2() {
       if (this.activeMap && this.mapStats?.lineup_2) {
         return this.mapStats.lineup_2;
       }
-      if (!this.activeMap && this.allMapsStats?.lineup_2) {
-        return {
-          ...this.match.lineup_2,
-          ...this.allMapsStats.lineup_2,
-        };
-      }
-      return this.match.lineup_2;
+      return this.activeMap ? this.match.lineup_2 : this.overallLineup2;
     },
-    statsEligibleMaps() {
-      return (this.match.match_maps ?? []).filter(
-        (m: any) => m.status !== e_match_status_enum.Scheduled,
-      );
+    statsEligibleMaps(): any[] {
+      return statsEligibleMatchMaps<any>(this.match.match_maps);
+    },
+    statsEligibleMapIds() {
+      return this.statsEligibleMaps.map((matchMap: any) => matchMap.id);
+    },
+    economyTimelineMaps() {
+      return this.activeMap ? [this.activeMap] : this.statsEligibleMaps;
     },
     // True when the aim stats in view come from a map whose demo could not be
     // line-of-sight validated (no collision mesh) — drives the "Estimated"
@@ -1088,7 +1080,7 @@ export default {
       return !this.disableStats;
     },
     mapSelectValue() {
-      return this.activeMap?.id ?? "__all__";
+      return this.selectedMapId ?? "__all__";
     },
     isMatchTerminal() {
       return [
@@ -1262,12 +1254,11 @@ export default {
     },
     onMapSelect(value: string) {
       if (!value || value === "__all__") {
-        this.$emit("clear-active-map");
+        this.$emit("update:selectedMapId", null);
         return;
       }
-      const map = this.match.match_maps?.find((m: any) => m.id === value);
-      if (map) {
-        this.$emit("select-map", map);
+      if (this.statsEligibleMapIds.includes(value)) {
+        this.$emit("update:selectedMapId", value);
       }
     },
     async fetchAllMapsStats() {
@@ -1290,9 +1281,10 @@ export default {
           rows.find((r: any) => r.id === this.match.lineup_2_id) ?? null,
       };
     },
-    async fetchMapStats() {
-      if (!this.activeMap) return;
-      const requestedMapId = this.activeMap.id;
+    async fetchMapStats(
+      requestedMapId: string,
+      requestGeneration: number,
+    ) {
       this.mapStatsLoading = true;
       try {
         const { data } = await this.$apollo.query({
@@ -1312,10 +1304,17 @@ export default {
             ],
           }),
         });
-        if (this.activeMap?.id !== requestedMapId) return;
+        if (
+          requestGeneration !== this.mapStatsRequestGeneration ||
+          this.activeMapId !== requestedMapId
+        ) {
+          return;
+        }
         this.mapStats = data?.matches_by_pk ?? null;
       } finally {
-        this.mapStatsLoading = false;
+        if (requestGeneration === this.mapStatsRequestGeneration) {
+          this.mapStatsLoading = false;
+        }
       }
     },
     syncActiveTabFromRoute() {

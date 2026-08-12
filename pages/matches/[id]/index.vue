@@ -26,6 +26,10 @@ import ChatLobby from "~/components/chat/ChatLobby.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import { AlertTriangle } from "lucide-vue-next";
 import { useMatchContext } from "~/composables/useMatchContext";
+import {
+  nextSelectedStatsMapId,
+  statsEligibleMatchMaps,
+} from "~/utilities/matchMapScope";
 
 definePageMeta({
   pageTransition: { name: "page", mode: "out-in" },
@@ -38,7 +42,7 @@ useHead({
   title: () => matchContext.value?.displayText || undefined,
 });
 
-const activeStatsMap = ref<null | { id: string; map: { name: string } }>(null);
+const selectedStatsMapId = ref<string | null>(null);
 
 // One subscription shared by MatchTabs (Clips) + lineup row indicators.
 const route = useRoute();
@@ -48,7 +52,7 @@ const routeMatchId = computed(() => String(route.params.id));
 // page up. Tab switches are covered by ui/tabs itself.
 const { capture: captureScrollFloor } = useScrollFloor();
 watch(
-  () => activeStatsMap.value?.id,
+  selectedStatsMapId,
   () => captureScrollFloor(),
 );
 const matchClipsState = useMatchClips(routeMatchId);
@@ -498,13 +502,23 @@ const vsBaseClasses =
             v-if="match.options.best_of && match.options.best_of > 0"
             class="flex flex-col gap-3"
           >
-            <div v-for="(slot, index) in mapSlots" :key="index">
+            <div
+              v-for="(slot, index) in selectedStatsMapId
+                ? statsEligibleMatchMaps(match.match_maps)
+                : mapSlots"
+              :key="slot?.id ?? `map-slot-${index}`"
+            >
               <MatchMaps
                 v-if="slot"
                 :match="match"
                 :match-map="slot"
-                :is-active="activeStatsMap?.id === slot.id"
-                @open-stats="activeStatsMap = $event"
+                :is-active="selectedStatsMapId === slot.id"
+                @open-stats="
+                  selectedStatsMapId = nextSelectedStatsMapId(
+                    selectedStatsMapId,
+                    $event,
+                  )
+                "
               ></MatchMaps>
               <div
                 v-else
@@ -530,7 +544,9 @@ const vsBaseClasses =
               </div>
             </div>
             <div
-              v-show="showVetoPicks && vetoPickCount !== 0"
+              v-show="
+                !selectedStatsMapId && showVetoPicks && vetoPickCount !== 0
+              "
               class="rounded-xl border border-border/40 bg-card/40 px-1.5 py-1.5"
             >
               <div
@@ -605,10 +621,8 @@ const vsBaseClasses =
 
         <PageTransition :delay="200">
           <MatchTabs
+            v-model:selected-map-id="selectedStatsMapId"
             :match="match"
-            :active-map="activeStatsMap"
-            @clear-active-map="activeStatsMap = null"
-            @select-map="activeStatsMap = $event"
           ></MatchTabs>
         </PageTransition>
         </div>
