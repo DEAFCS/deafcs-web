@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import cleanMapName from "../utilities/cleanMapName.ts";
 import {
+  formatClutchRoundLabel,
   isStatsEligibleMatchMap,
   nextSelectedStatsMapId,
   statsEligibleMatchMaps,
@@ -165,6 +166,26 @@ test("map labels prefer readable labels, including Workshop maps, then clean int
   assert.equal("" || cleanMapName("de_nuke"), "Nuke");
 });
 
+test(
+  "Overall clutch labels distinguish duplicate rounds with readable map names",
+  () => {
+    const inferno = formatClutchRoundLabel(2, "Inferno", null);
+    const miniDust2 = formatClutchRoundLabel(2, "Mini Dust2", null);
+
+    assert.equal(inferno, "R2 · Inferno");
+    assert.equal(miniDust2, "R2 · Mini Dust2");
+    assert.notEqual(inferno, miniDust2);
+  },
+);
+
+test(
+  "map-scoped clutch labels stay compact and missing metadata falls back to the round",
+  () => {
+    assert.equal(formatClutchRoundLabel(7, "Inferno", "inferno"), "R7");
+    assert.equal(formatClutchRoundLabel(7, "", null), "R7");
+  },
+);
+
 test("selection starts Overall, toggles the active map, and switches directly", () => {
   let selected = null;
   selected = nextSelectedStatsMapId(selected, "inferno");
@@ -205,9 +226,28 @@ const headToHead = await readFile(
   new URL("../components/match/HeadToHead.vue", import.meta.url),
   "utf8",
 );
+const lineupClutches = await readFile(
+  new URL("../components/match/LineupClutches.vue", import.meta.url),
+  "utf8",
+);
+const clutchTeamPanel = await readFile(
+  new URL("../components/match/ClutchTeamPanel.vue", import.meta.url),
+  "utf8",
+);
 
 test("the shared mapLabel helper is label-first before clean-name fallback", () => {
   assert.match(mapLabelSource, /return map\?\.label \|\| cleanMapName\(map\?\.name \?\? ""\)/);
+});
+
+test("clutch round labels derive readable map identity from each row in Overall", () => {
+  assert.match(lineupClutches, /mapLabel\(matchMap\.map\)/);
+  assert.match(lineupClutches, /map_label: readableMapLabel\(c\.match_map_id\)/);
+  assert.match(lineupClutches, /!\/\^workshop\[\\\\\/\]\/i\.test\(label\)/);
+  assert.match(lineupClutches, /:selected-map-id="selectedMapId"/);
+  assert.match(
+    clutchTeamPanel,
+    /formatClutchRoundLabel\(\s*clutch\.round,\s*clutch\.map_label,\s*selectedMapId,/,
+  );
 });
 
 test("the match page owns one ID-based scope and tabs do not reset it", () => {

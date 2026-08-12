@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import AnimatedStat from "~/components/AnimatedStat.vue";
+import { formatClutchRoundLabel } from "~/utilities/matchMapScope";
 
 const apiDomain = useRuntimeConfig().public.apiDomain;
 
@@ -27,12 +28,14 @@ type Clutch = {
   clutcher_steam_id: string;
   against_count: number;
   kills_in_clutch: number;
+  map_label: string;
 };
 
 const props = defineProps<{
   lineup: any;
   clutches: Clutch[];
   avatarOverride: (steamId: string | number) => string | null;
+  selectedMapId?: string | null;
 }>();
 
 const totals = computed(() => {
@@ -210,7 +213,13 @@ const outcomeClass = (outcome: ClutchOutcome) => {
           <span
             class="font-mono text-[0.58rem] tracking-[0.14em] uppercase leading-none text-muted-foreground"
           >
-            R{{ clutch.round }}
+            {{
+              formatClutchRoundLabel(
+                clutch.round,
+                clutch.map_label,
+                selectedMapId,
+              )
+            }}
           </span>
           <span
             class="font-mono text-[0.58rem] font-bold tracking-[0.18em] uppercase leading-none mt-0.5"

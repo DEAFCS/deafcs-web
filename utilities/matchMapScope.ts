@@ -77,3 +77,14 @@ export function validSelectedStatsMapId(
     ? selectedStatsMapId
     : null;
 }
+
+export function formatClutchRoundLabel(
+  round: number | string,
+  readableMapLabel: string,
+  selectedStatsMapId: string | null | undefined,
+): string {
+  const roundLabel = `R${round}`;
+  return !selectedStatsMapId && readableMapLabel
+    ? `${roundLabel} · ${readableMapLabel}`
+    : roundLabel;
+}
