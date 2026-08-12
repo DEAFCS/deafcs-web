@@ -182,14 +182,17 @@ onBeforeUnmount(() => {
         <h2 class="text-sm font-semibold uppercase tracking-wide text-muted-foreground mb-2">
           {{ lineup.name }}
         </h2>
-        <div
-          class="grid gap-3"
-          style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))"
-        >
+        <!-- flex-wrap + justify-center (not a CSS grid) so a lone
+             leftover tile on the last row centers itself under the
+             row above instead of hugging the left edge — the layout
+             the user actually asked for. Each tile is pinned to
+             ~50% width so two always sit side by side rather than
+             stacking, however wide/narrow the popup ends up. -->
+        <div class="flex flex-wrap justify-center gap-3">
           <div
             v-for="player in lineup.players"
             :key="player.steamId"
-            class="rounded-lg border border-border bg-card overflow-hidden"
+            class="rounded-lg border border-border bg-card overflow-hidden w-[calc(50%-0.375rem)]"
             :class="{ 'border-green-500': callState(player.steamId).talking }"
           >
             <div class="aspect-video bg-black relative">

@@ -197,6 +197,31 @@ function unmute() {
   });
 }
 
+// Hiding the "tap to unmute" pill (muted=false passed in) doesn't by
+// itself make the audio audible — the video element is still actually
+// muted from the autoplay-policy workaround above, it's just that we
+// stopped showing the prompt to fix it. Auto-unmute here instead, on
+// the theory that whatever caused the parent to flip this prop false
+// (e.g. admin clicking "Video call") happened close enough in time to
+// still count as the "recent user gesture" browsers require for
+// audible playback — same trick unmute() itself relies on.
+watch(
+  () => props.muted,
+  (muted) => {
+    if (muted === false && status.value === "playing" && isMuted.value) {
+      unmute();
+    }
+  },
+);
+// Covers the reverse ordering: muted flipped false before playback
+// actually reached "playing" (e.g. a call starts right as the WHEP
+// connection is still negotiating).
+watch(status, (s) => {
+  if (s === "playing" && props.muted === false && isMuted.value) {
+    unmute();
+  }
+});
+
 function tryPlay() {
   const el = videoRef.value;
   if (!el) return;

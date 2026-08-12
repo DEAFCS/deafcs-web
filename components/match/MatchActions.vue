@@ -406,10 +406,15 @@ export default {
   },
   methods: {
     openCameraGrid() {
+      // Sized for the grid's own 2-column layout (each tile ~50% of
+      // the usable width) — wide enough that two tiles read as a
+      // comfortable side-by-side pair rather than two oversized
+      // squares, tall enough that a full 5-player team (2-2-1) fits
+      // without scrolling.
       window.open(
         cameraAdminGridUrl(this.match.id),
         "camera-admin-grid",
-        "width=1000,height=700",
+        "width=760,height=780",
       );
     },
     async cancelMatch() {
