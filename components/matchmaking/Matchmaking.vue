@@ -31,7 +31,7 @@ const mmCardBase =
   <div v-if="matchmakingAllowed || (isGuest && matchmakingEnabled)">
     <template v-if="me?.is_banned">
       <Alert class="my-3">
-        <AlertDescription class="flex items-center gap-2">
+        <AlertDescription class="flex items-center gap-2 text-destructive">
           <AlertTriangle class="h-4 w-4" />
           {{
             bannedUntilDisplay

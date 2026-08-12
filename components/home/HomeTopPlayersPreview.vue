@@ -288,7 +288,7 @@ void fetchTopPlayers();
           Top Players
         </h3>
         <p class="mt-0.5 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted-foreground">
-          {{ selectedMode }} · Current
+          {{ selectedMode }} · Current Season
         </p>
       </div>
     </div>
@@ -455,7 +455,7 @@ void fetchTopPlayers();
           <p
             class="mt-0.5 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted-foreground"
           >
-            Top 5 · Current
+            Top 5 · Current Season
           </p>
         </div>
       </div>

@@ -69,7 +69,7 @@ test("the root card is position:relative and the foreground content is explicitl
 test("known maps render as equal-width MapDisplay tiles (min-w-0 flex-1), sized from the consumer side rather than editing MapDisplay.vue's own min-w-[150px]", () => {
   assert.match(
     matchTableRow,
-    /<MapDisplay\s*\n\s*v-for="matchMap in match\.match_maps"\s*\n\s*:key="matchMap\.id"\s*\n\s*:map="matchMap\.map"\s*\n\s*:patch="false"\s*\n\s*loading="lazy"\s*\n\s*class="min-w-0 flex-1 rounded-none"/,
+    /<MapDisplay\s*\n\s*v-for="matchMap in match\.match_maps"\s*\n\s*:key="matchMap\.id"\s*\n\s*:map="matchMap\.map"\s*\n\s*:patch="false"\s*\n\s*loading="lazy"\s*\n\s*class="min-w-0 flex-1 rounded-none \[&>div\]:hidden"/,
   );
 });
 
@@ -81,11 +81,26 @@ test("zero known maps falls back to the existing default.webp screenshot, marked
   assert.match(matchTableRow, /alt=""/);
 });
 
-test("the overlay is permanently dark -- no hover-opacity reveal anywhere near the background block", () => {
-  assert.match(matchTableRow, /<div class="absolute inset-0 bg-black\/60"><\/div>/);
+test("the map tiles' individual veils are suppressed in favor of one smooth overlay that darkens toward the actions", () => {
+  assert.match(matchTableRow, /\[&>div\]:hidden/);
+  assert.match(
+    matchTableRow,
+    /class="absolute inset-0 bg-gradient-to-b from-black\/60 via-black\/75 to-black\/90"/,
+  );
   assert.doesNotMatch(matchTableRow, /hover:bg-opacity/);
   assert.doesNotMatch(matchTableRow, /bg-opacity-10/);
   assert.doesNotMatch(matchTableRow, /hover:opacity/);
+});
+
+test("map-background cards avoid the shared hover glow/background-opacity shift while ordinary cards keep it", () => {
+  assert.match(
+    matchTableRow,
+    /mapBackground\s*\n\s*\? 'bg-black border border-border rounded-lg hover:border-primary\/30'/,
+  );
+  assert.match(
+    matchTableRow,
+    /'bg-muted\/30 border border-border rounded-lg hover:shadow-lg hover:shadow-primary\/10 hover:bg-muted\/20 hover:border-primary\/30'/,
+  );
 });
 
 test("map background images use loading=\"lazy\" -- /watch can render many cards across 3 sections (up to 12+10+10)", () => {

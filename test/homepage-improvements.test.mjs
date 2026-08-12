@@ -134,6 +134,13 @@ test("Top-5 does not add a Source filter -- ELO's value column ignores Source in
   assert.doesNotMatch(topPlayers, /_source:\s*\$source/);
 });
 
+test("both Top-5 variants describe the active leaderboard as Current Season without hardcoding a season number", () => {
+  assert.match(topPlayers, /\{\{ selectedMode \}\} · Current Season/);
+  assert.match(topPlayers, /Top 5 · Current Season/);
+  assert.doesNotMatch(topPlayers, /· Current\s*\n/);
+  assert.doesNotMatch(topPlayers, /Season 1/);
+});
+
 test("Top-5 mode card titles (Competitive/Wingman/Duel) and the logged-out 'Top Players' title use the shared muted heading class, not text-foreground; the mode-colored Medal icon is untouched", () => {
   assert.match(
     topPlayers,
@@ -352,7 +359,7 @@ test("tacticalCardHeadingClasses matches the feature card title treatment exactl
   assert.doesNotMatch(tacticalClasses, /tacticalCardHeadingClasses[\s\S]{0,120}--tac-amber/);
 });
 
-test("Latest News / Live Matches / Latest Results / Top 5 Leaderboards headings reuse tacticalCardHeadingClasses instead of duplicated strings", () => {
+test("Latest News / Live Matches / Latest Results headings reuse tacticalCardHeadingClasses instead of duplicated strings", () => {
   for (const source of [latestNews, liveMatches, latestResults]) {
     assert.match(
       source,
@@ -364,14 +371,19 @@ test("Latest News / Live Matches / Latest Results / Top 5 Leaderboards headings 
       /font-mono text-xs font-bold uppercase tracking-\[0\.16em\] text-foreground/,
     );
   }
-  assert.match(
-    playerOverview,
-    /import \{ tacticalCardHeadingClasses \} from "~\/utilities\/tacticalClasses";/,
+});
+
+test("Top 5 Leaderboards main section header uses the shared tactical section label and amber tick instead of a Medal", () => {
+  assert.match(playerOverview, /tacticalSectionLabelClasses,/);
+  assert.match(playerOverview, /tacticalSectionTickClasses,/);
+  const section = playerOverview.slice(
+    playerOverview.indexOf('<section aria-labelledby="top-leaderboards-title">'),
+    playerOverview.indexOf('<HomeTopPlayersPreview variant="all" />'),
   );
-  assert.match(
-    playerOverview,
-    /<h2 id="top-leaderboards-title" :class="tacticalCardHeadingClasses">/,
-  );
+  assert.match(section, /:class="tacticalSectionLabelClasses"/);
+  assert.match(section, /:class="tacticalSectionTickClasses"/);
+  assert.match(section, /Top 5 Leaderboards/);
+  assert.doesNotMatch(section, /<Medal/);
 });
 
 test("the feature card title itself (Play/Tournaments/League) also uses the shared tacticalCardHeadingClasses, so the two can't drift apart again", () => {

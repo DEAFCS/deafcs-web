@@ -9,7 +9,11 @@ import HomeLiveMatchesPreview from "~/components/home/HomeLiveMatchesPreview.vue
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import { Button } from "~/components/ui/button";
-import { tacticalCardHeadingClasses } from "~/utilities/tacticalClasses";
+import {
+  tacticalCardHeadingClasses,
+  tacticalSectionLabelClasses,
+  tacticalSectionTickClasses,
+} from "~/utilities/tacticalClasses";
 
 type PreviewPlayer = {
   steam_id: string;
@@ -228,15 +232,16 @@ const profilePath = computed(() => ({
           </section>
 
           <section aria-labelledby="top-leaderboards-title">
-            <div class="mb-3 flex items-center gap-3">
-              <Medal
-                class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
+            <h2
+              id="top-leaderboards-title"
+              :class="tacticalSectionLabelClasses"
+            >
+              <span
+                :class="tacticalSectionTickClasses"
                 aria-hidden="true"
-              />
-              <h2 id="top-leaderboards-title" :class="tacticalCardHeadingClasses">
-                Top 5 Leaderboards
-              </h2>
-            </div>
+              ></span>
+              Top 5 Leaderboards
+            </h2>
 
             <HomeTopPlayersPreview variant="all" />
           </section>

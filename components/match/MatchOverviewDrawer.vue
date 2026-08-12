@@ -4,6 +4,7 @@ import cleanMapName from "~/utilities/cleanMapName";
 import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchStatus from "~/components/match/MatchStatus.vue";
+import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import {
   Drawer,
@@ -27,7 +28,11 @@ import {
             <DrawerDescription
               class="mt-0.5 inline-flex flex-wrap items-center gap-x-3 gap-y-0.5 font-mono text-[0.62rem] uppercase tracking-[0.16em]"
             >
-              <span>{{ match.options.type }}</span>
+              <MatchTypeBadge
+                v-if="match.options?.type"
+                :type="match.options.type"
+                size="default"
+              />
               <span
                 v-if="isTournamentMatch"
                 class="inline-flex items-center gap-1 text-[hsl(var(--tac-amber))]"
@@ -122,7 +127,9 @@ import {
                     "
                   />
                   <span class="text-xs font-medium first-letter:uppercase">{{
-                    cleanMapName(match_map.map.name)
+                    cleanMapName(
+                      match_map.map?.label || match_map.map?.name || "",
+                    )
                   }}</span>
                   <div class="flex items-center space-x-1 text-xs tabular-nums">
                     <span
@@ -177,7 +184,9 @@ import {
                     "
                   />
                   <span class="text-xs font-medium first-letter:uppercase">{{
-                    cleanMapName(match_map.map.name)
+                    cleanMapName(
+                      match_map.map?.label || match_map.map?.name || "",
+                    )
                   }}</span>
                   <div class="flex items-center space-x-1 text-xs tabular-nums">
                     <span
@@ -232,7 +241,9 @@ import {
                     "
                   />
                   <span class="text-xs font-medium first-letter:uppercase">{{
-                    cleanMapName(match_map.map.name)
+                    cleanMapName(
+                      match_map.map?.label || match_map.map?.name || "",
+                    )
                   }}</span>
                   <div class="flex items-center space-x-1 text-xs tabular-nums">
                     <span
@@ -344,6 +355,15 @@ import {
                             )
                           "
                           :allow-roster-image="isTournamentMatch"
+                          :match-type="match.options?.type"
+                          :historical-elo="
+                            historicalEloChangeForPlayer(lineupPlayer)
+                              ?.current_elo
+                          "
+                          :show-elo="
+                            historicalEloChangeForPlayer(lineupPlayer)
+                              ?.current_elo != null
+                          "
                           size="sm"
                           linkable
                           @click="$emit('update:open', false)"
@@ -406,6 +426,7 @@ import {
 
 <script lang="ts">
 import { generateQuery } from "~/graphql/graphqlGen";
+import { eloFields } from "~/graphql/eloFields";
 import { matchLineupStats } from "~/graphql/matchLineupStats";
 import { e_match_status_enum } from "~/generated/zeus";
 
@@ -495,6 +516,7 @@ export default {
               {
                 lineup_1: [{}, matchLineupStats],
                 lineup_2: [{}, matchLineupStats],
+                elo_changes: [{}, eloFields],
               },
             ],
           }),
@@ -537,6 +559,21 @@ export default {
               : "Slot"),
           steam_id: lineupPlayer.steam_id,
         }
+      );
+    },
+    historicalEloChangeForPlayer(lineupPlayer: any) {
+      const steamId =
+        this.getLineupPlayerDisplayPlayer(lineupPlayer)?.steam_id ??
+        lineupPlayer?.steam_id;
+      const matchType = this.match?.options?.type;
+      if (!steamId || !matchType) return null;
+
+      return (
+        this.matchStats?.elo_changes?.find?.(
+          (eloChange: any) =>
+            String(eloChange.player_steam_id) === String(steamId) &&
+            eloChange.type === matchType,
+        ) ?? null
       );
     },
     getKDRatio(kills: number, deaths: number): string {

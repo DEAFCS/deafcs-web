@@ -2,9 +2,13 @@
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/ui/spinner";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/components/ui/tooltip";
 import { Search } from "lucide-vue-next";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
-import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
 </script>
 
@@ -19,30 +23,33 @@ import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
           class="pl-8"
         />
       </div>
-      <Button
-        v-if="friendsOnly"
-        variant="outline"
-        size="sm"
-        class="h-9 shrink-0 gap-1.5 px-2.5 text-xs"
-        :disabled="syncing"
-        :aria-label="$t('matchmaking.friends.sync')"
-        @click="
-          () => {
-            syncSteamFriends();
-          }
-        "
-      >
-        <Spinner v-if="syncing" class="h-3.5 w-3.5" />
-        <SteamIcon v-else class="h-3.5 w-3.5 fill-current" />
-        <span>{{
-          syncing
-            ? $t("matchmaking.friends.syncing")
-            : $t("matchmaking.friends.sync")
-        }}</span>
-      </Button>
-      <FiveStackToolTip v-if="friendsOnly" side="bottom">
-        {{ $t("matchmaking.friends.sync_info") }}
-      </FiveStackToolTip>
+      <Tooltip v-if="friendsOnly">
+        <TooltipTrigger as-child>
+          <Button
+            variant="outline"
+            size="sm"
+            class="h-9 shrink-0 gap-1.5 px-2.5 text-xs"
+            :disabled="syncing"
+            :aria-label="$t('matchmaking.friends.sync')"
+            @click="
+              () => {
+                syncSteamFriends();
+              }
+            "
+          >
+            <Spinner v-if="syncing" class="h-3.5 w-3.5" />
+            <SteamIcon v-else class="h-3.5 w-3.5 fill-current" />
+            <span>{{
+              syncing
+                ? $t("matchmaking.friends.syncing")
+                : $t("matchmaking.friends.sync")
+            }}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          {{ $t("matchmaking.friends.sync_info") }}
+        </TooltipContent>
+      </Tooltip>
     </div>
 
     <div class="flex flex-col gap-4">
