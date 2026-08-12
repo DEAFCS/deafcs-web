@@ -87,7 +87,14 @@ watch(
 function connectOnThisComputer() {
   step.value = "pc";
   if (!joinUrl.value) return;
-  window.open(joinUrl.value, "camera-connect", "width=480,height=800");
+  // Landscape shape on purpose: the join page decides whether to
+  // request portrait or landscape camera resolution by checking the
+  // *window's* orientation (matchMedia "orientation: portrait") —
+  // that's correct for a phone (viewport orientation always matches
+  // the physical device), but a narrow/tall popup used to make that
+  // same check misfire on a PC with a normal landscape webcam,
+  // requesting portrait video and letterboxing it with black bars.
+  window.open(joinUrl.value, "camera-connect", "width=900,height=700");
 }
 
 let statusTimer: ReturnType<typeof setTimeout> | null = null;

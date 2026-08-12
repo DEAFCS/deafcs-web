@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { ref, reactive, onMounted, onBeforeUnmount } from "vue";
+import {
+  ref,
+  reactive,
+  onMounted,
+  onBeforeUnmount,
+  type ComponentPublicInstance,
+} from "vue";
 import WhepPlayer from "~/components/match/WhepPlayer.vue";
 import { Video, VideoOff } from "lucide-vue-next";
 import {
@@ -57,6 +63,18 @@ function callState(steamId: string): CallState {
   return calls[steamId];
 }
 
+// Per-player local-preview <video> elements — admin's own mini camera
+// box while on a call, same PiP pattern the player's join page uses
+// for the admin's incoming feed. v-for template refs need a callback,
+// not a single ref().
+const localVideoEls: Record<string, HTMLVideoElement | null> = {};
+function setLocalVideoEl(
+  steamId: string,
+  el: Element | ComponentPublicInstance | null,
+) {
+  localVideoEls[steamId] = (el as HTMLVideoElement) ?? null;
+}
+
 async function startCall(steamId: string) {
   const state = callState(steamId);
   if (state.talking || state.connecting) return;
@@ -67,6 +85,8 @@ async function startCall(steamId: string) {
       audio: true,
     });
     state.stream = stream;
+    const localVideoEl = localVideoEls[steamId];
+    if (localVideoEl) localVideoEl.srcObject = stream;
 
     const pc = new RTCPeerConnection({
       iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
@@ -118,6 +138,8 @@ async function endCall(
     state.stream.getTracks().forEach((t) => t.stop());
     state.stream = null;
   }
+  const localVideoEl = localVideoEls[steamId];
+  if (localVideoEl) localVideoEl.srcObject = null;
   state.talking = false;
   if (opts.notifyServer !== false) {
     try {
@@ -174,6 +196,7 @@ onBeforeUnmount(() => {
               <WhepPlayer
                 v-if="player.ready"
                 :whep-url="cameraAdminWhepUrl(matchId, player.steamId)"
+                :muted="!callState(player.steamId).talking"
               />
               <div
                 v-else
@@ -181,6 +204,18 @@ onBeforeUnmount(() => {
               >
                 Not connected
               </div>
+
+              <!-- Admin's own mini camera box while on a call — same
+                   corner-PiP pattern the player's join page uses for
+                   the admin's incoming feed, just mirrored. -->
+              <video
+                v-show="callState(player.steamId).talking"
+                :ref="(el) => setLocalVideoEl(player.steamId, el)"
+                autoplay
+                playsinline
+                muted
+                class="absolute bottom-2 right-2 w-20 h-16 object-cover rounded-md border-2 border-white shadow-lg z-10"
+              />
             </div>
             <div class="px-2 py-1.5 flex items-center gap-2 text-sm">
               <span
@@ -196,8 +231,8 @@ onBeforeUnmount(() => {
             <button
               type="button"
               :disabled="callState(player.steamId).connecting"
-              class="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium text-white transition-colors disabled:opacity-50"
-              :class="callState(player.steamId).talking ? 'bg-red-600 hover:bg-red-500' : 'bg-primary hover:opacity-90'"
+              class="flex items-center justify-center gap-2 w-full py-2 text-sm font-medium transition-colors disabled:opacity-50"
+              :class="callState(player.steamId).talking ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-primary text-primary-foreground hover:opacity-90'"
               @click="
                 callState(player.steamId).talking
                   ? endCall(player.steamId)
