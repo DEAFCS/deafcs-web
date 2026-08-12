@@ -1,19 +1,17 @@
 <script setup lang="ts">
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "~/components/ui/tooltip";
-import { Search, RefreshCw } from "lucide-vue-next";
+import { Spinner } from "~/components/ui/spinner";
+import { Search } from "lucide-vue-next";
+import SteamIcon from "~/components/icons/SteamIcon.vue";
+import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
 </script>
 
 <template>
   <div class="flex flex-col gap-3 p-2">
-    <div class="flex items-center gap-2">
-      <div class="relative flex-1">
+    <div class="flex items-center gap-1.5">
+      <div class="relative min-w-0 flex-1">
         <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
         <Input
           v-model="searchQuery"
@@ -21,26 +19,30 @@ import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
           class="pl-8"
         />
       </div>
-      <Tooltip v-if="friendsOnly">
-        <TooltipTrigger as-child>
-          <Button
-            variant="ghost"
-            size="icon"
-            class="h-9 w-9 transition-opacity"
-            :class="{ 'opacity-50': syncing }"
-            @click="syncSteamFriends"
-          >
-            <RefreshCw
-              class="h-4 w-4 transition-transform"
-              :class="{ 'animate-spin-smooth': syncing }"
-            />
-            <span class="sr-only">{{ $t("matchmaking.friends.sync") }}</span>
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent>
-          {{ $t("matchmaking.friends.sync") }}
-        </TooltipContent>
-      </Tooltip>
+      <Button
+        v-if="friendsOnly"
+        variant="outline"
+        size="sm"
+        class="h-9 shrink-0 gap-1.5 px-2.5 text-xs"
+        :disabled="syncing"
+        :aria-label="$t('matchmaking.friends.sync')"
+        @click="
+          () => {
+            syncSteamFriends();
+          }
+        "
+      >
+        <Spinner v-if="syncing" class="h-3.5 w-3.5" />
+        <SteamIcon v-else class="h-3.5 w-3.5 fill-current" />
+        <span>{{
+          syncing
+            ? $t("matchmaking.friends.syncing")
+            : $t("matchmaking.friends.sync")
+        }}</span>
+      </Button>
+      <FiveStackToolTip v-if="friendsOnly" side="bottom">
+        {{ $t("matchmaking.friends.sync_info") }}
+      </FiveStackToolTip>
     </div>
 
     <div class="flex flex-col gap-4">
@@ -135,6 +137,7 @@ import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
 
 <script lang="ts">
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
+import { toast } from "~/components/ui/toast";
 
 function matchesSearch(player: any, query: string) {
   const q = query.toLowerCase();
@@ -244,12 +247,36 @@ export default {
     async syncSteamFriends() {
       this.syncing = true;
       try {
-        await (this as any).$apollo.mutate({
+        const { data }: any = await (this as any).$apollo.mutate({
           mutation: typedGql("mutation")({
             syncSteamFriends: {
               success: true,
             },
           }),
+        });
+
+        if (data?.syncSteamFriends?.success) {
+          toast({
+            title: this.$t("matchmaking.friends.sync_success_title"),
+            description: this.$t(
+              "matchmaking.friends.sync_success_description",
+            ),
+          });
+        } else {
+          // The API can't reliably tell a private friends list apart from
+          // simply having no new friends to add — keep this neutral.
+          toast({
+            title: this.$t("matchmaking.friends.sync_empty_title"),
+            description: this.$t(
+              "matchmaking.friends.sync_empty_description",
+            ),
+          });
+        }
+      } catch (error) {
+        toast({
+          title: this.$t("matchmaking.friends.sync_error_title"),
+          description: this.$t("matchmaking.friends.sync_error_description"),
+          variant: "destructive",
         });
       } finally {
         // Keep animation for a bit longer for visual feedback
