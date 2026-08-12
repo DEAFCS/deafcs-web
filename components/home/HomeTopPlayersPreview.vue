@@ -7,6 +7,8 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { Card } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import { eloTierColor } from "~/utils/eloTier";
+import { matchTypeRgb } from "~/utilities/matchTypeColors";
+import { tacticalCardHeadingClasses } from "~/utilities/tacticalClasses";
 
 type LeaderboardMode = "Competitive" | "Wingman" | "Duel";
 
@@ -14,9 +16,16 @@ interface LeaderboardPlayer {
   player_steam_id: string;
   player_name: string;
   player_avatar_url: string | null;
+  player_custom_avatar_url: string | null;
   player_country: string | null;
   value: number;
   rank: number;
+}
+
+interface Season {
+  id: string;
+  starts_at: string;
+  ends_at: string | null;
 }
 
 interface ModeState {
@@ -39,9 +48,9 @@ const modes: Array<{
   alias: "competitive" | "wingman" | "duel";
   color: string;
 }> = [
-  { value: "Competitive", alias: "competitive", color: "#F99E2F" },
-  { value: "Wingman", alias: "wingman", color: "#D946EF" },
-  { value: "Duel", alias: "duel", color: "#22D3EE" },
+  { value: "Competitive", alias: "competitive", color: `rgb(${matchTypeRgb("Competitive")})` },
+  { value: "Wingman", alias: "wingman", color: `rgb(${matchTypeRgb("Wingman")})` },
+  { value: "Duel", alias: "duel", color: `rgb(${matchTypeRgb("Duel")})` },
 ];
 
 const TOP_PLAYERS_QUERY = gql`
@@ -73,6 +82,7 @@ const TOP_PLAYERS_QUERY = gql`
       player_steam_id
       player_name
       player_avatar_url
+      player_custom_avatar_url
       player_country
       value
     }
@@ -93,6 +103,7 @@ const TOP_PLAYERS_QUERY = gql`
       player_steam_id
       player_name
       player_avatar_url
+      player_custom_avatar_url
       player_country
       value
     }
@@ -113,6 +124,7 @@ const TOP_PLAYERS_QUERY = gql`
       player_steam_id
       player_name
       player_avatar_url
+      player_custom_avatar_url
       player_country
       value
     }
@@ -149,10 +161,48 @@ function normalizeRows(rows: any[] | undefined): LeaderboardPlayer[] {
     player_steam_id: String(row.player_steam_id),
     player_name: String(row.player_name ?? ""),
     player_avatar_url: row.player_avatar_url ?? null,
+    player_custom_avatar_url: row.player_custom_avatar_url ?? null,
     player_country: row.player_country ?? null,
     value: Number(row.value),
     rank: index + 1,
   }));
+}
+
+// Mirrors pages/leaderboard.vue's own active-season resolution exactly: the
+// season whose date range currently contains "now". Falls back to All Time
+// (season_id = null, same as today's behavior) when seasons are disabled or
+// none is currently active -- never a hard error.
+const SEASONS_QUERY = gql`
+  query HomeTopPlayersSeasons {
+    seasons(order_by: { starts_at: desc }) {
+      id
+      starts_at
+      ends_at
+    }
+  }
+`;
+
+function resolveActiveSeasonId(seasons: Season[]): string | null {
+  const now = Date.now();
+  const active = seasons.find(
+    (s) =>
+      new Date(s.starts_at).getTime() <= now &&
+      (!s.ends_at || new Date(s.ends_at).getTime() > now),
+  );
+  return active?.id ?? null;
+}
+
+async function fetchActiveSeasonId(): Promise<string | null> {
+  if (!useApplicationSettingsStore().seasonsEnabled) return null;
+  try {
+    const { data } = await getGraphqlClient().query({
+      query: SEASONS_QUERY,
+      fetchPolicy: "cache-first",
+    });
+    return resolveActiveSeasonId((data as any)?.seasons ?? []);
+  } catch {
+    return null;
+  }
 }
 
 function selectAdjacentMode(direction: -1 | 1) {
@@ -169,6 +219,9 @@ async function fetchTopPlayers() {
   }
 
   try {
+    const seasonId = await fetchActiveSeasonId();
+    if (generation !== fetchGeneration) return;
+
     const response = await getGraphqlClient().query({
       query: TOP_PLAYERS_QUERY,
       variables: {
@@ -176,7 +229,7 @@ async function fetchTopPlayers() {
         window_days: 0,
         exclude_tournaments: false,
         role: null,
-        season_id: null,
+        season_id: seasonId,
         elo_view: "current",
         limit: 5,
         offset: 0,
@@ -231,9 +284,7 @@ void fetchTopPlayers();
         aria-hidden="true"
       />
       <div class="min-w-0">
-        <h3
-          class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
-        >
+        <h3 :class="tacticalCardHeadingClasses">
           Top Players
         </h3>
         <p class="mt-0.5 font-mono text-[0.58rem] uppercase tracking-[0.14em] text-muted-foreground">
@@ -349,6 +400,7 @@ void fetchTopPlayers();
                 steam_id: player.player_steam_id,
                 name: player.player_name,
                 avatar_url: player.player_avatar_url,
+                custom_avatar_url: player.player_custom_avatar_url,
                 country: player.player_country,
               }"
               :show-elo="false"
@@ -397,9 +449,7 @@ void fetchTopPlayers();
           aria-hidden="true"
         />
         <div class="min-w-0">
-          <h3
-            class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
-          >
+          <h3 :class="tacticalCardHeadingClasses">
             {{ mode.value }}
           </h3>
           <p
@@ -484,6 +534,7 @@ void fetchTopPlayers();
                   steam_id: player.player_steam_id,
                   name: player.player_name,
                   avatar_url: player.player_avatar_url,
+                  custom_avatar_url: player.player_custom_avatar_url,
                   country: player.player_country,
                 }"
                 :show-elo="false"

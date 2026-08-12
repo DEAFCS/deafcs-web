@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
+  Award,
   ArrowRight,
   BadgeCheck,
   Gamepad2,
@@ -81,7 +82,8 @@ const howItWorksSteps = [
   },
   {
     title: "Play and climb",
-    description: "Play matches and climb the DEAFCS leaderboard.",
+    description:
+      "Play matches, climb the DEAFCS leaderboard, and compete to win tournaments and leagues.",
     icon: Trophy,
   },
 ];
@@ -113,6 +115,12 @@ const whyDeafcsFeatures = [
     title: "Your competitive home",
     description: "Profiles, rankings, results, news, and highlights in one place.",
     icon: Sparkles,
+  },
+  {
+    title: "Earn awards",
+    description:
+      "Compete in tournaments and leagues, build your record, and earn recognition and awards.",
+    icon: Award,
   },
 ];
 </script>
@@ -224,20 +232,18 @@ const whyDeafcsFeatures = [
       </h2>
       <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
         <Card
-          v-for="(feature, index) in whyDeafcsFeatures"
+          v-for="feature in whyDeafcsFeatures"
           :key="feature.title"
           class="min-w-0 border-border/60 bg-card/35 p-5 shadow-none lg:col-span-2"
-          :class="{
-            'lg:col-start-2': index === 3,
-            'lg:col-start-4': index === 4,
-          }"
         >
-          <component
-            :is="feature.icon"
-            class="h-5 w-5 text-[hsl(var(--tac-amber))]"
-            aria-hidden="true"
-          />
-          <h3 class="mt-4 font-semibold text-foreground">{{ feature.title }}</h3>
+          <div class="flex items-center gap-3">
+            <component
+              :is="feature.icon"
+              class="h-5 w-5 shrink-0 text-[hsl(var(--tac-amber))]"
+              aria-hidden="true"
+            />
+            <h3 class="font-semibold text-foreground">{{ feature.title }}</h3>
+          </div>
           <p class="mt-2 text-sm leading-6 text-muted-foreground">
             {{ feature.description }}
           </p>
@@ -272,12 +278,14 @@ const whyDeafcsFeatures = [
           >
             {{ String(index + 1).padStart(2, "0") }}
           </span>
-          <div
-            class="flex h-9 w-9 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))]"
-          >
-            <component :is="step.icon" class="h-4 w-4" aria-hidden="true" />
+          <div class="flex items-center gap-3">
+            <div
+              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))]"
+            >
+              <component :is="step.icon" class="h-4 w-4" aria-hidden="true" />
+            </div>
+            <h3 class="font-semibold text-foreground">{{ step.title }}</h3>
           </div>
-          <h3 class="mt-5 font-semibold text-foreground">{{ step.title }}</h3>
           <p class="mt-2 text-sm leading-6 text-muted-foreground">
             {{ step.description }}
           </p>

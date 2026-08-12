@@ -7,6 +7,7 @@ import { generateQuery } from "~/graphql/graphqlGen";
 import { newsArticleListFields } from "~/graphql/newsGraphql";
 import { Card } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
+import { tacticalCardHeadingClasses } from "~/utilities/tacticalClasses";
 
 interface NewsArticle {
   id: string;
@@ -120,9 +121,7 @@ watch(
         class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
         aria-hidden="true"
       />
-      <h3
-        class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
-      >
+      <h3 :class="tacticalCardHeadingClasses">
         Latest News
       </h3>
     </div>

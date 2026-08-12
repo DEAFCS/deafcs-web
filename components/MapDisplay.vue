@@ -5,6 +5,7 @@ import cleanMapName from "~/utilities/cleanMapName";
   <div class="relative w-auto max-h-[100%] overflow-hidden rounded-[12px]">
     <NuxtImg
       :src="map.poster"
+      :loading="loading"
       class="w-full h-full object-cover min-w-[150px]"
       sizes="400px lg:600"
       :class="{
@@ -38,6 +39,8 @@ import cleanMapName from "~/utilities/cleanMapName";
 </template>
 
 <script lang="ts">
+import type { PropType } from "vue";
+
 export default {
   props: {
     map: {
@@ -51,6 +54,14 @@ export default {
     patch: {
       type: Boolean,
       default: true,
+    },
+    // Optional native <img loading> passthrough. Undefined by default --
+    // every existing consumer keeps today's eager-loading behavior
+    // unchanged; callers with many off-screen cards (e.g. /watch) can
+    // opt into "lazy" explicitly. Typed to match NuxtImg's own loading prop.
+    loading: {
+      type: String as PropType<"lazy" | "eager" | undefined>,
+      default: undefined,
     },
   },
 };

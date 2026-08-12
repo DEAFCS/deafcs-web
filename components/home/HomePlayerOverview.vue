@@ -9,6 +9,7 @@ import HomeLiveMatchesPreview from "~/components/home/HomeLiveMatchesPreview.vue
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import { Button } from "~/components/ui/button";
+import { tacticalCardHeadingClasses } from "~/utilities/tacticalClasses";
 
 type PreviewPlayer = {
   steam_id: string;
@@ -21,20 +22,14 @@ const props = defineProps<{
 
 const destinations = [
   {
-    label: "MATCHMAKING",
+    label: "PLAY",
     to: "/play",
     icon: Play,
     iconClass: "bottom-8 right-4 size-20",
     description:
-      "Join Competitive, Wingman, or Duel matchmaking and climb the rankings.",
-  },
-  {
-    label: "LEAGUE",
-    to: "/league",
-    icon: Trophy,
-    iconClass: "bottom-8 right-4 size-20",
-    description:
-      "Compete across divisions, rise through the standings, and fight for the championship.",
+      "Join matchmaking, climb the rankings, create or join draft matches, and keep track of your schedule.",
+    comingSoon: false,
+    comingSoonLabel: "",
   },
   {
     label: "TOURNAMENTS",
@@ -43,8 +38,28 @@ const destinations = [
     iconClass: "bottom-8 right-4 size-20",
     description:
       "Join cups and tournaments, defeat the competition, and earn recognition and awards.",
+    comingSoon: false,
+    comingSoonLabel: "",
+  },
+  {
+    label: "LEAGUE",
+    to: "/league",
+    icon: Trophy,
+    iconClass: "bottom-8 right-4 size-20",
+    description:
+      "Compete across divisions, rise through the standings, and fight for the championship.",
+    comingSoon: true,
+    comingSoonLabel: "Coming Q1–Q2 2027",
   },
 ] as const;
+
+// Shared by every feature card. Interactive-only classes (hover/active/focus
+// affordances) are kept separate so the League "coming soon" card can render
+// without them -- same base shape, but nothing that implies it's clickable.
+const featureCardBaseClasses =
+  "relative isolate flex min-h-52 flex-col overflow-hidden rounded-lg border border-border px-5 pb-5 pt-4 text-left text-foreground outline-none [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_60%,hsl(var(--tac-amber)/0.05)_100%)]";
+const featureCardInteractiveClasses =
+  "group/feature cursor-pointer transition-[border-color,background,box-shadow,transform] duration-200 hover:scale-[1.01] hover:border-[hsl(var(--tac-amber)/0.55)] hover:[background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,hsl(var(--tac-amber)/0.10)_100%)] hover:shadow-[0_0_24px_hsl(var(--tac-amber)/0.12)] active:scale-[0.995] focus-visible:border-[hsl(var(--tac-amber))] focus-visible:shadow-[0_0_0_2px_hsl(var(--tac-amber)/0.35)]";
 
 const authStore = useAuthStore();
 const player = computed(() => props.previewPlayer ?? authStore.me);
@@ -69,7 +84,7 @@ const profilePath = computed(() => ({
           >
             <NuxtLink :to="profilePath" aria-label="View my profile">
               <UserRound class="size-4" aria-hidden="true" />
-              <span class="hidden sm:inline">VIEW MY PROFILE</span>
+              <span class="hidden sm:inline">MY STATS</span>
             </NuxtLink>
           </Button>
         </template>
@@ -109,13 +124,22 @@ const profilePath = computed(() => ({
             aria-label="Main platform destinations"
             class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
           >
-            <NuxtLink
+            <component
+              :is="destination.comingSoon ? 'div' : 'NuxtLink'"
               v-for="(destination, index) in destinations"
               :key="destination.to"
-              :to="destination.to"
-              class="group/feature relative isolate flex min-h-52 flex-col overflow-hidden rounded-lg border border-border px-5 pb-5 pt-4 text-left text-foreground outline-none [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_60%,hsl(var(--tac-amber)/0.05)_100%)] transition-[border-color,background,box-shadow,transform] duration-200 hover:scale-[1.01] hover:border-[hsl(var(--tac-amber)/0.55)] hover:[background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,hsl(var(--tac-amber)/0.10)_100%)] hover:shadow-[0_0_24px_hsl(var(--tac-amber)/0.12)] active:scale-[0.995] focus-visible:border-[hsl(var(--tac-amber))] focus-visible:shadow-[0_0_0_2px_hsl(var(--tac-amber)/0.35)]"
-              :class="{ 'sm:col-span-2 lg:col-span-1': index === 2 }"
-              active-class="!border-[hsl(var(--tac-amber)/0.75)]"
+              :to="destination.comingSoon ? undefined : destination.to"
+              :aria-disabled="destination.comingSoon ? 'true' : undefined"
+              :class="[
+                featureCardBaseClasses,
+                destination.comingSoon ? '' : featureCardInteractiveClasses,
+                { 'sm:col-span-2 lg:col-span-1': index === 2 },
+              ]"
+              :active-class="
+                destination.comingSoon
+                  ? undefined
+                  : '!border-[hsl(var(--tac-amber)/0.75)]'
+              "
             >
               <span
                 class="pointer-events-none absolute inset-0 z-0 opacity-0 [background-image:repeating-linear-gradient(180deg,transparent_0,transparent_3px,hsl(var(--tac-amber)/0.03)_3px,hsl(var(--tac-amber)/0.03)_4px)] transition-opacity duration-200 group-hover/feature:opacity-100"
@@ -135,7 +159,13 @@ const profilePath = computed(() => ({
               <div class="relative z-[1] flex min-w-0 flex-1 flex-col">
                 <div class="flex items-start justify-between gap-4">
                   <div
-                    class="inline-flex items-center gap-2 font-mono text-[0.72rem] font-bold uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-200 group-hover/feature:text-[hsl(var(--tac-amber))]"
+                    :class="[
+                      'inline-flex items-center gap-2',
+                      tacticalCardHeadingClasses,
+                      destination.comingSoon
+                        ? ''
+                        : 'transition-colors duration-200 group-hover/feature:text-[hsl(var(--tac-amber))]',
+                    ]"
                   >
                     <span
                       class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
@@ -143,6 +173,12 @@ const profilePath = computed(() => ({
                     ></span>
                     {{ destination.label }}
                   </div>
+                  <span
+                    v-if="destination.comingSoon"
+                    class="shrink-0 rounded-full border border-border/70 bg-muted/40 px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-muted-foreground"
+                  >
+                    Coming Soon
+                  </span>
                 </div>
                 <p
                   class="mt-3 max-w-xl text-[0.8rem] leading-5 text-muted-foreground"
@@ -150,6 +186,13 @@ const profilePath = computed(() => ({
                   {{ destination.description }}
                 </p>
                 <span
+                  v-if="destination.comingSoon"
+                  class="mt-auto pt-3 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-muted-foreground"
+                >
+                  {{ destination.comingSoonLabel }}
+                </span>
+                <span
+                  v-else
                   class="mt-auto pt-3 font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber)/0.72)] transition-colors group-hover/feature:text-[hsl(var(--tac-amber))]"
                 >
                   OPEN
@@ -159,7 +202,7 @@ const profilePath = computed(() => ({
                   />
                 </span>
               </div>
-            </NuxtLink>
+            </component>
           </nav>
           </section>
 
@@ -185,16 +228,15 @@ const profilePath = computed(() => ({
           </section>
 
           <section aria-labelledby="top-leaderboards-title">
-            <h2
-              id="top-leaderboards-title"
-              class="mb-3 inline-flex items-center gap-2 font-sans text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground"
-            >
-              <span
-                class="inline-block h-0.5 w-2.5 bg-[hsl(var(--tac-amber))]"
+            <div class="mb-3 flex items-center gap-3">
+              <Medal
+                class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
                 aria-hidden="true"
-              ></span>
-              TOP 5 LEADERBOARDS
-            </h2>
+              />
+              <h2 id="top-leaderboards-title" :class="tacticalCardHeadingClasses">
+                Top 5 Leaderboards
+              </h2>
+            </div>
 
             <HomeTopPlayersPreview variant="all" />
           </section>

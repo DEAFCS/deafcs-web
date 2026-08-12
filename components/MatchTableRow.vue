@@ -23,6 +23,7 @@ import KickIcon from "~/components/icons/KickIcon.vue";
 import MatchStatus from "~/components/match/MatchStatus.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
+import MapDisplay from "~/components/MapDisplay.vue";
 import { ref } from "vue";
 import MatchPlayerDetailsPanel from "~/components/match/MatchPlayerDetailsPanel.vue";
 import HighlightCard from "~/components/clips/HighlightCard.vue";
@@ -41,16 +42,46 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
       alwaysShow || !compact || match.status === e_match_status_enum.Finished
     "
     :class="[
-      'transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col h-full',
+      'relative transition-all duration-300 cursor-pointer group overflow-hidden flex flex-col h-full',
       embedded
         ? 'bg-transparent'
         : 'bg-muted/30 border border-border rounded-lg hover:shadow-lg hover:shadow-primary/10 hover:bg-muted/20 hover:border-primary/30',
     ]"
     @click="navigateToMatch(match.id, $event)"
   >
+    <!-- Map background -- opt-in only (mapBackground prop), decorative,
+         permanently darkened (no Play-card hover-reveal). Never rendered
+         unless a caller explicitly asks for it, so existing consumers
+         (e.g. /matches via MatchesTable.vue) are unaffected. -->
+    <div
+      v-if="mapBackground"
+      class="absolute inset-0 flex"
+      aria-hidden="true"
+    >
+      <template v-if="match.match_maps && match.match_maps.length > 0">
+        <MapDisplay
+          v-for="matchMap in match.match_maps"
+          :key="matchMap.id"
+          :map="matchMap.map"
+          :patch="false"
+          loading="lazy"
+          class="min-w-0 flex-1 rounded-none"
+        />
+      </template>
+      <NuxtImg
+        v-else
+        src="/img/maps/screenshots/default.webp"
+        class="h-full w-full object-cover"
+        sizes="400px lg:600"
+        loading="lazy"
+        alt=""
+      />
+      <div class="absolute inset-0 bg-black/60"></div>
+    </div>
+
     <div
       :class="[
-        'flex flex-col gap-3 flex-1',
+        'relative z-10 flex flex-col gap-3 flex-1',
         compact ? 'p-2' : 'p-2 sm:p-3 md:p-4',
       ]"
     >
@@ -1060,7 +1091,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
          live here together instead of being infused into the team rows. -->
     <div
       v-if="hasPlayerAnalysis"
-      class="border-t border-border bg-card/40 px-2 py-2.5 space-y-2.5"
+      class="relative z-10 border-t border-border bg-card/40 px-2 py-2.5 space-y-2.5"
       :class="compact ? '' : 'sm:px-4 sm:py-3'"
       @click.stop
     >
@@ -1197,6 +1228,14 @@ export default {
       default: false,
     },
     hideStreamButton: {
+      type: Boolean,
+      default: false,
+    },
+    // Opt-in only -- renders the decorative map-poster background behind
+    // the card. Defaults false so existing consumers (e.g. /matches via
+    // MatchesTable.vue) render exactly as before; only callers that
+    // explicitly pass this prop get the new visual.
+    mapBackground: {
       type: Boolean,
       default: false,
     },

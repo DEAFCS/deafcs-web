@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { Activity, ListChecks, RotateCcw } from "lucide-vue-next";
+import { Activity, RotateCcw } from "lucide-vue-next";
 import { e_match_status_enum, order_by } from "~/generated/zeus";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { Card } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
-import cleanMapName from "~/utilities/cleanMapName";
+import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
+import MapDisplay from "~/components/MapDisplay.vue";
+import { tacticalCardHeadingClasses } from "~/utilities/tacticalClasses";
+import { getMatchSource, matchSourceIcon } from "~/utilities/matchSource";
+import { joinedMapNames } from "~/utilities/matchMapNames";
 
 interface LiveMatchMap {
   id: string;
@@ -16,6 +20,7 @@ interface LiveMatchMap {
   map: {
     name: string;
     label: string | null;
+    poster: string | null;
   };
 }
 
@@ -23,6 +28,7 @@ interface LiveMatch {
   id: string;
   created_at: string;
   started_at: string | null;
+  is_tournament_match: boolean | null;
   options: {
     type: string;
     best_of: number | null;
@@ -36,7 +42,23 @@ interface LiveMatch {
     name: string;
   };
   match_maps: LiveMatchMap[];
+  tournament_brackets: Array<{
+    stage: {
+      tournament: {
+        id: string;
+        name: string;
+        league_season_division: { id: string } | null;
+      } | null;
+    } | null;
+  }> | null;
+  draft_games: Array<{ id: string }> | null;
 }
+
+// Bordered BO pill -- identical markup/classes to MatchTableRow.vue's
+// matchTypePillClasses and HomeLatestResultsPreview.vue's BO badge, so the
+// three match-card surfaces stay visually identical rather than drifting.
+const boBadgeClasses =
+  "inline-flex min-w-0 items-center rounded-md border border-border/70 bg-muted/35 px-2.5 py-1 font-mono text-[0.62rem] font-bold uppercase leading-none tracking-[0.14em] text-foreground";
 
 const matches = ref<LiveMatch[]>([]);
 const loading = ref(true);
@@ -51,12 +73,15 @@ function displayedMap(match: LiveMatch): LiveMatchMap | null {
   );
 }
 
-function matchContext(match: LiveMatch): string {
-  const matchMap = displayedMap(match);
-  const mapName = cleanMapName(
-    matchMap?.map?.label || matchMap?.map?.name || "",
-  );
-  return [match.options?.type, mapName].filter(Boolean).join(" · ");
+// All currently-known maps, joined -- not just the current/first one. Mirrors
+// HomeLatestResultsPreview.vue's mapContextFor (both delegate to the same
+// joinedMapNames helper), matching what MatchTableRow.vue shows on /watch.
+function mapContextFor(match: LiveMatch): string {
+  return joinedMapNames(match.match_maps);
+}
+
+function sourceIconFor(match: LiveMatch) {
+  return matchSourceIcon(getMatchSource(match));
 }
 
 async function fetchLiveMatches() {
@@ -82,6 +107,7 @@ async function fetchLiveMatches() {
             id: true,
             created_at: true,
             started_at: true,
+            is_tournament_match: true,
             options: {
               type: true,
               best_of: true,
@@ -104,9 +130,23 @@ async function fetchLiveMatches() {
                 map: {
                   name: true,
                   label: true,
+                  poster: true,
                 },
               },
             ],
+            tournament_brackets: [
+              { limit: 1 },
+              {
+                stage: {
+                  tournament: {
+                    id: true,
+                    name: true,
+                    league_season_division: { id: true },
+                  },
+                },
+              },
+            ],
+            draft_games: [{ limit: 1 }, { id: true }],
           },
         ],
       }),
@@ -142,9 +182,7 @@ void fetchLiveMatches();
         class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
         aria-hidden="true"
       />
-      <h3
-        class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
-      >
+      <h3 :class="tacticalCardHeadingClasses">
         Live Matches
       </h3>
     </div>
@@ -154,7 +192,7 @@ void fetchLiveMatches();
         <div
           v-for="index in 2"
           :key="index"
-          class="rounded-md border border-border/60 bg-background/25 p-3"
+          class="rounded-lg border border-border bg-muted/30 p-3"
         >
           <Skeleton class="h-3 w-24" />
           <Skeleton class="mt-3 h-4 w-3/4" />
@@ -196,10 +234,35 @@ void fetchLiveMatches();
           v-for="match in matches"
           :key="match.id"
           :to="{ name: 'matches-id', params: { id: match.id } }"
-          class="group/live block min-w-0 rounded-md border border-border/60 bg-background/25 p-3 outline-none transition-colors hover:border-[hsl(var(--tac-amber)/0.4)] hover:bg-background/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+          class="group/live relative block min-w-0 overflow-hidden rounded-lg border border-border bg-muted/30 outline-none transition-colors hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
           :aria-label="`View live match ${match.lineup_1.name} versus ${match.lineup_2.name}`"
         >
-          <div class="flex min-w-0 items-center justify-between gap-3">
+          <!-- Map background -- decorative only, permanently darkened (no
+               hover-reveal like the Play card's SimpleMatchDisplay). Shows
+               whichever maps are currently known (no placeholders for maps
+               not yet vetoed). -->
+          <div class="absolute inset-0 flex" aria-hidden="true">
+            <template v-if="match.match_maps.length > 0">
+              <MapDisplay
+                v-for="matchMap in match.match_maps"
+                :key="matchMap.id"
+                :map="matchMap.map"
+                :patch="false"
+                class="min-w-0 flex-1 rounded-none"
+              />
+            </template>
+            <NuxtImg
+              v-else
+              src="/img/maps/screenshots/default.webp"
+              class="h-full w-full object-cover"
+              sizes="400px lg:600"
+              alt=""
+            />
+            <div class="absolute inset-0 bg-black/60"></div>
+          </div>
+
+          <div class="relative z-10 p-3">
+          <div class="flex min-w-0 flex-wrap items-center gap-2">
             <span
               class="inline-flex items-center gap-1.5 font-mono text-[0.62rem] font-bold uppercase tracking-[0.14em] text-red-400"
             >
@@ -209,21 +272,32 @@ void fetchLiveMatches();
               ></span>
               Live
             </span>
-            <span
-              v-if="match.options?.best_of"
-              class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
-            >
+
+            <MatchTypeBadge
+              v-if="match.options?.type"
+              :type="match.options.type"
+              size="default"
+            />
+
+            <span v-if="match.options?.best_of" :class="boBadgeClasses">
               BO{{ match.options.best_of }}
             </span>
           </div>
 
           <div
-            v-if="matchContext(match)"
-            class="mt-3 flex min-w-0 items-center gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.12em] text-muted-foreground"
-            :title="matchContext(match)"
+            v-if="mapContextFor(match)"
+            class="mt-3 flex min-w-0 items-start gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-muted-foreground"
+            :title="mapContextFor(match)"
           >
-            <ListChecks class="h-3 w-3 shrink-0 opacity-50" aria-hidden="true" />
-            <span class="truncate">{{ matchContext(match) }}</span>
+            <component
+              :is="sourceIconFor(match)"
+              v-if="sourceIconFor(match)"
+              class="h-3 w-3 shrink-0 text-[hsl(var(--tac-amber))]/85"
+              aria-hidden="true"
+            />
+            <span class="min-w-0 flex-1 break-words leading-relaxed">{{
+              mapContextFor(match)
+            }}</span>
           </div>
 
           <div class="mt-3 space-y-2">
@@ -243,6 +317,7 @@ void fetchLiveMatches();
                 {{ displayedMap(match)?.lineup_2_score ?? "—" }}
               </span>
             </div>
+          </div>
           </div>
         </NuxtLink>
       </div>

@@ -25,6 +25,16 @@ export const tacticalSectionTickClasses =
 export const tacticalSectionDescriptionClasses =
   "mb-3 text-[0.85rem] text-muted-foreground";
 
+// Card-level heading inside a tactical card (e.g. homepage "Latest News" /
+// "Live Matches" preview cards, and the "Top 5 Leaderboards" section title).
+// Matches the resting (non-hover) text treatment of the homepage feature
+// card titles (Play/Tournaments/League) exactly -- grey/muted, not amber.
+// Combine with a `group-hover/*:text-[hsl(var(--tac-amber))]` modifier at
+// the call site for anything that's actually an interactive link, the way
+// the feature cards themselves do.
+export const tacticalCardHeadingClasses =
+  "font-mono text-[0.72rem] font-bold uppercase tracking-[0.2em] text-muted-foreground";
+
 // Sections are separated by a hairline rule rather than individual card frames,
 // so a stack of them reads as one page. Applies to every section but the first.
 export const tacticalSectionSeparatorClasses = "tac-section-sep";

@@ -114,6 +114,7 @@ const paginationFadeTransition = {
             :match="match"
             compact
             always-show
+            map-background
             :style="{ animationDelay: `${index * 50}ms` }"
             class="animate-in fade-in slide-in-from-bottom-2 h-full"
           />

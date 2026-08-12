@@ -1,11 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import {
-  ArrowRight,
-  CalendarDays,
-  Film,
-  ListChecks,
-} from "lucide-vue-next";
+import { ArrowRight, CalendarDays, Film } from "lucide-vue-next";
 import { e_match_status_enum, order_by } from "~/generated/zeus";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
@@ -13,7 +8,10 @@ import { Card } from "~/components/ui/card";
 import { Skeleton } from "~/components/ui/skeleton";
 import TimeAgo from "~/components/TimeAgo.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
-import cleanMapName from "~/utilities/cleanMapName";
+import MapDisplay from "~/components/MapDisplay.vue";
+import { tacticalCardHeadingClasses } from "~/utilities/tacticalClasses";
+import { getMatchSource, matchSourceIcon } from "~/utilities/matchSource";
+import { joinedMapNames } from "~/utilities/matchMapNames";
 
 interface ResultMap {
   id: string;
@@ -24,6 +22,7 @@ interface ResultMap {
   map: {
     name: string;
     label: string | null;
+    poster: string | null;
   };
 }
 
@@ -33,6 +32,7 @@ interface MatchResult {
   effective_at: string | null;
   ended_at: string | null;
   created_at: string;
+  is_tournament_match: boolean | null;
   options: {
     type: string;
     best_of: number | null;
@@ -46,6 +46,16 @@ interface MatchResult {
     name: string;
   };
   match_maps: ResultMap[];
+  tournament_brackets: Array<{
+    stage: {
+      tournament: {
+        id: string;
+        name: string;
+        league_season_division: { id: string } | null;
+      } | null;
+    } | null;
+  }> | null;
+  draft_games: Array<{ id: string }> | null;
 }
 
 const matches = ref<MatchResult[]>([]);
@@ -82,13 +92,11 @@ function clipCountFor(match: MatchResult): number {
 }
 
 function mapContextFor(match: MatchResult): string {
-  const maps = match.match_maps
-    .map((matchMap) =>
-      cleanMapName(matchMap.map?.label || matchMap.map?.name || ""),
-    )
-    .filter(Boolean);
+  return joinedMapNames(match.match_maps);
+}
 
-  return maps.join(" · ");
+function sourceIconFor(match: MatchResult) {
+  return matchSourceIcon(getMatchSource(match));
 }
 
 function scoreColorFor(
@@ -133,6 +141,7 @@ async function fetchLatestResults() {
             effective_at: true,
             ended_at: true,
             created_at: true,
+            is_tournament_match: true,
             options: {
               type: true,
               best_of: true,
@@ -156,9 +165,23 @@ async function fetchLatestResults() {
                 map: {
                   name: true,
                   label: true,
+                  poster: true,
                 },
               },
             ],
+            tournament_brackets: [
+              { limit: 1 },
+              {
+                stage: {
+                  tournament: {
+                    id: true,
+                    name: true,
+                    league_season_division: { id: true },
+                  },
+                },
+              },
+            ],
+            draft_games: [{ limit: 1 }, { id: true }],
           },
         ],
       }),
@@ -194,9 +217,7 @@ void fetchLatestResults();
         class="h-4 w-4 shrink-0 text-[hsl(var(--tac-amber))]"
         aria-hidden="true"
       />
-      <h3
-        class="font-mono text-xs font-bold uppercase tracking-[0.16em] text-foreground"
-      >
+      <h3 :class="tacticalCardHeadingClasses">
         Latest Results
       </h3>
     </div>
@@ -248,9 +269,32 @@ void fetchLatestResults();
           v-for="match in matches"
           :key="match.id"
           :to="{ name: 'matches-id', params: { id: match.id } }"
-          class="group/result block min-w-0 rounded-lg border border-border bg-muted/30 p-3 outline-none transition-colors hover:border-primary/30 hover:bg-muted/20 hover:shadow-lg hover:shadow-primary/10 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+          class="group/result relative block min-w-0 overflow-hidden rounded-lg border border-border bg-muted/30 outline-none transition-colors hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
           :aria-label="`View ${match.lineup_1.name} versus ${match.lineup_2.name}`"
         >
+          <!-- Map background -- decorative only, permanently darkened (no
+               hover-reveal like the Play card's SimpleMatchDisplay). -->
+          <div class="absolute inset-0 flex" aria-hidden="true">
+            <template v-if="match.match_maps.length > 0">
+              <MapDisplay
+                v-for="matchMap in match.match_maps"
+                :key="matchMap.id"
+                :map="matchMap.map"
+                :patch="false"
+                class="min-w-0 flex-1 rounded-none"
+              />
+            </template>
+            <NuxtImg
+              v-else
+              src="/img/maps/screenshots/default.webp"
+              class="h-full w-full object-cover"
+              sizes="400px lg:600"
+              alt=""
+            />
+            <div class="absolute inset-0 bg-black/60"></div>
+          </div>
+
+          <div class="relative z-10 p-3">
           <div class="flex min-w-0 items-center justify-between gap-3">
             <div class="flex min-w-0 flex-wrap items-center gap-2">
               <MatchTypeBadge
@@ -289,7 +333,12 @@ void fetchLatestResults();
             class="mt-3 flex min-w-0 items-start gap-1.5 font-mono text-[0.6rem] uppercase tracking-[0.14em] text-muted-foreground"
             :title="mapContextFor(match)"
           >
-            <ListChecks class="h-3 w-3 shrink-0 opacity-50" aria-hidden="true" />
+            <component
+              :is="sourceIconFor(match)"
+              v-if="sourceIconFor(match)"
+              class="h-3 w-3 shrink-0 text-[hsl(var(--tac-amber))]/85"
+              aria-hidden="true"
+            />
             <span
               class="min-w-0 flex-1 break-words leading-relaxed"
             >
@@ -320,6 +369,7 @@ void fetchLatestResults();
                 {{ scoreFor(match)?.lineup2 ?? "—" }}
               </span>
             </div>
+          </div>
           </div>
         </NuxtLink>
 
