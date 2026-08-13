@@ -103,6 +103,7 @@ export default {
     :src="src"
     :alt="alt"
     :class="imgClass"
+    draggable="false"
     @error="loadFailed = true"
   />
   <!-- No avatar resolved yet, or it failed to load -- a generic

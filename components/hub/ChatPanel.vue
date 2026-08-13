@@ -64,12 +64,15 @@ watch(activeTabId, (id) => {
 });
 
 const orderedTabs = computed<ChatTab[]>(() => {
+  // Default (pre-drag) order: Global, Organizers (admin-only), Tournament,
+  // then everything else -- matchmaking lobby, per-match chat, DMs, etc.
+  // Anything a user has manually dragged still overrides this via
+  // manualOrder below; this is only the fallback for untouched tabs.
   const weight = (tab: ChatTab) => {
-    if (tab.type === "organizers" || tab.type === "tournament") return 0;
-    if (tab.id.startsWith("matchmaking:")) return 1;
-    if (tab.type === "match") return 2;
-    if (tab.type === "global") return 3;
-    return 4;
+    if (tab.type === "global") return 0;
+    if (tab.type === "organizers") return 1;
+    if (tab.type === "tournament") return 2;
+    return 3;
   };
   const base = [...tabs.value].sort((a, b) => {
     const wa = weight(a);
