@@ -13,7 +13,6 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
     <div v-if="showMeta" class="absolute left-2 top-0">
       <PlayerDisplay
         :player="message.from"
-        :avatar-override="liveAvatarUrl"
         size="sm"
         :compact="true"
         :align-top="true"
@@ -54,7 +53,6 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 
 <script lang="ts">
 import { Crown, Shield, ShieldHalf } from "lucide-vue-next";
-import { useLivePlayerAvatar } from "~/composables/useLivePlayerAvatar";
 
 // Elevated roles only -- regular (verified_)user and streamer get no
 // badge at all next to their name, just the avatar.
@@ -75,13 +73,6 @@ export default {
       type: Object,
       required: false,
     },
-  },
-  setup(props: any) {
-    const liveAvatarUrl = useLivePlayerAvatar(
-      () => props.message?.from?.steam_id,
-      () => props.message?.from?.avatar_url,
-    );
-    return { liveAvatarUrl };
   },
   computed: {
     isSameSender() {
