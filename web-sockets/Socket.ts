@@ -22,7 +22,10 @@ export type ChatType =
   // Per-match, per-lineup chat -- id is `${matchId}:${lineupId}`. Distinct
   // from "team" (a persistent Team entity's own chat, which matchmaking/
   // draft lineups don't have). Never relayed to the in-game CS2 server.
-  | "match_team";
+  | "match_team"
+  // Single site-wide room, open to every verified_user+ player. Fixed
+  // lobbyId "global" -- there's only ever one.
+  | "global";
 
 class Socket extends EventEmitter {
   private listening = new Set();

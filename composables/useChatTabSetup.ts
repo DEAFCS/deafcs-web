@@ -17,6 +17,9 @@ export function useChatTabSetup() {
   const isOrganizer = computed(() =>
     authStore.isRoleAbove(e_player_roles_enum.match_organizer),
   );
+  const canUseGlobalChat = computed(() =>
+    authStore.isRoleAbove(e_player_roles_enum.verified_user),
+  );
   const persistentLobbies = new Map<string, Lobby>();
 
   function syncPersistentChatJoins() {
@@ -114,6 +117,25 @@ export function useChatTabSetup() {
           pinned: true,
         });
       }
+    }
+
+    const globalId = "global";
+    const existingGlobal = tabs.value.find((t) => t.id === globalId);
+    if (canUseGlobalChat.value) {
+      if (!existingGlobal) {
+        openTab({
+          id: globalId,
+          label: t("chat_tab_labels.global_default"),
+          instance: "global",
+          type: "global",
+          lobbyId: globalId,
+          pinned: true,
+        });
+      } else if (!existingGlobal.pinned) {
+        setPinned(globalId, true);
+      }
+    } else if (existingGlobal) {
+      closeTab(globalId);
     }
 
     const organizerId = "organizers";

@@ -10,6 +10,7 @@ import {
   MessageSquare,
   ExternalLink,
   Trophy,
+  Globe,
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
@@ -40,7 +41,8 @@ const orderedTabs = computed<ChatTab[]>(() => {
     if (tab.type === "organizers" || tab.type === "tournament") return 0;
     if (tab.id.startsWith("matchmaking:")) return 1;
     if (tab.type === "match") return 2;
-    return 3;
+    if (tab.type === "global") return 3;
+    return 4;
   };
   return [...tabs.value].sort((a, b) => {
     const wa = weight(a);
@@ -178,6 +180,7 @@ function getRoomIcon(tab: ChatTab) {
   if (tab.id.startsWith("matchmaking:")) return Merge;
   if (tab.type === "match") return Sword;
   if (tab.type === "team") return Shield;
+  if (tab.type === "global") return Globe;
   return MessageSquare;
 }
 
@@ -188,6 +191,7 @@ function getRoomSubtitle(tab: ChatTab) {
     return t("chat_room_subtitles.matchmaking");
   if (tab.type === "match") return t("chat_room_subtitles.match");
   if (tab.type === "team") return t("chat_room_subtitles.team");
+  if (tab.type === "global") return t("chat_room_subtitles.global");
   return "";
 }
 

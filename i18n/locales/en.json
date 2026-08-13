@@ -1500,6 +1500,10 @@
               "title": "Chat messages",
               "description": "New lobby messages while you're not in that chat"
             },
+            "global_chat": {
+              "title": "Global Chat",
+              "description": "Off by default — Global Chat is high traffic. Turn on if you want every message pushed to this device."
+            },
             "tournaments": {
               "title": "Tournaments",
               "description": "New tournaments open for signup, and reminders before ones you're in start"
@@ -3772,14 +3776,16 @@
     "organizers": "Organizers chat",
     "matchmaking": "Queue chat",
     "lobby_default": "Lobby",
-    "organizers_default": "Organizers"
+    "organizers_default": "Organizers",
+    "global_default": "Global Chat"
   },
   "chat_room_subtitles": {
     "organizers": "Global Lobby",
     "tournament": "Tournament Chat",
     "matchmaking": "Queue Chat",
     "match": "Match Chat",
-    "team": "Team Chat"
+    "team": "Team Chat",
+    "global": "All Verified Players"
   },
   "latency_status": {
     "measuring": "Measuring...",

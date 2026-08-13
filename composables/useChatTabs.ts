@@ -1,6 +1,12 @@
 import { ref, computed } from "vue";
 
-type ChatType = "match" | "team" | "matchmaking" | "organizers" | "tournament";
+type ChatType =
+  | "match"
+  | "team"
+  | "matchmaking"
+  | "organizers"
+  | "tournament"
+  | "global";
 
 export interface ChatTab {
   id: string;
