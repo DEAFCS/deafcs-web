@@ -12,7 +12,8 @@
 // once a first message has actually arrived.
 import { watch } from "vue";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
-import { order_by } from "~/generated/zeus";
+import { $, order_by } from "~/generated/zeus";
+import { generateMutation } from "~/graphql/graphqlGen";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import { useChatTabs } from "~/composables/useChatTabs";
@@ -20,6 +21,40 @@ import { directChatId } from "~/composables/useDirectMessage";
 import { useAuthStore } from "~/stores/AuthStore";
 
 const seenNotificationIds = new Set<string>();
+
+// Persists "I've read this DM" server-side so a reload doesn't undo it.
+// Previously the only place "read" existed was the client-only
+// unreadCounts ref reset by ChatPanel.vue's resetUnread() -- a full page
+// reload rebuilds chat-tab state from scratch, and this composable's own
+// subscription re-delivers every still-unread-in-the-database ChatMessage
+// notification row for this player, so an already-read badge popped right
+// back after F5 (reported: TricoN reads a DM, badge clears, hits F5, badge
+// is back). Marking the row read here is what makes the clear stick.
+export async function markDirectMessagesRead(lobbyId: string) {
+  const me = useAuthStore().me;
+  if (!me?.steam_id) return;
+  try {
+    await getGraphqlClient().mutate({
+      mutation: generateMutation({
+        update_notifications: [
+          {
+            where: {
+              type: { _eq: "ChatMessage" },
+              entity_id: { _eq: `direct:${lobbyId}` },
+              steam_id: { _eq: $("steamId", "bigint!") },
+              is_read: { _eq: false },
+            },
+            _set: { is_read: true },
+          },
+          { __typename: true },
+        ],
+      }),
+      variables: { steamId: me.steam_id },
+    });
+  } catch (error) {
+    console.error("failed to mark direct messages as read", error);
+  }
+}
 
 export function useIncomingDirectMessages() {
   const authStore = useAuthStore();
@@ -84,6 +119,12 @@ export function useIncomingDirectMessages() {
                     type: { _eq: "ChatMessage" },
                     steam_id: { _eq: steamId },
                     entity_id: { _like: "direct:%" },
+                    // Already-read rows must not re-open a tab or bump
+                    // unread again -- without this, the fix only kept a
+                    // read DM cleared until this subscription's next full
+                    // re-delivery (e.g. every reload), since it had no
+                    // opinion on read state at all.
+                    is_read: { _eq: false },
                   },
                   order_by: [{ created_at: order_by.desc }],
                   limit: 20,

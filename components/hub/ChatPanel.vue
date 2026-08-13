@@ -17,6 +17,7 @@ import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
+import { markDirectMessagesRead } from "~/composables/useIncomingDirectMessages";
 import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
 import TooltipTrigger from "~/components/ui/tooltip/TooltipTrigger.vue";
 import TooltipContent from "~/components/ui/tooltip/TooltipContent.vue";
@@ -57,6 +58,8 @@ watch(activeTabId, (id) => {
   if (id && id !== activeChatId.value && tabs.value.some((t) => t.id === id)) {
     activeChatId.value = id;
     resetUnread(id);
+    const tab = tabs.value.find((t) => t.id === id);
+    if (tab?.type === "direct") markDirectMessagesRead(tab.lobbyId);
   }
 });
 
@@ -96,6 +99,9 @@ const orderedTabs = computed<ChatTab[]>(() => {
 // there's nothing for the OS to draw -- the only thing that moves is
 // the button itself, following the pointer directly.
 const draggedTabId = ref<string | null>(null);
+const draggedTab = computed<ChatTab | null>(
+  () => orderedTabs.value.find((t) => t.id === draggedTabId.value) ?? null,
+);
 // Viewport-space box for the dragged button while held -- position:
 // fixed, driven directly by the pointer position, completely decoupled
 // from the rail's own flex layout. A relative CSS transform (the
@@ -354,6 +360,7 @@ function handleSelectRoom(tab: ChatTab) {
   activeChatId.value = tab.id;
   setActiveTab(tab.id);
   resetUnread(tab.id);
+  if (tab.type === "direct") markDirectMessagesRead(tab.lobbyId);
 }
 
 function handleMessageReceived(payload: {
@@ -368,9 +375,17 @@ function handleMessageReceived(payload: {
   const isVisible = props.isSidebarOpen && props.isTabActive && isCurrentRoom;
   if (!isVisible) {
     incrementUnread(tabId);
-  } else {
-    resetUnread(tabId);
+    return;
   }
+  resetUnread(tabId);
+  // A notification row is always created for every recipient (see
+  // chat.service.ts's notifyLobbyMembers), even one actively looking at
+  // this tab right now -- without marking it read here too, a message
+  // that arrived while the tab was already open would clear the client
+  // badge but leave its DB row unread, so it would still resurface on
+  // the next reload just like the F5 bug above.
+  const tab = tabs.value.find((t) => t.id === tabId);
+  if (tab?.type === "direct") markDirectMessagesRead(tab.lobbyId);
 }
 
 function getRoomIcon(tab: ChatTab) {
@@ -476,53 +491,53 @@ function handlePopOut() {
                       ? 'text-zinc-100'
                       : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100',
                     draggedTabId === tab.id
-                      ? 'z-20 scale-110 shadow-xl shadow-black/40 bg-zinc-800 pointer-events-none'
+                      ? 'pointer-events-none border-2 border-dashed border-zinc-600 bg-zinc-800/30'
                       : 'z-[1]',
                   ]"
-                  :style="
-                    draggedTabId === tab.id && dragBox
-                      ? {
-                          position: 'fixed',
-                          left: `${dragBox.left}px`,
-                          top: `${dragBox.top}px`,
-                          width: `${dragBox.width}px`,
-                          height: `${dragBox.height}px`,
-                          transition: 'none',
-                        }
-                      : {}
-                  "
                   type="button"
                   @click="onTabClick(tab)"
                   @pointerdown="onTabPointerDown($event, tab)"
                 >
-                  <div
-                    v-if="tab.type === 'direct'"
-                    class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset bg-zinc-900/80"
-                    :class="
-                      activeChatId === tab.id
-                        ? 'ring-zinc-500'
-                        : 'ring-zinc-700 group-hover:ring-zinc-600'
-                    "
-                  >
-                    <LiveAvatarImg
-                      :steam-id="tab.otherSteamId"
-                      :fallback-url="tab.avatarUrl"
-                      img-class="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div
-                    v-else
-                    class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-inherit transition-colors"
-                    :class="
-                      activeChatId === tab.id
-                        ? 'bg-zinc-700'
-                        : 'bg-zinc-900/80 group-hover:bg-zinc-700/70'
-                    "
-                  >
-                    <component :is="getRoomIcon(tab)" class="w-3.5 h-3.5" />
-                  </div>
+                  <!-- The icon/avatar itself is hidden while this slot is
+                       the drag placeholder -- the floating clone below
+                       (driven by dragBox) is what actually renders it,
+                       following the pointer. This slot stays in flex flow
+                       the whole time (unlike the old position:fixed swap,
+                       which yanked the button out of flow so its space
+                       silently closed up with nothing marking where it
+                       had been) so there's always a visible empty square
+                       showing exactly where the dragged room will land,
+                       iOS-springboard style. -->
+                  <template v-if="draggedTabId !== tab.id">
+                    <div
+                      v-if="tab.type === 'direct'"
+                      class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset bg-zinc-900/80"
+                      :class="
+                        activeChatId === tab.id
+                          ? 'ring-zinc-500'
+                          : 'ring-zinc-700 group-hover:ring-zinc-600'
+                      "
+                    >
+                      <LiveAvatarImg
+                        :steam-id="tab.otherSteamId"
+                        :fallback-url="tab.avatarUrl"
+                        img-class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div
+                      v-else
+                      class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-inherit transition-colors"
+                      :class="
+                        activeChatId === tab.id
+                          ? 'bg-zinc-700'
+                          : 'bg-zinc-900/80 group-hover:bg-zinc-700/70'
+                      "
+                    >
+                      <component :is="getRoomIcon(tab)" class="w-3.5 h-3.5" />
+                    </div>
+                  </template>
                   <span
-                    v-if="unreadCounts[tab.id]"
+                    v-if="draggedTabId !== tab.id && unreadCounts[tab.id]"
                     class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
                   >
                     {{ unreadCounts[tab.id] }}
@@ -557,6 +572,38 @@ function handlePopOut() {
             </Tooltip>
           </template>
         </TooltipProvider>
+
+        <!-- Floating clone of whatever's being dragged -- this is the
+             piece that actually follows the pointer; the in-flow button
+             above just becomes an empty dashed placeholder for the
+             duration of the drag. -->
+        <div
+          v-if="draggedTab && dragBox"
+          class="fixed z-20 flex items-center justify-center rounded-md bg-zinc-800 shadow-xl shadow-black/40 scale-110 pointer-events-none text-zinc-100"
+          :style="{
+            left: `${dragBox.left}px`,
+            top: `${dragBox.top}px`,
+            width: `${dragBox.width}px`,
+            height: `${dragBox.height}px`,
+          }"
+        >
+          <div
+            v-if="draggedTab.type === 'direct'"
+            class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset ring-zinc-500 bg-zinc-900/80"
+          >
+            <LiveAvatarImg
+              :steam-id="draggedTab.otherSteamId"
+              :fallback-url="draggedTab.avatarUrl"
+              img-class="w-full h-full object-cover"
+            />
+          </div>
+          <div
+            v-else
+            class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center bg-zinc-700 text-inherit"
+          >
+            <component :is="getRoomIcon(draggedTab)" class="w-3.5 h-3.5" />
+          </div>
+        </div>
       </div>
 
       <div v-else class="flex-1" />
