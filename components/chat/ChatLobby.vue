@@ -4,6 +4,7 @@ import ChatMessages from "~/components/chat/ChatMessages.vue";
 import ChatInput from "~/components/chat/ChatInput.vue";
 import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
+import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 </script>
 
 <template>
@@ -94,11 +95,10 @@ import Empty from "~/components/ui/empty/Empty.vue";
             :key="(user as any).steam_id"
             class="flex items-center gap-2"
           >
-            <img
-              v-if="(user as any).avatar_url"
-              :src="(user as any).avatar_url"
-              alt=""
-              class="h-5 w-5 rounded-full"
+            <LiveAvatarImg
+              :steam-id="(user as any).steam_id"
+              :fallback-url="(user as any).avatar_url"
+              img-class="h-5 w-5 rounded-full"
             />
             <span class="truncate text-[11px]">
               {{ (user as any).name }}
@@ -220,11 +220,10 @@ import Empty from "~/components/ui/empty/Empty.vue";
           :key="(user as any).steam_id"
           class="flex items-center gap-2"
         >
-          <img
-            v-if="(user as any).avatar_url"
-            :src="(user as any).avatar_url"
-            alt=""
-            class="h-5 w-5 rounded-full"
+          <LiveAvatarImg
+            :steam-id="(user as any).steam_id"
+            :fallback-url="(user as any).avatar_url"
+            img-class="h-5 w-5 rounded-full"
           />
           <span class="truncate text-[11px]">
             {{ (user as any).name }}
