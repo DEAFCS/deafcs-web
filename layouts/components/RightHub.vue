@@ -100,11 +100,19 @@ const showIndicator = computed(
 );
 
 const isPointerInsideHub = ref(false);
+let openTimer: ReturnType<typeof setTimeout> | null = null;
 
 function clearCloseTimer() {
   if (closeTimer) {
     clearTimeout(closeTimer);
     closeTimer = null;
+  }
+}
+
+function clearOpenTimer() {
+  if (openTimer) {
+    clearTimeout(openTimer);
+    openTimer = null;
   }
 }
 
@@ -121,11 +129,26 @@ function queueHoverClose() {
 function onMouseEnter() {
   isPointerInsideHub.value = true;
   clearCloseTimer();
-  if (showHoverBehavior.value) startHoverPeek();
+  if (!showHoverBehavior.value) return;
+  // Mirrors queueHoverClose's own delay -- opening synchronously on the
+  // very first enter meant a cursor merely grazing the collapsed icon
+  // strip on its way to something else nearby (e.g. the "Invite Player
+  // to Lobby" button in the top nav, which sits close to this edge once
+  // the window narrows enough for showHoverBehavior to be active) would
+  // pop the sidebar open, then have it close again 150ms later once the
+  // cursor moved off -- a fast graze-repeat read as visible flicker. A
+  // short symmetric dwell before opening filters that out while a real,
+  // sustained hover still opens it almost instantly.
+  clearOpenTimer();
+  openTimer = setTimeout(() => {
+    openTimer = null;
+    if (isPointerInsideHub.value) startHoverPeek();
+  }, 80);
 }
 
 function onMouseLeave(event: MouseEvent) {
   isPointerInsideHub.value = false;
+  clearOpenTimer();
   if (!showHoverBehavior.value) return;
 
   const nextTarget = event.relatedTarget;

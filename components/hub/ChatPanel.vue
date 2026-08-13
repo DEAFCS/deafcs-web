@@ -310,11 +310,26 @@ const showChatIndicator = computed(
   () => activeChatId.value && chatIndicatorHeight.value > 0,
 );
 
-// Default to first room when panel becomes active with no selection
+// Default to first room when panel becomes active with no selection --
+// but jump straight to whichever room still has unread messages first,
+// if any. Previously this only ever auto-selected on the very first
+// open (`!activeChatId.value`), so once any room had been picked once,
+// clicking the Chat hub icon just kept re-showing that same room --
+// leaving an incoming DM's unread badge on the hub icon stuck lit even
+// after "opening chat", since that DM's own tab never got selected and
+// therefore never had resetUnread() called on it.
 watch(
   () => props.isTabActive,
   (active) => {
-    if (active && !activeChatId.value && orderedTabs.value.length > 0) {
+    if (!active || orderedTabs.value.length === 0) return;
+    const unreadTab = orderedTabs.value.find(
+      (t) => unreadCounts.value[t.id] > 0,
+    );
+    if (unreadTab) {
+      handleSelectRoom(unreadTab);
+      return;
+    }
+    if (!activeChatId.value) {
       handleSelectRoom(orderedTabs.value[0]);
     }
   },
