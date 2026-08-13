@@ -5641,7 +5641,7 @@
       "sent_requests": "Sent"
     },
     "others": {
-      "title": "Others"
+      "title": "All Players"
     },
     "banned": "You are banned from matchmaking",
     "banned_until": "You are banned from matchmaking until {date}",

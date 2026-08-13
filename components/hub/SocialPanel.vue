@@ -2,10 +2,10 @@
 import { ref, computed } from "vue";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import PlayersList from "~/components/matchmaking-lobby/PlayersList.vue";
-import Empty from "~/components/ui/empty/Empty.vue";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useInvites } from "@/composables/useInvites";
+import { e_player_roles_enum } from "~/generated/zeus";
 
 const activeTab = ref("friends");
 
@@ -16,30 +16,11 @@ const { hasSocialInvites } = useInvites();
 const onlineFriends = computed(() => matchmakingStore.onlineFriends);
 const offlineFriends = computed(() => matchmakingStore.offlineFriends);
 
-const otherOnlineCount = computed(() => {
-  const me = authStore.me;
-  const friends = matchmakingStore.friends;
-
-  return matchmakingStore.playersOnline.filter((player: any) => {
-    if (me && String(player.steam_id) === String(me.steam_id)) {
-      return false;
-    }
-
-    // Mirror PlayersList "Others" filter: accepted friends and incoming
-    // requests live in the Friends tab; outgoing requests stay here.
-    const entry = friends?.find(
-      (f: any) => String(f.steam_id) === String(player.steam_id),
-    );
-    if (entry) {
-      if (entry.status !== "Pending") return false;
-      if (String(entry.invited_by_steam_id) !== String(me?.steam_id)) {
-        return false;
-      }
-    }
-
-    return true;
-  }).length;
-});
+// Full player directory -- match_organizer+ only (see PlayersList.vue's
+// allPlayers mode). Regular/verified users never see this tab at all.
+const canSeeAllPlayers = computed(() =>
+  authStore.isRoleAbove(e_player_roles_enum.match_organizer),
+);
 </script>
 
 <template>
@@ -74,13 +55,11 @@ const otherOnlineCount = computed(() => {
             />
           </TabsTrigger>
           <TabsTrigger
+            v-if="canSeeAllPlayers"
             value="online"
             class="flex-1 text-[0.7rem] font-semibold tracking-[0.1em] uppercase px-2 py-[0.35rem]"
           >
             {{ $t("matchmaking.others.title") }}
-            <span class="font-mono text-[0.6rem] ml-1 opacity-65 tabular-nums">
-              {{ otherOnlineCount }}
-            </span>
           </TabsTrigger>
         </TabsList>
       </div>
@@ -91,17 +70,11 @@ const otherOnlineCount = computed(() => {
         <PlayersList :friends-only="true" />
       </TabsContent>
       <TabsContent
+        v-if="canSeeAllPlayers"
         value="online"
         class="mt-0 flex-1 overflow-y-auto min-h-0 px-3"
       >
-        <template v-if="otherOnlineCount > 0">
-          <PlayersList />
-        </template>
-        <template v-else>
-          <Empty class="text-sm text-muted-foreground">
-            <p>{{ $t("player.search.no_players_found") }}</p>
-          </Empty>
-        </template>
+        <PlayersList :all-players="true" />
       </TabsContent>
     </Tabs>
   </div>

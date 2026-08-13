@@ -71,16 +71,18 @@ import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
         </TransitionGroup>
       </section>
 
-      <!-- Online -->
+      <!-- Online / All players -->
       <section v-if="filteredOnlinePlayers.length > 0">
         <div class="friend-section-label">
-          <span class="relative flex h-2 w-2">
-            <span
-              class="absolute inline-flex h-full w-full rounded-full bg-green-500/60 animate-ping"
-            />
-            <span class="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
-          </span>
-          {{ $t("common.online") }}
+          <template v-if="!allPlayers">
+            <span class="relative flex h-2 w-2">
+              <span
+                class="absolute inline-flex h-full w-full rounded-full bg-green-500/60 animate-ping"
+              />
+              <span class="relative inline-flex h-2 w-2 rounded-full bg-green-500" />
+            </span>
+          </template>
+          {{ allPlayers ? $t("matchmaking.others.title") : $t("common.online") }}
           <span class="ml-auto tabular-nums opacity-70">
             {{ filteredOnlinePlayers.length }}
           </span>
@@ -145,6 +147,11 @@ import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
 <script lang="ts">
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { toast } from "~/components/ui/toast";
+import { generateQuery } from "~/graphql/graphqlGen";
+import { playerFields } from "~/graphql/playerFields";
+import { order_by } from "~/generated/zeus";
+
+const ALL_PLAYERS_LIMIT = 50;
 
 function matchesSearch(player: any, query: string) {
   const q = query.toLowerCase();
@@ -160,12 +167,34 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Directory mode: every player matching the search, not just
+    // whoever's currently online (see the "All Players" tab, restricted
+    // to match_organizer+ -- see SocialPanel.vue).
+    allPlayers: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
       searchQuery: "",
       syncing: false,
+      allPlayersResults: [] as any[],
+      allPlayersLoading: false,
+      searchDebounce: null as ReturnType<typeof setTimeout> | null,
     };
+  },
+  created() {
+    if (this.allPlayers) {
+      this.fetchAllPlayers();
+    }
+  },
+  watch: {
+    searchQuery() {
+      if (!this.allPlayers) return;
+      if (this.searchDebounce) clearTimeout(this.searchDebounce);
+      this.searchDebounce = setTimeout(() => this.fetchAllPlayers(), 300);
+    },
   },
   computed: {
     friends() {
@@ -206,6 +235,12 @@ export default {
         return this.onlineFriends.filter((p: any) =>
           matchesSearch(p, this.searchQuery),
         );
+      }
+
+      // All Players tab: the server-side directory query already applies
+      // the search filter and isn't limited to who's online.
+      if (this.allPlayers) {
+        return this.allPlayersResults;
       }
 
       // Others tab: online players who aren't me and aren't an accepted friend
@@ -251,6 +286,37 @@ export default {
     },
   },
   methods: {
+    async fetchAllPlayers() {
+      this.allPlayersLoading = true;
+      try {
+        const q = this.searchQuery.trim();
+        const { data }: any = await (this as any).$apollo.query({
+          query: generateQuery({
+            players: [
+              {
+                where: q
+                  ? {
+                      _or: [
+                        { name: { _ilike: `%${q}%` } },
+                        { steam_id: { _eq: /^\d+$/.test(q) ? q : "0" } },
+                      ],
+                    }
+                  : {},
+                limit: ALL_PLAYERS_LIMIT,
+                order_by: [{ elo: order_by.desc }],
+              },
+              playerFields,
+            ],
+          }),
+          fetchPolicy: "network-only",
+        });
+        this.allPlayersResults = data?.players ?? [];
+      } catch {
+        // Best-effort -- leave whatever the previous results were.
+      } finally {
+        this.allPlayersLoading = false;
+      }
+    },
     async syncSteamFriends() {
       this.syncing = true;
       try {
