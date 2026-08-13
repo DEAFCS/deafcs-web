@@ -145,8 +145,16 @@ export function useChatTabs() {
     const toIdx = order.indexOf(targetId);
     if (fromIdx === -1 || toIdx === -1) return;
 
+    // Re-deriving the target's index via indexOf *after* the removal
+    // (the previous version) is wrong for downward moves: removing an
+    // earlier item shifts every later index down by one, so
+    // re-inserting "at the target" actually landed the dragged item
+    // one slot short -- for an adjacent middle item it was a full
+    // no-op, which is exactly the "can only move up" bug. splice's own
+    // two-step remove-then-insert-at-the-original-index already
+    // produces the correct result without any recomputation.
     order.splice(fromIdx, 1);
-    order.splice(order.indexOf(targetId), 0, draggedId);
+    order.splice(toIdx, 0, draggedId);
 
     manualOrderRef.value = order;
     if (typeof window !== "undefined") {

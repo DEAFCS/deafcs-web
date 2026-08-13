@@ -96,7 +96,17 @@ const orderedTabs = computed<ChatTab[]>(() => {
 // there's nothing for the OS to draw -- the only thing that moves is
 // the button itself, following the pointer directly.
 const draggedTabId = ref<string | null>(null);
-const dragOffset = ref({ x: 0, y: 0 });
+// Viewport-space box for the dragged button while held -- position:
+// fixed, driven directly by the pointer position, completely decoupled
+// from the rail's own flex layout. A relative CSS transform (the
+// earlier version) is measured against the button's *own current flow
+// position*, which itself moves every time a live reorder shifts the
+// button to a new slot mid-drag -- causing the reported "suddenly
+// jumps far away, doesn't smoothly follow the cursor" the moment a
+// reorder fired. Fixed positioning has no such reference to lose.
+const dragBox = ref<{ left: number; top: number; width: number; height: number } | null>(
+  null,
+);
 
 // FLIP (First-Last-Invert-Play): capture where every rail button
 // currently sits, reorder the data, then on the next tick offset each
@@ -134,11 +144,19 @@ function animateReorder(mutate: () => void) {
 
 let lastDragOverTarget: string | null = null;
 
-function onTabPointerDown(event: PointerEvent, id: string) {
+function onTabPointerDown(event: PointerEvent, tab: ChatTab) {
+  // Only the fixed/standing channels (tournament, organizers, global,
+  // matchmaking) are reorderable -- a DM has no business being dragged
+  // around alongside them.
+  if (!tab.pinned) return;
   if (event.button !== 0) return;
+
+  const id = tab.id;
   const startX = event.clientX;
   const startY = event.clientY;
   let dragging = false;
+  let grabDx = 0;
+  let grabDy = 0;
 
   function onMove(e: PointerEvent) {
     const dx = e.clientX - startX;
@@ -149,18 +167,47 @@ function onTabPointerDown(event: PointerEvent, id: string) {
       if (Math.hypot(dx, dy) < 4) return;
       dragging = true;
       draggedTabId.value = id;
+
+      const el = chatButtonRefs.value[id];
+      const rect = el?.getBoundingClientRect();
+      if (rect) {
+        // Where inside the button the pointer actually grabbed it, so
+        // the icon doesn't snap to have its corner under the cursor.
+        grabDx = startX - rect.left;
+        grabDy = startY - rect.top;
+        dragBox.value = {
+          left: rect.left,
+          top: rect.top,
+          width: rect.width,
+          height: rect.height,
+        };
+      }
     }
 
-    dragOffset.value = { x: dx, y: dy };
+    if (dragBox.value) {
+      dragBox.value = {
+        ...dragBox.value,
+        left: e.clientX - grabDx,
+        top: e.clientY - grabDy,
+      };
+    }
 
     const el = document.elementFromPoint(e.clientX, e.clientY);
     const targetEl = (el as HTMLElement)?.closest<HTMLElement>(
       "[data-chat-tab-id]",
     );
     const targetId = targetEl?.dataset.chatTabId;
-    if (targetId && targetId !== id && targetId !== lastDragOverTarget) {
+    const targetTab = targetId
+      ? orderedTabs.value.find((t) => t.id === targetId)
+      : null;
+    if (
+      targetTab?.pinned &&
+      targetId &&
+      targetId !== id &&
+      targetId !== lastDragOverTarget
+    ) {
       lastDragOverTarget = targetId;
-      animateReorder(() => reorderTab(id, targetId));
+      animateReorder(() => reorderTab(id, targetId as string));
     }
   }
 
@@ -168,7 +215,7 @@ function onTabPointerDown(event: PointerEvent, id: string) {
     window.removeEventListener("pointermove", onMove);
     window.removeEventListener("pointerup", onUp);
     draggedTabId.value = null;
-    dragOffset.value = { x: 0, y: 0 };
+    dragBox.value = null;
     lastDragOverTarget = null;
     // A real drag still fires a trailing click on pointerup in most
     // browsers -- swallow just that one so it doesn't also select the
@@ -418,16 +465,20 @@ function handlePopOut() {
                       : 'z-[1]',
                   ]"
                   :style="
-                    draggedTabId === tab.id
+                    draggedTabId === tab.id && dragBox
                       ? {
-                          transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) scale(1.1)`,
+                          position: 'fixed',
+                          left: `${dragBox.left}px`,
+                          top: `${dragBox.top}px`,
+                          width: `${dragBox.width}px`,
+                          height: `${dragBox.height}px`,
                           transition: 'none',
                         }
                       : {}
                   "
                   type="button"
                   @click="onTabClick(tab)"
-                  @pointerdown="onTabPointerDown($event, tab.id)"
+                  @pointerdown="onTabPointerDown($event, tab)"
                 >
                   <div
                     v-if="tab.type === 'direct'"
