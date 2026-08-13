@@ -31,7 +31,7 @@ export function setActiveHub(hub: Hub) {
 }
 
 export function useHubState() {
-  const { rightSidebarOpen, setRightSidebarOpen } = useRightSidebar();
+  const { rightSidebarOpen, setRightSidebarOpen, setPinned } = useRightSidebar();
   const isMobile = useMediaQuery("(max-width: 768px)");
   const { hasNotifications } = useNotificationBadge();
   const { hasLobbyInvites, hasSocialInvites } = useInvites();
@@ -51,10 +51,20 @@ export function useHubState() {
 
   function selectHub(hub: Hub) {
     if (activeHub.value === hub && rightSidebarOpen.value) {
+      // setRightSidebarOpen(false) already unpins internally, so a second
+      // click on the active icon both closes the panel and clears the pin.
       setRightSidebarOpen(false);
       activeHub.value = null;
     } else {
+      // Clicking a hub icon now pins the panel open instead of leaving it
+      // hover-managed -- a click is a deliberate "I want this open" action,
+      // but it left hoverCloseSuspended/isPinned both false, so moving the
+      // mouse away afterwards (e.g. to actually use whatever the panel just
+      // showed) ran straight into the same hover-close timer used for a
+      // passing graze, closing a panel the user had just explicitly opened.
+      // Pinning here means only that same explicit click (above) closes it.
       activeHub.value = hub;
+      setPinned(true);
       setRightSidebarOpen(true);
     }
   }

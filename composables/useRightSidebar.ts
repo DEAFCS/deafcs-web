@@ -88,6 +88,7 @@ export function useRightSidebar() {
     suspendHoverClose,
     resumeHoverClose,
     isPinned,
+    setPinned,
     togglePin,
   };
 }
