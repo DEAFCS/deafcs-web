@@ -290,18 +290,28 @@ export default {
       this.allPlayersLoading = true;
       try {
         const q = this.searchQuery.trim();
+        // last_sign_in_at IS NOT NULL == actually signed in via Steam at
+        // least once -- players table also holds stub rows created from
+        // imported matches / Steam friends sync for people who never
+        // logged into deafcs.net, which must never show up here.
+        const registeredFilter = { last_sign_in_at: { _is_null: false } };
         const { data }: any = await (this as any).$apollo.query({
           query: generateQuery({
             players: [
               {
                 where: q
                   ? {
-                      _or: [
-                        { name: { _ilike: `%${q}%` } },
-                        { steam_id: { _eq: /^\d+$/.test(q) ? q : "0" } },
+                      _and: [
+                        registeredFilter,
+                        {
+                          _or: [
+                            { name: { _ilike: `%${q}%` } },
+                            { steam_id: { _eq: /^\d+$/.test(q) ? q : "0" } },
+                          ],
+                        },
                       ],
                     }
-                  : {},
+                  : registeredFilter,
                 limit: ALL_PLAYERS_LIMIT,
                 order_by: [{ elo: order_by.desc }],
               },
