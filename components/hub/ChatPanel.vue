@@ -30,13 +30,35 @@ const props = defineProps<{
 const { t } = useI18n();
 const router = useRouter();
 
-const { tabs, unreadCounts, setActiveTab, resetUnread, incrementUnread, closeTab } =
-  useChatTabs();
+const {
+  tabs,
+  unreadCounts,
+  setActiveTab,
+  resetUnread,
+  incrementUnread,
+  closeTab,
+  activeTabId,
+  manualOrder,
+  reorderTab,
+} = useChatTabs();
 
 const matchLobbyStore = useMatchLobbyStore();
 const isMobile = useMediaQuery("(max-width: 768px)");
 
 const activeChatId = ref<string | null>(null);
+
+// Something outside this component changed the active tab (e.g. the
+// "Message" button on a friend/profile calling openDirectMessage, or an
+// incoming first-contact DM auto-opening its tab) -- activeChatId above
+// is a separate local ref from useChatTabs' own shared activeTabId, so
+// without this it silently kept showing whatever was already open
+// (reported as "clicking Message lands on Global Chat instead").
+watch(activeTabId, (id) => {
+  if (id && id !== activeChatId.value && tabs.value.some((t) => t.id === id)) {
+    activeChatId.value = id;
+    resetUnread(id);
+  }
+});
 
 const orderedTabs = computed<ChatTab[]>(() => {
   const weight = (tab: ChatTab) => {
@@ -46,13 +68,36 @@ const orderedTabs = computed<ChatTab[]>(() => {
     if (tab.type === "global") return 3;
     return 4;
   };
-  return [...tabs.value].sort((a, b) => {
+  const base = [...tabs.value].sort((a, b) => {
     const wa = weight(a);
     const wb = weight(b);
     if (wa !== wb) return wa - wb;
     return a.label.localeCompare(b.label);
   });
+
+  if (!manualOrder.value.length) return base;
+
+  // Positions the user has actually dragged win; anything else keeps its
+  // relative weight-sorted order (Array.sort is stable, so ties fall
+  // through unchanged).
+  const position = new Map(manualOrder.value.map((id, i) => [id, i]));
+  return [...base].sort((a, b) => {
+    const pa = position.has(a.id) ? (position.get(a.id) as number) : Infinity;
+    const pb = position.has(b.id) ? (position.get(b.id) as number) : Infinity;
+    return pa - pb;
+  });
 });
+
+const draggedTabId = ref<string | null>(null);
+function onTabDragStart(id: string) {
+  draggedTabId.value = id;
+}
+function onTabDrop(targetId: string) {
+  if (draggedTabId.value) {
+    reorderTab(draggedTabId.value, targetId);
+  }
+  draggedTabId.value = null;
+}
 
 const activeTab = computed<ChatTab | null>(() => {
   if (!activeChatId.value) return null;
@@ -273,13 +318,21 @@ function handlePopOut() {
                 <button
                   :ref="setChatButtonRef(tab.id)"
                   class="relative z-[1] flex items-center justify-center w-11 h-11 rounded-md transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-                  :class="
+                  :class="[
                     activeChatId === tab.id
                       ? 'text-zinc-100'
-                      : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100'
-                  "
+                      : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100',
+                    draggedTabId && draggedTabId !== tab.id
+                      ? 'ring-1 ring-dashed ring-zinc-600'
+                      : '',
+                  ]"
                   type="button"
+                  draggable="true"
                   @click="handleSelectRoom(tab)"
+                  @dragstart="onTabDragStart(tab.id)"
+                  @dragover.prevent
+                  @drop.prevent="onTabDrop(tab.id)"
+                  @dragend="draggedTabId = null"
                 >
                   <div
                     v-if="tab.type === 'direct'"
@@ -294,10 +347,6 @@ function handlePopOut() {
                       :steam-id="tab.otherSteamId"
                       :fallback-url="tab.avatarUrl"
                       img-class="w-full h-full object-cover"
-                    />
-                    <MessageSquare
-                      v-if="!tab.avatarUrl && !tab.otherSteamId"
-                      class="w-3.5 h-3.5 m-auto text-zinc-400"
                     />
                   </div>
                   <div

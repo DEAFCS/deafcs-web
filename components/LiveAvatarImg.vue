@@ -51,10 +51,12 @@ export default {
   data() {
     return {
       liveUrl: null as string | null,
+      loadFailed: false,
     };
   },
   computed: {
     src(): string | null {
+      if (this.loadFailed) return null;
       // Custom-uploaded avatars are stored as a relative path, not a full
       // URL (PlayerDisplay.vue does the same resolution) -- without this,
       // a custom avatar renders as a broken image while a Steam CDN URL
@@ -62,6 +64,13 @@ export default {
       // inconsistent breakage this was missing.
       const apiDomain = useRuntimeConfig().public.apiDomain;
       return resolveAvatarUrl(this.liveUrl || this.fallbackUrl, apiDomain);
+    },
+  },
+  watch: {
+    steamId() {
+      this.loadFailed = false;
+      this.liveUrl = null;
+      this.fetchLiveAvatar();
     },
   },
   created() {
@@ -89,5 +98,25 @@ export default {
 </script>
 
 <template>
-  <img v-if="src" :src="src" :alt="alt" :class="imgClass" />
+  <img
+    v-if="src"
+    :src="src"
+    :alt="alt"
+    :class="imgClass"
+    @error="loadFailed = true"
+  />
+  <!-- No avatar resolved yet, or it failed to load -- a generic
+       silhouette instead of leaving an empty box or a broken-image
+       glyph. -->
+  <svg
+    v-else
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    :class="imgClass"
+    class="text-zinc-500 p-[15%]"
+  >
+    <path
+      d="M12 12c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0 2c-3.33 0-10 1.67-10 5v3h20v-3c0-3.33-6.67-5-10-5z"
+    />
+  </svg>
 </template>

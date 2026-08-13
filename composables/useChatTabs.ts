@@ -26,6 +26,25 @@ const tabsRef = ref<ChatTab[]>([]);
 const unreadCountsRef = ref<Record<string, number>>({});
 const activeTabIdRef = ref<string | null>(null);
 
+const TAB_ORDER_STORAGE_KEY = "chat-tab-manual-order";
+
+function loadManualOrder(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(TAB_ORDER_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+// User-dragged custom order for the channel rail (ChatPanel.vue) --
+// separate from tabsRef's own array order, which is just insertion
+// order. Only ids the user has actually dragged end up here; anything
+// else keeps falling back to the default weight-based sort.
+const manualOrderRef = ref<string[]>(loadManualOrder());
+
 export function useChatTabs() {
   const tabs = computed(() => tabsRef.value);
   const unreadCounts = computed(() => unreadCountsRef.value);
@@ -109,10 +128,37 @@ export function useChatTabs() {
     activeTabIdRef.value = null;
   }
 
+  const manualOrder = computed(() => manualOrderRef.value);
+
+  function reorderTab(draggedId: string, targetId: string) {
+    if (draggedId === targetId) return;
+    const currentIds = tabsRef.value.map((t) => t.id);
+    // Seed from whatever manual order already exists, keeping only ids
+    // that still exist, then append any tab not yet positioned (new
+    // tabs land at the end in their natural/weight order).
+    const order = manualOrderRef.value.filter((id) => currentIds.includes(id));
+    for (const id of currentIds) {
+      if (!order.includes(id)) order.push(id);
+    }
+
+    const fromIdx = order.indexOf(draggedId);
+    const toIdx = order.indexOf(targetId);
+    if (fromIdx === -1 || toIdx === -1) return;
+
+    order.splice(fromIdx, 1);
+    order.splice(order.indexOf(targetId), 0, draggedId);
+
+    manualOrderRef.value = order;
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(TAB_ORDER_STORAGE_KEY, JSON.stringify(order));
+    }
+  }
+
   return {
     tabs,
     unreadCounts,
     activeTabId,
+    manualOrder,
     openTab,
     closeTab,
     setActiveTab,
@@ -121,5 +167,6 @@ export function useChatTabs() {
     resetUnread,
     setUnread,
     clearAll,
+    reorderTab,
   };
 }
