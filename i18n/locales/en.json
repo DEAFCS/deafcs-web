@@ -1554,7 +1554,7 @@
             },
             "MatchImported": {
               "title": "Imported matches",
-              "description": "A Valve match you played was imported to 5stack"
+              "description": "A Valve match you played was imported to DEAFCS"
             },
             "NewsPublished": {
               "title": "News",

@@ -3355,7 +3355,7 @@ export default {
         !this.isFriend
       );
     },
-    // DMs are restricted to accepted friends (admins exempt) -- see
+    // DMs are restricted to accepted friends, no exceptions -- see
     // chat.service.ts's ChatLobbyType.Direct join check, which is the
     // actual enforcement; this only controls whether the button offers
     // to open one.
@@ -3364,8 +3364,7 @@ export default {
         this.me &&
         this.player?.steam_id &&
         !this.isSelfProfile &&
-        (this.isFriend ||
-          useAuthStore().isRoleAbove(e_player_roles_enum.administrator))
+        this.isFriend
       );
     },
     hasRightColumn() {

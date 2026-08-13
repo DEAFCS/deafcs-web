@@ -29,14 +29,6 @@ import {
   fetchPushPreferences,
   setPushPreference,
 } from "~/composables/usePushNotifications";
-import {
-  fetchInAppNotificationTypes,
-  fetchInAppNotificationPreferences,
-  setInAppNotificationPreference,
-  type InAppNotificationTypeConfig,
-} from "~/composables/useInAppNotificationPreferences";
-import { e_player_roles_enum } from "~/generated/zeus";
-import { useNotificationStore } from "~/stores/NotificationStore";
 const { locale, locales, setLocale, t } = useI18n();
 
 // Web Push subscribe/preferences -- lives here (not on the sound-focused
@@ -67,54 +59,6 @@ async function loadPushPreferences() {
   pushPreferences.value = preferences;
 }
 
-// In-app alert bell -- per-type opt-out for a small, hand-picked set of
-// notification types (see api-deafcs's in-app-notification-types.ts).
-// Desktop-only in practice today (there's no separate mobile bell UI
-// yet), so unlike the push section above this isn't gated on isMobileOS.
-const inAppTypes = ref<InAppNotificationTypeConfig[]>([]);
-const inAppPreferencesLocal = ref<Record<string, boolean>>({});
-const inAppBusy = ref<Record<string, boolean>>({});
-const isModerator = computed(() =>
-  useAuthStore().isRoleAbove(e_player_roles_enum.moderator),
-);
-const visibleInAppTypes = computed(() =>
-  inAppTypes.value.filter((t) => !t.adminOnly),
-);
-const visibleInAppAdminTypes = computed(() =>
-  isModerator.value ? inAppTypes.value.filter((t) => t.adminOnly) : [],
-);
-
-async function loadInAppPreferences() {
-  const [types, preferences] = await Promise.all([
-    fetchInAppNotificationTypes(),
-    fetchInAppNotificationPreferences(),
-  ]);
-  inAppTypes.value = types;
-  inAppPreferencesLocal.value = preferences;
-}
-
-const handleInAppToggle = async (type: string, enabled: boolean) => {
-  if (inAppBusy.value[type]) return;
-  inAppBusy.value = { ...inAppBusy.value, [type]: true };
-  const previous = inAppPreferencesLocal.value[type];
-  inAppPreferencesLocal.value = { ...inAppPreferencesLocal.value, [type]: enabled };
-  try {
-    await setInAppNotificationPreference(type, enabled);
-    // Keep the bell itself (NotificationStore) in sync immediately,
-    // rather than waiting for its own next load/reload.
-    await useNotificationStore().refreshInAppPreferences();
-  } catch {
-    inAppPreferencesLocal.value = { ...inAppPreferencesLocal.value, [type]: previous };
-    toast({
-      variant: "destructive",
-      title: t("common.error"),
-      description: t("pages.settings.notifications.in_app.enable_failed"),
-    });
-  } finally {
-    inAppBusy.value = { ...inAppBusy.value, [type]: false };
-  }
-};
-
 onMounted(async () => {
   isMobileOS.value = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   pushSupported.value = isPushSupported();
@@ -125,7 +69,6 @@ onMounted(async () => {
       await loadPushPreferences().catch(() => {});
     }
   }
-  await loadInAppPreferences().catch(() => {});
 });
 
 const handleCategoryToggle = async (category: string, enabled: boolean) => {
@@ -218,16 +161,6 @@ const handleLocaleChange = (
         </label>
         <PlayerChangeName :player="me" />
       </div>
-
-      <FormField v-slot="{ componentField }" name="avatar_url">
-        <FormItem>
-          <FormLabel>{{ $t("pages.settings.account.avatar_url") }}</FormLabel>
-          <FormControl>
-            <Input v-bind="componentField" />
-            <FormMessage />
-          </FormControl>
-        </FormItem>
-      </FormField>
 
       <div class="space-y-2">
         <label
@@ -437,73 +370,6 @@ const handleLocaleChange = (
         </div>
       </div>
 
-      <!-- In-app alert bell -->
-      <div class="space-y-2">
-        <label
-          class="font-mono text-[0.7rem] font-medium uppercase tracking-[0.18em] text-muted-foreground"
-        >
-          {{ $t("pages.settings.notifications.in_app.title") }}
-        </label>
-        <p class="text-sm text-muted-foreground">
-          {{ $t("pages.settings.notifications.in_app.description") }}
-        </p>
-
-        <div class="space-y-2 pt-1">
-          <div
-            v-for="type in visibleInAppTypes"
-            :key="type.type"
-            class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
-          >
-            <div class="min-w-0">
-              <div class="text-sm font-medium">
-                {{ $t(`pages.settings.notifications.in_app.types.${type.type}.title`) }}
-              </div>
-              <div class="text-xs text-muted-foreground">
-                {{
-                  $t(`pages.settings.notifications.in_app.types.${type.type}.description`)
-                }}
-              </div>
-            </div>
-            <Switch
-              :model-value="inAppPreferencesLocal[type.type] ?? type.defaultEnabled"
-              :disabled="inAppBusy[type.type]"
-              @update:model-value="(value: boolean) => handleInAppToggle(type.type, value)"
-            />
-          </div>
-        </div>
-
-        <template v-if="visibleInAppAdminTypes.length">
-          <p
-            class="pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70"
-          >
-            {{ $t("pages.settings.notifications.in_app.admin_title") }}
-          </p>
-          <div class="space-y-2">
-            <div
-              v-for="type in visibleInAppAdminTypes"
-              :key="type.type"
-              class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
-            >
-              <div class="min-w-0">
-                <div class="text-sm font-medium">
-                  {{ $t(`pages.settings.notifications.in_app.types.${type.type}.title`) }}
-                </div>
-                <div class="text-xs text-muted-foreground">
-                  {{
-                    $t(`pages.settings.notifications.in_app.types.${type.type}.description`)
-                  }}
-                </div>
-              </div>
-              <Switch
-                :model-value="inAppPreferencesLocal[type.type] ?? type.defaultEnabled"
-                :disabled="inAppBusy[type.type]"
-                @update:model-value="(value: boolean) => handleInAppToggle(type.type, value)"
-              />
-            </div>
-          </div>
-        </template>
-      </div>
-
       <div class="pb-24"></div>
 
       <SettingsSaveBar
@@ -538,7 +404,6 @@ export default {
         validationSchema: toTypedSchema(
           z.object({
             name: z.string().min(1),
-            avatar_url: z.string().min(1),
             country: z.string().min(1),
             language: z.string().optional(),
           }),
@@ -570,7 +435,6 @@ export default {
       this.form.setValues({
         steam_id: this.me.steam_id,
         name: this.me.name,
-        avatar_url: this.me.avatar_url,
         country: this.me.country,
       });
       this.takeSnapshot();
@@ -605,9 +469,6 @@ export default {
                   steam_id: this.me.steam_id,
                 },
                 _set: {
-                  ...(useAuthStore().isAdmin
-                    ? { avatar_url: this.form.values.avatar_url }
-                    : {}),
                   country: this.form.values.country,
                   language: this.form.values.language,
                 },

@@ -25,8 +25,6 @@ import { useFriendStatus } from "~/composables/useFriendStatus";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
 import { toast } from "~/components/ui/toast";
 import { openDirectMessage } from "~/composables/useDirectMessage";
-import { useAuthStore } from "~/stores/AuthStore";
-import { e_player_roles_enum } from "~/generated/zeus";
 
 const { t } = useI18n();
 
@@ -65,14 +63,6 @@ const currentLobby = computed(() =>
 );
 
 const isFriend = computed(() => rel.value === "friend");
-// DMs are restricted to accepted friends (admins exempt) -- see
-// chat.service.ts's ChatLobbyType.Direct join check, which is the real
-// enforcement; this only controls whether the button offers to open one.
-const canMessage = computed(
-  () =>
-    isFriend.value ||
-    useAuthStore().isRoleAbove(e_player_roles_enum.administrator),
-);
 
 const isOnline = computed(() =>
   useMatchmakingStore().onlinePlayerSteamIds.includes(
@@ -198,8 +188,8 @@ const amberHover =
             />
             <div class="flex shrink-0 items-center gap-0.5">
               <!-- Message — open/focus a DM tab in the chat hub panel --
-                   only offered for accepted friends (admins exempt). -->
-              <Tooltip v-if="canMessage">
+                   only offered for accepted friends. -->
+              <Tooltip v-if="isFriend">
                 <TooltipTrigger as-child>
                   <Button
                     variant="ghost"

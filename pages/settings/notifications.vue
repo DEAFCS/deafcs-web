@@ -11,6 +11,18 @@ import {
   Timer,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import { toast } from "@/components/ui/toast";
+import { useI18n } from "vue-i18n";
+import {
+  fetchInAppNotificationTypes,
+  fetchInAppNotificationPreferences,
+  setInAppNotificationPreference,
+  type InAppNotificationTypeConfig,
+} from "~/composables/useInAppNotificationPreferences";
+import { e_player_roles_enum } from "~/generated/zeus";
+import { useNotificationStore } from "~/stores/NotificationStore";
+
+const { t } = useI18n();
 
 const {
   isEnabled,
@@ -55,6 +67,56 @@ const sounds = computed(() => {
   }
 
   return list;
+});
+
+// In-app alert bell -- per-type opt-out for a small, hand-picked set of
+// notification types (see api-deafcs's in-app-notification-types.ts).
+const inAppTypes = ref<InAppNotificationTypeConfig[]>([]);
+const inAppPreferencesLocal = ref<Record<string, boolean>>({});
+const inAppBusy = ref<Record<string, boolean>>({});
+const isModerator = computed(() =>
+  useAuthStore().isRoleAbove(e_player_roles_enum.moderator),
+);
+const visibleInAppTypes = computed(() =>
+  inAppTypes.value.filter((t) => !t.adminOnly),
+);
+const visibleInAppAdminTypes = computed(() =>
+  isModerator.value ? inAppTypes.value.filter((t) => t.adminOnly) : [],
+);
+
+async function loadInAppPreferences() {
+  const [types, preferences] = await Promise.all([
+    fetchInAppNotificationTypes(),
+    fetchInAppNotificationPreferences(),
+  ]);
+  inAppTypes.value = types;
+  inAppPreferencesLocal.value = preferences;
+}
+
+const handleInAppToggle = async (type: string, enabled: boolean) => {
+  if (inAppBusy.value[type]) return;
+  inAppBusy.value = { ...inAppBusy.value, [type]: true };
+  const previous = inAppPreferencesLocal.value[type];
+  inAppPreferencesLocal.value = { ...inAppPreferencesLocal.value, [type]: enabled };
+  try {
+    await setInAppNotificationPreference(type, enabled);
+    // Keep the bell itself (NotificationStore) in sync immediately,
+    // rather than waiting for its own next load/reload.
+    await useNotificationStore().refreshInAppPreferences();
+  } catch {
+    inAppPreferencesLocal.value = { ...inAppPreferencesLocal.value, [type]: previous };
+    toast({
+      variant: "destructive",
+      title: t("common.error"),
+      description: t("pages.settings.notifications.in_app.enable_failed"),
+    });
+  } finally {
+    inAppBusy.value = { ...inAppBusy.value, [type]: false };
+  }
+};
+
+onMounted(() => {
+  loadInAppPreferences().catch(() => {});
 });
 </script>
 
@@ -171,6 +233,73 @@ const sounds = computed(() => {
           </div>
         </div>
       </template>
+
+      <!-- In-app alert bell -->
+      <div class="space-y-2 pt-2">
+        <label
+          class="font-mono text-[0.7rem] font-medium uppercase tracking-[0.18em] text-muted-foreground"
+        >
+          {{ $t("pages.settings.notifications.in_app.title") }}
+        </label>
+        <p class="text-sm text-muted-foreground">
+          {{ $t("pages.settings.notifications.in_app.description") }}
+        </p>
+
+        <div class="space-y-2 pt-1">
+          <div
+            v-for="type in visibleInAppTypes"
+            :key="type.type"
+            class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
+          >
+            <div class="min-w-0">
+              <div class="text-sm font-medium">
+                {{ $t(`pages.settings.notifications.in_app.types.${type.type}.title`) }}
+              </div>
+              <div class="text-xs text-muted-foreground">
+                {{
+                  $t(`pages.settings.notifications.in_app.types.${type.type}.description`)
+                }}
+              </div>
+            </div>
+            <Switch
+              :model-value="inAppPreferencesLocal[type.type] ?? type.defaultEnabled"
+              :disabled="inAppBusy[type.type]"
+              @update:model-value="(value: boolean) => handleInAppToggle(type.type, value)"
+            />
+          </div>
+        </div>
+
+        <template v-if="visibleInAppAdminTypes.length">
+          <p
+            class="pt-2 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70"
+          >
+            {{ $t("pages.settings.notifications.in_app.admin_title") }}
+          </p>
+          <div class="space-y-2">
+            <div
+              v-for="type in visibleInAppAdminTypes"
+              :key="type.type"
+              class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
+            >
+              <div class="min-w-0">
+                <div class="text-sm font-medium">
+                  {{ $t(`pages.settings.notifications.in_app.types.${type.type}.title`) }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                  {{
+                    $t(`pages.settings.notifications.in_app.types.${type.type}.description`)
+                  }}
+                </div>
+              </div>
+              <Switch
+                :model-value="inAppPreferencesLocal[type.type] ?? type.defaultEnabled"
+                :disabled="inAppBusy[type.type]"
+                @update:model-value="(value: boolean) => handleInAppToggle(type.type, value)"
+              />
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
   </PageTransition>
 </template>
