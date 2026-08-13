@@ -13,6 +13,7 @@
      that class of bug out completely. -->
 <script lang="ts">
 import gql from "graphql-tag";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 const LIVE_PLAYER_AVATAR_QUERY = gql`
   query LivePlayerAvatarForImg($steamId: bigint!) {
@@ -54,7 +55,13 @@ export default {
   },
   computed: {
     src(): string | null {
-      return this.liveUrl || this.fallbackUrl;
+      // Custom-uploaded avatars are stored as a relative path, not a full
+      // URL (PlayerDisplay.vue does the same resolution) -- without this,
+      // a custom avatar renders as a broken image while a Steam CDN URL
+      // (already absolute) happens to work, which is exactly the
+      // inconsistent breakage this was missing.
+      const apiDomain = useRuntimeConfig().public.apiDomain;
+      return resolveAvatarUrl(this.liveUrl || this.fallbackUrl, apiDomain);
     },
   },
   created() {

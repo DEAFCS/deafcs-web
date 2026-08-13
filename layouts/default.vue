@@ -7,6 +7,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
 import { useGtm } from "@/layouts/composables/useGtm";
 import { useChatTabSetup } from "~/composables/useChatTabSetup";
+import { useIncomingDirectMessages } from "~/composables/useIncomingDirectMessages";
 
 const AppSidebar = defineAsyncComponent(
   () => import("@/components/AppSidebar.vue"),
@@ -41,6 +42,7 @@ const { activeClipId } = useClipModal();
 
 useGtm();
 useChatTabSetup();
+useIncomingDirectMessages();
 
 const route = useRoute();
 const authStore = useAuthStore();

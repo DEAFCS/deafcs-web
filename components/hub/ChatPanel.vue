@@ -283,7 +283,7 @@ function handlePopOut() {
                 >
                   <div
                     v-if="tab.type === 'direct'"
-                    class="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden ring-1 ring-inset"
+                    class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset bg-zinc-900/80"
                     :class="
                       activeChatId === tab.id
                         ? 'ring-zinc-500'
@@ -294,6 +294,10 @@ function handlePopOut() {
                       :steam-id="tab.otherSteamId"
                       :fallback-url="tab.avatarUrl"
                       img-class="w-full h-full object-cover"
+                    />
+                    <MessageSquare
+                      v-if="!tab.avatarUrl && !tab.otherSteamId"
+                      class="w-3.5 h-3.5 m-auto text-zinc-400"
                     />
                   </div>
                   <div
