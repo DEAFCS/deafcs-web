@@ -25,7 +25,16 @@ const { hasLobbyInvites } = useInvites();
         {{ $t("layouts.hub.lobby") }}
       </div>
     </div>
-    <div class="flex-1 px-3 pt-3 flex flex-col gap-4 overflow-hidden">
+    <!-- min-h-0 is required here, not decorative: a flex item's default
+         min-height is `auto`, which refuses to shrink below its content's
+         natural size even under flex-1 -- without this override, invites
+         + squad + chat combined can exceed the parent's h-full bound and
+         grow past it, silently clipped by RightHub's overflow-hidden
+         ancestor with no visual indication anything is cut off. Only
+         shows up once total available height is actually tight (a short
+         window, or DPI/zoom that shrinks the sidebar), which is exactly
+         why this went unnoticed until now. -->
+    <div class="flex-1 min-h-0 px-3 pt-3 flex flex-col gap-4 overflow-hidden">
       <!-- Scrollable main content (invites + squad) -- capped so chat
            below always keeps its own real space instead of the two
            competing over an unbounded parent height. -->
