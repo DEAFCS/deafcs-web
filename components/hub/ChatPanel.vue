@@ -151,10 +151,6 @@ function animateReorder(mutate: () => void) {
 let lastDragOverTarget: string | null = null;
 
 function onTabPointerDown(event: PointerEvent, tab: ChatTab) {
-  // Only the fixed/standing channels (tournament, organizers, global,
-  // matchmaking) are reorderable -- a DM has no business being dragged
-  // around alongside them.
-  if (!tab.pinned) return;
   if (event.button !== 0) return;
 
   const id = tab.id;
@@ -203,15 +199,13 @@ function onTabPointerDown(event: PointerEvent, tab: ChatTab) {
       "[data-chat-tab-id]",
     );
     const targetId = targetEl?.dataset.chatTabId;
-    const targetTab = targetId
-      ? orderedTabs.value.find((t) => t.id === targetId)
-      : null;
-    if (
-      targetTab?.pinned &&
-      targetId &&
-      targetId !== id &&
-      targetId !== lastDragOverTarget
-    ) {
+    // Any room can now be a drop target, not just the pinned/standing
+    // channels -- the old `targetTab?.pinned` gate meant hovering over a
+    // DM tab (always unpinned) anywhere in the rail, including one that
+    // happened to land in the middle of the list, silently refused the
+    // drop. Reordering itself (reorderTab) was always generic over ids;
+    // only this check was blocking it.
+    if (targetId && targetId !== id && targetId !== lastDragOverTarget) {
       lastDragOverTarget = targetId;
       animateReorder(() => reorderTab(id, targetId as string));
     }

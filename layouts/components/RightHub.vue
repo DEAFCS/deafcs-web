@@ -31,7 +31,6 @@ import LobbyPanel from "~/components/hub/LobbyPanel.vue";
 const {
   setRightSidebarOpen,
   rightSidebarOpen,
-  startHoverPeek,
   endHoverPeek,
   hoverCloseSuspended,
   isPinned,
@@ -100,19 +99,11 @@ const showIndicator = computed(
 );
 
 const isPointerInsideHub = ref(false);
-let openTimer: ReturnType<typeof setTimeout> | null = null;
 
 function clearCloseTimer() {
   if (closeTimer) {
     clearTimeout(closeTimer);
     closeTimer = null;
-  }
-}
-
-function clearOpenTimer() {
-  if (openTimer) {
-    clearTimeout(openTimer);
-    openTimer = null;
   }
 }
 
@@ -127,28 +118,19 @@ function queueHoverClose() {
 }
 
 function onMouseEnter() {
+  // Opening on hover at all -- even with the earlier 80ms dwell delay --
+  // still meant just pointing at an icon (no click) popped the panel
+  // open, which read as "it opens by itself." Hover no longer opens
+  // anything; the panel is click-only now (see selectHub in
+  // useHubState.ts, which pins it open on click). This handler still
+  // exists to cancel any pending close so a hover over the *already
+  // open* panel doesn't fight with queueHoverClose below.
   isPointerInsideHub.value = true;
   clearCloseTimer();
-  if (!showHoverBehavior.value) return;
-  // Mirrors queueHoverClose's own delay -- opening synchronously on the
-  // very first enter meant a cursor merely grazing the collapsed icon
-  // strip on its way to something else nearby (e.g. the "Invite Player
-  // to Lobby" button in the top nav, which sits close to this edge once
-  // the window narrows enough for showHoverBehavior to be active) would
-  // pop the sidebar open, then have it close again 150ms later once the
-  // cursor moved off -- a fast graze-repeat read as visible flicker. A
-  // short symmetric dwell before opening filters that out while a real,
-  // sustained hover still opens it almost instantly.
-  clearOpenTimer();
-  openTimer = setTimeout(() => {
-    openTimer = null;
-    if (isPointerInsideHub.value) startHoverPeek();
-  }, 80);
 }
 
 function onMouseLeave(event: MouseEvent) {
   isPointerInsideHub.value = false;
-  clearOpenTimer();
   if (!showHoverBehavior.value) return;
 
   const nextTarget = event.relatedTarget;
