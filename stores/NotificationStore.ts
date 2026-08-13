@@ -7,6 +7,7 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import { MY_SCHEDULE_TASKS_SUBSCRIPTION } from "~/graphql/leagues";
+import { fetchInAppNotificationPreferences } from "~/composables/useInAppNotificationPreferences";
 
 export type LeagueScheduleTask = {
   id: string;
@@ -76,7 +77,22 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
   const team_invites = ref<any[]>([]);
   const tournament_team_invites = ref<any[]>([]);
   const draft_invites = ref<any[]>([]);
-  const notifications = ref<Notification[]>([]);
+  // Unfiltered subscription result; `notifications` below is the
+  // per-type-preference-filtered view actually exposed. Kept separate
+  // (rather than filtering at assignment time) so that inAppPreferences
+  // loading in *after* the subscription already delivered rows still
+  // reactively re-filters instead of only affecting whatever arrives
+  // next.
+  const rawNotifications = ref<Notification[]>([]);
+  // Effective per-type enabled state for the small set of toggleable
+  // in-app notification types (see useInAppNotificationPreferences.ts) --
+  // already resolved server-side against each type's own default, so a
+  // type simply absent from this map (every non-toggleable type) always
+  // passes through unfiltered.
+  const inAppPreferences = ref<Record<string, boolean>>({});
+  const notifications = computed(() =>
+    rawNotifications.value.filter((n) => inAppPreferences.value[n.type] !== false),
+  );
   const seasonRebuilds = ref<Array<{ id: any; number: number | null }>>([]);
   // Raw league seasons (with only the viewer's un-played brackets, filtered
   // server-side); actionability is derived below into `scheduleTasks` — a
@@ -375,8 +391,18 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     }
   };
 
+  async function refreshInAppPreferences() {
+    try {
+      inAppPreferences.value = await fetchInAppNotificationPreferences();
+    } catch {
+      // Best-effort -- leave whatever's already loaded (or the empty
+      // default, which passes everything through unfiltered).
+    }
+  }
+
   function subscribeToAll(steam_id: string) {
     const { subscribe } = useSubscriptionManager();
+    void refreshInAppPreferences();
 
     subscribe(
       "notifications:team_invites",
@@ -525,7 +551,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
         })
         .subscribe({
           next: ({ data }) => {
-            notifications.value = data.notifications;
+            rawNotifications.value = data.notifications;
           },
         }),
     );
@@ -637,6 +663,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
         seasonRebuilds.value = [];
         scheduleTaskSeasons.value = [];
         lastReadNewsAt.value = null;
+        inAppPreferences.value = {};
       }
     },
     { immediate: true },
@@ -663,6 +690,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     latestNewsArticle,
     unreadNewsArticle,
     markNewsRead,
+    refreshInAppPreferences,
   };
 });
 

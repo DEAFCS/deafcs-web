@@ -1533,6 +1533,50 @@
               "description": "Server and infrastructure status updates"
             }
           }
+        },
+        "in_app": {
+          "title": "Alert bell",
+          "description": "Choose which alerts show up in the notification bell.",
+          "enable_failed": "Couldn't save that. Try again.",
+          "admin_title": "Admin",
+          "types": {
+            "ChatMessage": {
+              "title": "Direct messages",
+              "description": "New private message from another player"
+            },
+            "GlobalChatMessage": {
+              "title": "Global Chat",
+              "description": "New message in Global Chat"
+            },
+            "MatchImported": {
+              "title": "Imported matches",
+              "description": "A Valve match you played was imported to 5stack"
+            },
+            "DedicatedServerRconStatus": {
+              "title": "Server RCON status",
+              "description": "RCON connection status on a dedicated server"
+            },
+            "DedicatedServerStatus": {
+              "title": "Server status",
+              "description": "A dedicated server's status changed"
+            },
+            "EloRecompute": {
+              "title": "ELO recompute",
+              "description": "A player ELO recompute finished"
+            },
+            "GameNodeStatus": {
+              "title": "Game node status",
+              "description": "A game server node's status changed"
+            },
+            "GameUpdate": {
+              "title": "Game update",
+              "description": "A CS2/game update is available"
+            },
+            "PlayerReindex": {
+              "title": "Player reindex",
+              "description": "Player search reindex finished"
+            }
+          }
         }
       },
       "application": {
