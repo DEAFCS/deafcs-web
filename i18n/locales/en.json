@@ -1454,6 +1454,10 @@
           "unlinked": "Discord account unlinked successfully"
         }
       },
+      "notification_preferences": {
+        "title": "Notification Settings",
+        "description": "Choose which alerts show up in the notification bell."
+      },
       "notifications": {
         "title": "Sound Settings",
         "description": "Preview and adjust the alert sounds DEAFCS plays for chat, matches, and more.",
