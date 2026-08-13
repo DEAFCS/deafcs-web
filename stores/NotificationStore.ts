@@ -480,6 +480,13 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
                 where: {
                   _and: [
                     { deleted_at: { _is_null: true } },
+                    // ChatMessage notification rows exist purely to give
+                    // the Web Push event trigger something to fire on
+                    // (see api-deafcs's push-notifications module) --
+                    // the live chat itself already delivers the message
+                    // in-app, so surfacing them here too would just be a
+                    // second, generic-looking "alert" for the same thing.
+                    { type: { _neq: "ChatMessage" } },
                     {
                       _or: [
                         { is_read: { _eq: false } },

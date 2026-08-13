@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
-import { Merge, Waves, MessageCircle, LogOut } from "lucide-vue-next";
+import { Merge, LogOut } from "lucide-vue-next";
 import MatchLobbyExpanded from "~/components/matchmaking-lobby/MatchLobbyExpanded.vue";
 import MatchmakingLobbyAccess from "~/components/matchmaking-lobby/MatchmakingLobbyAccess.vue";
 import LobbyInvites from "~/components/matchmaking-lobby/LobbyInvites.vue";
@@ -26,8 +26,10 @@ const { hasLobbyInvites } = useInvites();
       </div>
     </div>
     <div class="flex-1 px-3 pt-3 flex flex-col gap-4 overflow-hidden">
-      <!-- Scrollable main content (invites + squad) -->
-      <div class="flex-[3] min-h-0 flex flex-col gap-4 overflow-y-auto">
+      <!-- Scrollable main content (invites + squad) -- capped so chat
+           below always keeps its own real space instead of the two
+           competing over an unbounded parent height. -->
+      <div class="flex-shrink-0 max-h-[45%] flex flex-col gap-4 overflow-y-auto">
         <!-- Lobby invites -->
         <Transition name="lobby-item">
           <div v-if="hasLobbyInvites" class="flex flex-col gap-3">
@@ -99,43 +101,14 @@ const { hasLobbyInvites } = useInvites();
         </Transition>
       </div>
 
-      <!-- Voice & Discord row just above lobby chat -->
+      <!-- Lobby chat -- fills all remaining space (same flex-1/min-h-0
+           pattern ChatPanel.vue uses for the Chat hub tab, rather than
+           the previous fixed/percentage height mix that got squeezed
+           out and cut off whenever the squad section above grew tall). -->
       <Transition name="lobby-item">
         <div
           v-if="currentLobby && squadReady"
-          class="border-t border-zinc-800 pt-3 mt-1 flex flex-wrap items-center justify-between gap-3 text-xs text-zinc-400"
-        >
-          <div class="flex items-center gap-2">
-            <Waves class="h-3.5 w-3.5 text-indigo-400" />
-            <span class="font-semibold tracking-wide uppercase">
-              {{ $t("layouts.lobby_panel.voice_discord") }}
-            </span>
-          </div>
-          <div class="flex items-center gap-2">
-            <Button
-              size="xs"
-              :variant="hasDiscordLinked ? 'secondary' : 'outline'"
-              class="h-7 gap-1 rounded-full border-zinc-700 bg-zinc-900/80 hover:bg-zinc-800/80 text-[11px] px-3"
-              :disabled="!supportsDiscordBot || hasDiscordLinked"
-              @click="linkDiscord"
-            >
-              <MessageCircle class="h-3 w-3" />
-              <span v-if="hasDiscordLinked">
-                {{ $t("layouts.lobby_panel.discord_linked") }}
-              </span>
-              <span v-else>
-                {{ $t("layouts.lobby_panel.link_discord") }}
-              </span>
-            </Button>
-          </div>
-        </div>
-      </Transition>
-
-      <!-- Dedicated bottom lobby chat area (~25% height) -->
-      <Transition name="lobby-item">
-        <div
-          v-if="currentLobby && squadReady"
-          class="h-[250px] lg:flex-[1] lg:h-auto lg:min-h-[160px] lg:max-h-[40%] shrink-0 border-t border-zinc-800 pt-3 flex flex-col gap-2"
+          class="flex-1 min-h-0 border-t border-zinc-800 pt-3 flex flex-col gap-2"
         >
           <div
             class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide"
@@ -253,12 +226,6 @@ export default {
     isElevatedUser() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
     },
-    supportsDiscordBot() {
-      return useApplicationSettingsStore().supportsDiscordBot;
-    },
-    hasDiscordLinked() {
-      return useAuthStore().hasDiscordLinked;
-    },
     creatingLobby() {
       return useMatchmakingStore().creatingLobby;
     },
@@ -331,15 +298,6 @@ export default {
           ],
         }),
       });
-    },
-    linkDiscord() {
-      const hasDiscordLinked = useAuthStore().hasDiscordLinked;
-      if (hasDiscordLinked || !this.supportsDiscordBot) {
-        return;
-      }
-      const config = useRuntimeConfig();
-      const redirect = encodeURIComponent(window.location.toString());
-      window.location.href = `https://${config.public.webDomain}/auth/discord?redirect=${redirect}`;
     },
   },
 };
