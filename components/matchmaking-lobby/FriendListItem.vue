@@ -146,7 +146,6 @@ async function inviteToDraft() {
 }
 
 const STATUS_BANNER: Record<string, string> = {
-  in_cs2: "border-green-500 from-green-500/15 text-green-300",
   in_lobby: "border-sky-500 from-sky-500/15 text-sky-300",
   in_draft:
     "border-[hsl(var(--tac-amber))] from-[hsl(var(--tac-amber))]/15 text-[hsl(var(--tac-amber))]",
@@ -156,7 +155,7 @@ const showBanner = computed(
   () =>
     isFriend.value &&
     (!!currentMatch.value ||
-      ["in_cs2", "in_lobby", "in_draft"].includes(statusKey.value)),
+      ["in_lobby", "in_draft"].includes(statusKey.value)),
 );
 
 const actionBtn =
@@ -331,7 +330,7 @@ const amberHover =
             :class="muted ? 'opacity-50 group-hover/row:opacity-90' : ''"
           >
             <PlayerLiveStatus
-              v-if="currentMatch || statusKey === 'in_cs2'"
+              v-if="currentMatch"
               :player="player"
               :online="isOnline"
             />

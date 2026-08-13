@@ -12,7 +12,6 @@ import {
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
-import { isInCs2 } from "~/utilities/cs2Presence";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { webrtc } from "~/web-sockets/Webrtc";
 import { setActiveHub } from "~/composables/useHubState";
@@ -249,12 +248,11 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     );
   };
 
-  // Online = truly present: connected to 5stack web, or in CS2 (via the friend
-  // bot). Being merely assigned to a live match lineup does NOT count — a roster
-  // slot isn't presence, the player may not actually be around.
+  // Online = truly present: connected to 5stack web. Being merely assigned to
+  // a live match lineup does NOT count — a roster slot isn't presence, the
+  // player may not actually be around.
   const isActiveFriend = (friend: any) =>
-    onlinePlayerSteamIds.value.includes(friend.steam_id) ||
-    isInCs2(friend.last_presence_state);
+    onlinePlayerSteamIds.value.includes(friend.steam_id);
 
   const onlineFriends = computed(() => {
     return friends.value?.filter(

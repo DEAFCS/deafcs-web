@@ -9,6 +9,7 @@ import {
   Shield,
   MessageSquare,
   ExternalLink,
+  Trophy,
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
@@ -172,7 +173,8 @@ function handleMessageReceived(payload: {
 }
 
 function getRoomIcon(tab: ChatTab) {
-  if (tab.type === "organizers" || tab.type === "tournament") return Megaphone;
+  if (tab.type === "tournament") return Trophy;
+  if (tab.type === "organizers") return Megaphone;
   if (tab.id.startsWith("matchmaking:")) return Merge;
   if (tab.type === "match") return Sword;
   if (tab.type === "team") return Shield;
