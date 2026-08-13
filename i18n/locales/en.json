@@ -3531,6 +3531,7 @@
     "none": "No players available"
   },
   "common": {
+    "close": "Close",
     "loading": "Loading",
     "manage_custom_plugins_and_shared_files": "These files are moutned to `csgo` directory when the server is started.",
     "any": "Any",
@@ -3785,7 +3786,8 @@
     "matchmaking": "Queue Chat",
     "match": "Match Chat",
     "team": "Team Chat",
-    "global": "All Verified Players"
+    "global": "All Verified Players",
+    "direct": "Direct Message"
   },
   "latency_status": {
     "measuring": "Measuring...",
@@ -5624,6 +5626,7 @@
       "sync_error_description": "Couldn't sync Steam friends. Please try again later.",
       "search_placeholder": "Search friends...",
       "invite_to_lobby": "Invite to Lobby",
+      "message": "Message",
       "remove": "Remove Friend",
       "in_match": "In a match",
       "in_lobby": "In a lobby",

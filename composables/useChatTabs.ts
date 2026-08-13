@@ -6,7 +6,8 @@ type ChatType =
   | "matchmaking"
   | "organizers"
   | "tournament"
-  | "global";
+  | "global"
+  | "direct";
 
 export interface ChatTab {
   id: string;
@@ -15,6 +16,10 @@ export interface ChatTab {
   type: ChatType;
   lobbyId: string;
   pinned: boolean;
+  // Direct-message tabs render the other player's own avatar as the tab
+  // icon instead of a lucide icon (see ChatPanel.vue).
+  otherSteamId?: string;
+  avatarUrl?: string;
 }
 
 const tabsRef = ref<ChatTab[]>([]);

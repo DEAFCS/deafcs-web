@@ -11,9 +11,11 @@ import {
   ExternalLink,
   Trophy,
   Globe,
+  X,
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
+import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
 import TooltipTrigger from "~/components/ui/tooltip/TooltipTrigger.vue";
@@ -28,7 +30,7 @@ const props = defineProps<{
 const { t } = useI18n();
 const router = useRouter();
 
-const { tabs, unreadCounts, setActiveTab, resetUnread, incrementUnread } =
+const { tabs, unreadCounts, setActiveTab, resetUnread, incrementUnread, closeTab } =
   useChatTabs();
 
 const matchLobbyStore = useMatchLobbyStore();
@@ -192,7 +194,13 @@ function getRoomSubtitle(tab: ChatTab) {
   if (tab.type === "match") return t("chat_room_subtitles.match");
   if (tab.type === "team") return t("chat_room_subtitles.team");
   if (tab.type === "global") return t("chat_room_subtitles.global");
+  if (tab.type === "direct") return t("chat_room_subtitles.direct");
   return "";
+}
+
+function handleCloseTab(event: Event, tabId: string) {
+  event.stopPropagation();
+  closeTab(tabId);
 }
 
 function handlePopOut() {
@@ -274,6 +282,22 @@ function handlePopOut() {
                   @click="handleSelectRoom(tab)"
                 >
                   <div
+                    v-if="tab.type === 'direct'"
+                    class="flex-shrink-0 w-7 h-7 rounded-full overflow-hidden ring-1 ring-inset"
+                    :class="
+                      activeChatId === tab.id
+                        ? 'ring-zinc-500'
+                        : 'ring-zinc-700 group-hover:ring-zinc-600'
+                    "
+                  >
+                    <LiveAvatarImg
+                      :steam-id="tab.otherSteamId"
+                      :fallback-url="tab.avatarUrl"
+                      img-class="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    v-else
                     class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-inherit transition-colors"
                     :class="
                       activeChatId === tab.id
@@ -289,6 +313,15 @@ function handlePopOut() {
                   >
                     {{ unreadCounts[tab.id] }}
                   </span>
+                  <button
+                    v-if="!tab.pinned"
+                    type="button"
+                    class="absolute -top-1 -left-1 hidden group-hover:flex items-center justify-center w-4 h-4 rounded-full bg-zinc-700 hover:bg-red-500 text-zinc-200 hover:text-white"
+                    :aria-label="$t('common.close')"
+                    @click="handleCloseTab($event, tab.id)"
+                  >
+                    <X class="w-2.5 h-2.5" />
+                  </button>
                 </button>
               </TooltipTrigger>
               <TooltipContent

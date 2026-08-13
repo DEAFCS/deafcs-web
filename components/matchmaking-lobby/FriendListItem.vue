@@ -18,11 +18,13 @@ import {
   Clock,
   Swords,
   LogIn,
+  MessageSquare,
 } from "lucide-vue-next";
 import { useFriendActions } from "~/composables/useFriendActions";
 import { useFriendStatus } from "~/composables/useFriendStatus";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
 import { toast } from "~/components/ui/toast";
+import { openDirectMessage } from "~/composables/useDirectMessage";
 
 const { t } = useI18n();
 
@@ -185,6 +187,22 @@ const amberHover =
               :truncate-name="true"
             />
             <div class="flex shrink-0 items-center gap-0.5">
+              <!-- Message — open/focus a DM tab in the chat hub panel -->
+              <Tooltip v-if="rel !== 'incoming'">
+                <TooltipTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    :class="[actionBtn, amberHover]"
+                    @click="openDirectMessage(player)"
+                  >
+                    <MessageSquare class="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{{
+                  $t("matchmaking.friends.message")
+                }}</TooltipContent>
+              </Tooltip>
+
               <!-- Invite to lobby — any invitable player except incoming requests -->
               <Tooltip v-if="canInviteToLobby && rel !== 'incoming'">
                 <TooltipTrigger as-child>

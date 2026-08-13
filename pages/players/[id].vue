@@ -56,7 +56,9 @@ import {
   UserCheck,
   Calendar as CalendarIcon,
   ChevronDown,
+  MessageSquare,
 } from "lucide-vue-next";
+import { openDirectMessage } from "~/composables/useDirectMessage";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import RadialStat from "~/components/charts/RadialStat.vue";
@@ -1847,6 +1849,15 @@ const playerHeroTeamChipDotClasses =
                 </div>
                 <div :class="playerHeroActionsClasses">
                   <button
+                    v-if="canMessagePlayer"
+                    type="button"
+                    :class="playerHeroNameEditButtonClasses"
+                    :title="$t('matchmaking.friends.message')"
+                    @click="messagePlayer"
+                  >
+                    <MessageSquare />
+                  </button>
+                  <button
                     v-if="canEditPlayer"
                     type="button"
                     :class="playerHeroNameEditButtonClasses"
@@ -3335,6 +3346,9 @@ export default {
         !this.isFriend
       );
     },
+    canMessagePlayer() {
+      return !!(this.me && this.player?.steam_id && !this.isSelfProfile);
+    },
     hasRightColumn() {
       return this.isSelfProfile || this.canAddFriend || this.isFriend;
     },
@@ -3433,6 +3447,10 @@ export default {
     },
   },
   methods: {
+    messagePlayer() {
+      if (!this.player?.steam_id) return;
+      openDirectMessage(this.player);
+    },
     async addAsFriend() {
       if (!this.player?.steam_id || this.addFriendPending) return;
       this.addFriendPending = true;

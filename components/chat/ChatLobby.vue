@@ -339,6 +339,7 @@ export default {
           "draft",
           "match_team",
           "global",
+          "direct",
         ].includes(value),
     },
     global: {

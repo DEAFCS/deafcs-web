@@ -25,7 +25,10 @@ export type ChatType =
   | "match_team"
   // Single site-wide room, open to every verified_user+ player. Fixed
   // lobbyId "global" -- there's only ever one.
-  | "global";
+  | "global"
+  // 1:1 private message -- lobbyId is the two participants' steam_ids
+  // sorted ascending, joined with ":". See openDirectMessage.
+  | "direct";
 
 class Socket extends EventEmitter {
   private listening = new Set();
