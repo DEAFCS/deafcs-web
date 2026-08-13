@@ -88,32 +88,33 @@ const orderedTabs = computed<ChatTab[]>(() => {
   });
 });
 
+// Custom pointer-based drag instead of native HTML5 draggable="true" --
+// the native version shows the browser/OS's own drag cursor and a
+// translucent ghost snapshot (reported as looking "weird" / showing a
+// Windows drag icon), which can't be styled away since the OS renders
+// it, not the page. This never calls the native drag APIs at all, so
+// there's nothing for the OS to draw -- the only thing that moves is
+// the button itself, following the pointer directly.
 const draggedTabId = ref<string | null>(null);
-function onTabDragStart(id: string) {
-  draggedTabId.value = id;
-}
-function onTabDragEnd() {
-  draggedTabId.value = null;
-}
+const dragOffset = ref({ x: 0, y: 0 });
 
 // FLIP (First-Last-Invert-Play): capture where every rail button
 // currently sits, reorder the data, then on the next tick offset each
 // moved button back to its old spot with transitions off and
 // transition it to zero -- the icons visibly slide out of the way of
 // the dragged one, instead of the whole rail just snapping to its new
-// order (the "looks amateur" complaint). Reused for both the
-// live-during-drag reorder and reorder-on-drop.
+// order.
 function animateReorder(mutate: () => void) {
   const before = new Map<string, number>();
   for (const [id, el] of Object.entries(chatButtonRefs.value)) {
-    if (el) before.set(id, el.getBoundingClientRect().top);
+    if (el && id !== draggedTabId.value) before.set(id, el.getBoundingClientRect().top);
   }
 
   mutate();
 
   nextTick(() => {
     for (const [id, el] of Object.entries(chatButtonRefs.value)) {
-      if (!el) continue;
+      if (!el || id === draggedTabId.value) continue;
       const prevTop = before.get(id);
       if (prevTop === undefined) continue;
       const delta = prevTop - el.getBoundingClientRect().top;
@@ -131,20 +132,61 @@ function animateReorder(mutate: () => void) {
   });
 }
 
-// Live reorder while dragging over another icon, not just on drop --
-// this is what actually makes the other icons visibly step aside as
-// you drag, matching the iPhone-style rearrange feel that was asked
-// for instead of a single jump at the end.
 let lastDragOverTarget: string | null = null;
-function onTabDragOver(targetId: string) {
-  if (!draggedTabId.value || draggedTabId.value === targetId) return;
-  if (lastDragOverTarget === targetId) return;
-  lastDragOverTarget = targetId;
-  animateReorder(() => reorderTab(draggedTabId.value as string, targetId));
+
+function onTabPointerDown(event: PointerEvent, id: string) {
+  if (event.button !== 0) return;
+  const startX = event.clientX;
+  const startY = event.clientY;
+  let dragging = false;
+
+  function onMove(e: PointerEvent) {
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+
+    if (!dragging) {
+      // Small threshold so this doesn't hijack a plain click.
+      if (Math.hypot(dx, dy) < 4) return;
+      dragging = true;
+      draggedTabId.value = id;
+    }
+
+    dragOffset.value = { x: dx, y: dy };
+
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const targetEl = (el as HTMLElement)?.closest<HTMLElement>(
+      "[data-chat-tab-id]",
+    );
+    const targetId = targetEl?.dataset.chatTabId;
+    if (targetId && targetId !== id && targetId !== lastDragOverTarget) {
+      lastDragOverTarget = targetId;
+      animateReorder(() => reorderTab(id, targetId));
+    }
+  }
+
+  function onUp() {
+    window.removeEventListener("pointermove", onMove);
+    window.removeEventListener("pointerup", onUp);
+    draggedTabId.value = null;
+    dragOffset.value = { x: 0, y: 0 };
+    lastDragOverTarget = null;
+    // A real drag still fires a trailing click on pointerup in most
+    // browsers -- swallow just that one so it doesn't also select the
+    // room you dragged over on the way past.
+    if (dragging) suppressNextClick = true;
+  }
+
+  window.addEventListener("pointermove", onMove);
+  window.addEventListener("pointerup", onUp);
 }
-function onTabDrop() {
-  lastDragOverTarget = null;
-  draggedTabId.value = null;
+
+let suppressNextClick = false;
+function onTabClick(tab: ChatTab) {
+  if (suppressNextClick) {
+    suppressNextClick = false;
+    return;
+  }
+  handleSelectRoom(tab);
 }
 
 const activeTab = computed<ChatTab | null>(() => {
@@ -365,22 +407,27 @@ function handlePopOut() {
               <TooltipTrigger as-child>
                 <button
                   :ref="setChatButtonRef(tab.id)"
-                  class="relative z-[1] flex items-center justify-center w-11 h-11 rounded-md transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  :data-chat-tab-id="tab.id"
+                  class="relative flex items-center justify-center w-11 h-11 rounded-md transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary touch-none select-none"
                   :class="[
                     activeChatId === tab.id
                       ? 'text-zinc-100'
                       : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100',
                     draggedTabId === tab.id
-                      ? 'opacity-40 scale-95 [transition:opacity_150ms,transform_150ms]'
-                      : '',
+                      ? 'z-20 scale-110 shadow-xl shadow-black/40 bg-zinc-800 pointer-events-none'
+                      : 'z-[1]',
                   ]"
+                  :style="
+                    draggedTabId === tab.id
+                      ? {
+                          transform: `translate(${dragOffset.x}px, ${dragOffset.y}px) scale(1.1)`,
+                          transition: 'none',
+                        }
+                      : {}
+                  "
                   type="button"
-                  draggable="true"
-                  @click="handleSelectRoom(tab)"
-                  @dragstart="onTabDragStart(tab.id)"
-                  @dragover.prevent="onTabDragOver(tab.id)"
-                  @drop.prevent="onTabDrop"
-                  @dragend="onTabDragEnd"
+                  @click="onTabClick(tab)"
+                  @pointerdown="onTabPointerDown($event, tab.id)"
                 >
                   <div
                     v-if="tab.type === 'direct'"
