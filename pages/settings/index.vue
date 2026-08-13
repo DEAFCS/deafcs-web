@@ -36,6 +36,13 @@ const { locale, locales, setLocale, t } = useI18n();
 // not an in-app preference. See usePushNotifications for why permission
 // is only ever requested from this toggle's own click, never on mount.
 const pushSupported = ref(true);
+// Web Push is technically desktop-capable too (Chrome/Firefox/Edge all
+// support it), but this project only wants the toggle offered on
+// phones -- surfacing it on desktop just confused people into flipping
+// it on and reporting it as broken. UA-sniffed rather than a viewport
+// width check so resizing a desktop browser window narrow doesn't
+// suddenly reveal it.
+const isMobileOS = ref(false);
 const pushDenied = ref(false);
 const pushEnabled = ref(false);
 const pushBusy = ref(false);
@@ -53,6 +60,7 @@ async function loadPushPreferences() {
 }
 
 onMounted(async () => {
+  isMobileOS.value = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   pushSupported.value = isPushSupported();
   if (!pushSupported.value) return;
   pushDenied.value = (await getPushPermissionState()) === "denied";
@@ -293,8 +301,8 @@ const handleLocaleChange = (
         </FormItem>
       </FormField>
 
-      <!-- Push notifications -->
-      <div class="space-y-2">
+      <!-- Push notifications -- phones only, see isMobileOS above -->
+      <div v-if="isMobileOS" class="space-y-2">
         <label
           class="font-mono text-[0.7rem] font-medium uppercase tracking-[0.18em] text-muted-foreground"
         >
