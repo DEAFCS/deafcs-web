@@ -1484,6 +1484,16 @@
             "title": "Countdown",
             "description": "Match start countdown"
           }
+        },
+        "push": {
+          "title": "Push notifications",
+          "description": "Get notified on this device — new messages, invites, tournaments — even when DEAFCS isn't open.",
+          "enable": "Enable push notifications",
+          "unsupported": "Push notifications aren't supported in this browser.",
+          "denied": "Notifications are blocked for DEAFCS. Enable them in your browser or device settings to turn this on.",
+          "enable_failed": "Couldn't enable push notifications. Try again.",
+          "enabled_toast": "Push notifications enabled",
+          "disabled_toast": "Push notifications disabled"
         }
       },
       "application": {

@@ -226,6 +226,12 @@ export default defineNuxtConfig({
       installPrompt: true,
     },
     workbox: {
+      // Plain JS file (not part of the Workbox precache/build pipeline)
+      // that adds `push` / `notificationclick` listeners to the
+      // generated service worker — see public/sw-push.js. This stays
+      // on the default generateSW strategy rather than switching to
+      // injectManifest just to get a custom SW file.
+      importScripts: ["/sw-push.js"],
       cleanupOutdatedCaches: true,
       maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       // Do not precache every Nuxt chunk during service-worker install.

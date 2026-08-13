@@ -9,8 +9,61 @@ import {
   Swords,
   Keyboard,
   Timer,
+  Bell,
+  BellOff,
 } from "lucide-vue-next";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import { toast } from "@/components/ui/toast";
+import {
+  isPushSupported,
+  getPushPermissionState,
+  getExistingPushSubscription,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from "~/composables/usePushNotifications";
+
+const { t } = useI18n();
+
+const pushSupported = ref(true);
+const pushDenied = ref(false);
+const pushEnabled = ref(false);
+const pushBusy = ref(false);
+
+onMounted(async () => {
+  pushSupported.value = isPushSupported();
+  if (!pushSupported.value) return;
+  pushDenied.value = (await getPushPermissionState()) === "denied";
+  pushEnabled.value = Boolean(await getExistingPushSubscription());
+});
+
+const handlePushToggle = async (enabled: boolean) => {
+  if (pushBusy.value) return;
+  pushBusy.value = true;
+  try {
+    if (enabled) {
+      const ok = await subscribeToPush();
+      pushDenied.value = (await getPushPermissionState()) === "denied";
+      pushEnabled.value = ok;
+      if (ok) {
+        toast({ title: t("pages.settings.notifications.push.enabled_toast") });
+      } else {
+        toast({
+          variant: "destructive",
+          title: t("common.error"),
+          description: pushDenied.value
+            ? t("pages.settings.notifications.push.denied")
+            : t("pages.settings.notifications.push.enable_failed"),
+        });
+      }
+    } else {
+      await unsubscribeFromPush();
+      pushEnabled.value = false;
+      toast({ title: t("pages.settings.notifications.push.disabled_toast") });
+    }
+  } finally {
+    pushBusy.value = false;
+  }
+};
 
 const {
   isEnabled,
@@ -64,6 +117,41 @@ const sounds = computed(() => {
       <p class="max-w-prose text-sm text-muted-foreground">
         {{ $t("pages.settings.notifications.description") }}
       </p>
+
+      <!-- Push notifications -->
+      <div
+        class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
+      >
+        <div class="flex items-start gap-3">
+          <div
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--tac-amber))]/10 ring-1 ring-inset ring-[hsl(var(--tac-amber))]/20"
+          >
+            <component
+              :is="pushEnabled ? Bell : BellOff"
+              class="h-5 w-5 text-[hsl(var(--tac-amber))]"
+            />
+          </div>
+          <div class="space-y-0.5">
+            <h4 class="font-medium">
+              {{ $t("pages.settings.notifications.push.enable") }}
+            </h4>
+            <p class="text-sm text-muted-foreground">
+              {{
+                !pushSupported
+                  ? $t("pages.settings.notifications.push.unsupported")
+                  : pushDenied
+                    ? $t("pages.settings.notifications.push.denied")
+                    : $t("pages.settings.notifications.push.description")
+              }}
+            </p>
+          </div>
+        </div>
+        <Switch
+          :model-value="pushEnabled"
+          :disabled="!pushSupported || pushDenied || pushBusy"
+          @update:model-value="handlePushToggle"
+        />
+      </div>
 
       <!-- Master toggle -->
       <div
