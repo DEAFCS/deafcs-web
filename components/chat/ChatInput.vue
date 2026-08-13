@@ -15,6 +15,7 @@ import { CornerDownLeft } from "lucide-vue-next";
             <Input
               ref="inputRef"
               :placeholder="placeholder || $t('chat.message_placeholder')"
+              autocomplete="off"
               v-bind="componentField"
               class="flex-1 transition-all duration-200 focus:scale-[1.02]"
             />
@@ -44,6 +45,7 @@ import { CornerDownLeft } from "lucide-vue-next";
             <Input
               ref="inputRef"
               :placeholder="placeholder || $t('chat.message_placeholder')"
+              autocomplete="off"
               v-bind="componentField"
               class="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
             />
