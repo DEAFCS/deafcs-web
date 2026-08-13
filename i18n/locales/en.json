@@ -1493,7 +1493,42 @@
           "denied": "Notifications are blocked for DEAFCS. Enable them in your browser or device settings to turn this on.",
           "enable_failed": "Couldn't enable push notifications. Try again.",
           "enabled_toast": "Push notifications enabled",
-          "disabled_toast": "Push notifications disabled"
+          "disabled_toast": "Push notifications disabled",
+          "categories_title": "Notify me about",
+          "categories": {
+            "chat": {
+              "title": "Chat messages",
+              "description": "New lobby messages while you're not in that chat"
+            },
+            "tournaments": {
+              "title": "Tournaments",
+              "description": "New tournaments open for signup, and reminders before ones you're in start"
+            },
+            "matches": {
+              "title": "Matches",
+              "description": "Match status changes, imported matches, and support requests"
+            },
+            "sanctions": {
+              "title": "Sanctions",
+              "description": "Warnings or bans on your account"
+            },
+            "scrims": {
+              "title": "Scrims",
+              "description": "Scrim requests, schedule changes, and cancellations"
+            },
+            "leagues": {
+              "title": "Leagues",
+              "description": "League matchup proposals, registration decisions, and roster alerts"
+            },
+            "account": {
+              "title": "Account",
+              "description": "Name change requests and team suggestions"
+            },
+            "system": {
+              "title": "System (admin)",
+              "description": "Server and infrastructure status updates"
+            }
+          }
         }
       },
       "application": {

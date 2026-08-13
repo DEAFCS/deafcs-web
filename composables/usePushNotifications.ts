@@ -93,3 +93,34 @@ export async function unsubscribeFromPush(): Promise<void> {
 
   await subscription.unsubscribe();
 }
+
+// --- Per-category preferences ---
+// Categories are a fixed, backend-defined set (see api-deafcs's
+// notification-categories.ts) -- the frontend only renders whatever list
+// comes back, it doesn't hardcode the category keys itself.
+
+export async function fetchPushCategories(): Promise<string[]> {
+  const { categories } = await $fetch<{ categories: string[] }>(
+    pushApiUrl("/categories"),
+  );
+  return categories;
+}
+
+export async function fetchPushPreferences(): Promise<Record<string, boolean>> {
+  const { preferences } = await $fetch<{ preferences: Record<string, boolean> }>(
+    pushApiUrl("/preferences"),
+    { credentials: "include" },
+  );
+  return preferences;
+}
+
+export async function setPushPreference(
+  category: string,
+  enabled: boolean,
+): Promise<void> {
+  await $fetch(pushApiUrl("/preferences"), {
+    method: "POST",
+    credentials: "include",
+    body: { category, enabled },
+  });
+}

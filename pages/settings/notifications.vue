@@ -20,6 +20,9 @@ import {
   getExistingPushSubscription,
   subscribeToPush,
   unsubscribeFromPush,
+  fetchPushCategories,
+  fetchPushPreferences,
+  setPushPreference,
 } from "~/composables/usePushNotifications";
 
 const { t } = useI18n();
@@ -28,13 +31,47 @@ const pushSupported = ref(true);
 const pushDenied = ref(false);
 const pushEnabled = ref(false);
 const pushBusy = ref(false);
+const pushCategories = ref<string[]>([]);
+const pushPreferences = ref<Record<string, boolean>>({});
+const preferenceBusy = ref<Record<string, boolean>>({});
+
+async function loadPreferences() {
+  const [categories, preferences] = await Promise.all([
+    fetchPushCategories(),
+    fetchPushPreferences(),
+  ]);
+  pushCategories.value = categories;
+  pushPreferences.value = preferences;
+}
 
 onMounted(async () => {
   pushSupported.value = isPushSupported();
   if (!pushSupported.value) return;
   pushDenied.value = (await getPushPermissionState()) === "denied";
   pushEnabled.value = Boolean(await getExistingPushSubscription());
+  if (pushEnabled.value) {
+    await loadPreferences().catch(() => {});
+  }
 });
+
+const handleCategoryToggle = async (category: string, enabled: boolean) => {
+  if (preferenceBusy.value[category]) return;
+  preferenceBusy.value = { ...preferenceBusy.value, [category]: true };
+  const previous = pushPreferences.value[category];
+  pushPreferences.value = { ...pushPreferences.value, [category]: enabled };
+  try {
+    await setPushPreference(category, enabled);
+  } catch {
+    pushPreferences.value = { ...pushPreferences.value, [category]: previous };
+    toast({
+      variant: "destructive",
+      title: t("common.error"),
+      description: t("pages.settings.notifications.push.enable_failed"),
+    });
+  } finally {
+    preferenceBusy.value = { ...preferenceBusy.value, [category]: false };
+  }
+};
 
 const handlePushToggle = async (enabled: boolean) => {
   if (pushBusy.value) return;
@@ -46,6 +83,7 @@ const handlePushToggle = async (enabled: boolean) => {
       pushEnabled.value = ok;
       if (ok) {
         toast({ title: t("pages.settings.notifications.push.enabled_toast") });
+        await loadPreferences().catch(() => {});
       } else {
         toast({
           variant: "destructive",
@@ -151,6 +189,42 @@ const sounds = computed(() => {
           :disabled="!pushSupported || pushDenied || pushBusy"
           @update:model-value="handlePushToggle"
         />
+      </div>
+
+      <!-- Push categories -->
+      <div v-if="pushEnabled && pushCategories.length" class="space-y-2">
+        <p
+          class="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70"
+        >
+          {{ $t("pages.settings.notifications.push.categories_title") }}
+        </p>
+        <div class="space-y-2">
+          <div
+            v-for="category in pushCategories"
+            :key="category"
+            class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
+          >
+            <div class="min-w-0">
+              <div class="text-sm font-medium">
+                {{
+                  $t(`pages.settings.notifications.push.categories.${category}.title`)
+                }}
+              </div>
+              <div class="text-xs text-muted-foreground">
+                {{
+                  $t(
+                    `pages.settings.notifications.push.categories.${category}.description`,
+                  )
+                }}
+              </div>
+            </div>
+            <Switch
+              :model-value="pushPreferences[category] !== false"
+              :disabled="preferenceBusy[category]"
+              @update:model-value="(value: boolean) => handleCategoryToggle(category, value)"
+            />
+          </div>
+        </div>
       </div>
 
       <!-- Master toggle -->
