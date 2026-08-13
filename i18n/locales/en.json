@@ -1504,6 +1504,10 @@
               "title": "Global Chat",
               "description": "Off by default — Global Chat is high traffic. Turn on if you want every message pushed to this device."
             },
+            "news": {
+              "title": "News",
+              "description": "A new article was published"
+            },
             "tournaments": {
               "title": "Tournaments",
               "description": "New tournaments open for signup, and reminders before ones you're in start"
@@ -1551,6 +1555,10 @@
             "MatchImported": {
               "title": "Imported matches",
               "description": "A Valve match you played was imported to 5stack"
+            },
+            "NewsPublished": {
+              "title": "News",
+              "description": "A new article was published"
             },
             "DedicatedServerRconStatus": {
               "title": "Server RCON status",
