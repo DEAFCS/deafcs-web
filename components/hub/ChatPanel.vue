@@ -92,10 +92,58 @@ const draggedTabId = ref<string | null>(null);
 function onTabDragStart(id: string) {
   draggedTabId.value = id;
 }
-function onTabDrop(targetId: string) {
-  if (draggedTabId.value) {
-    reorderTab(draggedTabId.value, targetId);
+function onTabDragEnd() {
+  draggedTabId.value = null;
+}
+
+// FLIP (First-Last-Invert-Play): capture where every rail button
+// currently sits, reorder the data, then on the next tick offset each
+// moved button back to its old spot with transitions off and
+// transition it to zero -- the icons visibly slide out of the way of
+// the dragged one, instead of the whole rail just snapping to its new
+// order (the "looks amateur" complaint). Reused for both the
+// live-during-drag reorder and reorder-on-drop.
+function animateReorder(mutate: () => void) {
+  const before = new Map<string, number>();
+  for (const [id, el] of Object.entries(chatButtonRefs.value)) {
+    if (el) before.set(id, el.getBoundingClientRect().top);
   }
+
+  mutate();
+
+  nextTick(() => {
+    for (const [id, el] of Object.entries(chatButtonRefs.value)) {
+      if (!el) continue;
+      const prevTop = before.get(id);
+      if (prevTop === undefined) continue;
+      const delta = prevTop - el.getBoundingClientRect().top;
+      if (!delta) continue;
+
+      el.style.transition = "none";
+      el.style.transform = `translateY(${delta}px)`;
+      // Force a reflow so the browser registers the starting transform
+      // before we clear it -- otherwise it'd just skip straight to the
+      // end state with no animation at all.
+      void el.offsetHeight;
+      el.style.transition = "transform 220ms cubic-bezier(0.2, 0, 0, 1)";
+      el.style.transform = "";
+    }
+  });
+}
+
+// Live reorder while dragging over another icon, not just on drop --
+// this is what actually makes the other icons visibly step aside as
+// you drag, matching the iPhone-style rearrange feel that was asked
+// for instead of a single jump at the end.
+let lastDragOverTarget: string | null = null;
+function onTabDragOver(targetId: string) {
+  if (!draggedTabId.value || draggedTabId.value === targetId) return;
+  if (lastDragOverTarget === targetId) return;
+  lastDragOverTarget = targetId;
+  animateReorder(() => reorderTab(draggedTabId.value as string, targetId));
+}
+function onTabDrop() {
+  lastDragOverTarget = null;
   draggedTabId.value = null;
 }
 
@@ -322,17 +370,17 @@ function handlePopOut() {
                     activeChatId === tab.id
                       ? 'text-zinc-100'
                       : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100',
-                    draggedTabId && draggedTabId !== tab.id
-                      ? 'ring-1 ring-dashed ring-zinc-600'
+                    draggedTabId === tab.id
+                      ? 'opacity-40 scale-95 [transition:opacity_150ms,transform_150ms]'
                       : '',
                   ]"
                   type="button"
                   draggable="true"
                   @click="handleSelectRoom(tab)"
                   @dragstart="onTabDragStart(tab.id)"
-                  @dragover.prevent
-                  @drop.prevent="onTabDrop(tab.id)"
-                  @dragend="draggedTabId = null"
+                  @dragover.prevent="onTabDragOver(tab.id)"
+                  @drop.prevent="onTabDrop"
+                  @dragend="onTabDragEnd"
                 >
                   <div
                     v-if="tab.type === 'direct'"
