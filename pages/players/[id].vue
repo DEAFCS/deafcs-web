@@ -3334,8 +3334,17 @@ export default {
       if (!this.player) {
         return false;
       }
+      // status !== "Pending" (not === "Accepted") to match
+      // MatchmakingStore's own onlineFriends/offlineFriends filter --
+      // Pending is the only other status. Without this, a friend
+      // *request* either way counted as already being friends (this fed
+      // canMessagePlayer below, effectively letting a pending, unaccepted
+      // request open a DM).
       return !!useMatchmakingStore().friends.find((friend: any) => {
-        return friend.steam_id == this.player.steam_id;
+        return (
+          friend.steam_id == this.player.steam_id &&
+          friend.status !== "Pending"
+        );
       });
     },
     canAddFriend() {
@@ -3346,8 +3355,18 @@ export default {
         !this.isFriend
       );
     },
+    // DMs are restricted to accepted friends (admins exempt) -- see
+    // chat.service.ts's ChatLobbyType.Direct join check, which is the
+    // actual enforcement; this only controls whether the button offers
+    // to open one.
     canMessagePlayer() {
-      return !!(this.me && this.player?.steam_id && !this.isSelfProfile);
+      return !!(
+        this.me &&
+        this.player?.steam_id &&
+        !this.isSelfProfile &&
+        (this.isFriend ||
+          useAuthStore().isRoleAbove(e_player_roles_enum.administrator))
+      );
     },
     hasRightColumn() {
       return this.isSelfProfile || this.canAddFriend || this.isFriend;
