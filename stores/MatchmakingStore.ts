@@ -15,6 +15,8 @@ import { playerFields } from "~/graphql/playerFields";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { webrtc } from "~/web-sockets/Webrtc";
 import { setActiveHub } from "~/composables/useHubState";
+import { useChatTabs } from "~/composables/useChatTabs";
+import { useI18n } from "vue-i18n";
 
 const REGION_LATENCY_PREFIX = "5stack_region_latency_";
 const MAX_LATENCY_KEY = "5stack_max_acceptable_latency";
@@ -34,6 +36,12 @@ function safeParseLocalStorage<T>(key: string): T | null {
 }
 
 export const useMatchmakingStore = defineStore("matchmaking", () => {
+  // Called at the store's setup top level, not inside joinLobby() below
+  // -- useI18n() needs an active component/effect-scope context, which
+  // only reliably exists during this synchronous setup pass, not later
+  // when joinLobby() actually runs (in response to a user's click).
+  const { t } = useI18n();
+
   const playersOnline = ref([]);
   const onlinePlayerSteamIds = ref<string[]>([]);
 
@@ -453,9 +461,22 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
       }),
     });
     // Land on the chat sidebar's matchmaking lobby tab, not the
-    // standalone Lobby hub panel -- useChatTabSetup's watch on
-    // me.current_lobby_id auto-opens (and activates) that tab once the
-    // subscription picks up the new membership.
+    // standalone Lobby hub panel. Open (or focus, if it's already open
+    // for some reason) the tab explicitly here rather than trusting
+    // useChatTabSetup's reactive watch on me.current_lobby_id to do it
+    // -- that watch's ensureDefaultTabs() deliberately restores
+    // whatever tab was active before it ran ("adding defaults doesn't
+    // steal focus"), so relying on it left the *previous* tab (e.g. a
+    // pinned tournament chat) active instead of the lobby just joined.
+    const { openTab } = useChatTabs();
+    openTab({
+      id: `matchmaking:${lobby_id}`,
+      label: t("chat_tab_labels.lobby_default"),
+      instance: "matchmaking",
+      type: "matchmaking",
+      lobbyId: lobby_id,
+      pinned: true,
+    });
     setActiveHub("chat");
   };
 
