@@ -232,6 +232,14 @@ onMounted(async () => {
       if (!participants.value.some((p) => p.steamId === data.steamId)) {
         participants.value = [...participants.value, data];
       }
+      // This window's only job during the "mobile" step is showing the
+      // QR code -- once the phone that scanned it actually publishes,
+      // the call itself lives on the phone (which has its own grid,
+      // see pages/lobby-call/[lobbyId]/[token].vue), so this desktop
+      // window is just clutter left open at that point.
+      if (step.value === "mobile" && data.steamId === myId.value) {
+        window.close();
+      }
     },
   );
   unlistenJoined = () => joinedListener?.stop();

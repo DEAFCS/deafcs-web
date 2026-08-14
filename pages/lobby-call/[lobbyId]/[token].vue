@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onBeforeUnmount } from "vue";
-import { LucideX, LucideMicOff, LucideMic } from "lucide-vue-next";
+import { LucideX, LucideMicOff, LucideMic, LucideRefreshCw } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import {
   lobbyCallPlayerWhipUrl,
@@ -34,6 +34,7 @@ const mySteamId = ref<string | null>(null);
 const previewEl = ref<HTMLVideoElement | null>(null);
 let camStream: MediaStream | null = null;
 let camPc: RTCPeerConnection | null = null;
+let facingMode: "user" | "environment" = "user";
 let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Always request a landscape frame, regardless of how the phone is
@@ -43,9 +44,9 @@ let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 // page (which matches the phone's current orientation to avoid a
 // crop/zoom look for a single full-width preview) — here the fixed
 // landscape grid layout is the priority.
-function videoConstraints(): MediaTrackConstraints {
+function videoConstraints(mode: "user" | "environment"): MediaTrackConstraints {
   return {
-    facingMode: { ideal: "user" },
+    facingMode: { ideal: mode },
     width: { ideal: 1280 },
     height: { ideal: 720 },
     aspectRatio: { ideal: 16 / 9 },
@@ -58,7 +59,7 @@ async function startCall() {
   errorMessage.value = null;
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints(),
+      video: videoConstraints(facingMode),
       audio: true,
     });
     camStream = stream;
@@ -120,6 +121,36 @@ function toggleMute() {
   if (!camStream) return;
   muted.value = !muted.value;
   camStream.getAudioTracks().forEach((t) => (t.enabled = !muted.value));
+}
+
+// Same front/back switch the required-webcam join page has -- this is
+// a phone-only control (the desktop "this computer" flow only ever has
+// one camera), which is why it's only wired up here, not in the
+// popout window.
+async function flipCamera() {
+  if (!camStream) return;
+  const nextFacingMode = facingMode === "user" ? "environment" : "user";
+  try {
+    const newStream = await navigator.mediaDevices.getUserMedia({
+      video: videoConstraints(nextFacingMode),
+      audio: false,
+    });
+    const newTrack = newStream.getVideoTracks()[0];
+    const oldStream = camStream;
+    if (camPc) {
+      const sender = camPc.getSenders().find((s) => s.track && s.track.kind === "video");
+      if (sender) await sender.replaceTrack(newTrack);
+    }
+    if (previewEl.value) previewEl.value.srcObject = newStream;
+    // Keep the existing audio track alive on the new stream object so
+    // toggleMute/leaveCall still see it.
+    oldStream.getAudioTracks().forEach((t) => newStream.addTrack(t));
+    oldStream.getVideoTracks().forEach((t) => t.stop());
+    camStream = newStream;
+    facingMode = nextFacingMode;
+  } catch (err) {
+    alert(`Could not switch camera: ${err instanceof Error ? err.message : err}`);
+  }
 }
 
 function teardownStream() {
@@ -242,13 +273,18 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen w-full bg-background text-foreground flex flex-col items-center gap-4 p-4"
+    class="relative min-h-screen w-full bg-background text-foreground flex flex-col items-center gap-4 p-4"
   >
-    <h1 class="text-lg font-semibold text-center">Lobby webcam call</h1>
+    <h1 v-if="phase !== 'connected'" class="text-lg font-semibold text-center">
+      Lobby webcam call
+    </h1>
 
-    <!-- Everyone else currently in the call -->
+    <!-- Everyone else currently in the call -- the main event once
+         connected. My own camera shrinks to a small corner PiP instead
+         (see below), same layout every video-call app uses: you watch
+         the other person, not yourself. -->
     <div
-      v-if="otherParticipants.length > 0"
+      v-if="phase === 'connected' && otherParticipants.length > 0"
       class="grid gap-2 w-full max-w-lg"
       :class="otherParticipants.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
     >
@@ -270,41 +306,85 @@ onBeforeUnmount(() => {
         </span>
       </div>
     </div>
-
-    <!-- My own camera -->
     <div
-      class="relative w-full max-w-[420px] rounded-xl overflow-hidden bg-black border border-border"
+      v-else-if="phase === 'connected'"
+      class="w-full max-w-lg aspect-video rounded-lg border border-dashed border-border flex items-center justify-center text-sm text-muted-foreground"
     >
-      <video ref="previewEl" autoplay playsinline muted class="w-full h-auto block" />
+      Waiting for others to join…
+    </div>
+
+    <!-- My own camera -- full-size before/while joining, small corner
+         PiP once connected and someone else is visible above. -->
+    <div
+      class="overflow-hidden bg-black border border-border"
+      :class="
+        phase === 'connected' && otherParticipants.length > 0
+          ? 'absolute bottom-4 right-4 w-28 h-40 rounded-lg border-2 border-white shadow-lg z-10'
+          : 'relative w-full max-w-[420px] rounded-xl'
+      "
+    >
+      <video
+        ref="previewEl"
+        autoplay
+        playsinline
+        muted
+        class="w-full h-full object-cover"
+      />
 
       <button
         v-if="phase === 'connected'"
         type="button"
         :title="muted ? 'Unmute' : 'Mute'"
-        class="absolute top-2.5 right-2.5 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+        class="absolute top-1.5 right-1.5 z-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+        :class="otherParticipants.length ? 'w-7 h-7' : 'w-10 h-10 top-2.5 right-2.5'"
         @click="toggleMute"
       >
-        <LucideMicOff v-if="muted" class="w-5 h-5" />
-        <LucideMic v-else class="w-5 h-5" />
+        <LucideMicOff v-if="muted" :class="otherParticipants.length ? 'w-3.5 h-3.5' : 'w-5 h-5'" />
+        <LucideMic v-else :class="otherParticipants.length ? 'w-3.5 h-3.5' : 'w-5 h-5'" />
       </button>
+
+      <button
+        v-if="phase !== 'connected'"
+        type="button"
+        title="Switch camera"
+        aria-label="Switch camera"
+        class="absolute top-2.5 left-2.5 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+        @click="flipCamera"
+      >
+        <LucideRefreshCw class="w-5 h-5" />
+      </button>
+
       <span
-        v-if="phase === 'connected'"
+        v-if="phase === 'connected' && !otherParticipants.length"
         class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5"
       >
         You
       </span>
     </div>
 
-    <button
-      v-if="phase === 'connected'"
-      type="button"
-      title="Leave call"
-      aria-label="Leave call"
-      class="flex items-center justify-center w-14 h-14 rounded-full bg-red-600 text-white hover:bg-red-500 transition-colors shadow-lg"
-      @click="leaveCall"
-    >
-      <LucideX class="w-6 h-6" />
-    </button>
+    <div v-if="phase === 'connected'" class="flex items-center gap-4">
+      <!-- Kept reachable here (not just on the shrunk PiP corner)
+           since once the PiP is small there's no comfortable room for
+           it on the video itself. -->
+      <button
+        type="button"
+        title="Switch camera"
+        aria-label="Switch camera"
+        class="flex items-center justify-center w-11 h-11 rounded-full bg-card border border-border text-foreground hover:bg-muted transition-colors"
+        @click="flipCamera"
+      >
+        <LucideRefreshCw class="w-5 h-5" />
+      </button>
+      <button
+        type="button"
+        title="Leave call"
+        aria-label="Leave call"
+        class="flex items-center justify-center w-14 h-14 rounded-full bg-red-600 text-white hover:bg-red-500 transition-colors shadow-lg"
+        @click="leaveCall"
+      >
+        <LucideX class="w-6 h-6" />
+      </button>
+    </div>
 
     <div class="text-center max-w-sm space-y-3">
       <template v-if="phase === 'connected'">

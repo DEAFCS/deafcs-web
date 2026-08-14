@@ -36,6 +36,9 @@ const ActionToasts = defineAsyncComponent(
 const OrphanedUploadsDialog = defineAsyncComponent(
   () => import("~/components/settings/OrphanedUploadsDialog.vue"),
 );
+const GlobalLobbyCallNotifier = defineAsyncComponent(
+  () => import("~/components/matchmaking-lobby/GlobalLobbyCallNotifier.vue"),
+);
 import { useClipModal } from "~/composables/useClipModal";
 
 const { activeClipId } = useClipModal();
@@ -115,6 +118,8 @@ provide("containContent", containContent);
   <ClipDetailModal :clip-id="activeClipId" />
 
   <OrphanedUploadsDialog />
+
+  <GlobalLobbyCallNotifier />
 
   <ActionToasts />
 </template>
