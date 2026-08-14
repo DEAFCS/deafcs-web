@@ -23,13 +23,22 @@ const read = (relPath) =>
   assert.ok(computedMatch, "playerAvatarSrc computed not found");
   const body = computedMatch[1];
 
-  // avatarOverride branch must come first (team-specific always wins outright).
+  // Generic avatarOverride remains independent from roster opt-in. Chat uses
+  // this for a live identity avatar, so match callers must gate only the
+  // roster-derived value before passing it into PlayerDisplay.
   const overrideIdx = body.indexOf("this.avatarOverride");
   const allowRosterIdx = body.indexOf("this.allowRosterImage");
   assert.ok(overrideIdx >= 0 && allowRosterIdx >= 0);
   assert.ok(
     overrideIdx < allowRosterIdx,
     "avatarOverride check must come before the allowRosterImage branch",
+  );
+
+  const chatSrc = await read("components/chat/ChatMessage.vue");
+  assert.match(
+    chatSrc,
+    /:avatar-override="liveAvatarUrl"/,
+    "generic non-roster avatarOverride consumers must remain supported",
   );
 
   // The allowRosterImage branch must read roster_image_url; the non-allowed
@@ -163,24 +172,82 @@ for (const path of LINEUP_MEMBER_SITES) {
   );
 }
 
-// MatchRoles / LineupRadarComparison / LineupOpeningDuelRow mini-avatars now
-// resolve a real per-team override via the shared buildLineupAvatarOverride
-// helper instead of leaking straight to PlayerDisplay's default.
+// Match-stat PlayerDisplay sites must gate roster-derived overrides before
+// passing them into the generic avatarOverride prop.
 {
   const src = await read("components/match/MatchRoles.vue");
-  assert.match(src, /buildLineupAvatarOverride/);
+  assert.match(src, /buildMatchLineupAvatarOverride\(props\.match, lineup\)/);
   assert.match(src, /avatarOverride/);
 }
 {
   const src = await read("components/match/LineupRadarComparison.vue");
-  assert.match(src, /buildLineupAvatarOverride/);
+  assert.match(
+    src,
+    /buildMatchLineupAvatarOverride\(props\.match, entry\.lineup\)/,
+  );
   assert.match(src, /playerAAvatarOverride/);
   assert.match(src, /playerBAvatarOverride/);
 }
 {
   const src = await read("components/match/LineupOpeningDuelRow.vue");
-  assert.match(src, /buildLineupAvatarOverride/);
+  assert.match(src, /buildMatchLineupAvatarOverride/);
   assert.match(src, /avatarOverrideFor/);
+}
+{
+  const src = await read("components/match/PlayerStatusDisplay.vue");
+  assert.match(
+    src,
+    /buildMatchLineupAvatarOverride\(this\.match, lineup\)\(steamId\)/,
+  );
+}
+{
+  const src = await read("components/match/HeadToHeadMatrix.vue");
+  assert.match(
+    src,
+    /buildMatchLineupAvatarOverride\(props\.match, lineup1\.value\)/,
+  );
+  assert.match(
+    src,
+    /buildMatchLineupAvatarOverride\(props\.match, lineup2\.value\)/,
+  );
+}
+
+// Direct image renderers must use the same match-aware resolver. Merely
+// binding allow-roster-image on a separate PlayerDisplay is not sufficient.
+{
+  const src = await read("components/match/HeadToHeadMatrix.vue");
+  assert.match(src, /resolveMatchPlayerAvatarUrl\(/);
+  assert.match(src, /memberAvatarSrc\(m, lineup1\)/);
+  assert.match(src, /memberAvatarSrc\(m, lineup2\)/);
+  assert.doesNotMatch(
+    src,
+    /member\?\.player\?\.roster_image_url\s*\|\|/,
+    "Head-to-Head selector must not own an unconditional roster fallback",
+  );
+}
+{
+  const panelSrc = await read("components/match/ClutchTeamPanel.vue");
+  const parentSrc = await read("components/match/LineupClutches.vue");
+  assert.match(panelSrc, /resolveMatchPlayerAvatarUrl\(/);
+  assert.match(parentSrc, /<ClutchTeamPanel[\s\S]*?:match="match"/);
+  assert.doesNotMatch(
+    panelSrc,
+    /member\?\.player\?\.roster_image_url\s*\|\|/,
+    "Clutches must not own an unconditional roster fallback",
+  );
+}
+{
+  const src = await read("components/match/LineupOverviewRow.vue");
+  const methodMatch = src.match(
+    /mobileAvatarSrc\(\)\s*\{([\s\S]*?)\n {4}\},/,
+  );
+  assert.ok(methodMatch, "mobileAvatarSrc computed not found");
+  assert.match(methodMatch[1], /resolveMatchPlayerAvatarUrl\(/);
+  assert.doesNotMatch(
+    methodMatch[1],
+    /roster_image_url/,
+    "mobile scoreboard must delegate match-aware roster selection",
+  );
 }
 
 // ---------------------------------------------------------------------------

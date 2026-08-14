@@ -37,7 +37,7 @@ import {
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 import {
-  buildLineupAvatarOverride,
+  buildMatchLineupAvatarOverride,
   matchAllowsRosterImage,
 } from "~/utilities/teamRosterOverride";
 
@@ -356,11 +356,15 @@ const playerA = computed(() => entryFor(selectedA.value)?.member?.player ?? null
 const playerB = computed(() => entryFor(selectedB.value)?.member?.player ?? null);
 const playerAAvatarOverride = computed(() => {
   const entry = entryFor(selectedA.value);
-  return entry ? buildLineupAvatarOverride(entry.lineup)(entry.steamId) : null;
+  return entry
+    ? buildMatchLineupAvatarOverride(props.match, entry.lineup)(entry.steamId)
+    : null;
 });
 const playerBAvatarOverride = computed(() => {
   const entry = entryFor(selectedB.value);
-  return entry ? buildLineupAvatarOverride(entry.lineup)(entry.steamId) : null;
+  return entry
+    ? buildMatchLineupAvatarOverride(props.match, entry.lineup)(entry.steamId)
+    : null;
 });
 
 const activeAxes = computed(() =>

@@ -17,7 +17,7 @@ import {
   tacticalSectionDescriptionClasses,
 } from "~/utilities/tacticalClasses";
 import {
-  buildLineupAvatarOverride,
+  buildMatchLineupAvatarOverride,
   matchAllowsRosterImage,
 } from "~/utilities/teamRosterOverride";
 
@@ -149,7 +149,7 @@ function teamRoles(lineup: any): RolePlayer[] {
   if (!lineup) {
     return [];
   }
-  const rosterOverride = buildLineupAvatarOverride(lineup);
+  const rosterOverride = buildMatchLineupAvatarOverride(props.match, lineup);
   const players: RolePlayer[] = [];
   for (const member of lineup.lineup_players ?? []) {
     if (!member.player) {

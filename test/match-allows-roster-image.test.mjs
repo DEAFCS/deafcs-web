@@ -3,9 +3,12 @@ import { register } from "node:module";
 
 register("./resolve-aliases-loader.mjs", import.meta.url);
 
-const { matchAllowsRosterImage, buildLineupAvatarOverride } = await import(
-  "~/utilities/teamRosterOverride"
-);
+const {
+  matchAllowsRosterImage,
+  buildLineupAvatarOverride,
+  buildMatchLineupAvatarOverride,
+  resolveMatchPlayerAvatarUrl,
+} = await import("~/utilities/teamRosterOverride");
 
 // Real tournament match (is_tournament_match computed field present and true)
 assert.equal(matchAllowsRosterImage({ is_tournament_match: true }), true);
@@ -42,6 +45,102 @@ assert.equal(
     team: { roster: [{ player_steam_id: "76561190000000001", roster_image_url: "x.png" }] },
   })("76561190000000001"),
   "x.png",
+);
+
+const steamId = "76561190000000001";
+const lineupWithTeamRoster = {
+  team_id: "team-1",
+  team: {
+    roster: [
+      {
+        player_steam_id: steamId,
+        roster_image_url: "avatars/team-specific.webp",
+      },
+    ],
+  },
+};
+const playerWithEveryImage = {
+  steam_id: steamId,
+  roster_image_url: "avatars/general-roster.webp",
+  custom_avatar_url: "avatars/custom.webp",
+  avatar_url: "https://steam.example/avatar.jpg",
+};
+
+// A Draft/MM match remains avatar-only even if its lineup unexpectedly has a
+// real team_id and a matching team-roster portrait.
+assert.equal(
+  buildMatchLineupAvatarOverride(
+    { is_tournament_match: false },
+    lineupWithTeamRoster,
+  )(steamId),
+  null,
+);
+assert.equal(
+  resolveMatchPlayerAvatarUrl(
+    { is_tournament_match: false },
+    lineupWithTeamRoster,
+    playerWithEveryImage,
+    steamId,
+    "api.example",
+  ),
+  "https://api.example/avatars/custom.webp",
+);
+assert.equal(
+  resolveMatchPlayerAvatarUrl(
+    { is_tournament_match: false },
+    lineupWithTeamRoster,
+    { ...playerWithEveryImage, custom_avatar_url: null },
+    steamId,
+    "api.example",
+  ),
+  "https://steam.example/avatar.jpg",
+);
+
+// A tournament-linked match keeps the complete portrait priority chain.
+const tournamentMatch = { is_tournament_match: true };
+assert.equal(
+  resolveMatchPlayerAvatarUrl(
+    tournamentMatch,
+    lineupWithTeamRoster,
+    playerWithEveryImage,
+    steamId,
+    "api.example",
+  ),
+  "https://api.example/avatars/team-specific.webp",
+);
+assert.equal(
+  resolveMatchPlayerAvatarUrl(
+    tournamentMatch,
+    { ...lineupWithTeamRoster, team: { roster: [] } },
+    playerWithEveryImage,
+    steamId,
+    "api.example",
+  ),
+  "https://api.example/avatars/general-roster.webp",
+);
+assert.equal(
+  resolveMatchPlayerAvatarUrl(
+    tournamentMatch,
+    { ...lineupWithTeamRoster, team: { roster: [] } },
+    { ...playerWithEveryImage, roster_image_url: null },
+    steamId,
+    "api.example",
+  ),
+  "https://api.example/avatars/custom.webp",
+);
+assert.equal(
+  resolveMatchPlayerAvatarUrl(
+    tournamentMatch,
+    { ...lineupWithTeamRoster, team: { roster: [] } },
+    {
+      ...playerWithEveryImage,
+      roster_image_url: null,
+      custom_avatar_url: null,
+    },
+    steamId,
+    "api.example",
+  ),
+  "https://steam.example/avatar.jpg",
 );
 
 console.log("matchAllowsRosterImage checks passed");

@@ -1,18 +1,19 @@
 <script lang="ts" setup>
 import { computed } from "vue";
-import { resolveAvatarUrl } from "~/utilities/avatarUrl";
+import { resolveMatchPlayerAvatarUrl } from "~/utilities/teamRosterOverride";
 import AnimatedStat from "~/components/AnimatedStat.vue";
 import { formatClutchRoundLabel } from "~/utilities/matchMapScope";
 
 const apiDomain = useRuntimeConfig().public.apiDomain;
 
-function memberAvatarSrc(member: any, override: string | null | undefined) {
-  if (override) return resolveAvatarUrl(override, apiDomain);
-  const url =
-    member?.player?.roster_image_url ||
-    member?.player?.custom_avatar_url ||
-    member?.player?.avatar_url;
-  return resolveAvatarUrl(url, apiDomain);
+function memberAvatarSrc(member: any) {
+  return resolveMatchPlayerAvatarUrl(
+    props.match,
+    props.lineup,
+    member?.player,
+    member?.steam_id,
+    apiDomain,
+  );
 }
 
 function memberName(member: any): string {
@@ -32,9 +33,9 @@ type Clutch = {
 };
 
 const props = defineProps<{
+  match: any;
   lineup: any;
   clutches: Clutch[];
-  avatarOverride: (steamId: string | number) => string | null;
   selectedMapId?: string | null;
 }>();
 
@@ -167,12 +168,8 @@ const outcomeClass = (outcome: ClutchOutcome) => {
           class="flex flex-col items-center gap-1 pb-2 border-b border-border/40 text-center min-w-0"
         >
           <img
-            v-if="
-              memberAvatarSrc(col.member, avatarOverride(col.member.steam_id))
-            "
-            :src="
-              memberAvatarSrc(col.member, avatarOverride(col.member.steam_id))!
-            "
+            v-if="memberAvatarSrc(col.member)"
+            :src="memberAvatarSrc(col.member)!"
             :alt="memberName(col.member)"
             class="w-8 h-8 rounded-full object-cover"
           />

@@ -127,7 +127,7 @@ import { useMatchSide } from "~/composables/useMatchSide";
 import { useOpeningDuelsColumns } from "~/composables/useMatchTableColumns";
 import { useCurrentUserRow } from "~/composables/useCurrentUserRow";
 import {
-  buildLineupAvatarOverride,
+  buildMatchLineupAvatarOverride,
   matchAllowsRosterImage,
 } from "~/utilities/teamRosterOverride";
 
@@ -279,8 +279,14 @@ export default {
       (event.target as HTMLImageElement).style.display = "none";
     },
     avatarOverrideFor(steamId: string | number | null | undefined) {
-      const lineup1Override = buildLineupAvatarOverride(this.match?.lineup_1);
-      const lineup2Override = buildLineupAvatarOverride(this.match?.lineup_2);
+      const lineup1Override = buildMatchLineupAvatarOverride(
+        this.match,
+        this.match?.lineup_1,
+      );
+      const lineup2Override = buildMatchLineupAvatarOverride(
+        this.match,
+        this.match?.lineup_2,
+      );
       return lineup1Override(steamId) ?? lineup2Override(steamId);
     },
   },

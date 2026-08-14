@@ -7,7 +7,7 @@ import {
 } from "~/generated/zeus";
 import { useSidebar } from "../ui/sidebar";
 import {
-  buildLineupAvatarOverride,
+  buildMatchLineupAvatarOverride,
   matchAllowsRosterImage,
 } from "~/utilities/teamRosterOverride";
 import { Crown } from "lucide-vue-next";
@@ -199,7 +199,7 @@ export default {
           (lp: any) => String(lp.steam_id) === String(steamId),
         );
         if (!inLineup) continue;
-        return buildLineupAvatarOverride(lineup)(steamId);
+        return buildMatchLineupAvatarOverride(this.match, lineup)(steamId);
       }
       return null;
     },

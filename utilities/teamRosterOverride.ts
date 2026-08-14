@@ -1,3 +1,5 @@
+import { resolveAvatarUrl } from "./avatarUrl";
+
 interface RosterEntry {
   player_steam_id: string | number;
   roster_image_url?: string | null;
@@ -51,4 +53,41 @@ export function matchAllowsRosterImage(
   match: MatchLike | null | undefined,
 ): boolean {
   return !!(match?.is_tournament_match || match?.tournament_brackets?.length);
+}
+
+export function buildMatchLineupAvatarOverride(
+  match: MatchLike | null | undefined,
+  lineup: LineupLike | null | undefined,
+): AvatarOverrideLookup {
+  if (!matchAllowsRosterImage(match)) return NOOP;
+  return buildLineupAvatarOverride(lineup);
+}
+
+interface MatchPlayerLike {
+  steam_id?: string | number | null;
+  roster_image_url?: string | null;
+  custom_avatar_url?: string | null;
+  avatar_url?: string | null;
+}
+
+// Direct match-stat image renderers do not go through PlayerDisplay, so they
+// must apply the same match-aware portrait policy themselves. Draft/MM stays
+// avatar-only even if its lineup unexpectedly carries real team data.
+export function resolveMatchPlayerAvatarUrl(
+  match: MatchLike | null | undefined,
+  lineup: LineupLike | null | undefined,
+  player: MatchPlayerLike | null | undefined,
+  steamId: string | number | null | undefined,
+  apiDomain: string | null | undefined,
+): string | null {
+  const allowRosterImage = matchAllowsRosterImage(match);
+  const teamRosterImage = allowRosterImage
+    ? buildLineupAvatarOverride(lineup)(steamId ?? player?.steam_id)
+    : null;
+  const path =
+    teamRosterImage ||
+    (allowRosterImage ? player?.roster_image_url : null) ||
+    player?.custom_avatar_url ||
+    player?.avatar_url;
+  return resolveAvatarUrl(path, apiDomain);
 }

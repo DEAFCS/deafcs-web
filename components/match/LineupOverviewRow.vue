@@ -14,8 +14,7 @@ import {
 } from "~/components/ui/hover-card";
 import { useOverviewColumns } from "~/composables/useMatchTableColumns";
 import { useCurrentUserRow } from "~/composables/useCurrentUserRow";
-import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
-import { resolveAvatarUrl } from "~/utilities/avatarUrl";
+import { resolveMatchPlayerAvatarUrl } from "~/utilities/teamRosterOverride";
 import {
   ArrowLeftRight,
   Crown,
@@ -832,21 +831,11 @@ export default {
       const steamId = this.member?.player?.steam_id;
       if (!steamId) return null;
       const apiDomain = useRuntimeConfig().public.apiDomain;
-      const lineups = [this.match?.lineup_1, this.match?.lineup_2].filter(
-        Boolean,
-      );
-      for (const lineup of lineups) {
-        const inLineup = lineup.lineup_players?.some(
-          (lp: any) => String(lp.steam_id) === String(steamId),
-        );
-        if (!inLineup) continue;
-        const override = buildLineupAvatarOverride(lineup)(steamId);
-        if (override) return resolveAvatarUrl(override, apiDomain);
-      }
-      return resolveAvatarUrl(
-        this.member.player.roster_image_url ||
-          this.member.player.custom_avatar_url ||
-          this.member.player.avatar_url,
+      return resolveMatchPlayerAvatarUrl(
+        this.match,
+        this.lineup,
+        this.member.player,
+        steamId,
         apiDomain,
       );
     },

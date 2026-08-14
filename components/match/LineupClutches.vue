@@ -3,7 +3,6 @@ import { computed, ref, watch, onUnmounted } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 import ClutchTeamPanel from "~/components/match/ClutchTeamPanel.vue";
-import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
 import { useMatchSide } from "~/composables/useMatchSide";
 import mapLabel from "~/utilities/mapLabel";
 
@@ -28,13 +27,6 @@ const props = defineProps<{
 
 const side = useMatchSide();
 const { t } = useI18n();
-
-const lineup1AvatarOverride = computed(() =>
-  buildLineupAvatarOverride(props.lineup1),
-);
-const lineup2AvatarOverride = computed(() =>
-  buildLineupAvatarOverride(props.lineup2),
-);
 
 // Clutches detected on the backend (v_match_clutches); the client only groups
 // by lineup and applies the map + side filter.
@@ -131,14 +123,14 @@ const clutchesByLineup = computed<Record<string, Clutch[]>>(() => {
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
     <ClutchTeamPanel
       :lineup="lineup1"
+      :match="match"
       :clutches="clutchesByLineup[lineup1.id] || []"
-      :avatar-override="lineup1AvatarOverride"
       :selected-map-id="selectedMapId"
     />
     <ClutchTeamPanel
       :lineup="lineup2"
+      :match="match"
       :clutches="clutchesByLineup[lineup2.id] || []"
-      :avatar-override="lineup2AvatarOverride"
       :selected-map-id="selectedMapId"
     />
   </div>

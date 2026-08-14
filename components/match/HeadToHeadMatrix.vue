@@ -5,10 +5,10 @@ import gql from "graphql-tag";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import AnimatedStat from "~/components/AnimatedStat.vue";
 import {
-  buildLineupAvatarOverride,
+  buildMatchLineupAvatarOverride,
   matchAllowsRosterImage,
+  resolveMatchPlayerAvatarUrl,
 } from "~/utilities/teamRosterOverride";
-import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 type Pair = {
   attacker_steam_id: string;
@@ -78,8 +78,12 @@ onUnmounted(() => killPairsSub?.unsubscribe());
 
 const lineup1 = computed(() => props.match.lineup_1);
 const lineup2 = computed(() => props.match.lineup_2);
-const avatar1 = computed(() => buildLineupAvatarOverride(lineup1.value));
-const avatar2 = computed(() => buildLineupAvatarOverride(lineup2.value));
+const avatar1 = computed(() =>
+  buildMatchLineupAvatarOverride(props.match, lineup1.value),
+);
+const avatar2 = computed(() =>
+  buildMatchLineupAvatarOverride(props.match, lineup2.value),
+);
 
 const lineup1Players = computed(() => lineup1.value?.lineup_players ?? []);
 const lineup2Players = computed(() => lineup2.value?.lineup_players ?? []);
@@ -94,13 +98,14 @@ function avatarFor(steamId: string | null) {
   return null;
 }
 
-function memberAvatarSrc(member: any, override: string | null | undefined) {
-  if (override) return resolveAvatarUrl(override, apiDomain);
-  const url =
-    member?.player?.roster_image_url ||
-    member?.player?.custom_avatar_url ||
-    member?.player?.avatar_url;
-  return resolveAvatarUrl(url, apiDomain);
+function memberAvatarSrc(member: any, lineup: any) {
+  return resolveMatchPlayerAvatarUrl(
+    props.match,
+    lineup,
+    member?.player,
+    member?.steam_id,
+    apiDomain,
+  );
 }
 
 function nameOf(member: any): string {
@@ -316,8 +321,8 @@ function damageWidth(v: number) {
             @click="selectedA = String(m.steam_id)"
           >
             <img
-              v-if="memberAvatarSrc(m, avatarFor(String(m.steam_id)))"
-              :src="memberAvatarSrc(m, avatarFor(String(m.steam_id)))!"
+              v-if="memberAvatarSrc(m, lineup1)"
+              :src="memberAvatarSrc(m, lineup1)!"
               :alt="nameOf(m)"
               class="w-10 h-10 rounded-full object-cover transition-transform group-hover:scale-105"
               :class="
@@ -366,8 +371,8 @@ function damageWidth(v: number) {
             @click="selectedB = String(m.steam_id)"
           >
             <img
-              v-if="memberAvatarSrc(m, avatarFor(String(m.steam_id)))"
-              :src="memberAvatarSrc(m, avatarFor(String(m.steam_id)))!"
+              v-if="memberAvatarSrc(m, lineup2)"
+              :src="memberAvatarSrc(m, lineup2)!"
               :alt="nameOf(m)"
               class="w-10 h-10 rounded-full object-cover transition-transform group-hover:scale-105"
               :class="
