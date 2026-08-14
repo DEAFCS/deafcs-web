@@ -360,7 +360,11 @@ const visibleTileCount = computed(() =>
         :key="p.steamId"
         class="relative aspect-video rounded-lg overflow-hidden bg-black border border-zinc-800"
       >
-        <WhepPlayer :whep-url="lobbyCallPeerWhepUrl(lobbyId, p.steamId)" :muted="false" />
+        <WhepPlayer
+          :whep-url="lobbyCallPeerWhepUrl(lobbyId, p.steamId)"
+          :muted="false"
+          object-fit="cover"
+        />
         <span
           class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5 truncate max-w-[80%]"
         >

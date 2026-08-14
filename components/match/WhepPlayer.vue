@@ -25,6 +25,15 @@ const props = defineProps<{
   // Opt-in to native Picture-in-Picture. Only enabled for live game
   // streams on mobile — demo playback and highlights stay PIP-locked.
   enablePip?: boolean;
+  // "contain" (default) shows the full frame, letterboxing/pillarboxing
+  // whatever doesn't match the tile's shape -- right for game streams,
+  // where cropping could cut off UI. "cover" fills the tile completely
+  // instead, cropping the overflow -- used by the lobby-call desktop
+  // grid so a portrait phone stream doesn't sit pillarboxed in a
+  // landscape tile (Discord-style fill). Purely how *this viewer*
+  // renders the already-received video; doesn't touch the publisher's
+  // capture settings at all.
+  objectFit?: "contain" | "cover";
 }>();
 
 const videoRef = ref<HTMLVideoElement | null>(null);
@@ -662,7 +671,8 @@ defineExpose({ connect, teardown });
     <video
       v-show="!useFallback"
       ref="videoRef"
-      class="absolute inset-0 h-full w-full object-contain"
+      class="absolute inset-0 h-full w-full"
+      :class="props.objectFit === 'cover' ? 'object-cover' : 'object-contain'"
       autoplay
       muted
       playsinline
