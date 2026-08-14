@@ -294,7 +294,13 @@ function updateOrientation() {
 
 const totalTileCount = computed(() => otherParticipants.value.length + 1);
 const gridColumns = computed(() => {
-  if (totalTileCount.value <= 2) return 1;
+  // 2 tiles is orientation-aware too, not just a flat "1 column":
+  // stacked (1 col) makes sense in portrait (narrow, tall screen), but
+  // the same 1-column stack in landscape turns each tile into a very
+  // wide, short box -- object-cover then has to crop hard vertically
+  // to fill that shape, cutting off foreheads/chins. Side-by-side (2
+  // col) in landscape keeps each tile a reasonable shape instead.
+  if (totalTileCount.value <= 2) return isPortrait.value ? 1 : 2;
   return isPortrait.value ? 2 : 3;
 });
 
