@@ -12,10 +12,12 @@ import {
   Trophy,
   Globe,
   X,
+  Video,
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
+import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import { markDirectMessagesRead } from "~/composables/useIncomingDirectMessages";
 import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
@@ -30,6 +32,8 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const router = useRouter();
+
+const showLobbyCallPanel = ref(false);
 
 const {
   tabs,
@@ -648,6 +652,28 @@ function handlePopOut() {
           </div>
           <div class="flex items-center gap-1.5">
             <TooltipProvider>
+              <Tooltip v-if="activeTab?.id?.startsWith('matchmaking:')">
+                <TooltipTrigger as-child>
+                  <button
+                    type="button"
+                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors"
+                    :class="
+                      showLobbyCallPanel
+                        ? 'border-[hsl(var(--tac-amber))]/50 bg-[hsl(var(--tac-amber))]/10 text-[hsl(var(--tac-amber))]'
+                        : 'border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    "
+                    @click="showLobbyCallPanel = !showLobbyCallPanel"
+                  >
+                    <Video class="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-1.5 text-[11px]"
+                >
+                  {{ $t("matchmaking.lobby_call.tooltip", "Webcam call") }}
+                </TooltipContent>
+              </Tooltip>
               <Tooltip>
                 <TooltipTrigger as-child>
                   <button
@@ -669,6 +695,11 @@ function handlePopOut() {
             </TooltipProvider>
           </div>
         </div>
+
+        <LobbyCallPanel
+          v-if="activeTab?.id?.startsWith('matchmaking:') && showLobbyCallPanel"
+          :lobby-id="activeTab.lobbyId"
+        />
 
         <div
           v-if="isParticipantsOpen && activeParticipants.length"

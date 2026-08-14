@@ -5669,6 +5669,16 @@
       "invited": "Invited",
       "waiting_for_players": "Waiting for players to join your lobby. Use the Invite button above to add friends."
     },
+    "lobby_call": {
+      "tooltip": "Webcam call",
+      "you": "You",
+      "in_call": "{count} in call",
+      "no_call": "No active call",
+      "in_call_label": "In call",
+      "join": "Join call",
+      "start": "Start webcam call",
+      "choose_device": "Connect with…"
+    },
     "friends": {
       "title": "Friends",
       "sync": "Sync",
