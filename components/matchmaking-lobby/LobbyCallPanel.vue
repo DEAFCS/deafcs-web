@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, watch } from "vue";
 import { Button } from "~/components/ui/button";
 import { LucideVideo, LucidePhoneIncoming } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
@@ -11,21 +11,34 @@ import {
 // Optional (never forced) multi-party webcam call for a matchmaking
 // queue lobby -- distinct from the tournament required-webcam feature
 // (no blocking overlay here, this is purely opt-in). Stays deliberately
-// slim: this panel only tracks who's in the call and shows the
-// Facebook-style "X is calling" popup. The actual video grid + QR/PC
-// join flow lives in a dedicated popout window (opened by ChatPanel.vue)
-// because the narrow chat sidebar column is too cramped for video tiles.
+// slim: this panel only tracks who's in the call, shows the
+// Facebook-style "X is calling" popup, and (only while a call is
+// actually live) a "N in call — Join" banner. There's no "Start webcam
+// call" button here anymore -- the header webcam icon in ChatPanel.vue
+// is the single, single-click entry point for starting one. The actual
+// video grid + QR/PC join flow lives in a dedicated popout window
+// (opened by ChatPanel.vue) because the narrow chat sidebar column is
+// too cramped for video tiles.
 const props = withDefaults(
   defineProps<{ lobbyId: string; showBar?: boolean }>(),
   { showBar: true },
 );
-const emit = defineEmits<{ (e: "open-call"): void }>();
+const emit = defineEmits<{
+  (e: "open-call"): void;
+  (e: "status", payload: { count: number; isInCall: boolean }): void;
+}>();
 
 const me = computed(() => useAuthStore().me);
 
 const participants = ref<LobbyCallParticipant[]>([]);
 const isInCall = computed(() =>
   participants.value.some((p) => p.steamId === String(me.value?.steam_id)),
+);
+
+watch(
+  participants,
+  () => emit("status", { count: participants.value.length, isInCall: isInCall.value }),
+  { immediate: true },
 );
 
 async function refreshParticipants() {
@@ -121,39 +134,27 @@ defineExpose({ participants, isInCall });
       </div>
     </Transition>
 
-    <!-- Compact status bar -- the actual video grid always lives in the
-         popout window ChatPanel.vue opens via the webcam header button.
+    <!-- Ongoing-call banner -- only rendered while a call is actually
+         live, so it never competes with an idle chat for attention.
          Hidden (but the popup/socket listeners above stay live) while
          the matchmaking tab isn't the active one. -->
-    <div
-      v-if="showBar"
-      class="px-2 py-1.5 flex items-center justify-between gap-2 border-b border-zinc-800 bg-zinc-950"
+    <button
+      v-if="showBar && participants.length && !isInCall"
+      type="button"
+      class="w-full flex items-center justify-between gap-2 px-3 py-2 border-b border-[hsl(var(--tac-amber))]/40 bg-[hsl(var(--tac-amber))]/10 hover:bg-[hsl(var(--tac-amber))]/15 transition-colors text-left"
+      @click="emit('open-call')"
     >
-      <span v-if="participants.length" class="text-[11px] text-muted-foreground">
+      <span class="flex items-center gap-2 text-xs font-medium text-[hsl(var(--tac-amber))]">
+        <LucideVideo class="h-3.5 w-3.5" />
         {{
           $t("matchmaking.lobby_call.in_call", "{count} in call", {
             count: participants.length,
           })
         }}
       </span>
-      <span v-else class="text-[11px] text-muted-foreground">
-        {{ $t("matchmaking.lobby_call.no_call", "No active call") }}
+      <span class="text-xs font-semibold text-[hsl(var(--tac-amber))] underline underline-offset-2">
+        {{ $t("matchmaking.lobby_call.join", "Join call") }}
       </span>
-      <Button
-        size="xs"
-        :variant="isInCall ? 'secondary' : 'default'"
-        class="h-7 gap-1.5 text-[11px]"
-        @click="emit('open-call')"
-      >
-        <LucideVideo class="h-3.5 w-3.5" />
-        {{
-          isInCall
-            ? $t("matchmaking.lobby_call.in_call_label", "In call")
-            : participants.length
-              ? $t("matchmaking.lobby_call.join", "Join call")
-              : $t("matchmaking.lobby_call.start", "Start webcam call")
-        }}
-      </Button>
-    </div>
+    </button>
   </div>
 </template>

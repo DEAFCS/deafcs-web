@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, onBeforeUnmount, watch } from "vue";
+import { ref, computed, reactive, onMounted, onBeforeUnmount, watch, nextTick } from "vue";
 import QRCode from "qrcode";
 import { Button } from "~/components/ui/button";
 import WhepPlayer from "~/components/match/WhepPlayer.vue";
@@ -113,6 +113,14 @@ async function connectThisComputer() {
       audio: true,
     });
     camStream = stream;
+    // The <video> preview only exists in the DOM once publishingLocally
+    // is true (it's behind a v-if) -- assigning srcObject before that
+    // flips true is a silent no-op (previewEl.value is still null),
+    // which is exactly why the local preview showed a black screen
+    // while the remote side could see the stream fine. Flip the flag
+    // and wait a tick for Vue to mount the element first.
+    publishingLocally.value = true;
+    await nextTick();
     if (previewEl.value) previewEl.value.srcObject = stream;
 
     const pc = new RTCPeerConnection({
@@ -140,7 +148,6 @@ async function connectThisComputer() {
     const answer = await res.text();
     await pc.setRemoteDescription({ type: "answer", sdp: answer });
 
-    publishingLocally.value = true;
     step.value = "in-call";
     pollStatus(token);
   } catch (err) {

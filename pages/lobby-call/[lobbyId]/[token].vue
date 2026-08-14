@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { ref, onBeforeUnmount, onMounted } from "vue";
+import { ref, computed, onBeforeUnmount } from "vue";
+import { LucideX, LucideMicOff, LucideMic } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
-import { LucideX, LucideCheck, LucideMicOff, LucideMic } from "lucide-vue-next";
 import {
   lobbyCallPlayerWhipUrl,
   lobbyCallPlayerStatusUrl,
   lobbyCallPlayerHangupUrl,
+  lobbyCallPlayerPeerWhepUrl,
   fetchLobbyCallStatus,
+  fetchLobbyCallParticipantsForToken,
+  type LobbyCallParticipant,
 } from "~/composables/useLobbyCallApi";
 
 // Standalone, chrome-free tool page -- reached by scanning the QR code
 // with a phone, or via the "connect on this computer" popup, exactly
-// like the required-webcam feature's join page. Publishes both video
-// and audio (this is a real call between players, not just a presence
-// check the required-webcam feature does).
+// like the required-webcam feature's join page. UNLIKE that feature
+// (a one-way publish-only feed the admin watches), this is a real
+// two-way call between lobby members: this page both publishes the
+// phone's own camera AND pulls video for everyone else currently in
+// the call, same as the desktop popout window does.
 definePageMeta({ layout: false });
 
 const route = useRoute();
@@ -24,6 +29,7 @@ type Phase = "idle" | "requesting" | "connected" | "error";
 const phase = ref<Phase>("idle");
 const errorMessage = ref<string | null>(null);
 const muted = ref(false);
+const mySteamId = ref<string | null>(null);
 
 const previewEl = ref<HTMLVideoElement | null>(null);
 let camStream: MediaStream | null = null;
@@ -87,6 +93,7 @@ async function startCall() {
 
     phase.value = "connected";
     pollStatus();
+    pollParticipants();
   } catch (err) {
     phase.value = "error";
     errorMessage.value = err instanceof Error ? err.message : String(err);
@@ -95,7 +102,10 @@ async function startCall() {
 
 function pollStatus() {
   statusPollTimer = setTimeout(async () => {
-    const { ready } = await fetchLobbyCallStatus(lobbyCallPlayerStatusUrl(token.value));
+    const { ready, steamId } = await fetchLobbyCallStatus(
+      lobbyCallPlayerStatusUrl(token.value),
+    );
+    if (steamId) mySteamId.value = steamId;
     if (!ready && phase.value === "connected") {
       phase.value = "error";
       errorMessage.value = "Connection dropped — tap Join call to reconnect.";
@@ -117,6 +127,7 @@ function teardownStream() {
     clearTimeout(statusPollTimer);
     statusPollTimer = null;
   }
+  stopParticipantsPolling();
   if (camPc) {
     camPc.close();
     camPc = null;
@@ -138,6 +149,92 @@ async function leaveCall() {
   }
 }
 
+// --- Everyone else currently in the call (WHEP pull, token-gated) ---
+// No websocket on this anonymous device (never logged into deafcs.net),
+// so participants are polled on an interval instead of pushed.
+const participants = ref<LobbyCallParticipant[]>([]);
+const tileRefs = ref<Record<string, HTMLVideoElement | null>>({});
+const activePeerConnections = new Map<string, RTCPeerConnection>();
+let participantsPollTimer: ReturnType<typeof setTimeout> | null = null;
+
+const otherParticipants = computed(() =>
+  participants.value.filter((p) => p.steamId !== mySteamId.value),
+);
+
+function setTileRef(steamId: string) {
+  return (el: any) => {
+    tileRefs.value[steamId] = el as HTMLVideoElement | null;
+  };
+}
+
+async function connectTile(steamId: string) {
+  if (activePeerConnections.has(steamId)) return;
+  const pc = new RTCPeerConnection({
+    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  });
+  activePeerConnections.set(steamId, pc);
+  pc.addTransceiver("video", { direction: "recvonly" });
+  pc.addTransceiver("audio", { direction: "recvonly" });
+  pc.ontrack = (e) => {
+    const el = tileRefs.value[steamId];
+    if (el) el.srcObject = e.streams[0];
+  };
+  try {
+    const offer = await pc.createOffer();
+    await pc.setLocalDescription(offer);
+    await new Promise<void>((resolve) => {
+      if (pc.iceGatheringState === "complete") return resolve();
+      pc.addEventListener("icegatheringstatechange", () => {
+        if (pc.iceGatheringState === "complete") resolve();
+      });
+      setTimeout(resolve, 1500);
+    });
+    const res = await fetch(lobbyCallPlayerPeerWhepUrl(token.value, steamId), {
+      method: "POST",
+      headers: { "Content-Type": "application/sdp" },
+      body: pc.localDescription?.sdp ?? "",
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const answer = await res.text();
+    await pc.setRemoteDescription({ type: "answer", sdp: answer });
+  } catch {
+    disconnectTile(steamId);
+  }
+}
+
+function disconnectTile(steamId: string) {
+  const pc = activePeerConnections.get(steamId);
+  if (pc) {
+    pc.close();
+    activePeerConnections.delete(steamId);
+  }
+  const el = tileRefs.value[steamId];
+  if (el) el.srcObject = null;
+}
+
+function pollParticipants() {
+  participantsPollTimer = setTimeout(async () => {
+    participants.value = await fetchLobbyCallParticipantsForToken(token.value);
+    const otherIds = new Set(otherParticipants.value.map((p) => p.steamId));
+    for (const id of otherIds) {
+      if (!activePeerConnections.has(id)) connectTile(id);
+    }
+    for (const id of [...activePeerConnections.keys()]) {
+      if (!otherIds.has(id)) disconnectTile(id);
+    }
+    if (phase.value === "connected") pollParticipants();
+  }, 2500);
+}
+
+function stopParticipantsPolling() {
+  if (participantsPollTimer) {
+    clearTimeout(participantsPollTimer);
+    participantsPollTimer = null;
+  }
+  for (const id of [...activePeerConnections.keys()]) disconnectTile(id);
+  participants.value = [];
+}
+
 onBeforeUnmount(() => {
   teardownStream();
 });
@@ -145,10 +242,36 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    class="min-h-screen w-full bg-background text-foreground flex flex-col items-center justify-center gap-6 p-6"
+    class="min-h-screen w-full bg-background text-foreground flex flex-col items-center gap-4 p-4"
   >
     <h1 class="text-lg font-semibold text-center">Lobby webcam call</h1>
 
+    <!-- Everyone else currently in the call -->
+    <div
+      v-if="otherParticipants.length > 0"
+      class="grid gap-2 w-full max-w-lg"
+      :class="otherParticipants.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+    >
+      <div
+        v-for="p in otherParticipants"
+        :key="p.steamId"
+        class="relative aspect-video rounded-lg overflow-hidden bg-black border border-border"
+      >
+        <video
+          :ref="setTileRef(p.steamId)"
+          autoplay
+          playsinline
+          class="w-full h-full object-cover"
+        />
+        <span
+          class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
+        >
+          {{ p.name || p.steamId }}
+        </span>
+      </div>
+    </div>
+
+    <!-- My own camera -->
     <div
       class="relative w-full max-w-[420px] rounded-xl overflow-hidden bg-black border border-border"
     >
@@ -164,6 +287,12 @@ onBeforeUnmount(() => {
         <LucideMicOff v-if="muted" class="w-5 h-5" />
         <LucideMic v-else class="w-5 h-5" />
       </button>
+      <span
+        v-if="phase === 'connected'"
+        class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5"
+      >
+        You
+      </span>
     </div>
 
     <button
@@ -179,12 +308,6 @@ onBeforeUnmount(() => {
 
     <div class="text-center max-w-sm space-y-3">
       <template v-if="phase === 'connected'">
-        <div
-          class="inline-flex items-center gap-2 rounded-full bg-green-600/15 text-green-500 border border-green-600/30 px-3 py-1 text-sm font-medium"
-        >
-          <LucideCheck class="w-4 h-4" />
-          In call
-        </div>
         <p class="text-sm text-muted-foreground font-medium">
           Keep this page open while you're in the call.
         </p>

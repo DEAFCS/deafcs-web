@@ -457,6 +457,11 @@ function handlePopOut() {
 // open tab's socket joined regardless of which one is active, so the
 // "X is calling" popup must listen the same way, or a callee looking
 // at a different tab (e.g. Global chat) would silently miss it.
+const lobbyCallStatus = ref<{ count: number; isInCall: boolean }>({
+  count: 0,
+  isInCall: false,
+});
+
 const matchmakingTab = computed(() =>
   orderedTabs.value.find((t) => t.id.startsWith("matchmaking:")),
 );
@@ -686,17 +691,32 @@ function openLobbyCallWindow() {
                 <TooltipTrigger as-child>
                   <button
                     type="button"
-                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    class="relative inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors"
+                    :class="
+                      lobbyCallStatus.count
+                        ? 'border-[hsl(var(--tac-amber))]/50 bg-[hsl(var(--tac-amber))]/10 text-[hsl(var(--tac-amber))] animate-pulse'
+                        : 'border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    "
                     @click="openLobbyCallWindow"
                   >
                     <Video class="w-3.5 h-3.5" />
+                    <span
+                      v-if="lobbyCallStatus.count"
+                      class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] text-black text-[9px] font-bold px-1 min-w-[1.05rem] h-4 leading-none"
+                    >
+                      {{ lobbyCallStatus.count }}
+                    </span>
                   </button>
                 </TooltipTrigger>
                 <TooltipContent
                   side="bottom"
                   class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-1.5 text-[11px]"
                 >
-                  {{ $t("matchmaking.lobby_call.tooltip", "Webcam call") }}
+                  {{
+                    lobbyCallStatus.count
+                      ? $t("matchmaking.lobby_call.join", "Join call")
+                      : $t("matchmaking.lobby_call.tooltip", "Webcam call")
+                  }}
                 </TooltipContent>
               </Tooltip>
               <Tooltip>
@@ -733,6 +753,7 @@ function openLobbyCallWindow() {
           :lobby-id="matchmakingTab.lobbyId"
           :show-bar="activeTab?.id === matchmakingTab.id"
           @open-call="openLobbyCallWindow"
+          @status="lobbyCallStatus = $event"
         />
 
 
