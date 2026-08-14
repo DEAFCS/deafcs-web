@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { LucideX, LucideMicOff, LucideMic, LucideRefreshCw } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import {
@@ -92,7 +92,15 @@ async function startCall() {
     const answer = await res.text();
     await pc.setRemoteDescription({ type: "answer", sdp: answer });
 
+    // The "not connected" and "connected" branches render two
+    // different <video ref="previewEl"> elements (mutually exclusive
+    // v-if/v-else), so flipping phase here swaps out the DOM node the
+    // stream was attached to -- same class of bug fixed earlier in the
+    // popout window. Re-attach after Vue mounts the new element.
     phase.value = "connected";
+    await nextTick();
+    if (previewEl.value) previewEl.value.srcObject = camStream;
+
     pollStatus();
     pollParticipants();
   } catch (err) {
@@ -267,7 +275,35 @@ function stopParticipantsPolling() {
   participants.value = [];
 }
 
+// --- Grid layout: every tile (including my own camera) the same size,
+// none overlapping -- replaces the old "big self + small floating PiP"
+// layout, which looked broken in portrait and covered another tile in
+// landscape. Column count adapts to both orientation (more columns
+// fit in landscape) and headcount (fewer people => fewer columns =>
+// bigger tiles, same idea as the required-webcam admin grid but tuned
+// per-orientation for a phone).
+const isPortrait = ref(true);
+function updateOrientation() {
+  isPortrait.value =
+    typeof window !== "undefined" &&
+    window.matchMedia("(orientation: portrait)").matches;
+}
+
+const totalTileCount = computed(() => otherParticipants.value.length + 1);
+const gridColumns = computed(() => {
+  if (totalTileCount.value <= 2) return 1;
+  return isPortrait.value ? 2 : 3;
+});
+
+onMounted(() => {
+  updateOrientation();
+  window.addEventListener("resize", updateOrientation);
+  window.addEventListener("orientationchange", updateOrientation);
+});
+
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateOrientation);
+  window.removeEventListener("orientationchange", updateOrientation);
   teardownStream();
 });
 </script>
@@ -285,56 +321,40 @@ onBeforeUnmount(() => {
       Lobby webcam call
     </h1>
 
-    <!-- Video area -- everyone else + my own camera. `relative` here
-         (not on the whole page) so my own PiP anchors to this box, not
-         to the bottom of the entire viewport. -->
-    <div class="relative flex-1 min-h-0 flex flex-col">
-      <!-- Everyone else currently in the call -- the main event once
-           connected, same layout every video-call app uses: you watch
-           the other person, not yourself. -->
+    <!-- Video area -- everyone else + my own camera as EQUAL grid
+         tiles, none overlapping (replaces the old "big self + small
+         floating PiP" layout, which looked broken in portrait and
+         covered another tile in landscape). Column count adapts to
+         orientation (more columns fit in landscape) and headcount
+         (fewer people => fewer columns => bigger tiles). My own tile
+         is always in the DOM (never v-if'd) so the srcObject
+         assignment above never silently no-ops against a not-yet-
+         mounted element -- it's just one more grid cell now instead
+         of a specially-positioned box. -->
+    <div
+      v-if="phase === 'connected'"
+      class="grid gap-2 flex-1 min-h-0 auto-rows-fr"
+      :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
+    >
       <div
-        v-if="phase === 'connected' && otherParticipants.length > 0"
-        class="grid gap-2 flex-1 min-h-0"
-        :class="otherParticipants.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+        v-for="p in otherParticipants"
+        :key="p.steamId"
+        class="relative rounded-lg overflow-hidden bg-black border border-border"
       >
-        <div
-          v-for="p in otherParticipants"
-          :key="p.steamId"
-          class="relative rounded-lg overflow-hidden bg-black border border-border"
+        <video
+          :ref="setTileRef(p.steamId)"
+          autoplay
+          playsinline
+          class="w-full h-full object-cover"
+        />
+        <span
+          class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
         >
-          <video
-            :ref="setTileRef(p.steamId)"
-            autoplay
-            playsinline
-            class="w-full h-full object-cover"
-          />
-          <span
-            class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
-          >
-            {{ p.name || p.steamId }}
-          </span>
-        </div>
-      </div>
-      <div
-        v-else-if="phase === 'connected'"
-        class="flex-1 min-h-0 rounded-lg border border-dashed border-border flex items-center justify-center text-sm text-muted-foreground"
-      >
-        Waiting for others to join…
+          {{ p.name || p.steamId }}
+        </span>
       </div>
 
-      <!-- My own camera -- fills the whole video area before/while
-           joining, small corner PiP (FaceTime-style) once connected and
-           someone else is visible above. Always in the DOM (never
-           v-if'd) so the srcObject assignment above never silently
-           no-ops against a not-yet-mounted element. -->
-      <div
-        class="overflow-hidden bg-black border border-border"
-        :class="
-          phase === 'connected' && otherParticipants.length > 0
-            ? 'absolute bottom-2 right-2 w-[26%] max-w-[130px] aspect-[3/4] rounded-lg border-2 border-white shadow-lg z-10'
-            : 'absolute inset-0 rounded-xl'
-        "
-      >
+      <div class="relative rounded-lg overflow-hidden bg-black border border-border">
         <video
           ref="previewEl"
           autoplay
@@ -342,47 +362,54 @@ onBeforeUnmount(() => {
           muted
           class="w-full h-full object-cover"
         />
-
-        <!-- FaceTime-style corner controls on my own video, always here
-             (not a separate row below) -- just shrink with the PiP. -->
         <button
-          v-if="phase === 'connected'"
           type="button"
           :title="muted ? 'Unmute' : 'Mute'"
-          class="absolute z-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-          :class="
-            otherParticipants.length
-              ? 'top-1 right-1 w-6 h-6'
-              : 'top-2.5 right-2.5 w-10 h-10'
-          "
+          class="absolute top-1 right-1 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
           @click="toggleMute"
         >
-          <LucideMicOff v-if="muted" :class="otherParticipants.length ? 'w-3 h-3' : 'w-5 h-5'" />
-          <LucideMic v-else :class="otherParticipants.length ? 'w-3 h-3' : 'w-5 h-5'" />
+          <LucideMicOff v-if="muted" class="w-3 h-3" />
+          <LucideMic v-else class="w-3 h-3" />
         </button>
-
         <button
           type="button"
           title="Switch camera"
           aria-label="Switch camera"
-          class="absolute z-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-          :class="
-            phase === 'connected' && otherParticipants.length
-              ? 'top-1 left-1 w-6 h-6'
-              : 'top-2.5 left-2.5 w-10 h-10'
-          "
+          class="absolute top-1 left-1 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
           @click="flipCamera"
         >
-          <LucideRefreshCw :class="phase === 'connected' && otherParticipants.length ? 'w-3 h-3' : 'w-5 h-5'" />
+          <LucideRefreshCw class="w-3 h-3" />
         </button>
-
         <span
-          v-if="phase === 'connected' && !otherParticipants.length"
-          class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5"
+          class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5"
         >
           You
         </span>
       </div>
+    </div>
+
+    <!-- Not connected yet -- just my own camera preview, full-size,
+         same video element as above (kept mounted throughout). -->
+    <div
+      v-else
+      class="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black border border-border"
+    >
+      <video
+        ref="previewEl"
+        autoplay
+        playsinline
+        muted
+        class="w-full h-full object-cover"
+      />
+      <button
+        type="button"
+        title="Switch camera"
+        aria-label="Switch camera"
+        class="absolute top-2.5 left-2.5 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+        @click="flipCamera"
+      >
+        <LucideRefreshCw class="w-5 h-5" />
+      </button>
     </div>
 
     <!-- Controls -->
