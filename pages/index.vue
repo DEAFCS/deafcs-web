@@ -28,10 +28,44 @@ import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
+import {
+  HOMEPAGE_DESCRIPTION,
+  HOMEPAGE_STRUCTURED_DATA,
+  HOMEPAGE_TITLE,
+  HOMEPAGE_URL,
+  SITE_LOGO_URL,
+  SITE_NAME,
+} from "~/utilities/seo";
 
 definePageMeta({
   layout: "default",
   pageTransition: { name: "page", mode: "out-in" },
+});
+
+useSeoMeta({
+  title: HOMEPAGE_TITLE,
+  description: HOMEPAGE_DESCRIPTION,
+  ogTitle: HOMEPAGE_TITLE,
+  ogDescription: HOMEPAGE_DESCRIPTION,
+  ogSiteName: SITE_NAME,
+  ogUrl: HOMEPAGE_URL,
+  ogImage: SITE_LOGO_URL,
+  ogImageAlt: SITE_NAME,
+  twitterCard: "summary",
+  twitterTitle: HOMEPAGE_TITLE,
+  twitterDescription: HOMEPAGE_DESCRIPTION,
+  twitterImage: SITE_LOGO_URL,
+});
+
+useHead({
+  titleTemplate: null,
+  link: [{ rel: "canonical", href: HOMEPAGE_URL }],
+  script: [
+    {
+      type: "application/ld+json",
+      innerHTML: JSON.stringify(HOMEPAGE_STRUCTURED_DATA),
+    },
+  ],
 });
 
 const authStore = useAuthStore();

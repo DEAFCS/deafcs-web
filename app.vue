@@ -4,6 +4,7 @@ import { polyfillCountryFlagEmojis } from "country-flag-emoji-polyfill";
 import { useBranding } from "~/composables/useBranding";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useAuthStore } from "~/stores/AuthStore";
+import { SITE_NAME } from "~/utilities/seo";
 
 const MatchmakingConfirm = defineAsyncComponent(
   () => import("~/components/matchmaking/MatchmakingConfirm.vue"),
@@ -38,11 +39,11 @@ const manifestHref =
     : "/branding/manifest.webmanifest";
 
 useHead({
-  title: () => brandName.value || "DEAFCS",
+  title: () => brandName.value || SITE_NAME,
   titleTemplate: (pageTitle?: string) => {
-    const base = brandName.value || "DEAFCS";
+    const base = brandName.value || SITE_NAME;
     if (pageTitle && pageTitle !== base) {
-      return `${base} | ${pageTitle}`;
+      return `${pageTitle} | ${base}`;
     }
     return base;
   },
@@ -51,7 +52,7 @@ useHead({
   meta: [
     {
       name: "apple-mobile-web-app-title",
-      content: () => brandName.value || "DEAFCS",
+      content: () => brandName.value || SITE_NAME,
     },
   ],
 });

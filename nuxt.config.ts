@@ -1,15 +1,15 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 import { fileURLToPath } from "node:url";
 import federation from "@originjs/vite-plugin-federation";
+import {
+  HOMEPAGE_DESCRIPTION,
+  HOMEPAGE_TITLE,
+  HOMEPAGE_URL,
+  SITE_LOGO_URL,
+  SITE_NAME,
+} from "./utilities/seo";
 
 const sw = process.env.SW === "true";
-
-const title = "DEAFCS";
-const description =
-  "DEAFCS is the home of Counter-Strike for the deaf community, featuring Quick Play, cups, leagues, and tournaments.";
-
-const url = "https://deafcs.net";
-const image = `${url}/branding/deafcs-logo.png`;
 
 export default defineNuxtConfig({
   ssr: false,
@@ -26,32 +26,30 @@ export default defineNuxtConfig({
       charset: "utf-8",
       viewport:
         "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
-      title,
-      titleTemplate: (pageTitle?: string) =>
-        pageTitle && pageTitle !== title ? `${pageTitle} | DEAFCS` : title,
+      title: HOMEPAGE_TITLE,
       meta: [
         { name: "color-scheme", content: "dark" },
         { name: "theme-color", content: "#0a0a0b" },
         { name: "robots", content: "index, follow" },
-        { name: "title", content: title },
-        { name: "description", content: description },
-        { name: "site_name", content: "DEAFCS" },
+        { name: "title", content: HOMEPAGE_TITLE },
+        { name: "description", content: HOMEPAGE_DESCRIPTION },
+        { name: "site_name", content: SITE_NAME },
 
         { property: "og:locale", content: "en" },
         { property: "og:type", content: "website" },
 
-        { property: "og:title", content: title },
-        { property: "og:description", content: description },
-        { property: "og:site_name", content: "DEAFCS" },
+        { property: "og:title", content: HOMEPAGE_TITLE },
+        { property: "og:description", content: HOMEPAGE_DESCRIPTION },
+        { property: "og:site_name", content: SITE_NAME },
 
-        { property: "og:url", content: url },
-        { property: "og:image", content: image },
-        { property: "og:image:alt", content: "DEAFCS" },
+        { property: "og:url", content: HOMEPAGE_URL },
+        { property: "og:image", content: SITE_LOGO_URL },
+        { property: "og:image:alt", content: SITE_NAME },
 
         { name: "twitter:card", content: "summary" },
-        { name: "twitter:title", content: title },
-        { name: "twitter:description", content: description },
-        { name: "twitter:image", content: image },
+        { name: "twitter:title", content: HOMEPAGE_TITLE },
+        { name: "twitter:description", content: HOMEPAGE_DESCRIPTION },
+        { name: "twitter:image", content: SITE_LOGO_URL },
       ],
       link: [
         {
