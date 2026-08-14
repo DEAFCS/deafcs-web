@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
-import { LucideX, LucideMicOff, LucideMic, LucideRefreshCw } from "lucide-vue-next";
+import { LucideX, LucideRefreshCw } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import {
   lobbyCallPlayerWhipUrl,
@@ -28,7 +28,6 @@ const token = computed(() => String(route.params.token));
 type Phase = "idle" | "requesting" | "connected" | "error";
 const phase = ref<Phase>("idle");
 const errorMessage = ref<string | null>(null);
-const muted = ref(false);
 const mySteamId = ref<string | null>(null);
 
 const previewEl = ref<HTMLVideoElement | null>(null);
@@ -37,34 +36,40 @@ let camPc: RTCPeerConnection | null = null;
 let facingMode: "user" | "environment" = "user";
 let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 
-// Request a resolution matching the phone's *current* orientation
-// instead of forcing a fixed landscape shape — same fix proven out on
-// the required-webcam feature's join page
-// (pages/matches/[id]/camera/[token].vue). Forcing `aspectRatio: exact
-// 16/9` regardless of how the phone is held isn't reliably honored by
-// iOS Safari's front camera, and even when it partially works it
-// fights the camera driver for no benefit: the grid tiles below use
-// object-cover, which fills the tile from whatever shape the camera
-// actually returns, so there's nothing to letterbox either way.
+// Always request landscape, regardless of how the phone is physically
+// held. Two reasons this beats matching the phone's current
+// orientation:
+// 1. Stability: orientation was only ever checked once, at call start
+//    -- rotating the phone mid-call left the capture shape stuck at
+//    whatever it was when the call began, so a viewer could end up
+//    seeing a portrait-shaped stream sideways-crammed into a landscape
+//    tile. Never asking for portrait removes the mismatch entirely.
+// 2. Android zoom: Chrome on Android crops much more aggressively than
+//    iOS Safari when the requested shape is far from the camera's
+//    native aspect ratio -- a 9:16 portrait request was the extreme
+//    case, producing a heavily "zoomed in" picture on Android phones
+//    that iPhones didn't show. Landscape is closer to most front
+//    cameras' native orientation, which reduces (though may not fully
+//    eliminate -- some of it is a genuine front-camera field-of-view
+//    difference between phone models) that crop.
+// object-cover on the grid tiles below still fills the tile completely
+// either way, so this doesn't reintroduce the old letterboxing bug.
 function videoConstraints(mode: "user" | "environment"): MediaTrackConstraints {
-  const portrait =
-    typeof window !== "undefined" &&
-    window.matchMedia("(orientation: portrait)").matches;
   return {
     facingMode: { ideal: mode },
-    width: { ideal: portrait ? 720 : 1280 },
-    height: { ideal: portrait ? 1280 : 720 },
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
     frameRate: { ideal: 20, max: 25 },
   };
 }
 
-async function getCameraStream(
-  mode: "user" | "environment",
-  audio: boolean,
-): Promise<MediaStream> {
+// No audio: this is a video-only feature for deaf players. Never
+// requesting a mic means there's no track to publish, nothing to mute,
+// and nothing to pull from peers either (see connectTile below).
+async function getCameraStream(mode: "user" | "environment"): Promise<MediaStream> {
   return navigator.mediaDevices.getUserMedia({
     video: videoConstraints(mode),
-    audio,
+    audio: false,
   });
 }
 
@@ -72,7 +77,7 @@ async function startCall() {
   phase.value = "requesting";
   errorMessage.value = null;
   try {
-    const stream = await getCameraStream(facingMode, true);
+    const stream = await getCameraStream(facingMode);
     camStream = stream;
     if (previewEl.value) previewEl.value.srcObject = stream;
 
@@ -136,12 +141,6 @@ function pollStatus() {
   }, 2000);
 }
 
-function toggleMute() {
-  if (!camStream) return;
-  muted.value = !muted.value;
-  camStream.getAudioTracks().forEach((t) => (t.enabled = !muted.value));
-}
-
 // Same front/back switch the required-webcam join page has -- this is
 // a phone-only control (the desktop "this computer" flow only ever has
 // one camera), which is why it's only wired up here, not in the
@@ -151,7 +150,7 @@ async function flipCamera() {
   if (!camStream) return;
   const nextFacingMode = facingMode === "user" ? "environment" : "user";
   try {
-    const newStream = await getCameraStream(nextFacingMode, false);
+    const newStream = await getCameraStream(nextFacingMode);
     const newTrack = newStream.getVideoTracks()[0];
     const oldStream = camStream;
     if (camPc) {
@@ -159,10 +158,7 @@ async function flipCamera() {
       if (sender) await sender.replaceTrack(newTrack);
     }
     if (previewEl.value) previewEl.value.srcObject = newStream;
-    // Keep the existing audio track alive on the new stream object so
-    // toggleMute/leaveCall still see it.
-    oldStream.getAudioTracks().forEach((t) => newStream.addTrack(t));
-    oldStream.getVideoTracks().forEach((t) => t.stop());
+    oldStream.getTracks().forEach((t) => t.stop());
     camStream = newStream;
     facingMode = nextFacingMode;
   } catch (err) {
@@ -222,7 +218,6 @@ async function connectTile(steamId: string) {
   });
   activePeerConnections.set(steamId, pc);
   pc.addTransceiver("video", { direction: "recvonly" });
-  pc.addTransceiver("audio", { direction: "recvonly" });
   pc.ontrack = (e) => {
     const el = tileRefs.value[steamId];
     if (el) el.srcObject = e.streams[0];
@@ -382,15 +377,6 @@ onBeforeUnmount(() => {
         />
         <button
           type="button"
-          :title="muted ? 'Unmute' : 'Mute'"
-          class="absolute top-1 right-1 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-          @click="toggleMute"
-        >
-          <LucideMicOff v-if="muted" class="w-3 h-3" />
-          <LucideMic v-else class="w-3 h-3" />
-        </button>
-        <button
-          type="button"
           title="Switch camera"
           aria-label="Switch camera"
           class="absolute top-1 left-1 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
@@ -450,7 +436,7 @@ onBeforeUnmount(() => {
           </p>
         </template>
         <template v-else-if="phase === 'requesting'">
-          <p class="text-sm text-muted-foreground">Requesting camera & mic access…</p>
+          <p class="text-sm text-muted-foreground">Requesting camera access…</p>
         </template>
         <template v-else>
           <p class="text-sm text-muted-foreground">

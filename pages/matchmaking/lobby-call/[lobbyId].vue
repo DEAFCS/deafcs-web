@@ -5,8 +5,6 @@ import { Button } from "~/components/ui/button";
 import WhepPlayer from "~/components/match/WhepPlayer.vue";
 import {
   LucideX,
-  LucideMic,
-  LucideMicOff,
   LucideSmartphone,
   LucideMonitor,
   LucideArrowLeft,
@@ -68,7 +66,6 @@ const step = ref<Step>("idle");
 const joinToken = ref<string | null>(null);
 const qrDataUrl = ref<string | null>(null);
 const joinError = ref<string | null>(null);
-const muted = ref(false);
 
 const joinUrl = computed(() =>
   joinToken.value ? lobbyCallJoinUrl(lobbyId.value, joinToken.value) : null,
@@ -126,6 +123,7 @@ async function connectThisComputer() {
   if (!token) return;
   step.value = "connecting";
   try {
+    // No audio: this is a video-only feature for deaf players.
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "user" },
@@ -133,7 +131,7 @@ async function connectThisComputer() {
         height: { ideal: 720 },
         aspectRatio: { ideal: 16 / 9 },
       },
-      audio: true,
+      audio: false,
     });
     camStream = stream;
     // The <video> preview only exists in the DOM once publishingLocally
@@ -191,12 +189,6 @@ function pollStatus(token: string) {
     }
     pollStatus(token);
   }, 2000);
-}
-
-function toggleMute() {
-  if (!camStream) return;
-  muted.value = !muted.value;
-  camStream.getAudioTracks().forEach((t) => (t.enabled = !muted.value));
 }
 
 function teardownStream() {
@@ -331,8 +323,12 @@ const visibleTileCount = computed(() =>
 </script>
 
 <template>
-  <div class="min-h-screen w-full bg-zinc-950 text-foreground flex flex-col p-4 gap-4">
-    <div class="flex items-center justify-between">
+  <!-- Fixed to the real viewport height (not min-height, which let the
+       grid grow taller than the screen and forced the whole page to
+       scroll instead of fitting like Discord does) -- only the video
+       grid itself scrolls internally if it ever truly can't fit. -->
+  <div class="h-screen w-full bg-zinc-950 text-foreground flex flex-col overflow-hidden p-4 gap-4">
+    <div class="flex items-center justify-between shrink-0">
       <h1 class="text-base font-semibold flex items-center gap-2">
         <LucideVideo class="w-4 h-4" />
         {{ $t("matchmaking.lobby_call.tooltip", "Webcam call") }}
@@ -356,7 +352,7 @@ const visibleTileCount = computed(() =>
          opened this window and are just sitting on the device picker. -->
     <div
       v-if="visibleTileCount > 0"
-      class="grid gap-3 flex-1"
+      class="grid gap-3 flex-1 min-h-0 auto-rows-fr overflow-y-auto"
       :class="visibleTileCount === 1 ? 'grid-cols-1 max-w-2xl mx-auto w-full' : 'grid-cols-2'"
     >
       <div
@@ -402,25 +398,16 @@ const visibleTileCount = computed(() =>
     <!-- My own local preview while publishing from this computer -->
     <div
       v-if="publishingLocally"
-      class="relative w-full max-w-sm mx-auto aspect-video rounded-lg overflow-hidden bg-black border-2 border-primary"
+      class="relative w-full max-w-sm mx-auto aspect-video rounded-lg overflow-hidden bg-black border-2 border-primary shrink-0"
     >
       <video ref="previewEl" autoplay playsinline muted class="w-full h-full object-cover" />
-      <button
-        type="button"
-        :title="muted ? 'Unmute' : 'Mute'"
-        class="absolute top-2 right-2 flex items-center justify-center w-9 h-9 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-        @click="toggleMute"
-      >
-        <LucideMicOff v-if="muted" class="w-4 h-4" />
-        <LucideMic v-else class="w-4 h-4" />
-      </button>
       <span class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5">
         {{ $t("matchmaking.lobby_call.you", "You") }}
       </span>
     </div>
 
     <!-- Join controls -->
-    <div class="mx-auto w-full max-w-sm">
+    <div class="mx-auto w-full max-w-sm shrink-0">
       <Button
         v-if="step === 'idle' && !isInCall"
         class="w-full gap-2"
@@ -501,7 +488,7 @@ const visibleTileCount = computed(() =>
       </div>
 
       <div v-if="step === 'connecting'" class="text-center text-sm text-muted-foreground mt-2">
-        Requesting camera & mic access…
+        Requesting camera access…
       </div>
     </div>
   </div>
