@@ -15,6 +15,7 @@ import {
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
 import cleanMapName from "~/utilities/cleanMapName";
+import { averageActiveSeasonEloForMode } from "~/utilities/playerModeElo";
 
 const props = defineProps<{
   room: any;
@@ -41,6 +42,7 @@ const canEdit = computed(() => isOrganizer.value && notStarted.value);
 const accepted = computed(() =>
   (props.room.players || []).filter((p: any) => p.status === "Accepted"),
 );
+const { eloForPlayer } = usePlayerActiveSeasonElo();
 
 const now = ref(Date.now());
 let timer: ReturnType<typeof setInterval> | undefined;
@@ -118,12 +120,10 @@ const cancelDraft = async () => {
 };
 
 const avgRank = computed(() => {
-  const list = accepted.value.filter((p: any) => p.elo_snapshot);
-  if (list.length === 0) {
-    return 0;
-  }
-  return Math.round(
-    list.reduce((sum: number, p: any) => sum + p.elo_snapshot, 0) / list.length,
+  return averageActiveSeasonEloForMode(
+    accepted.value,
+    props.room.type,
+    (member: any) => eloForPlayer(member.player),
   );
 });
 

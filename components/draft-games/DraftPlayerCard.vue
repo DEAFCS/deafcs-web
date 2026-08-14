@@ -14,6 +14,7 @@ const props = withDefaults(
     showPickOrder?: boolean;
     dim?: boolean;
     matchType?: string | null;
+    eloType?: string | null;
     checkedIn?: boolean | null;
     draggable?: boolean;
     dragging?: boolean;
@@ -25,6 +26,7 @@ const props = withDefaults(
     showPickOrder: false,
     dim: false,
     matchType: null,
+    eloType: null,
     checkedIn: null,
     draggable: false,
     dragging: false,
@@ -91,7 +93,7 @@ const accentVar = computed(() => {
             :show-add-friend="false"
             :show-elo="true"
             :truncate-name="true"
-            :match-type="matchType"
+            :match-type="matchType ?? undefined"
             size="sm"
           >
             <template v-if="isCaptain" #avatar-corner>
@@ -105,7 +107,7 @@ const accentVar = computed(() => {
           </PlayerDisplay>
         </div>
       </template>
-      <PlayerRanks :player="member.player" />
+      <PlayerRanks :player="member.player" :match-type="eloType" />
     </FiveStackToolTip>
 
     <!-- Two separate transitions: the slot itself widens in when the match

@@ -20,6 +20,10 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
+import {
+  activeSeasonEloForMode,
+  averageActiveSeasonEloForMode,
+} from "~/utilities/playerModeElo";
 
 const { t } = useI18n();
 
@@ -33,6 +37,13 @@ const avatarSrc = (p: any) =>
 const props = defineProps<{
   draftGame: any;
 }>();
+const { eloForPlayer } = usePlayerActiveSeasonElo();
+
+const memberElo = (member: any) =>
+  activeSeasonEloForMode(
+    eloForPlayer(member?.player),
+    props.draftGame.type,
+  );
 
 const matchTypeColors: Record<string, string> = {
   Competitive: "249 158 47",
@@ -105,19 +116,15 @@ const hostSteamId = computed(
 const otherPlayers = computed(() =>
   accepted.value
     .filter((p: any) => p.steam_id !== hostSteamId.value)
-    .sort((a: any, b: any) => (b.elo_snapshot || 0) - (a.elo_snapshot || 0)),
+    .sort((a: any, b: any) => memberElo(b) - memberElo(a)),
 );
 
 const roster = computed(() => {
-  const hostRow = accepted.value.find(
-    (p: any) => p.steam_id === hostSteamId.value,
-  );
   const out: any[] = [];
   if (props.draftGame.host) {
     out.push({
       key: "host",
       player: props.draftGame.host,
-      snapshot: hostRow?.elo_snapshot,
       isHost: true,
     });
   }
@@ -125,7 +132,6 @@ const roster = computed(() => {
     out.push({
       key: p.steam_id,
       player: p.player,
-      snapshot: p.elo_snapshot,
       isHost: false,
     });
   }
@@ -135,21 +141,11 @@ const roster = computed(() => {
 const anchor = computed(() => roster.value[0] ?? null);
 const squad = computed(() => roster.value.slice(1));
 
-const playerWithElo = (player: any, snapshot?: number) => {
-  const e = player?.elo;
-  if (e && (e.competitive || e.wingman || e.duel)) {
-    return player;
-  }
-  return { ...player, elo: snapshot ? { competitive: snapshot } : undefined };
-};
-
 const avgRank = computed(() => {
-  const list = accepted.value.filter((p: any) => p.elo_snapshot);
-  if (list.length === 0) {
-    return 0;
-  }
-  return Math.round(
-    list.reduce((sum: number, p: any) => sum + p.elo_snapshot, 0) / list.length,
+  return averageActiveSeasonEloForMode(
+    accepted.value,
+    props.draftGame.type,
+    (member: any) => eloForPlayer(member.player),
   );
 });
 
@@ -271,13 +267,14 @@ const openRoom = () => {
         <div class="flex min-w-0 items-center gap-3">
           <PlayerDisplay
             v-if="anchor"
-            :player="playerWithElo(anchor.player, anchor.snapshot)"
+            :player="anchor.player"
             :show-online="false"
             :show-flag="false"
             :show-name="true"
             :show-role="false"
             :show-add-friend="false"
             :show-elo="true"
+            :match-type="draftGame.type"
             linkable
             compact
             truncate-name
@@ -337,13 +334,14 @@ const openRoom = () => {
                 </NuxtLink>
               </template>
               <PlayerDisplay
-                :player="playerWithElo(item.player, item.snapshot)"
+                :player="item.player"
                 :show-online="false"
                 :show-flag="true"
                 :show-name="true"
                 :show-role="false"
                 :show-add-friend="false"
                 :show-elo="true"
+                :match-type="draftGame.type"
                 compact
               />
             </FiveStackToolTip>

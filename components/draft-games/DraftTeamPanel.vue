@@ -3,6 +3,7 @@ import { computed, ref } from "vue";
 import { X } from "lucide-vue-next";
 import DraftPlayerCard from "~/components/draft-games/DraftPlayerCard.vue";
 import DraftOpenSlot from "~/components/draft-games/DraftOpenSlot.vue";
+import { averageActiveSeasonEloForMode } from "~/utilities/playerModeElo";
 
 const props = defineProps<{
   title: string;
@@ -19,7 +20,11 @@ const props = defineProps<{
   draggable?: boolean;
   droppable?: boolean;
   dragSteamId?: string | null;
+  matchType?: string | null;
+  eloType?: string | null;
 }>();
+
+const { eloForPlayer } = usePlayerActiveSeasonElo();
 
 const emit = defineEmits<{
   (event: "remove", steamId: string): void;
@@ -56,14 +61,11 @@ const accentVar = computed(() =>
 );
 
 const avgElo = computed(() => {
-  if (props.players.length === 0) {
-    return 0;
-  }
-  const total = props.players.reduce(
-    (sum, player) => sum + (player.elo_snapshot || 0),
-    0,
+  return averageActiveSeasonEloForMode(
+    props.players,
+    props.eloType,
+    (member: any) => eloForPlayer(member.player),
   );
-  return Math.round(total / props.players.length);
 });
 
 const captainSteamId = computed(() => {
@@ -127,6 +129,8 @@ const slots = computed(() => {
         :is-captain="player.steam_id === captainSteamId"
         :is-host="!!hostSteamId && player.steam_id === hostSteamId"
         :show-pick-order="true"
+        :match-type="matchType"
+        :elo-type="eloType"
         :checked-in="
           checkInBySteamId == null
             ? null
@@ -155,6 +159,7 @@ const slots = computed(() => {
           v-for="index in Math.max(0, perTeam - players.length)"
           :key="`add-${index}`"
           :exclude="excludeSteamIds || []"
+          :match-type="eloType"
           @selected="(steamId, player) => emit('add', steamId, player)"
         />
       </template>

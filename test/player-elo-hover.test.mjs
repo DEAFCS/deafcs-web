@@ -31,6 +31,10 @@ const composableSource = await readFile(
   new URL("../composables/usePlayerActiveSeasonElo.ts", import.meta.url),
   "utf8",
 );
+const modeEloSource = await readFile(
+  new URL("../utilities/playerModeElo.ts", import.meta.url),
+  "utf8",
+);
 const playerDisplaySource = await readFile(
   new URL("../components/PlayerDisplay.vue", import.meta.url),
   "utf8",
@@ -67,7 +71,11 @@ test("usePlayerActiveSeasonElo passes player.elo through unchanged when there is
 });
 
 test("usePlayerActiveSeasonElo resolves a season row's updated_elo, or exactly 5000 per mode when there is none -- never the lifetime value", () => {
-  assert.match(composableSource, /const SEASON_ELO_DISPLAY_DEFAULT = 5000;/);
+  assert.match(modeEloSource, /export const ACTIVE_SEASON_ELO_FALLBACK = 5000;/);
+  assert.match(
+    composableSource,
+    /const SEASON_ELO_DISPLAY_DEFAULT = ACTIVE_SEASON_ELO_FALLBACK;/,
+  );
   assert.match(
     composableSource,
     /competitive:\s*\n\s*typeof entry\.data\.Competitive === "number"\s*\n\s*\? entry\.data\.Competitive\s*\n\s*: SEASON_ELO_DISPLAY_DEFAULT,/,
@@ -174,7 +182,10 @@ test("draft-games/PlayerRanks.vue's PlayerElo mount sources elo from the shared 
     playerRanksSource,
     /const \{ eloForPlayer \} = usePlayerActiveSeasonElo\(\);/,
   );
-  assert.match(playerRanksSource, /:elo="eloForPlayer\(player\)"/);
+  assert.match(
+    playerRanksSource,
+    /:elo="eloForPlayer\(player\) \?\? undefined"/,
+  );
 });
 
 test("the match row's historical ELO result (EloChangeBadge) is untouched by this fix", () => {

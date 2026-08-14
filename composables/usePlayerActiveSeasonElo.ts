@@ -1,6 +1,12 @@
 import { reactive, ref, computed } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { gql } from "@apollo/client/core";
+import {
+  ACTIVE_SEASON_ELO_FALLBACK,
+  type PlayerModeElo,
+} from "~/utilities/playerModeElo";
+
+export type { PlayerModeElo } from "~/utilities/playerModeElo";
 
 // Shared season-aware ELO resolver for the player-display hover/badge
 // (PlayerElo, mounted via PlayerDisplay.vue and LineupOverviewRow.vue's
@@ -18,13 +24,7 @@ import { gql } from "@apollo/client/core";
 // and requests arriving in the same tick are coalesced into a single
 // batched query.
 
-export type PlayerModeElo = {
-  competitive?: number;
-  wingman?: number;
-  duel?: number;
-};
-
-const SEASON_ELO_DISPLAY_DEFAULT = 5000;
+const SEASON_ELO_DISPLAY_DEFAULT = ACTIVE_SEASON_ELO_FALLBACK;
 
 // ---- active season (fetched once, shared by every consumer) --------------
 const SEASONS_QUERY = gql`

@@ -33,8 +33,10 @@ import {
 } from "~/utilities/tacticalClasses";
 import DraftGameCard from "~/components/draft-games/DraftGameCard.vue";
 import { setupOptionsVariables } from "~/utilities/setupOptions";
+import { averageActiveSeasonEloForMode } from "~/utilities/playerModeElo";
 
 const { t } = useI18n();
+const { eloForPlayer } = usePlayerActiveSeasonElo();
 
 const draftGames = computed(() => {
   return useDraftGamesStore().openDraftGames;
@@ -65,14 +67,13 @@ const rankFiltered = computed(
 const sort = ref("filling");
 
 const avgRankOf = (game: any) => {
-  const list = (game.players || []).filter(
-    (p: any) => p.status === "Accepted" && p.elo_snapshot,
+  const accepted = (game.players || []).filter(
+    (p: any) => p.status === "Accepted",
   );
-  if (list.length === 0) {
-    return 0;
-  }
-  return Math.round(
-    list.reduce((sum: number, p: any) => sum + p.elo_snapshot, 0) / list.length,
+  return averageActiveSeasonEloForMode(
+    accepted,
+    game.type,
+    (member: any) => eloForPlayer(member.player),
   );
 };
 

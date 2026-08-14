@@ -65,14 +65,13 @@ test("TournamentJoinForm's team-owner PlayerSearch is also wired for consistency
   assert.match(block, /:match-type="tournamentMatchType"/);
 });
 
-test("matchType is optional -- other PlayerSearch consumers remain valid without passing it", () => {
+test("matchType is optional -- unrelated PlayerSearch consumers remain valid without passing it", () => {
   // A representative sample of PlayerSearch's other (non-tournament)
   // consumers -- none of these pass match-type, and none need to, since
   // the prop is optional/default-null and PlayerDisplay's own matchType
   // prop already defaults sensibly on its own.
   const otherConsumers = [
     "components/matchmaking-lobby/MatchLobby.vue",
-    "components/draft-games/DraftOpenSlot.vue",
     "components/match/AssignPlayerToLineup.vue",
   ];
   return Promise.all(

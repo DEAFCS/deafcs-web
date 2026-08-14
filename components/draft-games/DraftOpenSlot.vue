@@ -2,9 +2,13 @@
 import { Plus } from "lucide-vue-next";
 import PlayerSearch from "~/components/PlayerSearch.vue";
 
-defineProps<{
-  exclude: Array<string>;
-}>();
+withDefaults(
+  defineProps<{
+    exclude: Array<string>;
+    matchType?: string | null;
+  }>(),
+  { matchType: null },
+);
 
 const emit = defineEmits<{
   selected: [steamId: string, player: { steam_id: string }];
@@ -23,6 +27,7 @@ const onSelected = (player: { steam_id: string }) => {
       :group-by-friends="true"
       :self="true"
       :registeredOnly="true"
+      :match-type="matchType ?? undefined"
       @selected="onSelected"
     >
       <button type="button" class="open-slot">

@@ -7,6 +7,7 @@ import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import { toast } from "~/components/ui/toast";
+import { activeSeasonEloForMode } from "~/utilities/playerModeElo";
 
 const { t } = useI18n();
 
@@ -16,7 +17,12 @@ const props = defineProps<{
   canManage: boolean;
   full: boolean;
   compact?: boolean;
+  matchType: string;
 }>();
+
+const { eloForPlayer } = usePlayerActiveSeasonElo();
+const requestElo = (request: any) =>
+  activeSeasonEloForMode(eloForPlayer(request.player), props.matchType);
 
 const search = ref("");
 const sort = ref<"elo_high" | "elo_low" | "recent">("elo_high");
@@ -40,19 +46,19 @@ const visible = computed(() => {
   const min = minRank.value ? Number(minRank.value) : null;
   const max = maxRank.value ? Number(maxRank.value) : null;
   if (min !== null) {
-    list = list.filter((r) => (r.elo_snapshot || 0) >= min);
+    list = list.filter((r) => requestElo(r) >= min);
   }
   if (max !== null) {
-    list = list.filter((r) => (r.elo_snapshot || 0) <= max);
+    list = list.filter((r) => requestElo(r) <= max);
   }
   list.sort((a, b) => {
     if (sort.value === "elo_low") {
-      return (a.elo_snapshot || 0) - (b.elo_snapshot || 0);
+      return requestElo(a) - requestElo(b);
     }
     if (sort.value === "recent") {
       return (b.joined_at || "").localeCompare(a.joined_at || "");
     }
-    return (b.elo_snapshot || 0) - (a.elo_snapshot || 0);
+    return requestElo(b) - requestElo(a);
   });
   return list;
 });
@@ -170,10 +176,9 @@ const deny = (steamId: string) => {
             {{ request.player?.name }}
           </span>
           <span
-            v-if="request.elo_snapshot"
             class="shrink-0 font-mono text-[0.62rem] font-bold text-[hsl(var(--tac-amber))]"
           >
-            {{ Math.round(request.elo_snapshot) }}
+            {{ Math.round(requestElo(request)) }}
           </span>
           <div v-if="canManage" class="flex shrink-0 items-center gap-1">
             <Button

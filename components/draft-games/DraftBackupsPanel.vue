@@ -8,6 +8,7 @@ const props = withDefaults(
     players: Array<any>;
     accent?: "amber" | "blue" | "neutral";
     matchType?: string | null;
+    eloType?: string | null;
     hostSteamId?: string;
     droppable?: boolean;
     dragSteamId?: string | null;
@@ -16,6 +17,7 @@ const props = withDefaults(
   {
     accent: "neutral",
     matchType: null,
+    eloType: null,
     hostSteamId: undefined,
     droppable: false,
     dragSteamId: null,
@@ -93,6 +95,7 @@ const onDrop = () => {
         :member="player"
         :accent="accent"
         :match-type="matchType"
+        :elo-type="eloType"
         :is-host="!!hostSteamId && player.steam_id === hostSteamId"
         :draggable="true"
         :dragging="dragSteamId === player.steam_id"

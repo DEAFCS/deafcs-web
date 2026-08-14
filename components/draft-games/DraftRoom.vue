@@ -236,7 +236,7 @@ const rankMatchType = computed(() =>
     ? "Premier"
     : eloSource.value === "faceit"
       ? "Faceit"
-      : null,
+      : props.room.type,
 );
 const setEloSource = (key: string) => {
   eloSource.value = key as "elo" | "cs2" | "faceit";
@@ -881,6 +881,8 @@ const start = () => {
               :players="team1"
               :per-team="perTeam"
               accent="amber"
+              :match-type="rankMatchType"
+              :elo-type="room.type"
               :host-steam-id="room.host_steam_id"
               :check-in-by-steam-id="checkInBySteamId"
               :removable="canManageSide(1)"
@@ -899,6 +901,8 @@ const start = () => {
               :players="team2"
               :per-team="perTeam"
               accent="blue"
+              :match-type="rankMatchType"
+              :elo-type="room.type"
               :host-steam-id="room.host_steam_id"
               :check-in-by-steam-id="checkInBySteamId"
               :removable="canManageSide(2)"
@@ -920,6 +924,7 @@ const start = () => {
               :players="innerSquadBackups"
               accent="neutral"
               :match-type="rankMatchType"
+              :elo-type="room.type"
               :host-steam-id="room.host_steam_id"
               :drag-steam-id="dragSteamId"
               :droppable="canDropAsBackup(null)"
@@ -976,6 +981,7 @@ const start = () => {
               :players="backupsFor(side)"
               :accent="side === 1 ? 'amber' : 'blue'"
               :match-type="rankMatchType"
+              :elo-type="room.type"
               :host-steam-id="room.host_steam_id"
               :drag-steam-id="dragSteamId"
               :droppable="canDropAsBackup(side)"
@@ -1025,6 +1031,7 @@ const start = () => {
             :players="unsidedPlayers"
             accent="neutral"
             :match-type="rankMatchType"
+            :elo-type="room.type"
             :host-steam-id="room.host_steam_id"
             :drag-steam-id="dragSteamId"
             :droppable="canDropAsBackup(null)"
@@ -1182,6 +1189,8 @@ const start = () => {
               :players="team1"
               :per-team="perTeam"
               accent="amber"
+              :match-type="rankMatchType"
+              :elo-type="room.type"
               :host-steam-id="room.host_steam_id"
               :check-in-by-steam-id="checkInBySteamId"
               :active="isDrafting && currentLineup === 1"
@@ -1197,6 +1206,8 @@ const start = () => {
               :players="team2"
               :per-team="perTeam"
               accent="blue"
+              :match-type="rankMatchType"
+              :elo-type="room.type"
               :host-steam-id="room.host_steam_id"
               :check-in-by-steam-id="checkInBySteamId"
               :active="isDrafting && currentLineup === 2"
@@ -1275,6 +1286,7 @@ const start = () => {
                 :member="player"
                 accent="neutral"
                 :match-type="rankMatchType"
+                :elo-type="room.type"
                 :is-host="player.steam_id === room.host_steam_id"
               >
                 <template #action>
@@ -1352,6 +1364,7 @@ const start = () => {
                 :key="`slot-${pool.length + n}`"
                 class="draft-open-slot"
                 :exclude="memberIds"
+                :match-type="room.type"
                 @selected="add"
               />
             </TransitionGroup>
@@ -1389,6 +1402,7 @@ const start = () => {
                   :member="player"
                   accent="neutral"
                   :match-type="rankMatchType"
+                  :elo-type="room.type"
                   :is-host="player.steam_id === room.host_steam_id"
                 >
                   <template #action>
@@ -1441,6 +1455,7 @@ const start = () => {
                   :member="player"
                   accent="neutral"
                   :match-type="rankMatchType"
+                  :elo-type="room.type"
                   :is-host="player.steam_id === room.host_steam_id"
                 >
                   <template #action>
@@ -1587,6 +1602,7 @@ const start = () => {
               :requests="requests"
               :can-manage="isOrganizer"
               :full="acceptedFull"
+              :match-type="room.type"
             />
           </div>
         </div>

@@ -331,6 +331,8 @@ const submit = form.handleSubmit(async (values: any) => {
                     :players="side.members"
                     :per-team="perTeam"
                     :accent="index === 0 ? 'amber' : 'blue'"
+                    :match-type="matchType"
+                    :elo-type="matchType"
                     addable
                     removable
                     :exclude-steam-ids="excludedSteamIds"
