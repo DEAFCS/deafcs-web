@@ -30,14 +30,19 @@ let camStream: MediaStream | null = null;
 let camPc: RTCPeerConnection | null = null;
 let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 
+// Always request a landscape frame, regardless of how the phone is
+// physically held — the call grid's tiles are 16:9 boxes (aspect-video),
+// and a portrait stream squeezed into one of those looks tiny/wrong.
+// This is the opposite tradeoff from the required-webcam feature's join
+// page (which matches the phone's current orientation to avoid a
+// crop/zoom look for a single full-width preview) — here the fixed
+// landscape grid layout is the priority.
 function videoConstraints(): MediaTrackConstraints {
-  const portrait =
-    typeof window !== "undefined" &&
-    window.matchMedia("(orientation: portrait)").matches;
   return {
     facingMode: { ideal: "user" },
-    width: { ideal: portrait ? 720 : 1280 },
-    height: { ideal: portrait ? 1280 : 720 },
+    width: { ideal: 1280 },
+    height: { ideal: 720 },
+    aspectRatio: { ideal: 16 / 9 },
     frameRate: { ideal: 20, max: 25 },
   };
 }

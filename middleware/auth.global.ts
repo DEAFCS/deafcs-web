@@ -81,6 +81,14 @@ function isPublicRoute(path: string): boolean {
     return true;
   }
 
+  // Token-gated join page for the matchmaking-lobby webcam call — a
+  // phone scanning the QR code has never logged into deafcs.net, so
+  // this needs to be reachable without a login bounce, same as the
+  // /matches camera join pages above.
+  if (path.startsWith("/lobby-call")) {
+    return true;
+  }
+
   if (path.startsWith("/embed/")) {
     return true;
   }

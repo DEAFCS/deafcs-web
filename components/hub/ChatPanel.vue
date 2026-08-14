@@ -33,8 +33,6 @@ const props = defineProps<{
 const { t } = useI18n();
 const router = useRouter();
 
-const showLobbyCallPanel = ref(false);
-
 const {
   tabs,
   unreadCounts,
@@ -451,6 +449,38 @@ function handlePopOut() {
   ].join(",");
   window.open(route.href, "_blank", features);
 }
+
+// A player is only ever in one matchmaking lobby at a time (see
+// useChatTabSetup's ensureDefaultTabs), so there's at most one
+// matchmaking tab -- but it needn't be the *active* tab for its
+// LobbyCallPanel to stay mounted: syncPersistentChatJoins keeps every
+// open tab's socket joined regardless of which one is active, so the
+// "X is calling" popup must listen the same way, or a callee looking
+// at a different tab (e.g. Global chat) would silently miss it.
+const matchmakingTab = computed(() =>
+  orderedTabs.value.find((t) => t.id.startsWith("matchmaking:")),
+);
+
+function openLobbyCallWindow() {
+  const tab = matchmakingTab.value;
+  if (!tab) return;
+  const w = 960;
+  const h = 720;
+  const left = Math.max(0, (window.screen.width - w) / 2);
+  const top = Math.max(0, (window.screen.height - h) / 2);
+  const features = [
+    `width=${w}`,
+    `height=${h}`,
+    `left=${left}`,
+    `top=${top}`,
+    "scrollbars=yes",
+    "location=no",
+    "menubar=no",
+    "toolbar=no",
+    "status=no",
+  ].join(",");
+  window.open(`/matchmaking/lobby-call/${tab.lobbyId}`, "lobby-call", features);
+}
 </script>
 
 <template>
@@ -656,13 +686,8 @@ function handlePopOut() {
                 <TooltipTrigger as-child>
                   <button
                     type="button"
-                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors"
-                    :class="
-                      showLobbyCallPanel
-                        ? 'border-[hsl(var(--tac-amber))]/50 bg-[hsl(var(--tac-amber))]/10 text-[hsl(var(--tac-amber))]'
-                        : 'border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground'
-                    "
-                    @click="showLobbyCallPanel = !showLobbyCallPanel"
+                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    @click="openLobbyCallWindow"
                   >
                     <Video class="w-3.5 h-3.5" />
                   </button>
@@ -696,10 +721,20 @@ function handlePopOut() {
           </div>
         </div>
 
+        <!-- Mounted whenever the player has a matchmaking lobby at all --
+             not scoped to the active tab, since syncPersistentChatJoins
+             keeps that tab's socket joined even while another tab is
+             focused, so the "X is calling" popup must stay listening the
+             same way or a callee looking at Global chat would miss it.
+             The compact status bar itself only shows while that tab is
+             actually the active one. -->
         <LobbyCallPanel
-          v-if="activeTab?.id?.startsWith('matchmaking:') && showLobbyCallPanel"
-          :lobby-id="activeTab.lobbyId"
+          v-if="matchmakingTab"
+          :lobby-id="matchmakingTab.lobbyId"
+          :show-bar="activeTab?.id === matchmakingTab.id"
+          @open-call="openLobbyCallWindow"
         />
+
 
         <div
           v-if="isParticipantsOpen && activeParticipants.length"
