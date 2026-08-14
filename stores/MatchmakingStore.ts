@@ -208,46 +208,6 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
                   },
                 },
               ],
-              lobby_players: [
-                {
-                  limit: 1,
-                  where: {
-                    lobby: {
-                      _not: {
-                        players: {
-                          steam_id: {
-                            _eq: $("mySteamId", "bigint!"),
-                          },
-                        },
-                      },
-                      access: {
-                        _in: [
-                          e_lobby_access_enum.Friends,
-                          e_lobby_access_enum.Open,
-                        ],
-                      },
-                    },
-                  },
-                },
-                {
-                  lobby_id: true,
-                  lobby: {
-                    id: true,
-                    players: [
-                      {},
-                      {
-                        player: {
-                          name: true,
-                          country: true,
-                          steam_id: true,
-                          avatar_url: true,
-                          custom_avatar_url: true,
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
             },
           },
         ],
