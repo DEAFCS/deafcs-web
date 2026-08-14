@@ -11,6 +11,7 @@ import {
   LucideMonitor,
   LucideArrowLeft,
   LucideVideo,
+  LucideLoaderCircle,
 } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
 import {
@@ -38,6 +39,28 @@ const me = computed(() => useAuthStore().me);
 const myId = computed(() => String(me.value?.steam_id ?? ""));
 
 const participants = ref<LobbyCallParticipant[]>([]);
+
+// People who've started joining (token minted) but whose camera isn't
+// live yet -- shown as a "waiting for camera…" placeholder tile to
+// whoever's already in the call, so it's obvious someone's on their
+// way in instead of the grid just silently doing nothing for a few
+// seconds. Cleared once their real tile shows up in `participants`,
+// they leave, or (as a safety net, in case they close the tab/backend
+// call fails without ever reaching WHIP) a timeout expires.
+const joiningParticipants = ref<Record<string, LobbyCallParticipant>>({});
+const joiningTimers: Record<string, ReturnType<typeof setTimeout>> = {};
+
+function clearJoining(steamId: string) {
+  if (joiningTimers[steamId]) {
+    clearTimeout(joiningTimers[steamId]);
+    delete joiningTimers[steamId];
+  }
+  if (joiningParticipants.value[steamId]) {
+    const next = { ...joiningParticipants.value };
+    delete next[steamId];
+    joiningParticipants.value = next;
+  }
+}
 
 // --- Join flow ---
 type Step = "idle" | "choose" | "mobile" | "connecting" | "in-call";
@@ -214,6 +237,7 @@ function backToChoose() {
 // --- Live participant list over the existing chat socket channel ---
 let unlistenJoined: (() => void) | null = null;
 let unlistenLeft: (() => void) | null = null;
+let unlistenJoining: (() => void) | null = null;
 
 onMounted(async () => {
   await refreshParticipants();
@@ -232,6 +256,7 @@ onMounted(async () => {
       if (!participants.value.some((p) => p.steamId === data.steamId)) {
         participants.value = [...participants.value, data];
       }
+      clearJoining(data.steamId);
       // This window's only job during the "mobile" step is showing the
       // QR code -- once the phone that scanned it actually publishes,
       // the call itself lives on the phone (which has its own grid,
@@ -250,14 +275,29 @@ onMounted(async () => {
       participants.value = participants.value.filter(
         (p) => p.steamId !== data.steamId,
       );
+      clearJoining(data.steamId);
     },
   );
   unlistenLeft = () => leftListener?.stop();
+
+  const joiningListener = socket.listen(
+    `lobby:matchmaking:${lobbyId.value}:call-joining`,
+    (data: LobbyCallParticipant) => {
+      if (data.steamId === myId.value) return;
+      if (participants.value.some((p) => p.steamId === data.steamId)) return;
+      joiningParticipants.value = { ...joiningParticipants.value, [data.steamId]: data };
+      if (joiningTimers[data.steamId]) clearTimeout(joiningTimers[data.steamId]);
+      joiningTimers[data.steamId] = setTimeout(() => clearJoining(data.steamId), 25_000);
+    },
+  );
+  unlistenJoining = () => joiningListener?.stop();
 });
 
 onBeforeUnmount(() => {
   unlistenJoined?.();
   unlistenLeft?.();
+  unlistenJoining?.();
+  for (const steamId of Object.keys(joiningTimers)) clearJoining(steamId);
   if (step.value === "in-call") teardownStream();
 });
 
@@ -271,6 +311,22 @@ const tileParticipants = computed(() =>
 
 const isInCall = computed(() =>
   participants.value.some((p) => p.steamId === myId.value),
+);
+
+// "Waiting for camera…" placeholders, minus anyone who already has a
+// real tile above (clearJoining should already have dropped those, but
+// this is a cheap belt-and-suspenders filter against the render).
+const joiningList = computed(() =>
+  Object.values(joiningParticipants.value).filter(
+    (p) => !tileParticipants.value.some((tp) => tp.steamId === p.steamId),
+  ),
+);
+
+// You should never see anyone else's video before you've actually
+// joined the call yourself -- opening this window (or sitting on the
+// device picker) must not leak other people's streams.
+const visibleTileCount = computed(() =>
+  isInCall.value ? tileParticipants.value.length + joiningList.value.length : 0,
 );
 </script>
 
@@ -294,11 +350,14 @@ const isInCall = computed(() =>
 
     <!-- Video grid -- landscape tiles, comfortably sized (this is the
          whole point of the popout: room the narrow chat sidebar never
-         had). Falls back to a friendlier width on a lone tile. -->
+         had). Falls back to a friendlier width on a lone tile. Only
+         rendered once YOU'VE actually joined the call yourself -- you
+         must never see anyone else's video before that, even if you've
+         opened this window and are just sitting on the device picker. -->
     <div
-      v-if="tileParticipants.length > 0"
+      v-if="visibleTileCount > 0"
       class="grid gap-3 flex-1"
-      :class="tileParticipants.length === 1 ? 'grid-cols-1 max-w-2xl mx-auto w-full' : 'grid-cols-2'"
+      :class="visibleTileCount === 1 ? 'grid-cols-1 max-w-2xl mx-auto w-full' : 'grid-cols-2'"
     >
       <div
         v-for="p in tileParticipants"
@@ -312,12 +371,32 @@ const isInCall = computed(() =>
           {{ p.steamId === myId ? $t("matchmaking.lobby_call.you", "You") : p.name || p.steamId }}
         </span>
       </div>
+      <div
+        v-for="p in joiningList"
+        :key="`joining-${p.steamId}`"
+        class="relative aspect-video rounded-lg overflow-hidden bg-zinc-900 border border-dashed border-zinc-700 flex flex-col items-center justify-center gap-2"
+      >
+        <LucideLoaderCircle class="w-5 h-5 text-muted-foreground animate-spin" />
+        <span class="text-xs text-muted-foreground">Venter på kamera…</span>
+        <span
+          class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5 truncate max-w-[80%]"
+        >
+          {{ p.name || p.steamId }}
+        </span>
+      </div>
     </div>
     <div
-      v-else-if="step === 'idle'"
-      class="flex-1 flex items-center justify-center text-sm text-muted-foreground"
+      v-else-if="!isInCall"
+      class="flex-1 flex items-center justify-center text-sm text-muted-foreground text-center px-6"
     >
-      {{ $t("matchmaking.lobby_call.no_call", "No active call") }}
+      {{
+        participants.length
+          ? $t(
+              "matchmaking.lobby_call.join_to_see",
+              "Join the call to see everyone",
+            )
+          : $t("matchmaking.lobby_call.no_call", "No active call")
+      }}
     </div>
 
     <!-- My own local preview while publishing from this computer -->
