@@ -333,19 +333,25 @@ onBeforeUnmount(() => {
          of a specially-positioned box. -->
     <div
       v-if="phase === 'connected'"
-      class="grid gap-2 flex-1 min-h-0 auto-rows-fr"
+      class="grid gap-2 content-start overflow-y-auto flex-1 min-h-0"
       :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
     >
+      <!-- aspect-video (not auto-rows-fr stretching to fill the grid)
+           so each box's shape actually matches the camera stream's
+           real 16:9 frame -- object-contain on top of that as a
+           belt-and-suspenders guarantee the FULL picture is always
+           visible, never cropped, even if a phone's camera doesn't
+           hit exactly 16:9. -->
       <div
         v-for="p in otherParticipants"
         :key="p.steamId"
-        class="relative rounded-lg overflow-hidden bg-black border border-border"
+        class="relative aspect-video rounded-lg overflow-hidden bg-black border border-border"
       >
         <video
           :ref="setTileRef(p.steamId)"
           autoplay
           playsinline
-          class="w-full h-full object-cover"
+          class="w-full h-full object-contain"
         />
         <span
           class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
@@ -354,13 +360,13 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <div class="relative rounded-lg overflow-hidden bg-black border border-border">
+      <div class="relative aspect-video rounded-lg overflow-hidden bg-black border border-border">
         <video
           ref="previewEl"
           autoplay
           playsinline
           muted
-          class="w-full h-full object-cover"
+          class="w-full h-full object-contain"
         />
         <button
           type="button"
