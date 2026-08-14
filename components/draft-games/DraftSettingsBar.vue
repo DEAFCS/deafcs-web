@@ -15,6 +15,7 @@ import {
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
 import cleanMapName from "~/utilities/cleanMapName";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { averageActiveSeasonEloForMode } from "~/utilities/playerModeElo";
 
 const props = defineProps<{
@@ -27,6 +28,14 @@ const emit = defineEmits<{
 }>();
 
 const { t } = useI18n();
+const apiDomain = useRuntimeConfig().public.apiDomain;
+
+const hostAvatarSrc = computed(() =>
+  resolveAvatarUrl(
+    props.room.host?.custom_avatar_url || props.room.host?.avatar_url,
+    apiDomain,
+  ),
+);
 
 const me = computed(() => useAuthStore().me);
 const isHost = computed(() => me.value?.steam_id === props.room.host_steam_id);
@@ -349,8 +358,8 @@ const leave = async () => {
           </span>
           <span class="tile-value inline-flex items-center gap-1.5">
             <img
-              v-if="room.host.avatar_url"
-              :src="room.host.avatar_url"
+              v-if="hostAvatarSrc"
+              :src="hostAvatarSrc"
               class="h-4 w-4 shrink-0 rounded-sm object-cover"
               :alt="room.host.name"
             />
