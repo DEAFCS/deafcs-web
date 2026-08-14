@@ -70,8 +70,14 @@ const isOnline = computed(() =>
   ),
 );
 
-const { statusKey, statusIcon, statusLabelKey, joinableDraft, currentMatch } =
-  useFriendStatus(() => props.player, isOnline);
+const {
+  statusKey,
+  statusIcon,
+  statusLabelKey,
+  joinableDraft,
+  joinableLobby,
+  currentMatch,
+} = useFriendStatus(() => props.player, isOnline);
 
 const joiningDraft = ref(false);
 async function joinDraft() {
@@ -91,6 +97,24 @@ async function joinDraft() {
     });
   } finally {
     joiningDraft.value = false;
+  }
+}
+
+const joiningLobby = ref(false);
+async function joinLobby() {
+  const lobby = joinableLobby.value;
+  if (!lobby || lobby.full || joiningLobby.value) return;
+  joiningLobby.value = true;
+  try {
+    await useMatchmakingStore().joinLobby(lobby.id);
+  } catch (error: any) {
+    toast({
+      variant: "destructive",
+      title: t("common.error"),
+      description: error?.message ?? t("matchmaking.friends.join_lobby_error"),
+    });
+  } finally {
+    joiningLobby.value = false;
   }
 }
 
@@ -379,6 +403,21 @@ const amberHover =
                 ]"
                 :loading="joiningDraft"
                 @click.stop.prevent="joinDraft"
+              >
+                <LogIn class="h-3 w-3" />
+                {{ $t("matchmaking.friends.join") }}
+              </Button>
+
+              <!-- Same, for a joinable (Open/Friends) matchmaking lobby -->
+              <Button
+                v-else-if="joinableLobby && !joinableLobby.full"
+                size="sm"
+                :class="[
+                  'ml-auto h-5 shrink-0 cursor-pointer gap-1 px-1.5 font-mono text-[0.55rem] font-bold uppercase tracking-[0.1em]',
+                  'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.85)]',
+                ]"
+                :loading="joiningLobby"
+                @click.stop.prevent="joinLobby"
               >
                 <LogIn class="h-3 w-3" />
                 {{ $t("matchmaking.friends.join") }}

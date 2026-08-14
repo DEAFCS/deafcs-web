@@ -112,12 +112,31 @@ export function useFriendStatus(
     };
   });
 
+  // Mirrors joinableDraft above, for a friend's matchmaking lobby.
+  // Invite-only lobbies aren't self-joinable at all (no Join button --
+  // matches the Hasura insert_permissions rule, which only allows a
+  // self-insert when access is Open, or Friends between existing
+  // friends), so those return null just like a stranger's lobby would.
+  const MAX_LOBBY_SIZE = 5;
+  const joinableLobby = computed(() => {
+    if (statusKey.value !== "in_lobby") return null;
+    const entry = toValue(player)?.player?.lobby_players?.[0];
+    const lobby = entry?.lobby;
+    if (!lobby || !["Open", "Friends"].includes(lobby.access)) return null;
+    const count = lobby.players?.length ?? 0;
+    return {
+      id: lobby.id as string,
+      full: count >= MAX_LOBBY_SIZE,
+    };
+  });
+
   return {
     statusKey,
     dotClass,
     statusIcon,
     statusLabelKey,
     joinableDraft,
+    joinableLobby,
     currentMatch,
   };
 }

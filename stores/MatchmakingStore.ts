@@ -114,6 +114,24 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
               is_in_lobby: true,
               is_in_another_match: true,
               is_in_draft: true,
+              // Drives the "IN A LOBBY" Join mini-button (FriendListItem.vue /
+              // useFriendStatus's joinableLobby) -- need the lobby's access
+              // level and current accepted headcount to know whether this
+              // friend's lobby can actually be self-joined.
+              lobby_players: [
+                { limit: 1, where: { status: { _eq: "Accepted" } } },
+                {
+                  lobby_id: true,
+                  lobby: {
+                    id: true,
+                    access: true,
+                    players: [
+                      { where: { status: { _eq: "Accepted" } } },
+                      { steam_id: true },
+                    ],
+                  },
+                },
+              ],
               // Friend's current live match — drives the inline score preview.
               player_lineup: [
                 {
@@ -311,16 +329,60 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     );
   };
 
+  // Every lobby with access=Open that I'm not already in -- the "OPEN
+  // LOBBY" browse list on the Play page, for joining someone you're not
+  // (yet) friends with. Friends' lobbies already have their own Join
+  // entry point on the friends list (joinableLobby in useFriendStatus),
+  // so this deliberately doesn't special-case them out -- showing up in
+  // both places isn't harmful.
+  const openLobbies = ref<any[]>([]);
+  const subscribeToOpenLobbies = async (steam_id: bigint) => {
+    const subscription = getGraphqlClient().subscribe({
+      query: generateSubscription({
+        lobbies: [
+          {
+            where: {
+              access: { _eq: e_lobby_access_enum.Open },
+              _not: {
+                players: { steam_id: { _eq: $("steam_id", "bigint!") } },
+              },
+            },
+          },
+          {
+            id: true,
+            players: [
+              { where: { status: { _eq: "Accepted" } } },
+              { captain: true, player: playerFields },
+            ],
+          },
+        ],
+      }),
+      variables: { steam_id },
+    });
+
+    const { subscribe } = useSubscriptionManager();
+    subscribe(
+      "matchmaking:open-lobbies",
+      subscription.subscribe({
+        next: ({ data }) => {
+          openLobbies.value = data.lobbies;
+        },
+      }),
+    );
+  };
+
   watch(
     () => useAuthStore().me?.steam_id,
     (steamId) => {
       if (steamId) {
         subscribeToFriends(steamId);
         subscribeToLobbies(steamId);
+        subscribeToOpenLobbies(steamId);
       } else {
         const { unsubscribe } = useSubscriptionManager();
         unsubscribe("matchmaking:friends");
         unsubscribe("matchmaking:lobbies");
+        unsubscribe("matchmaking:open-lobbies");
       }
     },
     { immediate: true },
@@ -406,6 +468,34 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
         ],
       }),
     });
+  };
+
+  // Self-join an Open/Friends lobby someone else owns -- distinct from
+  // inviteToLobby above (a captain adding someone else to THEIR lobby).
+  // Two-step because insert_permissions won't let a self-insert set
+  // status directly (always lands as 'Invited'); both mutations run in
+  // the same GraphQL request so Hasura commits them as one transaction
+  // -- if the capacity trigger (see 1877000008000_lobby_players_capacity_trigger
+  // migration) rejects the Accepted update because the lobby's already
+  // full, the Invited insert is rolled back too, not left dangling.
+  const joinLobby = async (lobby_id: string) => {
+    const steam_id = useAuthStore().me?.steam_id;
+    await getGraphqlClient().mutate({
+      mutation: typedGql("mutation")({
+        insert_lobby_players_one: [
+          { object: { steam_id, lobby_id } },
+          { __typename: true },
+        ],
+        update_lobby_players_by_pk: [
+          {
+            pk_columns: { steam_id, lobby_id },
+            _set: { status: "Accepted" },
+          },
+          { __typename: true },
+        ],
+      }),
+    });
+    setActiveHub("lobby");
   };
 
   const storedRegions = ref<string[]>(
@@ -643,6 +733,8 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     createLobby,
     creatingLobby,
     inviteToLobby,
+    joinLobby,
+    openLobbies,
     viewingMatchId,
   };
 });

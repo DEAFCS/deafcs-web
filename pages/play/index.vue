@@ -5,6 +5,7 @@ import { Settings2, Lock } from "lucide-vue-next";
 import DraftGames from "~/components/draft-games/DraftGames.vue";
 import MyUpcoming from "~/components/MyUpcoming.vue";
 import Matchmaking from "~/components/matchmaking/Matchmaking.vue";
+import OpenLobbiesList from "~/components/matchmaking/OpenLobbiesList.vue";
 import MatchmakingSettings from "~/components/matchmaking/MatchmakingSettings.vue";
 import TournamentFeatureCard from "~/components/tournament/TournamentFeatureCard.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
@@ -105,6 +106,8 @@ const settingsOpen = ref(false);
           </div>
         </div>
       </div>
+
+      <OpenLobbiesList class="mt-6" />
     </div>
   </PageTransition>
 

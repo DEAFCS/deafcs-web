@@ -5679,6 +5679,11 @@
       "start": "Start webcam call",
       "choose_device": "Connect with…"
     },
+    "open_lobbies": {
+      "title": "Open Lobbies",
+      "description": "Lobbies anyone can join, no invite needed.",
+      "join_error": "Couldn't join that lobby."
+    },
     "friends": {
       "title": "Friends",
       "sync": "Sync",
@@ -5700,6 +5705,7 @@
       "playing_cs2": "Playing Counter-Strike 2",
       "available": "Available",
       "join": "Join",
+      "join_lobby_error": "Couldn't join that lobby.",
       "live": "Live",
       "watch": "Watch",
       "accept": "Accept",
