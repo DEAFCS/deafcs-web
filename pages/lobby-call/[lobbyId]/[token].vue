@@ -37,31 +37,23 @@ let camPc: RTCPeerConnection | null = null;
 let facingMode: "user" | "environment" = "user";
 let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 
-// Always request a landscape frame, regardless of how the phone is
-// physically held — the call grid's tiles are wide boxes, and a
-// portrait stream shown there looks tiny/wrong (letterboxed down to a
-// narrow strip). This is the opposite tradeoff from the required-webcam
-// feature's join page (which matches the phone's current orientation
-// to avoid a crop/zoom look for a single full-width preview) — here
-// the landscape grid layout is the priority.
-//
-// `ideal` alone turned out to not be enough -- phones held upright
-// were still handing back a portrait-shaped stream (browsers treat
-// `ideal` as a soft preference, easily lost to whatever the camera
-// driver finds convenient for how the phone is currently held).
-// `exact` forces it, at the cost of possibly throwing
-// OverconstrainedError on a camera that genuinely can't produce 16:9 at
-// all -- getStream() below falls back to `ideal` if that happens, so a
-// stubborn camera still gets *a* stream instead of no call at all.
-function videoConstraints(
-  mode: "user" | "environment",
-  strict: boolean,
-): MediaTrackConstraints {
+// Request a resolution matching the phone's *current* orientation
+// instead of forcing a fixed landscape shape — same fix proven out on
+// the required-webcam feature's join page
+// (pages/matches/[id]/camera/[token].vue). Forcing `aspectRatio: exact
+// 16/9` regardless of how the phone is held isn't reliably honored by
+// iOS Safari's front camera, and even when it partially works it
+// fights the camera driver for no benefit: the grid tiles below use
+// object-cover, which fills the tile from whatever shape the camera
+// actually returns, so there's nothing to letterbox either way.
+function videoConstraints(mode: "user" | "environment"): MediaTrackConstraints {
+  const portrait =
+    typeof window !== "undefined" &&
+    window.matchMedia("(orientation: portrait)").matches;
   return {
     facingMode: { ideal: mode },
-    width: { ideal: 1280 },
-    height: { ideal: 720 },
-    aspectRatio: strict ? { exact: 16 / 9 } : { ideal: 16 / 9 },
+    width: { ideal: portrait ? 720 : 1280 },
+    height: { ideal: portrait ? 1280 : 720 },
     frameRate: { ideal: 20, max: 25 },
   };
 }
@@ -70,20 +62,10 @@ async function getCameraStream(
   mode: "user" | "environment",
   audio: boolean,
 ): Promise<MediaStream> {
-  try {
-    return await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints(mode, true),
-      audio,
-    });
-  } catch (err) {
-    if (err instanceof OverconstrainedError) {
-      return navigator.mediaDevices.getUserMedia({
-        video: videoConstraints(mode, false),
-        audio,
-      });
-    }
-    throw err;
-  }
+  return navigator.mediaDevices.getUserMedia({
+    video: videoConstraints(mode),
+    audio,
+  });
 }
 
 async function startCall() {
@@ -364,10 +346,14 @@ onBeforeUnmount(() => {
     >
       <!-- auto-rows-fr so tiles stretch to fill whatever space is
            available (fewer tiles = bigger, not stuck at a fixed size
-           with empty space left over below). object-contain guarantees
-           the FULL picture is always visible either way, letterboxed
-           inside the stretched box rather than cropped, regardless of
-           how that box's shape compares to the camera's actual frame. -->
+           with empty space left over below). object-cover fills the
+           tile completely from whatever shape the camera actually
+           returns (portrait or landscape) -- no letterbox bars, same
+           as every other video-call app's grid. Trades full-frame
+           visibility for a filled tile, which is the right tradeoff
+           here: object-contain's letterboxing was the actual bug
+           being fixed (see videoConstraints above for the capture
+           side of this fix). -->
       <div
         v-for="p in otherParticipants"
         :key="p.steamId"
@@ -377,7 +363,7 @@ onBeforeUnmount(() => {
           :ref="setTileRef(p.steamId)"
           autoplay
           playsinline
-          class="w-full h-full object-contain"
+          class="w-full h-full object-cover"
         />
         <span
           class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
@@ -392,7 +378,7 @@ onBeforeUnmount(() => {
           autoplay
           playsinline
           muted
-          class="w-full h-full object-contain"
+          class="w-full h-full object-cover"
         />
         <button
           type="button"
