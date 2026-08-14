@@ -38,30 +38,59 @@ let facingMode: "user" | "environment" = "user";
 let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 
 // Always request a landscape frame, regardless of how the phone is
-// physically held — the call grid's tiles are 16:9 boxes (aspect-video),
-// and a portrait stream squeezed into one of those looks tiny/wrong.
-// This is the opposite tradeoff from the required-webcam feature's join
-// page (which matches the phone's current orientation to avoid a
-// crop/zoom look for a single full-width preview) — here the fixed
-// landscape grid layout is the priority.
-function videoConstraints(mode: "user" | "environment"): MediaTrackConstraints {
+// physically held — the call grid's tiles are wide boxes, and a
+// portrait stream shown there looks tiny/wrong (letterboxed down to a
+// narrow strip). This is the opposite tradeoff from the required-webcam
+// feature's join page (which matches the phone's current orientation
+// to avoid a crop/zoom look for a single full-width preview) — here
+// the landscape grid layout is the priority.
+//
+// `ideal` alone turned out to not be enough -- phones held upright
+// were still handing back a portrait-shaped stream (browsers treat
+// `ideal` as a soft preference, easily lost to whatever the camera
+// driver finds convenient for how the phone is currently held).
+// `exact` forces it, at the cost of possibly throwing
+// OverconstrainedError on a camera that genuinely can't produce 16:9 at
+// all -- getStream() below falls back to `ideal` if that happens, so a
+// stubborn camera still gets *a* stream instead of no call at all.
+function videoConstraints(
+  mode: "user" | "environment",
+  strict: boolean,
+): MediaTrackConstraints {
   return {
     facingMode: { ideal: mode },
     width: { ideal: 1280 },
     height: { ideal: 720 },
-    aspectRatio: { ideal: 16 / 9 },
+    aspectRatio: strict ? { exact: 16 / 9 } : { ideal: 16 / 9 },
     frameRate: { ideal: 20, max: 25 },
   };
+}
+
+async function getCameraStream(
+  mode: "user" | "environment",
+  audio: boolean,
+): Promise<MediaStream> {
+  try {
+    return await navigator.mediaDevices.getUserMedia({
+      video: videoConstraints(mode, true),
+      audio,
+    });
+  } catch (err) {
+    if (err instanceof OverconstrainedError) {
+      return navigator.mediaDevices.getUserMedia({
+        video: videoConstraints(mode, false),
+        audio,
+      });
+    }
+    throw err;
+  }
 }
 
 async function startCall() {
   phase.value = "requesting";
   errorMessage.value = null;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints(facingMode),
-      audio: true,
-    });
+    const stream = await getCameraStream(facingMode, true);
     camStream = stream;
     if (previewEl.value) previewEl.value.srcObject = stream;
 
@@ -140,10 +169,7 @@ async function flipCamera() {
   if (!camStream) return;
   const nextFacingMode = facingMode === "user" ? "environment" : "user";
   try {
-    const newStream = await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints(nextFacingMode),
-      audio: false,
-    });
+    const newStream = await getCameraStream(nextFacingMode, false);
     const newTrack = newStream.getVideoTracks()[0];
     const oldStream = camStream;
     if (camPc) {
@@ -333,19 +359,19 @@ onBeforeUnmount(() => {
          of a specially-positioned box. -->
     <div
       v-if="phase === 'connected'"
-      class="grid gap-2 content-start overflow-y-auto flex-1 min-h-0"
+      class="grid gap-2 auto-rows-fr overflow-y-auto flex-1 min-h-0"
       :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
     >
-      <!-- aspect-video (not auto-rows-fr stretching to fill the grid)
-           so each box's shape actually matches the camera stream's
-           real 16:9 frame -- object-contain on top of that as a
-           belt-and-suspenders guarantee the FULL picture is always
-           visible, never cropped, even if a phone's camera doesn't
-           hit exactly 16:9. -->
+      <!-- auto-rows-fr so tiles stretch to fill whatever space is
+           available (fewer tiles = bigger, not stuck at a fixed size
+           with empty space left over below). object-contain guarantees
+           the FULL picture is always visible either way, letterboxed
+           inside the stretched box rather than cropped, regardless of
+           how that box's shape compares to the camera's actual frame. -->
       <div
         v-for="p in otherParticipants"
         :key="p.steamId"
-        class="relative aspect-video rounded-lg overflow-hidden bg-black border border-border"
+        class="relative rounded-lg overflow-hidden bg-black border border-border"
       >
         <video
           :ref="setTileRef(p.steamId)"
@@ -360,7 +386,7 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <div class="relative aspect-video rounded-lg overflow-hidden bg-black border border-border">
+      <div class="relative rounded-lg overflow-hidden bg-black border border-border">
         <video
           ref="previewEl"
           autoplay

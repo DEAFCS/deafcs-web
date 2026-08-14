@@ -452,7 +452,11 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
         ],
       }),
     });
-    setActiveHub("lobby");
+    // Land on the chat sidebar's matchmaking lobby tab, not the
+    // standalone Lobby hub panel -- useChatTabSetup's watch on
+    // me.current_lobby_id auto-opens (and activates) that tab once the
+    // subscription picks up the new membership.
+    setActiveHub("chat");
   };
 
   const storedRegions = ref<string[]>(

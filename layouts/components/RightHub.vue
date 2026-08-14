@@ -373,8 +373,15 @@ function onHubTouchEnd(e: TouchEvent) {
           </span>
         </button>
 
-        <!-- Lobby -->
+        <!-- Lobby -- hidden (not deleted): joining/creating a lobby now
+             routes into the chat hub's matchmaking tab instead (see
+             MatchmakingStore.joinLobby), so this manual entry point is
+             redundant for that flow. LobbyPanel.vue itself, its
+             invite/leave-lobby logic, and defaultHub()'s auto-switch on
+             a pending invite are all left fully intact -- only the
+             button is hidden, in case this needs to come back. -->
         <button
+          v-if="false"
           :ref="setHubButtonRef('lobby')"
           :class="[hubBtnClass('lobby'), 'z-[1]']"
           @click="selectHub('lobby')"
