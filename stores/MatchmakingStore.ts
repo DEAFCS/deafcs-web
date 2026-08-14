@@ -395,7 +395,23 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
         });
       }
 
-      setActiveHub("lobby");
+      // Land on the chat sidebar's matchmaking lobby tab, not the
+      // standalone Lobby hub panel -- same fix as joinLobby() below.
+      // This call was missed when that fix went in, which is why
+      // creating a lobby still popped the (button-hidden but not
+      // actually removed) Lobby panel open.
+      const { openTab } = useChatTabs();
+      openTab({
+        id: `matchmaking:${newLobbyId}`,
+        // Hardcoded (not useI18n()'s t()) deliberately -- see joinLobby()
+        // below for why calling that composable here crashes SSR.
+        label: "Lobby",
+        instance: "matchmaking",
+        type: "matchmaking",
+        lobbyId: newLobbyId,
+        pinned: true,
+      });
+      setActiveHub("chat");
       return newLobbyId;
     } finally {
       creatingLobby.value = false;
