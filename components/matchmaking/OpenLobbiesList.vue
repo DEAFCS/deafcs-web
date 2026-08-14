@@ -86,14 +86,24 @@ async function join(lobbyId: string) {
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5">
             <div class="flex -space-x-2">
-              <LiveAvatarImg
+              <!-- LiveAvatarImg's own root is a bare <img>/<svg> with no
+                   wrapper -- sizing it directly conflicts with img-class
+                   (both land on the same element, e.g. w-6 fighting
+                   w-full, and the wrong one can win). The rest of the
+                   app always sizes it via an outer wrapper div instead
+                   (see ChatPanel.vue) -- matching that here is exactly
+                   what fixes the oversized avatars. -->
+              <div
                 v-for="p in othersOf(lobby).slice(0, 4)"
                 :key="p.player.steam_id"
-                :steam-id="p.player.steam_id"
-                :fallback-url="p.player.custom_avatar_url || p.player.avatar_url"
-                img-class="w-full h-full object-cover"
                 class="h-6 w-6 rounded-full ring-2 ring-card overflow-hidden"
-              />
+              >
+                <LiveAvatarImg
+                  :steam-id="p.player.steam_id"
+                  :fallback-url="p.player.custom_avatar_url || p.player.avatar_url"
+                  img-class="w-full h-full object-cover"
+                />
+              </div>
             </div>
             <span class="flex items-center gap-1 text-xs text-muted-foreground">
               <UsersRound class="h-3.5 w-3.5" />
