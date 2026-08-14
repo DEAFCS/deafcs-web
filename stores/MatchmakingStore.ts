@@ -212,9 +212,6 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
           },
         ],
       }),
-      variables: {
-        mySteamId,
-      },
     });
 
     const { subscribe } = useSubscriptionManager();
