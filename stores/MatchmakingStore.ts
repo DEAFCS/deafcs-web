@@ -16,7 +16,6 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { webrtc } from "~/web-sockets/Webrtc";
 import { setActiveHub } from "~/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
-import { useI18n } from "vue-i18n";
 
 const REGION_LATENCY_PREFIX = "5stack_region_latency_";
 const MAX_LATENCY_KEY = "5stack_max_acceptable_latency";
@@ -36,12 +35,6 @@ function safeParseLocalStorage<T>(key: string): T | null {
 }
 
 export const useMatchmakingStore = defineStore("matchmaking", () => {
-  // Called at the store's setup top level, not inside joinLobby() below
-  // -- useI18n() needs an active component/effect-scope context, which
-  // only reliably exists during this synchronous setup pass, not later
-  // when joinLobby() actually runs (in response to a user's click).
-  const { t } = useI18n();
-
   const playersOnline = ref([]);
   const onlinePlayerSteamIds = ref<string[]>([]);
 
@@ -471,7 +464,14 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     const { openTab } = useChatTabs();
     openTab({
       id: `matchmaking:${lobby_id}`,
-      label: t("chat_tab_labels.lobby_default"),
+      // Hardcoded (not useI18n()'s t()) deliberately -- calling that
+      // composable from inside a Pinia store action crashed SSR outright
+      // (every page returned 500, not just this flow) since it can run
+      // outside any component's setup context. Matches the English
+      // value of chat_tab_labels.lobby_default; ensureDefaultTabs' own
+      // reactive watch (useChatTabSetup.ts) still uses the real
+      // translated t() call whenever it creates this tab instead of us.
+      label: "Lobby",
       instance: "matchmaking",
       type: "matchmaking",
       lobbyId: lobby_id,
