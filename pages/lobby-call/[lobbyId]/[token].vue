@@ -126,7 +126,8 @@ function toggleMute() {
 // Same front/back switch the required-webcam join page has -- this is
 // a phone-only control (the desktop "this computer" flow only ever has
 // one camera), which is why it's only wired up here, not in the
-// popout window.
+// popout window. Lives on the own-camera video itself (FaceTime-style
+// corner icon) so it stays reachable however small the PiP shrinks to.
 async function flipCamera() {
   if (!camStream) return;
   const nextFacingMode = facingMode === "user" ? "environment" : "user";
@@ -272,110 +273,122 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
+  <!-- Fixed to the real viewport height (not min-height, so it can never
+       overflow into scroll territory) using dvh -- accounts for mobile
+       browser chrome (address bar, home indicator) shrinking/growing the
+       visible area, so this fits on any phone without scrolling. -->
   <div
-    class="relative min-h-screen w-full bg-background text-foreground flex flex-col items-center gap-4 p-4"
+    class="w-full bg-background text-foreground flex flex-col overflow-hidden p-3 gap-3"
+    style="height: 100dvh"
   >
-    <h1 v-if="phase !== 'connected'" class="text-lg font-semibold text-center">
+    <h1 v-if="phase !== 'connected'" class="text-base font-semibold text-center shrink-0">
       Lobby webcam call
     </h1>
 
-    <!-- Everyone else currently in the call -- the main event once
-         connected. My own camera shrinks to a small corner PiP instead
-         (see below), same layout every video-call app uses: you watch
-         the other person, not yourself. -->
-    <div
-      v-if="phase === 'connected' && otherParticipants.length > 0"
-      class="grid gap-2 w-full max-w-lg"
-      :class="otherParticipants.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
-    >
+    <!-- Video area -- everyone else + my own camera. `relative` here
+         (not on the whole page) so my own PiP anchors to this box, not
+         to the bottom of the entire viewport. -->
+    <div class="relative flex-1 min-h-0 flex flex-col">
+      <!-- Everyone else currently in the call -- the main event once
+           connected, same layout every video-call app uses: you watch
+           the other person, not yourself. -->
       <div
-        v-for="p in otherParticipants"
-        :key="p.steamId"
-        class="relative aspect-video rounded-lg overflow-hidden bg-black border border-border"
+        v-if="phase === 'connected' && otherParticipants.length > 0"
+        class="grid gap-2 flex-1 min-h-0"
+        :class="otherParticipants.length === 1 ? 'grid-cols-1' : 'grid-cols-2'"
+      >
+        <div
+          v-for="p in otherParticipants"
+          :key="p.steamId"
+          class="relative rounded-lg overflow-hidden bg-black border border-border"
+        >
+          <video
+            :ref="setTileRef(p.steamId)"
+            autoplay
+            playsinline
+            class="w-full h-full object-cover"
+          />
+          <span
+            class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
+          >
+            {{ p.name || p.steamId }}
+          </span>
+        </div>
+      </div>
+      <div
+        v-else-if="phase === 'connected'"
+        class="flex-1 min-h-0 rounded-lg border border-dashed border-border flex items-center justify-center text-sm text-muted-foreground"
+      >
+        Waiting for others to join…
+      </div>
+
+      <!-- My own camera -- fills the whole video area before/while
+           joining, small corner PiP (FaceTime-style) once connected and
+           someone else is visible above. Always in the DOM (never
+           v-if'd) so the srcObject assignment above never silently
+           no-ops against a not-yet-mounted element. -->
+      <div
+        class="overflow-hidden bg-black border border-border"
+        :class="
+          phase === 'connected' && otherParticipants.length > 0
+            ? 'absolute bottom-2 right-2 w-[26%] max-w-[130px] aspect-[3/4] rounded-lg border-2 border-white shadow-lg z-10'
+            : 'absolute inset-0 rounded-xl'
+        "
       >
         <video
-          :ref="setTileRef(p.steamId)"
+          ref="previewEl"
           autoplay
           playsinline
+          muted
           class="w-full h-full object-cover"
         />
-        <span
-          class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
+
+        <!-- FaceTime-style corner controls on my own video, always here
+             (not a separate row below) -- just shrink with the PiP. -->
+        <button
+          v-if="phase === 'connected'"
+          type="button"
+          :title="muted ? 'Unmute' : 'Mute'"
+          class="absolute z-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+          :class="
+            otherParticipants.length
+              ? 'top-1 right-1 w-6 h-6'
+              : 'top-2.5 right-2.5 w-10 h-10'
+          "
+          @click="toggleMute"
         >
-          {{ p.name || p.steamId }}
+          <LucideMicOff v-if="muted" :class="otherParticipants.length ? 'w-3 h-3' : 'w-5 h-5'" />
+          <LucideMic v-else :class="otherParticipants.length ? 'w-3 h-3' : 'w-5 h-5'" />
+        </button>
+
+        <button
+          type="button"
+          title="Switch camera"
+          aria-label="Switch camera"
+          class="absolute z-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+          :class="
+            phase === 'connected' && otherParticipants.length
+              ? 'top-1 left-1 w-6 h-6'
+              : 'top-2.5 left-2.5 w-10 h-10'
+          "
+          @click="flipCamera"
+        >
+          <LucideRefreshCw :class="phase === 'connected' && otherParticipants.length ? 'w-3 h-3' : 'w-5 h-5'" />
+        </button>
+
+        <span
+          v-if="phase === 'connected' && !otherParticipants.length"
+          class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5"
+        >
+          You
         </span>
       </div>
     </div>
-    <div
-      v-else-if="phase === 'connected'"
-      class="w-full max-w-lg aspect-video rounded-lg border border-dashed border-border flex items-center justify-center text-sm text-muted-foreground"
-    >
-      Waiting for others to join…
-    </div>
 
-    <!-- My own camera -- full-size before/while joining, small corner
-         PiP once connected and someone else is visible above. -->
-    <div
-      class="overflow-hidden bg-black border border-border"
-      :class="
-        phase === 'connected' && otherParticipants.length > 0
-          ? 'absolute bottom-4 right-4 w-28 h-40 rounded-lg border-2 border-white shadow-lg z-10'
-          : 'relative w-full max-w-[420px] rounded-xl'
-      "
-    >
-      <video
-        ref="previewEl"
-        autoplay
-        playsinline
-        muted
-        class="w-full h-full object-cover"
-      />
-
+    <!-- Controls -->
+    <div class="shrink-0 flex flex-col items-center gap-2">
       <button
         v-if="phase === 'connected'"
-        type="button"
-        :title="muted ? 'Unmute' : 'Mute'"
-        class="absolute top-1.5 right-1.5 z-10 flex items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-        :class="otherParticipants.length ? 'w-7 h-7' : 'w-10 h-10 top-2.5 right-2.5'"
-        @click="toggleMute"
-      >
-        <LucideMicOff v-if="muted" :class="otherParticipants.length ? 'w-3.5 h-3.5' : 'w-5 h-5'" />
-        <LucideMic v-else :class="otherParticipants.length ? 'w-3.5 h-3.5' : 'w-5 h-5'" />
-      </button>
-
-      <button
-        v-if="phase !== 'connected'"
-        type="button"
-        title="Switch camera"
-        aria-label="Switch camera"
-        class="absolute top-2.5 left-2.5 z-10 flex items-center justify-center w-10 h-10 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-        @click="flipCamera"
-      >
-        <LucideRefreshCw class="w-5 h-5" />
-      </button>
-
-      <span
-        v-if="phase === 'connected' && !otherParticipants.length"
-        class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5"
-      >
-        You
-      </span>
-    </div>
-
-    <div v-if="phase === 'connected'" class="flex items-center gap-4">
-      <!-- Kept reachable here (not just on the shrunk PiP corner)
-           since once the PiP is small there's no comfortable room for
-           it on the video itself. -->
-      <button
-        type="button"
-        title="Switch camera"
-        aria-label="Switch camera"
-        class="flex items-center justify-center w-11 h-11 rounded-full bg-card border border-border text-foreground hover:bg-muted transition-colors"
-        @click="flipCamera"
-      >
-        <LucideRefreshCw class="w-5 h-5" />
-      </button>
-      <button
         type="button"
         title="Leave call"
         aria-label="Leave call"
@@ -384,28 +397,28 @@ onBeforeUnmount(() => {
       >
         <LucideX class="w-6 h-6" />
       </button>
-    </div>
 
-    <div class="text-center max-w-sm space-y-3">
-      <template v-if="phase === 'connected'">
-        <p class="text-sm text-muted-foreground font-medium">
-          Keep this page open while you're in the call.
-        </p>
-      </template>
-      <template v-else-if="phase === 'requesting'">
-        <p class="text-sm text-muted-foreground">Requesting camera & mic access…</p>
-      </template>
-      <template v-else>
-        <p class="text-sm text-muted-foreground">
-          Tap below to join the lobby's webcam call.
-        </p>
-        <p v-if="errorMessage" class="text-sm text-destructive">
-          {{ errorMessage }}
-        </p>
-        <Button size="lg" class="rounded-full" @click="startCall">
-          Join call
-        </Button>
-      </template>
+      <div class="text-center max-w-sm">
+        <template v-if="phase === 'connected'">
+          <p class="text-xs text-muted-foreground font-medium">
+            Keep this page open while you're in the call.
+          </p>
+        </template>
+        <template v-else-if="phase === 'requesting'">
+          <p class="text-sm text-muted-foreground">Requesting camera & mic access…</p>
+        </template>
+        <template v-else>
+          <p class="text-sm text-muted-foreground">
+            Tap below to join the lobby's webcam call.
+          </p>
+          <p v-if="errorMessage" class="text-sm text-destructive">
+            {{ errorMessage }}
+          </p>
+          <Button size="lg" class="rounded-full mt-2" @click="startCall">
+            Join call
+          </Button>
+        </template>
+      </div>
     </div>
   </div>
 </template>
