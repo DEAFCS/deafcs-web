@@ -1,6 +1,7 @@
 import { order_by, Selector } from "@/generated/zeus";
 import { mapFields } from "~/graphql/mapGraphql";
 import { playerFields } from "~/graphql/playerFields";
+import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
 
 export const simpleMatchFields = Selector("matches")({
   id: true,
@@ -68,8 +69,10 @@ export const simpleMatchFields = Selector("matches")({
     lineup_players: [
       {},
       {
+        steam_id: true,
         checked_in: true,
         placeholder_name: true,
+        ...rosterImageSnapshotField,
         player: playerFields,
       },
     ],
@@ -94,8 +97,10 @@ export const simpleMatchFields = Selector("matches")({
     lineup_players: [
       {},
       {
+        steam_id: true,
         checked_in: true,
         placeholder_name: true,
+        ...rosterImageSnapshotField,
         player: playerFields,
       },
     ],
@@ -117,6 +122,7 @@ export const simpleMatchFields = Selector("matches")({
         tournament: {
           id: true,
           name: true,
+          status: true,
         },
       },
     },

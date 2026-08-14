@@ -7,7 +7,7 @@ import CheckIntoMatch from "~/components/match/CheckIntoMatch.vue";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
 import { e_match_status_enum, e_match_map_status_enum } from "~/generated/zeus";
 import {
-  buildLineupAvatarOverride,
+  buildMatchLineupAvatarOverride,
   matchAllowsRosterImage,
 } from "~/utilities/teamRosterOverride";
 </script>
@@ -93,7 +93,9 @@ import {
               v-if="lineup.coach"
               :player="lineup.coach"
               :avatar-override="
-                buildLineupAvatarOverride(lineup)(lineup.coach.steam_id)
+                buildMatchLineupAvatarOverride(match, lineup)(
+                  lineup.coach.steam_id,
+                )
               "
               :allow-roster-image="allowRosterImage"
             />

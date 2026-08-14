@@ -300,15 +300,12 @@ for (const path of MATCH_CONTEXT_GATED) {
   );
 }
 
-// Team-page-only and tournament-only surfaces are never MM/Draft contexts -
-// they must keep the unconditional literal, not the match-gated helper.
+// Team-page-only and pre-lock-only surfaces keep their unconditional opt-in.
+// Tournament history surfaces must gate current roster fallback by status.
 const UNCONDITIONAL_TRUE = [
   "components/teams/TeamMember.vue",
   "components/team/TeamCareerStats.vue",
   "pages/teams/[id].vue",
-  "components/tournament/StageStandings.vue",
-  "components/tournament/TournamentResults.vue",
-  "components/tournament/TournamentTeamMemberRow.vue",
   "components/tournament/TournamentTeamInvite.vue",
 ];
 for (const path of UNCONDITIONAL_TRUE) {
@@ -317,6 +314,22 @@ for (const path of UNCONDITIONAL_TRUE) {
     src,
     /:allow-roster-image="true"/,
     `${path} is never an MM/Draft context - it must keep the unconditional allow-roster-image="true"`,
+  );
+}
+
+for (const path of [
+  "components/tournament/StageStandings.vue",
+  "components/tournament/TournamentResults.vue",
+  "components/tournament/TournamentTeamMemberRow.vue",
+]) {
+  const src = await read(path);
+  assert.match(src, /:allow-roster-image="allowRosterImage"/);
+  assert.match(src, /tournamentAllowsCurrentRosterImage/);
+  assert.match(src, /resolveTournamentPlayerAvatarUrl/);
+  assert.doesNotMatch(
+    src,
+    /:allow-roster-image="true"/,
+    `${path} must not allow current roster fallback after tournament lock`,
   );
 }
 

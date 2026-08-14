@@ -1,4 +1,5 @@
 import { playerFields } from "~/graphql/playerFields";
+import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
 
 export default {
   id: true,
@@ -18,8 +19,8 @@ export default {
     avatar_url: true,
     // The real team's roster -- the only place a team-specific roster image
     // lives (tournament_team_roster has no roster_image_url column). Used
-    // to resolve the team-specific tier of the roster-image priority for
-    // each tournament roster row via resolveRosterImageUrl().
+    // to resolve the team-specific tier of the pre-lock portrait priority;
+    // locked tournaments use the persisted tournament-roster snapshot.
     roster: [
       {},
       {
@@ -31,7 +32,9 @@ export default {
   roster: [
     {},
     {
+      player_steam_id: true,
       role: true,
+      ...rosterImageSnapshotField,
       player: playerFields,
     },
   ],

@@ -11,7 +11,10 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import { ChevronRight } from "lucide-vue-next";
 import { kdColor } from "~/utils/statTiers";
-import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import {
+  resolveTournamentPlayerAvatarUrl,
+  tournamentAllowsCurrentRosterImage,
+} from "~/utilities/teamRosterOverride";
 </script>
 
 <template>
@@ -148,11 +151,11 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                             <td class="px-4 py-2">
                               <PlayerDisplay
                                 :player="member.player"
-                                :allow-roster-image="true"
+                                :allow-roster-image="allowRosterImage"
                                 :avatar-override="
-                                  teamRosterImageFor(
-                                    member.player,
-                                    entry.realTeamRoster,
+                                  tournamentPortraitFor(
+                                    member,
+                                    entry.tournamentTeam,
                                   )
                                 "
                                 :match-type="tournamentMatchType"
@@ -299,6 +302,9 @@ export default {
     tournamentMatchType(): string | null {
       return (this.tournament as any)?.options?.type ?? null;
     },
+    allowRosterImage(): boolean {
+      return tournamentAllowsCurrentRosterImage(this.tournament as any);
+    },
     totalGroups() {
       return Number((this.stage as any)?.groups) || 1;
     },
@@ -371,7 +377,7 @@ export default {
           matchesPlayed: Number(row.matches_played) || 0,
           tied: (placementCounts.get(Number(row.placement) || 0) || 0) > 1,
           roster: (row.team?.roster || []).filter((m: any) => m?.player),
-          realTeamRoster: row.team?.team?.roster || [],
+          tournamentTeam: row.team ?? null,
         }));
         out.push({
           number: gn,
@@ -407,21 +413,14 @@ export default {
       if (ownName) return ownName;
       return fallbackId ? `Team ${fallbackId}` : "";
     },
-    // Team-specific -> general -> avatar priority, same as
-    // TournamentTeamMemberRow.vue/TournamentResults.vue, resolved per-player
-    // against the real team's roster carried on the standings entry.
-    teamRosterImageFor(
-      player: { steam_id?: string | number | null } | null | undefined,
-      realTeamRoster: Array<{
-        player_steam_id?: string | number | null;
-        roster_image_url?: string | null;
-      }>,
-    ): string | null {
-      const rosterRow =
-        (realTeamRoster || []).find(
-          (r) => String(r.player_steam_id) === String(player?.steam_id),
-        ) ?? null;
-      return resolveRosterImageUrl(rosterRow, player ?? null, this.apiDomain);
+    tournamentPortraitFor(member: any, tournamentTeam: any): string | null {
+      return resolveTournamentPlayerAvatarUrl(
+        this.tournament as any,
+        tournamentTeam,
+        member?.player ?? null,
+        this.apiDomain,
+        member,
+      );
     },
     isExpanded(teamId: string | undefined) {
       if (!teamId) return false;

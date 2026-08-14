@@ -900,6 +900,7 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { useAuthStore } from "~/stores/AuthStore";
 import tournamentTeamFields from "~/graphql/tournamentTeamFields";
 import { playerFields } from "~/graphql/playerFields";
+import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
 import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
@@ -1123,7 +1124,9 @@ export default {
                         roster: [
                           {},
                           {
+                            player_steam_id: true,
                             role: true,
+                            ...rosterImageSnapshotField,
                             player: playerFields,
                           },
                         ],

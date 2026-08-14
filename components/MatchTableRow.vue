@@ -13,7 +13,10 @@ import {
 import TimeAgo from "~/components/TimeAgo.vue";
 import { e_match_status_enum } from "~/generated/zeus";
 import cleanMapName from "~/utilities/cleanMapName";
-import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
+import {
+  buildMatchLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { eloFields } from "~/graphql/eloFields";
 import EloChangeBadge from "~/components/EloChangeBadge.vue";
@@ -770,7 +773,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
                                 ?.steam_id,
                             )
                           "
-                          :allow-roster-image="isTournamentMatch"
+                          :allow-roster-image="allowRosterImage"
                           :size="compact ? 'xs' : 'sm'"
                           :compact="compact"
                         />
@@ -957,7 +960,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
                                 ?.steam_id,
                             )
                           "
-                          :allow-roster-image="isTournamentMatch"
+                          :allow-roster-image="allowRosterImage"
                           :size="compact ? 'xs' : 'sm'"
                           :compact="compact"
                         />
@@ -1556,6 +1559,9 @@ export default {
           this.match?.tournament_brackets?.length,
       );
     },
+    allowRosterImage(): boolean {
+      return matchAllowsRosterImage(this.match);
+    },
     bestOf(): number {
       return this.match?.options?.best_of ?? 1;
     },
@@ -1657,10 +1663,16 @@ export default {
       return this.displayedMatchStats.lineup_2?.lineup_players ?? [];
     },
     lineup1AvatarOverride() {
-      return buildLineupAvatarOverride(this.displayedMatchStats.lineup_1);
+      return buildMatchLineupAvatarOverride(
+        this.match,
+        this.displayedMatchStats.lineup_1,
+      );
     },
     lineup2AvatarOverride() {
-      return buildLineupAvatarOverride(this.displayedMatchStats.lineup_2);
+      return buildMatchLineupAvatarOverride(
+        this.match,
+        this.displayedMatchStats.lineup_2,
+      );
     },
     focusPlayerSteamId(): string | null {
       return String((this.player as any)?.steam_id ?? "") || null;

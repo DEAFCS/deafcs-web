@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ExternalLink, Trophy, X } from "lucide-vue-next";
 import cleanMapName from "~/utilities/cleanMapName";
-import { buildLineupAvatarOverride } from "~/utilities/teamRosterOverride";
+import {
+  buildMatchLineupAvatarOverride,
+  matchAllowsRosterImage,
+} from "~/utilities/teamRosterOverride";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchStatus from "~/components/match/MatchStatus.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
@@ -354,7 +357,7 @@ import {
                                 ?.steam_id,
                             )
                           "
-                          :allow-roster-image="isTournamentMatch"
+                          :allow-roster-image="allowRosterImage"
                           :match-type="match.options?.type"
                           :historical-elo="
                             historicalEloChangeForPlayer(lineupPlayer)
@@ -459,6 +462,9 @@ export default {
           this.match?.tournament_brackets?.length,
       );
     },
+    allowRosterImage(): boolean {
+      return matchAllowsRosterImage(this.match);
+    },
     tournamentLabel(): string {
       return (
         this.match?.tournament_brackets?.[0]?.stage?.tournament?.name ||
@@ -480,10 +486,16 @@ export default {
       return this.displayedMatchStats.lineup_2?.lineup_players ?? [];
     },
     lineup1AvatarOverride() {
-      return buildLineupAvatarOverride(this.displayedMatchStats.lineup_1);
+      return buildMatchLineupAvatarOverride(
+        this.match,
+        this.displayedMatchStats.lineup_1,
+      );
     },
     lineup2AvatarOverride() {
-      return buildLineupAvatarOverride(this.displayedMatchStats.lineup_2);
+      return buildMatchLineupAvatarOverride(
+        this.match,
+        this.displayedMatchStats.lineup_2,
+      );
     },
     // Focus player's lineup — drives the win/loss score coloring so the
     // player's own result is green/red and the opponent stays neutral.

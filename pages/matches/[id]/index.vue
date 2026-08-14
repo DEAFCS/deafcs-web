@@ -784,6 +784,7 @@ export default {
                     tournament: {
                       id: true,
                       name: true,
+                      status: true,
                     },
                   },
                 },

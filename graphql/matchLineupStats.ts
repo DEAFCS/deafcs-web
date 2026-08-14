@@ -1,5 +1,6 @@
 import { $, order_by, Selector } from "~/generated/zeus";
 import { playerFields } from "~/graphql/playerFields";
+import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
 
 export const matchLineupStats = Selector("match_lineups")({
   id: true,
@@ -33,6 +34,7 @@ export const matchLineupStats = Selector("match_lineups")({
       steam_id: true,
       checked_in: true,
       placeholder_name: true,
+      ...rosterImageSnapshotField,
       player: {
         ...playerFields,
         faceit_rank_history: [

@@ -9,45 +9,12 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
-import { resolveAvatarUrl } from "~/utilities/avatarUrl";
-import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 import { kdColor } from "~/utils/statTiers";
 import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 
-const apiDomain = useRuntimeConfig().public.apiDomain;
-
-// Same team-specific -> general -> avatar priority as the HoverCardContent
-// PlayerDisplay row below (teamRosterImageFor in the Options API block) --
-// this is the visible #01/#02/#03 podium card's own small stacked-avatar
-// row, which previously bypassed resolveRosterImageUrl entirely and only
-// ever showed the raw custom_avatar_url/avatar_url.
-function playerAvatarSrc(
-  player: {
-    steam_id?: string | number | null;
-    roster_image_url?: string | null;
-    custom_avatar_url?: string | null;
-    avatar_url?: string | null;
-  },
-  realTeamRoster?: Array<{
-    player_steam_id?: string | number | null;
-    roster_image_url?: string | null;
-  }> | null,
-) {
-  const rosterRow =
-    (realTeamRoster || []).find(
-      (r) => String(r.player_steam_id) === String(player?.steam_id),
-    ) ?? null;
-  return (
-    resolveRosterImageUrl(rosterRow, player ?? null, apiDomain) ??
-    resolveAvatarUrl(
-      player.roster_image_url || player.custom_avatar_url || player.avatar_url,
-      apiDomain,
-    )
-  );
-}
 </script>
 
 <template>
@@ -178,8 +145,8 @@ function playerAvatarSrc(
                       :title="p.name"
                     >
                       <img
-                        v-if="playerAvatarSrc(p, entry.realTeamRoster)"
-                        :src="playerAvatarSrc(p, entry.realTeamRoster)"
+                        v-if="tournamentPortraitFor(p, entry.tournamentTeam)"
+                        :src="tournamentPortraitFor(p, entry.tournamentTeam)"
                         :alt="p.name"
                         class="h-full w-full object-cover"
                       />
@@ -232,8 +199,10 @@ function playerAvatarSrc(
               >
                 <PlayerDisplay
                   :player="p"
-                  :allow-roster-image="true"
-                  :avatar-override="teamRosterImageFor(p, entry.realTeamRoster)"
+                  :allow-roster-image="allowRosterImage"
+                  :avatar-override="
+                    tournamentPortraitFor(p, entry.tournamentTeam)
+                  "
                   :show-flag="true"
                   :show-role="false"
                   :show-elo="false"
@@ -353,12 +322,9 @@ function playerAvatarSrc(
             <PlayerDisplay
               v-if="mvp.player"
               :player="mvp.player"
-              :allow-roster-image="true"
+              :allow-roster-image="allowRosterImage"
               :avatar-override="
-                teamRosterImageFor(
-                  mvp.player,
-                  mvp.tournament_team?.team?.roster || [],
-                )
+                tournamentPortraitFor(mvp.player, mvp.tournament_team)
               "
               :match-type="tournamentMatchType"
               :show-flag="true"
@@ -501,7 +467,11 @@ import { playerFields } from "~/graphql/playerFields";
 import { eloFields } from "~/graphql/eloFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
-import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import {
+  resolveTournamentPlayerAvatarUrl,
+  tournamentAllowsCurrentRosterImage,
+} from "~/utilities/teamRosterOverride";
+import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
 
 export default {
   props: {
@@ -583,8 +553,10 @@ export default {
                 lineup_players: [
                   {},
                   {
+                    steam_id: true,
                     checked_in: true,
                     placeholder_name: true,
+                    ...rosterImageSnapshotField,
                     player: playerFields,
                   },
                 ],
@@ -597,8 +569,10 @@ export default {
                 lineup_players: [
                   {},
                   {
+                    steam_id: true,
                     checked_in: true,
                     placeholder_name: true,
+                    ...rosterImageSnapshotField,
                     player: playerFields,
                   },
                 ],
@@ -608,6 +582,17 @@ export default {
               lineup_counts: [{}, true],
               is_in_lineup: true,
               is_coach: true,
+              is_tournament_match: true,
+              tournament_brackets: [
+                { limit: 1 },
+                {
+                  stage: {
+                    tournament: {
+                      status: true,
+                    },
+                  },
+                },
+              ],
               streams: [
                 { order_by: [{ priority: order_by.asc }] },
                 {
@@ -740,6 +725,7 @@ export default {
                       {},
                       {
                         player_steam_id: true,
+                        ...rosterImageSnapshotField,
                         player: playerFields,
                       },
                     ],
@@ -831,21 +817,13 @@ export default {
       if (ownName) return ownName;
       return fallbackId ? `Team ${fallbackId}` : "";
     },
-    // Team-specific -> general -> avatar priority, same as
-    // TournamentTeamMemberRow.vue, resolved per-player against the real
-    // team's roster carried on the podium entry (see `podium` computed).
-    teamRosterImageFor(
-      player: { steam_id?: string | number | null } | null | undefined,
-      realTeamRoster: Array<{
-        player_steam_id?: string | number | null;
-        roster_image_url?: string | null;
-      }>,
-    ): string | null {
-      const rosterRow =
-        (realTeamRoster || []).find(
-          (r) => String(r.player_steam_id) === String(player?.steam_id),
-        ) ?? null;
-      return resolveRosterImageUrl(rosterRow, player ?? null, this.apiDomain);
+    tournamentPortraitFor(player: any, tournamentTeam: any): string | null {
+      return resolveTournamentPlayerAvatarUrl(
+        this.tournament as any,
+        tournamentTeam,
+        player ?? null,
+        this.apiDomain,
+      );
     },
     playerStatFor(steamId: string | number) {
       if (!steamId) return null;
@@ -872,6 +850,9 @@ export default {
     },
     tournamentMatchType(): string | null {
       return (this.tournament as any)?.options?.type ?? null;
+    },
+    allowRosterImage(): boolean {
+      return tournamentAllowsCurrentRosterImage(this.tournament as any);
     },
     isLive() {
       return (this.tournament as any)?.status === e_tournament_status_enum.Live;
@@ -910,7 +891,7 @@ export default {
             "",
           tournamentType: this.finalStageType,
           players,
-          realTeamRoster: primary?.tournament_team?.team?.roster || [],
+          tournamentTeam: primary?.tournament_team ?? null,
         });
       }
       return entries.sort((a: any, b: any) => a.placement - b.placement);

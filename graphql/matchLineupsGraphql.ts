@@ -1,5 +1,6 @@
 import { $, order_by, Selector } from "~/generated/zeus";
 import { playerFields } from "~/graphql/playerFields";
+import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
 
 // generated/zeus predates the party_id/party_source columns (needs a live
 // Hasura codegen run to pick them up) — spread through `any` so the excess
@@ -65,6 +66,7 @@ export const matchLineups = Selector("match_lineups")({
       steam_id: true,
       checked_in: true,
       placeholder_name: true,
+      ...rosterImageSnapshotField,
       ...partyFields,
       player: {
         ...playerFields,

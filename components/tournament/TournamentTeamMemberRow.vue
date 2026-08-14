@@ -39,7 +39,10 @@ import {
 } from "~/components/ui/dropdown-menu";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import Separator from "../ui/separator/Separator.vue";
-import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import {
+  resolveTournamentPlayerAvatarUrl,
+  tournamentAllowsCurrentRosterImage,
+} from "~/utilities/teamRosterOverride";
 </script>
 
 <template>
@@ -49,8 +52,8 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
     <div class="flex items-center gap-[0.65rem] min-w-0 flex-1">
       <PlayerDisplay
         :player="member.player"
-        :allow-roster-image="true"
-        :avatar-override="teamRosterImage"
+        :allow-roster-image="allowRosterImage"
+        :avatar-override="tournamentPortrait"
         :match-type="tournamentMatchType"
         :linkable="true"
       />
@@ -246,25 +249,16 @@ export default {
     apiDomain() {
       return useRuntimeConfig().public.apiDomain;
     },
-    // Team-specific roster image for this exact real team, per the
-    // established priority (utilities/rosterImage.ts): team-specific ->
-    // general -> avatar. tournamentTeamFields.ts's `team.roster` is the
-    // real team's team_roster (the only place a team-specific image can
-    // live -- tournament_team_roster itself has no roster_image_url
-    // column). Falls through to null when there's no team-specific row/
-    // image, letting PlayerDisplay's own allow-roster-image chain resolve
-    // the player's general roster image, then avatar.
-    teamRosterImage(): string | null {
-      const realTeamRoster = (this.team as any)?.team?.roster || [];
-      const rosterRow =
-        realTeamRoster.find(
-          (r: any) =>
-            String(r.player_steam_id) === String(this.member.player?.steam_id),
-        ) ?? null;
-      return resolveRosterImageUrl(
-        rosterRow,
-        this.member.player ?? null,
+    allowRosterImage(): boolean {
+      return tournamentAllowsCurrentRosterImage(this.tournament as any);
+    },
+    tournamentPortrait(): string | null {
+      return resolveTournamentPlayerAvatarUrl(
+        this.tournament as any,
+        this.team as any,
+        this.member?.player ?? null,
         this.apiDomain,
+        this.member,
       );
     },
     tournamentMatchType(): string | null {

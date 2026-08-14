@@ -100,8 +100,8 @@ test("StageStandings receives tournament from both callers and passes match type
 });
 
 // ---------------------------------------------------------------------------
-// B. Roster-image priority: team-specific -> general -> avatar, reusing
-// resolveRosterImageUrl rather than duplicating the priority manually.
+// B. Current roster fields remain available pre-lock, while locked surfaces
+// select the historical snapshot through the narrow GraphQL compatibility field.
 // ---------------------------------------------------------------------------
 
 test("tournamentTeamFields.ts exposes the real team's roster for team-specific image resolution", () => {
@@ -109,23 +109,24 @@ test("tournamentTeamFields.ts exposes the real team's roster for team-specific i
     tournamentTeamFields,
     /team: \{[\s\S]*?\n {4}roster: \[\s*\n\s*\{\},\s*\n\s*\{\s*\n\s*player_steam_id: true,\s*\n\s*roster_image_url: true,/,
   );
+  assert.match(tournamentTeamFields, /import \{ rosterImageSnapshotField \}/);
+  assert.match(tournamentTeamFields, /\.\.\.rosterImageSnapshotField/);
 });
 
 test("TournamentDetail's stage results query also widens the real team's roster for standings", () => {
   const block = tournamentDetail.slice(
     tournamentDetail.indexOf("results: ["),
-    tournamentDetail.indexOf("results: [") + 1400,
+    tournamentDetail.indexOf("results: [") + 2400,
   );
   assert.match(block, /team:\s*\{\s*\n\s*id: true,\s*\n\s*name: true,\s*\n\s*avatar_url: true,\s*\n\s*[\s\S]*?roster: \[/);
+  assert.match(tournamentDetail, /import \{ rosterImageSnapshotField \}/);
+  assert.match(block, /\.\.\.rosterImageSnapshotField/);
 });
 
-test("every fixed tournament surface resolves roster images via resolveRosterImageUrl, not a duplicated priority chain", () => {
+test("current invite/join surfaces keep the canonical live roster resolver", () => {
   for (const [label, src] of [
-    ["TournamentTeamMemberRow.vue", tournamentTeamMemberRow],
     ["TournamentTeamInvite.vue", tournamentTeamInvite],
     ["TournamentJoinForm.vue", tournamentJoinForm],
-    ["TournamentResults.vue", tournamentResults],
-    ["StageStandings.vue", stageStandings],
   ]) {
     assert.match(
       src,
@@ -137,6 +138,23 @@ test("every fixed tournament surface resolves roster images via resolveRosterIma
       /:avatar-override="/,
       `${label} must feed a team-specific override into PlayerDisplay`,
     );
+  }
+});
+
+test("locked tournament roster, standings, and results surfaces use the historical resolver", () => {
+  for (const [label, src] of [
+    ["TournamentTeamMemberRow.vue", tournamentTeamMemberRow],
+    ["TournamentResults.vue", tournamentResults],
+    ["StageStandings.vue", stageStandings],
+  ]) {
+    assert.match(
+      src,
+      /resolveTournamentPlayerAvatarUrl/,
+      `${label} must use the historical-aware tournament resolver`,
+    );
+    assert.match(src, /tournamentAllowsCurrentRosterImage/);
+    assert.match(src, /:avatar-override=/);
+    assert.doesNotMatch(src, /:allow-roster-image="true"/);
   }
 });
 
