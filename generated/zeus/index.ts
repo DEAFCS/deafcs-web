@@ -1292,8 +1292,10 @@ export type ValueTypes = {
 		__typename?: boolean | `@${string}`
 }>;
 	["MediaServerStats"]: AliasType<{
+	cpuLimitMilliCores?:boolean | `@${string}`,
 	cpuMilliCores?:boolean | `@${string}`,
 	memoryBytes?:boolean | `@${string}`,
+	memoryLimitBytes?:boolean | `@${string}`,
 	paths?:boolean | `@${string}`,
 	publishing?:boolean | `@${string}`,
 	webrtcSessions?:boolean | `@${string}`,
@@ -68043,8 +68045,10 @@ export type ResolverInputTypes = {
 		__typename?: boolean | `@${string}`
 }>;
 	["MediaServerStats"]: AliasType<{
+	cpuLimitMilliCores?:boolean | `@${string}`,
 	cpuMilliCores?:boolean | `@${string}`,
 	memoryBytes?:boolean | `@${string}`,
+	memoryLimitBytes?:boolean | `@${string}`,
 	paths?:boolean | `@${string}`,
 	publishing?:boolean | `@${string}`,
 	webrtcSessions?:boolean | `@${string}`,
@@ -134756,8 +134760,10 @@ export type ModelTypes = {
 	steam_id: string
 };
 	["MediaServerStats"]: {
-		cpuMilliCores: number,
+		cpuLimitMilliCores: number,
+	cpuMilliCores: number,
 	memoryBytes: number,
+	memoryLimitBytes: number,
 	paths: number,
 	publishing: number,
 	webrtcSessions: number
@@ -193487,8 +193493,10 @@ export type GraphQLTypes = {
 };
 	["MediaServerStats"]: {
 	__typename: "MediaServerStats",
+	cpuLimitMilliCores: number,
 	cpuMilliCores: number,
 	memoryBytes: number,
+	memoryLimitBytes: number,
 	paths: number,
 	publishing: number,
 	webrtcSessions: number

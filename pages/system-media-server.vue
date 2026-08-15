@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { generateQuery } from "~/graphql/graphqlGen";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
-import { formatBytes } from "~/utilities/formatResourceUsage";
+import CpuChart from "~/components/charts/CpuChart.vue";
+import MemoryChart from "~/components/charts/MemoryChart.vue";
 </script>
 
 <template>
@@ -68,22 +69,23 @@ import { formatBytes } from "~/utilities/formatResourceUsage";
           </h2>
         </header>
 
-        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div class="border border-border bg-background/40 p-4">
-            <div class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-muted-foreground">
+            <div class="mb-2 flex items-center gap-2 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-muted-foreground">
+              <Cpu class="h-3.5 w-3.5" />
               {{ $t("pages.system_media_server.cpu_usage") }}
             </div>
-            <div class="mt-2 text-2xl font-bold tabular-nums">
-              {{ Math.round(getMediaServerStats?.cpuMilliCores ?? 0) }}m
-              <span class="text-sm font-normal text-muted-foreground">cores</span>
+            <div class="h-[180px]">
+              <CpuChart :metrics="cpuHistory" />
             </div>
           </div>
           <div class="border border-border bg-background/40 p-4">
-            <div class="font-mono text-[0.62rem] uppercase tracking-[0.22em] text-muted-foreground">
+            <div class="mb-2 flex items-center gap-2 font-mono text-[0.62rem] uppercase tracking-[0.22em] text-muted-foreground">
+              <HardDrive class="h-3.5 w-3.5" />
               {{ $t("pages.system_media_server.memory_usage") }}
             </div>
-            <div class="mt-2 text-2xl font-bold tabular-nums">
-              {{ formatBytes(getMediaServerStats?.memoryBytes ?? 0) }}
+            <div class="h-[180px]">
+              <MemoryChart :metrics="memoryHistory" label="MB" />
             </div>
           </div>
         </div>
@@ -93,7 +95,26 @@ import { formatBytes } from "~/utilities/formatResourceUsage";
 </template>
 
 <script lang="ts">
+import { Cpu, HardDrive } from "lucide-vue-next";
+
+// CpuChart/MemoryChart (also used on system-metrics.vue) plot a
+// {time, used, total} history, but getMediaServerStats only ever
+// returns a live snapshot -- there's no server-side history for a
+// single pod's usage the way there is for tracked game-node services.
+// Built here instead: each 5s poll appends one point (used = current
+// reading, total = the pod's actual resource *limit*, so the chart's
+// percentage axis means something real -- "how much of what this pod
+// is allowed to use" -- not a fabricated scale).
+const MAX_HISTORY_POINTS = 60; // 5 minutes at a 5s poll interval
+
 export default {
+  components: { Cpu, HardDrive },
+  data() {
+    return {
+      cpuHistory: [] as Array<{ time: Date; used: number; total: number }>,
+      memoryHistory: [] as Array<{ time: Date; used: number; total: number }>,
+    };
+  },
   apollo: {
     getMediaServerStats: {
       query: generateQuery({
@@ -105,10 +126,42 @@ export default {
             webrtcSessions: true,
             cpuMilliCores: true,
             memoryBytes: true,
+            cpuLimitMilliCores: true,
+            memoryLimitBytes: true,
           },
         ],
       }),
       pollInterval: 5 * 1000,
+    },
+  },
+  watch: {
+    getMediaServerStats: {
+      handler(stats) {
+        if (!stats) return;
+        const time = new Date();
+
+        // CpuChart expects `used` in nanocores and `total` as a raw
+        // CPU-count (eg. 0.5 for a 500m limit), matching how it already
+        // reads game-node pod stats.
+        this.cpuHistory = [
+          ...this.cpuHistory,
+          {
+            time,
+            used: Number(stats.cpuMilliCores || 0) * 1_000_000,
+            total: Math.max(Number(stats.cpuLimitMilliCores || 0) / 1000, 0.001),
+          },
+        ].slice(-MAX_HISTORY_POINTS);
+
+        this.memoryHistory = [
+          ...this.memoryHistory,
+          {
+            time,
+            used: Number(stats.memoryBytes || 0),
+            total: Math.max(Number(stats.memoryLimitBytes || 0), 1),
+          },
+        ].slice(-MAX_HISTORY_POINTS);
+      },
+      immediate: true,
     },
   },
 };

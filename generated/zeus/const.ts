@@ -38223,8 +38223,10 @@ export const ReturnTypes: Record<string,any> = {
 		steam_id:"String"
 	},
 	MediaServerStats:{
+		cpuLimitMilliCores:"Float",
 		cpuMilliCores:"Float",
 		memoryBytes:"Float",
+		memoryLimitBytes:"Float",
 		paths:"Int",
 		publishing:"Int",
 		webrtcSessions:"Int"
