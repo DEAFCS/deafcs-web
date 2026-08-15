@@ -101,7 +101,7 @@ import MemoryChart from "~/components/charts/MemoryChart.vue";
               {{ $t("pages.system_media_server.memory_usage") }}
             </div>
             <div class="h-[180px]">
-              <MemoryChart v-if="memoryHistory.length > 0" :metrics="memoryHistory" label="MB" />
+              <MemoryChart v-if="memoryHistory.length > 0" :metrics="memoryHistory" label="GB" />
               <div
                 v-else
                 class="flex h-full items-center justify-center font-mono text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground"
