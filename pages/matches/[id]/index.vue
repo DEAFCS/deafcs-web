@@ -1040,12 +1040,22 @@ export default {
     // its own template). Unmounting it here the moment the camera goes
     // ready is what used to make a later disconnect invisible until F5.
     showCameraOverlay() {
-      const activeStatuses = ["Veto", "Live", "WaitingForServer"];
+      if (!this.isCameraPlayer) return false;
+      // Spot checks can be requested from check-in onward (see
+      // LineupOverviewRow's canRequestCameraSpotCheck) -- wider window
+      // than the blanket camera_required flow below, which never has a
+      // token to offer until the veto->Live transition mints one (see
+      // MatchesController.generateCameraTokensIfRequired), so showing
+      // the overlay any earlier for that path would just block every
+      // player on a token that doesn't exist yet.
+      if (this.cameraSpotCheckRequested) {
+        return ["WaitingForCheckIn", "Veto", "Live", "WaitingForServer"].includes(
+          this.match?.status,
+        );
+      }
       return (
-        (!!this.match?.options?.camera_required ||
-          this.cameraSpotCheckRequested) &&
-        this.isCameraPlayer &&
-        activeStatuses.includes(this.match?.status)
+        !!this.match?.options?.camera_required &&
+        ["Veto", "Live", "WaitingForServer"].includes(this.match?.status)
       );
     },
     mapScores() {

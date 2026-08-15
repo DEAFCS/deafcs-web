@@ -639,7 +639,8 @@ export default {
       );
     },
     // Doping-control-style "show your camera right now" -- available
-    // to admins any time the match is actually in progress, regardless
+    // to admins from check-in onward (so a spot check can happen before
+    // a match even goes live, not just once it's underway), regardless
     // of whether camera_required is on for the tournament. Client-side
     // check is just for hiding the menu item; the backend re-validates
     // via CameraService.assertCanWatch (site-admin or this tournament's
@@ -649,6 +650,7 @@ export default {
       if (this.me.role !== e_player_roles_enum.administrator) return false;
       if (!this.member.player?.steam_id) return false;
       return [
+        e_match_status_enum.WaitingForCheckIn,
         e_match_status_enum.Veto,
         e_match_status_enum.Live,
         e_match_status_enum.WaitingForServer,
