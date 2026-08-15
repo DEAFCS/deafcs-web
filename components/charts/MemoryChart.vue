@@ -45,6 +45,22 @@ export default {
     },
   },
   data() {
+    // Computed once here (not reactively -- see the class comment on
+    // system-media-server.vue's chart mounting for why that's safe for
+    // that usage) so both the axis max and its step size derive from
+    // the same number, giving clean, evenly-spaced ticks (eg. 0/2/4/6/8
+    // for an 8-unit max) instead of whatever Chart.js's own "nice
+    // number" heuristic lands on for an arbitrary total.
+    const axisMax = Math.max(
+      1,
+      ...this.metrics.map((metric: any) =>
+        Math.ceil(
+          this.label === "MB"
+            ? metric.total / (1024 * 1024)
+            : metric.total / (1024 * 1024 * 1024),
+        ),
+      ),
+    );
     return {
       options: {
         responsive: true,
@@ -96,19 +112,12 @@ export default {
             position: "right",
             beginAtZero: true,
             ticks: {
+              stepSize: Math.max(1, Math.round(axisMax / 4)),
               callback: (value) => {
                 return `${value} ${this.label}`;
               },
             },
-            max: Math.max(
-              ...this.metrics.map((metric) =>
-                Math.ceil(
-                  this.label === "MB"
-                    ? metric.total / (1024 * 1024)
-                    : metric.total / (1024 * 1024 * 1024),
-                ),
-              ),
-            ),
+            max: axisMax,
           },
           x: {
             display: false,
