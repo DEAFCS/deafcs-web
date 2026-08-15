@@ -18,6 +18,7 @@ import { resolveMatchPlayerAvatarUrl } from "~/utilities/teamRosterOverride";
 import {
   ArrowLeftRight,
   Camera,
+  CameraOff,
   Crown,
   LogOut,
   MoreVertical,
@@ -127,6 +128,10 @@ const DASH = "—";
               <DropdownMenuItem @click="requestCameraSpotCheck">
                 <Camera class="text-[hsl(var(--tac-amber))]" />
                 <span>{{ $t("match.overview.request_camera") }}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem @click="cancelCameraSpotCheck">
+                <CameraOff class="text-muted-foreground" />
+                <span>{{ $t("match.overview.stop_camera_request") }}</span>
               </DropdownMenuItem>
             </template>
           </DropdownMenuContent>
@@ -385,7 +390,10 @@ import { partyIndexOf, partyMemberNames } from "~/utilities/matchParties";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { $, e_match_status_enum, e_player_roles_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
-import { cameraAdminRequestUrl } from "~/composables/useCameraApi";
+import {
+  cameraAdminRequestUrl,
+  cameraAdminCancelRequestUrl,
+} from "~/composables/useCameraApi";
 
 export default {
   components: {
@@ -551,6 +559,28 @@ export default {
       } catch (error) {
         toast({
           title: this.$t("match.overview.request_camera_failed"),
+          description: (error as Error).message,
+          variant: "destructive",
+        });
+      }
+    },
+    async cancelCameraSpotCheck() {
+      const steamId = this.member.player?.steam_id;
+      if (!steamId) return;
+      try {
+        const res = await fetch(
+          cameraAdminCancelRequestUrl(this.match.id, String(steamId)),
+          { method: "POST", credentials: "include" },
+        );
+        if (!res.ok) throw new Error(await res.text());
+        toast({
+          title: this.$t("match.overview.stop_camera_request_sent", {
+            name: this.member.player?.name ?? steamId,
+          }),
+        });
+      } catch (error) {
+        toast({
+          title: this.$t("match.overview.stop_camera_request_failed"),
           description: (error as Error).message,
           variant: "destructive",
         });

@@ -38,6 +38,11 @@ export function cameraAdminRequestUrl(matchId: string, steamId: string): string 
   return `https://${apiDomain}/matches/camera/admin/${matchId}/${steamId}/request`;
 }
 
+export function cameraAdminCancelRequestUrl(matchId: string, steamId: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/matches/camera/admin/${matchId}/${steamId}/request/cancel`;
+}
+
 // The "Watch Camera" popup window — a whole-team grid, not a
 // one-at-a-time picker, so an organizer can watch every player at
 // once the way they'd want to during an actual match.

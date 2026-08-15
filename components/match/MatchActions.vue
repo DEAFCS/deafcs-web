@@ -988,11 +988,17 @@ export default {
     // or an organizer of this specific tournament (match.is_organizer) —
     // not the global tournament_organizer role, which would leak access
     // to every tournament's cameras rather than just this one.
+    //
+    // Deliberately NOT gated on camera_required: an admin can request a
+    // one-off spot check (LineupOverviewRow's "Request camera") on any
+    // match regardless of that tournament-wide setting, so this button
+    // needs to stay available for them to actually go watch it. The
+    // camera-admin grid itself has no camera_required check either —
+    // it just shows whoever's currently connected.
     canWatchCamera() {
       return (
-        !!this.match.options?.camera_required &&
-        (this.match.is_organizer ||
-          useAuthStore().isRoleAbove(e_player_roles_enum.administrator))
+        this.match.is_organizer ||
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },
     hasMinimumLineupPlayers() {
