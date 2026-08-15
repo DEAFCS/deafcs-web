@@ -15,6 +15,8 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
+  MoreVertical,
+  Download,
 } from "lucide-vue-next";
 
 // Desktop-only entry point for getting the app onto a *phone* -- this
@@ -175,18 +177,37 @@ function nextIosStep() {
         >
           <ArrowLeft class="w-4 h-4" /> {{ $t("common.back") }}
         </button>
-        <div class="flex flex-col items-center gap-3 py-4 text-center">
+        <div class="flex items-center gap-3 rounded-lg border border-border p-2.5">
           <img
             v-if="qrDataUrl"
             :src="qrDataUrl"
             alt="QR code"
-            width="140"
-            height="140"
-            class="rounded-lg border border-border bg-white p-2"
+            width="72"
+            height="72"
+            class="rounded-md border border-border bg-white p-1 shrink-0"
           />
-          <p class="text-sm text-muted-foreground max-w-xs">
-            {{ $t("pwa.install_dialog.android_coming_soon") }}
+          <p class="text-xs text-muted-foreground">
+            {{ $t("pwa.install_dialog.scan_hint") }}
           </p>
+        </div>
+
+        <!-- Android's browser handles the actual install with its own
+             native prompt (same $pwa.install() the sidebar's Install
+             App button already uses) -- no per-device screenshots
+             needed here, just point at where that button lives. -->
+        <div class="flex flex-col gap-3 py-1">
+          <div class="flex items-center gap-4">
+            <MoreVertical class="w-7 h-7 shrink-0" />
+            <p class="text-sm text-muted-foreground">
+              {{ $t("pwa.install_dialog.android_step1") }}
+            </p>
+          </div>
+          <div class="flex items-center gap-4">
+            <Download class="w-7 h-7 shrink-0" />
+            <p class="text-sm text-muted-foreground">
+              {{ $t("pwa.install_dialog.android_step2") }}
+            </p>
+          </div>
         </div>
       </div>
     </DialogContent>

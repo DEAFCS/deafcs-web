@@ -3600,7 +3600,8 @@
       "iphone": "iPhone",
       "android": "Android",
       "scan_hint": "Scan this with your phone's camera to open deafcs.net on your phone.",
-      "android_coming_soon": "Step-by-step Android instructions are coming soon. Scan the QR code above, then open your browser menu and look for 'Add to Home screen' or 'Install app'.",
+      "android_step1": "Scan the QR code, then tap the menu button (⋮) in your browser",
+      "android_step2": "Tap 'Install app' — Chrome will show its own install prompt",
       "ios_steps": {
         "0": "Tap the '•••' menu button in Safari's bottom bar",
         "1": "Tap 'Share'",
