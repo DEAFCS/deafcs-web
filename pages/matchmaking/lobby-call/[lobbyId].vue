@@ -118,6 +118,19 @@ let camStream: MediaStream | null = null;
 let camPc: RTCPeerConnection | null = null;
 let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 
+// Belt-and-suspenders for attaching the local stream: the own-preview
+// <video> now lives inside the same v-if="visibleTileCount > 0" grid as
+// everyone else (see template), which depends on the server confirming
+// us via the participants socket event. That confirmation can arrive a
+// tick or more after publishingLocally flips true, so the element may
+// not exist yet when connectThisComputer()'s single nextTick() runs --
+// exactly the silent-no-op black-screen bug described there, just
+// reintroduced by a later delay. Watching the ref directly attaches the
+// stream whenever the element actually mounts, however long that takes.
+watch(previewEl, (el) => {
+  if (el && camStream) el.srcObject = camStream;
+});
+
 async function connectThisComputer() {
   const token = await ensureToken();
   if (!token) return;
