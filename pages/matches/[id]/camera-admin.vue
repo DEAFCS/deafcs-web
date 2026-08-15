@@ -7,7 +7,7 @@ import {
   type ComponentPublicInstance,
 } from "vue";
 import WhepPlayer from "~/components/match/WhepPlayer.vue";
-import { Video, VideoOff } from "lucide-vue-next";
+import { Video, VideoOff, ChevronDown, ArrowLeft } from "lucide-vue-next";
 import {
   cameraAdminWhepUrl,
   cameraAdminTalkWhipUrl,
@@ -75,15 +75,85 @@ function setLocalVideoEl(
   localVideoEls[steamId] = (el as HTMLVideoElement) ?? null;
 }
 
-async function startCall(steamId: string) {
+// --- Device preview (Discord-style "pick your camera" step) before a
+// call actually starts -- same fix as the player-facing camera pages.
+// Admin can only be setting up one call at a time, so a single shared
+// preview slot (keyed by which player it's for) is enough; the video
+// element and device list live outside the per-player `calls` map.
+const previewSteamId = ref<string | null>(null);
+let previewStream: MediaStream | null = null;
+const previewVideoEl = ref<HTMLVideoElement | null>(null);
+const availableDevices = ref<MediaDeviceInfo[]>([]);
+const selectedDeviceId = ref<string | null>(null);
+const selectedDeviceLabel = computed(
+  () =>
+    availableDevices.value.find((d) => d.deviceId === selectedDeviceId.value)
+      ?.label || null,
+);
+
+async function startPreviewDevice(deviceId?: string | null): Promise<MediaStream> {
+  const constraints: MediaTrackConstraints = deviceId
+    ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    : {
+        facingMode: { ideal: "user" },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        aspectRatio: { ideal: 16 / 9 },
+      };
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: constraints,
+    audio: true,
+  });
+  previewStream?.getTracks().forEach((t) => t.stop());
+  previewStream = stream;
+  if (previewVideoEl.value) previewVideoEl.value.srcObject = stream;
+  return stream;
+}
+
+async function openCallPreview(steamId: string) {
   const state = callState(steamId);
   if (state.talking || state.connecting) return;
-  state.connecting = true;
+  previewSteamId.value = steamId;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: true,
-    });
+    const stream = await startPreviewDevice();
+    // Device labels are only populated once permission has been
+    // granted, so enumerate *after* the first getUserMedia succeeds.
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    availableDevices.value = devices.filter((d) => d.kind === "videoinput");
+    selectedDeviceId.value =
+      stream.getVideoTracks()[0]?.getSettings().deviceId ??
+      availableDevices.value[0]?.deviceId ??
+      null;
+  } catch (err) {
+    alert(`Could not access camera: ${err instanceof Error ? err.message : err}`);
+    cancelCallPreview();
+  }
+}
+
+watch(selectedDeviceId, (id, oldId) => {
+  if (previewSteamId.value && id && id !== oldId) {
+    startPreviewDevice(id).catch(() => {});
+  }
+});
+
+function cancelCallPreview() {
+  previewStream?.getTracks().forEach((t) => t.stop());
+  previewStream = null;
+  if (previewVideoEl.value) previewVideoEl.value.srcObject = null;
+  previewSteamId.value = null;
+}
+
+// Publishes whatever previewStream the preview step already has -- the
+// actual WHIP handshake, unchanged from the old single-step startCall().
+async function confirmCall() {
+  const steamId = previewSteamId.value;
+  const stream = previewStream;
+  if (!steamId || !stream) return;
+  const state = callState(steamId);
+  state.connecting = true;
+  previewSteamId.value = null;
+  previewStream = null; // ownership moves to state.stream below
+  try {
     state.stream = stream;
     const localVideoEl = localVideoEls[steamId];
     if (localVideoEl) localVideoEl.srcObject = stream;
@@ -157,6 +227,7 @@ onBeforeUnmount(() => {
   for (const steamId of Object.keys(calls)) {
     if (calls[steamId].talking) endCall(steamId);
   }
+  previewStream?.getTracks().forEach((t) => t.stop());
 });
 </script>
 
@@ -239,7 +310,7 @@ onBeforeUnmount(() => {
               @click="
                 callState(player.steamId).talking
                   ? endCall(player.steamId)
-                  : startCall(player.steamId)
+                  : openCallPreview(player.steamId)
               "
             >
               <VideoOff v-if="callState(player.steamId).talking" class="w-4 h-4" />
@@ -250,5 +321,81 @@ onBeforeUnmount(() => {
         </div>
       </div>
     </template>
+
+    <!-- Device preview -- same "pick your camera" step as the player
+         pages, before the actual WHIP call starts. Modal instead of a
+         page navigation since this button lives inline in the grid,
+         not behind a popup-window flow. -->
+    <div
+      v-if="previewSteamId"
+      class="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm p-4"
+    >
+      <div
+        class="w-full max-w-sm rounded-xl border border-border bg-card p-6 flex flex-col items-center gap-5"
+      >
+        <h2 class="text-base font-semibold">Video call preview</h2>
+
+        <div class="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+          <video ref="previewVideoEl" autoplay playsinline muted class="w-full h-full object-cover" />
+        </div>
+
+        <div class="w-full space-y-2 text-left">
+          <div class="flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+            <Video class="w-3.5 h-3.5" />
+            Camera
+          </div>
+          <div class="relative">
+            <div
+              class="flex items-center gap-3 rounded-lg border p-3 pr-9 transition-colors"
+              :class="
+                availableDevices.length
+                  ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]'
+                  : 'border-border bg-card'
+              "
+            >
+              <div
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-[hsl(var(--tac-amber)/0.15)] text-[hsl(var(--tac-amber))] shrink-0"
+              >
+                <Video class="w-4 h-4" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium truncate">
+                  {{ selectedDeviceLabel || "Camera" }}
+                </p>
+                <p class="text-xs text-muted-foreground">Selected device</p>
+              </div>
+              <ChevronDown class="w-4 h-4 text-muted-foreground shrink-0" />
+            </div>
+            <select
+              v-if="availableDevices.length > 1"
+              v-model="selectedDeviceId"
+              aria-label="Select camera"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            >
+              <option v-for="d in availableDevices" :key="d.deviceId" :value="d.deviceId">
+                {{ d.label || "Camera" }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-2 w-full">
+          <button
+            type="button"
+            class="flex-1 py-2 rounded-md border border-border text-sm font-medium hover:bg-accent transition-colors inline-flex items-center justify-center gap-1.5"
+            @click="cancelCallPreview"
+          >
+            <ArrowLeft class="w-4 h-4" /> Cancel
+          </button>
+          <button
+            type="button"
+            class="flex-1 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:opacity-90 transition-colors"
+            @click="confirmCall"
+          >
+            Start call
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
