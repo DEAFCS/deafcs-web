@@ -73,7 +73,7 @@ function nextIosStep() {
   </FiveStackToolTip>
 
   <Dialog :open="dialogOpen" @update:open="dialogOpen = $event">
-    <DialogContent class="max-w-md">
+    <DialogContent class="max-w-md max-h-[85vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{{ $t("pwa.install_dialog.title") }}</DialogTitle>
         <DialogDescription>
@@ -105,8 +105,11 @@ function nextIosStep() {
         </button>
       </div>
 
-      <!-- Step 2a: iPhone -- QR + step-by-step screenshots -->
-      <div v-else-if="step === 'ios'" class="flex flex-col gap-4">
+      <!-- Step 2a: iPhone -- small QR alongside the hint text (not a
+           big stacked block), then a height-capped screenshot so a
+           tall native phone screenshot scales down to fit instead of
+           blowing out the dialog's height. -->
+      <div v-else-if="step === 'ios'" class="flex flex-col gap-3">
         <button
           type="button"
           class="self-start inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -115,51 +118,51 @@ function nextIosStep() {
           <ArrowLeft class="w-4 h-4" /> {{ $t("common.back") }}
         </button>
 
-        <div class="flex flex-col items-center gap-2">
+        <div class="flex items-center gap-3 rounded-lg border border-border p-2.5">
           <img
             v-if="qrDataUrl"
             :src="qrDataUrl"
             alt="QR code"
-            width="180"
-            height="180"
-            class="rounded-lg border border-border bg-white p-2"
+            width="72"
+            height="72"
+            class="rounded-md border border-border bg-white p-1 shrink-0"
           />
-          <p class="text-xs text-muted-foreground text-center max-w-xs">
+          <p class="text-xs text-muted-foreground">
             {{ $t("pwa.install_dialog.scan_hint") }}
           </p>
         </div>
 
-        <div class="border-t border-border pt-4 flex flex-col gap-3">
+        <div class="flex flex-col items-center gap-2">
           <img
             :src="`/pwa-install/ios-${iosStepIndex + 1}.jpg`"
             :alt="$t(`pwa.install_dialog.ios_steps.${iosStepIndex}`)"
-            class="w-full rounded-lg border border-border"
+            class="max-h-[300px] w-auto rounded-lg border border-border object-contain"
           />
           <p class="text-sm text-center font-medium">
             {{ iosStepIndex + 1 }}. {{ $t(`pwa.install_dialog.ios_steps.${iosStepIndex}`) }}
           </p>
+        </div>
 
-          <div class="flex items-center justify-between gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              :disabled="iosStepIndex === 0"
-              @click="iosStepIndex -= 1"
-            >
-              <ChevronLeft class="w-4 h-4" /> {{ $t("common.back") }}
-            </Button>
-            <span class="text-xs text-muted-foreground font-mono">
-              {{ iosStepIndex + 1 }} / {{ IOS_STEP_COUNT }}
-            </span>
-            <Button size="sm" @click="nextIosStep">
-              <template v-if="iosStepIndex < IOS_STEP_COUNT - 1">
-                {{ $t("common.next") }} <ChevronRight class="w-4 h-4" />
-              </template>
-              <template v-else>
-                {{ $t("common.done") }}
-              </template>
-            </Button>
-          </div>
+        <div class="flex items-center justify-between gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="iosStepIndex === 0"
+            @click="iosStepIndex -= 1"
+          >
+            <ChevronLeft class="w-4 h-4" /> {{ $t("common.back") }}
+          </Button>
+          <span class="text-xs text-muted-foreground font-mono">
+            {{ iosStepIndex + 1 }} / {{ IOS_STEP_COUNT }}
+          </span>
+          <Button size="sm" @click="nextIosStep">
+            <template v-if="iosStepIndex < IOS_STEP_COUNT - 1">
+              {{ $t("common.next") }} <ChevronRight class="w-4 h-4" />
+            </template>
+            <template v-else>
+              {{ $t("common.done") }}
+            </template>
+          </Button>
         </div>
       </div>
 
@@ -172,17 +175,15 @@ function nextIosStep() {
         >
           <ArrowLeft class="w-4 h-4" /> {{ $t("common.back") }}
         </button>
-        <div class="flex flex-col items-center gap-3 py-6 text-center">
-          <div class="flex flex-col items-center gap-2">
-            <img
-              v-if="qrDataUrl"
-              :src="qrDataUrl"
-              alt="QR code"
-              width="180"
-              height="180"
-              class="rounded-lg border border-border bg-white p-2"
-            />
-          </div>
+        <div class="flex flex-col items-center gap-3 py-4 text-center">
+          <img
+            v-if="qrDataUrl"
+            :src="qrDataUrl"
+            alt="QR code"
+            width="140"
+            height="140"
+            class="rounded-lg border border-border bg-white p-2"
+          />
           <p class="text-sm text-muted-foreground max-w-xs">
             {{ $t("pwa.install_dialog.android_coming_soon") }}
           </p>
