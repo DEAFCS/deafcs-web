@@ -75,8 +75,24 @@ import MemoryChart from "~/components/charts/MemoryChart.vue";
               <Cpu class="h-3.5 w-3.5" />
               {{ $t("pages.system_media_server.cpu_usage") }}
             </div>
+            <!-- CpuChart/MemoryChart compute their y-axis max once, in
+                 data(), from whatever `metrics` holds at mount time --
+                 not reactively. Mounting before the first poll resolves
+                 (history still empty) freezes MemoryChart's computed
+                 max at Math.max() with no args (-Infinity), which
+                 renders as a blank chart. CpuChart never hits this
+                 since its max is a hardcoded 100. Simplest fix without
+                 touching the shared chart components (also used by
+                 system-metrics.vue): don't mount either chart until
+                 there's at least one real data point to compute from. -->
             <div class="h-[180px]">
-              <CpuChart :metrics="cpuHistory" />
+              <CpuChart v-if="cpuHistory.length > 0" :metrics="cpuHistory" />
+              <div
+                v-else
+                class="flex h-full items-center justify-center font-mono text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground"
+              >
+                {{ $t("common.loading") }}
+              </div>
             </div>
           </div>
           <div class="border border-border bg-background/40 p-4">
@@ -85,7 +101,13 @@ import MemoryChart from "~/components/charts/MemoryChart.vue";
               {{ $t("pages.system_media_server.memory_usage") }}
             </div>
             <div class="h-[180px]">
-              <MemoryChart :metrics="memoryHistory" label="MB" />
+              <MemoryChart v-if="memoryHistory.length > 0" :metrics="memoryHistory" label="MB" />
+              <div
+                v-else
+                class="flex h-full items-center justify-center font-mono text-[0.65rem] uppercase tracking-[0.2em] text-muted-foreground"
+              >
+                {{ $t("common.loading") }}
+              </div>
             </div>
           </div>
         </div>
