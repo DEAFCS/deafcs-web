@@ -16,10 +16,13 @@ const props = defineProps<{
   matchId: string;
 }>();
 
-// Fires once the player's own camera is confirmed live — the match
-// page unmounts this component in response (see usage site), which is
-// what actually makes the overlay "disappear".
-const emit = defineEmits<{ (e: "ready"): void }>();
+// Fires every time the player's own camera's live status changes, in
+// either direction — not just once. The match page keeps this
+// component mounted the whole time the match is active (see usage
+// site); it never tells it to unmount, so this event is the only way
+// the parent finds out about a mid-match disconnect too, not just the
+// initial connect.
+const emit = defineEmits<{ (e: "update:ready", value: boolean): void }>();
 
 const MY_TOKEN_QUERY = gql`
   query MyCameraToken($matchId: uuid!) {
@@ -97,41 +100,39 @@ function connectOnThisComputer() {
   window.open(joinUrl.value, "camera-connect", "width=900,height=700");
 }
 
-let statusTimer: ReturnType<typeof setTimeout> | null = null;
-function pollStatus() {
-  if (!token.value) return;
-  statusTimer = setTimeout(async () => {
-    const { ready } = await fetchCameraStatus(token.value as string);
-    if (ready) {
-      emit("ready");
-      return;
-    }
-    pollStatus();
-  }, 1500);
-}
-
 // Gate on an initial status check before ever painting the overlay —
 // otherwise a player who already connected earlier (and just
 // reloaded/re-entered the match page) would see a one-frame flash of
 // the blocking overlay before it caught up and disappeared again.
 const initialCheckDone = ref(false);
-const alreadyReady = ref(false);
+const ready = ref(false);
 
-watch(
-  token,
-  async (value) => {
-    if (!value || initialCheckDone.value) return;
-    const { ready } = await fetchCameraStatus(value);
-    initialCheckDone.value = true;
-    if (ready) {
-      alreadyReady.value = true;
-      emit("ready");
-      return;
-    }
-    pollStatus();
-  },
-  { immediate: true },
-);
+// Keeps polling for as long as this component stays mounted, not just
+// until the first successful connect. It used to stop dead after
+// emitting "ready" once, which meant a mid-match disconnect (unplugged
+// webcam, closed tab, dropped network) left the match page thinking
+// the camera was still live until a full page reload re-ran everything
+// fresh. Polling continuously and re-emitting on every change (both
+// directions) is what lets the overlay reappear on its own now.
+let statusTimer: ReturnType<typeof setTimeout> | null = null;
+async function checkStatus() {
+  const currentToken = token.value;
+  if (!currentToken) {
+    statusTimer = setTimeout(checkStatus, 1500);
+    return;
+  }
+  const { ready: isReady } = await fetchCameraStatus(currentToken);
+  initialCheckDone.value = true;
+  if (isReady !== ready.value) {
+    ready.value = isReady;
+    emit("update:ready", isReady);
+  }
+  // Once connected, a dropped camera doesn't need to be caught within
+  // 1.5s the way "just scanned the QR code" does — ease off the poll
+  // rate so a steady connection isn't hammering the status endpoint.
+  statusTimer = setTimeout(checkStatus, isReady ? 5000 : 1500);
+}
+checkStatus();
 
 onBeforeUnmount(() => {
   if (statusTimer) clearTimeout(statusTimer);
@@ -141,7 +142,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div
-    v-if="initialCheckDone && !alreadyReady"
+    v-if="initialCheckDone && !ready"
     class="fixed inset-0 z-[100] flex items-center justify-center bg-background/95 backdrop-blur-sm p-4"
   >
     <div

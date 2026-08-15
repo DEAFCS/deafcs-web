@@ -8596,10 +8596,38 @@ export const AllTypesProps: Record<string,any> = {
 		_set:"maps_set_input",
 		where:"maps_bool_exp"
 	},
+	match_camera_tokens_aggregate_bool_exp:{
+		count:"match_camera_tokens_aggregate_bool_exp_count"
+	},
+	match_camera_tokens_aggregate_bool_exp_count:{
+		arguments:"match_camera_tokens_select_column",
+		filter:"match_camera_tokens_bool_exp",
+		predicate:"Int_comparison_exp"
+	},
 	match_camera_tokens_aggregate_fields:{
 		count:{
 			columns:"match_camera_tokens_select_column"
 		}
+	},
+	match_camera_tokens_aggregate_order_by:{
+		avg:"match_camera_tokens_avg_order_by",
+		count:"order_by",
+		max:"match_camera_tokens_max_order_by",
+		min:"match_camera_tokens_min_order_by",
+		stddev:"match_camera_tokens_stddev_order_by",
+		stddev_pop:"match_camera_tokens_stddev_pop_order_by",
+		stddev_samp:"match_camera_tokens_stddev_samp_order_by",
+		sum:"match_camera_tokens_sum_order_by",
+		var_pop:"match_camera_tokens_var_pop_order_by",
+		var_samp:"match_camera_tokens_var_samp_order_by",
+		variance:"match_camera_tokens_variance_order_by"
+	},
+	match_camera_tokens_arr_rel_insert_input:{
+		data:"match_camera_tokens_insert_input",
+		on_conflict:"match_camera_tokens_on_conflict"
+	},
+	match_camera_tokens_avg_order_by:{
+		steam_id:"order_by"
 	},
 	match_camera_tokens_bool_exp:{
 		_and:"match_camera_tokens_bool_exp",
@@ -8609,6 +8637,7 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid_comparison_exp",
 		match:"matches_bool_exp",
 		match_id:"uuid_comparison_exp",
+		requested_at:"timestamptz_comparison_exp",
 		steam_id:"bigint_comparison_exp",
 		token:"uuid_comparison_exp"
 	},
@@ -8621,8 +8650,25 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid",
 		match:"matches_obj_rel_insert_input",
 		match_id:"uuid",
+		requested_at:"timestamptz",
 		steam_id:"bigint",
 		token:"uuid"
+	},
+	match_camera_tokens_max_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		match_id:"order_by",
+		requested_at:"order_by",
+		steam_id:"order_by",
+		token:"order_by"
+	},
+	match_camera_tokens_min_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		match_id:"order_by",
+		requested_at:"order_by",
+		steam_id:"order_by",
+		token:"order_by"
 	},
 	match_camera_tokens_on_conflict:{
 		constraint:"match_camera_tokens_constraint",
@@ -8634,6 +8680,7 @@ export const AllTypesProps: Record<string,any> = {
 		id:"order_by",
 		match:"matches_order_by",
 		match_id:"order_by",
+		requested_at:"order_by",
 		steam_id:"order_by",
 		token:"order_by"
 	},
@@ -8645,8 +8692,18 @@ export const AllTypesProps: Record<string,any> = {
 		created_at:"timestamptz",
 		id:"uuid",
 		match_id:"uuid",
+		requested_at:"timestamptz",
 		steam_id:"bigint",
 		token:"uuid"
+	},
+	match_camera_tokens_stddev_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_stddev_pop_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_stddev_samp_order_by:{
+		steam_id:"order_by"
 	},
 	match_camera_tokens_stream_cursor_input:{
 		initial_value:"match_camera_tokens_stream_cursor_value_input",
@@ -8656,14 +8713,27 @@ export const AllTypesProps: Record<string,any> = {
 		created_at:"timestamptz",
 		id:"uuid",
 		match_id:"uuid",
+		requested_at:"timestamptz",
 		steam_id:"bigint",
 		token:"uuid"
+	},
+	match_camera_tokens_sum_order_by:{
+		steam_id:"order_by"
 	},
 	match_camera_tokens_update_column: "enum" as const,
 	match_camera_tokens_updates:{
 		_inc:"match_camera_tokens_inc_input",
 		_set:"match_camera_tokens_set_input",
 		where:"match_camera_tokens_bool_exp"
+	},
+	match_camera_tokens_var_pop_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_var_samp_order_by:{
+		steam_id:"order_by"
+	},
+	match_camera_tokens_variance_order_by:{
+		steam_id:"order_by"
 	},
 	match_clips:{
 		render_jobs:{
@@ -11125,6 +11195,16 @@ export const AllTypesProps: Record<string,any> = {
 		where:"match_type_cfgs_bool_exp"
 	},
 	matches:{
+		camera_tokens:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
+		camera_tokens_aggregate:{
+			distinct_on:"match_camera_tokens_select_column",
+			order_by:"match_camera_tokens_order_by",
+			where:"match_camera_tokens_bool_exp"
+		},
 		clutches:{
 			distinct_on:"v_match_clutches_select_column",
 			order_by:"v_match_clutches_order_by",
@@ -11341,6 +11421,8 @@ export const AllTypesProps: Record<string,any> = {
 		_and:"matches_bool_exp",
 		_not:"matches_bool_exp",
 		_or:"matches_bool_exp",
+		camera_tokens:"match_camera_tokens_bool_exp",
+		camera_tokens_aggregate:"match_camera_tokens_aggregate_bool_exp",
 		can_assign_server:"Boolean_comparison_exp",
 		can_cancel:"Boolean_comparison_exp",
 		can_check_in:"Boolean_comparison_exp",
@@ -11442,6 +11524,7 @@ export const AllTypesProps: Record<string,any> = {
 		organizer_steam_id:"bigint"
 	},
 	matches_insert_input:{
+		camera_tokens:"match_camera_tokens_arr_rel_insert_input",
 		cancels_at:"timestamptz",
 		clutches:"v_match_clutches_arr_rel_insert_input",
 		created_at:"timestamptz",
@@ -11536,6 +11619,7 @@ export const AllTypesProps: Record<string,any> = {
 		where:"matches_bool_exp"
 	},
 	matches_order_by:{
+		camera_tokens_aggregate:"match_camera_tokens_aggregate_order_by",
 		can_assign_server:"order_by",
 		can_cancel:"order_by",
 		can_check_in:"order_by",
@@ -42969,6 +43053,7 @@ export const ReturnTypes: Record<string,any> = {
 		id:"uuid",
 		match:"matches",
 		match_id:"uuid",
+		requested_at:"timestamptz",
 		steam_id:"bigint",
 		token:"uuid"
 	},
@@ -42996,6 +43081,7 @@ export const ReturnTypes: Record<string,any> = {
 		created_at:"timestamptz",
 		id:"uuid",
 		match_id:"uuid",
+		requested_at:"timestamptz",
 		steam_id:"bigint",
 		token:"uuid"
 	},
@@ -43003,6 +43089,7 @@ export const ReturnTypes: Record<string,any> = {
 		created_at:"timestamptz",
 		id:"uuid",
 		match_id:"uuid",
+		requested_at:"timestamptz",
 		steam_id:"bigint",
 		token:"uuid"
 	},
@@ -44286,6 +44373,8 @@ export const ReturnTypes: Record<string,any> = {
 		returning:"match_type_cfgs"
 	},
 	matches:{
+		camera_tokens:"match_camera_tokens",
+		camera_tokens_aggregate:"match_camera_tokens_aggregate",
 		can_assign_server:"Boolean",
 		can_cancel:"Boolean",
 		can_check_in:"Boolean",

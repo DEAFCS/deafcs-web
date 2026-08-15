@@ -17,6 +17,7 @@ import { useCurrentUserRow } from "~/composables/useCurrentUserRow";
 import { resolveMatchPlayerAvatarUrl } from "~/utilities/teamRosterOverride";
 import {
   ArrowLeftRight,
+  Camera,
   Crown,
   LogOut,
   MoreVertical,
@@ -111,6 +112,21 @@ const DASH = "—";
               <DropdownMenuItem @click="renderHighlightOpen = true">
                 <Sparkles class="text-[hsl(var(--tac-amber))]" />
                 <span>{{ $t("match.overview.render_highlight") }}</span>
+              </DropdownMenuItem>
+            </template>
+
+            <template v-if="canRequestCameraSpotCheck">
+              <DropdownMenuSeparator
+                v-if="
+                  canManageLineup ||
+                  canLeaveLineup ||
+                  canSwitchTeams ||
+                  canRequestHighlight
+                "
+              />
+              <DropdownMenuItem @click="requestCameraSpotCheck">
+                <Camera class="text-[hsl(var(--tac-amber))]" />
+                <span>{{ $t("match.overview.request_camera") }}</span>
               </DropdownMenuItem>
             </template>
           </DropdownMenuContent>
@@ -368,6 +384,8 @@ import PartyBadge from "~/components/match/PartyBadge.vue";
 import { partyIndexOf, partyMemberNames } from "~/utilities/matchParties";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { $, e_match_status_enum, e_player_roles_enum } from "~/generated/zeus";
+import { toast } from "@/components/ui/toast";
+import { cameraAdminRequestUrl } from "~/composables/useCameraApi";
 
 export default {
   components: {
@@ -516,6 +534,28 @@ export default {
         },
       });
     },
+    async requestCameraSpotCheck() {
+      const steamId = this.member.player?.steam_id;
+      if (!steamId) return;
+      try {
+        const res = await fetch(
+          cameraAdminRequestUrl(this.match.id, String(steamId)),
+          { method: "POST", credentials: "include" },
+        );
+        if (!res.ok) throw new Error(await res.text());
+        toast({
+          title: this.$t("match.overview.request_camera_sent", {
+            name: this.member.player?.name ?? steamId,
+          }),
+        });
+      } catch (error) {
+        toast({
+          title: this.$t("match.overview.request_camera_failed"),
+          description: (error as Error).message,
+          variant: "destructive",
+        });
+      }
+    },
     async removeFromLineup() {
       if (!this.lineup.can_update_lineup) {
         return await this.$apollo.mutate({
@@ -594,8 +634,25 @@ export default {
         this.canManageLineup ||
         this.canLeaveLineup ||
         this.canSwitchTeams ||
-        this.canRequestHighlight
+        this.canRequestHighlight ||
+        this.canRequestCameraSpotCheck
       );
+    },
+    // Doping-control-style "show your camera right now" -- available
+    // to admins any time the match is actually in progress, regardless
+    // of whether camera_required is on for the tournament. Client-side
+    // check is just for hiding the menu item; the backend re-validates
+    // via CameraService.assertCanWatch (site-admin or this tournament's
+    // organizer) on every request.
+    canRequestCameraSpotCheck() {
+      if (!this.me?.steam_id) return false;
+      if (this.me.role !== e_player_roles_enum.administrator) return false;
+      if (!this.member.player?.steam_id) return false;
+      return [
+        e_match_status_enum.Veto,
+        e_match_status_enum.Live,
+        e_match_status_enum.WaitingForServer,
+      ].includes(this.match.status);
     },
     mapsWithDemo() {
       const out: Array<{ id: string; label: string }> = [];

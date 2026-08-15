@@ -170,7 +170,7 @@ const vsBaseClasses =
     <CameraRequirementOverlay
       v-if="showCameraOverlay"
       :match-id="match.id"
-      @ready="cameraReady = true"
+      @update:ready="cameraReady = $event"
     />
     <template v-if="match">
     <PageTransition>
@@ -665,9 +665,11 @@ export default {
       vetoPickCount: undefined,
       autoCancelRemainingSeconds: 0,
       autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
-      // Flips true once CameraRequirementOverlay confirms this player's
-      // own camera is live (either already was, on mount, or just
-      // connected) — that's what actually makes the overlay disappear.
+      // Tracks CameraRequirementOverlay's own live/continuously-polled
+      // status (see @update:ready) — informational only. The overlay
+      // now decides its own visibility internally, in both directions,
+      // so a disconnect mid-match re-blocks without needing this page
+      // to unmount/remount anything.
       cameraReady: false,
     };
   },
@@ -776,6 +778,16 @@ export default {
               organizer: playerFields,
               options: {
                 ...matchOptionsFields,
+              },
+              // Filtered server-side to just the logged-in player's own
+              // row (public_match_camera_tokens select permission scopes
+              // to steam_id = X-Hasura-User-Id) -- this is how the spot
+              // check ("Request camera" on a specific player from the
+              // scoreboard) reaches this page live, no F5 needed: an
+              // admin marking requested_at flows straight through this
+              // same subscription.
+              camera_tokens: {
+                requested_at: true,
               },
               tournament_brackets: [
                 { limit: 1 },
@@ -1014,13 +1026,26 @@ export default {
         this.match?.lineup_1?.is_on_lineup || this.match?.lineup_2?.is_on_lineup
       );
     },
+    // Set by an admin's "Request camera" action on the scoreboard (⋮)
+    // menu regardless of camera_required -- the doping-control-style
+    // spot check. Same row camera_required's own token-minting also
+    // writes to, just distinguished by this timestamp being non-null.
+    cameraSpotCheckRequested() {
+      return !!this.match?.camera_tokens?.[0]?.requested_at;
+    },
+    // Whether CameraRequirementOverlay should be mounted at all. This
+    // is intentionally NOT gated on cameraReady/ready-ness — the
+    // component now stays mounted for the whole active match and shows
+    // or hides *itself* based on live, continuously-polled status (see
+    // its own template). Unmounting it here the moment the camera goes
+    // ready is what used to make a later disconnect invisible until F5.
     showCameraOverlay() {
       const activeStatuses = ["Veto", "Live", "WaitingForServer"];
       return (
-        !!this.match?.options?.camera_required &&
+        (!!this.match?.options?.camera_required ||
+          this.cameraSpotCheckRequested) &&
         this.isCameraPlayer &&
-        activeStatuses.includes(this.match?.status) &&
-        !this.cameraReady
+        activeStatuses.includes(this.match?.status)
       );
     },
     mapScores() {
