@@ -10,6 +10,8 @@ import {
   LucideArrowLeft,
   LucideVideo,
   LucideLoaderCircle,
+  LucideCamera,
+  LucideChevronDown,
 } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
 import {
@@ -61,7 +63,7 @@ function clearJoining(steamId: string) {
 }
 
 // --- Join flow ---
-type Step = "idle" | "choose" | "mobile" | "connecting" | "in-call";
+type Step = "idle" | "choose" | "mobile" | "preview" | "connecting" | "in-call";
 const step = ref<Step>("idle");
 const joinToken = ref<string | null>(null);
 const qrDataUrl = ref<string | null>(null);
@@ -123,7 +125,7 @@ let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 // everyone else (see template), which depends on the server confirming
 // us via the participants socket event. That confirmation can arrive a
 // tick or more after publishingLocally flips true, so the element may
-// not exist yet when connectThisComputer()'s single nextTick() runs --
+// not exist yet when confirmJoin()'s single nextTick() runs --
 // exactly the silent-no-op black-screen bug described there, just
 // reintroduced by a later delay. Watching the ref directly attaches the
 // stream whenever the element actually mounts, however long that takes.
@@ -131,28 +133,87 @@ watch(previewEl, (el) => {
   if (el && camStream) el.srcObject = camStream;
 });
 
-async function connectThisComputer() {
-  const token = await ensureToken();
-  if (!token) return;
-  step.value = "connecting";
-  try {
-    // No audio: this is a video-only feature for deaf players.
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: {
+// --- Device preview (Discord-style "pick your camera" step) ---
+// Grants camera access and shows a live preview + device picker
+// *before* publishing anything, instead of the old flow which
+// requested the default camera and started broadcasting in the same
+// step. Reuses whatever stream is already flowing when the device
+// list changes -- no double permission prompt.
+const availableDevices = ref<MediaDeviceInfo[]>([]);
+const selectedDeviceId = ref<string | null>(null);
+const selectedDeviceLabel = computed(
+  () =>
+    availableDevices.value.find((d) => d.deviceId === selectedDeviceId.value)
+      ?.label || null,
+);
+
+function videoConstraintsFor(deviceId?: string | null): MediaTrackConstraints {
+  return deviceId
+    ? { deviceId: { exact: deviceId }, width: { ideal: 1280 }, height: { ideal: 720 } }
+    : {
         facingMode: { ideal: "user" },
         width: { ideal: 1280 },
         height: { ideal: 720 },
         aspectRatio: { ideal: 16 / 9 },
-      },
-      audio: false,
+      };
+}
+
+async function startPreviewDevice(deviceId?: string | null): Promise<MediaStream> {
+  // No audio: this is a video-only feature for deaf players.
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: videoConstraintsFor(deviceId),
+    audio: false,
+  });
+  camStream?.getTracks().forEach((t) => t.stop());
+  camStream = stream;
+  if (previewEl.value) previewEl.value.srcObject = stream;
+  return stream;
+}
+
+async function chooseThisComputer() {
+  const token = await ensureToken();
+  if (!token) return;
+  step.value = "preview";
+  try {
+    const stream = await startPreviewDevice();
+    // Device labels are only populated once permission has been
+    // granted, so enumerate *after* the first getUserMedia succeeds --
+    // doing it earlier would just show blank "Camera 1"/"Camera 2".
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    availableDevices.value = devices.filter((d) => d.kind === "videoinput");
+    selectedDeviceId.value =
+      stream.getVideoTracks()[0]?.getSettings().deviceId ??
+      availableDevices.value[0]?.deviceId ??
+      null;
+  } catch (err) {
+    joinError.value = err instanceof Error ? err.message : String(err);
+    step.value = "choose";
+  }
+}
+
+watch(selectedDeviceId, (id, oldId) => {
+  if (step.value === "preview" && id && id !== oldId) {
+    startPreviewDevice(id).catch((err) => {
+      joinError.value = err instanceof Error ? err.message : String(err);
     });
-    camStream = stream;
-    // The <video> preview only exists in the DOM once publishingLocally
-    // is true (it's behind a v-if) -- assigning srcObject before that
-    // flips true is a silent no-op (previewEl.value is still null),
-    // which is exactly why the local preview showed a black screen
-    // while the remote side could see the stream fine. Flip the flag
-    // and wait a tick for Vue to mount the element first.
+  }
+});
+
+function cancelPreview() {
+  camStream?.getTracks().forEach((t) => t.stop());
+  camStream = null;
+  if (previewEl.value) previewEl.value.srcObject = null;
+  step.value = "choose";
+}
+
+// Publishes whatever camStream the preview step already has -- the
+// actual WHIP handshake, unchanged from the old single-step flow.
+async function confirmJoin() {
+  const token = joinToken.value;
+  if (!token || !camStream) return;
+  step.value = "connecting";
+  try {
+    const stream = camStream;
     publishingLocally.value = true;
     await nextTick();
     if (previewEl.value) previewEl.value.srcObject = stream;
@@ -304,6 +365,7 @@ onBeforeUnmount(() => {
   unlistenJoining?.();
   for (const steamId of Object.keys(joiningTimers)) clearJoining(steamId);
   if (step.value === "in-call") teardownStream();
+  else if (step.value === "preview") camStream?.getTracks().forEach((t) => t.stop());
 });
 
 // Grid tiles: everyone except myself-while-publishing-locally (that tile
@@ -397,7 +459,7 @@ const visibleTileCount = computed(() =>
         class="relative rounded-lg overflow-hidden bg-zinc-900 border border-dashed border-zinc-700 flex flex-col items-center justify-center gap-2"
       >
         <LucideLoaderCircle class="w-5 h-5 text-muted-foreground animate-spin" />
-        <span class="text-xs text-muted-foreground">Venter på kamera…</span>
+        <span class="text-xs text-muted-foreground">Waiting for camera…</span>
         <span
           class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5 truncate max-w-[80%]"
         >
@@ -483,7 +545,7 @@ const visibleTileCount = computed(() =>
           <button
             type="button"
             class="flex flex-col items-center gap-2 rounded-md border border-zinc-800 p-4 hover:border-primary hover:bg-accent transition-colors"
-            @click="connectThisComputer"
+            @click="chooseThisComputer"
           >
             <LucideMonitor class="w-5 h-5" />
             <span class="text-xs font-medium">This computer</span>
@@ -512,8 +574,73 @@ const visibleTileCount = computed(() =>
         </p>
       </div>
 
+      <!-- Device preview -- Discord-style "pick your camera" step, DEAFCS
+           styling (amber accent instead of Discord's orange, matching
+           the rest of the site). Camera access is already granted by
+           the time this shows (chooseThisComputer requested it), so
+           this is purely picking a device and confirming, not another
+           permission prompt. -->
+      <div
+        v-if="step === 'preview'"
+        class="rounded-lg border border-zinc-800 bg-zinc-900 p-4 flex flex-col gap-4 mt-2 w-full"
+      >
+        <div class="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
+          <video ref="previewEl" autoplay playsinline muted class="w-full h-full object-cover" />
+        </div>
+
+        <div class="space-y-2">
+          <div class="flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+            <LucideCamera class="w-3.5 h-3.5" />
+            Camera
+          </div>
+          <div class="relative">
+            <div
+              class="flex items-center gap-3 rounded-lg border p-3 pr-9 transition-colors"
+              :class="
+                availableDevices.length
+                  ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]'
+                  : 'border-zinc-800 bg-zinc-950'
+              "
+            >
+              <div
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-[hsl(var(--tac-amber)/0.15)] text-[hsl(var(--tac-amber))] shrink-0"
+              >
+                <LucideCamera class="w-4 h-4" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium truncate">
+                  {{ selectedDeviceLabel || "Camera" }}
+                </p>
+                <p class="text-xs text-muted-foreground">Selected device</p>
+              </div>
+              <LucideChevronDown class="w-4 h-4 text-muted-foreground shrink-0" />
+            </div>
+            <!-- Real (invisible) select handles the actual picking --
+                 keeps native accessibility/keyboard support while the
+                 div above provides the DEAFCS-styled look. -->
+            <select
+              v-if="availableDevices.length > 1"
+              v-model="selectedDeviceId"
+              aria-label="Select camera"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            >
+              <option v-for="d in availableDevices" :key="d.deviceId" :value="d.deviceId">
+                {{ d.label || "Camera" }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <div class="flex gap-2">
+          <Button variant="outline" class="flex-1" @click="cancelPreview">
+            <LucideArrowLeft class="w-4 h-4" /> Back
+          </Button>
+          <Button class="flex-1" @click="confirmJoin"> Join call </Button>
+        </div>
+      </div>
+
       <div v-if="step === 'connecting'" class="text-center text-sm text-muted-foreground mt-2">
-        Requesting camera access…
+        Connecting…
       </div>
     </div>
   </div>
