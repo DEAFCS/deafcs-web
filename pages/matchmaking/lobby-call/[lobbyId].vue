@@ -317,8 +317,15 @@ const joiningList = computed(() =>
 // You should never see anyone else's video before you've actually
 // joined the call yourself -- opening this window (or sitting on the
 // device picker) must not leak other people's streams.
+// +1 for the local-preview tile when publishing from this computer --
+// it's rendered as one more grid cell now (see template), not a
+// separate box below, so it has to count towards the layout too.
 const visibleTileCount = computed(() =>
-  isInCall.value ? tileParticipants.value.length + joiningList.value.length : 0,
+  isInCall.value
+    ? tileParticipants.value.length +
+      joiningList.value.length +
+      (publishingLocally.value ? 1 : 0)
+    : 0,
 );
 </script>
 
@@ -358,7 +365,7 @@ const visibleTileCount = computed(() =>
       <div
         v-for="p in tileParticipants"
         :key="p.steamId"
-        class="relative aspect-video rounded-lg overflow-hidden bg-black border border-zinc-800"
+        class="relative rounded-lg overflow-hidden bg-black border border-zinc-800"
       >
         <WhepPlayer
           :whep-url="lobbyCallPeerWhepUrl(lobbyId, p.steamId)"
@@ -374,7 +381,7 @@ const visibleTileCount = computed(() =>
       <div
         v-for="p in joiningList"
         :key="`joining-${p.steamId}`"
-        class="relative aspect-video rounded-lg overflow-hidden bg-zinc-900 border border-dashed border-zinc-700 flex flex-col items-center justify-center gap-2"
+        class="relative rounded-lg overflow-hidden bg-zinc-900 border border-dashed border-zinc-700 flex flex-col items-center justify-center gap-2"
       >
         <LucideLoaderCircle class="w-5 h-5 text-muted-foreground animate-spin" />
         <span class="text-xs text-muted-foreground">Venter på kamera…</span>
@@ -382,6 +389,18 @@ const visibleTileCount = computed(() =>
           class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5 truncate max-w-[80%]"
         >
           {{ p.name || p.steamId }}
+        </span>
+      </div>
+      <!-- My own local preview while publishing from this computer --
+           rendered as one more equal grid cell, not a separately-sized
+           box below, same as the mobile page and Discord treat "you". -->
+      <div
+        v-if="publishingLocally"
+        class="relative rounded-lg overflow-hidden bg-black border border-primary"
+      >
+        <video ref="previewEl" autoplay playsinline muted class="w-full h-full object-cover" />
+        <span class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5">
+          {{ $t("matchmaking.lobby_call.you", "You") }}
         </span>
       </div>
     </div>
@@ -397,17 +416,6 @@ const visibleTileCount = computed(() =>
             )
           : $t("matchmaking.lobby_call.no_call", "No active call")
       }}
-    </div>
-
-    <!-- My own local preview while publishing from this computer -->
-    <div
-      v-if="publishingLocally"
-      class="relative w-full max-w-sm mx-auto aspect-video rounded-lg overflow-hidden bg-black border-2 border-primary shrink-0"
-    >
-      <video ref="previewEl" autoplay playsinline muted class="w-full h-full object-cover" />
-      <span class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5">
-        {{ $t("matchmaking.lobby_call.you", "You") }}
-      </span>
     </div>
 
     <!-- Join controls -->
