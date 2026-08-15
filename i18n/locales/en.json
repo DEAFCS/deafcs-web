@@ -3592,6 +3592,22 @@
       "step2": "Select 'Add to Home Screen'",
       "tooltip": "Install App",
       "button": "Install App"
+    },
+    "install_dialog": {
+      "trigger_tooltip": "Install app on your phone",
+      "title": "Install DEAFCS on your phone",
+      "description": "Scan the QR code with your phone's camera, then follow the steps for your device.",
+      "iphone": "iPhone",
+      "android": "Android",
+      "scan_hint": "Scan this with your phone's camera to open deafcs.net on your phone.",
+      "android_coming_soon": "Step-by-step Android instructions are coming soon. Scan the QR code above, then open your browser menu and look for 'Add to Home screen' or 'Install app'.",
+      "ios_steps": {
+        "0": "Tap the '•••' menu button in Safari's bottom bar",
+        "1": "Tap 'Share'",
+        "2": "Tap 'Add to Home Screen'",
+        "3": "Tap 'Add' to confirm",
+        "4": "Done! DEAFCS is now on your home screen"
+      }
     }
   },
   "roster_picker": {

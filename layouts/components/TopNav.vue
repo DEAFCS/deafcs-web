@@ -15,7 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import InstallPWA from "~/components/InstallPWA.vue";
+import InstallAppQrDialog from "~/components/InstallAppQrDialog.vue";
 import { DiscordLogoIcon } from "@radix-icons/vue";
 import {
   Settings,
@@ -600,7 +600,7 @@ const loginArrowClasses =
 
       <template v-if="me">
         <div :class="topNavRightClasses">
-          <InstallPWA v-if="!isMobile" :is-menu-item="false" />
+          <InstallAppQrDialog v-if="!isMobile" />
           <button
             v-if="pendingCheckIn"
             type="button"
