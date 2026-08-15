@@ -8164,6 +8164,67 @@ export const AllTypesProps: Record<string,any> = {
 		_set:"lobbies_set_input",
 		where:"lobbies_bool_exp"
 	},
+	lobby_camera_tokens_aggregate_fields:{
+		count:{
+			columns:"lobby_camera_tokens_select_column"
+		}
+	},
+	lobby_camera_tokens_bool_exp:{
+		_and:"lobby_camera_tokens_bool_exp",
+		_not:"lobby_camera_tokens_bool_exp",
+		_or:"lobby_camera_tokens_bool_exp",
+		created_at:"timestamptz_comparison_exp",
+		lobby_id:"uuid_comparison_exp",
+		steam_id:"bigint_comparison_exp",
+		token:"uuid_comparison_exp"
+	},
+	lobby_camera_tokens_constraint: "enum" as const,
+	lobby_camera_tokens_inc_input:{
+		steam_id:"bigint"
+	},
+	lobby_camera_tokens_insert_input:{
+		created_at:"timestamptz",
+		lobby_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	lobby_camera_tokens_on_conflict:{
+		constraint:"lobby_camera_tokens_constraint",
+		update_columns:"lobby_camera_tokens_update_column",
+		where:"lobby_camera_tokens_bool_exp"
+	},
+	lobby_camera_tokens_order_by:{
+		created_at:"order_by",
+		lobby_id:"order_by",
+		steam_id:"order_by",
+		token:"order_by"
+	},
+	lobby_camera_tokens_pk_columns_input:{
+		token:"uuid"
+	},
+	lobby_camera_tokens_select_column: "enum" as const,
+	lobby_camera_tokens_set_input:{
+		created_at:"timestamptz",
+		lobby_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	lobby_camera_tokens_stream_cursor_input:{
+		initial_value:"lobby_camera_tokens_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	lobby_camera_tokens_stream_cursor_value_input:{
+		created_at:"timestamptz",
+		lobby_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	lobby_camera_tokens_update_column: "enum" as const,
+	lobby_camera_tokens_updates:{
+		_inc:"lobby_camera_tokens_inc_input",
+		_set:"lobby_camera_tokens_set_input",
+		where:"lobby_camera_tokens_bool_exp"
+	},
 	lobby_players_aggregate_bool_exp:{
 		bool_and:"lobby_players_aggregate_bool_exp_bool_and",
 		bool_or:"lobby_players_aggregate_bool_exp_bool_or",
@@ -9142,6 +9203,7 @@ export const AllTypesProps: Record<string,any> = {
 		party_source:"e_match_party_sources_enum_comparison_exp",
 		placeholder_name:"String_comparison_exp",
 		player:"players_bool_exp",
+		roster_image_url_snapshot:"String_comparison_exp",
 		steam_id:"bigint_comparison_exp"
 	},
 	match_lineup_players_constraint: "enum" as const,
@@ -9165,6 +9227,7 @@ export const AllTypesProps: Record<string,any> = {
 		match_lineup_id:"order_by",
 		party_id:"order_by",
 		placeholder_name:"order_by",
+		roster_image_url_snapshot:"order_by",
 		steam_id:"order_by"
 	},
 	match_lineup_players_min_order_by:{
@@ -9174,6 +9237,7 @@ export const AllTypesProps: Record<string,any> = {
 		match_lineup_id:"order_by",
 		party_id:"order_by",
 		placeholder_name:"order_by",
+		roster_image_url_snapshot:"order_by",
 		steam_id:"order_by"
 	},
 	match_lineup_players_on_conflict:{
@@ -9194,6 +9258,7 @@ export const AllTypesProps: Record<string,any> = {
 		party_source:"order_by",
 		placeholder_name:"order_by",
 		player:"players_order_by",
+		roster_image_url_snapshot:"order_by",
 		steam_id:"order_by"
 	},
 	match_lineup_players_pk_columns_input:{
@@ -12272,6 +12337,12 @@ export const AllTypesProps: Record<string,any> = {
 		delete_lobbies_by_pk:{
 			id:"uuid"
 		},
+		delete_lobby_camera_tokens:{
+			where:"lobby_camera_tokens_bool_exp"
+		},
+		delete_lobby_camera_tokens_by_pk:{
+			token:"uuid"
+		},
 		delete_lobby_players:{
 			where:"lobby_players_bool_exp"
 		},
@@ -12560,6 +12631,18 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		delete_plugin_versions_by_pk:{
 			runtime:"e_plugin_runtimes_enum"
+		},
+		delete_push_notification_preferences:{
+			where:"push_notification_preferences_bool_exp"
+		},
+		delete_push_notification_preferences_by_pk:{
+			steam_id:"bigint"
+		},
+		delete_push_subscriptions:{
+			where:"push_subscriptions_bool_exp"
+		},
+		delete_push_subscriptions_by_pk:{
+			id:"uuid"
 		},
 		delete_seasons:{
 			where:"seasons_bool_exp"
@@ -13426,6 +13509,14 @@ export const AllTypesProps: Record<string,any> = {
 			object:"lobbies_insert_input",
 			on_conflict:"lobbies_on_conflict"
 		},
+		insert_lobby_camera_tokens:{
+			objects:"lobby_camera_tokens_insert_input",
+			on_conflict:"lobby_camera_tokens_on_conflict"
+		},
+		insert_lobby_camera_tokens_one:{
+			object:"lobby_camera_tokens_insert_input",
+			on_conflict:"lobby_camera_tokens_on_conflict"
+		},
 		insert_lobby_players:{
 			objects:"lobby_players_insert_input",
 			on_conflict:"lobby_players_on_conflict"
@@ -13781,6 +13872,22 @@ export const AllTypesProps: Record<string,any> = {
 		insert_plugin_versions_one:{
 			object:"plugin_versions_insert_input",
 			on_conflict:"plugin_versions_on_conflict"
+		},
+		insert_push_notification_preferences:{
+			objects:"push_notification_preferences_insert_input",
+			on_conflict:"push_notification_preferences_on_conflict"
+		},
+		insert_push_notification_preferences_one:{
+			object:"push_notification_preferences_insert_input",
+			on_conflict:"push_notification_preferences_on_conflict"
+		},
+		insert_push_subscriptions:{
+			objects:"push_subscriptions_insert_input",
+			on_conflict:"push_subscriptions_on_conflict"
+		},
+		insert_push_subscriptions_one:{
+			object:"push_subscriptions_insert_input",
+			on_conflict:"push_subscriptions_on_conflict"
 		},
 		insert_seasons:{
 			objects:"seasons_insert_input",
@@ -15293,6 +15400,19 @@ export const AllTypesProps: Record<string,any> = {
 		update_lobbies_many:{
 			updates:"lobbies_updates"
 		},
+		update_lobby_camera_tokens:{
+			_inc:"lobby_camera_tokens_inc_input",
+			_set:"lobby_camera_tokens_set_input",
+			where:"lobby_camera_tokens_bool_exp"
+		},
+		update_lobby_camera_tokens_by_pk:{
+			_inc:"lobby_camera_tokens_inc_input",
+			_set:"lobby_camera_tokens_set_input",
+			pk_columns:"lobby_camera_tokens_pk_columns_input"
+		},
+		update_lobby_camera_tokens_many:{
+			updates:"lobby_camera_tokens_updates"
+		},
 		update_lobby_players:{
 			_inc:"lobby_players_inc_input",
 			_set:"lobby_players_set_input",
@@ -15910,6 +16030,32 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_plugin_versions_many:{
 			updates:"plugin_versions_updates"
+		},
+		update_push_notification_preferences:{
+			_inc:"push_notification_preferences_inc_input",
+			_set:"push_notification_preferences_set_input",
+			where:"push_notification_preferences_bool_exp"
+		},
+		update_push_notification_preferences_by_pk:{
+			_inc:"push_notification_preferences_inc_input",
+			_set:"push_notification_preferences_set_input",
+			pk_columns:"push_notification_preferences_pk_columns_input"
+		},
+		update_push_notification_preferences_many:{
+			updates:"push_notification_preferences_updates"
+		},
+		update_push_subscriptions:{
+			_inc:"push_subscriptions_inc_input",
+			_set:"push_subscriptions_set_input",
+			where:"push_subscriptions_bool_exp"
+		},
+		update_push_subscriptions_by_pk:{
+			_inc:"push_subscriptions_inc_input",
+			_set:"push_subscriptions_set_input",
+			pk_columns:"push_subscriptions_pk_columns_input"
+		},
+		update_push_subscriptions_many:{
+			updates:"push_subscriptions_updates"
 		},
 		update_seasons:{
 			_inc:"seasons_inc_input",
@@ -23287,6 +23433,130 @@ export const AllTypesProps: Record<string,any> = {
 		_set:"plugin_versions_set_input",
 		where:"plugin_versions_bool_exp"
 	},
+	push_notification_preferences_aggregate_fields:{
+		count:{
+			columns:"push_notification_preferences_select_column"
+		}
+	},
+	push_notification_preferences_bool_exp:{
+		_and:"push_notification_preferences_bool_exp",
+		_not:"push_notification_preferences_bool_exp",
+		_or:"push_notification_preferences_bool_exp",
+		category:"String_comparison_exp",
+		enabled:"Boolean_comparison_exp",
+		steam_id:"bigint_comparison_exp",
+		updated_at:"timestamptz_comparison_exp"
+	},
+	push_notification_preferences_constraint: "enum" as const,
+	push_notification_preferences_inc_input:{
+		steam_id:"bigint"
+	},
+	push_notification_preferences_insert_input:{
+		steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	push_notification_preferences_on_conflict:{
+		constraint:"push_notification_preferences_constraint",
+		update_columns:"push_notification_preferences_update_column",
+		where:"push_notification_preferences_bool_exp"
+	},
+	push_notification_preferences_order_by:{
+		category:"order_by",
+		enabled:"order_by",
+		steam_id:"order_by",
+		updated_at:"order_by"
+	},
+	push_notification_preferences_pk_columns_input:{
+		steam_id:"bigint"
+	},
+	push_notification_preferences_select_column: "enum" as const,
+	push_notification_preferences_set_input:{
+		steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	push_notification_preferences_stream_cursor_input:{
+		initial_value:"push_notification_preferences_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	push_notification_preferences_stream_cursor_value_input:{
+		steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	push_notification_preferences_update_column: "enum" as const,
+	push_notification_preferences_updates:{
+		_inc:"push_notification_preferences_inc_input",
+		_set:"push_notification_preferences_set_input",
+		where:"push_notification_preferences_bool_exp"
+	},
+	push_subscriptions_aggregate_fields:{
+		count:{
+			columns:"push_subscriptions_select_column"
+		}
+	},
+	push_subscriptions_bool_exp:{
+		_and:"push_subscriptions_bool_exp",
+		_not:"push_subscriptions_bool_exp",
+		_or:"push_subscriptions_bool_exp",
+		auth:"String_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		endpoint:"String_comparison_exp",
+		id:"uuid_comparison_exp",
+		last_used_at:"timestamptz_comparison_exp",
+		p256dh:"String_comparison_exp",
+		steam_id:"bigint_comparison_exp",
+		user_agent:"String_comparison_exp"
+	},
+	push_subscriptions_constraint: "enum" as const,
+	push_subscriptions_inc_input:{
+		steam_id:"bigint"
+	},
+	push_subscriptions_insert_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		last_used_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	push_subscriptions_on_conflict:{
+		constraint:"push_subscriptions_constraint",
+		update_columns:"push_subscriptions_update_column",
+		where:"push_subscriptions_bool_exp"
+	},
+	push_subscriptions_order_by:{
+		auth:"order_by",
+		created_at:"order_by",
+		endpoint:"order_by",
+		id:"order_by",
+		last_used_at:"order_by",
+		p256dh:"order_by",
+		steam_id:"order_by",
+		user_agent:"order_by"
+	},
+	push_subscriptions_pk_columns_input:{
+		id:"uuid"
+	},
+	push_subscriptions_select_column: "enum" as const,
+	push_subscriptions_set_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		last_used_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	push_subscriptions_stream_cursor_input:{
+		initial_value:"push_subscriptions_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	push_subscriptions_stream_cursor_value_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		last_used_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	push_subscriptions_update_column: "enum" as const,
+	push_subscriptions_updates:{
+		_inc:"push_subscriptions_inc_input",
+		_set:"push_subscriptions_set_input",
+		where:"push_subscriptions_bool_exp"
+	},
 	query_root:{
 		_map_pool:{
 			distinct_on:"_map_pool_select_column",
@@ -24426,6 +24696,19 @@ export const AllTypesProps: Record<string,any> = {
 		lobbies_by_pk:{
 			id:"uuid"
 		},
+		lobby_camera_tokens:{
+			distinct_on:"lobby_camera_tokens_select_column",
+			order_by:"lobby_camera_tokens_order_by",
+			where:"lobby_camera_tokens_bool_exp"
+		},
+		lobby_camera_tokens_aggregate:{
+			distinct_on:"lobby_camera_tokens_select_column",
+			order_by:"lobby_camera_tokens_order_by",
+			where:"lobby_camera_tokens_bool_exp"
+		},
+		lobby_camera_tokens_by_pk:{
+			token:"uuid"
+		},
 		lobby_players:{
 			distinct_on:"lobby_players_select_column",
 			order_by:"lobby_players_order_by",
@@ -25082,6 +25365,32 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		plugin_versions_by_pk:{
 			runtime:"e_plugin_runtimes_enum"
+		},
+		push_notification_preferences:{
+			distinct_on:"push_notification_preferences_select_column",
+			order_by:"push_notification_preferences_order_by",
+			where:"push_notification_preferences_bool_exp"
+		},
+		push_notification_preferences_aggregate:{
+			distinct_on:"push_notification_preferences_select_column",
+			order_by:"push_notification_preferences_order_by",
+			where:"push_notification_preferences_bool_exp"
+		},
+		push_notification_preferences_by_pk:{
+			steam_id:"bigint"
+		},
+		push_subscriptions:{
+			distinct_on:"push_subscriptions_select_column",
+			order_by:"push_subscriptions_order_by",
+			where:"push_subscriptions_bool_exp"
+		},
+		push_subscriptions_aggregate:{
+			distinct_on:"push_subscriptions_select_column",
+			order_by:"push_subscriptions_order_by",
+			where:"push_subscriptions_bool_exp"
+		},
+		push_subscriptions_by_pk:{
+			id:"uuid"
 		},
 		readServerFile:{
 
@@ -27928,6 +28237,23 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"lobbies_stream_cursor_input",
 			where:"lobbies_bool_exp"
 		},
+		lobby_camera_tokens:{
+			distinct_on:"lobby_camera_tokens_select_column",
+			order_by:"lobby_camera_tokens_order_by",
+			where:"lobby_camera_tokens_bool_exp"
+		},
+		lobby_camera_tokens_aggregate:{
+			distinct_on:"lobby_camera_tokens_select_column",
+			order_by:"lobby_camera_tokens_order_by",
+			where:"lobby_camera_tokens_bool_exp"
+		},
+		lobby_camera_tokens_by_pk:{
+			token:"uuid"
+		},
+		lobby_camera_tokens_stream:{
+			cursor:"lobby_camera_tokens_stream_cursor_input",
+			where:"lobby_camera_tokens_bool_exp"
+		},
 		lobby_players:{
 			distinct_on:"lobby_players_select_column",
 			order_by:"lobby_players_order_by",
@@ -28781,6 +29107,40 @@ export const AllTypesProps: Record<string,any> = {
 		plugin_versions_stream:{
 			cursor:"plugin_versions_stream_cursor_input",
 			where:"plugin_versions_bool_exp"
+		},
+		push_notification_preferences:{
+			distinct_on:"push_notification_preferences_select_column",
+			order_by:"push_notification_preferences_order_by",
+			where:"push_notification_preferences_bool_exp"
+		},
+		push_notification_preferences_aggregate:{
+			distinct_on:"push_notification_preferences_select_column",
+			order_by:"push_notification_preferences_order_by",
+			where:"push_notification_preferences_bool_exp"
+		},
+		push_notification_preferences_by_pk:{
+			steam_id:"bigint"
+		},
+		push_notification_preferences_stream:{
+			cursor:"push_notification_preferences_stream_cursor_input",
+			where:"push_notification_preferences_bool_exp"
+		},
+		push_subscriptions:{
+			distinct_on:"push_subscriptions_select_column",
+			order_by:"push_subscriptions_order_by",
+			where:"push_subscriptions_bool_exp"
+		},
+		push_subscriptions_aggregate:{
+			distinct_on:"push_subscriptions_select_column",
+			order_by:"push_subscriptions_order_by",
+			where:"push_subscriptions_bool_exp"
+		},
+		push_subscriptions_by_pk:{
+			id:"uuid"
+		},
+		push_subscriptions_stream:{
+			cursor:"push_subscriptions_stream_cursor_input",
+			where:"push_subscriptions_bool_exp"
 		},
 		seasons:{
 			distinct_on:"seasons_select_column",
@@ -32626,6 +32986,7 @@ export const AllTypesProps: Record<string,any> = {
 		player:"players_bool_exp",
 		player_steam_id:"bigint_comparison_exp",
 		role:"e_team_roles_enum_comparison_exp",
+		roster_image_url_snapshot:"String_comparison_exp",
 		tournament:"tournaments_bool_exp",
 		tournament_id:"uuid_comparison_exp",
 		tournament_team:"tournament_teams_bool_exp",
@@ -32647,11 +33008,13 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	tournament_team_roster_max_order_by:{
 		player_steam_id:"order_by",
+		roster_image_url_snapshot:"order_by",
 		tournament_id:"order_by",
 		tournament_team_id:"order_by"
 	},
 	tournament_team_roster_min_order_by:{
 		player_steam_id:"order_by",
+		roster_image_url_snapshot:"order_by",
 		tournament_id:"order_by",
 		tournament_team_id:"order_by"
 	},
@@ -32665,6 +33028,7 @@ export const AllTypesProps: Record<string,any> = {
 		player:"players_order_by",
 		player_steam_id:"order_by",
 		role:"order_by",
+		roster_image_url_snapshot:"order_by",
 		tournament:"tournaments_order_by",
 		tournament_id:"order_by",
 		tournament_team:"tournament_teams_order_by",
@@ -37858,6 +38222,13 @@ export const ReturnTypes: Record<string,any> = {
 		role:"String",
 		steam_id:"String"
 	},
+	MediaServerStats:{
+		cpuMilliCores:"Float",
+		memoryBytes:"Float",
+		paths:"Int",
+		publishing:"Int",
+		webrtcSessions:"Int"
+	},
 	MemoryStat:{
 		time:"timestamp",
 		total:"bigint",
@@ -42383,6 +42754,69 @@ export const ReturnTypes: Record<string,any> = {
 		affected_rows:"Int",
 		returning:"lobbies"
 	},
+	lobby_camera_tokens:{
+		created_at:"timestamptz",
+		lobby_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	lobby_camera_tokens_aggregate:{
+		aggregate:"lobby_camera_tokens_aggregate_fields",
+		nodes:"lobby_camera_tokens"
+	},
+	lobby_camera_tokens_aggregate_fields:{
+		avg:"lobby_camera_tokens_avg_fields",
+		count:"Int",
+		max:"lobby_camera_tokens_max_fields",
+		min:"lobby_camera_tokens_min_fields",
+		stddev:"lobby_camera_tokens_stddev_fields",
+		stddev_pop:"lobby_camera_tokens_stddev_pop_fields",
+		stddev_samp:"lobby_camera_tokens_stddev_samp_fields",
+		sum:"lobby_camera_tokens_sum_fields",
+		var_pop:"lobby_camera_tokens_var_pop_fields",
+		var_samp:"lobby_camera_tokens_var_samp_fields",
+		variance:"lobby_camera_tokens_variance_fields"
+	},
+	lobby_camera_tokens_avg_fields:{
+		steam_id:"Float"
+	},
+	lobby_camera_tokens_max_fields:{
+		created_at:"timestamptz",
+		lobby_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	lobby_camera_tokens_min_fields:{
+		created_at:"timestamptz",
+		lobby_id:"uuid",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	lobby_camera_tokens_mutation_response:{
+		affected_rows:"Int",
+		returning:"lobby_camera_tokens"
+	},
+	lobby_camera_tokens_stddev_fields:{
+		steam_id:"Float"
+	},
+	lobby_camera_tokens_stddev_pop_fields:{
+		steam_id:"Float"
+	},
+	lobby_camera_tokens_stddev_samp_fields:{
+		steam_id:"Float"
+	},
+	lobby_camera_tokens_sum_fields:{
+		steam_id:"bigint"
+	},
+	lobby_camera_tokens_var_pop_fields:{
+		steam_id:"Float"
+	},
+	lobby_camera_tokens_var_samp_fields:{
+		steam_id:"Float"
+	},
+	lobby_camera_tokens_variance_fields:{
+		steam_id:"Float"
+	},
 	lobby_players:{
 		captain:"Boolean",
 		invited_by_steam_id:"bigint",
@@ -42858,6 +43292,7 @@ export const ReturnTypes: Record<string,any> = {
 		party_source:"e_match_party_sources_enum",
 		placeholder_name:"String",
 		player:"players",
+		roster_image_url_snapshot:"String",
 		steam_id:"bigint"
 	},
 	match_lineup_players_aggregate:{
@@ -42887,6 +43322,7 @@ export const ReturnTypes: Record<string,any> = {
 		match_lineup_id:"uuid",
 		party_id:"uuid",
 		placeholder_name:"String",
+		roster_image_url_snapshot:"String",
 		steam_id:"bigint"
 	},
 	match_lineup_players_min_fields:{
@@ -42896,6 +43332,7 @@ export const ReturnTypes: Record<string,any> = {
 		match_lineup_id:"uuid",
 		party_id:"uuid",
 		placeholder_name:"String",
+		roster_image_url_snapshot:"String",
 		steam_id:"bigint"
 	},
 	match_lineup_players_mutation_response:{
@@ -44304,6 +44741,8 @@ export const ReturnTypes: Record<string,any> = {
 		delete_league_teams_by_pk:"league_teams",
 		delete_lobbies:"lobbies_mutation_response",
 		delete_lobbies_by_pk:"lobbies",
+		delete_lobby_camera_tokens:"lobby_camera_tokens_mutation_response",
+		delete_lobby_camera_tokens_by_pk:"lobby_camera_tokens",
 		delete_lobby_players:"lobby_players_mutation_response",
 		delete_lobby_players_by_pk:"lobby_players",
 		delete_map_pools:"map_pools_mutation_response",
@@ -44392,6 +44831,10 @@ export const ReturnTypes: Record<string,any> = {
 		delete_players_by_pk:"players",
 		delete_plugin_versions:"plugin_versions_mutation_response",
 		delete_plugin_versions_by_pk:"plugin_versions",
+		delete_push_notification_preferences:"push_notification_preferences_mutation_response",
+		delete_push_notification_preferences_by_pk:"push_notification_preferences",
+		delete_push_subscriptions:"push_subscriptions_mutation_response",
+		delete_push_subscriptions_by_pk:"push_subscriptions",
 		delete_seasons:"seasons_mutation_response",
 		delete_seasons_by_pk:"seasons",
 		delete_server_regions:"server_regions_mutation_response",
@@ -44624,6 +45067,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_league_teams_one:"league_teams",
 		insert_lobbies:"lobbies_mutation_response",
 		insert_lobbies_one:"lobbies",
+		insert_lobby_camera_tokens:"lobby_camera_tokens_mutation_response",
+		insert_lobby_camera_tokens_one:"lobby_camera_tokens",
 		insert_lobby_players:"lobby_players_mutation_response",
 		insert_lobby_players_one:"lobby_players",
 		insert_map_pools:"map_pools_mutation_response",
@@ -44714,6 +45159,10 @@ export const ReturnTypes: Record<string,any> = {
 		insert_players_one:"players",
 		insert_plugin_versions:"plugin_versions_mutation_response",
 		insert_plugin_versions_one:"plugin_versions",
+		insert_push_notification_preferences:"push_notification_preferences_mutation_response",
+		insert_push_notification_preferences_one:"push_notification_preferences",
+		insert_push_subscriptions:"push_subscriptions_mutation_response",
+		insert_push_subscriptions_one:"push_subscriptions",
 		insert_seasons:"seasons_mutation_response",
 		insert_seasons_one:"seasons",
 		insert_server_regions:"server_regions_mutation_response",
@@ -45115,6 +45564,9 @@ export const ReturnTypes: Record<string,any> = {
 		update_lobbies:"lobbies_mutation_response",
 		update_lobbies_by_pk:"lobbies",
 		update_lobbies_many:"lobbies_mutation_response",
+		update_lobby_camera_tokens:"lobby_camera_tokens_mutation_response",
+		update_lobby_camera_tokens_by_pk:"lobby_camera_tokens",
+		update_lobby_camera_tokens_many:"lobby_camera_tokens_mutation_response",
 		update_lobby_players:"lobby_players_mutation_response",
 		update_lobby_players_by_pk:"lobby_players",
 		update_lobby_players_many:"lobby_players_mutation_response",
@@ -45248,6 +45700,12 @@ export const ReturnTypes: Record<string,any> = {
 		update_plugin_versions:"plugin_versions_mutation_response",
 		update_plugin_versions_by_pk:"plugin_versions",
 		update_plugin_versions_many:"plugin_versions_mutation_response",
+		update_push_notification_preferences:"push_notification_preferences_mutation_response",
+		update_push_notification_preferences_by_pk:"push_notification_preferences",
+		update_push_notification_preferences_many:"push_notification_preferences_mutation_response",
+		update_push_subscriptions:"push_subscriptions_mutation_response",
+		update_push_subscriptions_by_pk:"push_subscriptions",
+		update_push_subscriptions_many:"push_subscriptions_mutation_response",
 		update_seasons:"seasons_mutation_response",
 		update_seasons_by_pk:"seasons",
 		update_seasons_many:"seasons_mutation_response",
@@ -51009,6 +51467,142 @@ export const ReturnTypes: Record<string,any> = {
 	plugin_versions_variance_fields:{
 		min_game_build_id:"Float"
 	},
+	push_notification_preferences:{
+		category:"String",
+		enabled:"Boolean",
+		steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	push_notification_preferences_aggregate:{
+		aggregate:"push_notification_preferences_aggregate_fields",
+		nodes:"push_notification_preferences"
+	},
+	push_notification_preferences_aggregate_fields:{
+		avg:"push_notification_preferences_avg_fields",
+		count:"Int",
+		max:"push_notification_preferences_max_fields",
+		min:"push_notification_preferences_min_fields",
+		stddev:"push_notification_preferences_stddev_fields",
+		stddev_pop:"push_notification_preferences_stddev_pop_fields",
+		stddev_samp:"push_notification_preferences_stddev_samp_fields",
+		sum:"push_notification_preferences_sum_fields",
+		var_pop:"push_notification_preferences_var_pop_fields",
+		var_samp:"push_notification_preferences_var_samp_fields",
+		variance:"push_notification_preferences_variance_fields"
+	},
+	push_notification_preferences_avg_fields:{
+		steam_id:"Float"
+	},
+	push_notification_preferences_max_fields:{
+		category:"String",
+		steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	push_notification_preferences_min_fields:{
+		category:"String",
+		steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	push_notification_preferences_mutation_response:{
+		affected_rows:"Int",
+		returning:"push_notification_preferences"
+	},
+	push_notification_preferences_stddev_fields:{
+		steam_id:"Float"
+	},
+	push_notification_preferences_stddev_pop_fields:{
+		steam_id:"Float"
+	},
+	push_notification_preferences_stddev_samp_fields:{
+		steam_id:"Float"
+	},
+	push_notification_preferences_sum_fields:{
+		steam_id:"bigint"
+	},
+	push_notification_preferences_var_pop_fields:{
+		steam_id:"Float"
+	},
+	push_notification_preferences_var_samp_fields:{
+		steam_id:"Float"
+	},
+	push_notification_preferences_variance_fields:{
+		steam_id:"Float"
+	},
+	push_subscriptions:{
+		auth:"String",
+		created_at:"timestamptz",
+		endpoint:"String",
+		id:"uuid",
+		last_used_at:"timestamptz",
+		p256dh:"String",
+		steam_id:"bigint",
+		user_agent:"String"
+	},
+	push_subscriptions_aggregate:{
+		aggregate:"push_subscriptions_aggregate_fields",
+		nodes:"push_subscriptions"
+	},
+	push_subscriptions_aggregate_fields:{
+		avg:"push_subscriptions_avg_fields",
+		count:"Int",
+		max:"push_subscriptions_max_fields",
+		min:"push_subscriptions_min_fields",
+		stddev:"push_subscriptions_stddev_fields",
+		stddev_pop:"push_subscriptions_stddev_pop_fields",
+		stddev_samp:"push_subscriptions_stddev_samp_fields",
+		sum:"push_subscriptions_sum_fields",
+		var_pop:"push_subscriptions_var_pop_fields",
+		var_samp:"push_subscriptions_var_samp_fields",
+		variance:"push_subscriptions_variance_fields"
+	},
+	push_subscriptions_avg_fields:{
+		steam_id:"Float"
+	},
+	push_subscriptions_max_fields:{
+		auth:"String",
+		created_at:"timestamptz",
+		endpoint:"String",
+		id:"uuid",
+		last_used_at:"timestamptz",
+		p256dh:"String",
+		steam_id:"bigint",
+		user_agent:"String"
+	},
+	push_subscriptions_min_fields:{
+		auth:"String",
+		created_at:"timestamptz",
+		endpoint:"String",
+		id:"uuid",
+		last_used_at:"timestamptz",
+		p256dh:"String",
+		steam_id:"bigint",
+		user_agent:"String"
+	},
+	push_subscriptions_mutation_response:{
+		affected_rows:"Int",
+		returning:"push_subscriptions"
+	},
+	push_subscriptions_stddev_fields:{
+		steam_id:"Float"
+	},
+	push_subscriptions_stddev_pop_fields:{
+		steam_id:"Float"
+	},
+	push_subscriptions_stddev_samp_fields:{
+		steam_id:"Float"
+	},
+	push_subscriptions_sum_fields:{
+		steam_id:"bigint"
+	},
+	push_subscriptions_var_pop_fields:{
+		steam_id:"Float"
+	},
+	push_subscriptions_var_samp_fields:{
+		steam_id:"Float"
+	},
+	push_subscriptions_variance_fields:{
+		steam_id:"Float"
+	},
 	query_root:{
 		_map_pool:"_map_pool",
 		_map_pool_aggregate:"_map_pool_aggregate",
@@ -51228,6 +51822,7 @@ export const ReturnTypes: Record<string,any> = {
 		getHighlightPresetAvailability:"HighlightPresetAvailability",
 		getIndexIOStats:"IndexIOStat",
 		getIndexStats:"IndexStat",
+		getMediaServerStats:"MediaServerStats",
 		getNodeStats:"NodeStats",
 		getQueryDetail:"QueryDetail",
 		getQueryStats:"QueryStat",
@@ -51281,6 +51876,9 @@ export const ReturnTypes: Record<string,any> = {
 		lobbies:"lobbies",
 		lobbies_aggregate:"lobbies_aggregate",
 		lobbies_by_pk:"lobbies",
+		lobby_camera_tokens:"lobby_camera_tokens",
+		lobby_camera_tokens_aggregate:"lobby_camera_tokens_aggregate",
+		lobby_camera_tokens_by_pk:"lobby_camera_tokens",
 		lobby_players:"lobby_players",
 		lobby_players_aggregate:"lobby_players_aggregate",
 		lobby_players_by_pk:"lobby_players",
@@ -51427,6 +52025,12 @@ export const ReturnTypes: Record<string,any> = {
 		plugin_versions:"plugin_versions",
 		plugin_versions_aggregate:"plugin_versions_aggregate",
 		plugin_versions_by_pk:"plugin_versions",
+		push_notification_preferences:"push_notification_preferences",
+		push_notification_preferences_aggregate:"push_notification_preferences_aggregate",
+		push_notification_preferences_by_pk:"push_notification_preferences",
+		push_subscriptions:"push_subscriptions",
+		push_subscriptions_aggregate:"push_subscriptions_aggregate",
+		push_subscriptions_by_pk:"push_subscriptions",
 		readServerFile:"FileContentResponse",
 		seasons:"seasons",
 		seasons_aggregate:"seasons_aggregate",
@@ -52372,6 +52976,10 @@ export const ReturnTypes: Record<string,any> = {
 		lobbies_aggregate:"lobbies_aggregate",
 		lobbies_by_pk:"lobbies",
 		lobbies_stream:"lobbies",
+		lobby_camera_tokens:"lobby_camera_tokens",
+		lobby_camera_tokens_aggregate:"lobby_camera_tokens_aggregate",
+		lobby_camera_tokens_by_pk:"lobby_camera_tokens",
+		lobby_camera_tokens_stream:"lobby_camera_tokens",
 		lobby_players:"lobby_players",
 		lobby_players_aggregate:"lobby_players_aggregate",
 		lobby_players_by_pk:"lobby_players",
@@ -52565,6 +53173,14 @@ export const ReturnTypes: Record<string,any> = {
 		plugin_versions_aggregate:"plugin_versions_aggregate",
 		plugin_versions_by_pk:"plugin_versions",
 		plugin_versions_stream:"plugin_versions",
+		push_notification_preferences:"push_notification_preferences",
+		push_notification_preferences_aggregate:"push_notification_preferences_aggregate",
+		push_notification_preferences_by_pk:"push_notification_preferences",
+		push_notification_preferences_stream:"push_notification_preferences",
+		push_subscriptions:"push_subscriptions",
+		push_subscriptions_aggregate:"push_subscriptions_aggregate",
+		push_subscriptions_by_pk:"push_subscriptions",
+		push_subscriptions_stream:"push_subscriptions",
 		seasons:"seasons",
 		seasons_aggregate:"seasons_aggregate",
 		seasons_by_pk:"seasons",
@@ -54280,6 +54896,7 @@ export const ReturnTypes: Record<string,any> = {
 		player:"players",
 		player_steam_id:"bigint",
 		role:"e_team_roles_enum",
+		roster_image_url_snapshot:"String",
 		tournament:"tournaments",
 		tournament_id:"uuid",
 		tournament_team:"tournament_teams",
@@ -54307,11 +54924,13 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	tournament_team_roster_max_fields:{
 		player_steam_id:"bigint",
+		roster_image_url_snapshot:"String",
 		tournament_id:"uuid",
 		tournament_team_id:"uuid"
 	},
 	tournament_team_roster_min_fields:{
 		player_steam_id:"bigint",
+		roster_image_url_snapshot:"String",
 		tournament_id:"uuid",
 		tournament_team_id:"uuid"
 	},

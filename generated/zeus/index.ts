@@ -1,7 +1,7 @@
 /* eslint-disable */
 
 import { AllTypesProps, ReturnTypes, Ops } from './const';
-export const HOST = "http://host.docker.internal:8080/v1/graphql"
+export const HOST = "https://api.deafcs.net/v1/graphql"
 
 
 export const HEADERS = {}
@@ -1289,6 +1289,14 @@ export type ValueTypes = {
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["MediaServerStats"]: AliasType<{
+	cpuMilliCores?:boolean | `@${string}`,
+	memoryBytes?:boolean | `@${string}`,
+	paths?:boolean | `@${string}`,
+	publishing?:boolean | `@${string}`,
+	webrtcSessions?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["MemoryStat"]: AliasType<{
@@ -17647,6 +17655,172 @@ count?: [{	columns?: Array<ValueTypes["lobbies_select_column"]> | undefined | nu
 	/** filter the rows which have to be updated */
 	where: ValueTypes["lobbies_bool_exp"] | Variable<any, string>
 };
+	/** columns and relationships of "lobby_camera_tokens" */
+["lobby_camera_tokens"]: AliasType<{
+	created_at?:boolean | `@${string}`,
+	lobby_id?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	token?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["lobby_camera_tokens_aggregate_fields"],
+	nodes?:ValueTypes["lobby_camera_tokens"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate_fields"]: AliasType<{
+	avg?:ValueTypes["lobby_camera_tokens_avg_fields"],
+count?: [{	columns?: Array<ValueTypes["lobby_camera_tokens_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["lobby_camera_tokens_max_fields"],
+	min?:ValueTypes["lobby_camera_tokens_min_fields"],
+	stddev?:ValueTypes["lobby_camera_tokens_stddev_fields"],
+	stddev_pop?:ValueTypes["lobby_camera_tokens_stddev_pop_fields"],
+	stddev_samp?:ValueTypes["lobby_camera_tokens_stddev_samp_fields"],
+	sum?:ValueTypes["lobby_camera_tokens_sum_fields"],
+	var_pop?:ValueTypes["lobby_camera_tokens_var_pop_fields"],
+	var_samp?:ValueTypes["lobby_camera_tokens_var_samp_fields"],
+	variance?:ValueTypes["lobby_camera_tokens_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["lobby_camera_tokens_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "lobby_camera_tokens". All fields are combined with a logical 'AND'. */
+["lobby_camera_tokens_bool_exp"]: {
+	_and?: Array<ValueTypes["lobby_camera_tokens_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["lobby_camera_tokens_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["lobby_camera_tokens_bool_exp"]> | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	lobby_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	token?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "lobby_camera_tokens" */
+["lobby_camera_tokens_constraint"]:lobby_camera_tokens_constraint;
+	/** input type for incrementing numeric columns in table "lobby_camera_tokens" */
+["lobby_camera_tokens_inc_input"]: {
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "lobby_camera_tokens" */
+["lobby_camera_tokens_insert_input"]: {
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	lobby_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	token?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["lobby_camera_tokens_max_fields"]: AliasType<{
+	created_at?:boolean | `@${string}`,
+	lobby_id?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	token?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["lobby_camera_tokens_min_fields"]: AliasType<{
+	created_at?:boolean | `@${string}`,
+	lobby_id?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	token?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "lobby_camera_tokens" */
+["lobby_camera_tokens_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["lobby_camera_tokens"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "lobby_camera_tokens" */
+["lobby_camera_tokens_on_conflict"]: {
+	constraint: ValueTypes["lobby_camera_tokens_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["lobby_camera_tokens_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["lobby_camera_tokens_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "lobby_camera_tokens". */
+["lobby_camera_tokens_order_by"]: {
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	lobby_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	token?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: lobby_camera_tokens */
+["lobby_camera_tokens_pk_columns_input"]: {
+	token: ValueTypes["uuid"] | Variable<any, string>
+};
+	/** select columns of table "lobby_camera_tokens" */
+["lobby_camera_tokens_select_column"]:lobby_camera_tokens_select_column;
+	/** input type for updating data in table "lobby_camera_tokens" */
+["lobby_camera_tokens_set_input"]: {
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	lobby_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	token?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev on columns */
+["lobby_camera_tokens_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["lobby_camera_tokens_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["lobby_camera_tokens_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "lobby_camera_tokens" */
+["lobby_camera_tokens_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["lobby_camera_tokens_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["lobby_camera_tokens_stream_cursor_value_input"]: {
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	lobby_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	token?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
+};
+	/** aggregate sum on columns */
+["lobby_camera_tokens_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "lobby_camera_tokens" */
+["lobby_camera_tokens_update_column"]:lobby_camera_tokens_update_column;
+	["lobby_camera_tokens_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["lobby_camera_tokens_inc_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["lobby_camera_tokens_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["lobby_camera_tokens_bool_exp"] | Variable<any, string>
+};
+	/** aggregate var_pop on columns */
+["lobby_camera_tokens_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["lobby_camera_tokens_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["lobby_camera_tokens_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	/** columns and relationships of "lobby_players" */
 ["lobby_players"]: AliasType<{
 	captain?:boolean | `@${string}`,
@@ -19410,6 +19584,7 @@ count?: [{	columns?: Array<ValueTypes["match_demo_sessions_select_column"]> | un
 	placeholder_name?:boolean | `@${string}`,
 	/** An object relationship */
 	player?:ValueTypes["players"],
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -19503,6 +19678,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	party_source?: ValueTypes["e_match_party_sources_enum_comparison_exp"] | undefined | null | Variable<any, string>,
 	placeholder_name?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>
 };
 	/** unique or primary key constraints on table "match_lineup_players" */
@@ -19525,6 +19701,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	party_source?: ValueTypes["e_match_party_sources_enum"] | undefined | null | Variable<any, string>,
 	placeholder_name?: string | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: string | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** aggregate max on columns */
@@ -19535,6 +19712,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	match_lineup_id?:boolean | `@${string}`,
 	party_id?:boolean | `@${string}`,
 	placeholder_name?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -19546,6 +19724,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	match_lineup_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	party_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	placeholder_name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate min on columns */
@@ -19556,6 +19735,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	match_lineup_id?:boolean | `@${string}`,
 	party_id?:boolean | `@${string}`,
 	placeholder_name?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -19567,6 +19747,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	match_lineup_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	party_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	placeholder_name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** response of any mutation on the table "match_lineup_players" */
@@ -19597,6 +19778,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	party_source?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	placeholder_name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** primary key columns input for table: match_lineup_players */
@@ -19621,6 +19803,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	party_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	party_source?: ValueTypes["e_match_party_sources_enum"] | undefined | null | Variable<any, string>,
 	placeholder_name?: string | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: string | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev on columns */
@@ -19669,6 +19852,7 @@ count?: [{	columns?: Array<ValueTypes["match_lineup_players_select_column"]> | u
 	party_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	party_source?: ValueTypes["e_match_party_sources_enum"] | undefined | null | Variable<any, string>,
 	placeholder_name?: string | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: string | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** aggregate sum on columns */
@@ -24494,6 +24678,9 @@ delete_league_teams_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},V
 delete_lobbies?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["lobbies_bool_exp"] | Variable<any, string>},ValueTypes["lobbies_mutation_response"]],
 delete_lobbies_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["lobbies"]],
+delete_lobby_camera_tokens?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["lobby_camera_tokens_bool_exp"] | Variable<any, string>},ValueTypes["lobby_camera_tokens_mutation_response"]],
+delete_lobby_camera_tokens_by_pk?: [{	token: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
 delete_lobby_players?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["lobby_players_bool_exp"] | Variable<any, string>},ValueTypes["lobby_players_mutation_response"]],
 delete_lobby_players_by_pk?: [{	lobby_id: ValueTypes["uuid"] | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["lobby_players"]],
@@ -24627,6 +24814,12 @@ delete_players_by_pk?: [{	steam_id: ValueTypes["bigint"] | Variable<any, string>
 delete_plugin_versions?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["plugin_versions_bool_exp"] | Variable<any, string>},ValueTypes["plugin_versions_mutation_response"]],
 delete_plugin_versions_by_pk?: [{	runtime: ValueTypes["e_plugin_runtimes_enum"] | Variable<any, string>,	version: string | Variable<any, string>},ValueTypes["plugin_versions"]],
+delete_push_notification_preferences?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["push_notification_preferences_bool_exp"] | Variable<any, string>},ValueTypes["push_notification_preferences_mutation_response"]],
+delete_push_notification_preferences_by_pk?: [{	category: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+delete_push_subscriptions?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["push_subscriptions_bool_exp"] | Variable<any, string>},ValueTypes["push_subscriptions_mutation_response"]],
+delete_push_subscriptions_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["push_subscriptions"]],
 delete_seasons?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["seasons_bool_exp"] | Variable<any, string>},ValueTypes["seasons_mutation_response"]],
 delete_seasons_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["seasons"]],
@@ -25216,6 +25409,12 @@ insert_lobbies?: [{	/** the rows to be inserted */
 insert_lobbies_one?: [{	/** the row to be inserted */
 	object: ValueTypes["lobbies_insert_input"] | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["lobbies_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["lobbies"]],
+insert_lobby_camera_tokens?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["lobby_camera_tokens_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["lobby_camera_tokens_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["lobby_camera_tokens_mutation_response"]],
+insert_lobby_camera_tokens_one?: [{	/** the row to be inserted */
+	object: ValueTypes["lobby_camera_tokens_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["lobby_camera_tokens_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
 insert_lobby_players?: [{	/** the rows to be inserted */
 	objects: Array<ValueTypes["lobby_players_insert_input"]> | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["lobby_players_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["lobby_players_mutation_response"]],
@@ -25482,6 +25681,18 @@ insert_plugin_versions?: [{	/** the rows to be inserted */
 insert_plugin_versions_one?: [{	/** the row to be inserted */
 	object: ValueTypes["plugin_versions_insert_input"] | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["plugin_versions_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["plugin_versions"]],
+insert_push_notification_preferences?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["push_notification_preferences_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["push_notification_preferences_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["push_notification_preferences_mutation_response"]],
+insert_push_notification_preferences_one?: [{	/** the row to be inserted */
+	object: ValueTypes["push_notification_preferences_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["push_notification_preferences_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+insert_push_subscriptions?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["push_subscriptions_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["push_subscriptions_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["push_subscriptions_mutation_response"]],
+insert_push_subscriptions_one?: [{	/** the row to be inserted */
+	object: ValueTypes["push_subscriptions_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["push_subscriptions_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["push_subscriptions"]],
 insert_seasons?: [{	/** the rows to be inserted */
 	objects: Array<ValueTypes["seasons_insert_input"]> | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["seasons_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["seasons_mutation_response"]],
@@ -26500,6 +26711,15 @@ update_lobbies_by_pk?: [{	/** sets the columns of the filtered rows to the given
 	_set?: ValueTypes["lobbies_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["lobbies_pk_columns_input"] | Variable<any, string>},ValueTypes["lobbies"]],
 update_lobbies_many?: [{	/** updates to execute, in order */
 	updates: Array<ValueTypes["lobbies_updates"]> | Variable<any, string>},ValueTypes["lobbies_mutation_response"]],
+update_lobby_camera_tokens?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["lobby_camera_tokens_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["lobby_camera_tokens_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["lobby_camera_tokens_bool_exp"] | Variable<any, string>},ValueTypes["lobby_camera_tokens_mutation_response"]],
+update_lobby_camera_tokens_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["lobby_camera_tokens_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["lobby_camera_tokens_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["lobby_camera_tokens_pk_columns_input"] | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
+update_lobby_camera_tokens_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["lobby_camera_tokens_updates"]> | Variable<any, string>},ValueTypes["lobby_camera_tokens_mutation_response"]],
 update_lobby_players?: [{	/** increments the numeric columns with given value of the filtered values */
 	_inc?: ValueTypes["lobby_players_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
 	_set?: ValueTypes["lobby_players_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
@@ -26942,6 +27162,24 @@ update_plugin_versions_by_pk?: [{	/** increments the numeric columns with given 
 	_set?: ValueTypes["plugin_versions_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["plugin_versions_pk_columns_input"] | Variable<any, string>},ValueTypes["plugin_versions"]],
 update_plugin_versions_many?: [{	/** updates to execute, in order */
 	updates: Array<ValueTypes["plugin_versions_updates"]> | Variable<any, string>},ValueTypes["plugin_versions_mutation_response"]],
+update_push_notification_preferences?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["push_notification_preferences_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["push_notification_preferences_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["push_notification_preferences_bool_exp"] | Variable<any, string>},ValueTypes["push_notification_preferences_mutation_response"]],
+update_push_notification_preferences_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["push_notification_preferences_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["push_notification_preferences_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["push_notification_preferences_pk_columns_input"] | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+update_push_notification_preferences_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["push_notification_preferences_updates"]> | Variable<any, string>},ValueTypes["push_notification_preferences_mutation_response"]],
+update_push_subscriptions?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["push_subscriptions_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["push_subscriptions_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["push_subscriptions_bool_exp"] | Variable<any, string>},ValueTypes["push_subscriptions_mutation_response"]],
+update_push_subscriptions_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["push_subscriptions_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["push_subscriptions_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["push_subscriptions_pk_columns_input"] | Variable<any, string>},ValueTypes["push_subscriptions"]],
+update_push_subscriptions_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["push_subscriptions_updates"]> | Variable<any, string>},ValueTypes["push_subscriptions_mutation_response"]],
 update_seasons?: [{	/** increments the numeric columns with given value of the filtered values */
 	_inc?: ValueTypes["seasons_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
 	_set?: ValueTypes["seasons_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
@@ -42515,6 +42753,369 @@ count?: [{	columns?: Array<ValueTypes["plugin_versions_select_column"]> | undefi
 	min_game_build_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	/** columns and relationships of "push_notification_preferences" */
+["push_notification_preferences"]: AliasType<{
+	category?:boolean | `@${string}`,
+	enabled?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "push_notification_preferences" */
+["push_notification_preferences_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["push_notification_preferences_aggregate_fields"],
+	nodes?:ValueTypes["push_notification_preferences"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "push_notification_preferences" */
+["push_notification_preferences_aggregate_fields"]: AliasType<{
+	avg?:ValueTypes["push_notification_preferences_avg_fields"],
+count?: [{	columns?: Array<ValueTypes["push_notification_preferences_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["push_notification_preferences_max_fields"],
+	min?:ValueTypes["push_notification_preferences_min_fields"],
+	stddev?:ValueTypes["push_notification_preferences_stddev_fields"],
+	stddev_pop?:ValueTypes["push_notification_preferences_stddev_pop_fields"],
+	stddev_samp?:ValueTypes["push_notification_preferences_stddev_samp_fields"],
+	sum?:ValueTypes["push_notification_preferences_sum_fields"],
+	var_pop?:ValueTypes["push_notification_preferences_var_pop_fields"],
+	var_samp?:ValueTypes["push_notification_preferences_var_samp_fields"],
+	variance?:ValueTypes["push_notification_preferences_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["push_notification_preferences_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "push_notification_preferences". All fields are combined with a logical 'AND'. */
+["push_notification_preferences_bool_exp"]: {
+	_and?: Array<ValueTypes["push_notification_preferences_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["push_notification_preferences_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["push_notification_preferences_bool_exp"]> | undefined | null | Variable<any, string>,
+	category?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "push_notification_preferences" */
+["push_notification_preferences_constraint"]:push_notification_preferences_constraint;
+	/** input type for incrementing numeric columns in table "push_notification_preferences" */
+["push_notification_preferences_inc_input"]: {
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "push_notification_preferences" */
+["push_notification_preferences_insert_input"]: {
+	category?: string | undefined | null | Variable<any, string>,
+	enabled?: boolean | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["push_notification_preferences_max_fields"]: AliasType<{
+	category?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["push_notification_preferences_min_fields"]: AliasType<{
+	category?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "push_notification_preferences" */
+["push_notification_preferences_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["push_notification_preferences"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "push_notification_preferences" */
+["push_notification_preferences_on_conflict"]: {
+	constraint: ValueTypes["push_notification_preferences_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["push_notification_preferences_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["push_notification_preferences_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "push_notification_preferences". */
+["push_notification_preferences_order_by"]: {
+	category?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: push_notification_preferences */
+["push_notification_preferences_pk_columns_input"]: {
+	category: string | Variable<any, string>,
+	steam_id: ValueTypes["bigint"] | Variable<any, string>
+};
+	/** select columns of table "push_notification_preferences" */
+["push_notification_preferences_select_column"]:push_notification_preferences_select_column;
+	/** input type for updating data in table "push_notification_preferences" */
+["push_notification_preferences_set_input"]: {
+	category?: string | undefined | null | Variable<any, string>,
+	enabled?: boolean | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev on columns */
+["push_notification_preferences_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["push_notification_preferences_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["push_notification_preferences_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "push_notification_preferences" */
+["push_notification_preferences_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["push_notification_preferences_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["push_notification_preferences_stream_cursor_value_input"]: {
+	category?: string | undefined | null | Variable<any, string>,
+	enabled?: boolean | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** aggregate sum on columns */
+["push_notification_preferences_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "push_notification_preferences" */
+["push_notification_preferences_update_column"]:push_notification_preferences_update_column;
+	["push_notification_preferences_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["push_notification_preferences_inc_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["push_notification_preferences_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["push_notification_preferences_bool_exp"] | Variable<any, string>
+};
+	/** aggregate var_pop on columns */
+["push_notification_preferences_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["push_notification_preferences_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["push_notification_preferences_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** columns and relationships of "push_subscriptions" */
+["push_subscriptions"]: AliasType<{
+	auth?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	endpoint?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	last_used_at?:boolean | `@${string}`,
+	p256dh?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	user_agent?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "push_subscriptions" */
+["push_subscriptions_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["push_subscriptions_aggregate_fields"],
+	nodes?:ValueTypes["push_subscriptions"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "push_subscriptions" */
+["push_subscriptions_aggregate_fields"]: AliasType<{
+	avg?:ValueTypes["push_subscriptions_avg_fields"],
+count?: [{	columns?: Array<ValueTypes["push_subscriptions_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["push_subscriptions_max_fields"],
+	min?:ValueTypes["push_subscriptions_min_fields"],
+	stddev?:ValueTypes["push_subscriptions_stddev_fields"],
+	stddev_pop?:ValueTypes["push_subscriptions_stddev_pop_fields"],
+	stddev_samp?:ValueTypes["push_subscriptions_stddev_samp_fields"],
+	sum?:ValueTypes["push_subscriptions_sum_fields"],
+	var_pop?:ValueTypes["push_subscriptions_var_pop_fields"],
+	var_samp?:ValueTypes["push_subscriptions_var_samp_fields"],
+	variance?:ValueTypes["push_subscriptions_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["push_subscriptions_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "push_subscriptions". All fields are combined with a logical 'AND'. */
+["push_subscriptions_bool_exp"]: {
+	_and?: Array<ValueTypes["push_subscriptions_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["push_subscriptions_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["push_subscriptions_bool_exp"]> | undefined | null | Variable<any, string>,
+	auth?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	endpoint?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	last_used_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	p256dh?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	user_agent?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "push_subscriptions" */
+["push_subscriptions_constraint"]:push_subscriptions_constraint;
+	/** input type for incrementing numeric columns in table "push_subscriptions" */
+["push_subscriptions_inc_input"]: {
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "push_subscriptions" */
+["push_subscriptions_insert_input"]: {
+	auth?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	endpoint?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	last_used_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	p256dh?: string | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	user_agent?: string | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["push_subscriptions_max_fields"]: AliasType<{
+	auth?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	endpoint?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	last_used_at?:boolean | `@${string}`,
+	p256dh?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	user_agent?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["push_subscriptions_min_fields"]: AliasType<{
+	auth?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	endpoint?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	last_used_at?:boolean | `@${string}`,
+	p256dh?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	user_agent?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "push_subscriptions" */
+["push_subscriptions_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["push_subscriptions"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "push_subscriptions" */
+["push_subscriptions_on_conflict"]: {
+	constraint: ValueTypes["push_subscriptions_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["push_subscriptions_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["push_subscriptions_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "push_subscriptions". */
+["push_subscriptions_order_by"]: {
+	auth?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	endpoint?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	last_used_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	p256dh?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	user_agent?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: push_subscriptions */
+["push_subscriptions_pk_columns_input"]: {
+	id: ValueTypes["uuid"] | Variable<any, string>
+};
+	/** select columns of table "push_subscriptions" */
+["push_subscriptions_select_column"]:push_subscriptions_select_column;
+	/** input type for updating data in table "push_subscriptions" */
+["push_subscriptions_set_input"]: {
+	auth?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	endpoint?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	last_used_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	p256dh?: string | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	user_agent?: string | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev on columns */
+["push_subscriptions_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["push_subscriptions_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["push_subscriptions_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "push_subscriptions" */
+["push_subscriptions_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["push_subscriptions_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["push_subscriptions_stream_cursor_value_input"]: {
+	auth?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	endpoint?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	last_used_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	p256dh?: string | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	user_agent?: string | undefined | null | Variable<any, string>
+};
+	/** aggregate sum on columns */
+["push_subscriptions_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "push_subscriptions" */
+["push_subscriptions_update_column"]:push_subscriptions_update_column;
+	["push_subscriptions_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["push_subscriptions_inc_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["push_subscriptions_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["push_subscriptions_bool_exp"] | Variable<any, string>
+};
+	/** aggregate var_pop on columns */
+["push_subscriptions_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["push_subscriptions_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["push_subscriptions_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["query_root"]: AliasType<{
 _map_pool?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["_map_pool_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
@@ -43429,6 +44030,8 @@ getDedicatedServerPlayers?: [{	serverId: string | Variable<any, string>},ValueTy
 getHighlightPresetAvailability?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, string>,	target_steam_id: string | Variable<any, string>},ValueTypes["HighlightPresetAvailability"]],
 getIndexIOStats?: [{	schemas?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["IndexIOStat"]],
 getIndexStats?: [{	schemas?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["IndexStat"]],
+	/** Live MediaMTX camera-server stats (publishing/paths/sessions) plus pod CPU/memory usage */
+	getMediaServerStats?:ValueTypes["MediaServerStats"],
 getNodeStats?: [{	node: string | Variable<any, string>},ValueTypes["NodeStats"]],
 getQueryDetail?: [{	queryid: string | Variable<any, string>},ValueTypes["QueryDetail"]],
 	/** Get enhanced query performance statistics */
@@ -43653,6 +44256,19 @@ lobbies_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ValueTypes["lobbies_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["lobbies_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobbies_aggregate"]],
 lobbies_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["lobbies"]],
+lobby_camera_tokens?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["lobby_camera_tokens_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["lobby_camera_tokens_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["lobby_camera_tokens_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
+lobby_camera_tokens_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["lobby_camera_tokens_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["lobby_camera_tokens_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["lobby_camera_tokens_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobby_camera_tokens_aggregate"]],
+lobby_camera_tokens_by_pk?: [{	token: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
 lobby_players?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["lobby_players_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -44301,6 +44917,32 @@ plugin_versions_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ValueTypes["plugin_versions_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["plugin_versions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["plugin_versions_aggregate"]],
 plugin_versions_by_pk?: [{	runtime: ValueTypes["e_plugin_runtimes_enum"] | Variable<any, string>,	version: string | Variable<any, string>},ValueTypes["plugin_versions"]],
+push_notification_preferences?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_notification_preferences_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_notification_preferences_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_notification_preferences_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+push_notification_preferences_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_notification_preferences_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_notification_preferences_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_notification_preferences_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_notification_preferences_aggregate"]],
+push_notification_preferences_by_pk?: [{	category: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+push_subscriptions?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_subscriptions_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_subscriptions_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_subscriptions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_subscriptions"]],
+push_subscriptions_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_subscriptions_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_subscriptions_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_subscriptions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_subscriptions_aggregate"]],
+push_subscriptions_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["push_subscriptions"]],
 readServerFile?: [{	file_path: string | Variable<any, string>,	node_id: string | Variable<any, string>,	server_id?: string | undefined | null | Variable<any, string>},ValueTypes["FileContentResponse"]],
 seasons?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["seasons_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
@@ -48042,6 +48684,23 @@ lobbies_stream?: [{	/** maximum number of rows returned in a single batch */
 	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
 	cursor: Array<ValueTypes["lobbies_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["lobbies_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobbies"]],
+lobby_camera_tokens?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["lobby_camera_tokens_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["lobby_camera_tokens_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["lobby_camera_tokens_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
+lobby_camera_tokens_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["lobby_camera_tokens_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["lobby_camera_tokens_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["lobby_camera_tokens_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobby_camera_tokens_aggregate"]],
+lobby_camera_tokens_by_pk?: [{	token: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
+lobby_camera_tokens_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["lobby_camera_tokens_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["lobby_camera_tokens_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobby_camera_tokens"]],
 lobby_players?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["lobby_players_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -48885,6 +49544,40 @@ plugin_versions_stream?: [{	/** maximum number of rows returned in a single batc
 	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
 	cursor: Array<ValueTypes["plugin_versions_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["plugin_versions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["plugin_versions"]],
+push_notification_preferences?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_notification_preferences_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_notification_preferences_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_notification_preferences_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+push_notification_preferences_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_notification_preferences_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_notification_preferences_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_notification_preferences_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_notification_preferences_aggregate"]],
+push_notification_preferences_by_pk?: [{	category: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+push_notification_preferences_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["push_notification_preferences_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_notification_preferences_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_notification_preferences"]],
+push_subscriptions?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_subscriptions_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_subscriptions_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_subscriptions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_subscriptions"]],
+push_subscriptions_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["push_subscriptions_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["push_subscriptions_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_subscriptions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_subscriptions_aggregate"]],
+push_subscriptions_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["push_subscriptions"]],
+push_subscriptions_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["push_subscriptions_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["push_subscriptions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["push_subscriptions"]],
 seasons?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["seasons_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -55454,6 +56147,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_invites_select_column"]> 
 	player?:ValueTypes["players"],
 	player_steam_id?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	/** An object relationship */
 	tournament?:ValueTypes["tournaments"],
 	tournament_id?:boolean | `@${string}`,
@@ -55530,6 +56224,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["e_team_roles_enum_comparison_exp"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	tournament?: ValueTypes["tournaments_bool_exp"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_bool_exp"] | undefined | null | Variable<any, string>,
@@ -55547,6 +56242,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["e_team_roles_enum"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: string | undefined | null | Variable<any, string>,
 	tournament?: ValueTypes["tournaments_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
@@ -55555,6 +56251,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	/** aggregate max on columns */
 ["tournament_team_roster_max_fields"]: AliasType<{
 	player_steam_id?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -55562,12 +56259,14 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	/** order by max() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_max_order_by"]: {
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate min on columns */
 ["tournament_team_roster_min_fields"]: AliasType<{
 	player_steam_id?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -55575,6 +56274,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	/** order by min() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_min_order_by"]: {
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
@@ -55598,6 +56298,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament?: ValueTypes["tournaments_order_by"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_order_by"] | undefined | null | Variable<any, string>,
@@ -55614,6 +56315,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 ["tournament_team_roster_set_input"]: {
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["e_team_roles_enum"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: string | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
 };
@@ -55655,6 +56357,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 ["tournament_team_roster_stream_cursor_value_input"]: {
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["e_team_roles_enum"] | undefined | null | Variable<any, string>,
+	roster_image_url_snapshot?: string | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	tournament_team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>
 };
@@ -67337,6 +68040,14 @@ export type ResolverInputTypes = {
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["MediaServerStats"]: AliasType<{
+	cpuMilliCores?:boolean | `@${string}`,
+	memoryBytes?:boolean | `@${string}`,
+	paths?:boolean | `@${string}`,
+	publishing?:boolean | `@${string}`,
+	webrtcSessions?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["MemoryStat"]: AliasType<{
@@ -83695,6 +84406,172 @@ count?: [{	columns?: Array<ResolverInputTypes["lobbies_select_column"]> | undefi
 	/** filter the rows which have to be updated */
 	where: ResolverInputTypes["lobbies_bool_exp"]
 };
+	/** columns and relationships of "lobby_camera_tokens" */
+["lobby_camera_tokens"]: AliasType<{
+	created_at?:boolean | `@${string}`,
+	lobby_id?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	token?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["lobby_camera_tokens_aggregate_fields"],
+	nodes?:ResolverInputTypes["lobby_camera_tokens"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate_fields"]: AliasType<{
+	avg?:ResolverInputTypes["lobby_camera_tokens_avg_fields"],
+count?: [{	columns?: Array<ResolverInputTypes["lobby_camera_tokens_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["lobby_camera_tokens_max_fields"],
+	min?:ResolverInputTypes["lobby_camera_tokens_min_fields"],
+	stddev?:ResolverInputTypes["lobby_camera_tokens_stddev_fields"],
+	stddev_pop?:ResolverInputTypes["lobby_camera_tokens_stddev_pop_fields"],
+	stddev_samp?:ResolverInputTypes["lobby_camera_tokens_stddev_samp_fields"],
+	sum?:ResolverInputTypes["lobby_camera_tokens_sum_fields"],
+	var_pop?:ResolverInputTypes["lobby_camera_tokens_var_pop_fields"],
+	var_samp?:ResolverInputTypes["lobby_camera_tokens_var_samp_fields"],
+	variance?:ResolverInputTypes["lobby_camera_tokens_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["lobby_camera_tokens_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "lobby_camera_tokens". All fields are combined with a logical 'AND'. */
+["lobby_camera_tokens_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["lobby_camera_tokens_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["lobby_camera_tokens_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["lobby_camera_tokens_bool_exp"]> | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	lobby_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	token?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "lobby_camera_tokens" */
+["lobby_camera_tokens_constraint"]:lobby_camera_tokens_constraint;
+	/** input type for incrementing numeric columns in table "lobby_camera_tokens" */
+["lobby_camera_tokens_inc_input"]: {
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "lobby_camera_tokens" */
+["lobby_camera_tokens_insert_input"]: {
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	lobby_id?: ResolverInputTypes["uuid"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	token?: ResolverInputTypes["uuid"] | undefined | null
+};
+	/** aggregate max on columns */
+["lobby_camera_tokens_max_fields"]: AliasType<{
+	created_at?:boolean | `@${string}`,
+	lobby_id?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	token?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["lobby_camera_tokens_min_fields"]: AliasType<{
+	created_at?:boolean | `@${string}`,
+	lobby_id?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	token?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "lobby_camera_tokens" */
+["lobby_camera_tokens_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["lobby_camera_tokens"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "lobby_camera_tokens" */
+["lobby_camera_tokens_on_conflict"]: {
+	constraint: ResolverInputTypes["lobby_camera_tokens_constraint"],
+	update_columns: Array<ResolverInputTypes["lobby_camera_tokens_update_column"]>,
+	where?: ResolverInputTypes["lobby_camera_tokens_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "lobby_camera_tokens". */
+["lobby_camera_tokens_order_by"]: {
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	lobby_id?: ResolverInputTypes["order_by"] | undefined | null,
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	token?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: lobby_camera_tokens */
+["lobby_camera_tokens_pk_columns_input"]: {
+	token: ResolverInputTypes["uuid"]
+};
+	/** select columns of table "lobby_camera_tokens" */
+["lobby_camera_tokens_select_column"]:lobby_camera_tokens_select_column;
+	/** input type for updating data in table "lobby_camera_tokens" */
+["lobby_camera_tokens_set_input"]: {
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	lobby_id?: ResolverInputTypes["uuid"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	token?: ResolverInputTypes["uuid"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["lobby_camera_tokens_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["lobby_camera_tokens_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["lobby_camera_tokens_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "lobby_camera_tokens" */
+["lobby_camera_tokens_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["lobby_camera_tokens_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["lobby_camera_tokens_stream_cursor_value_input"]: {
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	lobby_id?: ResolverInputTypes["uuid"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	token?: ResolverInputTypes["uuid"] | undefined | null
+};
+	/** aggregate sum on columns */
+["lobby_camera_tokens_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "lobby_camera_tokens" */
+["lobby_camera_tokens_update_column"]:lobby_camera_tokens_update_column;
+	["lobby_camera_tokens_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["lobby_camera_tokens_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["lobby_camera_tokens_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["lobby_camera_tokens_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["lobby_camera_tokens_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["lobby_camera_tokens_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["lobby_camera_tokens_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	/** columns and relationships of "lobby_players" */
 ["lobby_players"]: AliasType<{
 	captain?:boolean | `@${string}`,
@@ -85458,6 +86335,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_demo_sessions_select_column
 	placeholder_name?:boolean | `@${string}`,
 	/** An object relationship */
 	player?:ResolverInputTypes["players"],
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -85551,6 +86429,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	party_source?: ResolverInputTypes["e_match_party_sources_enum_comparison_exp"] | undefined | null,
 	placeholder_name?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	player?: ResolverInputTypes["players_bool_exp"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null
 };
 	/** unique or primary key constraints on table "match_lineup_players" */
@@ -85573,6 +86452,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	party_source?: ResolverInputTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
 	player?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** aggregate max on columns */
@@ -85583,6 +86463,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	match_lineup_id?:boolean | `@${string}`,
 	party_id?:boolean | `@${string}`,
 	placeholder_name?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -85594,6 +86475,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	match_lineup_id?: ResolverInputTypes["order_by"] | undefined | null,
 	party_id?: ResolverInputTypes["order_by"] | undefined | null,
 	placeholder_name?: ResolverInputTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
@@ -85604,6 +86486,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	match_lineup_id?:boolean | `@${string}`,
 	party_id?:boolean | `@${string}`,
 	placeholder_name?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
@@ -85615,6 +86498,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	match_lineup_id?: ResolverInputTypes["order_by"] | undefined | null,
 	party_id?: ResolverInputTypes["order_by"] | undefined | null,
 	placeholder_name?: ResolverInputTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "match_lineup_players" */
@@ -85645,6 +86529,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	party_source?: ResolverInputTypes["order_by"] | undefined | null,
 	placeholder_name?: ResolverInputTypes["order_by"] | undefined | null,
 	player?: ResolverInputTypes["players_order_by"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: match_lineup_players */
@@ -85669,6 +86554,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	party_id?: ResolverInputTypes["uuid"] | undefined | null,
 	party_source?: ResolverInputTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** aggregate stddev on columns */
@@ -85717,6 +86603,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineup_players_select_colum
 	party_id?: ResolverInputTypes["uuid"] | undefined | null,
 	party_source?: ResolverInputTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** aggregate sum on columns */
@@ -90542,6 +91429,9 @@ delete_league_teams_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputType
 delete_lobbies?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["lobbies_bool_exp"]},ResolverInputTypes["lobbies_mutation_response"]],
 delete_lobbies_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["lobbies"]],
+delete_lobby_camera_tokens?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["lobby_camera_tokens_bool_exp"]},ResolverInputTypes["lobby_camera_tokens_mutation_response"]],
+delete_lobby_camera_tokens_by_pk?: [{	token: ResolverInputTypes["uuid"]},ResolverInputTypes["lobby_camera_tokens"]],
 delete_lobby_players?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["lobby_players_bool_exp"]},ResolverInputTypes["lobby_players_mutation_response"]],
 delete_lobby_players_by_pk?: [{	lobby_id: ResolverInputTypes["uuid"],	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["lobby_players"]],
@@ -90675,6 +91565,12 @@ delete_players_by_pk?: [{	steam_id: ResolverInputTypes["bigint"]},ResolverInputT
 delete_plugin_versions?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["plugin_versions_bool_exp"]},ResolverInputTypes["plugin_versions_mutation_response"]],
 delete_plugin_versions_by_pk?: [{	runtime: ResolverInputTypes["e_plugin_runtimes_enum"],	version: string},ResolverInputTypes["plugin_versions"]],
+delete_push_notification_preferences?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["push_notification_preferences_bool_exp"]},ResolverInputTypes["push_notification_preferences_mutation_response"]],
+delete_push_notification_preferences_by_pk?: [{	category: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["push_notification_preferences"]],
+delete_push_subscriptions?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["push_subscriptions_bool_exp"]},ResolverInputTypes["push_subscriptions_mutation_response"]],
+delete_push_subscriptions_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["push_subscriptions"]],
 delete_seasons?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["seasons_bool_exp"]},ResolverInputTypes["seasons_mutation_response"]],
 delete_seasons_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["seasons"]],
@@ -91264,6 +92160,12 @@ insert_lobbies?: [{	/** the rows to be inserted */
 insert_lobbies_one?: [{	/** the row to be inserted */
 	object: ResolverInputTypes["lobbies_insert_input"],	/** upsert condition */
 	on_conflict?: ResolverInputTypes["lobbies_on_conflict"] | undefined | null},ResolverInputTypes["lobbies"]],
+insert_lobby_camera_tokens?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["lobby_camera_tokens_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["lobby_camera_tokens_on_conflict"] | undefined | null},ResolverInputTypes["lobby_camera_tokens_mutation_response"]],
+insert_lobby_camera_tokens_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["lobby_camera_tokens_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["lobby_camera_tokens_on_conflict"] | undefined | null},ResolverInputTypes["lobby_camera_tokens"]],
 insert_lobby_players?: [{	/** the rows to be inserted */
 	objects: Array<ResolverInputTypes["lobby_players_insert_input"]>,	/** upsert condition */
 	on_conflict?: ResolverInputTypes["lobby_players_on_conflict"] | undefined | null},ResolverInputTypes["lobby_players_mutation_response"]],
@@ -91530,6 +92432,18 @@ insert_plugin_versions?: [{	/** the rows to be inserted */
 insert_plugin_versions_one?: [{	/** the row to be inserted */
 	object: ResolverInputTypes["plugin_versions_insert_input"],	/** upsert condition */
 	on_conflict?: ResolverInputTypes["plugin_versions_on_conflict"] | undefined | null},ResolverInputTypes["plugin_versions"]],
+insert_push_notification_preferences?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["push_notification_preferences_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["push_notification_preferences_on_conflict"] | undefined | null},ResolverInputTypes["push_notification_preferences_mutation_response"]],
+insert_push_notification_preferences_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["push_notification_preferences_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["push_notification_preferences_on_conflict"] | undefined | null},ResolverInputTypes["push_notification_preferences"]],
+insert_push_subscriptions?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["push_subscriptions_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["push_subscriptions_on_conflict"] | undefined | null},ResolverInputTypes["push_subscriptions_mutation_response"]],
+insert_push_subscriptions_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["push_subscriptions_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["push_subscriptions_on_conflict"] | undefined | null},ResolverInputTypes["push_subscriptions"]],
 insert_seasons?: [{	/** the rows to be inserted */
 	objects: Array<ResolverInputTypes["seasons_insert_input"]>,	/** upsert condition */
 	on_conflict?: ResolverInputTypes["seasons_on_conflict"] | undefined | null},ResolverInputTypes["seasons_mutation_response"]],
@@ -92548,6 +93462,15 @@ update_lobbies_by_pk?: [{	/** sets the columns of the filtered rows to the given
 	_set?: ResolverInputTypes["lobbies_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["lobbies_pk_columns_input"]},ResolverInputTypes["lobbies"]],
 update_lobbies_many?: [{	/** updates to execute, in order */
 	updates: Array<ResolverInputTypes["lobbies_updates"]>},ResolverInputTypes["lobbies_mutation_response"]],
+update_lobby_camera_tokens?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["lobby_camera_tokens_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["lobby_camera_tokens_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["lobby_camera_tokens_bool_exp"]},ResolverInputTypes["lobby_camera_tokens_mutation_response"]],
+update_lobby_camera_tokens_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["lobby_camera_tokens_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["lobby_camera_tokens_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["lobby_camera_tokens_pk_columns_input"]},ResolverInputTypes["lobby_camera_tokens"]],
+update_lobby_camera_tokens_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["lobby_camera_tokens_updates"]>},ResolverInputTypes["lobby_camera_tokens_mutation_response"]],
 update_lobby_players?: [{	/** increments the numeric columns with given value of the filtered values */
 	_inc?: ResolverInputTypes["lobby_players_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
 	_set?: ResolverInputTypes["lobby_players_set_input"] | undefined | null,	/** filter the rows which have to be updated */
@@ -92990,6 +93913,24 @@ update_plugin_versions_by_pk?: [{	/** increments the numeric columns with given 
 	_set?: ResolverInputTypes["plugin_versions_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["plugin_versions_pk_columns_input"]},ResolverInputTypes["plugin_versions"]],
 update_plugin_versions_many?: [{	/** updates to execute, in order */
 	updates: Array<ResolverInputTypes["plugin_versions_updates"]>},ResolverInputTypes["plugin_versions_mutation_response"]],
+update_push_notification_preferences?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["push_notification_preferences_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["push_notification_preferences_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["push_notification_preferences_bool_exp"]},ResolverInputTypes["push_notification_preferences_mutation_response"]],
+update_push_notification_preferences_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["push_notification_preferences_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["push_notification_preferences_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["push_notification_preferences_pk_columns_input"]},ResolverInputTypes["push_notification_preferences"]],
+update_push_notification_preferences_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["push_notification_preferences_updates"]>},ResolverInputTypes["push_notification_preferences_mutation_response"]],
+update_push_subscriptions?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["push_subscriptions_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["push_subscriptions_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["push_subscriptions_bool_exp"]},ResolverInputTypes["push_subscriptions_mutation_response"]],
+update_push_subscriptions_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["push_subscriptions_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["push_subscriptions_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["push_subscriptions_pk_columns_input"]},ResolverInputTypes["push_subscriptions"]],
+update_push_subscriptions_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["push_subscriptions_updates"]>},ResolverInputTypes["push_subscriptions_mutation_response"]],
 update_seasons?: [{	/** increments the numeric columns with given value of the filtered values */
 	_inc?: ResolverInputTypes["seasons_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
 	_set?: ResolverInputTypes["seasons_set_input"] | undefined | null,	/** filter the rows which have to be updated */
@@ -108563,6 +109504,369 @@ count?: [{	columns?: Array<ResolverInputTypes["plugin_versions_select_column"]> 
 	min_game_build_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	/** columns and relationships of "push_notification_preferences" */
+["push_notification_preferences"]: AliasType<{
+	category?:boolean | `@${string}`,
+	enabled?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "push_notification_preferences" */
+["push_notification_preferences_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["push_notification_preferences_aggregate_fields"],
+	nodes?:ResolverInputTypes["push_notification_preferences"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "push_notification_preferences" */
+["push_notification_preferences_aggregate_fields"]: AliasType<{
+	avg?:ResolverInputTypes["push_notification_preferences_avg_fields"],
+count?: [{	columns?: Array<ResolverInputTypes["push_notification_preferences_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["push_notification_preferences_max_fields"],
+	min?:ResolverInputTypes["push_notification_preferences_min_fields"],
+	stddev?:ResolverInputTypes["push_notification_preferences_stddev_fields"],
+	stddev_pop?:ResolverInputTypes["push_notification_preferences_stddev_pop_fields"],
+	stddev_samp?:ResolverInputTypes["push_notification_preferences_stddev_samp_fields"],
+	sum?:ResolverInputTypes["push_notification_preferences_sum_fields"],
+	var_pop?:ResolverInputTypes["push_notification_preferences_var_pop_fields"],
+	var_samp?:ResolverInputTypes["push_notification_preferences_var_samp_fields"],
+	variance?:ResolverInputTypes["push_notification_preferences_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["push_notification_preferences_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "push_notification_preferences". All fields are combined with a logical 'AND'. */
+["push_notification_preferences_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["push_notification_preferences_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["push_notification_preferences_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["push_notification_preferences_bool_exp"]> | undefined | null,
+	category?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "push_notification_preferences" */
+["push_notification_preferences_constraint"]:push_notification_preferences_constraint;
+	/** input type for incrementing numeric columns in table "push_notification_preferences" */
+["push_notification_preferences_inc_input"]: {
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "push_notification_preferences" */
+["push_notification_preferences_insert_input"]: {
+	category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["push_notification_preferences_max_fields"]: AliasType<{
+	category?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["push_notification_preferences_min_fields"]: AliasType<{
+	category?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "push_notification_preferences" */
+["push_notification_preferences_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["push_notification_preferences"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "push_notification_preferences" */
+["push_notification_preferences_on_conflict"]: {
+	constraint: ResolverInputTypes["push_notification_preferences_constraint"],
+	update_columns: Array<ResolverInputTypes["push_notification_preferences_update_column"]>,
+	where?: ResolverInputTypes["push_notification_preferences_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "push_notification_preferences". */
+["push_notification_preferences_order_by"]: {
+	category?: ResolverInputTypes["order_by"] | undefined | null,
+	enabled?: ResolverInputTypes["order_by"] | undefined | null,
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	updated_at?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: push_notification_preferences */
+["push_notification_preferences_pk_columns_input"]: {
+	category: string,
+	steam_id: ResolverInputTypes["bigint"]
+};
+	/** select columns of table "push_notification_preferences" */
+["push_notification_preferences_select_column"]:push_notification_preferences_select_column;
+	/** input type for updating data in table "push_notification_preferences" */
+["push_notification_preferences_set_input"]: {
+	category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["push_notification_preferences_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["push_notification_preferences_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["push_notification_preferences_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "push_notification_preferences" */
+["push_notification_preferences_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["push_notification_preferences_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["push_notification_preferences_stream_cursor_value_input"]: {
+	category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** aggregate sum on columns */
+["push_notification_preferences_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "push_notification_preferences" */
+["push_notification_preferences_update_column"]:push_notification_preferences_update_column;
+	["push_notification_preferences_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["push_notification_preferences_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["push_notification_preferences_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["push_notification_preferences_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["push_notification_preferences_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["push_notification_preferences_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["push_notification_preferences_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** columns and relationships of "push_subscriptions" */
+["push_subscriptions"]: AliasType<{
+	auth?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	endpoint?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	last_used_at?:boolean | `@${string}`,
+	p256dh?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	user_agent?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "push_subscriptions" */
+["push_subscriptions_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["push_subscriptions_aggregate_fields"],
+	nodes?:ResolverInputTypes["push_subscriptions"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "push_subscriptions" */
+["push_subscriptions_aggregate_fields"]: AliasType<{
+	avg?:ResolverInputTypes["push_subscriptions_avg_fields"],
+count?: [{	columns?: Array<ResolverInputTypes["push_subscriptions_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["push_subscriptions_max_fields"],
+	min?:ResolverInputTypes["push_subscriptions_min_fields"],
+	stddev?:ResolverInputTypes["push_subscriptions_stddev_fields"],
+	stddev_pop?:ResolverInputTypes["push_subscriptions_stddev_pop_fields"],
+	stddev_samp?:ResolverInputTypes["push_subscriptions_stddev_samp_fields"],
+	sum?:ResolverInputTypes["push_subscriptions_sum_fields"],
+	var_pop?:ResolverInputTypes["push_subscriptions_var_pop_fields"],
+	var_samp?:ResolverInputTypes["push_subscriptions_var_samp_fields"],
+	variance?:ResolverInputTypes["push_subscriptions_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["push_subscriptions_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "push_subscriptions". All fields are combined with a logical 'AND'. */
+["push_subscriptions_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["push_subscriptions_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["push_subscriptions_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["push_subscriptions_bool_exp"]> | undefined | null,
+	auth?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	endpoint?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	last_used_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	p256dh?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	user_agent?: ResolverInputTypes["String_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "push_subscriptions" */
+["push_subscriptions_constraint"]:push_subscriptions_constraint;
+	/** input type for incrementing numeric columns in table "push_subscriptions" */
+["push_subscriptions_inc_input"]: {
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "push_subscriptions" */
+["push_subscriptions_insert_input"]: {
+	auth?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	last_used_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate max on columns */
+["push_subscriptions_max_fields"]: AliasType<{
+	auth?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	endpoint?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	last_used_at?:boolean | `@${string}`,
+	p256dh?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	user_agent?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["push_subscriptions_min_fields"]: AliasType<{
+	auth?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	endpoint?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	last_used_at?:boolean | `@${string}`,
+	p256dh?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+	user_agent?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "push_subscriptions" */
+["push_subscriptions_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["push_subscriptions"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "push_subscriptions" */
+["push_subscriptions_on_conflict"]: {
+	constraint: ResolverInputTypes["push_subscriptions_constraint"],
+	update_columns: Array<ResolverInputTypes["push_subscriptions_update_column"]>,
+	where?: ResolverInputTypes["push_subscriptions_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "push_subscriptions". */
+["push_subscriptions_order_by"]: {
+	auth?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	endpoint?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	last_used_at?: ResolverInputTypes["order_by"] | undefined | null,
+	p256dh?: ResolverInputTypes["order_by"] | undefined | null,
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	user_agent?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: push_subscriptions */
+["push_subscriptions_pk_columns_input"]: {
+	id: ResolverInputTypes["uuid"]
+};
+	/** select columns of table "push_subscriptions" */
+["push_subscriptions_select_column"]:push_subscriptions_select_column;
+	/** input type for updating data in table "push_subscriptions" */
+["push_subscriptions_set_input"]: {
+	auth?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	last_used_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate stddev on columns */
+["push_subscriptions_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["push_subscriptions_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["push_subscriptions_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "push_subscriptions" */
+["push_subscriptions_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["push_subscriptions_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["push_subscriptions_stream_cursor_value_input"]: {
+	auth?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	last_used_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate sum on columns */
+["push_subscriptions_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "push_subscriptions" */
+["push_subscriptions_update_column"]:push_subscriptions_update_column;
+	["push_subscriptions_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["push_subscriptions_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["push_subscriptions_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["push_subscriptions_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["push_subscriptions_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["push_subscriptions_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["push_subscriptions_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["query_root"]: AliasType<{
 _map_pool?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["_map_pool_select_column"]> | undefined | null,	/** limit the number of rows returned */
@@ -109477,6 +110781,8 @@ getDedicatedServerPlayers?: [{	serverId: string},ResolverInputTypes["ServerPlaye
 getHighlightPresetAvailability?: [{	match_map_id: ResolverInputTypes["uuid"],	target_steam_id: string},ResolverInputTypes["HighlightPresetAvailability"]],
 getIndexIOStats?: [{	schemas?: Array<string> | undefined | null},ResolverInputTypes["IndexIOStat"]],
 getIndexStats?: [{	schemas?: Array<string> | undefined | null},ResolverInputTypes["IndexStat"]],
+	/** Live MediaMTX camera-server stats (publishing/paths/sessions) plus pod CPU/memory usage */
+	getMediaServerStats?:ResolverInputTypes["MediaServerStats"],
 getNodeStats?: [{	node: string},ResolverInputTypes["NodeStats"]],
 getQueryDetail?: [{	queryid: string},ResolverInputTypes["QueryDetail"]],
 	/** Get enhanced query performance statistics */
@@ -109701,6 +111007,19 @@ lobbies_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ResolverInputTypes["lobbies_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["lobbies_bool_exp"] | undefined | null},ResolverInputTypes["lobbies_aggregate"]],
 lobbies_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["lobbies"]],
+lobby_camera_tokens?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["lobby_camera_tokens_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["lobby_camera_tokens_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["lobby_camera_tokens_bool_exp"] | undefined | null},ResolverInputTypes["lobby_camera_tokens"]],
+lobby_camera_tokens_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["lobby_camera_tokens_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["lobby_camera_tokens_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["lobby_camera_tokens_bool_exp"] | undefined | null},ResolverInputTypes["lobby_camera_tokens_aggregate"]],
+lobby_camera_tokens_by_pk?: [{	token: ResolverInputTypes["uuid"]},ResolverInputTypes["lobby_camera_tokens"]],
 lobby_players?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["lobby_players_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -110349,6 +111668,32 @@ plugin_versions_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ResolverInputTypes["plugin_versions_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["plugin_versions_bool_exp"] | undefined | null},ResolverInputTypes["plugin_versions_aggregate"]],
 plugin_versions_by_pk?: [{	runtime: ResolverInputTypes["e_plugin_runtimes_enum"],	version: string},ResolverInputTypes["plugin_versions"]],
+push_notification_preferences?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_notification_preferences_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_notification_preferences_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_notification_preferences_bool_exp"] | undefined | null},ResolverInputTypes["push_notification_preferences"]],
+push_notification_preferences_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_notification_preferences_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_notification_preferences_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_notification_preferences_bool_exp"] | undefined | null},ResolverInputTypes["push_notification_preferences_aggregate"]],
+push_notification_preferences_by_pk?: [{	category: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["push_notification_preferences"]],
+push_subscriptions?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_subscriptions_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_subscriptions_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_subscriptions_bool_exp"] | undefined | null},ResolverInputTypes["push_subscriptions"]],
+push_subscriptions_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_subscriptions_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_subscriptions_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_subscriptions_bool_exp"] | undefined | null},ResolverInputTypes["push_subscriptions_aggregate"]],
+push_subscriptions_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["push_subscriptions"]],
 readServerFile?: [{	file_path: string,	node_id: string,	server_id?: string | undefined | null},ResolverInputTypes["FileContentResponse"]],
 seasons?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["seasons_select_column"]> | undefined | null,	/** limit the number of rows returned */
@@ -114090,6 +115435,23 @@ lobbies_stream?: [{	/** maximum number of rows returned in a single batch */
 	batch_size: number,	/** cursor to stream the results returned by the query */
 	cursor: Array<ResolverInputTypes["lobbies_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
 	where?: ResolverInputTypes["lobbies_bool_exp"] | undefined | null},ResolverInputTypes["lobbies"]],
+lobby_camera_tokens?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["lobby_camera_tokens_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["lobby_camera_tokens_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["lobby_camera_tokens_bool_exp"] | undefined | null},ResolverInputTypes["lobby_camera_tokens"]],
+lobby_camera_tokens_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["lobby_camera_tokens_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["lobby_camera_tokens_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["lobby_camera_tokens_bool_exp"] | undefined | null},ResolverInputTypes["lobby_camera_tokens_aggregate"]],
+lobby_camera_tokens_by_pk?: [{	token: ResolverInputTypes["uuid"]},ResolverInputTypes["lobby_camera_tokens"]],
+lobby_camera_tokens_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["lobby_camera_tokens_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["lobby_camera_tokens_bool_exp"] | undefined | null},ResolverInputTypes["lobby_camera_tokens"]],
 lobby_players?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["lobby_players_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -114933,6 +116295,40 @@ plugin_versions_stream?: [{	/** maximum number of rows returned in a single batc
 	batch_size: number,	/** cursor to stream the results returned by the query */
 	cursor: Array<ResolverInputTypes["plugin_versions_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
 	where?: ResolverInputTypes["plugin_versions_bool_exp"] | undefined | null},ResolverInputTypes["plugin_versions"]],
+push_notification_preferences?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_notification_preferences_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_notification_preferences_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_notification_preferences_bool_exp"] | undefined | null},ResolverInputTypes["push_notification_preferences"]],
+push_notification_preferences_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_notification_preferences_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_notification_preferences_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_notification_preferences_bool_exp"] | undefined | null},ResolverInputTypes["push_notification_preferences_aggregate"]],
+push_notification_preferences_by_pk?: [{	category: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["push_notification_preferences"]],
+push_notification_preferences_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["push_notification_preferences_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_notification_preferences_bool_exp"] | undefined | null},ResolverInputTypes["push_notification_preferences"]],
+push_subscriptions?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_subscriptions_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_subscriptions_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_subscriptions_bool_exp"] | undefined | null},ResolverInputTypes["push_subscriptions"]],
+push_subscriptions_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["push_subscriptions_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["push_subscriptions_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_subscriptions_bool_exp"] | undefined | null},ResolverInputTypes["push_subscriptions_aggregate"]],
+push_subscriptions_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["push_subscriptions"]],
+push_subscriptions_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["push_subscriptions_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["push_subscriptions_bool_exp"] | undefined | null},ResolverInputTypes["push_subscriptions"]],
 seasons?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["seasons_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -121502,6 +122898,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_invites_select_co
 	player?:ResolverInputTypes["players"],
 	player_steam_id?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	/** An object relationship */
 	tournament?:ResolverInputTypes["tournaments"],
 	tournament_id?:boolean | `@${string}`,
@@ -121578,6 +122975,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player?: ResolverInputTypes["players_bool_exp"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
 	role?: ResolverInputTypes["e_team_roles_enum_comparison_exp"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	tournament?: ResolverInputTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_bool_exp"] | undefined | null,
@@ -121595,6 +122993,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	role?: ResolverInputTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament?: ResolverInputTypes["tournaments_obj_rel_insert_input"] | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_obj_rel_insert_input"] | undefined | null,
@@ -121603,6 +123002,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	/** aggregate max on columns */
 ["tournament_team_roster_max_fields"]: AliasType<{
 	player_steam_id?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -121610,12 +123010,14 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	/** order by max() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_max_order_by"]: {
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_id?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["tournament_team_roster_min_fields"]: AliasType<{
 	player_steam_id?:boolean | `@${string}`,
+	roster_image_url_snapshot?:boolean | `@${string}`,
 	tournament_id?:boolean | `@${string}`,
 	tournament_team_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -121623,6 +123025,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	/** order by min() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_min_order_by"]: {
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_id?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_team_id?: ResolverInputTypes["order_by"] | undefined | null
 };
@@ -121646,6 +123049,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player?: ResolverInputTypes["players_order_by"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	role?: ResolverInputTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament?: ResolverInputTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_order_by"] | undefined | null,
@@ -121662,6 +123066,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 ["tournament_team_roster_set_input"]: {
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	role?: ResolverInputTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid"] | undefined | null,
 	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null
 };
@@ -121703,6 +123108,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 ["tournament_team_roster_stream_cursor_value_input"]: {
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	role?: ResolverInputTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid"] | undefined | null,
 	tournament_team_id?: ResolverInputTypes["uuid"] | undefined | null
 };
@@ -133348,6 +134754,13 @@ export type ModelTypes = {
 	profile_url?: string | undefined | null,
 	role: string,
 	steam_id: string
+};
+	["MediaServerStats"]: {
+		cpuMilliCores: number,
+	memoryBytes: number,
+	paths: number,
+	publishing: number,
+	webrtcSessions: number
 };
 	["MemoryStat"]: {
 		time?: ModelTypes["timestamp"] | undefined | null,
@@ -148331,6 +149744,155 @@ export type ModelTypes = {
 	/** filter the rows which have to be updated */
 	where: ModelTypes["lobbies_bool_exp"]
 };
+	/** columns and relationships of "lobby_camera_tokens" */
+["lobby_camera_tokens"]: {
+		created_at: ModelTypes["timestamptz"],
+	lobby_id: ModelTypes["uuid"],
+	steam_id: ModelTypes["bigint"],
+	token: ModelTypes["uuid"]
+};
+	/** aggregated selection of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate"]: {
+		aggregate?: ModelTypes["lobby_camera_tokens_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["lobby_camera_tokens"]>
+};
+	/** aggregate fields of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate_fields"]: {
+		avg?: ModelTypes["lobby_camera_tokens_avg_fields"] | undefined | null,
+	count: number,
+	max?: ModelTypes["lobby_camera_tokens_max_fields"] | undefined | null,
+	min?: ModelTypes["lobby_camera_tokens_min_fields"] | undefined | null,
+	stddev?: ModelTypes["lobby_camera_tokens_stddev_fields"] | undefined | null,
+	stddev_pop?: ModelTypes["lobby_camera_tokens_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: ModelTypes["lobby_camera_tokens_stddev_samp_fields"] | undefined | null,
+	sum?: ModelTypes["lobby_camera_tokens_sum_fields"] | undefined | null,
+	var_pop?: ModelTypes["lobby_camera_tokens_var_pop_fields"] | undefined | null,
+	var_samp?: ModelTypes["lobby_camera_tokens_var_samp_fields"] | undefined | null,
+	variance?: ModelTypes["lobby_camera_tokens_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["lobby_camera_tokens_avg_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "lobby_camera_tokens". All fields are combined with a logical 'AND'. */
+["lobby_camera_tokens_bool_exp"]: {
+	_and?: Array<ModelTypes["lobby_camera_tokens_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["lobby_camera_tokens_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["lobby_camera_tokens_bool_exp"]> | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	lobby_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	token?: ModelTypes["uuid_comparison_exp"] | undefined | null
+};
+	["lobby_camera_tokens_constraint"]:lobby_camera_tokens_constraint;
+	/** input type for incrementing numeric columns in table "lobby_camera_tokens" */
+["lobby_camera_tokens_inc_input"]: {
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "lobby_camera_tokens" */
+["lobby_camera_tokens_insert_input"]: {
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	lobby_id?: ModelTypes["uuid"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	token?: ModelTypes["uuid"] | undefined | null
+};
+	/** aggregate max on columns */
+["lobby_camera_tokens_max_fields"]: {
+		created_at?: ModelTypes["timestamptz"] | undefined | null,
+	lobby_id?: ModelTypes["uuid"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	token?: ModelTypes["uuid"] | undefined | null
+};
+	/** aggregate min on columns */
+["lobby_camera_tokens_min_fields"]: {
+		created_at?: ModelTypes["timestamptz"] | undefined | null,
+	lobby_id?: ModelTypes["uuid"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	token?: ModelTypes["uuid"] | undefined | null
+};
+	/** response of any mutation on the table "lobby_camera_tokens" */
+["lobby_camera_tokens_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["lobby_camera_tokens"]>
+};
+	/** on_conflict condition type for table "lobby_camera_tokens" */
+["lobby_camera_tokens_on_conflict"]: {
+	constraint: ModelTypes["lobby_camera_tokens_constraint"],
+	update_columns: Array<ModelTypes["lobby_camera_tokens_update_column"]>,
+	where?: ModelTypes["lobby_camera_tokens_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "lobby_camera_tokens". */
+["lobby_camera_tokens_order_by"]: {
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	lobby_id?: ModelTypes["order_by"] | undefined | null,
+	steam_id?: ModelTypes["order_by"] | undefined | null,
+	token?: ModelTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: lobby_camera_tokens */
+["lobby_camera_tokens_pk_columns_input"]: {
+	token: ModelTypes["uuid"]
+};
+	["lobby_camera_tokens_select_column"]:lobby_camera_tokens_select_column;
+	/** input type for updating data in table "lobby_camera_tokens" */
+["lobby_camera_tokens_set_input"]: {
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	lobby_id?: ModelTypes["uuid"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	token?: ModelTypes["uuid"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["lobby_camera_tokens_stddev_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["lobby_camera_tokens_stddev_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["lobby_camera_tokens_stddev_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "lobby_camera_tokens" */
+["lobby_camera_tokens_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["lobby_camera_tokens_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["lobby_camera_tokens_stream_cursor_value_input"]: {
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	lobby_id?: ModelTypes["uuid"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	token?: ModelTypes["uuid"] | undefined | null
+};
+	/** aggregate sum on columns */
+["lobby_camera_tokens_sum_fields"]: {
+		steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	["lobby_camera_tokens_update_column"]:lobby_camera_tokens_update_column;
+	["lobby_camera_tokens_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ModelTypes["lobby_camera_tokens_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["lobby_camera_tokens_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["lobby_camera_tokens_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["lobby_camera_tokens_var_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["lobby_camera_tokens_var_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["lobby_camera_tokens_variance_fields"]: {
+		steam_id?: number | undefined | null
+};
 	/** columns and relationships of "lobby_players" */
 ["lobby_players"]: {
 		captain: boolean,
@@ -149971,6 +151533,7 @@ export type ModelTypes = {
 	placeholder_name?: string | undefined | null,
 	/** An object relationship */
 	player?: ModelTypes["players"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregated selection of "match_lineup_players" */
@@ -150060,6 +151623,7 @@ export type ModelTypes = {
 	party_source?: ModelTypes["e_match_party_sources_enum_comparison_exp"] | undefined | null,
 	placeholder_name?: ModelTypes["String_comparison_exp"] | undefined | null,
 	player?: ModelTypes["players_bool_exp"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["String_comparison_exp"] | undefined | null,
 	steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null
 };
 	["match_lineup_players_constraint"]:match_lineup_players_constraint;
@@ -150081,6 +151645,7 @@ export type ModelTypes = {
 	party_source?: ModelTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
 	player?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregate max on columns */
@@ -150091,6 +151656,7 @@ export type ModelTypes = {
 	match_lineup_id?: ModelTypes["uuid"] | undefined | null,
 	party_id?: ModelTypes["uuid"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** order by max() on columns of table "match_lineup_players" */
@@ -150101,6 +151667,7 @@ export type ModelTypes = {
 	match_lineup_id?: ModelTypes["order_by"] | undefined | null,
 	party_id?: ModelTypes["order_by"] | undefined | null,
 	placeholder_name?: ModelTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
@@ -150111,6 +151678,7 @@ export type ModelTypes = {
 	match_lineup_id?: ModelTypes["uuid"] | undefined | null,
 	party_id?: ModelTypes["uuid"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** order by min() on columns of table "match_lineup_players" */
@@ -150121,6 +151689,7 @@ export type ModelTypes = {
 	match_lineup_id?: ModelTypes["order_by"] | undefined | null,
 	party_id?: ModelTypes["order_by"] | undefined | null,
 	placeholder_name?: ModelTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "match_lineup_players" */
@@ -150150,6 +151719,7 @@ export type ModelTypes = {
 	party_source?: ModelTypes["order_by"] | undefined | null,
 	placeholder_name?: ModelTypes["order_by"] | undefined | null,
 	player?: ModelTypes["players_order_by"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: match_lineup_players */
@@ -150171,6 +151741,7 @@ export type ModelTypes = {
 	party_id?: ModelTypes["uuid"] | undefined | null,
 	party_source?: ModelTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregate stddev on columns */
@@ -150216,6 +151787,7 @@ export type ModelTypes = {
 	party_id?: ModelTypes["uuid"] | undefined | null,
 	party_source?: ModelTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregate sum on columns */
@@ -154676,6 +156248,10 @@ export type ModelTypes = {
 	delete_lobbies?: ModelTypes["lobbies_mutation_response"] | undefined | null,
 	/** delete single row from the table: "lobbies" */
 	delete_lobbies_by_pk?: ModelTypes["lobbies"] | undefined | null,
+	/** delete data from the table: "lobby_camera_tokens" */
+	delete_lobby_camera_tokens?: ModelTypes["lobby_camera_tokens_mutation_response"] | undefined | null,
+	/** delete single row from the table: "lobby_camera_tokens" */
+	delete_lobby_camera_tokens_by_pk?: ModelTypes["lobby_camera_tokens"] | undefined | null,
 	/** delete data from the table: "lobby_players" */
 	delete_lobby_players?: ModelTypes["lobby_players_mutation_response"] | undefined | null,
 	/** delete single row from the table: "lobby_players" */
@@ -154852,6 +156428,14 @@ export type ModelTypes = {
 	delete_plugin_versions?: ModelTypes["plugin_versions_mutation_response"] | undefined | null,
 	/** delete single row from the table: "plugin_versions" */
 	delete_plugin_versions_by_pk?: ModelTypes["plugin_versions"] | undefined | null,
+	/** delete data from the table: "push_notification_preferences" */
+	delete_push_notification_preferences?: ModelTypes["push_notification_preferences_mutation_response"] | undefined | null,
+	/** delete single row from the table: "push_notification_preferences" */
+	delete_push_notification_preferences_by_pk?: ModelTypes["push_notification_preferences"] | undefined | null,
+	/** delete data from the table: "push_subscriptions" */
+	delete_push_subscriptions?: ModelTypes["push_subscriptions_mutation_response"] | undefined | null,
+	/** delete single row from the table: "push_subscriptions" */
+	delete_push_subscriptions_by_pk?: ModelTypes["push_subscriptions"] | undefined | null,
 	/** delete data from the table: "seasons" */
 	delete_seasons?: ModelTypes["seasons_mutation_response"] | undefined | null,
 	/** delete single row from the table: "seasons" */
@@ -155313,6 +156897,10 @@ export type ModelTypes = {
 	insert_lobbies?: ModelTypes["lobbies_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "lobbies" */
 	insert_lobbies_one?: ModelTypes["lobbies"] | undefined | null,
+	/** insert data into the table: "lobby_camera_tokens" */
+	insert_lobby_camera_tokens?: ModelTypes["lobby_camera_tokens_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "lobby_camera_tokens" */
+	insert_lobby_camera_tokens_one?: ModelTypes["lobby_camera_tokens"] | undefined | null,
 	/** insert data into the table: "lobby_players" */
 	insert_lobby_players?: ModelTypes["lobby_players_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "lobby_players" */
@@ -155493,6 +157081,14 @@ export type ModelTypes = {
 	insert_plugin_versions?: ModelTypes["plugin_versions_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "plugin_versions" */
 	insert_plugin_versions_one?: ModelTypes["plugin_versions"] | undefined | null,
+	/** insert data into the table: "push_notification_preferences" */
+	insert_push_notification_preferences?: ModelTypes["push_notification_preferences_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "push_notification_preferences" */
+	insert_push_notification_preferences_one?: ModelTypes["push_notification_preferences"] | undefined | null,
+	/** insert data into the table: "push_subscriptions" */
+	insert_push_subscriptions?: ModelTypes["push_subscriptions_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "push_subscriptions" */
+	insert_push_subscriptions_one?: ModelTypes["push_subscriptions"] | undefined | null,
 	/** insert data into the table: "seasons" */
 	insert_seasons?: ModelTypes["seasons_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "seasons" */
@@ -156254,6 +157850,12 @@ export type ModelTypes = {
 	update_lobbies_by_pk?: ModelTypes["lobbies"] | undefined | null,
 	/** update multiples rows of table: "lobbies" */
 	update_lobbies_many?: Array<ModelTypes["lobbies_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "lobby_camera_tokens" */
+	update_lobby_camera_tokens?: ModelTypes["lobby_camera_tokens_mutation_response"] | undefined | null,
+	/** update single row of the table: "lobby_camera_tokens" */
+	update_lobby_camera_tokens_by_pk?: ModelTypes["lobby_camera_tokens"] | undefined | null,
+	/** update multiples rows of table: "lobby_camera_tokens" */
+	update_lobby_camera_tokens_many?: Array<ModelTypes["lobby_camera_tokens_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "lobby_players" */
 	update_lobby_players?: ModelTypes["lobby_players_mutation_response"] | undefined | null,
 	/** update single row of the table: "lobby_players" */
@@ -156520,6 +158122,18 @@ export type ModelTypes = {
 	update_plugin_versions_by_pk?: ModelTypes["plugin_versions"] | undefined | null,
 	/** update multiples rows of table: "plugin_versions" */
 	update_plugin_versions_many?: Array<ModelTypes["plugin_versions_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "push_notification_preferences" */
+	update_push_notification_preferences?: ModelTypes["push_notification_preferences_mutation_response"] | undefined | null,
+	/** update single row of the table: "push_notification_preferences" */
+	update_push_notification_preferences_by_pk?: ModelTypes["push_notification_preferences"] | undefined | null,
+	/** update multiples rows of table: "push_notification_preferences" */
+	update_push_notification_preferences_many?: Array<ModelTypes["push_notification_preferences_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "push_subscriptions" */
+	update_push_subscriptions?: ModelTypes["push_subscriptions_mutation_response"] | undefined | null,
+	/** update single row of the table: "push_subscriptions" */
+	update_push_subscriptions_by_pk?: ModelTypes["push_subscriptions"] | undefined | null,
+	/** update multiples rows of table: "push_subscriptions" */
+	update_push_subscriptions_many?: Array<ModelTypes["push_subscriptions_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "seasons" */
 	update_seasons?: ModelTypes["seasons_mutation_response"] | undefined | null,
 	/** update single row of the table: "seasons" */
@@ -171125,6 +172739,335 @@ export type ModelTypes = {
 ["plugin_versions_variance_fields"]: {
 		min_game_build_id?: number | undefined | null
 };
+	/** columns and relationships of "push_notification_preferences" */
+["push_notification_preferences"]: {
+		category: string,
+	enabled: boolean,
+	steam_id: ModelTypes["bigint"],
+	updated_at: ModelTypes["timestamptz"]
+};
+	/** aggregated selection of "push_notification_preferences" */
+["push_notification_preferences_aggregate"]: {
+		aggregate?: ModelTypes["push_notification_preferences_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["push_notification_preferences"]>
+};
+	/** aggregate fields of "push_notification_preferences" */
+["push_notification_preferences_aggregate_fields"]: {
+		avg?: ModelTypes["push_notification_preferences_avg_fields"] | undefined | null,
+	count: number,
+	max?: ModelTypes["push_notification_preferences_max_fields"] | undefined | null,
+	min?: ModelTypes["push_notification_preferences_min_fields"] | undefined | null,
+	stddev?: ModelTypes["push_notification_preferences_stddev_fields"] | undefined | null,
+	stddev_pop?: ModelTypes["push_notification_preferences_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: ModelTypes["push_notification_preferences_stddev_samp_fields"] | undefined | null,
+	sum?: ModelTypes["push_notification_preferences_sum_fields"] | undefined | null,
+	var_pop?: ModelTypes["push_notification_preferences_var_pop_fields"] | undefined | null,
+	var_samp?: ModelTypes["push_notification_preferences_var_samp_fields"] | undefined | null,
+	variance?: ModelTypes["push_notification_preferences_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["push_notification_preferences_avg_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "push_notification_preferences". All fields are combined with a logical 'AND'. */
+["push_notification_preferences_bool_exp"]: {
+	_and?: Array<ModelTypes["push_notification_preferences_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["push_notification_preferences_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["push_notification_preferences_bool_exp"]> | undefined | null,
+	category?: ModelTypes["String_comparison_exp"] | undefined | null,
+	enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
+	steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	["push_notification_preferences_constraint"]:push_notification_preferences_constraint;
+	/** input type for incrementing numeric columns in table "push_notification_preferences" */
+["push_notification_preferences_inc_input"]: {
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "push_notification_preferences" */
+["push_notification_preferences_insert_input"]: {
+	category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["push_notification_preferences_max_fields"]: {
+		category?: string | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate min on columns */
+["push_notification_preferences_min_fields"]: {
+		category?: string | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** response of any mutation on the table "push_notification_preferences" */
+["push_notification_preferences_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["push_notification_preferences"]>
+};
+	/** on_conflict condition type for table "push_notification_preferences" */
+["push_notification_preferences_on_conflict"]: {
+	constraint: ModelTypes["push_notification_preferences_constraint"],
+	update_columns: Array<ModelTypes["push_notification_preferences_update_column"]>,
+	where?: ModelTypes["push_notification_preferences_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "push_notification_preferences". */
+["push_notification_preferences_order_by"]: {
+	category?: ModelTypes["order_by"] | undefined | null,
+	enabled?: ModelTypes["order_by"] | undefined | null,
+	steam_id?: ModelTypes["order_by"] | undefined | null,
+	updated_at?: ModelTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: push_notification_preferences */
+["push_notification_preferences_pk_columns_input"]: {
+	category: string,
+	steam_id: ModelTypes["bigint"]
+};
+	["push_notification_preferences_select_column"]:push_notification_preferences_select_column;
+	/** input type for updating data in table "push_notification_preferences" */
+["push_notification_preferences_set_input"]: {
+	category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["push_notification_preferences_stddev_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["push_notification_preferences_stddev_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["push_notification_preferences_stddev_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "push_notification_preferences" */
+["push_notification_preferences_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["push_notification_preferences_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["push_notification_preferences_stream_cursor_value_input"]: {
+	category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate sum on columns */
+["push_notification_preferences_sum_fields"]: {
+		steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	["push_notification_preferences_update_column"]:push_notification_preferences_update_column;
+	["push_notification_preferences_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ModelTypes["push_notification_preferences_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["push_notification_preferences_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["push_notification_preferences_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["push_notification_preferences_var_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["push_notification_preferences_var_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["push_notification_preferences_variance_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** columns and relationships of "push_subscriptions" */
+["push_subscriptions"]: {
+		auth: string,
+	created_at: ModelTypes["timestamptz"],
+	endpoint: string,
+	id: ModelTypes["uuid"],
+	last_used_at?: ModelTypes["timestamptz"] | undefined | null,
+	p256dh: string,
+	steam_id: ModelTypes["bigint"],
+	user_agent?: string | undefined | null
+};
+	/** aggregated selection of "push_subscriptions" */
+["push_subscriptions_aggregate"]: {
+		aggregate?: ModelTypes["push_subscriptions_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["push_subscriptions"]>
+};
+	/** aggregate fields of "push_subscriptions" */
+["push_subscriptions_aggregate_fields"]: {
+		avg?: ModelTypes["push_subscriptions_avg_fields"] | undefined | null,
+	count: number,
+	max?: ModelTypes["push_subscriptions_max_fields"] | undefined | null,
+	min?: ModelTypes["push_subscriptions_min_fields"] | undefined | null,
+	stddev?: ModelTypes["push_subscriptions_stddev_fields"] | undefined | null,
+	stddev_pop?: ModelTypes["push_subscriptions_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: ModelTypes["push_subscriptions_stddev_samp_fields"] | undefined | null,
+	sum?: ModelTypes["push_subscriptions_sum_fields"] | undefined | null,
+	var_pop?: ModelTypes["push_subscriptions_var_pop_fields"] | undefined | null,
+	var_samp?: ModelTypes["push_subscriptions_var_samp_fields"] | undefined | null,
+	variance?: ModelTypes["push_subscriptions_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["push_subscriptions_avg_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "push_subscriptions". All fields are combined with a logical 'AND'. */
+["push_subscriptions_bool_exp"]: {
+	_and?: Array<ModelTypes["push_subscriptions_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["push_subscriptions_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["push_subscriptions_bool_exp"]> | undefined | null,
+	auth?: ModelTypes["String_comparison_exp"] | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	endpoint?: ModelTypes["String_comparison_exp"] | undefined | null,
+	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	last_used_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	p256dh?: ModelTypes["String_comparison_exp"] | undefined | null,
+	steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	user_agent?: ModelTypes["String_comparison_exp"] | undefined | null
+};
+	["push_subscriptions_constraint"]:push_subscriptions_constraint;
+	/** input type for incrementing numeric columns in table "push_subscriptions" */
+["push_subscriptions_inc_input"]: {
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "push_subscriptions" */
+["push_subscriptions_insert_input"]: {
+	auth?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	last_used_at?: ModelTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate max on columns */
+["push_subscriptions_max_fields"]: {
+		auth?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	last_used_at?: ModelTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate min on columns */
+["push_subscriptions_min_fields"]: {
+		auth?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	last_used_at?: ModelTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** response of any mutation on the table "push_subscriptions" */
+["push_subscriptions_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["push_subscriptions"]>
+};
+	/** on_conflict condition type for table "push_subscriptions" */
+["push_subscriptions_on_conflict"]: {
+	constraint: ModelTypes["push_subscriptions_constraint"],
+	update_columns: Array<ModelTypes["push_subscriptions_update_column"]>,
+	where?: ModelTypes["push_subscriptions_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "push_subscriptions". */
+["push_subscriptions_order_by"]: {
+	auth?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	endpoint?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	last_used_at?: ModelTypes["order_by"] | undefined | null,
+	p256dh?: ModelTypes["order_by"] | undefined | null,
+	steam_id?: ModelTypes["order_by"] | undefined | null,
+	user_agent?: ModelTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: push_subscriptions */
+["push_subscriptions_pk_columns_input"]: {
+	id: ModelTypes["uuid"]
+};
+	["push_subscriptions_select_column"]:push_subscriptions_select_column;
+	/** input type for updating data in table "push_subscriptions" */
+["push_subscriptions_set_input"]: {
+	auth?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	last_used_at?: ModelTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate stddev on columns */
+["push_subscriptions_stddev_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["push_subscriptions_stddev_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["push_subscriptions_stddev_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "push_subscriptions" */
+["push_subscriptions_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["push_subscriptions_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["push_subscriptions_stream_cursor_value_input"]: {
+	auth?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	last_used_at?: ModelTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate sum on columns */
+["push_subscriptions_sum_fields"]: {
+		steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	["push_subscriptions_update_column"]:push_subscriptions_update_column;
+	["push_subscriptions_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ModelTypes["push_subscriptions_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["push_subscriptions_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["push_subscriptions_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["push_subscriptions_var_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["push_subscriptions_var_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["push_subscriptions_variance_fields"]: {
+		steam_id?: number | undefined | null
+};
 	["query_root"]: {
 		/** fetch data from the table: "_map_pool" */
 	_map_pool: Array<ModelTypes["_map_pool"]>,
@@ -171559,6 +173502,8 @@ export type ModelTypes = {
 	getIndexIOStats: Array<ModelTypes["IndexIOStat"] | undefined | null>,
 	/** Get index usage statistics */
 	getIndexStats: Array<ModelTypes["IndexStat"] | undefined | null>,
+	/** Live MediaMTX camera-server stats (publishing/paths/sessions) plus pod CPU/memory usage */
+	getMediaServerStats: ModelTypes["MediaServerStats"],
 	getNodeStats: ModelTypes["NodeStats"],
 	/** Get detailed query analysis with EXPLAIN plan */
 	getQueryDetail?: ModelTypes["QueryDetail"] | undefined | null,
@@ -171663,6 +173608,12 @@ export type ModelTypes = {
 	lobbies_aggregate: ModelTypes["lobbies_aggregate"],
 	/** fetch data from the table: "lobbies" using primary key columns */
 	lobbies_by_pk?: ModelTypes["lobbies"] | undefined | null,
+	/** fetch data from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens: Array<ModelTypes["lobby_camera_tokens"]>,
+	/** fetch aggregated fields from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens_aggregate: ModelTypes["lobby_camera_tokens_aggregate"],
+	/** fetch data from the table: "lobby_camera_tokens" using primary key columns */
+	lobby_camera_tokens_by_pk?: ModelTypes["lobby_camera_tokens"] | undefined | null,
 	/** An array relationship */
 	lobby_players: Array<ModelTypes["lobby_players"]>,
 	/** An aggregate relationship */
@@ -171955,6 +173906,18 @@ export type ModelTypes = {
 	plugin_versions_aggregate: ModelTypes["plugin_versions_aggregate"],
 	/** fetch data from the table: "plugin_versions" using primary key columns */
 	plugin_versions_by_pk?: ModelTypes["plugin_versions"] | undefined | null,
+	/** fetch data from the table: "push_notification_preferences" */
+	push_notification_preferences: Array<ModelTypes["push_notification_preferences"]>,
+	/** fetch aggregated fields from the table: "push_notification_preferences" */
+	push_notification_preferences_aggregate: ModelTypes["push_notification_preferences_aggregate"],
+	/** fetch data from the table: "push_notification_preferences" using primary key columns */
+	push_notification_preferences_by_pk?: ModelTypes["push_notification_preferences"] | undefined | null,
+	/** fetch data from the table: "push_subscriptions" */
+	push_subscriptions: Array<ModelTypes["push_subscriptions"]>,
+	/** fetch aggregated fields from the table: "push_subscriptions" */
+	push_subscriptions_aggregate: ModelTypes["push_subscriptions_aggregate"],
+	/** fetch data from the table: "push_subscriptions" using primary key columns */
+	push_subscriptions_by_pk?: ModelTypes["push_subscriptions"] | undefined | null,
 	/** Read file content from game server */
 	readServerFile: ModelTypes["FileContentResponse"],
 	/** fetch data from the table: "seasons" */
@@ -174340,6 +176303,14 @@ export type ModelTypes = {
 	lobbies_by_pk?: ModelTypes["lobbies"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "lobbies" */
 	lobbies_stream: Array<ModelTypes["lobbies"]>,
+	/** fetch data from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens: Array<ModelTypes["lobby_camera_tokens"]>,
+	/** fetch aggregated fields from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens_aggregate: ModelTypes["lobby_camera_tokens_aggregate"],
+	/** fetch data from the table: "lobby_camera_tokens" using primary key columns */
+	lobby_camera_tokens_by_pk?: ModelTypes["lobby_camera_tokens"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "lobby_camera_tokens" */
+	lobby_camera_tokens_stream: Array<ModelTypes["lobby_camera_tokens"]>,
 	/** An array relationship */
 	lobby_players: Array<ModelTypes["lobby_players"]>,
 	/** An aggregate relationship */
@@ -174726,6 +176697,22 @@ export type ModelTypes = {
 	plugin_versions_by_pk?: ModelTypes["plugin_versions"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "plugin_versions" */
 	plugin_versions_stream: Array<ModelTypes["plugin_versions"]>,
+	/** fetch data from the table: "push_notification_preferences" */
+	push_notification_preferences: Array<ModelTypes["push_notification_preferences"]>,
+	/** fetch aggregated fields from the table: "push_notification_preferences" */
+	push_notification_preferences_aggregate: ModelTypes["push_notification_preferences_aggregate"],
+	/** fetch data from the table: "push_notification_preferences" using primary key columns */
+	push_notification_preferences_by_pk?: ModelTypes["push_notification_preferences"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "push_notification_preferences" */
+	push_notification_preferences_stream: Array<ModelTypes["push_notification_preferences"]>,
+	/** fetch data from the table: "push_subscriptions" */
+	push_subscriptions: Array<ModelTypes["push_subscriptions"]>,
+	/** fetch aggregated fields from the table: "push_subscriptions" */
+	push_subscriptions_aggregate: ModelTypes["push_subscriptions_aggregate"],
+	/** fetch data from the table: "push_subscriptions" using primary key columns */
+	push_subscriptions_by_pk?: ModelTypes["push_subscriptions"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "push_subscriptions" */
+	push_subscriptions_stream: Array<ModelTypes["push_subscriptions"]>,
 	/** fetch data from the table: "seasons" */
 	seasons: Array<ModelTypes["seasons"]>,
 	/** fetch aggregated fields from the table: "seasons" */
@@ -180303,6 +182290,7 @@ export type ModelTypes = {
 	player: ModelTypes["players"],
 	player_steam_id: ModelTypes["bigint"],
 	role: ModelTypes["e_team_roles_enum"],
+	roster_image_url_snapshot?: string | undefined | null,
 	/** An object relationship */
 	tournament: ModelTypes["tournaments"],
 	tournament_id: ModelTypes["uuid"],
@@ -180375,6 +182363,7 @@ export type ModelTypes = {
 	player?: ModelTypes["players_bool_exp"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
 	role?: ModelTypes["e_team_roles_enum_comparison_exp"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["String_comparison_exp"] | undefined | null,
 	tournament?: ModelTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_bool_exp"] | undefined | null,
@@ -180391,6 +182380,7 @@ export type ModelTypes = {
 	player?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	role?: ModelTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament?: ModelTypes["tournaments_obj_rel_insert_input"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_obj_rel_insert_input"] | undefined | null,
@@ -180399,24 +182389,28 @@ export type ModelTypes = {
 	/** aggregate max on columns */
 ["tournament_team_roster_max_fields"]: {
 		player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
 	tournament_team_id?: ModelTypes["uuid"] | undefined | null
 };
 	/** order by max() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_max_order_by"]: {
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["order_by"] | undefined | null,
 	tournament_id?: ModelTypes["order_by"] | undefined | null,
 	tournament_team_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["tournament_team_roster_min_fields"]: {
 		player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
 	tournament_team_id?: ModelTypes["uuid"] | undefined | null
 };
 	/** order by min() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_min_order_by"]: {
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["order_by"] | undefined | null,
 	tournament_id?: ModelTypes["order_by"] | undefined | null,
 	tournament_team_id?: ModelTypes["order_by"] | undefined | null
 };
@@ -180439,6 +182433,7 @@ export type ModelTypes = {
 	player?: ModelTypes["players_order_by"] | undefined | null,
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
 	role?: ModelTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: ModelTypes["order_by"] | undefined | null,
 	tournament?: ModelTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: ModelTypes["order_by"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_order_by"] | undefined | null,
@@ -180454,6 +182449,7 @@ export type ModelTypes = {
 ["tournament_team_roster_set_input"]: {
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	role?: ModelTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
 	tournament_team_id?: ModelTypes["uuid"] | undefined | null
 };
@@ -180492,6 +182488,7 @@ export type ModelTypes = {
 ["tournament_team_roster_stream_cursor_value_input"]: {
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	role?: ModelTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
 	tournament_team_id?: ModelTypes["uuid"] | undefined | null
 };
@@ -191487,6 +193484,14 @@ export type GraphQLTypes = {
 	profile_url?: string | undefined | null,
 	role: string,
 	steam_id: string
+};
+	["MediaServerStats"]: {
+	__typename: "MediaServerStats",
+	cpuMilliCores: number,
+	memoryBytes: number,
+	paths: number,
+	publishing: number,
+	webrtcSessions: number
 };
 	["MemoryStat"]: {
 	__typename: "MemoryStat",
@@ -207483,6 +209488,172 @@ export type GraphQLTypes = {
 	/** filter the rows which have to be updated */
 	where: GraphQLTypes["lobbies_bool_exp"]
 };
+	/** columns and relationships of "lobby_camera_tokens" */
+["lobby_camera_tokens"]: {
+	__typename: "lobby_camera_tokens",
+	created_at: GraphQLTypes["timestamptz"],
+	lobby_id: GraphQLTypes["uuid"],
+	steam_id: GraphQLTypes["bigint"],
+	token: GraphQLTypes["uuid"]
+};
+	/** aggregated selection of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate"]: {
+	__typename: "lobby_camera_tokens_aggregate",
+	aggregate?: GraphQLTypes["lobby_camera_tokens_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["lobby_camera_tokens"]>
+};
+	/** aggregate fields of "lobby_camera_tokens" */
+["lobby_camera_tokens_aggregate_fields"]: {
+	__typename: "lobby_camera_tokens_aggregate_fields",
+	avg?: GraphQLTypes["lobby_camera_tokens_avg_fields"] | undefined | null,
+	count: number,
+	max?: GraphQLTypes["lobby_camera_tokens_max_fields"] | undefined | null,
+	min?: GraphQLTypes["lobby_camera_tokens_min_fields"] | undefined | null,
+	stddev?: GraphQLTypes["lobby_camera_tokens_stddev_fields"] | undefined | null,
+	stddev_pop?: GraphQLTypes["lobby_camera_tokens_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: GraphQLTypes["lobby_camera_tokens_stddev_samp_fields"] | undefined | null,
+	sum?: GraphQLTypes["lobby_camera_tokens_sum_fields"] | undefined | null,
+	var_pop?: GraphQLTypes["lobby_camera_tokens_var_pop_fields"] | undefined | null,
+	var_samp?: GraphQLTypes["lobby_camera_tokens_var_samp_fields"] | undefined | null,
+	variance?: GraphQLTypes["lobby_camera_tokens_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["lobby_camera_tokens_avg_fields"]: {
+	__typename: "lobby_camera_tokens_avg_fields",
+	steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "lobby_camera_tokens". All fields are combined with a logical 'AND'. */
+["lobby_camera_tokens_bool_exp"]: {
+		_and?: Array<GraphQLTypes["lobby_camera_tokens_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["lobby_camera_tokens_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["lobby_camera_tokens_bool_exp"]> | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	lobby_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	token?: GraphQLTypes["uuid_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "lobby_camera_tokens" */
+["lobby_camera_tokens_constraint"]: lobby_camera_tokens_constraint;
+	/** input type for incrementing numeric columns in table "lobby_camera_tokens" */
+["lobby_camera_tokens_inc_input"]: {
+		steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "lobby_camera_tokens" */
+["lobby_camera_tokens_insert_input"]: {
+		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	lobby_id?: GraphQLTypes["uuid"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	token?: GraphQLTypes["uuid"] | undefined | null
+};
+	/** aggregate max on columns */
+["lobby_camera_tokens_max_fields"]: {
+	__typename: "lobby_camera_tokens_max_fields",
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	lobby_id?: GraphQLTypes["uuid"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	token?: GraphQLTypes["uuid"] | undefined | null
+};
+	/** aggregate min on columns */
+["lobby_camera_tokens_min_fields"]: {
+	__typename: "lobby_camera_tokens_min_fields",
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	lobby_id?: GraphQLTypes["uuid"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	token?: GraphQLTypes["uuid"] | undefined | null
+};
+	/** response of any mutation on the table "lobby_camera_tokens" */
+["lobby_camera_tokens_mutation_response"]: {
+	__typename: "lobby_camera_tokens_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["lobby_camera_tokens"]>
+};
+	/** on_conflict condition type for table "lobby_camera_tokens" */
+["lobby_camera_tokens_on_conflict"]: {
+		constraint: GraphQLTypes["lobby_camera_tokens_constraint"],
+	update_columns: Array<GraphQLTypes["lobby_camera_tokens_update_column"]>,
+	where?: GraphQLTypes["lobby_camera_tokens_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "lobby_camera_tokens". */
+["lobby_camera_tokens_order_by"]: {
+		created_at?: GraphQLTypes["order_by"] | undefined | null,
+	lobby_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	token?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: lobby_camera_tokens */
+["lobby_camera_tokens_pk_columns_input"]: {
+		token: GraphQLTypes["uuid"]
+};
+	/** select columns of table "lobby_camera_tokens" */
+["lobby_camera_tokens_select_column"]: lobby_camera_tokens_select_column;
+	/** input type for updating data in table "lobby_camera_tokens" */
+["lobby_camera_tokens_set_input"]: {
+		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	lobby_id?: GraphQLTypes["uuid"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	token?: GraphQLTypes["uuid"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["lobby_camera_tokens_stddev_fields"]: {
+	__typename: "lobby_camera_tokens_stddev_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["lobby_camera_tokens_stddev_pop_fields"]: {
+	__typename: "lobby_camera_tokens_stddev_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["lobby_camera_tokens_stddev_samp_fields"]: {
+	__typename: "lobby_camera_tokens_stddev_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "lobby_camera_tokens" */
+["lobby_camera_tokens_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["lobby_camera_tokens_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["lobby_camera_tokens_stream_cursor_value_input"]: {
+		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	lobby_id?: GraphQLTypes["uuid"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	token?: GraphQLTypes["uuid"] | undefined | null
+};
+	/** aggregate sum on columns */
+["lobby_camera_tokens_sum_fields"]: {
+	__typename: "lobby_camera_tokens_sum_fields",
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** update columns of table "lobby_camera_tokens" */
+["lobby_camera_tokens_update_column"]: lobby_camera_tokens_update_column;
+	["lobby_camera_tokens_updates"]: {
+		/** increments the numeric columns with given value of the filtered values */
+	_inc?: GraphQLTypes["lobby_camera_tokens_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["lobby_camera_tokens_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["lobby_camera_tokens_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["lobby_camera_tokens_var_pop_fields"]: {
+	__typename: "lobby_camera_tokens_var_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["lobby_camera_tokens_var_samp_fields"]: {
+	__typename: "lobby_camera_tokens_var_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["lobby_camera_tokens_variance_fields"]: {
+	__typename: "lobby_camera_tokens_variance_fields",
+	steam_id?: number | undefined | null
+};
 	/** columns and relationships of "lobby_players" */
 ["lobby_players"]: {
 	__typename: "lobby_players",
@@ -209214,6 +211385,7 @@ export type GraphQLTypes = {
 	placeholder_name?: string | undefined | null,
 	/** An object relationship */
 	player?: GraphQLTypes["players"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregated selection of "match_lineup_players" */
@@ -209306,6 +211478,7 @@ export type GraphQLTypes = {
 	party_source?: GraphQLTypes["e_match_party_sources_enum_comparison_exp"] | undefined | null,
 	placeholder_name?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	player?: GraphQLTypes["players_bool_exp"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null
 };
 	/** unique or primary key constraints on table "match_lineup_players" */
@@ -209328,6 +211501,7 @@ export type GraphQLTypes = {
 	party_source?: GraphQLTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
 	player?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregate max on columns */
@@ -209339,6 +211513,7 @@ export type GraphQLTypes = {
 	match_lineup_id?: GraphQLTypes["uuid"] | undefined | null,
 	party_id?: GraphQLTypes["uuid"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** order by max() on columns of table "match_lineup_players" */
@@ -209349,6 +211524,7 @@ export type GraphQLTypes = {
 	match_lineup_id?: GraphQLTypes["order_by"] | undefined | null,
 	party_id?: GraphQLTypes["order_by"] | undefined | null,
 	placeholder_name?: GraphQLTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
@@ -209360,6 +211536,7 @@ export type GraphQLTypes = {
 	match_lineup_id?: GraphQLTypes["uuid"] | undefined | null,
 	party_id?: GraphQLTypes["uuid"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** order by min() on columns of table "match_lineup_players" */
@@ -209370,6 +211547,7 @@ export type GraphQLTypes = {
 	match_lineup_id?: GraphQLTypes["order_by"] | undefined | null,
 	party_id?: GraphQLTypes["order_by"] | undefined | null,
 	placeholder_name?: GraphQLTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "match_lineup_players" */
@@ -209400,6 +211578,7 @@ export type GraphQLTypes = {
 	party_source?: GraphQLTypes["order_by"] | undefined | null,
 	placeholder_name?: GraphQLTypes["order_by"] | undefined | null,
 	player?: GraphQLTypes["players_order_by"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** primary key columns input for table: match_lineup_players */
@@ -209424,6 +211603,7 @@ export type GraphQLTypes = {
 	party_id?: GraphQLTypes["uuid"] | undefined | null,
 	party_source?: GraphQLTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregate stddev on columns */
@@ -209472,6 +211652,7 @@ export type GraphQLTypes = {
 	party_id?: GraphQLTypes["uuid"] | undefined | null,
 	party_source?: GraphQLTypes["e_match_party_sources_enum"] | undefined | null,
 	placeholder_name?: string | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregate sum on columns */
@@ -214097,6 +216278,10 @@ export type GraphQLTypes = {
 	delete_lobbies?: GraphQLTypes["lobbies_mutation_response"] | undefined | null,
 	/** delete single row from the table: "lobbies" */
 	delete_lobbies_by_pk?: GraphQLTypes["lobbies"] | undefined | null,
+	/** delete data from the table: "lobby_camera_tokens" */
+	delete_lobby_camera_tokens?: GraphQLTypes["lobby_camera_tokens_mutation_response"] | undefined | null,
+	/** delete single row from the table: "lobby_camera_tokens" */
+	delete_lobby_camera_tokens_by_pk?: GraphQLTypes["lobby_camera_tokens"] | undefined | null,
 	/** delete data from the table: "lobby_players" */
 	delete_lobby_players?: GraphQLTypes["lobby_players_mutation_response"] | undefined | null,
 	/** delete single row from the table: "lobby_players" */
@@ -214273,6 +216458,14 @@ export type GraphQLTypes = {
 	delete_plugin_versions?: GraphQLTypes["plugin_versions_mutation_response"] | undefined | null,
 	/** delete single row from the table: "plugin_versions" */
 	delete_plugin_versions_by_pk?: GraphQLTypes["plugin_versions"] | undefined | null,
+	/** delete data from the table: "push_notification_preferences" */
+	delete_push_notification_preferences?: GraphQLTypes["push_notification_preferences_mutation_response"] | undefined | null,
+	/** delete single row from the table: "push_notification_preferences" */
+	delete_push_notification_preferences_by_pk?: GraphQLTypes["push_notification_preferences"] | undefined | null,
+	/** delete data from the table: "push_subscriptions" */
+	delete_push_subscriptions?: GraphQLTypes["push_subscriptions_mutation_response"] | undefined | null,
+	/** delete single row from the table: "push_subscriptions" */
+	delete_push_subscriptions_by_pk?: GraphQLTypes["push_subscriptions"] | undefined | null,
 	/** delete data from the table: "seasons" */
 	delete_seasons?: GraphQLTypes["seasons_mutation_response"] | undefined | null,
 	/** delete single row from the table: "seasons" */
@@ -214734,6 +216927,10 @@ export type GraphQLTypes = {
 	insert_lobbies?: GraphQLTypes["lobbies_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "lobbies" */
 	insert_lobbies_one?: GraphQLTypes["lobbies"] | undefined | null,
+	/** insert data into the table: "lobby_camera_tokens" */
+	insert_lobby_camera_tokens?: GraphQLTypes["lobby_camera_tokens_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "lobby_camera_tokens" */
+	insert_lobby_camera_tokens_one?: GraphQLTypes["lobby_camera_tokens"] | undefined | null,
 	/** insert data into the table: "lobby_players" */
 	insert_lobby_players?: GraphQLTypes["lobby_players_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "lobby_players" */
@@ -214914,6 +217111,14 @@ export type GraphQLTypes = {
 	insert_plugin_versions?: GraphQLTypes["plugin_versions_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "plugin_versions" */
 	insert_plugin_versions_one?: GraphQLTypes["plugin_versions"] | undefined | null,
+	/** insert data into the table: "push_notification_preferences" */
+	insert_push_notification_preferences?: GraphQLTypes["push_notification_preferences_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "push_notification_preferences" */
+	insert_push_notification_preferences_one?: GraphQLTypes["push_notification_preferences"] | undefined | null,
+	/** insert data into the table: "push_subscriptions" */
+	insert_push_subscriptions?: GraphQLTypes["push_subscriptions_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "push_subscriptions" */
+	insert_push_subscriptions_one?: GraphQLTypes["push_subscriptions"] | undefined | null,
 	/** insert data into the table: "seasons" */
 	insert_seasons?: GraphQLTypes["seasons_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "seasons" */
@@ -215675,6 +217880,12 @@ export type GraphQLTypes = {
 	update_lobbies_by_pk?: GraphQLTypes["lobbies"] | undefined | null,
 	/** update multiples rows of table: "lobbies" */
 	update_lobbies_many?: Array<GraphQLTypes["lobbies_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "lobby_camera_tokens" */
+	update_lobby_camera_tokens?: GraphQLTypes["lobby_camera_tokens_mutation_response"] | undefined | null,
+	/** update single row of the table: "lobby_camera_tokens" */
+	update_lobby_camera_tokens_by_pk?: GraphQLTypes["lobby_camera_tokens"] | undefined | null,
+	/** update multiples rows of table: "lobby_camera_tokens" */
+	update_lobby_camera_tokens_many?: Array<GraphQLTypes["lobby_camera_tokens_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "lobby_players" */
 	update_lobby_players?: GraphQLTypes["lobby_players_mutation_response"] | undefined | null,
 	/** update single row of the table: "lobby_players" */
@@ -215941,6 +218152,18 @@ export type GraphQLTypes = {
 	update_plugin_versions_by_pk?: GraphQLTypes["plugin_versions"] | undefined | null,
 	/** update multiples rows of table: "plugin_versions" */
 	update_plugin_versions_many?: Array<GraphQLTypes["plugin_versions_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "push_notification_preferences" */
+	update_push_notification_preferences?: GraphQLTypes["push_notification_preferences_mutation_response"] | undefined | null,
+	/** update single row of the table: "push_notification_preferences" */
+	update_push_notification_preferences_by_pk?: GraphQLTypes["push_notification_preferences"] | undefined | null,
+	/** update multiples rows of table: "push_notification_preferences" */
+	update_push_notification_preferences_many?: Array<GraphQLTypes["push_notification_preferences_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "push_subscriptions" */
+	update_push_subscriptions?: GraphQLTypes["push_subscriptions_mutation_response"] | undefined | null,
+	/** update single row of the table: "push_subscriptions" */
+	update_push_subscriptions_by_pk?: GraphQLTypes["push_subscriptions"] | undefined | null,
+	/** update multiples rows of table: "push_subscriptions" */
+	update_push_subscriptions_many?: Array<GraphQLTypes["push_subscriptions_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "seasons" */
 	update_seasons?: GraphQLTypes["seasons_mutation_response"] | undefined | null,
 	/** update single row of the table: "seasons" */
@@ -231090,6 +233313,369 @@ export type GraphQLTypes = {
 	__typename: "plugin_versions_variance_fields",
 	min_game_build_id?: number | undefined | null
 };
+	/** columns and relationships of "push_notification_preferences" */
+["push_notification_preferences"]: {
+	__typename: "push_notification_preferences",
+	category: string,
+	enabled: boolean,
+	steam_id: GraphQLTypes["bigint"],
+	updated_at: GraphQLTypes["timestamptz"]
+};
+	/** aggregated selection of "push_notification_preferences" */
+["push_notification_preferences_aggregate"]: {
+	__typename: "push_notification_preferences_aggregate",
+	aggregate?: GraphQLTypes["push_notification_preferences_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["push_notification_preferences"]>
+};
+	/** aggregate fields of "push_notification_preferences" */
+["push_notification_preferences_aggregate_fields"]: {
+	__typename: "push_notification_preferences_aggregate_fields",
+	avg?: GraphQLTypes["push_notification_preferences_avg_fields"] | undefined | null,
+	count: number,
+	max?: GraphQLTypes["push_notification_preferences_max_fields"] | undefined | null,
+	min?: GraphQLTypes["push_notification_preferences_min_fields"] | undefined | null,
+	stddev?: GraphQLTypes["push_notification_preferences_stddev_fields"] | undefined | null,
+	stddev_pop?: GraphQLTypes["push_notification_preferences_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: GraphQLTypes["push_notification_preferences_stddev_samp_fields"] | undefined | null,
+	sum?: GraphQLTypes["push_notification_preferences_sum_fields"] | undefined | null,
+	var_pop?: GraphQLTypes["push_notification_preferences_var_pop_fields"] | undefined | null,
+	var_samp?: GraphQLTypes["push_notification_preferences_var_samp_fields"] | undefined | null,
+	variance?: GraphQLTypes["push_notification_preferences_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["push_notification_preferences_avg_fields"]: {
+	__typename: "push_notification_preferences_avg_fields",
+	steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "push_notification_preferences". All fields are combined with a logical 'AND'. */
+["push_notification_preferences_bool_exp"]: {
+		_and?: Array<GraphQLTypes["push_notification_preferences_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["push_notification_preferences_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["push_notification_preferences_bool_exp"]> | undefined | null,
+	category?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "push_notification_preferences" */
+["push_notification_preferences_constraint"]: push_notification_preferences_constraint;
+	/** input type for incrementing numeric columns in table "push_notification_preferences" */
+["push_notification_preferences_inc_input"]: {
+		steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "push_notification_preferences" */
+["push_notification_preferences_insert_input"]: {
+		category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["push_notification_preferences_max_fields"]: {
+	__typename: "push_notification_preferences_max_fields",
+	category?: string | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate min on columns */
+["push_notification_preferences_min_fields"]: {
+	__typename: "push_notification_preferences_min_fields",
+	category?: string | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** response of any mutation on the table "push_notification_preferences" */
+["push_notification_preferences_mutation_response"]: {
+	__typename: "push_notification_preferences_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["push_notification_preferences"]>
+};
+	/** on_conflict condition type for table "push_notification_preferences" */
+["push_notification_preferences_on_conflict"]: {
+		constraint: GraphQLTypes["push_notification_preferences_constraint"],
+	update_columns: Array<GraphQLTypes["push_notification_preferences_update_column"]>,
+	where?: GraphQLTypes["push_notification_preferences_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "push_notification_preferences". */
+["push_notification_preferences_order_by"]: {
+		category?: GraphQLTypes["order_by"] | undefined | null,
+	enabled?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	updated_at?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: push_notification_preferences */
+["push_notification_preferences_pk_columns_input"]: {
+		category: string,
+	steam_id: GraphQLTypes["bigint"]
+};
+	/** select columns of table "push_notification_preferences" */
+["push_notification_preferences_select_column"]: push_notification_preferences_select_column;
+	/** input type for updating data in table "push_notification_preferences" */
+["push_notification_preferences_set_input"]: {
+		category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["push_notification_preferences_stddev_fields"]: {
+	__typename: "push_notification_preferences_stddev_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["push_notification_preferences_stddev_pop_fields"]: {
+	__typename: "push_notification_preferences_stddev_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["push_notification_preferences_stddev_samp_fields"]: {
+	__typename: "push_notification_preferences_stddev_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "push_notification_preferences" */
+["push_notification_preferences_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["push_notification_preferences_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["push_notification_preferences_stream_cursor_value_input"]: {
+		category?: string | undefined | null,
+	enabled?: boolean | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate sum on columns */
+["push_notification_preferences_sum_fields"]: {
+	__typename: "push_notification_preferences_sum_fields",
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** update columns of table "push_notification_preferences" */
+["push_notification_preferences_update_column"]: push_notification_preferences_update_column;
+	["push_notification_preferences_updates"]: {
+		/** increments the numeric columns with given value of the filtered values */
+	_inc?: GraphQLTypes["push_notification_preferences_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["push_notification_preferences_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["push_notification_preferences_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["push_notification_preferences_var_pop_fields"]: {
+	__typename: "push_notification_preferences_var_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["push_notification_preferences_var_samp_fields"]: {
+	__typename: "push_notification_preferences_var_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["push_notification_preferences_variance_fields"]: {
+	__typename: "push_notification_preferences_variance_fields",
+	steam_id?: number | undefined | null
+};
+	/** columns and relationships of "push_subscriptions" */
+["push_subscriptions"]: {
+	__typename: "push_subscriptions",
+	auth: string,
+	created_at: GraphQLTypes["timestamptz"],
+	endpoint: string,
+	id: GraphQLTypes["uuid"],
+	last_used_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	p256dh: string,
+	steam_id: GraphQLTypes["bigint"],
+	user_agent?: string | undefined | null
+};
+	/** aggregated selection of "push_subscriptions" */
+["push_subscriptions_aggregate"]: {
+	__typename: "push_subscriptions_aggregate",
+	aggregate?: GraphQLTypes["push_subscriptions_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["push_subscriptions"]>
+};
+	/** aggregate fields of "push_subscriptions" */
+["push_subscriptions_aggregate_fields"]: {
+	__typename: "push_subscriptions_aggregate_fields",
+	avg?: GraphQLTypes["push_subscriptions_avg_fields"] | undefined | null,
+	count: number,
+	max?: GraphQLTypes["push_subscriptions_max_fields"] | undefined | null,
+	min?: GraphQLTypes["push_subscriptions_min_fields"] | undefined | null,
+	stddev?: GraphQLTypes["push_subscriptions_stddev_fields"] | undefined | null,
+	stddev_pop?: GraphQLTypes["push_subscriptions_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: GraphQLTypes["push_subscriptions_stddev_samp_fields"] | undefined | null,
+	sum?: GraphQLTypes["push_subscriptions_sum_fields"] | undefined | null,
+	var_pop?: GraphQLTypes["push_subscriptions_var_pop_fields"] | undefined | null,
+	var_samp?: GraphQLTypes["push_subscriptions_var_samp_fields"] | undefined | null,
+	variance?: GraphQLTypes["push_subscriptions_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["push_subscriptions_avg_fields"]: {
+	__typename: "push_subscriptions_avg_fields",
+	steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "push_subscriptions". All fields are combined with a logical 'AND'. */
+["push_subscriptions_bool_exp"]: {
+		_and?: Array<GraphQLTypes["push_subscriptions_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["push_subscriptions_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["push_subscriptions_bool_exp"]> | undefined | null,
+	auth?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	endpoint?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	last_used_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	p256dh?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	user_agent?: GraphQLTypes["String_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "push_subscriptions" */
+["push_subscriptions_constraint"]: push_subscriptions_constraint;
+	/** input type for incrementing numeric columns in table "push_subscriptions" */
+["push_subscriptions_inc_input"]: {
+		steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "push_subscriptions" */
+["push_subscriptions_insert_input"]: {
+		auth?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	last_used_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate max on columns */
+["push_subscriptions_max_fields"]: {
+	__typename: "push_subscriptions_max_fields",
+	auth?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	last_used_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate min on columns */
+["push_subscriptions_min_fields"]: {
+	__typename: "push_subscriptions_min_fields",
+	auth?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	last_used_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** response of any mutation on the table "push_subscriptions" */
+["push_subscriptions_mutation_response"]: {
+	__typename: "push_subscriptions_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["push_subscriptions"]>
+};
+	/** on_conflict condition type for table "push_subscriptions" */
+["push_subscriptions_on_conflict"]: {
+		constraint: GraphQLTypes["push_subscriptions_constraint"],
+	update_columns: Array<GraphQLTypes["push_subscriptions_update_column"]>,
+	where?: GraphQLTypes["push_subscriptions_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "push_subscriptions". */
+["push_subscriptions_order_by"]: {
+		auth?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	endpoint?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	last_used_at?: GraphQLTypes["order_by"] | undefined | null,
+	p256dh?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	user_agent?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: push_subscriptions */
+["push_subscriptions_pk_columns_input"]: {
+		id: GraphQLTypes["uuid"]
+};
+	/** select columns of table "push_subscriptions" */
+["push_subscriptions_select_column"]: push_subscriptions_select_column;
+	/** input type for updating data in table "push_subscriptions" */
+["push_subscriptions_set_input"]: {
+		auth?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	last_used_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate stddev on columns */
+["push_subscriptions_stddev_fields"]: {
+	__typename: "push_subscriptions_stddev_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["push_subscriptions_stddev_pop_fields"]: {
+	__typename: "push_subscriptions_stddev_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["push_subscriptions_stddev_samp_fields"]: {
+	__typename: "push_subscriptions_stddev_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "push_subscriptions" */
+["push_subscriptions_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["push_subscriptions_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["push_subscriptions_stream_cursor_value_input"]: {
+		auth?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	endpoint?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	last_used_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	p256dh?: string | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	user_agent?: string | undefined | null
+};
+	/** aggregate sum on columns */
+["push_subscriptions_sum_fields"]: {
+	__typename: "push_subscriptions_sum_fields",
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** update columns of table "push_subscriptions" */
+["push_subscriptions_update_column"]: push_subscriptions_update_column;
+	["push_subscriptions_updates"]: {
+		/** increments the numeric columns with given value of the filtered values */
+	_inc?: GraphQLTypes["push_subscriptions_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["push_subscriptions_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["push_subscriptions_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["push_subscriptions_var_pop_fields"]: {
+	__typename: "push_subscriptions_var_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["push_subscriptions_var_samp_fields"]: {
+	__typename: "push_subscriptions_var_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["push_subscriptions_variance_fields"]: {
+	__typename: "push_subscriptions_variance_fields",
+	steam_id?: number | undefined | null
+};
 	["query_root"]: {
 	__typename: "query_root",
 	/** fetch data from the table: "_map_pool" */
@@ -231525,6 +234111,8 @@ export type GraphQLTypes = {
 	getIndexIOStats: Array<GraphQLTypes["IndexIOStat"] | undefined | null>,
 	/** Get index usage statistics */
 	getIndexStats: Array<GraphQLTypes["IndexStat"] | undefined | null>,
+	/** Live MediaMTX camera-server stats (publishing/paths/sessions) plus pod CPU/memory usage */
+	getMediaServerStats: GraphQLTypes["MediaServerStats"],
 	getNodeStats: GraphQLTypes["NodeStats"],
 	/** Get detailed query analysis with EXPLAIN plan */
 	getQueryDetail?: GraphQLTypes["QueryDetail"] | undefined | null,
@@ -231629,6 +234217,12 @@ export type GraphQLTypes = {
 	lobbies_aggregate: GraphQLTypes["lobbies_aggregate"],
 	/** fetch data from the table: "lobbies" using primary key columns */
 	lobbies_by_pk?: GraphQLTypes["lobbies"] | undefined | null,
+	/** fetch data from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens: Array<GraphQLTypes["lobby_camera_tokens"]>,
+	/** fetch aggregated fields from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens_aggregate: GraphQLTypes["lobby_camera_tokens_aggregate"],
+	/** fetch data from the table: "lobby_camera_tokens" using primary key columns */
+	lobby_camera_tokens_by_pk?: GraphQLTypes["lobby_camera_tokens"] | undefined | null,
 	/** An array relationship */
 	lobby_players: Array<GraphQLTypes["lobby_players"]>,
 	/** An aggregate relationship */
@@ -231921,6 +234515,18 @@ export type GraphQLTypes = {
 	plugin_versions_aggregate: GraphQLTypes["plugin_versions_aggregate"],
 	/** fetch data from the table: "plugin_versions" using primary key columns */
 	plugin_versions_by_pk?: GraphQLTypes["plugin_versions"] | undefined | null,
+	/** fetch data from the table: "push_notification_preferences" */
+	push_notification_preferences: Array<GraphQLTypes["push_notification_preferences"]>,
+	/** fetch aggregated fields from the table: "push_notification_preferences" */
+	push_notification_preferences_aggregate: GraphQLTypes["push_notification_preferences_aggregate"],
+	/** fetch data from the table: "push_notification_preferences" using primary key columns */
+	push_notification_preferences_by_pk?: GraphQLTypes["push_notification_preferences"] | undefined | null,
+	/** fetch data from the table: "push_subscriptions" */
+	push_subscriptions: Array<GraphQLTypes["push_subscriptions"]>,
+	/** fetch aggregated fields from the table: "push_subscriptions" */
+	push_subscriptions_aggregate: GraphQLTypes["push_subscriptions_aggregate"],
+	/** fetch data from the table: "push_subscriptions" using primary key columns */
+	push_subscriptions_by_pk?: GraphQLTypes["push_subscriptions"] | undefined | null,
 	/** Read file content from game server */
 	readServerFile: GraphQLTypes["FileContentResponse"],
 	/** fetch data from the table: "seasons" */
@@ -234395,6 +237001,14 @@ export type GraphQLTypes = {
 	lobbies_by_pk?: GraphQLTypes["lobbies"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "lobbies" */
 	lobbies_stream: Array<GraphQLTypes["lobbies"]>,
+	/** fetch data from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens: Array<GraphQLTypes["lobby_camera_tokens"]>,
+	/** fetch aggregated fields from the table: "lobby_camera_tokens" */
+	lobby_camera_tokens_aggregate: GraphQLTypes["lobby_camera_tokens_aggregate"],
+	/** fetch data from the table: "lobby_camera_tokens" using primary key columns */
+	lobby_camera_tokens_by_pk?: GraphQLTypes["lobby_camera_tokens"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "lobby_camera_tokens" */
+	lobby_camera_tokens_stream: Array<GraphQLTypes["lobby_camera_tokens"]>,
 	/** An array relationship */
 	lobby_players: Array<GraphQLTypes["lobby_players"]>,
 	/** An aggregate relationship */
@@ -234781,6 +237395,22 @@ export type GraphQLTypes = {
 	plugin_versions_by_pk?: GraphQLTypes["plugin_versions"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "plugin_versions" */
 	plugin_versions_stream: Array<GraphQLTypes["plugin_versions"]>,
+	/** fetch data from the table: "push_notification_preferences" */
+	push_notification_preferences: Array<GraphQLTypes["push_notification_preferences"]>,
+	/** fetch aggregated fields from the table: "push_notification_preferences" */
+	push_notification_preferences_aggregate: GraphQLTypes["push_notification_preferences_aggregate"],
+	/** fetch data from the table: "push_notification_preferences" using primary key columns */
+	push_notification_preferences_by_pk?: GraphQLTypes["push_notification_preferences"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "push_notification_preferences" */
+	push_notification_preferences_stream: Array<GraphQLTypes["push_notification_preferences"]>,
+	/** fetch data from the table: "push_subscriptions" */
+	push_subscriptions: Array<GraphQLTypes["push_subscriptions"]>,
+	/** fetch aggregated fields from the table: "push_subscriptions" */
+	push_subscriptions_aggregate: GraphQLTypes["push_subscriptions_aggregate"],
+	/** fetch data from the table: "push_subscriptions" using primary key columns */
+	push_subscriptions_by_pk?: GraphQLTypes["push_subscriptions"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "push_subscriptions" */
+	push_subscriptions_stream: Array<GraphQLTypes["push_subscriptions"]>,
 	/** fetch data from the table: "seasons" */
 	seasons: Array<GraphQLTypes["seasons"]>,
 	/** fetch aggregated fields from the table: "seasons" */
@@ -240670,6 +243300,7 @@ export type GraphQLTypes = {
 	player: GraphQLTypes["players"],
 	player_steam_id: GraphQLTypes["bigint"],
 	role: GraphQLTypes["e_team_roles_enum"],
+	roster_image_url_snapshot?: string | undefined | null,
 	/** An object relationship */
 	tournament: GraphQLTypes["tournaments"],
 	tournament_id: GraphQLTypes["uuid"],
@@ -240745,6 +243376,7 @@ export type GraphQLTypes = {
 	player?: GraphQLTypes["players_bool_exp"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
 	role?: GraphQLTypes["e_team_roles_enum_comparison_exp"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	tournament?: GraphQLTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_bool_exp"] | undefined | null,
@@ -240762,6 +243394,7 @@ export type GraphQLTypes = {
 	player?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	role?: GraphQLTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament?: GraphQLTypes["tournaments_obj_rel_insert_input"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_obj_rel_insert_input"] | undefined | null,
@@ -240771,12 +243404,14 @@ export type GraphQLTypes = {
 ["tournament_team_roster_max_fields"]: {
 	__typename: "tournament_team_roster_max_fields",
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
 	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
 };
 	/** order by max() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_max_order_by"]: {
 		player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -240784,12 +243419,14 @@ export type GraphQLTypes = {
 ["tournament_team_roster_min_fields"]: {
 	__typename: "tournament_team_roster_min_fields",
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
 	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
 };
 	/** order by min() on columns of table "tournament_team_roster" */
 ["tournament_team_roster_min_order_by"]: {
 		player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_team_id?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -240813,6 +243450,7 @@ export type GraphQLTypes = {
 	player?: GraphQLTypes["players_order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	role?: GraphQLTypes["order_by"] | undefined | null,
+	roster_image_url_snapshot?: GraphQLTypes["order_by"] | undefined | null,
 	tournament?: GraphQLTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_order_by"] | undefined | null,
@@ -240829,6 +243467,7 @@ export type GraphQLTypes = {
 ["tournament_team_roster_set_input"]: {
 		player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	role?: GraphQLTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
 	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
 };
@@ -240870,6 +243509,7 @@ export type GraphQLTypes = {
 ["tournament_team_roster_stream_cursor_value_input"]: {
 		player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	role?: GraphQLTypes["e_team_roles_enum"] | undefined | null,
+	roster_image_url_snapshot?: string | undefined | null,
 	tournament_id?: GraphQLTypes["uuid"] | undefined | null,
 	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
 };
@@ -253051,12 +255691,14 @@ export enum e_notification_types_constraint {
 	e_notification_types_pkey = "e_notification_types_pkey"
 }
 export enum e_notification_types_enum {
+	ChatMessage = "ChatMessage",
 	DedicatedServerRconStatus = "DedicatedServerRconStatus",
 	DedicatedServerStatus = "DedicatedServerStatus",
 	EloRecompute = "EloRecompute",
 	FormTeamSuggestion = "FormTeamSuggestion",
 	GameNodeStatus = "GameNodeStatus",
 	GameUpdate = "GameUpdate",
+	GlobalChatMessage = "GlobalChatMessage",
 	LeagueMatchUnscheduled = "LeagueMatchUnscheduled",
 	LeagueProposalAccepted = "LeagueProposalAccepted",
 	LeagueProposalDeclined = "LeagueProposalDeclined",
@@ -253069,6 +255711,7 @@ export enum e_notification_types_enum {
 	NameChangeApproved = "NameChangeApproved",
 	NameChangeDenied = "NameChangeDenied",
 	NameChangeRequest = "NameChangeRequest",
+	NewsPublished = "NewsPublished",
 	PlayerReindex = "PlayerReindex",
 	PlayerSanctioned = "PlayerSanctioned",
 	ScrimAlertMatch = "ScrimAlertMatch",
@@ -253080,7 +255723,9 @@ export enum e_notification_types_enum {
 	ScrimRequestExpired = "ScrimRequestExpired",
 	ScrimRequestReceived = "ScrimRequestReceived",
 	ScrimTimeChanged = "ScrimTimeChanged",
-	StorageScan = "StorageScan"
+	StorageScan = "StorageScan",
+	TournamentCreated = "TournamentCreated",
+	TournamentReminder = "TournamentReminder"
 }
 /** select columns of table "e_notification_types" */
 export enum e_notification_types_select_column {
@@ -254124,6 +256769,25 @@ export enum lobbies_update_column {
 	created_at = "created_at",
 	id = "id"
 }
+/** unique or primary key constraints on table "lobby_camera_tokens" */
+export enum lobby_camera_tokens_constraint {
+	lobby_camera_tokens_lobby_id_steam_id_key = "lobby_camera_tokens_lobby_id_steam_id_key",
+	lobby_camera_tokens_pkey = "lobby_camera_tokens_pkey"
+}
+/** select columns of table "lobby_camera_tokens" */
+export enum lobby_camera_tokens_select_column {
+	created_at = "created_at",
+	lobby_id = "lobby_id",
+	steam_id = "steam_id",
+	token = "token"
+}
+/** update columns of table "lobby_camera_tokens" */
+export enum lobby_camera_tokens_update_column {
+	created_at = "created_at",
+	lobby_id = "lobby_id",
+	steam_id = "steam_id",
+	token = "token"
+}
 /** unique or primary key constraints on table "lobby_players" */
 export enum lobby_players_constraint {
 	lobby_players_pkey = "lobby_players_pkey"
@@ -254328,6 +256992,7 @@ export enum match_lineup_players_select_column {
 	party_id = "party_id",
 	party_source = "party_source",
 	placeholder_name = "placeholder_name",
+	roster_image_url_snapshot = "roster_image_url_snapshot",
 	steam_id = "steam_id"
 }
 /** select "match_lineup_players_aggregate_bool_exp_bool_and_arguments_columns" columns of table "match_lineup_players" */
@@ -254354,6 +257019,7 @@ export enum match_lineup_players_update_column {
 	party_id = "party_id",
 	party_source = "party_source",
 	placeholder_name = "placeholder_name",
+	roster_image_url_snapshot = "roster_image_url_snapshot",
 	steam_id = "steam_id"
 }
 /** unique or primary key constraints on table "match_lineups" */
@@ -255994,6 +258660,51 @@ export enum plugin_versions_update_column {
 	runtime = "runtime",
 	version = "version"
 }
+/** unique or primary key constraints on table "push_notification_preferences" */
+export enum push_notification_preferences_constraint {
+	push_notification_preferences_pkey = "push_notification_preferences_pkey"
+}
+/** select columns of table "push_notification_preferences" */
+export enum push_notification_preferences_select_column {
+	category = "category",
+	enabled = "enabled",
+	steam_id = "steam_id",
+	updated_at = "updated_at"
+}
+/** update columns of table "push_notification_preferences" */
+export enum push_notification_preferences_update_column {
+	category = "category",
+	enabled = "enabled",
+	steam_id = "steam_id",
+	updated_at = "updated_at"
+}
+/** unique or primary key constraints on table "push_subscriptions" */
+export enum push_subscriptions_constraint {
+	push_subscriptions_endpoint_key = "push_subscriptions_endpoint_key",
+	push_subscriptions_pkey = "push_subscriptions_pkey"
+}
+/** select columns of table "push_subscriptions" */
+export enum push_subscriptions_select_column {
+	auth = "auth",
+	created_at = "created_at",
+	endpoint = "endpoint",
+	id = "id",
+	last_used_at = "last_used_at",
+	p256dh = "p256dh",
+	steam_id = "steam_id",
+	user_agent = "user_agent"
+}
+/** update columns of table "push_subscriptions" */
+export enum push_subscriptions_update_column {
+	auth = "auth",
+	created_at = "created_at",
+	endpoint = "endpoint",
+	id = "id",
+	last_used_at = "last_used_at",
+	p256dh = "p256dh",
+	steam_id = "steam_id",
+	user_agent = "user_agent"
+}
 /** unique or primary key constraints on table "seasons" */
 export enum seasons_constraint {
 	seasons_pkey = "seasons_pkey"
@@ -256753,6 +259464,7 @@ export enum tournament_team_roster_constraint {
 export enum tournament_team_roster_select_column {
 	player_steam_id = "player_steam_id",
 	role = "role",
+	roster_image_url_snapshot = "roster_image_url_snapshot",
 	tournament_id = "tournament_id",
 	tournament_team_id = "tournament_team_id"
 }
@@ -256760,6 +259472,7 @@ export enum tournament_team_roster_select_column {
 export enum tournament_team_roster_update_column {
 	player_steam_id = "player_steam_id",
 	role = "role",
+	roster_image_url_snapshot = "roster_image_url_snapshot",
 	tournament_id = "tournament_id",
 	tournament_team_id = "tournament_team_id"
 }
@@ -259192,6 +261905,19 @@ type ZEUS_VARIABLES = {
 	["lobbies_stream_cursor_value_input"]: ValueTypes["lobbies_stream_cursor_value_input"];
 	["lobbies_update_column"]: ValueTypes["lobbies_update_column"];
 	["lobbies_updates"]: ValueTypes["lobbies_updates"];
+	["lobby_camera_tokens_bool_exp"]: ValueTypes["lobby_camera_tokens_bool_exp"];
+	["lobby_camera_tokens_constraint"]: ValueTypes["lobby_camera_tokens_constraint"];
+	["lobby_camera_tokens_inc_input"]: ValueTypes["lobby_camera_tokens_inc_input"];
+	["lobby_camera_tokens_insert_input"]: ValueTypes["lobby_camera_tokens_insert_input"];
+	["lobby_camera_tokens_on_conflict"]: ValueTypes["lobby_camera_tokens_on_conflict"];
+	["lobby_camera_tokens_order_by"]: ValueTypes["lobby_camera_tokens_order_by"];
+	["lobby_camera_tokens_pk_columns_input"]: ValueTypes["lobby_camera_tokens_pk_columns_input"];
+	["lobby_camera_tokens_select_column"]: ValueTypes["lobby_camera_tokens_select_column"];
+	["lobby_camera_tokens_set_input"]: ValueTypes["lobby_camera_tokens_set_input"];
+	["lobby_camera_tokens_stream_cursor_input"]: ValueTypes["lobby_camera_tokens_stream_cursor_input"];
+	["lobby_camera_tokens_stream_cursor_value_input"]: ValueTypes["lobby_camera_tokens_stream_cursor_value_input"];
+	["lobby_camera_tokens_update_column"]: ValueTypes["lobby_camera_tokens_update_column"];
+	["lobby_camera_tokens_updates"]: ValueTypes["lobby_camera_tokens_updates"];
 	["lobby_players_aggregate_bool_exp"]: ValueTypes["lobby_players_aggregate_bool_exp"];
 	["lobby_players_aggregate_bool_exp_bool_and"]: ValueTypes["lobby_players_aggregate_bool_exp_bool_and"];
 	["lobby_players_aggregate_bool_exp_bool_or"]: ValueTypes["lobby_players_aggregate_bool_exp_bool_or"];
@@ -260316,6 +263042,32 @@ type ZEUS_VARIABLES = {
 	["plugin_versions_stream_cursor_value_input"]: ValueTypes["plugin_versions_stream_cursor_value_input"];
 	["plugin_versions_update_column"]: ValueTypes["plugin_versions_update_column"];
 	["plugin_versions_updates"]: ValueTypes["plugin_versions_updates"];
+	["push_notification_preferences_bool_exp"]: ValueTypes["push_notification_preferences_bool_exp"];
+	["push_notification_preferences_constraint"]: ValueTypes["push_notification_preferences_constraint"];
+	["push_notification_preferences_inc_input"]: ValueTypes["push_notification_preferences_inc_input"];
+	["push_notification_preferences_insert_input"]: ValueTypes["push_notification_preferences_insert_input"];
+	["push_notification_preferences_on_conflict"]: ValueTypes["push_notification_preferences_on_conflict"];
+	["push_notification_preferences_order_by"]: ValueTypes["push_notification_preferences_order_by"];
+	["push_notification_preferences_pk_columns_input"]: ValueTypes["push_notification_preferences_pk_columns_input"];
+	["push_notification_preferences_select_column"]: ValueTypes["push_notification_preferences_select_column"];
+	["push_notification_preferences_set_input"]: ValueTypes["push_notification_preferences_set_input"];
+	["push_notification_preferences_stream_cursor_input"]: ValueTypes["push_notification_preferences_stream_cursor_input"];
+	["push_notification_preferences_stream_cursor_value_input"]: ValueTypes["push_notification_preferences_stream_cursor_value_input"];
+	["push_notification_preferences_update_column"]: ValueTypes["push_notification_preferences_update_column"];
+	["push_notification_preferences_updates"]: ValueTypes["push_notification_preferences_updates"];
+	["push_subscriptions_bool_exp"]: ValueTypes["push_subscriptions_bool_exp"];
+	["push_subscriptions_constraint"]: ValueTypes["push_subscriptions_constraint"];
+	["push_subscriptions_inc_input"]: ValueTypes["push_subscriptions_inc_input"];
+	["push_subscriptions_insert_input"]: ValueTypes["push_subscriptions_insert_input"];
+	["push_subscriptions_on_conflict"]: ValueTypes["push_subscriptions_on_conflict"];
+	["push_subscriptions_order_by"]: ValueTypes["push_subscriptions_order_by"];
+	["push_subscriptions_pk_columns_input"]: ValueTypes["push_subscriptions_pk_columns_input"];
+	["push_subscriptions_select_column"]: ValueTypes["push_subscriptions_select_column"];
+	["push_subscriptions_set_input"]: ValueTypes["push_subscriptions_set_input"];
+	["push_subscriptions_stream_cursor_input"]: ValueTypes["push_subscriptions_stream_cursor_input"];
+	["push_subscriptions_stream_cursor_value_input"]: ValueTypes["push_subscriptions_stream_cursor_value_input"];
+	["push_subscriptions_update_column"]: ValueTypes["push_subscriptions_update_column"];
+	["push_subscriptions_updates"]: ValueTypes["push_subscriptions_updates"];
 	["recalculate_tournament_awards_args"]: ValueTypes["recalculate_tournament_awards_args"];
 	["recalculate_tournament_trophies_args"]: ValueTypes["recalculate_tournament_trophies_args"];
 	["remove_league_team_from_season_args"]: ValueTypes["remove_league_team_from_season_args"];

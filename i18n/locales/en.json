@@ -1268,6 +1268,18 @@
       "follow_logs": "Follow Logs",
       "timestamps": "Timestamps"
     },
+    "system_media_server": {
+      "title": "Media Server",
+      "description": "Live load on mediamtx-camera — player webcams and lobby video calls. Logs are under System → Logs → mediamtx-camera.",
+      "publishing": "Publishing",
+      "paths": "Paths",
+      "webrtc_sessions": "WebRTC Sessions",
+      "path_description": "A path is one named stream slot — one player's camera, or one lobby call participant. Publishing counts the ones actually sending video right now; a path can sit idle between someone joining and their feed coming up. Sessions are WebRTC connections, and every viewer of a stream is one of them, so it climbs faster than the others.",
+      "nothing_publishing": "Nothing is publishing right now.",
+      "resource_usage": "Resource Usage",
+      "cpu_usage": "CPU Usage",
+      "memory_usage": "Memory Usage"
+    },
     "coming_soon": "Coming Soon!",
     "tournaments": {
       "title": "Tournaments",
@@ -3416,6 +3428,7 @@
         "logs": "Logs",
         "database": "Database",
         "metrics": "Metrics",
+        "media_server": "Media Server",
         "render_queue": "Render Queue"
       },
       "profile": {
@@ -3445,6 +3458,7 @@
         "system_logs": "System Logs",
         "database": "Database",
         "system_metrics": "System Metrics",
+        "system_media_server": "Media Server",
         "app_settings": "App Settings",
         "alerts": "Manage site-wide alert banners",
         "report_issue": "Report an Issue",
