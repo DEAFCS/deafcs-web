@@ -1,7 +1,15 @@
 <script setup lang="ts">
 import { ref, onBeforeUnmount, onMounted } from "vue";
 import { Button } from "~/components/ui/button";
-import { LucideRefreshCw, LucideX, LucideCheck, LucideVideo } from "lucide-vue-next";
+import {
+  LucideRefreshCw,
+  LucideX,
+  LucideCheck,
+  LucideVideo,
+  LucideCamera,
+  LucideChevronDown,
+  LucideArrowLeft,
+} from "lucide-vue-next";
 import {
   cameraPlayerWhipUrl,
   fetchCameraStatus,
@@ -23,7 +31,7 @@ definePageMeta({
 const route = useRoute();
 const token = computed(() => String(route.params.token));
 
-type Phase = "idle" | "requesting" | "connected" | "error";
+type Phase = "idle" | "preview" | "requesting" | "connected" | "error";
 const phase = ref<Phase>("idle");
 const errorMessage = ref<string | null>(null);
 
@@ -50,15 +58,83 @@ function videoConstraints(mode: "user" | "environment"): MediaTrackConstraints {
   };
 }
 
-async function startCamera() {
+// --- Device preview (Discord-style "pick your camera" step) ---
+// Grants camera access and shows a live preview + device picker
+// *before* publishing anything, instead of the old flow which
+// requested a camera and started broadcasting in the same step.
+// Ported from the matchmaking lobby-call popup's identical fix.
+const availableDevices = ref<MediaDeviceInfo[]>([]);
+const selectedDeviceId = ref<string | null>(null);
+const selectedDeviceLabel = computed(
+  () =>
+    availableDevices.value.find((d) => d.deviceId === selectedDeviceId.value)
+      ?.label || null,
+);
+
+async function startPreviewDevice(deviceId?: string | null): Promise<MediaStream> {
+  // deviceId picks a specific camera by ID (device-picker path);
+  // omitting it falls back to the orientation-aware facingMode request
+  // above (first preview, or after flipCamera during an active call).
+  const constraints: MediaTrackConstraints = deviceId
+    ? {
+        deviceId: { exact: deviceId },
+        width: { ideal: 1280 },
+        height: { ideal: 720 },
+        frameRate: { ideal: 20, max: 25 },
+      }
+    : videoConstraints(facingMode);
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: constraints,
+    audio: false,
+  });
+  camStream?.getTracks().forEach((t) => t.stop());
+  camStream = stream;
+  if (previewEl.value) previewEl.value.srcObject = stream;
+  return stream;
+}
+
+async function openPreview() {
+  phase.value = "preview";
+  errorMessage.value = null;
+  try {
+    const stream = await startPreviewDevice();
+    // Device labels are only populated once permission has been
+    // granted, so enumerate *after* the first getUserMedia succeeds.
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    availableDevices.value = devices.filter((d) => d.kind === "videoinput");
+    selectedDeviceId.value =
+      stream.getVideoTracks()[0]?.getSettings().deviceId ??
+      availableDevices.value[0]?.deviceId ??
+      null;
+  } catch (err) {
+    phase.value = "error";
+    errorMessage.value = err instanceof Error ? err.message : String(err);
+  }
+}
+
+watch(selectedDeviceId, (id, oldId) => {
+  if (phase.value === "preview" && id && id !== oldId) {
+    startPreviewDevice(id).catch((err) => {
+      errorMessage.value = err instanceof Error ? err.message : String(err);
+    });
+  }
+});
+
+function cancelPreview() {
+  camStream?.getTracks().forEach((t) => t.stop());
+  camStream = null;
+  if (previewEl.value) previewEl.value.srcObject = null;
+  phase.value = "idle";
+}
+
+// Publishes whatever camStream the preview step already has -- the
+// actual WHIP handshake, unchanged from the old single-step startCamera().
+async function confirmJoin() {
+  if (!camStream) return;
   phase.value = "requesting";
   errorMessage.value = null;
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: videoConstraints(facingMode),
-      audio: false,
-    });
-    camStream = stream;
+    const stream = camStream;
     if (previewEl.value) previewEl.value.srcObject = stream;
 
     const pc = new RTCPeerConnection({
@@ -348,7 +424,67 @@ onBeforeUnmount(() => {
         </p>
       </template>
       <template v-else-if="phase === 'requesting'">
-        <p class="text-sm text-muted-foreground">Requesting camera access…</p>
+        <p class="text-sm text-muted-foreground">Connecting…</p>
+      </template>
+      <!-- Device preview -- camera access is already granted by the
+           time this shows (openPreview requested it), so this is
+           purely picking a device and confirming, not another
+           permission prompt. DEAFCS amber accent, same pattern as the
+           matchmaking lobby-call popup's identical step. -->
+      <template v-else-if="phase === 'preview'">
+        <div class="space-y-2 text-left">
+          <div class="flex items-center gap-1.5 text-[0.65rem] font-semibold uppercase tracking-wider text-muted-foreground">
+            <LucideCamera class="w-3.5 h-3.5" />
+            Camera
+          </div>
+          <div class="relative">
+            <div
+              class="flex items-center gap-3 rounded-lg border p-3 pr-9 transition-colors"
+              :class="
+                availableDevices.length
+                  ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.08)]'
+                  : 'border-border bg-card'
+              "
+            >
+              <div
+                class="flex items-center justify-center w-8 h-8 rounded-full bg-[hsl(var(--tac-amber)/0.15)] text-[hsl(var(--tac-amber))] shrink-0"
+              >
+                <LucideCamera class="w-4 h-4" />
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium truncate">
+                  {{ selectedDeviceLabel || "Camera" }}
+                </p>
+                <p class="text-xs text-muted-foreground">Selected device</p>
+              </div>
+              <LucideChevronDown class="w-4 h-4 text-muted-foreground shrink-0" />
+            </div>
+            <!-- Real (invisible) select handles the actual picking --
+                 keeps native accessibility/keyboard support while the
+                 div above provides the DEAFCS-styled look. -->
+            <select
+              v-if="availableDevices.length > 1"
+              v-model="selectedDeviceId"
+              aria-label="Select camera"
+              class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            >
+              <option v-for="d in availableDevices" :key="d.deviceId" :value="d.deviceId">
+                {{ d.label || "Camera" }}
+              </option>
+            </select>
+          </div>
+        </div>
+
+        <p v-if="errorMessage" class="text-sm text-destructive">
+          {{ errorMessage }}
+        </p>
+
+        <div class="flex gap-2">
+          <Button variant="outline" class="flex-1" @click="cancelPreview">
+            <LucideArrowLeft class="w-4 h-4" /> Back
+          </Button>
+          <Button class="flex-1" @click="confirmJoin"> Connect camera </Button>
+        </div>
       </template>
       <template v-else>
         <p class="text-sm text-muted-foreground">
@@ -358,7 +494,7 @@ onBeforeUnmount(() => {
         <p v-if="errorMessage" class="text-sm text-destructive">
           {{ errorMessage }}
         </p>
-        <Button size="lg" class="rounded-full" @click="startCamera">
+        <Button size="lg" class="rounded-full" @click="openPreview">
           Start camera
         </Button>
       </template>
