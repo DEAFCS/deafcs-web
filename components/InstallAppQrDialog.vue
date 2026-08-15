@@ -73,7 +73,7 @@ function nextIosStep() {
   </FiveStackToolTip>
 
   <Dialog :open="dialogOpen" @update:open="dialogOpen = $event">
-    <DialogContent class="max-w-md max-h-[85vh] overflow-y-auto">
+    <DialogContent class="max-w-xl max-h-[85vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>{{ $t("pwa.install_dialog.title") }}</DialogTitle>
         <DialogDescription>
@@ -136,7 +136,7 @@ function nextIosStep() {
           <img
             :src="`/pwa-install/ios-${iosStepIndex + 1}.jpg`"
             :alt="$t(`pwa.install_dialog.ios_steps.${iosStepIndex}`)"
-            class="max-h-[300px] w-auto rounded-lg border border-border object-contain"
+            class="max-h-[480px] w-auto rounded-lg border border-border object-contain"
           />
           <p class="text-sm text-center font-medium">
             {{ iosStepIndex + 1 }}. {{ $t(`pwa.install_dialog.ios_steps.${iosStepIndex}`) }}
