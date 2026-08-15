@@ -317,9 +317,22 @@ async function hangUpTalk() {
 }
 
 onMounted(() => {
-  // Auto-attempt is intentionally NOT done here — getUserMedia needs a
-  // user gesture on most mobile browsers, so the "Start camera" tap is
-  // required regardless.
+  // Auto-open the device preview when this page is the "connect on
+  // this computer" popup (CameraRequirementOverlay.vue's
+  // connectOnThisComputer() opens it via window.open(), which sets
+  // window.opener) — clicking "This computer" already was the user's
+  // explicit intent to connect a camera, so making them tap "Start
+  // camera" again on the very next screen was a redundant extra step.
+  // Desktop browsers don't require a user gesture for getUserMedia
+  // the way mobile ones can, so this is safe to auto-trigger here.
+  //
+  // The QR/mobile path is a direct navigation (no opener) and keeps
+  // requiring the explicit tap -- mobile browsers, especially iOS
+  // Safari, can silently refuse a getUserMedia call that isn't tied to
+  // a real tap in *that* page's own context.
+  if (typeof window !== "undefined" && window.opener) {
+    openPreview();
+  }
 });
 
 onBeforeUnmount(() => {
