@@ -14541,6 +14541,9 @@ export const AllTypesProps: Record<string,any> = {
 		stopLive:{
 			match_id:"uuid"
 		},
+		stopTournamentIndividualCheckIn:{
+			tournament_id:"uuid"
+		},
 		stopWatchDemo:{
 			match_map_id:"uuid"
 		},
@@ -45796,6 +45799,7 @@ export const ReturnTypes: Record<string,any> = {
 		startTournamentIndividualCheckIn:"SuccessOutput",
 		stopGpuSession:"SuccessOutput",
 		stopLive:"SuccessOutput",
+		stopTournamentIndividualCheckIn:"SuccessOutput",
 		stopWatchDemo:"SuccessOutput",
 		submitSteamPresenceSteamGuard:"SuccessOutput",
 		swapLineups:"SuccessOutput",

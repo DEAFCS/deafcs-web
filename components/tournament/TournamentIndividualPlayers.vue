@@ -88,6 +88,15 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
           <p class="text-sm text-muted-foreground">
             {{ $t("tournament.players.check_in.in_progress") }}
           </p>
+          <Button
+            size="sm"
+            variant="destructive"
+            class="w-full"
+            :disabled="stopping"
+            @click="stopCheckIn"
+          >
+            {{ $t("tournament.players.check_in.stop") }}
+          </Button>
         </template>
         <template v-else>
           <p class="text-xs text-muted-foreground">
@@ -140,6 +149,7 @@ export default {
     return {
       checkInMinutes: 5,
       starting: false,
+      stopping: false,
     };
   },
   computed: {
@@ -196,6 +206,29 @@ export default {
         });
       } finally {
         this.starting = false;
+      }
+    },
+    async stopCheckIn() {
+      if (this.stopping) return;
+      this.stopping = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            stopTournamentIndividualCheckIn: [
+              { tournament_id: this.tournament.id },
+              { success: true },
+            ],
+          }),
+        });
+        toast({ title: this.$t("tournament.players.check_in.stopped") });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("tournament.players.check_in.stop_failed"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.stopping = false;
       }
     },
   },

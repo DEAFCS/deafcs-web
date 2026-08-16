@@ -23,7 +23,7 @@ const PENDING_CHECK_INS_SUBSCRIPTION = gql`
     tournament_individual_signups(
       where: {
         player_steam_id: { _eq: $steamId }
-        status: { _eq: "Registered" }
+        status: { _eq: Registered }
         checked_in_at: { _is_null: true }
         tournament: { individual_check_in_ends_at: { _is_null: false } }
       }

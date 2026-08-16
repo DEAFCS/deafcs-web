@@ -26255,6 +26255,7 @@ startMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	server_id?
 startTournamentIndividualCheckIn?: [{	duration_minutes: number | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 stopGpuSession?: [{	game_server_node_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 stopLive?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+stopTournamentIndividualCheckIn?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 stopWatchDemo?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 submitSteamPresenceSteamGuard?: [{	account_id: string | Variable<any, string>,	code: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 swapLineups?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -93659,6 +93660,7 @@ startMatch?: [{	match_id: ResolverInputTypes["uuid"],	server_id?: ResolverInputT
 startTournamentIndividualCheckIn?: [{	duration_minutes: number,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 stopGpuSession?: [{	game_server_node_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 stopLive?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+stopTournamentIndividualCheckIn?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 stopWatchDemo?: [{	match_map_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 submitSteamPresenceSteamGuard?: [{	account_id: string,	code: string},ResolverInputTypes["SuccessOutput"]],
 swapLineups?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -158878,6 +158880,8 @@ export type ModelTypes = {
 	startTournamentIndividualCheckIn?: ModelTypes["SuccessOutput"] | undefined | null,
 	stopGpuSession?: ModelTypes["SuccessOutput"] | undefined | null,
 	stopLive?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Organizer ends an individual sign-up check-in window early for everyone */
+	stopTournamentIndividualCheckIn?: ModelTypes["SuccessOutput"] | undefined | null,
 	stopWatchDemo?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Submit a Steam Guard code for a presence bot account */
 	submitSteamPresenceSteamGuard?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -219493,6 +219497,8 @@ export type GraphQLTypes = {
 	startTournamentIndividualCheckIn?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	stopGpuSession?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	stopLive?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Organizer ends an individual sign-up check-in window early for everyone */
+	stopTournamentIndividualCheckIn?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	stopWatchDemo?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Submit a Steam Guard code for a presence bot account */
 	submitSteamPresenceSteamGuard?: GraphQLTypes["SuccessOutput"] | undefined | null,
