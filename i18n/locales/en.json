@@ -3989,7 +3989,13 @@
         "benched": "Benched"
       },
       "already_rostered": "On another team",
-      "min_lineup_warning": "Select at least {min} players to register."
+      "min_lineup_warning": "Select at least {min} players to register.",
+      "individual": {
+        "description": "This tournament uses individual sign-up -- join on your own, no team needed. Once registration closes, the organizer generates teams automatically, randomly balanced by ELO.",
+        "registered": "You're registered",
+        "waitlisted": "You're on the waitlist",
+        "leave": "Leave"
+      }
     },
     "tournament_team": {
       "remove": "Remove Team",
@@ -4292,6 +4298,9 @@
     "actions": {
       "open_registration": "Open Registration",
       "close_registration": "Close Registration",
+      "generate_teams": "Generate Teams",
+      "generate_teams_success": "{teams} team(s) generated, {waitlisted} player(s) waitlisted",
+      "generate_teams_failed": "Failed to generate teams",
       "start": "Start Tournament",
       "cancel": "Cancel Tournament",
       "delete": "Delete Tournament",
@@ -4683,6 +4692,10 @@
         "camera_required": {
           "label": "Require Webcam",
           "description": "Players must connect a webcam before they can see the server connect info. Admins and tournament organizers can view player cameras from the match page."
+        },
+        "individual_registration_enabled": {
+          "label": "Individual Sign-up",
+          "description": "Players join the tournament on their own instead of as a team. Once registration closes, teams are generated automatically, ELO-balanced at random."
         }
       },
       "max_rounds": "Max Rounds",

@@ -39,6 +39,8 @@ export const setupOptions = (
     round_restart_delay: options.round_restart_delay ?? null,
     halftime_pausematch: options.halftime_pausematch ?? false,
     camera_required: options.camera_required ?? false,
+    individual_registration_enabled:
+      options.individual_registration_enabled ?? false,
     check_in_setting: options.check_in_setting,
     auto_cancellation: options.auto_cancellation,
     auto_cancel_duration: options.auto_cancel_duration ?? null,
@@ -75,6 +77,7 @@ export function setupOptionsVariables(
     round_restart_delay?: number | null;
     halftime_pausematch?: boolean;
     camera_required?: boolean;
+    individual_registration_enabled?: boolean;
     map_pool?: {
       id: string;
     };
@@ -193,7 +196,11 @@ export function setupOptionsVariables(
     // would fail the whole mutation, not just silently ignore the
     // field, so it has to be omitted entirely below that threshold.
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
-      ? { camera_required: values.camera_required ?? false }
+      ? {
+          camera_required: values.camera_required ?? false,
+          individual_registration_enabled:
+            values.individual_registration_enabled ?? false,
+        }
       : {}),
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
       ? {
@@ -250,7 +257,13 @@ export function setupOptionsSetMutation(hasMapPoolId: boolean = true) {
     round_restart_delay: $("round_restart_delay", "Int"),
     halftime_pausematch: $("halftime_pausematch", "Boolean!"),
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
-      ? { camera_required: $("camera_required", "Boolean!") }
+      ? {
+          camera_required: $("camera_required", "Boolean!"),
+          individual_registration_enabled: $(
+            "individual_registration_enabled",
+            "Boolean!",
+          ),
+        }
       : {}),
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
       ? {

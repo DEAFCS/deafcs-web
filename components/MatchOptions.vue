@@ -887,6 +887,35 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                     </div>
                   </FormItem>
                 </FormField>
+
+                <FormField
+                  v-if="canSetIndividualRegistration"
+                  v-slot="{ value, handleChange }"
+                  name="individual_registration_enabled"
+                >
+                  <FormItem>
+                    <div
+                      class="flex flex-row items-center justify-between cursor-pointer"
+                      @click="handleChange(!value)"
+                    >
+                      <div class="space-y-0.5">
+                        <SettingHeader>{{
+                          $t("match.options.advanced.individual_registration_enabled.label")
+                        }}</SettingHeader>
+                        <FormDescription>{{
+                          $t("match.options.advanced.individual_registration_enabled.description")
+                        }}</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          class="pointer-events-none"
+                          :model-value="value"
+                          @update:model-value="handleChange"
+                        />
+                      </FormControl>
+                    </div>
+                  </FormItem>
+                </FormField>
               </div>
             </Card>
 
@@ -1663,6 +1692,16 @@ export default {
     // around it) should even know the option exists.
     canSetCameraRequired() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
+    },
+    // Only makes sense at tournament scope (a standalone match/draft has
+    // no registration/waitlist of its own) -- lockSubstitutes is only ever
+    // passed true from TournamentCreateWizard/TournamentMatchOptionsForm,
+    // so it doubles as the "this is a tournament" signal here.
+    canSetIndividualRegistration() {
+      return (
+        this.lockSubstitutes &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
+      );
     },
     canSetMatchCancellation() {
       return useAuthStore().isRoleAbove(

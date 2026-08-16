@@ -18,7 +18,44 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 </script>
 
 <template>
-  <form @submit.prevent="joinTournament" class="grid gap-4">
+  <div v-if="isIndividualRegistration" class="grid gap-4">
+    <p class="text-sm text-muted-foreground">
+      {{ $t("tournament.join.individual.description") }}
+    </p>
+    <template v-if="myIndividualSignup">
+      <div
+        class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
+      >
+        <span class="text-sm font-medium">
+          {{
+            myIndividualSignup.status === "Waitlisted"
+              ? $t("tournament.join.individual.waitlisted")
+              : $t("tournament.join.individual.registered")
+          }}
+        </span>
+        <Button
+          variant="destructive"
+          type="button"
+          :loading="submitting"
+          :disabled="myIndividualSignup.status !== 'Registered'"
+          @click="leaveIndividually"
+        >
+          {{ $t("tournament.join.individual.leave") }}
+        </Button>
+      </div>
+    </template>
+    <Button
+      v-else
+      variant="tactical"
+      type="button"
+      :loading="submitting"
+      @click="joinIndividually"
+    >
+      {{ $t("tournament.join.title") }}
+    </Button>
+  </div>
+
+  <form v-else @submit.prevent="joinTournament" class="grid gap-4">
     <h1 class="flex gap-2" v-if="!tournament.is_organizer">
       <MessageCircleWarning />
       {{
@@ -314,6 +351,17 @@ export default {
     me() {
       return useAuthStore().me;
     },
+    isIndividualRegistration() {
+      return !!(this.tournament as any)?.options?.individual_registration_enabled;
+    },
+    myIndividualSignup() {
+      const steamId = String(this.me?.steam_id ?? "");
+      return (
+        (this.tournament as any)?.individual_signups?.find(
+          (signup: any) => String(signup.player_steam_id) === steamId,
+        ) ?? null
+      );
+    },
     teams() {
       return this.me.teams;
     },
@@ -426,6 +474,60 @@ export default {
     },
   },
   methods: {
+    async joinIndividually() {
+      if (this.submitting) return;
+      this.submitting = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            insert_tournament_individual_signups_one: [
+              {
+                object: {
+                  tournament_id: this.$route.params.tournamentId,
+                  player_steam_id: this.me.steam_id,
+                },
+              },
+              { id: true },
+            ],
+          }),
+        });
+        toast({ title: this.$t("tournament.join.title") });
+        this.$emit("close");
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.submitting = false;
+      }
+    },
+    async leaveIndividually() {
+      if (this.submitting || !this.myIndividualSignup) return;
+      this.submitting = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            delete_tournament_individual_signups: [
+              {
+                where: { id: { _eq: this.myIndividualSignup.id } },
+              },
+              { affected_rows: true },
+            ],
+          }),
+        });
+        this.$emit("close");
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.submitting = false;
+      }
+    },
     async setOwnerTeamOwner(player) {
       this.teamOwner = player;
       this.form.setFieldValue("owner_steam_id", player.steam_id);

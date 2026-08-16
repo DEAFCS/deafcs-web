@@ -31,6 +31,7 @@ import {
   ArrowLeft,
   Globe,
   MapPin,
+  Shuffle,
 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -268,6 +269,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                       <span>{{
                         $t("tournament.actions.close_registration")
                       }}</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      v-if="canGenerateTeams"
+                      @click="generateTeams"
+                    >
+                      <Shuffle />
+                      <span>{{ $t("tournament.actions.generate_teams") }}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       v-if="tournament.can_start && !tournament.can_resume"
@@ -994,6 +1002,19 @@ export default {
               max_players_per_lineup: true,
               admin: playerFields,
               options: matchOptionsFields,
+              individual_signups: [
+                {},
+                {
+                  id: true,
+                  player_steam_id: true,
+                  status: true,
+                  player: {
+                    name: true,
+                    avatar_url: true,
+                    custom_avatar_url: true,
+                  },
+                },
+              ],
               organizers: [
                 {},
                 {
@@ -1341,6 +1362,13 @@ export default {
     leagueSeasonId() {
       return this.$route.params.seasonId ?? null;
     },
+    canGenerateTeams() {
+      return (
+        this.tournament?.is_organizer &&
+        !!this.tournament?.options?.individual_registration_enabled &&
+        this.tournament?.status === e_tournament_status_enum.RegistrationClosed
+      );
+    },
     tournamentLogoSrc() {
       if (!this.tournament?.logo) {
         return null;
@@ -1614,6 +1642,31 @@ export default {
       await this.updateTournamentStatus(
         e_tournament_status_enum.RegistrationOpen,
       );
+    },
+    async generateTeams() {
+      try {
+        const { data } = await this.$apollo.mutate({
+          mutation: generateMutation({
+            generateTournamentTeams: [
+              { tournament_id: this.tournament.id },
+              { teamsCreated: true, waitlisted: true },
+            ],
+          }),
+        });
+        const result = data?.generateTournamentTeams;
+        toast({
+          title: this.$t("tournament.actions.generate_teams_success", {
+            teams: result?.teamsCreated ?? 0,
+            waitlisted: result?.waitlisted ?? 0,
+          }),
+        });
+      } catch (error: unknown) {
+        toast({
+          variant: "destructive",
+          title: this.$t("tournament.actions.generate_teams_failed"),
+          description: (error as Error).message,
+        });
+      }
     },
     async closeRegistration() {
       await this.updateTournamentStatus(
