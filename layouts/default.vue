@@ -39,6 +39,9 @@ const OrphanedUploadsDialog = defineAsyncComponent(
 const GlobalLobbyCallNotifier = defineAsyncComponent(
   () => import("~/components/matchmaking-lobby/GlobalLobbyCallNotifier.vue"),
 );
+const EnableNotificationsPrompt = defineAsyncComponent(
+  () => import("~/components/notification/EnableNotificationsPrompt.vue"),
+);
 import { useClipModal } from "~/composables/useClipModal";
 
 const { activeClipId } = useClipModal();
@@ -120,6 +123,8 @@ provide("containContent", containContent);
   <OrphanedUploadsDialog />
 
   <GlobalLobbyCallNotifier />
+
+  <EnableNotificationsPrompt />
 
   <ActionToasts />
 </template>
