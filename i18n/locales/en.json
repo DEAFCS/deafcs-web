@@ -1516,6 +1516,10 @@
               "title": "Chat messages",
               "description": "New lobby messages while you're not in that chat"
             },
+            "match_chat": {
+              "title": "Match chat",
+              "description": "Off by default — match chat gets busy once a match is live. Turn on if you want it pushed to this device too."
+            },
             "global_chat": {
               "title": "Global Chat",
               "description": "Off by default — Global Chat is high traffic. Turn on if you want every message pushed to this device."
