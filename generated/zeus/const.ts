@@ -11921,6 +11921,9 @@ export const AllTypesProps: Record<string,any> = {
 		checkIntoMatch:{
 			match_id:"uuid"
 		},
+		checkIntoTournament:{
+			tournament_id:"uuid"
+		},
 		clearClipRenderBatch:{
 			match_map_id:"uuid"
 		},
@@ -14528,6 +14531,9 @@ export const AllTypesProps: Record<string,any> = {
 		startMatch:{
 			match_id:"uuid",
 			server_id:"uuid"
+		},
+		startTournamentIndividualCheckIn:{
+			tournament_id:"uuid"
 		},
 		stopGpuSession:{
 			game_server_node_id:"uuid"
@@ -32292,6 +32298,7 @@ export const AllTypesProps: Record<string,any> = {
 		_and:"tournament_individual_signups_bool_exp",
 		_not:"tournament_individual_signups_bool_exp",
 		_or:"tournament_individual_signups_bool_exp",
+		checked_in_at:"timestamptz_comparison_exp",
 		created_at:"timestamptz_comparison_exp",
 		id:"uuid_comparison_exp",
 		player:"players_bool_exp",
@@ -32307,6 +32314,7 @@ export const AllTypesProps: Record<string,any> = {
 		player_steam_id:"bigint"
 	},
 	tournament_individual_signups_insert_input:{
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player:"players_obj_rel_insert_input",
@@ -32318,6 +32326,7 @@ export const AllTypesProps: Record<string,any> = {
 		tournament_team_id:"uuid"
 	},
 	tournament_individual_signups_max_order_by:{
+		checked_in_at:"order_by",
 		created_at:"order_by",
 		id:"order_by",
 		player_steam_id:"order_by",
@@ -32325,6 +32334,7 @@ export const AllTypesProps: Record<string,any> = {
 		tournament_team_id:"order_by"
 	},
 	tournament_individual_signups_min_order_by:{
+		checked_in_at:"order_by",
 		created_at:"order_by",
 		id:"order_by",
 		player_steam_id:"order_by",
@@ -32337,6 +32347,7 @@ export const AllTypesProps: Record<string,any> = {
 		where:"tournament_individual_signups_bool_exp"
 	},
 	tournament_individual_signups_order_by:{
+		checked_in_at:"order_by",
 		created_at:"order_by",
 		id:"order_by",
 		player:"players_order_by",
@@ -32352,6 +32363,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	tournament_individual_signups_select_column: "enum" as const,
 	tournament_individual_signups_set_input:{
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player_steam_id:"bigint",
@@ -32373,6 +32385,7 @@ export const AllTypesProps: Record<string,any> = {
 		ordering:"cursor_ordering"
 	},
 	tournament_individual_signups_stream_cursor_value_input:{
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player_steam_id:"bigint",
@@ -34246,6 +34259,7 @@ export const AllTypesProps: Record<string,any> = {
 		on_conflict:"tournaments_on_conflict"
 	},
 	tournaments_avg_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
@@ -34291,6 +34305,8 @@ export const AllTypesProps: Record<string,any> = {
 		has_min_teams:"Boolean_comparison_exp",
 		homepage:"String_comparison_exp",
 		id:"uuid_comparison_exp",
+		individual_check_in_duration_minutes:"Int_comparison_exp",
+		individual_check_in_ends_at:"timestamptz_comparison_exp",
 		individual_signups:"tournament_individual_signups_bool_exp",
 		individual_signups_aggregate:"tournament_individual_signups_aggregate_bool_exp",
 		is_organizer:"Boolean_comparison_exp",
@@ -34343,6 +34359,7 @@ export const AllTypesProps: Record<string,any> = {
 		created_at:"timestamptz",
 		e_tournament_status:"e_tournament_status_obj_rel_insert_input",
 		id:"uuid",
+		individual_check_in_ends_at:"timestamptz",
 		individual_signups:"tournament_individual_signups_arr_rel_insert_input",
 		latitude:"float8",
 		league_season_division:"league_season_divisions_obj_rel_insert_input",
@@ -34372,6 +34389,8 @@ export const AllTypesProps: Record<string,any> = {
 		discord_webhook:"order_by",
 		homepage:"order_by",
 		id:"order_by",
+		individual_check_in_duration_minutes:"order_by",
+		individual_check_in_ends_at:"order_by",
 		latitude:"order_by",
 		location:"order_by",
 		logo:"order_by",
@@ -34391,6 +34410,8 @@ export const AllTypesProps: Record<string,any> = {
 		discord_webhook:"order_by",
 		homepage:"order_by",
 		id:"order_by",
+		individual_check_in_duration_minutes:"order_by",
+		individual_check_in_ends_at:"order_by",
 		latitude:"order_by",
 		location:"order_by",
 		logo:"order_by",
@@ -34447,6 +34468,8 @@ export const AllTypesProps: Record<string,any> = {
 		has_min_teams:"order_by",
 		homepage:"order_by",
 		id:"order_by",
+		individual_check_in_duration_minutes:"order_by",
+		individual_check_in_ends_at:"order_by",
 		individual_signups_aggregate:"tournament_individual_signups_aggregate_order_by",
 		is_organizer:"order_by",
 		joined_tournament:"order_by",
@@ -34493,6 +34516,7 @@ export const AllTypesProps: Record<string,any> = {
 	tournaments_set_input:{
 		created_at:"timestamptz",
 		id:"uuid",
+		individual_check_in_ends_at:"timestamptz",
 		latitude:"float8",
 		longitude:"float8",
 		match_options_id:"uuid",
@@ -34501,16 +34525,19 @@ export const AllTypesProps: Record<string,any> = {
 		status:"e_tournament_status_enum"
 	},
 	tournaments_stddev_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_stddev_pop_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_stddev_samp_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
@@ -34522,6 +34549,7 @@ export const AllTypesProps: Record<string,any> = {
 	tournaments_stream_cursor_value_input:{
 		created_at:"timestamptz",
 		id:"uuid",
+		individual_check_in_ends_at:"timestamptz",
 		latitude:"float8",
 		longitude:"float8",
 		match_options_id:"uuid",
@@ -34530,6 +34558,7 @@ export const AllTypesProps: Record<string,any> = {
 		status:"e_tournament_status_enum"
 	},
 	tournaments_sum_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
@@ -34541,16 +34570,19 @@ export const AllTypesProps: Record<string,any> = {
 		where:"tournaments_bool_exp"
 	},
 	tournaments_var_pop_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_var_samp_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_variance_order_by:{
+		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
@@ -45007,6 +45039,7 @@ export const ReturnTypes: Record<string,any> = {
 		cancelReparseAllDemos:"SuccessOutput",
 		cancelScrimRequest:"SuccessOutput",
 		checkIntoMatch:"SuccessOutput",
+		checkIntoTournament:"SuccessOutput",
 		clearClipRenderBatch:"SuccessOutput",
 		clearFinishedClipRenders:"SuccessOutput",
 		clearPendingMatchImport:"PendingMatchImportActionOutput",
@@ -45760,6 +45793,7 @@ export const ReturnTypes: Record<string,any> = {
 		specXray:"SuccessOutput",
 		startLive:"SuccessOutput",
 		startMatch:"SuccessOutput",
+		startTournamentIndividualCheckIn:"SuccessOutput",
 		stopGpuSession:"SuccessOutput",
 		stopLive:"SuccessOutput",
 		stopWatchDemo:"SuccessOutput",
@@ -54901,6 +54935,7 @@ export const ReturnTypes: Record<string,any> = {
 		returning:"tournament_categories"
 	},
 	tournament_individual_signups:{
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player:"players",
@@ -54932,6 +54967,7 @@ export const ReturnTypes: Record<string,any> = {
 		player_steam_id:"Float"
 	},
 	tournament_individual_signups_max_fields:{
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player_steam_id:"bigint",
@@ -54939,6 +54975,7 @@ export const ReturnTypes: Record<string,any> = {
 		tournament_team_id:"uuid"
 	},
 	tournament_individual_signups_min_fields:{
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player_steam_id:"bigint",
@@ -55842,6 +55879,8 @@ export const ReturnTypes: Record<string,any> = {
 		has_min_teams:"Boolean",
 		homepage:"String",
 		id:"uuid",
+		individual_check_in_duration_minutes:"Int",
+		individual_check_in_ends_at:"timestamptz",
 		individual_signups:"tournament_individual_signups",
 		individual_signups_aggregate:"tournament_individual_signups_aggregate",
 		is_organizer:"Boolean",
@@ -55900,6 +55939,7 @@ export const ReturnTypes: Record<string,any> = {
 		variance:"tournaments_variance_fields"
 	},
 	tournaments_avg_fields:{
+		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
 		max_players_per_lineup:"Int",
@@ -55915,6 +55955,8 @@ export const ReturnTypes: Record<string,any> = {
 		discord_webhook:"String",
 		homepage:"String",
 		id:"uuid",
+		individual_check_in_duration_minutes:"Int",
+		individual_check_in_ends_at:"timestamptz",
 		latitude:"float8",
 		location:"String",
 		logo:"String",
@@ -55936,6 +55978,8 @@ export const ReturnTypes: Record<string,any> = {
 		discord_webhook:"String",
 		homepage:"String",
 		id:"uuid",
+		individual_check_in_duration_minutes:"Int",
+		individual_check_in_ends_at:"timestamptz",
 		latitude:"float8",
 		location:"String",
 		logo:"String",
@@ -55953,6 +55997,7 @@ export const ReturnTypes: Record<string,any> = {
 		returning:"tournaments"
 	},
 	tournaments_stddev_fields:{
+		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
 		max_players_per_lineup:"Int",
@@ -55960,6 +56005,7 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_stddev_pop_fields:{
+		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
 		max_players_per_lineup:"Int",
@@ -55967,6 +56013,7 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_stddev_samp_fields:{
+		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
 		max_players_per_lineup:"Int",
@@ -55974,6 +56021,7 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_sum_fields:{
+		individual_check_in_duration_minutes:"Int",
 		latitude:"float8",
 		longitude:"float8",
 		max_players_per_lineup:"Int",
@@ -55981,6 +56029,7 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"bigint"
 	},
 	tournaments_var_pop_fields:{
+		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
 		max_players_per_lineup:"Int",
@@ -55988,6 +56037,7 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_var_samp_fields:{
+		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
 		max_players_per_lineup:"Int",
@@ -55995,6 +56045,7 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_variance_fields:{
+		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
 		max_players_per_lineup:"Int",

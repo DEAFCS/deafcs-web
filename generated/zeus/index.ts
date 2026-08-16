@@ -24631,6 +24631,7 @@ cancelMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueType
 	cancelReparseAllDemos?:ValueTypes["SuccessOutput"],
 cancelScrimRequest?: [{	request_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 checkIntoMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+checkIntoTournament?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 clearClipRenderBatch?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
 	clearFinishedClipRenders?:ValueTypes["SuccessOutput"],
@@ -26251,6 +26252,7 @@ specSlot?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	slot: number
 specXray?: [{	enabled: boolean | Variable<any, string>,	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 startLive?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	mode: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 startMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	server_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
+startTournamentIndividualCheckIn?: [{	duration_minutes: number | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 stopGpuSession?: [{	game_server_node_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 stopLive?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 stopWatchDemo?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -54665,6 +54667,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_categories_select_column"]> | 
 };
 	/** columns and relationships of "tournament_individual_signups" */
 ["tournament_individual_signups"]: AliasType<{
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	/** An object relationship */
@@ -54743,6 +54746,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 	_and?: Array<ValueTypes["tournament_individual_signups_bool_exp"]> | undefined | null | Variable<any, string>,
 	_not?: ValueTypes["tournament_individual_signups_bool_exp"] | undefined | null | Variable<any, string>,
 	_or?: Array<ValueTypes["tournament_individual_signups_bool_exp"]> | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
@@ -54761,6 +54765,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 };
 	/** input type for inserting data into table "tournament_individual_signups" */
 ["tournament_individual_signups_insert_input"]: {
+	checked_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
@@ -54773,6 +54778,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 };
 	/** aggregate max on columns */
 ["tournament_individual_signups_max_fields"]: AliasType<{
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	player_steam_id?:boolean | `@${string}`,
@@ -54782,6 +54788,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 }>;
 	/** order by max() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_max_order_by"]: {
+	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -54790,6 +54797,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 };
 	/** aggregate min on columns */
 ["tournament_individual_signups_min_fields"]: AliasType<{
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	player_steam_id?:boolean | `@${string}`,
@@ -54799,6 +54807,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 }>;
 	/** order by min() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_min_order_by"]: {
+	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -54821,6 +54830,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 };
 	/** Ordering options when selecting data from "tournament_individual_signups". */
 ["tournament_individual_signups_order_by"]: {
+	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
@@ -54839,6 +54849,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 ["tournament_individual_signups_select_column"]:tournament_individual_signups_select_column;
 	/** input type for updating data in table "tournament_individual_signups" */
 ["tournament_individual_signups_set_input"]: {
+	checked_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
@@ -54882,6 +54893,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_individual_signups_select_colu
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournament_individual_signups_stream_cursor_value_input"]: {
+	checked_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
@@ -58106,6 +58118,8 @@ categories_aggregate?: [{	/** distinct select on columns */
 	has_min_teams?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
+	individual_check_in_ends_at?:boolean | `@${string}`,
 individual_signups?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["tournament_individual_signups_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -58393,6 +58407,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58404,6 +58419,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -58450,6 +58466,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	has_min_teams?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	homepage?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	individual_check_in_duration_minutes?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
+	individual_check_in_ends_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	individual_signups?: ValueTypes["tournament_individual_signups_bool_exp"] | undefined | null | Variable<any, string>,
 	individual_signups_aggregate?: ValueTypes["tournament_individual_signups_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	is_organizer?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -58494,6 +58512,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_constraint"]:tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
+	individual_check_in_duration_minutes?: number | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["float8"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["float8"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
@@ -58527,6 +58546,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	e_tournament_status?: ValueTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	homepage?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	individual_check_in_duration_minutes?: number | undefined | null | Variable<any, string>,
+	individual_check_in_ends_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	individual_signups?: ValueTypes["tournament_individual_signups_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["float8"] | undefined | null | Variable<any, string>,
 	league_season_division?: ValueTypes["league_season_divisions_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
@@ -58562,6 +58583,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_webhook?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
+	individual_check_in_ends_at?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	location?:boolean | `@${string}`,
 	logo?:boolean | `@${string}`,
@@ -58587,6 +58610,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_webhook?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	homepage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	individual_check_in_ends_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	location?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	logo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58607,6 +58632,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_webhook?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
+	individual_check_in_ends_at?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	location?:boolean | `@${string}`,
 	logo?:boolean | `@${string}`,
@@ -58632,6 +58659,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_webhook?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	homepage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	individual_check_in_ends_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	location?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	logo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58700,6 +58729,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	has_min_teams?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	homepage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	individual_check_in_ends_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_signups_aggregate?: ValueTypes["tournament_individual_signups_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	is_organizer?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	joined_tournament?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58781,6 +58812,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_webhook?: string | undefined | null | Variable<any, string>,
 	homepage?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	individual_check_in_duration_minutes?: number | undefined | null | Variable<any, string>,
+	individual_check_in_ends_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["float8"] | undefined | null | Variable<any, string>,
 	location?: string | undefined | null | Variable<any, string>,
 	logo?: string | undefined | null | Variable<any, string>,
@@ -58795,6 +58828,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58806,12 +58840,14 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58823,12 +58859,14 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58840,6 +58878,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -58877,6 +58916,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	discord_webhook?: string | undefined | null | Variable<any, string>,
 	homepage?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	individual_check_in_duration_minutes?: number | undefined | null | Variable<any, string>,
+	individual_check_in_ends_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["float8"] | undefined | null | Variable<any, string>,
 	location?: string | undefined | null | Variable<any, string>,
 	logo?: string | undefined | null | Variable<any, string>,
@@ -58891,6 +58932,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58902,6 +58944,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -58918,6 +58961,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58929,12 +58973,14 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58946,12 +58992,14 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -58963,6 +59011,7 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
+	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -91986,6 +92035,7 @@ cancelMatch?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["Succe
 	cancelReparseAllDemos?:ResolverInputTypes["SuccessOutput"],
 cancelScrimRequest?: [{	request_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 checkIntoMatch?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+checkIntoTournament?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 clearClipRenderBatch?: [{	match_map_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
 	clearFinishedClipRenders?:ResolverInputTypes["SuccessOutput"],
@@ -93606,6 +93656,7 @@ specSlot?: [{	match_id: ResolverInputTypes["uuid"],	slot: number},ResolverInputT
 specXray?: [{	enabled: boolean,	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 startLive?: [{	match_id: ResolverInputTypes["uuid"],	mode: string},ResolverInputTypes["SuccessOutput"]],
 startMatch?: [{	match_id: ResolverInputTypes["uuid"],	server_id?: ResolverInputTypes["uuid"] | undefined | null},ResolverInputTypes["SuccessOutput"]],
+startTournamentIndividualCheckIn?: [{	duration_minutes: number,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 stopGpuSession?: [{	game_server_node_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 stopLive?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 stopWatchDemo?: [{	match_map_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -122020,6 +122071,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_categories_select_colu
 };
 	/** columns and relationships of "tournament_individual_signups" */
 ["tournament_individual_signups"]: AliasType<{
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	/** An object relationship */
@@ -122098,6 +122150,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 	_and?: Array<ResolverInputTypes["tournament_individual_signups_bool_exp"]> | undefined | null,
 	_not?: ResolverInputTypes["tournament_individual_signups_bool_exp"] | undefined | null,
 	_or?: Array<ResolverInputTypes["tournament_individual_signups_bool_exp"]> | undefined | null,
+	checked_in_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	player?: ResolverInputTypes["players_bool_exp"] | undefined | null,
@@ -122116,6 +122169,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 };
 	/** input type for inserting data into table "tournament_individual_signups" */
 ["tournament_individual_signups_insert_input"]: {
+	checked_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	player?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
@@ -122128,6 +122182,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 };
 	/** aggregate max on columns */
 ["tournament_individual_signups_max_fields"]: AliasType<{
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	player_steam_id?:boolean | `@${string}`,
@@ -122137,6 +122192,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 }>;
 	/** order by max() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_max_order_by"]: {
+	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -122145,6 +122201,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 };
 	/** aggregate min on columns */
 ["tournament_individual_signups_min_fields"]: AliasType<{
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	player_steam_id?:boolean | `@${string}`,
@@ -122154,6 +122211,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 }>;
 	/** order by min() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_min_order_by"]: {
+	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -122176,6 +122234,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 };
 	/** Ordering options when selecting data from "tournament_individual_signups". */
 ["tournament_individual_signups_order_by"]: {
+	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	player?: ResolverInputTypes["players_order_by"] | undefined | null,
@@ -122194,6 +122253,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 ["tournament_individual_signups_select_column"]:tournament_individual_signups_select_column;
 	/** input type for updating data in table "tournament_individual_signups" */
 ["tournament_individual_signups_set_input"]: {
+	checked_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
@@ -122237,6 +122297,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_individual_signups_sel
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournament_individual_signups_stream_cursor_value_input"]: {
+	checked_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
@@ -125461,6 +125522,8 @@ categories_aggregate?: [{	/** distinct select on columns */
 	has_min_teams?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
+	individual_check_in_ends_at?:boolean | `@${string}`,
 individual_signups?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["tournament_individual_signups_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -125748,6 +125811,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -125759,6 +125823,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
@@ -125805,6 +125870,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	has_min_teams?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	homepage?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	individual_check_in_duration_minutes?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
+	individual_check_in_ends_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	individual_signups?: ResolverInputTypes["tournament_individual_signups_bool_exp"] | undefined | null,
 	individual_signups_aggregate?: ResolverInputTypes["tournament_individual_signups_aggregate_bool_exp"] | undefined | null,
 	is_organizer?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
@@ -125849,6 +125916,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_constraint"]:tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: ResolverInputTypes["float8"] | undefined | null,
 	longitude?: ResolverInputTypes["float8"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["bigint"] | undefined | null
@@ -125882,6 +125950,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	e_tournament_status?: ResolverInputTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	individual_signups?: ResolverInputTypes["tournament_individual_signups_arr_rel_insert_input"] | undefined | null,
 	latitude?: ResolverInputTypes["float8"] | undefined | null,
 	league_season_division?: ResolverInputTypes["league_season_divisions_obj_rel_insert_input"] | undefined | null,
@@ -125917,6 +125987,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_webhook?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
+	individual_check_in_ends_at?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	location?:boolean | `@${string}`,
 	logo?:boolean | `@${string}`,
@@ -125942,6 +126014,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_webhook?: ResolverInputTypes["order_by"] | undefined | null,
 	homepage?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	location?: ResolverInputTypes["order_by"] | undefined | null,
 	logo?: ResolverInputTypes["order_by"] | undefined | null,
@@ -125962,6 +126036,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_webhook?:boolean | `@${string}`,
 	homepage?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
+	individual_check_in_ends_at?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	location?:boolean | `@${string}`,
 	logo?:boolean | `@${string}`,
@@ -125987,6 +126063,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_webhook?: ResolverInputTypes["order_by"] | undefined | null,
 	homepage?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	location?: ResolverInputTypes["order_by"] | undefined | null,
 	logo?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126055,6 +126133,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	has_min_teams?: ResolverInputTypes["order_by"] | undefined | null,
 	homepage?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_signups_aggregate?: ResolverInputTypes["tournament_individual_signups_aggregate_order_by"] | undefined | null,
 	is_organizer?: ResolverInputTypes["order_by"] | undefined | null,
 	joined_tournament?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126136,6 +126216,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	latitude?: ResolverInputTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -126150,6 +126232,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -126161,12 +126244,14 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -126178,12 +126263,14 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -126195,6 +126282,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
@@ -126232,6 +126320,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	latitude?: ResolverInputTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -126246,6 +126336,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -126257,6 +126348,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
@@ -126273,6 +126365,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -126284,12 +126377,14 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -126301,12 +126396,14 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: AliasType<{
+	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -126318,6 +126415,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
+	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
@@ -157303,6 +157401,8 @@ export type ModelTypes = {
 	cancelScrimRequest?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** checkIntoMatch */
 	checkIntoMatch?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Player self-check-in during a tournament's individual sign-up check-in window */
+	checkIntoTournament?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Delete terminal-state clip_render_jobs rows for a single match_map batch. */
 	clearClipRenderBatch?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
@@ -158774,6 +158874,8 @@ export type ModelTypes = {
 	startLive?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** startMatch */
 	startMatch?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Open a check-in window for individually-registered tournament players */
+	startTournamentIndividualCheckIn?: ModelTypes["SuccessOutput"] | undefined | null,
 	stopGpuSession?: ModelTypes["SuccessOutput"] | undefined | null,
 	stopLive?: ModelTypes["SuccessOutput"] | undefined | null,
 	stopWatchDemo?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -182082,7 +182184,8 @@ export type ModelTypes = {
 };
 	/** columns and relationships of "tournament_individual_signups" */
 ["tournament_individual_signups"]: {
-		created_at: ModelTypes["timestamptz"],
+		checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	created_at: ModelTypes["timestamptz"],
 	id: ModelTypes["uuid"],
 	/** An object relationship */
 	player: ModelTypes["players"],
@@ -182156,6 +182259,7 @@ export type ModelTypes = {
 	_and?: Array<ModelTypes["tournament_individual_signups_bool_exp"]> | undefined | null,
 	_not?: ModelTypes["tournament_individual_signups_bool_exp"] | undefined | null,
 	_or?: Array<ModelTypes["tournament_individual_signups_bool_exp"]> | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	player?: ModelTypes["players_bool_exp"] | undefined | null,
@@ -182173,6 +182277,7 @@ export type ModelTypes = {
 };
 	/** input type for inserting data into table "tournament_individual_signups" */
 ["tournament_individual_signups_insert_input"]: {
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	player?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
@@ -182185,7 +182290,8 @@ export type ModelTypes = {
 };
 	/** aggregate max on columns */
 ["tournament_individual_signups_max_fields"]: {
-		created_at?: ModelTypes["timestamptz"] | undefined | null,
+		checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
@@ -182193,6 +182299,7 @@ export type ModelTypes = {
 };
 	/** order by max() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_max_order_by"]: {
+	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
@@ -182201,7 +182308,8 @@ export type ModelTypes = {
 };
 	/** aggregate min on columns */
 ["tournament_individual_signups_min_fields"]: {
-		created_at?: ModelTypes["timestamptz"] | undefined | null,
+		checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	tournament_id?: ModelTypes["uuid"] | undefined | null,
@@ -182209,6 +182317,7 @@ export type ModelTypes = {
 };
 	/** order by min() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_min_order_by"]: {
+	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
@@ -182230,6 +182339,7 @@ export type ModelTypes = {
 };
 	/** Ordering options when selecting data from "tournament_individual_signups". */
 ["tournament_individual_signups_order_by"]: {
+	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	player?: ModelTypes["players_order_by"] | undefined | null,
@@ -182247,6 +182357,7 @@ export type ModelTypes = {
 	["tournament_individual_signups_select_column"]:tournament_individual_signups_select_column;
 	/** input type for updating data in table "tournament_individual_signups" */
 ["tournament_individual_signups_set_input"]: {
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
@@ -182287,6 +182398,7 @@ export type ModelTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournament_individual_signups_stream_cursor_value_input"]: {
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
@@ -185295,6 +185407,8 @@ export type ModelTypes = {
 	has_min_teams?: boolean | undefined | null,
 	homepage?: string | undefined | null,
 	id: ModelTypes["uuid"],
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	/** An array relationship */
 	individual_signups: Array<ModelTypes["tournament_individual_signups"]>,
 	/** An aggregate relationship */
@@ -185491,7 +185605,8 @@ export type ModelTypes = {
 };
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: {
-		latitude?: number | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -185501,6 +185616,7 @@ export type ModelTypes = {
 };
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
@@ -185547,6 +185663,8 @@ export type ModelTypes = {
 	has_min_teams?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	homepage?: ModelTypes["String_comparison_exp"] | undefined | null,
 	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	individual_check_in_duration_minutes?: ModelTypes["Int_comparison_exp"] | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	individual_signups?: ModelTypes["tournament_individual_signups_bool_exp"] | undefined | null,
 	individual_signups_aggregate?: ModelTypes["tournament_individual_signups_aggregate_bool_exp"] | undefined | null,
 	is_organizer?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
@@ -185590,6 +185708,7 @@ export type ModelTypes = {
 	["tournaments_constraint"]:tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	longitude?: ModelTypes["float8"] | undefined | null,
 	organizer_steam_id?: ModelTypes["bigint"] | undefined | null
@@ -185623,6 +185742,8 @@ export type ModelTypes = {
 	e_tournament_status?: ModelTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	individual_signups?: ModelTypes["tournament_individual_signups_arr_rel_insert_input"] | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	league_season_division?: ModelTypes["league_season_divisions_obj_rel_insert_input"] | undefined | null,
@@ -185658,6 +185779,8 @@ export type ModelTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -185682,6 +185805,8 @@ export type ModelTypes = {
 	discord_webhook?: ModelTypes["order_by"] | undefined | null,
 	homepage?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	location?: ModelTypes["order_by"] | undefined | null,
 	logo?: ModelTypes["order_by"] | undefined | null,
@@ -185702,6 +185827,8 @@ export type ModelTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -185726,6 +185853,8 @@ export type ModelTypes = {
 	discord_webhook?: ModelTypes["order_by"] | undefined | null,
 	homepage?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	location?: ModelTypes["order_by"] | undefined | null,
 	logo?: ModelTypes["order_by"] | undefined | null,
@@ -185793,6 +185922,8 @@ export type ModelTypes = {
 	has_min_teams?: ModelTypes["order_by"] | undefined | null,
 	homepage?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["order_by"] | undefined | null,
 	individual_signups_aggregate?: ModelTypes["tournament_individual_signups_aggregate_order_by"] | undefined | null,
 	is_organizer?: ModelTypes["order_by"] | undefined | null,
 	joined_tournament?: ModelTypes["order_by"] | undefined | null,
@@ -185863,6 +185994,8 @@ export type ModelTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -185877,7 +186010,8 @@ export type ModelTypes = {
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: {
-		latitude?: number | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -185887,13 +186021,15 @@ export type ModelTypes = {
 };
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: {
-		latitude?: number | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -185903,13 +186039,15 @@ export type ModelTypes = {
 };
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: {
-		latitude?: number | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -185919,6 +186057,7 @@ export type ModelTypes = {
 };
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
@@ -185956,6 +186095,8 @@ export type ModelTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: ModelTypes["timestamptz"] | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -185970,7 +186111,8 @@ export type ModelTypes = {
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: {
-		latitude?: ModelTypes["float8"] | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: ModelTypes["float8"] | undefined | null,
 	longitude?: ModelTypes["float8"] | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -185980,6 +186122,7 @@ export type ModelTypes = {
 };
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
@@ -185995,7 +186138,8 @@ export type ModelTypes = {
 };
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: {
-		latitude?: number | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -186005,13 +186149,15 @@ export type ModelTypes = {
 };
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: {
-		latitude?: number | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -186021,13 +186167,15 @@ export type ModelTypes = {
 };
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: {
-		latitude?: number | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
@@ -186037,6 +186185,7 @@ export type ModelTypes = {
 };
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
+	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
@@ -217867,6 +218016,8 @@ export type GraphQLTypes = {
 	cancelScrimRequest?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** checkIntoMatch */
 	checkIntoMatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Player self-check-in during a tournament's individual sign-up check-in window */
+	checkIntoTournament?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Delete terminal-state clip_render_jobs rows for a single match_map batch. */
 	clearClipRenderBatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
@@ -219338,6 +219489,8 @@ export type GraphQLTypes = {
 	startLive?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** startMatch */
 	startMatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Open a check-in window for individually-registered tournament players */
+	startTournamentIndividualCheckIn?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	stopGpuSession?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	stopLive?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	stopWatchDemo?: GraphQLTypes["SuccessOutput"] | undefined | null,
@@ -243530,6 +243683,7 @@ export type GraphQLTypes = {
 	/** columns and relationships of "tournament_individual_signups" */
 ["tournament_individual_signups"]: {
 	__typename: "tournament_individual_signups",
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at: GraphQLTypes["timestamptz"],
 	id: GraphQLTypes["uuid"],
 	/** An object relationship */
@@ -243607,6 +243761,7 @@ export type GraphQLTypes = {
 		_and?: Array<GraphQLTypes["tournament_individual_signups_bool_exp"]> | undefined | null,
 	_not?: GraphQLTypes["tournament_individual_signups_bool_exp"] | undefined | null,
 	_or?: Array<GraphQLTypes["tournament_individual_signups_bool_exp"]> | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	player?: GraphQLTypes["players_bool_exp"] | undefined | null,
@@ -243625,7 +243780,8 @@ export type GraphQLTypes = {
 };
 	/** input type for inserting data into table "tournament_individual_signups" */
 ["tournament_individual_signups_insert_input"]: {
-		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+		checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	player?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -243638,6 +243794,7 @@ export type GraphQLTypes = {
 	/** aggregate max on columns */
 ["tournament_individual_signups_max_fields"]: {
 	__typename: "tournament_individual_signups_max_fields",
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -243646,7 +243803,8 @@ export type GraphQLTypes = {
 };
 	/** order by max() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_max_order_by"]: {
-		created_at?: GraphQLTypes["order_by"] | undefined | null,
+		checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -243655,6 +243813,7 @@ export type GraphQLTypes = {
 	/** aggregate min on columns */
 ["tournament_individual_signups_min_fields"]: {
 	__typename: "tournament_individual_signups_min_fields",
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -243663,7 +243822,8 @@ export type GraphQLTypes = {
 };
 	/** order by min() on columns of table "tournament_individual_signups" */
 ["tournament_individual_signups_min_order_by"]: {
-		created_at?: GraphQLTypes["order_by"] | undefined | null,
+		checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -243685,7 +243845,8 @@ export type GraphQLTypes = {
 };
 	/** Ordering options when selecting data from "tournament_individual_signups". */
 ["tournament_individual_signups_order_by"]: {
-		created_at?: GraphQLTypes["order_by"] | undefined | null,
+		checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	player?: GraphQLTypes["players_order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -243703,7 +243864,8 @@ export type GraphQLTypes = {
 ["tournament_individual_signups_select_column"]: tournament_individual_signups_select_column;
 	/** input type for updating data in table "tournament_individual_signups" */
 ["tournament_individual_signups_set_input"]: {
-		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+		checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	status?: GraphQLTypes["e_tournament_individual_signup_status_enum"] | undefined | null,
@@ -243746,7 +243908,8 @@ export type GraphQLTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournament_individual_signups_stream_cursor_value_input"]: {
-		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+		checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	status?: GraphQLTypes["e_tournament_individual_signup_status_enum"] | undefined | null,
@@ -246922,6 +247085,8 @@ export type GraphQLTypes = {
 	has_min_teams?: boolean | undefined | null,
 	homepage?: string | undefined | null,
 	id: GraphQLTypes["uuid"],
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	/** An array relationship */
 	individual_signups: Array<GraphQLTypes["tournament_individual_signups"]>,
 	/** An aggregate relationship */
@@ -247121,6 +247286,7 @@ export type GraphQLTypes = {
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: {
 	__typename: "tournaments_avg_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247131,7 +247297,8 @@ export type GraphQLTypes = {
 };
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -247177,6 +247344,8 @@ export type GraphQLTypes = {
 	has_min_teams?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	homepage?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	individual_signups?: GraphQLTypes["tournament_individual_signups_bool_exp"] | undefined | null,
 	individual_signups_aggregate?: GraphQLTypes["tournament_individual_signups_aggregate_bool_exp"] | undefined | null,
 	is_organizer?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
@@ -247221,7 +247390,8 @@ export type GraphQLTypes = {
 ["tournaments_constraint"]: tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
-		latitude?: GraphQLTypes["float8"] | undefined | null,
+		individual_check_in_duration_minutes?: number | undefined | null,
+	latitude?: GraphQLTypes["float8"] | undefined | null,
 	longitude?: GraphQLTypes["float8"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
@@ -247254,6 +247424,8 @@ export type GraphQLTypes = {
 	e_tournament_status?: GraphQLTypes["e_tournament_status_obj_rel_insert_input"] | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	individual_signups?: GraphQLTypes["tournament_individual_signups_arr_rel_insert_input"] | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	league_season_division?: GraphQLTypes["league_season_divisions_obj_rel_insert_input"] | undefined | null,
@@ -247290,6 +247462,8 @@ export type GraphQLTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -247314,6 +247488,8 @@ export type GraphQLTypes = {
 	discord_webhook?: GraphQLTypes["order_by"] | undefined | null,
 	homepage?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	location?: GraphQLTypes["order_by"] | undefined | null,
 	logo?: GraphQLTypes["order_by"] | undefined | null,
@@ -247335,6 +247511,8 @@ export type GraphQLTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -247359,6 +247537,8 @@ export type GraphQLTypes = {
 	discord_webhook?: GraphQLTypes["order_by"] | undefined | null,
 	homepage?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	location?: GraphQLTypes["order_by"] | undefined | null,
 	logo?: GraphQLTypes["order_by"] | undefined | null,
@@ -247427,6 +247607,8 @@ export type GraphQLTypes = {
 	has_min_teams?: GraphQLTypes["order_by"] | undefined | null,
 	homepage?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["order_by"] | undefined | null,
 	individual_signups_aggregate?: GraphQLTypes["tournament_individual_signups_aggregate_order_by"] | undefined | null,
 	is_organizer?: GraphQLTypes["order_by"] | undefined | null,
 	joined_tournament?: GraphQLTypes["order_by"] | undefined | null,
@@ -247508,6 +247690,8 @@ export type GraphQLTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -247523,6 +247707,7 @@ export type GraphQLTypes = {
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: {
 	__typename: "tournaments_stddev_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247533,13 +247718,15 @@ export type GraphQLTypes = {
 };
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: {
 	__typename: "tournaments_stddev_pop_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247550,13 +247737,15 @@ export type GraphQLTypes = {
 };
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: {
 	__typename: "tournaments_stddev_samp_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247567,7 +247756,8 @@ export type GraphQLTypes = {
 };
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -247604,6 +247794,8 @@ export type GraphQLTypes = {
 	discord_webhook?: string | undefined | null,
 	homepage?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
+	individual_check_in_ends_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	location?: string | undefined | null,
 	logo?: string | undefined | null,
@@ -247619,6 +247811,7 @@ export type GraphQLTypes = {
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: {
 	__typename: "tournaments_sum_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	longitude?: GraphQLTypes["float8"] | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247629,7 +247822,8 @@ export type GraphQLTypes = {
 };
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -247646,6 +247840,7 @@ export type GraphQLTypes = {
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: {
 	__typename: "tournaments_var_pop_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247656,13 +247851,15 @@ export type GraphQLTypes = {
 };
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: {
 	__typename: "tournaments_var_samp_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247673,13 +247870,15 @@ export type GraphQLTypes = {
 };
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: {
 	__typename: "tournaments_variance_fields",
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -247690,7 +247889,8 @@ export type GraphQLTypes = {
 };
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
-		latitude?: GraphQLTypes["order_by"] | undefined | null,
+		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -261619,6 +261819,7 @@ export enum tournament_individual_signups_constraint {
 }
 /** select columns of table "tournament_individual_signups" */
 export enum tournament_individual_signups_select_column {
+	checked_in_at = "checked_in_at",
 	created_at = "created_at",
 	id = "id",
 	player_steam_id = "player_steam_id",
@@ -261628,6 +261829,7 @@ export enum tournament_individual_signups_select_column {
 }
 /** update columns of table "tournament_individual_signups" */
 export enum tournament_individual_signups_update_column {
+	checked_in_at = "checked_in_at",
 	created_at = "created_at",
 	id = "id",
 	player_steam_id = "player_steam_id",
@@ -261906,6 +262108,8 @@ export enum tournaments_select_column {
 	discord_webhook = "discord_webhook",
 	homepage = "homepage",
 	id = "id",
+	individual_check_in_duration_minutes = "individual_check_in_duration_minutes",
+	individual_check_in_ends_at = "individual_check_in_ends_at",
 	latitude = "latitude",
 	location = "location",
 	logo = "logo",
@@ -262024,6 +262228,8 @@ export enum tournaments_update_column {
 	discord_webhook = "discord_webhook",
 	homepage = "homepage",
 	id = "id",
+	individual_check_in_duration_minutes = "individual_check_in_duration_minutes",
+	individual_check_in_ends_at = "individual_check_in_ends_at",
 	latitude = "latitude",
 	location = "location",
 	logo = "logo",

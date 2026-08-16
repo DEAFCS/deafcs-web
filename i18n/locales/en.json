@@ -4295,6 +4295,28 @@
       "count": "{count} Teams",
       "my_teams": "My Team"
     },
+    "players": {
+      "count": "{count} Players",
+      "registered": "Registered ({count})",
+      "none_yet": "No one has registered yet.",
+      "checked_in": "Checked in",
+      "not_checked_in": "Not checked in yet",
+      "waitlist": "Waitlist ({count})",
+      "removed": "Removed for not checking in ({count})",
+      "check_in": {
+        "title": "Check-in",
+        "description": "Everyone Registered gets a forced overlay until they check in or the window closes.",
+        "minutes": "minutes",
+        "start": "Start Check-in",
+        "started": "Check-in started",
+        "start_failed": "Failed to start check-in",
+        "in_progress": "Check-in is currently in progress.",
+        "requires_closed_registration": "Close registration first.",
+        "overlay_title": "Confirm you're still in",
+        "overlay_description": "You're registered for {name}. Check in now or you'll be replaced by the next player on the waitlist.",
+        "check_in_now": "Check In Now"
+      }
+    },
     "actions": {
       "open_registration": "Open Registration",
       "close_registration": "Close Registration",

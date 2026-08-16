@@ -42,6 +42,9 @@ const GlobalLobbyCallNotifier = defineAsyncComponent(
 const EnableNotificationsPrompt = defineAsyncComponent(
   () => import("~/components/notification/EnableNotificationsPrompt.vue"),
 );
+const TournamentCheckInOverlay = defineAsyncComponent(
+  () => import("~/components/tournament/TournamentCheckInOverlay.vue"),
+);
 import { useClipModal } from "~/composables/useClipModal";
 
 const { activeClipId } = useClipModal();
@@ -125,6 +128,8 @@ provide("containContent", containContent);
   <GlobalLobbyCallNotifier />
 
   <EnableNotificationsPrompt />
+
+  <TournamentCheckInOverlay />
 
   <ActionToasts />
 </template>

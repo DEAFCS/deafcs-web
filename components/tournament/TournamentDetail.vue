@@ -2,6 +2,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import TournamentStageBuilder from "~/components/tournament/TournamentStageBuilder.vue";
 import TournamentJoinForm from "~/components/tournament/TournamentJoinForm.vue";
+import TournamentIndividualPlayers from "~/components/tournament/TournamentIndividualPlayers.vue";
 import TournamentTeam from "~/components/tournament/TournamentTeam.vue";
 import TournamentInformationForm from "~/components/tournament/TournamentInformationForm.vue";
 import TournamentMatchOptionsForm from "~/components/tournament/TournamentMatchOptionsForm.vue";
@@ -484,9 +485,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               </TabsTrigger>
               <TabsTrigger value="teams" :class="tacticalTabsTriggerClasses">
                 {{
-                  $t("tournament.teams.count", {
-                    count: tournament?.teams_aggregate?.aggregate?.count || 0,
-                  })
+                  isIndividualRegistration
+                    ? $t("tournament.players.count", {
+                        count: registeredIndividualSignups.length,
+                      })
+                    : $t("tournament.teams.count", {
+                        count: tournament?.teams_aggregate?.aggregate?.count || 0,
+                      })
                 }}
               </TabsTrigger>
               <TabsTrigger
@@ -653,7 +658,12 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           </PageTransition>
         </TabsContent>
         <TabsContent value="teams">
+          <TournamentIndividualPlayers
+            v-if="isIndividualRegistration"
+            :tournament="tournament"
+          />
           <div
+            v-else
             class="grid gap-6 items-start"
             :class="
               tournament.is_organizer
@@ -1361,6 +1371,21 @@ export default {
     },
     leagueSeasonId() {
       return this.$route.params.seasonId ?? null;
+    },
+    // Once teams have actually been generated (or, for an org that toggled
+    // this off after already having teams, whenever any exist), fall back
+    // to the normal team grid -- individual sign-up is purely a
+    // registration-time mechanism, not an ongoing display mode.
+    isIndividualRegistration() {
+      return (
+        !!this.tournament?.options?.individual_registration_enabled &&
+        (this.tournament?.teams_aggregate?.aggregate?.count || 0) === 0
+      );
+    },
+    registeredIndividualSignups() {
+      return (this.tournament?.individual_signups ?? []).filter(
+        (signup: any) => signup.status !== "Removed",
+      );
     },
     canGenerateTeams() {
       return (
