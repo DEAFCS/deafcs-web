@@ -1055,6 +1055,7 @@ export default {
                   id: true,
                   player_steam_id: true,
                   status: true,
+                  checked_in_at: true,
                   player: {
                     name: true,
                     avatar_url: true,
