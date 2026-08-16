@@ -76,6 +76,9 @@ const teamsCount = computed(
 );
 
 const matchType = computed(() => props.tournament?.options?.type || null);
+const isIndividualRegistration = computed(
+  () => !!props.tournament?.options?.individual_registration_enabled,
+);
 
 const primaryStage = computed(() => {
   return [...(props.tournament?.stages || [])].sort(
@@ -211,6 +214,12 @@ const statusChipClasses = computed(() => {
           {{ $t("tournament.feature_card.teams") }}
         </span>
         <MatchTypeBadge v-if="matchType" :type="matchType" size="default" />
+        <span
+          v-if="isIndividualRegistration"
+          class="inline-flex items-center rounded-full border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.12)] px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
+        >
+          {{ $t("tournament.feature_card.solo_random") }}
+        </span>
         <span class="inline-flex items-center gap-1.5">
           <GitBranch class="h-3.5 w-3.5 text-white/55" />
           {{ stageLabel }}

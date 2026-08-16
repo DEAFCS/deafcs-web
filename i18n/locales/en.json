@@ -3924,7 +3924,8 @@
       "teams": "Teams",
       "stages": "Stages",
       "default_label": "Tournament",
-      "organized_by": "By {team}"
+      "organized_by": "By {team}",
+      "solo_random": "Solo Random"
     },
     "results_section": {
       "no_data": "NO DATA",

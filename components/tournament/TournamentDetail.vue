@@ -33,6 +33,7 @@ import {
   Globe,
   MapPin,
   Shuffle,
+  UserMinus,
 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -137,6 +138,9 @@ const tournamentHeroJoinButtonClasses = [
   tacticalCtaButtonClasses,
   "h-9 px-4 py-2 text-[0.68rem] tracking-[0.14em] max-sm:flex-1 max-sm:px-3",
 ];
+const tournamentHeroLeaveButtonClasses = [
+  "h-9 px-4 py-2 text-[0.68rem] tracking-[0.14em] max-sm:flex-1 max-sm:px-3 inline-flex items-center gap-1.5 rounded-md border border-destructive/50 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
+];
 const tournamentHeroSettingsButtonClasses =
   "h-9 w-9 border-[hsl(var(--tac-amber)_/_0.45)] bg-background/45 text-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.12)] hover:text-[hsl(var(--tac-amber))]";
 const tournamentHeroTabsClasses = "mt-5 border-t border-border pt-4";
@@ -217,7 +221,31 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
             <div :class="tournamentHeroToplineClasses">
               <div :class="tournamentHeroActionsClasses">
                 <Button
-                  v-if="
+                  v-if="isIndividualRegistration && myIndividualSignup"
+                  size="sm"
+                  :class="tournamentHeroLeaveButtonClasses"
+                  :disabled="individualActionBusy || checkInCurrentlyActive"
+                  @click="leaveIndividually"
+                >
+                  <UserMinus class="h-3.5 w-3.5" />
+                  {{ $t("tournament.join.individual.leave") }}
+                </Button>
+                <Button
+                  v-else-if="
+                    isIndividualRegistration &&
+                    tournament.status === e_tournament_status_enum.RegistrationOpen
+                  "
+                  size="sm"
+                  :class="tournamentHeroJoinButtonClasses"
+                  :disabled="individualActionBusy"
+                  @click="joinIndividually"
+                >
+                  <UserPlus class="h-3.5 w-3.5" />
+                  {{ $t("tournament.join.title") }}
+                </Button>
+                <Button
+                  v-else-if="
+                    !isIndividualRegistration &&
                     tournament.status ===
                       e_tournament_status_enum.RegistrationOpen &&
                     tournament.can_join
@@ -373,6 +401,12 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 <div :class="tournamentHeroBadgesClasses">
                   <span :class="tournamentHeroModeTagClasses">
                     {{ tournament.options.type }}
+                  </span>
+                  <span
+                    v-if="isIndividualRegistration"
+                    :class="tournamentHeroModeTagClasses"
+                  >
+                    {{ $t("tournament.feature_card.solo_random") }}
                   </span>
                   <span
                     v-if="stageCount > 1"
@@ -950,6 +984,7 @@ export default {
       tournamentAwardSelection: {} as TournamentAwardSelection,
       myTeamLoaded: false,
       e_match_types: [],
+      individualActionBusy: false,
     };
   },
   unmounted() {
@@ -1387,6 +1422,21 @@ export default {
         (signup: any) => signup.status !== "Removed",
       );
     },
+    myIndividualSignup() {
+      const steamId = String(this.me?.steam_id ?? "");
+      if (!steamId) return null;
+      return (
+        (this.tournament?.individual_signups ?? []).find(
+          (signup: any) =>
+            String(signup.player_steam_id) === steamId &&
+            (signup.status === "Registered" || signup.status === "Waitlisted"),
+        ) ?? null
+      );
+    },
+    checkInCurrentlyActive() {
+      const endsAt = this.tournament?.individual_check_in_ends_at;
+      return !!endsAt && new Date(endsAt) > new Date();
+    },
     canGenerateTeams() {
       return (
         this.tournament?.is_organizer &&
@@ -1667,6 +1717,56 @@ export default {
       await this.updateTournamentStatus(
         e_tournament_status_enum.RegistrationOpen,
       );
+    },
+    async joinIndividually() {
+      if (this.individualActionBusy) return;
+      this.individualActionBusy = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            insert_tournament_individual_signups_one: [
+              {
+                object: {
+                  tournament_id: this.tournament.id,
+                  player_steam_id: this.me.steam_id,
+                },
+              },
+              { id: true },
+            ],
+          }),
+        });
+        toast({ title: this.$t("tournament.join.title") });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.individualActionBusy = false;
+      }
+    },
+    async leaveIndividually() {
+      if (this.individualActionBusy || !this.myIndividualSignup) return;
+      this.individualActionBusy = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            delete_tournament_individual_signups: [
+              { where: { id: { _eq: this.myIndividualSignup.id } } },
+              { affected_rows: true },
+            ],
+          }),
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.individualActionBusy = false;
+      }
     },
     async generateTeams() {
       try {
