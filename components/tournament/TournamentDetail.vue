@@ -1047,6 +1047,8 @@ export default {
               max_players_per_lineup: true,
               admin: playerFields,
               options: matchOptionsFields,
+              individual_check_in_ends_at: true,
+              individual_check_in_duration_minutes: true,
               individual_signups: [
                 {},
                 {
