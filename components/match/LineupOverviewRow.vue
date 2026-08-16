@@ -125,11 +125,14 @@ const DASH = "—";
                   canRequestHighlight
                 "
               />
-              <DropdownMenuItem @click="requestCameraSpotCheck">
+              <DropdownMenuItem
+                v-if="!isCameraSpotCheckRequested"
+                @click="requestCameraSpotCheck"
+              >
                 <Camera class="text-[hsl(var(--tac-amber))]" />
                 <span>{{ $t("match.overview.request_camera") }}</span>
               </DropdownMenuItem>
-              <DropdownMenuItem @click="cancelCameraSpotCheck">
+              <DropdownMenuItem v-else @click="cancelCameraSpotCheck">
                 <CameraOff class="text-muted-foreground" />
                 <span>{{ $t("match.overview.stop_camera_request") }}</span>
               </DropdownMenuItem>
@@ -394,6 +397,11 @@ import {
   cameraAdminRequestUrl,
   cameraAdminCancelRequestUrl,
 } from "~/composables/useCameraApi";
+import {
+  subscribeCameraAdminRequests,
+  isCameraRequested,
+  setCameraRequestedOptimistic,
+} from "~/composables/useCameraAdminRequests";
 
 export default {
   components: {
@@ -403,7 +411,28 @@ export default {
   data() {
     return {
       drilldownKillCount: null as null | number,
+      cameraRequestsSub: null as null | { unsubscribe: () => void },
     };
+  },
+  watch: {
+    // Only subscribes to the shared admin poll (see
+    // useCameraAdminRequests) once this row can actually show the
+    // Request/Stop toggle -- most rows a regular player sees never
+    // need it at all.
+    canRequestCameraSpotCheck: {
+      handler(canRequest: boolean) {
+        if (canRequest && !this.cameraRequestsSub) {
+          this.cameraRequestsSub = subscribeCameraAdminRequests(this.match.id);
+        } else if (!canRequest && this.cameraRequestsSub) {
+          this.cameraRequestsSub.unsubscribe();
+          this.cameraRequestsSub = null;
+        }
+      },
+      immediate: true,
+    },
+  },
+  beforeUnmount() {
+    this.cameraRequestsSub?.unsubscribe();
   },
   props: {
     matchSide: {
@@ -545,6 +574,10 @@ export default {
     async requestCameraSpotCheck() {
       const steamId = this.member.player?.steam_id;
       if (!steamId) return;
+      // Flip the toggle immediately rather than waiting on the next 5s
+      // poll -- reverted in the catch block if the request actually
+      // failed.
+      setCameraRequestedOptimistic(this.match.id, String(steamId), true);
       try {
         const res = await fetch(
           cameraAdminRequestUrl(this.match.id, String(steamId)),
@@ -557,6 +590,7 @@ export default {
           }),
         });
       } catch (error) {
+        setCameraRequestedOptimistic(this.match.id, String(steamId), false);
         toast({
           title: this.$t("match.overview.request_camera_failed"),
           description: (error as Error).message,
@@ -567,6 +601,7 @@ export default {
     async cancelCameraSpotCheck() {
       const steamId = this.member.player?.steam_id;
       if (!steamId) return;
+      setCameraRequestedOptimistic(this.match.id, String(steamId), false);
       try {
         const res = await fetch(
           cameraAdminCancelRequestUrl(this.match.id, String(steamId)),
@@ -579,6 +614,7 @@ export default {
           }),
         });
       } catch (error) {
+        setCameraRequestedOptimistic(this.match.id, String(steamId), true);
         toast({
           title: this.$t("match.overview.stop_camera_request_failed"),
           description: (error as Error).message,
@@ -685,6 +721,15 @@ export default {
         e_match_status_enum.Live,
         e_match_status_enum.WaitingForServer,
       ].includes(this.match.status);
+    },
+    // Drives the Request/Stop toggle in the (⋮) menu -- only one of
+    // the two is ever shown, reflecting the shared, polled admin state
+    // from useCameraAdminRequests (see the canRequestCameraSpotCheck
+    // watcher above for where that subscription starts).
+    isCameraSpotCheckRequested() {
+      const steamId = this.member.player?.steam_id;
+      if (!steamId) return false;
+      return isCameraRequested(this.match.id, String(steamId));
     },
     mapsWithDemo() {
       const out: Array<{ id: string; label: string }> = [];

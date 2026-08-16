@@ -112,6 +112,7 @@ export type CameraPlayerStatus = {
   name: string | null;
   lineupId: string;
   ready: boolean;
+  requested: boolean;
 };
 
 export async function fetchCameraPlayers(matchId: string): Promise<{
