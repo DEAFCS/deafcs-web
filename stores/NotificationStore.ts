@@ -506,13 +506,21 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
                 where: {
                   _and: [
                     { deleted_at: { _is_null: true } },
-                    // ChatMessage notification rows exist purely to give
-                    // the Web Push event trigger something to fire on
-                    // (see api-deafcs's push-notifications module) --
-                    // the live chat itself already delivers the message
-                    // in-app, so surfacing them here too would just be a
-                    // second, generic-looking "alert" for the same thing.
-                    { type: { _neq: "ChatMessage" } },
+                    // Chat notification rows exist purely to give the Web
+                    // Push event trigger something to fire on (see
+                    // api-deafcs's push-notifications module) -- the live
+                    // chat itself (plus its own unread-count badge)
+                    // already delivers the message in-app, so surfacing
+                    // them here too would just be a second, generic-
+                    // looking "alert" for the same thing. Every chat-ish
+                    // type belongs in this list, not just the original
+                    // ChatMessage -- MatchChatMessage (split out later)
+                    // briefly leaked through here for exactly that reason.
+                    {
+                      type: {
+                        _nin: ["ChatMessage", "MatchChatMessage", "GlobalChatMessage"],
+                      },
+                    },
                     {
                       _or: [
                         { is_read: { _eq: false } },
