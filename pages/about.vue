@@ -62,51 +62,53 @@ const teamMembers = computed(() => [
   </InfoPage>
 
   <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 pb-12">
-    <div class="flex flex-col gap-3">
-      <span :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses" />
-        {{ $t("pages.info.about.mission.title") }}
-      </span>
-      <Card class="bg-card/20">
-        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-          <div class="flex max-w-3xl flex-col gap-3">
-            <p class="text-sm leading-relaxed text-foreground/90">
-              {{ $t("pages.info.about.mission.intro") }}
-            </p>
-            <p class="text-sm leading-relaxed text-foreground/90">
-              {{ $t("pages.info.about.mission.body") }}
-            </p>
-            <p class="text-sm leading-relaxed text-foreground/90">
-              {{ $t("pages.info.about.mission.closing") }}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="flex flex-col gap-3">
+        <span :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" />
+          {{ $t("pages.info.about.mission.title") }}
+        </span>
+        <Card class="h-full bg-card/20">
+          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+            <div class="flex flex-col gap-3">
+              <p class="text-sm leading-relaxed text-foreground/90">
+                {{ $t("pages.info.about.mission.intro") }}
+              </p>
+              <p class="text-sm leading-relaxed text-foreground/90">
+                {{ $t("pages.info.about.mission.body") }}
+              </p>
+              <p class="text-sm leading-relaxed text-foreground/90">
+                {{ $t("pages.info.about.mission.closing") }}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-    <div class="flex flex-col gap-3">
-      <span :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses" />
-        {{ $t("pages.info.about.history.title") }}
-      </span>
-      <Card class="bg-card/20">
-        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-          <div class="flex max-w-3xl flex-col gap-3">
-            <p class="text-sm leading-relaxed text-foreground/90">
-              {{ $t("pages.info.about.history.intro") }}
-            </p>
-            <p class="text-sm leading-relaxed text-foreground/90">
-              {{ $t("pages.info.about.history.body") }}
-            </p>
-            <p class="text-sm leading-relaxed text-foreground/90">
-              {{ $t("pages.info.about.history.continuation") }}
-            </p>
-            <p class="text-sm leading-relaxed text-foreground/90">
-              {{ $t("pages.info.about.history.closing") }}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
+      <div class="flex flex-col gap-3">
+        <span :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" />
+          {{ $t("pages.info.about.history.title") }}
+        </span>
+        <Card class="h-full bg-card/20">
+          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+            <div class="flex flex-col gap-3">
+              <p class="text-sm leading-relaxed text-foreground/90">
+                {{ $t("pages.info.about.history.intro") }}
+              </p>
+              <p class="text-sm leading-relaxed text-foreground/90">
+                {{ $t("pages.info.about.history.body") }}
+              </p>
+              <p class="text-sm leading-relaxed text-foreground/90">
+                {{ $t("pages.info.about.history.continuation") }}
+              </p>
+              <p class="text-sm leading-relaxed text-foreground/90">
+                {{ $t("pages.info.about.history.closing") }}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
 
     <div class="flex flex-col gap-3">
