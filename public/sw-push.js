@@ -25,13 +25,20 @@ self.addEventListener("push", (event) => {
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
-// Deliberately not attempting to deep-link by type/entity_id here —
-// that mapping lives in the app's Vue Router and would need to be
-// duplicated in plain JS with no shared source of truth. Focusing (or
-// opening) the app is the safe, always-correct fallback; the in-app
-// notification list still exists for the specific link.
+// Deep-linking to the exact chat a notification came from can't be done
+// here directly -- the type/entity_id -> tab mapping lives in the app's
+// Vue state (open tabs, chat tab id conventions, player lookups for DMs)
+// and would need to be duplicated in plain JS with no shared source of
+// truth. Instead: if the app is already open, postMessage it the
+// type/entity_id and let it do the routing (see
+// plugins/chatNotificationClick.client.ts). If we have to open a fresh
+// window, postMessage would race the page load, so the target is encoded
+// in a ?openChat= query param that same plugin reads on mount instead.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
+
+  const notificationData = event.notification.data || {};
+  const { type, entity_id: entityId } = notificationData;
 
   event.waitUntil(
     (async () => {
@@ -42,12 +49,23 @@ self.addEventListener("notificationclick", (event) => {
 
       for (const client of allClients) {
         if ("focus" in client) {
+          if (type && entityId) {
+            client.postMessage({
+              kind: "chat-notification-click",
+              type,
+              entity_id: entityId,
+            });
+          }
           return client.focus();
         }
       }
 
       if (self.clients.openWindow) {
-        return self.clients.openWindow("/");
+        const target =
+          type && entityId
+            ? `/?openChat=${encodeURIComponent(entityId)}`
+            : "/";
+        return self.clients.openWindow(target);
       }
     })(),
   );
