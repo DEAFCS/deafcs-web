@@ -613,8 +613,19 @@ export default {
               mySteamId != null &&
               fromSteamId != null &&
               String(fromSteamId) === String(mySteamId);
+            // Distinct from isOwnMessage above: steam_id alone can't tell
+            // "this exact browser/app session sent it" apart from "my
+            // account sent it from a *different* session" (e.g. phone),
+            // which was exactly why a PC session's unread badge/sound
+            // never fired for a message its own account had just sent
+            // from mobile -- it was being treated as this session's own
+            // outbound message. Only the badge/sound/emit below need this
+            // narrower check; the "mark as read everywhere" behaviour
+            // right after intentionally keeps using the broader
+            // steam_id-based isOwnMessage.
+            const isOwnSession = message?.clientId === socket.sessionId;
 
-            if (this.isMinimized && this.global && !isOwnMessage) {
+            if (this.isMinimized && this.global && !isOwnSession) {
               this.unreadCount++;
             }
             // Auto-scroll only when already at the bottom.
@@ -630,14 +641,14 @@ export default {
             ) {
               this.lastReadMessageCount = this.messages.length;
             }
-            if (this.playNotificationSound && !isOwnMessage) {
+            if (this.playNotificationSound && !isOwnSession) {
               playNotificationSound();
             }
 
             this.$emit("message-received", {
               tabId: this.tabId,
               message,
-              direction: isOwnMessage ? "outbound" : "inbound",
+              direction: isOwnSession ? "outbound" : "inbound",
             });
           },
         );

@@ -45,6 +45,20 @@ class Socket extends EventEmitter {
   private static readonly BASE_DELAY_MS = 1000;
   private static readonly MAX_DELAY_MS = 30000;
 
+  // Distinguishes "this exact browser/app session sent it" from "my
+  // account sent it, possibly from a different device" -- steam_id alone
+  // can't tell those apart, which was the actual bug behind unread
+  // badges/sounds never firing on a PC session for a message sent from
+  // that same account's phone: both share the same steam_id, so the old
+  // isOwnMessage check (steam_id match only) treated the PC session's
+  // own untouched, still-unread tab as "my own message, nothing to do."
+  // One per page load/app session, not persisted -- a page reload is a
+  // new "session" for this purpose, which is fine.
+  public readonly sessionId: string =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
   private lobbies: Map<string, Lobby> = new Map();
   private rooms: Map<
     string,
@@ -230,6 +244,7 @@ class Socket extends EventEmitter {
       id,
       type,
       message,
+      clientId: this.sessionId,
     });
   }
 
