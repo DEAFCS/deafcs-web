@@ -15,7 +15,6 @@ import {
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
-  MoreVertical,
   Download,
 } from "lucide-vue-next";
 
@@ -33,10 +32,19 @@ const dialogOpen = ref(false);
 const IOS_STEP_COUNT = 5;
 
 const qrDataUrl = ref<string | null>(null);
+// Separate QR for Android -- points straight at the APK download, not
+// the site itself. Scanning it should hand the phone a file to install,
+// not another "now go find the install button" step.
+const androidQrDataUrl = ref<string | null>(null);
 
 const joinUrl = computed(() => {
   if (typeof window === "undefined") return "";
   return window.location.origin;
+});
+
+const androidApkUrl = computed(() => {
+  if (typeof window === "undefined") return "";
+  return `${window.location.origin}/downloads/DEAFCS.apk`;
 });
 
 watch(
@@ -47,6 +55,12 @@ watch(
     iosStepIndex.value = 0;
     if (!qrDataUrl.value) {
       qrDataUrl.value = await QRCode.toDataURL(joinUrl.value, {
+        width: 220,
+        margin: 1,
+      });
+    }
+    if (!androidQrDataUrl.value) {
+      androidQrDataUrl.value = await QRCode.toDataURL(androidApkUrl.value, {
         width: 220,
         margin: 1,
       });
@@ -168,7 +182,11 @@ function nextIosStep() {
         </div>
       </div>
 
-      <!-- Step 2b: Android -- placeholder until real steps are ready -->
+      <!-- Step 2b: Android -- QR/link go straight to the real installed
+           app (a Bubblewrap TWA .apk), not Chrome's "Add to Home
+           Screen" -- that path silently degrades to a browser-badged
+           shortcut on some devices, which has no separate Android
+           notification permission and can't receive push at all. -->
       <div v-else-if="step === 'android'" class="flex flex-col gap-4">
         <button
           type="button"
@@ -179,36 +197,43 @@ function nextIosStep() {
         </button>
         <div class="flex items-center gap-3 rounded-lg border border-border p-2.5">
           <img
-            v-if="qrDataUrl"
-            :src="qrDataUrl"
+            v-if="androidQrDataUrl"
+            :src="androidQrDataUrl"
             alt="QR code"
             width="72"
             height="72"
             class="rounded-md border border-border bg-white p-1 shrink-0"
           />
           <p class="text-xs text-muted-foreground">
-            {{ $t("pwa.install_dialog.scan_hint") }}
+            {{ $t("pwa.install_dialog.android_scan_hint") }}
           </p>
         </div>
 
-        <!-- Android's browser handles the actual install with its own
-             native prompt (same $pwa.install() the sidebar's Install
-             App button already uses) -- no per-device screenshots
-             needed here, just point at where that button lives. -->
         <div class="flex flex-col gap-3 py-1">
           <div class="flex items-center gap-4">
-            <MoreVertical class="w-7 h-7 shrink-0" />
+            <Download class="w-7 h-7 shrink-0" />
             <p class="text-sm text-muted-foreground">
               {{ $t("pwa.install_dialog.android_step1") }}
             </p>
           </div>
           <div class="flex items-center gap-4">
-            <Download class="w-7 h-7 shrink-0" />
+            <Smartphone class="w-7 h-7 shrink-0" />
             <p class="text-sm text-muted-foreground">
               {{ $t("pwa.install_dialog.android_step2") }}
             </p>
           </div>
         </div>
+
+        <p class="text-xs text-muted-foreground/80">
+          {{ $t("pwa.install_dialog.android_why") }}
+        </p>
+
+        <Button as-child variant="outline" size="sm" class="self-start">
+          <a :href="androidApkUrl">
+            <Download class="w-4 h-4" />
+            {{ $t("pwa.install_dialog.android_download_button") }}
+          </a>
+        </Button>
       </div>
     </DialogContent>
   </Dialog>
