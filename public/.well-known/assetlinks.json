@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "net.deafcs.app",
+      "sha256_cert_fingerprints": [
+        "BA:7D:24:A8:48:8D:40:3B:D8:4F:E8:8B:B0:BE:FC:B0:4C:DC:6A:63:75:52:72:F9:DB:73:E5:C8:86:1F:4F:15"
+      ]
+    }
+  }
+]
