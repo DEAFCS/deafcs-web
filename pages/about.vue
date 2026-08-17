@@ -61,7 +61,7 @@ const teamMembers = computed(() => [
     </p>
   </InfoPage>
 
-  <div class="mx-auto flex w-full max-w-3xl flex-col gap-6 pb-12">
+  <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 pb-12">
     <div class="flex flex-col gap-3">
       <span :class="tacticalSectionLabelClasses">
         <span :class="tacticalSectionTickClasses" />
@@ -69,15 +69,42 @@ const teamMembers = computed(() => [
       </span>
       <Card class="bg-card/20">
         <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-          <p class="text-sm leading-relaxed text-foreground/90">
-            {{ $t("pages.info.about.mission.intro") }}
-          </p>
-          <p class="text-sm leading-relaxed text-foreground/90">
-            {{ $t("pages.info.about.mission.body") }}
-          </p>
-          <p class="text-sm leading-relaxed text-foreground/90">
-            {{ $t("pages.info.about.mission.closing") }}
-          </p>
+          <div class="flex max-w-3xl flex-col gap-3">
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.mission.intro") }}
+            </p>
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.mission.body") }}
+            </p>
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.mission.closing") }}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.about.history.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <div class="flex max-w-3xl flex-col gap-3">
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.history.intro") }}
+            </p>
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.history.body") }}
+            </p>
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.history.continuation") }}
+            </p>
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.history.closing") }}
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>
@@ -87,7 +114,7 @@ const teamMembers = computed(() => [
         <span :class="tacticalSectionTickClasses" />
         {{ $t("pages.info.about.team.title") }}
       </span>
-      <p class="text-sm leading-relaxed text-foreground/90">
+      <p class="max-w-3xl text-sm leading-relaxed text-foreground/90">
         {{ $t("pages.info.about.team.intro") }}
       </p>
       <div class="grid gap-4 sm:grid-cols-3">
@@ -108,31 +135,33 @@ const teamMembers = computed(() => [
     <div class="flex flex-col gap-3">
       <span :class="tacticalSectionLabelClasses">
         <span :class="tacticalSectionTickClasses" />
-        {{ $t("pages.info.about.tdil.title") }}
+        {{ $t("pages.info.about.partner.title") }}
       </span>
       <Card class="bg-card/20">
         <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-          <i18n-t
-            keypath="pages.info.about.tdil.intro"
-            tag="p"
-            scope="global"
-            class="text-sm leading-relaxed text-foreground/90"
-          >
-            <template #link>
-              <a
-                href="https://www.tdil.no/"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="inline-flex items-center gap-1 font-semibold text-[hsl(var(--tac-amber))] hover:underline"
-              >
-                {{ $t("pages.info.about.tdil.link_label") }}
-                <ExternalLink class="h-3 w-3" />
-              </a>
-            </template>
-          </i18n-t>
-          <p class="text-sm leading-relaxed text-foreground/90">
-            {{ $t("pages.info.about.tdil.body") }}
-          </p>
+          <div class="flex max-w-3xl flex-col gap-3">
+            <i18n-t
+              keypath="pages.info.about.partner.intro"
+              tag="p"
+              scope="global"
+              class="text-sm leading-relaxed text-foreground/90"
+            >
+              <template #link>
+                <a
+                  href="https://8temporary.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1 font-semibold text-[hsl(var(--tac-amber))] hover:underline"
+                >
+                  {{ $t("pages.info.about.partner.link_label") }}
+                  <ExternalLink class="h-3 w-3" />
+                </a>
+              </template>
+            </i18n-t>
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.partner.body") }}
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

@@ -3342,6 +3342,13 @@
           "body": "We want to make structured competitive play more accessible, help Deaf and hard-of-hearing players find each other, make it easier to create and develop teams, and provide a place where players can compete, track their progress and be part of the wider community.",
           "closing": "DEAFCS aims to support both competition and community — from players who simply want to find matches to teams competing in organized tournaments and, in the future, leagues."
         },
+        "history": {
+          "title": "Our History",
+          "intro": "Before DEAFCS, the Deaf Counter-Strike community had DeafESL, which was active around 2013–2015 and grew to more than 1,000 members.",
+          "body": "TricoN was involved in running DeafESL, but later became involved with HLTV.org while also working a full-time job outside HLTV.org. With increasingly limited free time available to maintain and develop DeafESL, the project eventually came to an end.",
+          "continuation": "Years later, DEAFCS was created with renewed motivation to build a modern and sustainable competitive home for Deaf and hard-of-hearing Counter-Strike players.",
+          "closing": "DEAFCS is a new platform with its own systems and direction, but it continues the broader goal that started with DeafESL: bringing the Deaf Counter-Strike community together through competition and community."
+        },
         "team": {
           "title": "The Team Behind DEAFCS",
           "intro": "DEAFCS is built and maintained by members of the community who want to create a dedicated competitive home for Deaf Counter-Strike players.",
@@ -3349,35 +3356,298 @@
           "members": {
             "tricon": {
               "nickname": "TricoN",
-              "role": "Co-Founder",
+              "role": "Co-Owner / Co-Founder",
               "bio": "Focuses on product direction, competitive systems, community, design decisions, and development."
             },
             "theft": {
               "nickname": "Theft",
-              "role": "Co-Founder",
+              "role": "Co-Owner / Co-Founder",
               "bio": "Focuses on development, infrastructure, server operations, and technical maintenance."
             },
             "m0c1n": {
               "nickname": "m0c1n",
-              "role": "Contributor",
+              "role": "Co-Owner",
               "bio": "Helps with 1v1 and 2v2 map work for matchmaking and tournaments, branding and logo work, and other DEAFCS project tasks."
             }
           }
         },
-        "tdil": {
-          "title": "Owned and Supported by TDIL",
-          "intro": "DEAFCS is owned and supported by {link}. Their funding and support help make the continued development and operation of DEAFCS possible.",
-          "body": "This support allows DEAFCS to stay focused on building a dedicated competitive Counter-Strike platform for the Deaf and hard-of-hearing community.",
-          "link_label": "TDIL"
+        "partner": {
+          "title": "Media & Accessibility Partner — 8rary",
+          "intro": "{link} is DEAFCS's media and accessibility partner, supporting livestream production, highlights, social media, and accessible video content.",
+          "body": "Their work helps present DEAFCS matches, events, and community content to viewers in a professional and accessible way.",
+          "link_label": "8rary"
         }
       },
       "faq": {
         "title": "FAQ",
-        "intro": "Answers to common questions about DEAFCS. This page is being written — check back soon for the full FAQ."
+        "intro": "Answers to common questions about DEAFCS — getting started, your account, matchmaking, tournaments, and the wider community.",
+        "categories": {
+          "getting_started": {
+            "title": "Getting Started",
+            "items": {
+              "what_is_deafcs": {
+                "q": "What is DEAFCS?",
+                "a": "DEAFCS is a competitive Counter-Strike platform built for the Deaf and hard-of-hearing community. It brings together matchmaking, tournaments, teams, rankings and statistics, match results, news, highlights, and community features in one place."
+              },
+              "who_can_use": {
+                "q": "Who can use DEAFCS?",
+                "a": "DEAFCS is built for Deaf and hard-of-hearing Counter-Strike players. If you have questions about eligibility or access, reach out via {link} and we'll help."
+              },
+              "how_sign_in": {
+                "q": "How do I sign in?",
+                "a": "You sign in with your Steam account. DEAFCS doesn't use a separate email or password."
+              },
+              "need_discord": {
+                "q": "Do I need Discord?",
+                "a": "No, Discord isn't required to use DEAFCS. We're building out DEAFCS's own community and communication tools over time."
+              },
+              "free_to_use": {
+                "q": "Is DEAFCS free to use?",
+                "a": "Yes — normal use of DEAFCS currently does not require a paid subscription."
+              }
+            }
+          },
+          "account": {
+            "title": "Account",
+            "items": {
+              "why_steam": {
+                "q": "Why do I sign in with Steam?",
+                "a": "Your Steam account is used as your DEAFCS identity and login — it's how your matches, stats, and profile are tied to you."
+              },
+              "change_nickname_avatar": {
+                "q": "Can I change my nickname and avatar?",
+                "a": "You can update your nickname from Settings. Your avatar currently comes from your linked Steam profile."
+              },
+              "deactivate_account": {
+                "q": "Can I deactivate my account?",
+                "a": "Yes. {link} explains what deactivating your account means, including what happens to your account and historical competitive records."
+              },
+              "historical_records": {
+                "q": "What happens to my historical match records if I deactivate my account?",
+                "a": "Your competitive match and tournament history may remain as part of DEAFCS's historical sporting records. See {link} for details."
+              },
+              "return_later": {
+                "q": "Can I return to DEAFCS later?",
+                "a": "Yes, you can sign back in with Steam whenever you're ready. See {link} for more on how your account and data are handled."
+              }
+            }
+          },
+          "elo_and_seasons": {
+            "title": "ELO & Seasons",
+            "items": {
+              "how_elo_works": {
+                "q": "How does ELO work?",
+                "intro": "DEAFCS uses an individual ELO rating for competitive ranking. Your ELO change isn't based only on whether you won or lost — it's calculated by comparing your ELO to the average ELO of both teams in that match.",
+                "performance": "Your individual performance in the match also contributes to how much ELO you gain or lose. Because of this, players in the same match can gain or lose different amounts of ELO.",
+                "stats_guide_link": "For a more detailed explanation of DEAFCS ratings, statistics, and how they're calculated, see the {link}.",
+                "stats_guide_label": "Stats Guide"
+              },
+              "elo_per_mode": {
+                "q": "Does each mode have its own ELO?",
+                "a": "Yes. DEAFCS keeps a separate ELO rating for each competitive matchmaking mode — Competitive, Wingman, and Duel. Your performance in one mode doesn't directly carry over as your rating in another mode."
+              },
+              "season_reset": {
+                "q": "What happens to ELO when a new season starts?",
+                "a": "When a new competitive season begins, regular-match ELO resets to the 5,000 baseline for the new season. Your previous season's rating and statistics are kept as historical data, so you can still view your performance from earlier seasons. Tournament ELO is season-independent and is not reset with competitive seasons."
+              },
+              "elo_tiers": {
+                "q": "What are the ELO tiers?",
+                "intro": "DEAFCS groups ELO into the following tiers:"
+              },
+              "draft_elo": {
+                "q": "Does Draft use ELO?",
+                "a": "Draft can use ELO. Match organizers and higher roles control whether ELO tracking is enabled for a specific Draft game — Draft is commonly used for fun, custom, or community games rather than normal ranked matchmaking. See the {link} section for more."
+              }
+            }
+          },
+          "matchmaking": {
+            "title": "Matchmaking",
+            "items": {
+              "how_matchmaking_works": {
+                "q": "How does matchmaking work?",
+                "a": "DEAFCS matches you with other players based on the mode you queue for, so you can get into a competitive match without organizing one yourself."
+              },
+              "modes_available": {
+                "q": "Which matchmaking modes are available?",
+                "intro": "DEAFCS currently offers three matchmaking modes:",
+                "modes": {
+                  "competitive": "5 versus 5 — the standard competitive matchmaking mode.",
+                  "wingman": "2 versus 2 — a faster-paced matchmaking mode.",
+                  "duel": "1 versus 1 — DEAFCS's current solo matchmaking mode, played on the normal map/bombsite-style setup rather than a dedicated aim map."
+                },
+                "note": "DEAFCS isn't planning to add many more matchmaking modes. A separate, dedicated 1v1 aim-map mode may be considered in the future if there's enough community interest, but it isn't a confirmed or upcoming feature."
+              },
+              "queue_with_friends": {
+                "q": "Can I queue with friends?",
+                "a": "Yes, you can queue as a party with friends. Party size limits vary by mode — see {link} for current details."
+              },
+              "leave_abandon": {
+                "q": "What happens if I leave or abandon a match?",
+                "a": "Leaving or abandoning a match may be subject to matchmaking rules and penalties. See {link} for details."
+              }
+            }
+          },
+          "servers": {
+            "title": "Servers",
+            "items": {
+              "where_located": {
+                "q": "Where are DEAFCS game servers located?",
+                "a": "DEAFCS currently has game servers in Germany. More locations may be added later after we have tested more tournaments and matchmaking activity."
+              },
+              "preferred_server": {
+                "q": "Can I choose a preferred server/location?",
+                "a": "Yes. In Settings → Matchmaking, you can mark server regions as Preferred. Right now there's only one active game-server location, so this becomes more useful once additional locations are added."
+              },
+              "server_problems": {
+                "q": "What happens if a server has problems during a match?",
+                "a": "If you're in an active match, use Contact Support from the match page's ⋮ menu to request an organizer directly. Support is handled with limited staff and resources, so an immediate response can't always be guaranteed. For anything else, you can also reach us via {link}."
+              },
+              "ping_difference": {
+                "q": "Why is my ping different from other players?",
+                "a": "Ping can vary depending on your distance from the current server location in Germany, your internet connection, routing, or other network conditions."
+              },
+              "add_server_location": {
+                "q": "Can DEAFCS add another server location?",
+                "a": "Yes. Additional locations can be added when DEAFCS has the financial resources or receives suitable server support or sponsorship. New servers also need to be integrated and tested before being added to the active server list."
+              }
+            }
+          },
+          "draft": {
+            "title": "Draft",
+            "items": {
+              "how_draft_works": {
+                "q": "How does Draft work?",
+                "a": "Draft lets you create and join games outside the normal matchmaking queue. You can set up pick-up games in different styles — such as auto-split, team captains picking players, or a host building both teams — along with custom settings like map pool and access control."
+              },
+              "fun_only": {
+                "q": "Is Draft only for competitive games?",
+                "a": "No. Draft can also be used simply for casual, custom, or community games rather than ranked competition."
+              },
+              "workshop_maps": {
+                "q": "Can DEAFCS add Workshop maps to Draft?",
+                "a": "Workshop maps can be added to DEAFCS's map pools, including for Draft. There's no formal map-suggestion process yet, but community interest matters — for example, once the Forum is available, a popular suggestion there could help show demand for a specific map. Adding any particular map is ultimately up to DEAFCS."
+              },
+              "draft_elo": {
+                "q": "Does Draft affect my ELO?",
+                "a": "Draft can use ELO, but it doesn't have to be treated like normal ranked matchmaking. Match organizers and higher roles control whether ELO tracking is enabled for a specific Draft game, which is how Draft supports fun, custom, and community games."
+              }
+            }
+          },
+          "teams_tournaments": {
+            "title": "Teams & Tournaments",
+            "items": {
+              "create_join_team": {
+                "q": "How do I create or join a team?",
+                "normal_team": "You can create a team or join one through DEAFCS's Teams section. A normal DEAFCS team has its own roster and profile, and exists independently of any single tournament.",
+                "tournament_team": "For tournaments, you don't necessarily need a permanent Teams-page team — when registering, you can also form a team specifically for that tournament without creating one in the Teams section first."
+              },
+              "join_tournament": {
+                "q": "How do I join a tournament?",
+                "a": "Tournaments are joined through teams and each tournament's own registration, following that tournament's specific setup."
+              },
+              "organize_tournament": {
+                "q": "Can I organize a tournament?",
+                "a": "Tournament organizers are given permission to create and manage tournaments. If you're interested in organizing a DEAFCS tournament, get in touch via {link} and we'll help you get set up."
+              },
+              "tournament_rules": {
+                "q": "Where can I find the tournament rules?",
+                "a": "See {link} for the current tournament rules."
+              },
+              "leagues": {
+                "q": "Are leagues available?",
+                "a": "Leagues are planned for DEAFCS but aren't an active feature yet."
+              }
+            }
+          },
+          "highlights": {
+            "title": "Highlights",
+            "items": {
+              "earn_highlight": {
+                "q": "How do I earn a Highlight?",
+                "a": "Highlights are generated automatically based on the best round you played in a match. Auto-generated highlights currently require a triple kill or better (3K+). This threshold is configurable and may be changed by DEAFCS administrators — for example, to manage storage and rendering capacity."
+              },
+              "highlights_per_match": {
+                "q": "How many Highlights can I get from one match?",
+                "a": "DEAFCS generates at most one automatic highlight per player per map. Your best qualifying round is selected by kill count first; if multiple rounds tie on kills, the round where those kills happened closest together in time is chosen. In a multi-map match, you can end up with more than one highlight, since each map is scored separately."
+              },
+              "highlight_retention": {
+                "q": "How long are Highlights kept?",
+                "a": "Highlights are kept for at least a minimum retention period before they're eligible for cleanup. If total highlight storage exceeds the site's configured limit, the oldest highlights that have already passed that minimum are removed first, so highlights shouldn't be treated as permanent storage."
+              },
+              "highlight_disappear": {
+                "q": "Why might an older Highlight disappear?",
+                "a": "Highlight retention is configurable, and storage limits can require older highlights to be removed once they're past their minimum retention. Highlights are stored for a limited period and may be removed when storage limits require cleanup. If you want to keep a Highlight permanently, download it to your own device."
+              }
+            }
+          },
+          "community_support": {
+            "title": "Community & Support",
+            "items": {
+              "report_problem": {
+                "q": "Where can I report a problem?",
+                "a": "You can report a problem via {link}."
+              },
+              "suggest_feature": {
+                "q": "Where can I suggest a feature or improvement?",
+                "a": "You can share feedback and suggestions via {link}."
+              },
+              "news_highlights": {
+                "q": "Where can I find DEAFCS news and highlights?",
+                "a": "Check {link} for written updates and {link2} for match clips and highlight reels."
+              },
+              "contact_deafcs": {
+                "q": "How do I contact DEAFCS?",
+                "a": "You can reach the DEAFCS team via {link}."
+              }
+            }
+          }
+        }
       },
       "contact": {
         "title": "Contact",
-        "intro": "Need to get in touch with the DEAFCS team? Contact details will be added here soon."
+        "intro": "Choose the category below that best matches what you need help with.",
+        "live_match": {
+          "title": "Live Match Support",
+          "description": "If you're in an active match right now and there's a server or match problem, this is the fastest way to get help.",
+          "step_1": "Open your match page.",
+          "step_2": "Use the ⋮ menu and select Contact Support.",
+          "step_3": "This directly requests help from a match organizer.",
+          "note": "DEAFCS has limited staff and resources, so an immediate response can't always be guaranteed."
+        },
+        "general_support": {
+          "title": "General Support",
+          "description": "For general questions or issues that aren't happening during a live match, including media or press inquiries.",
+          "status": "No dedicated contact form yet — check back here once one is available."
+        },
+        "bug_reports": {
+          "title": "Bug Reports",
+          "description": "Found something broken? Bug reports help DEAFCS catch and fix issues.",
+          "status": "No dedicated bug-report channel yet. Once the DEAFCS forum is live, this will link directly to a Bug Reports section there."
+        },
+        "suggestions": {
+          "title": "Suggestions & Feedback",
+          "description": "Ideas for new features or improvements are welcome.",
+          "status": "No dedicated suggestions channel yet. Once the DEAFCS forum is live, this will link directly to a Suggestions section there."
+        },
+        "organizer_access": {
+          "title": "Tournament Organizer Access",
+          "description": "Tournament creation and management is intended for approved organizers. If you're interested in helping organize DEAFCS tournaments, let us know.",
+          "status": "No dedicated organizer-application channel yet. Access isn't automatically granted, and requirements haven't been finalized."
+        },
+        "account_data": {
+          "title": "Account & Data",
+          "description": "Read {link} first for information about account deactivation, historical competitive records, returning later, and other account/data actions."
+        },
+        "privacy": {
+          "title": "Privacy",
+          "description": "Read {link} for how DEAFCS handles your data."
+        },
+        "partnerships": {
+          "title": "Partnerships & Server Support",
+          "description": "DEAFCS welcomes interest from organizations or individuals who want to support the project — for example through sponsorship, financial support, providing game-server resources or hosting locations, or other partnerships.",
+          "status": "No dedicated partnerships channel yet — check back here once one is available."
+        },
+        "other_ways": "Other Ways to Get Help"
       },
       "general_rules": {
         "title": "General Rules",
