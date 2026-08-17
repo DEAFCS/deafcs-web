@@ -50,12 +50,39 @@ export async function getExistingPushSubscription(): Promise<PushSubscription | 
   return registration.pushManager.getSubscription();
 }
 
+// Wraps a promise that can hang forever instead of ever rejecting --
+// Notification.requestPermission() has been observed to do exactly
+// that on some Android setups (missing/broken Google Play Services,
+// which the underlying permission flow depends on): no system dialog,
+// no error, the toggle just sits there "busy" indefinitely with no
+// feedback. Racing it against a timeout turns that into a real,
+// visible failure instead of a silent hang.
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(message)), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timer);
+        reject(error);
+      },
+    );
+  });
+}
+
 // Must be called synchronously from a real click/tap handler — see
 // the file-level comment above.
 export async function subscribeToPush(): Promise<boolean> {
   if (!isPushSupported()) return false;
 
-  const permission = await Notification.requestPermission();
+  const permission = await withTimeout(
+    Notification.requestPermission(),
+    15_000,
+    "Timed out waiting for the notification permission prompt. This can happen on devices with broken or missing Google Play Services.",
+  );
   if (permission !== "granted") return false;
 
   const { publicKey } = await $fetch<{ publicKey: string | null }>(

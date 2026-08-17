@@ -96,6 +96,20 @@ const handlePushToggle = async (enabled: boolean) => {
       pushEnabled.value = false;
       toast({ title: t("pages.settings.notifications.push.disabled_toast") });
     }
+  } catch (error) {
+    // subscribeToPush() now throws (rather than hanging forever) if the
+    // permission prompt itself never responds -- surface that instead
+    // of letting it vanish silently, which is exactly what "nothing
+    // happens when I tap enable" was.
+    pushEnabled.value = false;
+    toast({
+      variant: "destructive",
+      title: t("common.error"),
+      description:
+        error instanceof Error
+          ? error.message
+          : t("pages.settings.notifications.push.enable_failed"),
+    });
   } finally {
     pushBusy.value = false;
   }
