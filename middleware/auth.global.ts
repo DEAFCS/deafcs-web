@@ -28,6 +28,14 @@ function isPublicRoute(path: string): boolean {
     "/public-servers",
     "/stats-guide",
     "/awards",
+    "/faq",
+    "/general-rules",
+    "/matchmaking-rules",
+    "/tournament-rules",
+    "/account-data",
+    "/privacy-policy",
+    "/terms-of-service",
+    "/forum",
   ];
 
   if (publicRoutes.includes(path) || isAuthTransportRoute(path)) {

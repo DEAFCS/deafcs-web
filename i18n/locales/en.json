@@ -3327,6 +3327,48 @@
       "forbidden_title": "Access restricted",
       "forbidden_description": "You don't have permission to view this page.",
       "error_title": "Failed to load page"
+    },
+    "info": {
+      "about": {
+        "title": "About DEAFCS",
+        "intro": "DEAFCS is a competitive matchmaking and tournament platform. More information about the project will be added here soon."
+      },
+      "faq": {
+        "title": "FAQ",
+        "intro": "Answers to common questions about DEAFCS. This page is being written — check back soon for the full FAQ."
+      },
+      "contact": {
+        "title": "Contact",
+        "intro": "Need to get in touch with the DEAFCS team? Contact details will be added here soon."
+      },
+      "general_rules": {
+        "title": "General Rules",
+        "intro": "General conduct rules for using DEAFCS. The full rules are being finalized and will be published here."
+      },
+      "matchmaking_rules": {
+        "title": "Matchmaking Rules",
+        "intro": "Rules governing ranked matchmaking on DEAFCS. Full details are coming soon."
+      },
+      "tournament_rules": {
+        "title": "Tournament Rules",
+        "intro": "Rules governing DEAFCS tournaments. Full details are coming soon."
+      },
+      "account_data": {
+        "title": "Account & Data",
+        "intro": "Information about your DEAFCS account and the data associated with it. Full details are coming soon."
+      },
+      "privacy_policy": {
+        "title": "Privacy Policy",
+        "intro": "How DEAFCS handles your data. The full privacy policy is being finalized and will be published here."
+      },
+      "terms_of_service": {
+        "title": "Terms of Service",
+        "intro": "The terms governing use of DEAFCS. The full terms are being finalized and will be published here."
+      },
+      "forum": {
+        "title": "Forum",
+        "intro": "The DEAFCS forum is coming soon. Check back later for community discussions."
+      }
     }
   },
   "custom_match": {
@@ -3489,10 +3531,10 @@
       }
     },
     "top_nav": {
-      "home": "My Stats",
       "play_menu": "Play",
       "community_menu": "Community",
       "watch_menu": "Watch",
+      "info_menu": "Info",
       "login": "Login to Play",
       "login_aria": "Sign in through Steam",
       "authorize": "AUTHORIZE",
@@ -3533,9 +3575,9 @@
         },
         "social": {
           "title": "Social",
-          "join_discord": {
-            "title": "Join our Discord",
-            "subtitle": "Chat, support, and announcements"
+          "forum": {
+            "title": "Forum",
+            "subtitle": "Discuss with the community"
           }
         },
         "roster": "ROSTER",
@@ -3546,6 +3588,53 @@
         "news": {
           "title": "News",
           "subtitle": "{brand} news"
+        }
+      },
+      "info": {
+        "deafcs": {
+          "title": "DEAFCS",
+          "about": {
+            "title": "About DEAFCS",
+            "subtitle": "Learn about the platform"
+          },
+          "faq": {
+            "title": "FAQ",
+            "subtitle": "Answers to common questions"
+          },
+          "contact": {
+            "title": "Contact",
+            "subtitle": "Get in touch with us"
+          }
+        },
+        "rules": {
+          "title": "Rules",
+          "general_rules": {
+            "title": "General",
+            "subtitle": "Platform-wide rules and conduct"
+          },
+          "matchmaking_rules": {
+            "title": "Matchmaking",
+            "subtitle": "Rules for ranked matchmaking"
+          },
+          "tournament_rules": {
+            "title": "Tournament",
+            "subtitle": "Rules for tournament play"
+          }
+        },
+        "account_legal": {
+          "title": "Account & Legal",
+          "account_data": {
+            "title": "Account & Data",
+            "subtitle": "Manage your account and data"
+          },
+          "privacy_policy": {
+            "title": "Privacy Policy",
+            "subtitle": "How we handle your data"
+          },
+          "terms_of_service": {
+            "title": "Terms of Service",
+            "subtitle": "Terms for using DEAFCS"
+          }
         }
       }
     },
