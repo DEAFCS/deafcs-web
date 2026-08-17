@@ -311,6 +311,19 @@ export default defineNuxtConfig({
           type: "image/png",
           purpose: "any",
         },
+        // Solid-background, padded variant of the same logo -- Android's
+        // adaptive-icon masking (circle/squircle/etc.) needs the artwork
+        // confined to a safe center zone with no transparency, or it
+        // clips the logo's pointed edges and fills the rest with an
+        // auto-picked background. The flat "any" icon above looked fine
+        // on iOS (no masking applied) but came out cropped/fuzzy as an
+        // Android launcher icon for exactly this reason.
+        {
+          src: "/favicon/512-maskable.png?v=deafcs-1",
+          sizes: "512x512",
+          type: "image/png",
+          purpose: "maskable",
+        },
       ],
       theme_color: "#000000",
       background_color: "#000000",
