@@ -3331,7 +3331,45 @@
     "info": {
       "about": {
         "title": "About DEAFCS",
-        "intro": "DEAFCS is a competitive matchmaking and tournament platform. More information about the project will be added here soon."
+        "intro": "DEAFCS is a competitive Counter-Strike platform built for the Deaf and hard-of-hearing community.",
+        "intro_2": "DEAFCS brings players, teams and competitive Counter-Strike together in one dedicated place.",
+        "intro_3": "The platform combines matchmaking, tournaments, teams, statistics, rankings, match results, news, highlights and community features, making it easier for players to compete, connect and follow the Deaf Counter-Strike scene.",
+        "intro_4": "DEAFCS is designed around competitive play while also giving the community a place to find players, build teams, follow matches and stay connected.",
+        "intro_5": "The platform is actively developed and will continue to grow with new features and improvements over time.",
+        "mission": {
+          "title": "Our Mission",
+          "intro": "Our mission is to provide one dedicated home for the global Deaf Counter-Strike community.",
+          "body": "We want to make structured competitive play more accessible, help Deaf and hard-of-hearing players find each other, make it easier to create and develop teams, and provide a place where players can compete, track their progress and be part of the wider community.",
+          "closing": "DEAFCS aims to support both competition and community — from players who simply want to find matches to teams competing in organized tournaments and, in the future, leagues."
+        },
+        "team": {
+          "title": "The Team Behind DEAFCS",
+          "intro": "DEAFCS is built and maintained by members of the community who want to create a dedicated competitive home for Deaf Counter-Strike players.",
+          "view_profile": "View {name}'s profile",
+          "members": {
+            "tricon": {
+              "nickname": "TricoN",
+              "role": "Co-Founder",
+              "bio": "Focuses on product direction, competitive systems, community, design decisions, and development."
+            },
+            "theft": {
+              "nickname": "Theft",
+              "role": "Co-Founder",
+              "bio": "Focuses on development, infrastructure, server operations, and technical maintenance."
+            },
+            "m0c1n": {
+              "nickname": "m0c1n",
+              "role": "Contributor",
+              "bio": "Helps with 1v1 and 2v2 map work for matchmaking and tournaments, branding and logo work, and other DEAFCS project tasks."
+            }
+          }
+        },
+        "tdil": {
+          "title": "Owned and Supported by TDIL",
+          "intro": "DEAFCS is owned and supported by {link}. Their funding and support help make the continued development and operation of DEAFCS possible.",
+          "body": "This support allows DEAFCS to stay focused on building a dedicated competitive Counter-Strike platform for the Deaf and hard-of-hearing community.",
+          "link_label": "TDIL"
+        }
       },
       "faq": {
         "title": "FAQ",
