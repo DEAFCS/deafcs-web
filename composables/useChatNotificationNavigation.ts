@@ -143,6 +143,22 @@ export function useChatNotificationNavigation() {
       return true;
     }
 
+    if (type === "match_team") {
+      // Team Chat has no sidebar chat-hub tab at all -- unlike every
+      // other lobby type, it's only ever rendered inline on the match
+      // page itself (see pages/matches/[id]/index.vue). entity_id is
+      // "match_team:<matchId>:<lineupId>", so route to that match page
+      // rather than trying (and silently failing) to open a hub tab
+      // that doesn't exist for this type -- this was the actual bug:
+      // "match_team" wasn't in SIMPLE_LOBBY_TYPES below, so a Team Chat
+      // notification click matched nothing and did nothing at all.
+      const parts = entityId.split(":");
+      if (parts.length !== 3) return false;
+      const [, matchId] = parts;
+      await navigateTo(`/matches/${matchId}`);
+      return true;
+    }
+
     if (SIMPLE_LOBBY_TYPES.includes(type as ChatTab["type"])) {
       const lobbyId = entityId.slice(type.length + 1);
       if (!lobbyId) return false;
