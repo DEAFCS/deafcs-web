@@ -10,6 +10,8 @@ import {
 } from "~/components/ui/dialog";
 import { Button } from "~/components/ui/button";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
+import AppleIcon from "~/components/icons/AppleIcon.vue";
+import AndroidIcon from "~/components/icons/AndroidIcon.vue";
 import {
   Smartphone,
   ArrowLeft,
@@ -111,7 +113,7 @@ function nextIosStep() {
           class="flex flex-col items-center gap-2 rounded-lg border border-border p-5 hover:border-primary hover:bg-accent transition-colors"
           @click="step = 'ios'"
         >
-          <Smartphone class="w-7 h-7" />
+          <AppleIcon class="w-7 h-7" />
           <span class="text-sm font-medium">{{
             $t("pwa.install_dialog.iphone")
           }}</span>
@@ -121,7 +123,7 @@ function nextIosStep() {
           class="flex flex-col items-center gap-2 rounded-lg border border-border p-5 hover:border-primary hover:bg-accent transition-colors"
           @click="step = 'android'"
         >
-          <Smartphone class="w-7 h-7" />
+          <AndroidIcon class="w-7 h-7" />
           <span class="text-sm font-medium">{{
             $t("pwa.install_dialog.android")
           }}</span>
@@ -230,10 +232,6 @@ function nextIosStep() {
             </p>
           </div>
         </div>
-
-        <p class="text-xs text-muted-foreground/80">
-          {{ $t("pwa.install_dialog.android_why") }}
-        </p>
 
         <Button as-child variant="outline" size="sm" class="self-start">
           <a :href="androidApkUrl">

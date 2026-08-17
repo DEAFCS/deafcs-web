@@ -3608,7 +3608,6 @@
       "android_step1": "Scan the QR code — DEAFCS.apk downloads to your phone",
       "android_step2": "Open the downloaded file and tap Install (allow 'install unknown apps' for your browser if asked)",
       "android_download_button": "Or download DEAFCS.apk directly",
-      "android_why": "A real installed app, not just a browser shortcut — this fixes notifications not working after installing.",
       "ios_steps": {
         "0": "Tap the '•••' menu button in Safari's bottom bar",
         "1": "Tap 'Share'",
