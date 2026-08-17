@@ -237,6 +237,21 @@ class Socket extends EventEmitter {
     return this.listen(
       `lobby:${type}:${id}:chat`,
       (data: { message: string }) => {
+        // Keep the shared, persistent Lobby cache (see joinLobby below) in
+        // sync too, not just whichever component instance happens to be
+        // listening right now. Without this, an incoming message only ever
+        // landed in that instance's own local `messages` clone (see
+        // ChatLobby.vue's updateLobbyMessages) -- the cache a fresh mount
+        // reads from stayed stuck at whatever the last full snapshot was.
+        // On mobile the right sidebar unmounts its content entirely when
+        // closed (unlike desktop, which just hides it with CSS), so every
+        // close+reopen was a fresh mount reading that stale cache --
+        // reported as "my own message disappears after closing and
+        // reopening the sidebar."
+        const lobby = this.lobbies.get(`${type}:${id}`);
+        if (lobby) {
+          lobby.messages.push(data);
+        }
         callback(data);
       },
     );
