@@ -518,7 +518,12 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
                     // briefly leaked through here for exactly that reason.
                     {
                       type: {
-                        _nin: ["ChatMessage", "MatchChatMessage", "GlobalChatMessage"],
+                        _nin: [
+                          "ChatMessage",
+                          "MatchChatMessage",
+                          "GlobalChatMessage",
+                          "OrganizerChatMessage",
+                        ],
                       },
                     },
                     {
