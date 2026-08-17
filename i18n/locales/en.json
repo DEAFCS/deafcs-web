@@ -1524,6 +1524,10 @@
               "title": "Global Chat",
               "description": "Off by default — Global Chat is high traffic. Turn on if you want every message pushed to this device."
             },
+            "organizer_chat": {
+              "title": "Organizer Chat",
+              "description": "New messages in Organizer Chat"
+            },
             "news": {
               "title": "News",
               "description": "A new article was published"
