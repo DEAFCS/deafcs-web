@@ -70,10 +70,20 @@ export function useChatNotificationNavigation() {
   }
 
   async function openChatFromNotification(
-    type: string | undefined | null,
+    _notificationType: string | undefined | null,
     entityId: string | undefined | null,
   ): Promise<boolean> {
-    if (!type || !entityId) return false;
+    if (!entityId) return false;
+    // entity_id is "${ChatLobbyType}:${id}" (see chat.service.ts's
+    // notifyLobbyMembers) -- that's the real routing type. The
+    // notification's own `type` field is a *different* enum (e.g.
+    // "OrganizerChatMessage", "GlobalChatMessage", "ChatMessage") used
+    // for push categories/preferences, not chat-lobby routing, and is
+    // intentionally ignored here.
+    const separatorIndex = entityId.indexOf(":");
+    if (separatorIndex === -1) return false;
+    const type = entityId.slice(0, separatorIndex);
+
     const { openTab } = useChatTabs();
 
     if (type === "direct") {
