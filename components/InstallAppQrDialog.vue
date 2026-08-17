@@ -42,9 +42,16 @@ const joinUrl = computed(() => {
   return window.location.origin;
 });
 
+// Cloudflare cached the very first build of this file for its default
+// ~4h edge TTL and kept serving it after every rebuild, regardless of
+// the no-store header now set in nuxt.config.ts's routeRules (origin
+// headers aren't always honored the same way at the edge) -- bumping
+// this on every new APK build forces a different cache key/URL, so
+// there's no cached response to possibly still hit.
+const DEAFCS_APK_VERSION = 3;
 const androidApkUrl = computed(() => {
   if (typeof window === "undefined") return "";
-  return `${window.location.origin}/downloads/DEAFCS.apk`;
+  return `${window.location.origin}/downloads/DEAFCS.apk?v=${DEAFCS_APK_VERSION}`;
 });
 
 watch(

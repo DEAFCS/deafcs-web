@@ -14,6 +14,18 @@ const sw = process.env.SW === "true";
 export default defineNuxtConfig({
   ssr: false,
 
+  // The DEAFCS.apk download (see InstallAppQrDialog.vue) got stuck
+  // serving a stale build for hours after every rebuild -- Cloudflare
+  // cached the very first response (default 4h edge TTL for static
+  // assets) and kept serving it regardless of how many times the file
+  // changed on the origin afterward. no-store means every request
+  // revalidates with the origin instead of trusting a cached copy --
+  // this is a rarely-updated ~1MB file, correctness matters far more
+  // here than shaving a request.
+  routeRules: {
+    "/downloads/**": { headers: { "cache-control": "no-store" } },
+  },
+
   // Pin the shadcn `cn` helper to a real committed module. shadcn-nuxt
   // otherwise aliases @/lib/utils to a virtual template that Vite can drop
   // during dep re-optimization → runtime "cn is not a function".
