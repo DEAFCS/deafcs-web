@@ -26,12 +26,12 @@ export interface ResolvedAwardArtwork {
   tierColor: string;
 }
 
-const BUILT_IN_PLACEMENTS: Readonly<Record<string, 0 | 1 | 2 | 3>> = {
-  tournament_mvp: 0,
-  tournament_gold: 1,
-  tournament_silver: 2,
-  tournament_bronze: 3,
-};
+// Intentionally empty: the tournament_* system awards used to map here to
+// render the elaborate AwardBadge trophy graphic instead of the plain tier
+// icon every other award (including the season_* awards) falls back to.
+// Cleared so tournament awards render the same default fallback as season
+// awards until custom artwork is uploaded for them again.
+const BUILT_IN_PLACEMENTS: Readonly<Record<string, 0 | 1 | 2 | 3>> = {};
 
 const BUILT_IN_SYSTEM_KEYS: Readonly<Record<0 | 1 | 2 | 3, string>> = {
   0: "tournament_mvp",

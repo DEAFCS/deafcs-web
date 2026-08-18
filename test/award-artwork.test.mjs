@@ -38,7 +38,7 @@ test("custom artwork overrides recognized built-in artwork", () => {
 });
 
 for (const [systemKey, tier, placement] of builtIns) {
-  test(`${systemKey} resolves to stable detailed built-in artwork`, () => {
+  test(`${systemKey} resolves to the shared tier fallback like season awards`, () => {
     const definition = {
       id: `${systemKey}-id`,
       name: systemKey.replaceAll("_", " "),
@@ -49,9 +49,9 @@ for (const [systemKey, tier, placement] of builtIns) {
     const catalogResolution = resolveAwardArtwork({ ...definition });
 
     assert.deepEqual(catalogResolution, pickerResolution);
-    assert.equal(pickerResolution.kind, "built-in");
+    assert.equal(pickerResolution.kind, "tier-fallback");
     assert.equal(pickerResolution.placement, placement);
-    assert.equal(pickerResolution.seed, systemKey);
+    assert.equal(pickerResolution.seed, definition.id);
   });
 }
 
@@ -81,7 +81,7 @@ test("definitions without an image or recognized artwork use a tier fallback", (
   assert.match(resolved.tierColor, /^hsl\(/);
 });
 
-test("a failed custom image falls back without changing built-in identity", () => {
+test("a failed custom image falls back to the shared tier fallback", () => {
   const definition = {
     id: "runner-up",
     name: "Tournament Runner-Up",
@@ -92,8 +92,8 @@ test("a failed custom image falls back without changing built-in identity", () =
 
   assert.equal(resolveAwardArtwork(definition).kind, "custom-image");
   const fallback = resolveAwardArtwork(definition, null, { ignoreImage: true });
-  assert.equal(fallback.kind, "built-in");
-  assert.equal(fallback.seed, "tournament_silver");
+  assert.equal(fallback.kind, "tier-fallback");
+  assert.equal(fallback.seed, "runner-up");
 });
 
 test("award and legacy trophy image paths retain their correct endpoints", () => {
