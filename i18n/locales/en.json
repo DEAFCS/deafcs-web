@@ -3960,6 +3960,9 @@
       "social": {
         "title": "Social"
       },
+      "information": {
+        "title": "Information"
+      },
       "administration": {
         "title": "Administration",
         "regions": "Regions",
