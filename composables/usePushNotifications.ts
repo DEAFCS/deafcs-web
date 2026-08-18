@@ -87,44 +87,55 @@ export async function subscribeToPush(): Promise<boolean> {
 
   // Reported bug: permission already "granted" (no prompt shown, which is
   // correct — the browser never re-prompts once granted), but tapping
-  // Enable did visibly nothing on a Samsung Galaxy S24 Ultra -- still
-  // true after adding a timeout around just pushManager.subscribe()
-  // below, which meant the hang was actually further upstream. Rather
-  // than chase each individual await one at a time, everything from here
-  // to a saved subscription is wrapped in ONE timeout, so no future gap
-  // in this chain can silently hang again: navigator.serviceWorker.ready
-  // in particular waits on a service worker actually reaching "active"
-  // state and has no built-in bound, and getSubscription()/the plain
-  // $fetch calls are equally capable of hanging on a device with a
-  // stuck or unreachable push service (OEM background/battery
-  // restrictions are a known cause on Samsung specifically).
-  return withTimeout(
-    (async () => {
-      const { publicKey } = await $fetch<{ publicKey: string | null }>(
-        pushApiUrl("/vapid-public-key"),
-      );
-      if (!publicKey) return false;
-
-      const registration = await navigator.serviceWorker.ready;
-      const existing = await registration.pushManager.getSubscription();
-      const subscription =
-        existing ??
-        (await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(publicKey),
-        }));
-
-      await $fetch(pushApiUrl("/subscribe"), {
-        method: "POST",
-        credentials: "include",
-        body: { subscription: subscription.toJSON() },
-      });
-
-      return true;
-    })(),
-    20_000,
-    "Timed out registering for push notifications with this device's push service. This can happen when the OS's background/battery restrictions are blocking it, or the app needs to be fully closed and reopened.",
+  // Enable did visibly nothing on a Samsung Galaxy S24 Ultra. Wrapping
+  // the whole post-permission chain in one timeout (previous version of
+  // this comment) confirmed a hang *somewhere* in it, but not which
+  // step -- every step below now gets its own timeout with a distinct
+  // message instead, so the next failure report says exactly which
+  // system component is stuck rather than "somewhere in here".
+  const { publicKey } = await withTimeout(
+    $fetch<{ publicKey: string | null }>(pushApiUrl("/vapid-public-key")),
+    8_000,
+    "Timed out fetching the push key from the server.",
   );
+  if (!publicKey) return false;
+
+  // No built-in bound: waits on a service worker actually reaching
+  // "active" state, which can itself never resolve on a broken device.
+  const registration = await withTimeout(
+    navigator.serviceWorker.ready,
+    8_000,
+    "Timed out waiting for this device's service worker to become active.",
+  );
+
+  const existing = await withTimeout(
+    registration.pushManager.getSubscription(),
+    5_000,
+    "Timed out checking for an existing push subscription.",
+  );
+
+  const subscription =
+    existing ??
+    (await withTimeout(
+      registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      }),
+      15_000,
+      "Timed out registering for push notifications with this device's push service. This can happen when the OS's background/battery restrictions are blocking it.",
+    ));
+
+  await withTimeout(
+    $fetch(pushApiUrl("/subscribe"), {
+      method: "POST",
+      credentials: "include",
+      body: { subscription: subscription.toJSON() },
+    }),
+    8_000,
+    "Timed out saving the push subscription to the server.",
+  );
+
+  return true;
 }
 
 export async function unsubscribeFromPush(): Promise<void> {
