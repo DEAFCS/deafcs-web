@@ -74,6 +74,21 @@ export function useChatTabs() {
     return tab;
   }
 
+  // Registers a tab without stealing focus -- unlike openTab, does NOT
+  // set it as the active tab. Used when a message arrives for a
+  // conversation the user has never opened this session (e.g. a first-
+  // ever DM from someone new): there needs to be a tab for the unread
+  // badge to attach to, but arriving in the background must not yank
+  // the user away from whatever they're actually looking at.
+  function registerTabIfMissing(
+    payload: Omit<ChatTab, "pinned"> & { pinned?: boolean },
+  ) {
+    if (findTabIndex(payload.id) !== -1) {
+      return;
+    }
+    tabsRef.value.push({ ...payload, pinned: payload.pinned ?? false });
+  }
+
   function closeTab(id: string) {
     const idx = findTabIndex(id);
     if (idx === -1) {
@@ -168,6 +183,7 @@ export function useChatTabs() {
     activeTabId,
     manualOrder,
     openTab,
+    registerTabIfMissing,
     closeTab,
     setActiveTab,
     setPinned,

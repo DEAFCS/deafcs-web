@@ -443,4 +443,97 @@ socket.listen("team-lobby:leave", (data) => {});
 
 socket.listen("team-lobby:chat", (data) => {});
 
+// Reported bug: a first-ever incoming DM (or any chat the recipient had
+// never opened a tab for) produced no unread indicator anywhere -- the
+// per-lobby "chat" event above only reaches sockets that already joined
+// that lobby's room, which a recipient can only do by opening the
+// conversation first. The API now also pings this global, steamId-
+// addressed event (see chat.service.ts's notifyLobbyMembers) regardless
+// of lobby membership, so a tab can be registered/updated here even
+// when nothing was ever opened. Mirrors useChatNotificationNavigation's
+// tab-id mapping (direct/global/organizers get a fixed id, everything
+// else is "${type}:${id}").
+socket.listen(
+  "chat:new-message",
+  (data: {
+    type: string;
+    id: string;
+    senderSteamId: string;
+    senderName: string;
+    senderAvatarUrl?: string;
+    message: string;
+  }) => {
+    const { type, id, senderSteamId, senderName, senderAvatarUrl } = data;
+
+    // registerTabIfMissing's tab type is narrower than the full ChatType
+    // above (no "draft"/"match_team" -- those aren't opened as regular
+    // chat tabs anywhere in the UI today), so this mirrors
+    // useChatNotificationNavigation's same exclusion rather than fight
+    // the type mismatch. Those two chats simply don't get a live unread
+    // ping yet; unaffected otherwise.
+    const registrableTypes = [
+      "direct",
+      "global",
+      "organizers",
+      "matchmaking",
+      "tournament",
+      "match",
+      "team",
+    ];
+    if (!registrableTypes.includes(type)) {
+      return;
+    }
+
+    let tabId: string;
+    let lobbyId: string;
+    if (type === "direct") {
+      lobbyId = id;
+      tabId = `direct:${id}`;
+    } else if (type === "global" || type === "organizers") {
+      lobbyId = type;
+      tabId = type;
+    } else {
+      lobbyId = id;
+      tabId = `${type}:${id}`;
+    }
+
+    const { registerTabIfMissing, incrementUnread, activeTabId } =
+      useChatTabs();
+
+    registerTabIfMissing({
+      id: tabId,
+      label: type === "direct" ? senderName || "Player" : type,
+      instance: type,
+      type: type as
+        | "direct"
+        | "global"
+        | "organizers"
+        | "matchmaking"
+        | "tournament"
+        | "match"
+        | "team",
+      lobbyId,
+      otherSteamId: type === "direct" ? senderSteamId : undefined,
+      avatarUrl: type === "direct" ? senderAvatarUrl : undefined,
+    });
+
+    const { rightSidebarOpen } = useRightSidebar();
+    const { activeHub } = useHubState();
+    const isVisible =
+      rightSidebarOpen.value &&
+      activeHub.value === "chat" &&
+      activeTabId.value === tabId;
+
+    // Already looking at this exact conversation -- the per-lobby "chat"
+    // listener above (via listenChat) already handled the badge/read
+    // state for it, so incrementing here too would double-count.
+    if (isVisible) {
+      return;
+    }
+
+    incrementUnread(tabId);
+    useSound().playNotificationSound();
+  },
+);
+
 export default socket;
