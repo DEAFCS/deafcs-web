@@ -28,6 +28,7 @@ import {
   Leaf,
   CalendarRange,
   Award,
+  Info,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -990,6 +991,309 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
+
+            <Collapsible
+              as-child
+              v-model:open="infoOpened"
+              v-if="isMobile || sideBarOpen"
+            >
+              <SidebarMenuItem>
+                <CollapsibleTrigger as-child>
+                  <SidebarMenuButton :tooltip="$t('layouts.app_nav.tooltips.info')">
+                    <Info />
+                    <span>{{ $t("layouts.app_nav.administration.info") }}</span>
+                    <ChevronRight
+                      class="ml-auto transition-transform duration-200"
+                      :class="{
+                        'rotate-90': infoOpened,
+                      }"
+                    />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="$t('layouts.app_nav.tooltips.info_about')"
+                      >
+                        <NuxtLink
+                          to="/about"
+                          :class="{
+                            'router-link-active': $route.path === '/about',
+                          }"
+                        >
+                          {{ $t("layouts.app_nav.administration.info_about") }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="$t('layouts.app_nav.tooltips.info_faq')"
+                      >
+                        <NuxtLink
+                          to="/faq"
+                          :class="{
+                            'router-link-active': $route.path === '/faq',
+                          }"
+                        >
+                          {{ $t("layouts.app_nav.administration.info_faq") }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="$t('layouts.app_nav.tooltips.info_contact')"
+                      >
+                        <NuxtLink
+                          to="/contact"
+                          :class="{
+                            'router-link-active': $route.path === '/contact',
+                          }"
+                        >
+                          {{ $t("layouts.app_nav.administration.info_contact") }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="
+                          $t('layouts.app_nav.tooltips.info_general_rules')
+                        "
+                      >
+                        <NuxtLink
+                          to="/general-rules"
+                          :class="{
+                            'router-link-active':
+                              $route.path === '/general-rules',
+                          }"
+                        >
+                          {{
+                            $t("layouts.app_nav.administration.info_general_rules")
+                          }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="
+                          $t('layouts.app_nav.tooltips.info_matchmaking_rules')
+                        "
+                      >
+                        <NuxtLink
+                          to="/matchmaking-rules"
+                          :class="{
+                            'router-link-active':
+                              $route.path === '/matchmaking-rules',
+                          }"
+                        >
+                          {{
+                            $t(
+                              "layouts.app_nav.administration.info_matchmaking_rules",
+                            )
+                          }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="
+                          $t('layouts.app_nav.tooltips.info_tournament_rules')
+                        "
+                      >
+                        <NuxtLink
+                          to="/tournament-rules"
+                          :class="{
+                            'router-link-active':
+                              $route.path === '/tournament-rules',
+                          }"
+                        >
+                          {{
+                            $t(
+                              "layouts.app_nav.administration.info_tournament_rules",
+                            )
+                          }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="
+                          $t('layouts.app_nav.tooltips.info_account_data')
+                        "
+                      >
+                        <NuxtLink
+                          to="/account-data"
+                          :class="{
+                            'router-link-active':
+                              $route.path === '/account-data',
+                          }"
+                        >
+                          {{
+                            $t("layouts.app_nav.administration.info_account_data")
+                          }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="
+                          $t('layouts.app_nav.tooltips.info_privacy_policy')
+                        "
+                      >
+                        <NuxtLink
+                          to="/privacy-policy"
+                          :class="{
+                            'router-link-active':
+                              $route.path === '/privacy-policy',
+                          }"
+                        >
+                          {{
+                            $t(
+                              "layouts.app_nav.administration.info_privacy_policy",
+                            )
+                          }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+
+                    <SidebarMenuSubItem>
+                      <SidebarMenuSubButton
+                        as-child
+                        :tooltip="
+                          $t('layouts.app_nav.tooltips.info_terms_of_service')
+                        "
+                      >
+                        <NuxtLink
+                          to="/terms-of-service"
+                          :class="{
+                            'router-link-active':
+                              $route.path === '/terms-of-service',
+                          }"
+                        >
+                          {{
+                            $t(
+                              "layouts.app_nav.administration.info_terms_of_service",
+                            )
+                          }}
+                        </NuxtLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </SidebarMenuItem>
+            </Collapsible>
+
+            <SidebarMenuItem v-else>
+              <DropdownMenu v-model:open="infoOpened">
+                <DropdownMenuTrigger as-child>
+                  <SidebarMenuButton
+                    :class="{
+                      'bg-sidebar-accent text-sidebar-accent-foreground':
+                        infoOpened,
+                    }"
+                  >
+                    <Info />
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                  :side="isMobile ? 'top' : 'right'"
+                  align="end"
+                  :side-offset="4"
+                >
+                  <DropdownMenuGroup>
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/about">
+                        {{ $t("layouts.app_nav.administration.info_about") }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/faq">
+                        {{ $t("layouts.app_nav.administration.info_faq") }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/contact">
+                        {{ $t("layouts.app_nav.administration.info_contact") }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/general-rules">
+                        {{
+                          $t("layouts.app_nav.administration.info_general_rules")
+                        }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/matchmaking-rules">
+                        {{
+                          $t(
+                            "layouts.app_nav.administration.info_matchmaking_rules",
+                          )
+                        }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/tournament-rules">
+                        {{
+                          $t(
+                            "layouts.app_nav.administration.info_tournament_rules",
+                          )
+                        }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/account-data">
+                        {{
+                          $t("layouts.app_nav.administration.info_account_data")
+                        }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/privacy-policy">
+                        {{
+                          $t(
+                            "layouts.app_nav.administration.info_privacy_policy",
+                          )
+                        }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+
+                    <DropdownMenuItem class="flex gap-2" as-child>
+                      <NuxtLink to="/terms-of-service">
+                        {{
+                          $t(
+                            "layouts.app_nav.administration.info_terms_of_service",
+                          )
+                        }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+                  </DropdownMenuGroup>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
@@ -1147,6 +1451,7 @@ export default {
   data() {
     return {
       serversOpened: false,
+      infoOpened: false,
       profileOpened: false,
       showLogoutModal: false,
     };
@@ -1310,6 +1615,20 @@ export default {
     isAdmin() {
       return useAuthStore().isAdmin;
     },
+    isInfoRouteActive() {
+      const infoPaths = [
+        "/about",
+        "/faq",
+        "/contact",
+        "/general-rules",
+        "/matchmaking-rules",
+        "/tournament-rules",
+        "/account-data",
+        "/privacy-policy",
+        "/terms-of-service",
+      ];
+      return infoPaths.includes(this.$route.path);
+    },
     // TODO - move to global
     inviteLink() {
       return `https://${useRuntimeConfig().public.webDomain}/discord-invite`;
@@ -1337,6 +1656,16 @@ export default {
     },
     playTotalCount() {
       return this.myMatches.length + this.activeTournamentsCount;
+    },
+  },
+  watch: {
+    "$route.path": {
+      handler() {
+        if (this.isInfoRouteActive) {
+          this.infoOpened = true;
+        }
+      },
+      immediate: true,
     },
   },
 };
