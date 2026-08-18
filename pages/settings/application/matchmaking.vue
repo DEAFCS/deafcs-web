@@ -401,7 +401,7 @@ export default {
                 .string()
                 .default(e_player_roles_enum.user),
               max_acceptable_latency: z.number().default(100),
-              map_veto_pick_seconds: z.number().default(20),
+              map_veto_pick_seconds: z.number().default(30),
               matchmaking_max_party_size_competitive: z
                 .string()
                 .default("5"),
@@ -419,7 +419,7 @@ export default {
           if (setting.name === "public.map_veto_pick_seconds") {
             (this.form.setFieldValue as any)(
               setting.name,
-              Number(setting.value) || 20,
+              Number(setting.value) || 30,
             );
           } else if (
             setting.name === "public.max_acceptable_latency" ||

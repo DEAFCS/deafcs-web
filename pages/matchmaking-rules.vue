@@ -90,7 +90,7 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
       </div>
     </div>
 
-    <!-- Ready / Match Acceptance + During the Match: comparable content length, paired for balance. -->
+    <!-- Ready / Match Acceptance + Captain Selection: comparable content length, paired for balance. -->
     <div class="grid gap-6 lg:grid-cols-2">
       <div class="flex flex-col gap-3">
         <span :class="tacticalSectionLabelClasses">
@@ -108,6 +108,9 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
             <p :class="bodyClasses">
               {{ $t("pages.info.matchmaking_rules.sections.ready_check.body_3") }}
             </p>
+            <p :class="bodyClasses">
+              {{ $t("pages.info.matchmaking_rules.sections.ready_check.body_4") }}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -115,29 +118,109 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
       <div class="flex flex-col gap-3">
         <span :class="tacticalSectionLabelClasses">
           <span :class="tacticalSectionTickClasses" />
-          {{ $t("pages.info.matchmaking_rules.sections.during_match.title") }}
+          {{ $t("pages.info.matchmaking_rules.sections.captain_selection.title") }}
         </span>
         <Card class="h-full bg-card/20">
           <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
             <p :class="bodyClasses">
-              {{ $t("pages.info.matchmaking_rules.sections.during_match.body_1") }}
-            </p>
-            <p :class="bodyClasses">
-              {{ $t("pages.info.matchmaking_rules.sections.during_match.body_2") }}
+              {{ $t("pages.info.matchmaking_rules.sections.captain_selection.body_1") }}
             </p>
             <i18n-t
-              keypath="pages.info.matchmaking_rules.sections.during_match.body_3"
+              keypath="pages.info.matchmaking_rules.sections.captain_selection.body_2"
               tag="p"
               scope="global"
               :class="bodyClasses"
             >
-              <template #gg>
-                <code :class="ggCodeClasses">.gg</code>
+              <template #link>
+                <NuxtLink to="/tournament-rules" :class="linkClasses">
+                  {{ $t("pages.info.tournament_rules.title") }}
+                </NuxtLink>
               </template>
             </i18n-t>
           </CardContent>
         </Card>
       </div>
+    </div>
+
+    <!-- Map Veto + Knife Round & Side Choice: comparable content length, paired for balance. -->
+    <div class="grid gap-6 lg:grid-cols-2">
+      <div class="flex flex-col gap-3">
+        <span :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" />
+          {{ $t("pages.info.matchmaking_rules.sections.map_veto.title") }}
+        </span>
+        <Card class="h-full bg-card/20">
+          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+            <p :class="bodyClasses">
+              {{ $t("pages.info.matchmaking_rules.sections.map_veto.body_1") }}
+            </p>
+            <p :class="bodyClasses">
+              {{ $t("pages.info.matchmaking_rules.sections.map_veto.body_2") }}
+            </p>
+            <p :class="bodyClasses">
+              {{ $t("pages.info.matchmaking_rules.sections.map_veto.body_3") }}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div class="flex flex-col gap-3">
+        <span :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" />
+          {{ $t("pages.info.matchmaking_rules.sections.knife_round.title") }}
+        </span>
+        <Card class="h-full bg-card/20">
+          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+            <p :class="bodyClasses">
+              {{ $t("pages.info.matchmaking_rules.sections.knife_round.body_1") }}
+            </p>
+            <i18n-t
+              keypath="pages.info.matchmaking_rules.sections.knife_round.body_2"
+              tag="p"
+              scope="global"
+              :class="bodyClasses"
+            >
+              <template #stay>
+                <code :class="ggCodeClasses">.stay</code>
+              </template>
+              <template #switch>
+                <code :class="ggCodeClasses">.switch</code>
+              </template>
+            </i18n-t>
+            <p :class="bodyClasses">
+              {{ $t("pages.info.matchmaking_rules.sections.knife_round.body_3") }}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+
+    <!-- During the Match: standalone, keeps the numbered reading order intact. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.matchmaking_rules.sections.during_match.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.matchmaking_rules.sections.during_match.body_1") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.matchmaking_rules.sections.during_match.body_2") }}
+          </p>
+          <i18n-t
+            keypath="pages.info.matchmaking_rules.sections.during_match.body_3"
+            tag="p"
+            scope="global"
+            :class="bodyClasses"
+          >
+            <template #gg>
+              <code :class="ggCodeClasses">.gg</code>
+            </template>
+          </i18n-t>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Leaving, Abandoning & AFK: longer and high-importance, kept full width. -->
