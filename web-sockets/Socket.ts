@@ -497,8 +497,23 @@ socket.listen(
       tabId = `${type}:${id}`;
     }
 
-    const { registerTabIfMissing, incrementUnread, activeTabId } =
+    const { tabs, registerTabIfMissing, incrementUnread, activeTabId } =
       useChatTabs();
+
+    // Reported bug: unread count kept climbing (2, then 3-4...) for a
+    // conversation that HAD already been opened once, even without ever
+    // reopening it again. Root cause -- once a tab is genuinely opened
+    // (unopened cleared, see useChatTabs), it stays live-mounted and
+    // lobby-joined for the rest of the session by long-standing design,
+    // so its own listenChat already delivers and counts every message
+    // via the normal per-lobby "chat" broadcast. This global ping exists
+    // ONLY to cover conversations that were never opened at all (no live
+    // listener could exist yet to catch that first message) -- for any
+    // tab that's already past that point, it's pure duplicate delivery.
+    const existing = tabs.value.find((t) => t.id === tabId);
+    if (existing && !existing.unopened) {
+      return;
+    }
 
     registerTabIfMissing({
       id: tabId,
