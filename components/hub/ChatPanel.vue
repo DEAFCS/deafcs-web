@@ -349,7 +349,18 @@ watch(
       activeChatId.value = next?.id ?? null;
     }
     if (!activeChatId.value && tabs.length > 0) {
-      handleSelectRoom(tabs[0]);
+      // Prefer the shared store's activeTabId if something already set
+      // it to a real tab (e.g. a notification click resolving a DM, or
+      // the "Message" button) *before* this panel ever mounted --
+      // {immediate: true} means this branch always runs once on first
+      // mount, so without this check it unconditionally won the race
+      // against that earlier selection and silently reset it back to
+      // Global Chat (reported: tapping a DM push notification from a
+      // cold-started PWA landed on Global Chat instead of the sender).
+      const preferred = activeTabId.value
+        ? tabs.find((t) => t.id === activeTabId.value)
+        : null;
+      handleSelectRoom(preferred ?? tabs[0]);
     }
   },
   { immediate: true },

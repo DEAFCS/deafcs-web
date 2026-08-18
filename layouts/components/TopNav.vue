@@ -16,12 +16,20 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import InstallAppQrDialog from "~/components/InstallAppQrDialog.vue";
-import { DiscordLogoIcon } from "@radix-icons/vue";
 import {
   Settings,
   LogOut,
   ChevronsUpDown,
   CheckCircle2,
+  Info,
+  CircleHelp,
+  Mail,
+  ScrollText,
+  Swords,
+  UserCog,
+  ShieldCheck,
+  FileText,
+  MessagesSquare,
 } from "lucide-vue-next";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
@@ -39,6 +47,7 @@ import { Button } from "@/components/ui/button";
 import { Grid } from "lucide-vue-next";
 import { useHubState } from "@/composables/useHubState";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
+import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import { loginLinks } from "~/utilities/loginLinks";
 
 const { isMobile } = useSidebar();
@@ -107,6 +116,7 @@ const navContentClasses =
   "relative mt-0 min-w-[360px] max-w-[95vw] overflow-hidden border border-topnav-border bg-[linear-gradient(180deg,hsl(var(--topnav-background)/0.98)_0%,hsl(var(--topnav-background)/0.92)_100%)] p-0 shadow-[inset_0_1px_0_hsl(var(--tac-amber)/0.12),0_20px_40px_-12px_hsl(0_0%_0%/0.55)] [backdrop-filter:blur(8px)] [-webkit-backdrop-filter:blur(8px)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent,hsl(var(--tac-amber)/0.5),transparent)]";
 const playContentClasses = `${navContentClasses} min-w-[500px]`;
 const communityContentClasses = `${navContentClasses} min-w-[560px]`;
+const infoContentClasses = `${navContentClasses} min-w-[720px]`;
 
 const navGroupLabelClasses =
   "mb-2 inline-flex list-none items-center gap-2 px-[0.2rem] font-sans text-[0.62rem] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--topnav-foreground)/0.45)]";
@@ -198,15 +208,6 @@ const loginArrowClasses =
 
         <NavigationMenu :class="navMenuClasses">
           <NavigationMenuList class="flex items-center gap-0 sm:gap-1">
-            <NavigationMenuItem v-if="me" class="hidden md:block">
-              <NavigationMenuLink as-child>
-                <NuxtLink to="/me" :class="navLinkClasses">
-                  <span :class="navTickClasses"></span>
-                  {{ $t("layouts.top_nav.home") }}
-                </NuxtLink>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
             <template v-for="item in orderedTopBarItems" :key="item.key">
               <NavigationMenuItem
                 v-if="item.type === 'plugin'"
@@ -556,10 +557,153 @@ const loginArrowClasses =
                         </li>
                         <li>
                           <NavigationMenuLink as-child>
-                            <a
-                              :href="inviteLink"
-                              target="_blank"
-                              rel="noopener noreferrer"
+                            <NuxtLink
+                              to="/forum"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t("layouts.top_nav.community.social.forum.title")
+                                  }}
+                                  <MessagesSquare class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.community.social.forum.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem v-else-if="item.type === 'info'">
+                <NavigationMenuTrigger :class="navTriggerClasses">
+                  <span :class="navTickClasses"></span>
+                  {{ $t("layouts.top_nav.info_menu") }}
+                </NavigationMenuTrigger>
+
+                <NavigationMenuContent :class="infoContentClasses">
+                  <div class="flex w-full flex-col gap-6 p-5 md:flex-row">
+                    <div class="min-w-[160px] flex-1">
+                      <div :class="navGroupLabelClasses">
+                        <span :class="navGroupLabelTickClasses"></span>
+                        {{ $t("layouts.top_nav.info.deafcs.title") }}
+                      </div>
+                      <ul class="flex flex-col gap-1">
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/about"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t("layouts.top_nav.info.deafcs.about.title")
+                                  }}
+                                  <Info class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.deafcs.about.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/faq"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{ $t("layouts.top_nav.info.deafcs.faq.title") }}
+                                  <CircleHelp class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t("layouts.top_nav.info.deafcs.faq.subtitle")
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/contact"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t("layouts.top_nav.info.deafcs.contact.title")
+                                  }}
+                                  <Mail class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.deafcs.contact.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div class="min-w-[160px] flex-1">
+                      <div :class="navGroupLabelClasses">
+                        <span :class="navGroupLabelTickClasses"></span>
+                        {{ $t("layouts.top_nav.info.rules.title") }}
+                      </div>
+                      <ul class="flex flex-col gap-1">
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/general-rules"
                               :class="[navItemClasses, navItemStackedClasses]"
                             >
                               <span :class="navItemChevronClasses">◢</span>
@@ -572,20 +716,189 @@ const loginArrowClasses =
                                 >
                                   {{
                                     $t(
-                                      "layouts.top_nav.community.social.join_discord.title",
+                                      "layouts.top_nav.info.rules.general_rules.title",
                                     )
                                   }}
-                                  <DiscordLogoIcon class="h-3.5 w-3.5" />
+                                  <ScrollText class="h-3.5 w-3.5" />
                                 </span>
                                 <span :class="navItemSubClasses">
                                   {{
                                     $t(
-                                      "layouts.top_nav.community.social.join_discord.subtitle",
+                                      "layouts.top_nav.info.rules.general_rules.subtitle",
                                     )
                                   }}
                                 </span>
                               </span>
-                            </a>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/matchmaking-rules"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.rules.matchmaking_rules.title",
+                                    )
+                                  }}
+                                  <Swords class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.rules.matchmaking_rules.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/tournament-rules"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.rules.tournament_rules.title",
+                                    )
+                                  }}
+                                  <TournamentBracket class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.rules.tournament_rules.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                      </ul>
+                    </div>
+
+                    <div class="min-w-[160px] flex-1">
+                      <div :class="navGroupLabelClasses">
+                        <span :class="navGroupLabelTickClasses"></span>
+                        {{ $t("layouts.top_nav.info.account_legal.title") }}
+                      </div>
+                      <ul class="flex flex-col gap-1">
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/account-data"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.account_legal.account_data.title",
+                                    )
+                                  }}
+                                  <UserCog class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.account_legal.account_data.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/privacy-policy"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.account_legal.privacy_policy.title",
+                                    )
+                                  }}
+                                  <ShieldCheck class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.account_legal.privacy_policy.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/terms-of-service"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span
+                                  :class="[
+                                    navItemLabelClasses,
+                                    navItemLabelIconClasses,
+                                  ]"
+                                >
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.account_legal.terms_of_service.title",
+                                    )
+                                  }}
+                                  <FileText class="h-3.5 w-3.5" />
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.info.account_legal.terms_of_service.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
                           </NavigationMenuLink>
                         </li>
                       </ul>
@@ -801,9 +1114,6 @@ export default {
     showPublicServersLink() {
       return this.hasPublicServers || this.canManageServers;
     },
-    inviteLink() {
-      return `https://${useRuntimeConfig().public.webDomain}/discord-invite`;
-    },
     newsEnabled() {
       return useApplicationSettingsStore().newsEnabled;
     },
@@ -813,7 +1123,7 @@ export default {
     orderedTopBarItems() {
       const order = useApplicationSettingsStore().topBarOrder;
       const items: Array<{
-        type: "watch" | "play" | "community" | "plugin";
+        type: "watch" | "play" | "community" | "info" | "plugin";
         key: string;
         order: number;
         plugin?: Plugin;
@@ -834,6 +1144,11 @@ export default {
           type: "community",
           key: "community",
           order: order.community ?? 3 + this.plugins.length,
+        },
+        {
+          type: "info",
+          key: "info",
+          order: order.info ?? 4 + this.plugins.length,
         },
       ];
       return items.sort((a, b) => a.order - b.order);
