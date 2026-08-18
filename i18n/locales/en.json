@@ -3769,7 +3769,70 @@
       },
       "matchmaking_rules": {
         "title": "Matchmaking Rules",
-        "intro": "Rules governing ranked matchmaking on DEAFCS. Full details are coming soon."
+        "intro": "These rules apply to Competitive, Wingman, and Duel matchmaking on DEAFCS.",
+        "intro_2": "They apply alongside the {link}, which cover conduct, accounts, and enforcement across all of DEAFCS. Tournaments follow the separate {link2}. Draft games are not standard matchmaking and follow their own eligibility and Elo settings, set by organizers.",
+        "sections": {
+          "eligibility": {
+            "title": "1. Matchmaking Eligibility",
+            "body_1": "To queue for Competitive, Wingman, or Duel, your account needs to be in good standing: no active ban, and meeting whatever minimum account status DEAFCS currently requires for matchmaking.",
+            "body_2": "Each of the three modes can be turned on or off independently by DEAFCS staff, so a mode may occasionally be unavailable.",
+            "body_3": "You can't queue while you're already in an active match, already queued elsewhere, or while an automatic queue restriction from a previous abandoned match is still in effect (see Leaving, Abandoning & AFK below)."
+          },
+          "queue_parties": {
+            "title": "2. Queue & Parties",
+            "body_1": "Competitive is 5 versus 5, Wingman is 2 versus 2, and Duel is 1 versus 1.",
+            "body_2": "You can queue solo or with a party. Duel is solo queue only. Wingman supports parties of up to 2. Competitive currently supports parties of up to 3 players. The Competitive party limit is configurable by DEAFCS and may change later. A party cannot fill every player slot in the entire match with both teams already pre-arranged, since that is not genuine matchmaking.",
+            "body_3": "Only a party's leader can start the queue for the group.",
+            "body_4": "There's no penalty for leaving the queue before a match is found."
+          },
+          "ready_check": {
+            "title": "3. Ready / Match Acceptance",
+            "body_1": "Once a match is found, everyone gets a short window to accept it.",
+            "body_2": "If everyone in your party accepts in time but someone else in the match doesn't, your party is automatically returned to the queue to search again.",
+            "body_3": "If someone in your own party doesn't accept in time, your whole party is removed from the queue and needs to requeue manually. Missing a single ready check doesn't apply any additional penalty on its own."
+          },
+          "during_match": {
+            "title": "4. During the Match",
+            "body_1": "Once a match starts, normal DEAFCS conduct and competitive-integrity rules apply in full (see General Rules).",
+            "body_2": "If something goes wrong during a live match, whether a bug, a server issue, or a dispute, use the ⋮ menu on the match page and select Contact Support. This requests help directly from a match organizer.",
+            "body_3": "Matches don't have a general surrender option through the website. In-game, once a disconnected player's reconnect window has expired and they're officially treated as a leaver, their remaining teammates can type {gg} in chat to surrender that match instead of continuing shorthanded. Outside of that, a match ends through normal play, or can be canceled by staff or an organizer if necessary."
+          },
+          "leaving_abandoning": {
+            "title": "5. Leaving, Abandoning & AFK",
+            "body_1": "Each player has a cumulative 5-minute disconnect budget for the entire match. You can reconnect more than once, but the timer does not reset when you return. Once your total disconnected time reaches 5 minutes, you're treated as a leaver.",
+            "body_2": "Once you're officially treated as a leaver, your remaining teammates can surrender by typing {gg} in chat instead of continuing shorthanded.",
+            "body_3": "Leaving a match without reconnecting in time, never connecting to a match at all, or exhausting your cumulative 5-minute disconnect budget triggers an automatic Matchmaking cooldown. This cooldown only blocks Matchmaking queueing; it doesn't by itself stop you from playing in tournaments, Draft, or anything else on DEAFCS. It escalates with repeated offenses: 30 minutes for a 1st offense, 2 hours for a 2nd offense, and 24 hours for a 3rd offense or any offense after that. If you avoid another offense for 30 days, your offense count resets.",
+            "body_4": "If you're treated as a leaver (someone who disconnected and didn't reconnect in time), you lose Elo for that match no matter how it ends, even if your team goes on to win. A no-show (someone who never connects to the match at all) doesn't normally lose Elo for it, except from your 4th Matchmaking cooldown offense onward, when the same Elo loss applies.",
+            "body_5": "A Matchmaking cooldown is separate from DEAFCS's broader sanction system (see Sanctions & Cooldowns below). If you believe a leave or no-show penalty was applied unfairly, for example because of a genuine connection or server problem, use the available DEAFCS support options to raise it."
+          },
+          "disconnects": {
+            "title": "6. Disconnects & Server Problems",
+            "body_1": "A dropped connection isn't automatically held against you. You can reconnect multiple times, but every disconnect uses part of the same cumulative 5-minute budget for that match. The budget does not reset when you reconnect. Your teammates can't surrender with {gg} immediately after you disconnect; that only becomes available once you've exhausted the budget and are officially treated as a leaver.",
+            "body_2": "If the problem is on DEAFCS's side, such as a server issue, use ⋮ → Contact Support on the match page as soon as possible so a match organizer can look into it while the match is still live."
+          },
+          "competitive_integrity": {
+            "title": "7. Competitive Integrity",
+            "body_1": "The General Rules on cheating, fair play, and competitive integrity apply fully to matchmaking, including rules against match manipulation, intentionally losing, and using additional accounts to affect matchmaking or rankings.",
+            "body_2": "DEAFCS does not publicly document how these are detected or investigated."
+          },
+          "sanctions": {
+            "title": "8. Sanctions & Cooldowns",
+            "body_1": "DEAFCS has two separate systems that can restrict a player. A Matchmaking cooldown is automatic and applies only to Competitive, Wingman, and Duel queueing. It's triggered by leaving a match, never showing up, or failing to reconnect in time (see Leaving, Abandoning & AFK), and does not by itself affect tournaments, Draft, or other DEAFCS features.",
+            "body_2": "A general DEAFCS sanction, such as a ban, mute, gag, or silence, is separate and broader. It covers wider misconduct across all of DEAFCS, is explained in the General Rules, and can apply on top of or independently from a Matchmaking cooldown."
+          },
+          "elo_results": {
+            "title": "9. Elo & Results",
+            "body_1": "Competitive, Wingman, and Duel each track their own separate Elo rating; your rating in one mode doesn't carry over to another.",
+            "body_2": "New players start at a baseline rating of 5,000 in each mode, and move up or down based on performance, not just the final score.",
+            "body_3": "Scrims never affect Elo. Draft games only affect Elo if the organizer running that Draft game has enabled it.",
+            "body_4": "Leaving or not showing up to a match affects Elo separately from normal results, as described under Leaving, Abandoning & AFK."
+          },
+          "staff_decisions": {
+            "title": "10. Staff & Organizer Decisions",
+            "body_1": "Match organizers and staff can step in on a live match through Contact Support, and can cancel a match when necessary, for example due to a server problem or a clear rule violation. Regular players can't cancel a match themselves.",
+            "body_2": "Staff decisions follow the same principles as the rest of DEAFCS: based on available evidence, context, and severity, with review possible where appropriate (see General Rules)."
+          }
+        }
       },
       "tournament_rules": {
         "title": "Tournament Rules",
