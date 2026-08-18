@@ -33,6 +33,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
 
 <script lang="ts">
 import { generateMutation } from "~/graphql/graphqlGen";
+import { e_player_roles_enum } from "~/generated/zeus";
 
 export default {
   props: {
@@ -72,8 +73,17 @@ export default {
     },
   },
   computed: {
+    // Reported bug: this compared the viewer's role against the VIEWED
+    // player's current role, not against a fixed "am I even allowed to
+    // change roles at all" floor -- so any verified_user viewing their
+    // own (or another verified_user's) profile satisfied "role >= role"
+    // and saw an editable dropdown they had no actual permission to use,
+    // failing with a raw Hasura error on submit. The real permission
+    // floor is match_organizer (see hasura/metadata's players
+    // update_permissions + inherited_roles) -- gate on that fixed role,
+    // not on whoever's profile happens to be open.
     canChangeRole() {
-      return useAuthStore().isRoleAbove(this.player.role);
+      return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
     },
     roles() {
       return [
