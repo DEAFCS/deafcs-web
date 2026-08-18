@@ -9,6 +9,7 @@ import {
   Pencil,
   Plus,
   Search,
+  Trash2,
 } from "lucide-vue-next";
 import { toast } from "~/components/ui/toast";
 import { Button } from "~/components/ui/button";
@@ -142,6 +143,14 @@ const ARCHIVE_AWARD_MUTATION = gql`
   }
 `;
 
+// Permanent, irreversible removal -- distinct from ARCHIVE_AWARD_MUTATION,
+// which only soft-hides a definition and always preserves the row.
+const DELETE_AWARD_MUTATION = gql`
+  mutation DeleteAwardDefinition($id: uuid!) {
+    deleteAward(id: $id) { success }
+  }
+`;
+
 interface ManagedAward extends AwardCatalogAward, ManagedAwardDefinition {
   tournament?: { id: string; name: string } | null;
   event?: { id: string; name: string } | null;
@@ -192,6 +201,9 @@ const imageEditorKey = ref(0);
 
 const archiveTarget = ref<ManagedAward | null>(null);
 const archiving = ref(false);
+
+const deleteTarget = ref<ManagedAward | null>(null);
+const deleting = ref(false);
 
 const scopeLabels: Record<AwardManagementScope, string> = {
   global: "Global / shared",
@@ -413,6 +425,51 @@ async function confirmArchive() {
   }
 }
 
+// Frontend-side eligibility is a UX convenience only -- the backend
+// (AwardsService.deleteAward) is the final authority and re-checks
+// system_key plus any FK-referencing occurrences/slots itself.
+function deleteDisabledReason(award: ManagedAward): string | undefined {
+  if (award.system_key) return "Built-in awards cannot be deleted";
+  if ((award.occurrences_aggregate?.aggregate?.count || 0) > 0) {
+    return "Awards that have already been granted cannot be deleted";
+  }
+  return undefined;
+}
+
+function requestDelete(award: ManagedAward) {
+  if (deleteDisabledReason(award)) return;
+  deleteTarget.value = award;
+}
+
+async function confirmDelete() {
+  const target = deleteTarget.value;
+  if (!target || deleteDisabledReason(target)) return;
+
+  deleting.value = true;
+  try {
+    const result = await resolveClient().mutate<{
+      deleteAward: { success: boolean } | null;
+    }>({
+      mutation: DELETE_AWARD_MUTATION,
+      variables: { id: target.id },
+    });
+    if (!result.data?.deleteAward?.success) {
+      throw new Error("The award could not be deleted.");
+    }
+    toast({ title: "Award deleted permanently", description: target.name });
+    deleteTarget.value = null;
+    await loadDefinitions();
+  } catch (caught: any) {
+    toast({
+      title: "Could not delete award",
+      description: caught?.message || "The award could not be deleted.",
+      variant: "destructive",
+    });
+  } finally {
+    deleting.value = false;
+  }
+}
+
 onMounted(loadDefinitions);
 </script>
 
@@ -606,6 +663,17 @@ onMounted(loadDefinitions);
                       <ArchiveRestore v-if="award.archived_at" aria-hidden="true" />
                       <Archive v-else aria-hidden="true" />
                       {{ award.archived_at ? "Unarchive" : "Archive" }}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      :disabled="!!deleteDisabledReason(award)"
+                      :title="deleteDisabledReason(award)"
+                      :aria-label="`Delete ${award.name} permanently`"
+                      @click="requestDelete(award)"
+                    >
+                      <Trash2 aria-hidden="true" />
+                      Delete
                     </Button>
                   </div>
                 </td>
@@ -807,6 +875,28 @@ onMounted(loadDefinitions);
           @click="confirmArchive"
         >
           {{ archiveTarget?.archived_at ? "Unarchive" : "Archive" }}
+        </Button>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
+
+  <AlertDialog
+    :open="!!deleteTarget"
+    @update:open="(open) => !open && !deleting && (deleteTarget = null)"
+  >
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>Delete award permanently?</AlertDialogTitle>
+        <AlertDialogDescription>
+          This permanently removes the award definition and cannot be undone.
+          If the award has uploaded artwork, that artwork will also be
+          removed. Awards that are already in use cannot be deleted.
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel :disabled="deleting">Cancel</AlertDialogCancel>
+        <Button variant="destructive" :loading="deleting" @click="confirmDelete">
+          Delete permanently
         </Button>
       </AlertDialogFooter>
     </AlertDialogContent>

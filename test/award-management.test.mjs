@@ -180,7 +180,48 @@ test("archive and unarchive use archiveAward without deleting history", () => {
   assert.match(manage, /archiveAward\(id: \$id, archived: \$archived\)/);
   assert.match(manage, /const archived = !target\.archived_at/);
   assert.match(manage, /Historical[\s\S]*occurrences and recipients will be preserved/);
-  assert.doesNotMatch(manage, /deleteAward/);
+});
+
+test("permanent delete uses deleteAward through its own confirmation, distinct from archive", () => {
+  assert.match(manage, /mutation DeleteAwardDefinition/);
+  assert.match(manage, /deleteAward\(id: \$id\)/);
+  assert.match(manage, /function confirmDelete/);
+  assert.match(manage, /mutation: DELETE_AWARD_MUTATION/);
+
+  // Delete never reuses the archive mutation, dialog state, or wording.
+  assert.doesNotMatch(manage, /confirmDelete[\s\S]{0,400}ARCHIVE_AWARD_MUTATION/);
+  assert.doesNotMatch(manage, /confirmArchive[\s\S]{0,400}DELETE_AWARD_MUTATION/);
+  assert.match(manage, /Delete award permanently\?/);
+  assert.match(
+    manage,
+    /This permanently removes the award definition and cannot be undone/,
+  );
+  assert.doesNotMatch(
+    manage,
+    /Delete award permanently\?[\s\S]*will leave active selection lists/,
+  );
+
+  // Eligibility: blocked for system awards and awards already granted;
+  // the backend (AwardsService.deleteAward) remains the final authority.
+  assert.match(manage, /function deleteDisabledReason/);
+  assert.match(manage, /if \(award\.system_key\) return "Built-in awards cannot be deleted"/);
+  assert.match(
+    manage,
+    /award\.occurrences_aggregate\?\.aggregate\?\.count \|\| 0\) > 0/,
+  );
+
+  // Success/error handling mirrors the archive pattern: only refresh the
+  // list (removing the row) after the mutation actually succeeds.
+  assert.match(manage, /Award deleted permanently/);
+  assert.match(
+    manage,
+    /deleteAward\?\.success[\s\S]{0,80}throw new Error/,
+  );
+  assert.match(
+    manage,
+    /throw new Error[\s\S]{0,120}toast\(\{\s*title: "Award deleted permanently"/,
+  );
+  assert.match(manage, /Could not delete award/);
 });
 
 test("built-in and historical identity restrictions are represented", () => {
