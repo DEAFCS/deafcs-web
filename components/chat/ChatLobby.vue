@@ -119,7 +119,7 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
             variant="global"
             :is-minimized="isMinimized"
             class="flex-1 overflow-y-auto max-h-96"
-            :last-read-count="lastReadMessageCount"
+            :last-read-count="0"
             @bottom-state-change="handleBottomStateChange"
           />
           <Empty v-else class="flex-1 text-muted-foreground">
@@ -137,26 +137,6 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
               </p>
             </div>
           </Empty>
-          <button
-            v-if="
-              lastReadMessageCount > 0 &&
-              lastReadMessageCount < messages.length &&
-              isAtBottom
-            "
-            type="button"
-            class="absolute top-1 left-1/2 -translate-x-1/2 z-10 rounded-full bg-zinc-900/95 border border-zinc-700 text-zinc-100 text-[11px] px-4 py-1 shadow-md hover:bg-zinc-800"
-            @click.stop="handleJumpToNewLine"
-          >
-            ↑ {{ $t("chat.jump_to_new", "Jump to new") }}
-          </button>
-          <button
-            v-if="lastReadMessageCount < messages.length && !isAtBottom"
-            type="button"
-            class="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 rounded-full bg-primary text-primary-foreground text-[11px] px-3 py-1 shadow-md hover:bg-primary/90"
-            @click.stop="handleJumpToBottom"
-          >
-            {{ $t("chat.new_messages", "New messages") }} ↓
-          </button>
         </div>
         <ChatInput
           v-if="canSend"
@@ -238,7 +218,7 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
         :messages="messages"
         variant="embedded"
         class="flex-1 min-h-0 overflow-y-auto"
-        :last-read-count="isGlobalContext ? lastReadMessageCount : 0"
+        :last-read-count="0"
         @bottom-state-change="handleBottomStateChange"
       />
       <Empty v-else class="flex-1 text-muted-foreground">
@@ -256,31 +236,6 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
           </p>
         </div>
       </Empty>
-      <button
-        v-if="
-          isGlobalContext &&
-          lastReadMessageCount > 0 &&
-          lastReadMessageCount < messages.length &&
-          isAtBottom
-        "
-        type="button"
-        class="absolute top-1 left-1/2 -translate-x-1/2 z-10 rounded-full bg-zinc-900/95 border border-zinc-700 text-zinc-100 text-[11px] px-4 py-1 shadow-md hover:bg-zinc-800"
-        @click.stop="handleJumpToNewLine"
-      >
-        ↑ {{ $t("chat.jump_to_new", "Jump to new") }}
-      </button>
-      <button
-        v-if="
-          isGlobalContext &&
-          lastReadMessageCount < messages.length &&
-          !isAtBottom
-        "
-        type="button"
-        class="absolute bottom-20 left-1/2 -translate-x-1/2 z-10 rounded-full bg-primary text-primary-foreground text-[11px] px-3 py-1 shadow-md hover:bg-primary/90"
-        @click.stop="handleJumpToBottom"
-      >
-        {{ $t("chat.new_messages", "New messages") }} ↓
-      </button>
       <ChatInput
         v-if="canSend"
         ref="chatInputRef"
