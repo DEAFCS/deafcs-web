@@ -600,7 +600,22 @@ export default {
         if (this.lastReadMessageCount === 0) {
           this.lastReadMessageCount = this.messages.length;
         }
-        this.lobby.on("lobby:messages", this.updateLobbyMessages);
+        this.lobby.on("lobby:messages", (newMessages: any) => {
+          this.updateLobbyMessages(newMessages);
+          // Reported bug: reopening a sidebar you'd already read showed a
+          // "New" divider on messages that were minutes/seconds old. Root
+          // cause -- this "lobby:messages" event is the join-time history
+          // catch-up (server round-trip, arrives *after* mount), distinct
+          // from the per-message "chat" event below which is genuine
+          // realtime delivery. lastReadMessageCount above was captured
+          // synchronously at mount time from whatever partial/stale
+          // snapshot this.lobby.messages already had cached -- when this
+          // event later replaced it with the true, longer history, that
+          // count was never resynced, so the gap wrongly rendered as
+          // "New". Every full history catch-up means "caught up", so
+          // always resync here.
+          this.lastReadMessageCount = this.messages.length;
+        });
         this.lobbyListener = socket.listenChat(
           this.type,
           this.lobbyId,
