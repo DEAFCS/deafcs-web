@@ -45,6 +45,15 @@ const {
   reorderTab,
 } = useChatTabs();
 
+// Tabs silently registered by an incoming chat:new-message ping (see
+// Socket.ts) haven't actually been opened yet -- mounting a live
+// <ChatLobby> for them anyway would join their lobby room in the
+// background, and every message after that first one would then be
+// double-counted (once by the always-on chat:new-message ping, once
+// more by this newly-joined lobby's own realtime "chat" event). Only
+// mount tabs the user has actually looked at at least once.
+const mountedTabs = computed(() => tabs.value.filter((tab) => !tab.unopened));
+
 const matchLobbyStore = useMatchLobbyStore();
 const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -791,7 +800,7 @@ function openLobbyCallWindow() {
 
         <div class="flex-1 min-h-0 flex flex-col">
           <ChatLobby
-            v-for="tab in tabs"
+            v-for="tab in mountedTabs"
             :key="tab.id"
             v-show="tab.id === activeChatId"
             :instance="tab.instance"

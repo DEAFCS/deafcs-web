@@ -20,6 +20,16 @@ export interface ChatTab {
   // icon instead of a lucide icon (see ChatPanel.vue).
   otherSteamId?: string;
   avatarUrl?: string;
+  // Set only by registerTabIfMissing, cleared the moment the user
+  // actually activates the tab (see setActiveTab). ChatPanel.vue skips
+  // mounting a live <ChatLobby> for these -- every OTHER tab is mounted
+  // unconditionally (v-show only) on the assumption that a tab existing
+  // at all means the user wants it actively joined/listening, which a
+  // silently-registered background tab explicitly does not. Mounting it
+  // anyway double-counts unread: the background tab's own listenChat
+  // would join the lobby and start receiving the same realtime "chat"
+  // event chat:new-message already pings for.
+  unopened?: boolean;
 }
 
 const tabsRef = ref<ChatTab[]>([]);
@@ -59,7 +69,11 @@ export function useChatTabs() {
     const existingIndex = findTabIndex(id);
 
     if (existingIndex !== -1) {
-      activeTabIdRef.value = id;
+      // Explicitly opening a tab that only existed as a silent
+      // background registration (see registerTabIfMissing) promotes it
+      // to a real, live-joined tab -- clear the flag via setActiveTab
+      // below rather than duplicating that logic here.
+      setActiveTab(id);
       return tabsRef.value[existingIndex];
     }
 
@@ -75,18 +89,26 @@ export function useChatTabs() {
   }
 
   // Registers a tab without stealing focus -- unlike openTab, does NOT
-  // set it as the active tab. Used when a message arrives for a
-  // conversation the user has never opened this session (e.g. a first-
-  // ever DM from someone new): there needs to be a tab for the unread
-  // badge to attach to, but arriving in the background must not yank
-  // the user away from whatever they're actually looking at.
+  // set it as the active tab, and marks it `unopened` so ChatPanel.vue
+  // doesn't mount a live, lobby-joined <ChatLobby> for it. Used when a
+  // message arrives for a conversation the user has never opened this
+  // session (e.g. a first-ever DM from someone new): there needs to be
+  // a tab for the unread badge to attach to, but arriving in the
+  // background must not yank the user away from whatever they're
+  // actually looking at, nor silently join them to the lobby (which
+  // would then double-count every later message via two parallel
+  // delivery paths -- see the ChatTab.unopened comment).
   function registerTabIfMissing(
     payload: Omit<ChatTab, "pinned"> & { pinned?: boolean },
   ) {
     if (findTabIndex(payload.id) !== -1) {
       return;
     }
-    tabsRef.value.push({ ...payload, pinned: payload.pinned ?? false });
+    tabsRef.value.push({
+      ...payload,
+      pinned: payload.pinned ?? false,
+      unopened: true,
+    });
   }
 
   function closeTab(id: string) {
@@ -104,12 +126,20 @@ export function useChatTabs() {
         tabsRef.value[idx - 1] ||
         tabsRef.value[0] ||
         null;
-      activeTabIdRef.value = next ? next.id : null;
+      // Routes through setActiveTab (not a raw assignment) so landing on
+      // an unopened background tab here also clears its flag and mounts
+      // it live -- see setActiveTab.
+      setActiveTab(next ? next.id : null);
     }
   }
 
   function setActiveTab(id: string | null) {
     activeTabIdRef.value = id;
+    if (id === null) return;
+    const idx = findTabIndex(id);
+    if (idx !== -1 && tabsRef.value[idx].unopened) {
+      tabsRef.value[idx] = { ...tabsRef.value[idx], unopened: false };
+    }
   }
 
   function setPinned(id: string, pinned: boolean) {
