@@ -6,6 +6,10 @@ import { Card, CardContent } from "~/components/ui/card";
 defineProps<{
   title: string;
   intro: string;
+  // Manually-maintained policy date (e.g. "18 August 2026"), not derived
+  // from build/deploy/commit time. Only meant to change when the page's
+  // actual content changes. Omit to render no metadata line at all.
+  lastUpdated?: string;
 }>();
 </script>
 
@@ -23,6 +27,9 @@ defineProps<{
               {{ intro }}
             </p>
             <slot />
+            <p v-if="lastUpdated" class="text-xs leading-relaxed text-muted-foreground">
+              {{ $t("common.last_updated", { date: lastUpdated }) }}
+            </p>
           </div>
         </CardContent>
       </Card>

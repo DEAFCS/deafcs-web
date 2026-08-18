@@ -3340,7 +3340,7 @@
           "title": "Our Mission",
           "intro": "Our mission is to provide one dedicated home for the global Deaf Counter-Strike community.",
           "body": "We want to make structured competitive play more accessible, help Deaf and hard-of-hearing players find each other, make it easier to create and develop teams, and provide a place where players can compete, track their progress and be part of the wider community.",
-          "closing": "DEAFCS aims to support both competition and community — from players who simply want to find matches to teams competing in organized tournaments and, in the future, leagues."
+          "closing": "DEAFCS aims to support both competition and community, from players who simply want to find matches to teams competing in organized tournaments and, in the future, leagues."
         },
         "history": {
           "title": "Our History",
@@ -3372,7 +3372,7 @@
           }
         },
         "partner": {
-          "title": "Media & Accessibility Partner — 8rary",
+          "title": "Media & Accessibility Partner: 8rary",
           "intro": "{link} is DEAFCS's media and accessibility partner, supporting livestream production, highlights, social media, and accessible video content.",
           "body": "Their work helps present DEAFCS matches, events, and community content to viewers in a professional and accessible way.",
           "link_label": "8rary"
@@ -3380,7 +3380,7 @@
       },
       "faq": {
         "title": "FAQ",
-        "intro": "Answers to common questions about DEAFCS — getting started, your account, matchmaking, tournaments, and the wider community.",
+        "intro": "Answers to common questions about DEAFCS: getting started, your account, matchmaking, tournaments, and the wider community.",
         "categories": {
           "getting_started": {
             "title": "Getting Started",
@@ -3403,7 +3403,7 @@
               },
               "free_to_use": {
                 "q": "Is DEAFCS free to use?",
-                "a": "Yes — normal use of DEAFCS currently does not require a paid subscription."
+                "a": "Yes. Normal use of DEAFCS currently does not require a paid subscription."
               }
             }
           },
@@ -3412,7 +3412,7 @@
             "items": {
               "why_steam": {
                 "q": "Why do I sign in with Steam?",
-                "a": "Your Steam account is used as your DEAFCS identity and login — it's how your matches, stats, and profile are tied to you."
+                "a": "Your Steam account is used as your DEAFCS identity and login. It's how your matches, stats, and profile are tied to you."
               },
               "change_nickname_avatar": {
                 "q": "Can I change my nickname and avatar?",
@@ -3437,14 +3437,14 @@
             "items": {
               "how_elo_works": {
                 "q": "How does ELO work?",
-                "intro": "DEAFCS uses an individual ELO rating for competitive ranking. Your ELO change isn't based only on whether you won or lost — it's calculated by comparing your ELO to the average ELO of both teams in that match.",
+                "intro": "DEAFCS uses an individual ELO rating for competitive ranking. Your ELO change isn't based only on whether you won or lost. It's calculated by comparing your ELO to the average ELO of both teams in that match.",
                 "performance": "Your individual performance in the match also contributes to how much ELO you gain or lose. Because of this, players in the same match can gain or lose different amounts of ELO.",
                 "stats_guide_link": "For a more detailed explanation of DEAFCS ratings, statistics, and how they're calculated, see the {link}.",
                 "stats_guide_label": "Stats Guide"
               },
               "elo_per_mode": {
                 "q": "Does each mode have its own ELO?",
-                "a": "Yes. DEAFCS keeps a separate ELO rating for each competitive matchmaking mode — Competitive, Wingman, and Duel. Your performance in one mode doesn't directly carry over as your rating in another mode."
+                "a": "Yes. DEAFCS keeps a separate ELO rating for each competitive matchmaking mode: Competitive, Wingman, and Duel. Your performance in one mode doesn't directly carry over as your rating in another mode."
               },
               "season_reset": {
                 "q": "What happens to ELO when a new season starts?",
@@ -3456,7 +3456,7 @@
               },
               "draft_elo": {
                 "q": "Does Draft use ELO?",
-                "a": "Draft can use ELO. Match organizers and higher roles control whether ELO tracking is enabled for a specific Draft game — Draft is commonly used for fun, custom, or community games rather than normal ranked matchmaking. See the {link} section for more."
+                "a": "Draft can use ELO. Match organizers and higher roles control whether ELO tracking is enabled for a specific Draft game. Draft is commonly used for fun, custom, or community games rather than normal ranked matchmaking. See the {link} section for more."
               }
             }
           },
@@ -3471,15 +3471,15 @@
                 "q": "Which matchmaking modes are available?",
                 "intro": "DEAFCS currently offers three matchmaking modes:",
                 "modes": {
-                  "competitive": "5 versus 5 — the standard competitive matchmaking mode.",
-                  "wingman": "2 versus 2 — a faster-paced matchmaking mode.",
-                  "duel": "1 versus 1 — DEAFCS's current solo matchmaking mode, played on the normal map/bombsite-style setup rather than a dedicated aim map."
+                  "competitive": "5 versus 5: the standard competitive matchmaking mode.",
+                  "wingman": "2 versus 2: a faster-paced matchmaking mode.",
+                  "duel": "1 versus 1: DEAFCS's current solo matchmaking mode, played on the normal map/bombsite-style setup rather than a dedicated aim map."
                 },
                 "note": "DEAFCS isn't planning to add many more matchmaking modes. A separate, dedicated 1v1 aim-map mode may be considered in the future if there's enough community interest, but it isn't a confirmed or upcoming feature."
               },
               "queue_with_friends": {
                 "q": "Can I queue with friends?",
-                "a": "Yes, you can queue as a party with friends. Party size limits vary by mode — see {link} for current details."
+                "a": "Yes, you can queue as a party with friends. Party size limits vary by mode. See {link} for current details."
               },
               "leave_abandon": {
                 "q": "What happens if I leave or abandon a match?",
@@ -3517,7 +3517,7 @@
             "items": {
               "how_draft_works": {
                 "q": "How does Draft work?",
-                "a": "Draft lets you create and join games outside the normal matchmaking queue. You can set up pick-up games in different styles — such as auto-split, team captains picking players, or a host building both teams — along with custom settings like map pool and access control."
+                "a": "Draft lets you create and join games outside the normal matchmaking queue. You can set up pick-up games in different styles, such as auto-split, team captains picking players, or a host building both teams, along with custom settings like map pool and access control."
               },
               "fun_only": {
                 "q": "Is Draft only for competitive games?",
@@ -3525,7 +3525,7 @@
               },
               "workshop_maps": {
                 "q": "Can DEAFCS add Workshop maps to Draft?",
-                "a": "Workshop maps can be added to DEAFCS's map pools, including for Draft. There's no formal map-suggestion process yet, but community interest matters — for example, once the Forum is available, a popular suggestion there could help show demand for a specific map. Adding any particular map is ultimately up to DEAFCS."
+                "a": "Workshop maps can be added to DEAFCS's map pools, including for Draft. There's no formal map-suggestion process yet, but community interest matters. For example, once the Forum is available, a popular suggestion there could help show demand for a specific map. Adding any particular map is ultimately up to DEAFCS."
               },
               "draft_elo": {
                 "q": "Does Draft affect my ELO?",
@@ -3539,7 +3539,7 @@
               "create_join_team": {
                 "q": "How do I create or join a team?",
                 "normal_team": "You can create a team or join one through DEAFCS's Teams section. A normal DEAFCS team has its own roster and profile, and exists independently of any single tournament.",
-                "tournament_team": "For tournaments, you don't necessarily need a permanent Teams-page team — when registering, you can also form a team specifically for that tournament without creating one in the Teams section first."
+                "tournament_team": "For tournaments, you don't necessarily need a permanent Teams-page team. When registering, you can also form a team specifically for that tournament without creating one in the Teams section first."
               },
               "join_tournament": {
                 "q": "How do I join a tournament?",
@@ -3564,7 +3564,7 @@
             "items": {
               "earn_highlight": {
                 "q": "How do I earn a Highlight?",
-                "a": "Highlights are generated automatically based on the best round you played in a match. Auto-generated highlights currently require a triple kill or better (3K+). This threshold is configurable and may be changed by DEAFCS administrators — for example, to manage storage and rendering capacity."
+                "a": "Highlights are generated automatically based on the best round you played in a match. Auto-generated highlights currently require a triple kill or better (3K+). This threshold is configurable and may be changed by DEAFCS administrators, for example to manage storage and rendering capacity."
               },
               "highlights_per_match": {
                 "q": "How many Highlights can I get from one match?",
@@ -3617,7 +3617,7 @@
         "general_support": {
           "title": "General Support",
           "description": "For general questions or issues that aren't happening during a live match, including media or press inquiries.",
-          "status": "No dedicated contact form yet — check back here once one is available."
+          "status": "No dedicated contact form yet. Check back here once one is available."
         },
         "bug_reports": {
           "title": "Bug Reports",
@@ -3644,14 +3644,128 @@
         },
         "partnerships": {
           "title": "Partnerships & Server Support",
-          "description": "DEAFCS welcomes interest from organizations or individuals who want to support the project — for example through sponsorship, financial support, providing game-server resources or hosting locations, or other partnerships.",
-          "status": "No dedicated partnerships channel yet — check back here once one is available."
+          "description": "DEAFCS welcomes interest from organizations or individuals who want to support the project, for example through sponsorship, financial support, providing game-server resources or hosting locations, or other partnerships.",
+          "status": "No dedicated partnerships channel yet. Check back here once one is available."
         },
         "other_ways": "Other Ways to Get Help"
       },
       "general_rules": {
         "title": "General Rules",
-        "intro": "General conduct rules for using DEAFCS. The full rules are being finalized and will be published here."
+        "intro": "These rules apply across DEAFCS, including community features, teams, matches, matchmaking, tournaments, Draft, and other DEAFCS services.",
+        "intro_2": "More specific {link} and {link2} may also apply on top of these General Rules, depending on what you're playing or organizing.",
+        "last_updated_date": "18 August 2026",
+        "sections": {
+          "respect": {
+            "title": "1. Respect & Conduct",
+            "body_1": "Players must treat other players, organizers, staff, and community members with respect, on and off the server. The following are not allowed:",
+            "item_1": "Harassment, targeted abuse, or threats",
+            "item_2": "Hate speech or discriminatory behavior",
+            "item_3": "Bullying or mockery",
+            "item_4": "Repeated toxic behavior intended to disrupt others",
+            "body_2": "DEAFCS exists primarily for the Deaf and hard-of-hearing community. Everyone is expected to respect differences in sign language, written-language ability, hearing technology, and communication style. Nobody should be mocked or discriminated against because of their deafness, hearing level, language, communication style, or accessibility needs.",
+            "body_3": "Normal competitive frustration or disagreement is not automatically treated as misconduct. These rules target abusive, discriminatory, threatening, or persistently disruptive behavior, not every argument.",
+            "body_4": "Deliberate political or national provocation, national insults, or war-related arguments intended to disrupt official DEAFCS spaces are not acceptable."
+          },
+          "cheating": {
+            "title": "2. Cheating & Unauthorized Advantages",
+            "body_1": "DEAFCS competitions depend on everyone playing fairly. The following are prohibited:",
+            "item_1": "Cheats, hacks, or aim/wallhack-style tools",
+            "item_2": "Scripts or third-party tools that provide an unfair competitive advantage",
+            "item_3": "Unauthorized software or game modifications that create an unfair competitive advantage",
+            "item_4": "Knowingly helping another player cheat",
+            "item_5": "Knowingly playing in a way designed to assist cheating or evade detection",
+            "body_2": "DEAFCS does not publicly document how cheating is detected or investigated."
+          },
+          "vac_bans": {
+            "title": "3. Counter-Strike VAC & Game Bans",
+            "body_1": "Players are expected to keep their registered Counter-Strike account free of VAC bans and official Counter-Strike game bans.",
+            "body_2": "A confirmed VAC ban or official Counter-Strike game ban on a player's registered account results in permanent DEAFCS competitive ineligibility, even if the ban did not happen in a DEAFCS match and the cheating activity was outside DEAFCS. Bans from unrelated games do not automatically trigger this policy.",
+            "body_3": "Appeals are considered only in narrow circumstances, such as a ban being reversed by Valve or a clear administrative error on DEAFCS's side."
+          },
+          "exploits": {
+            "title": "4. Exploits & Bugs",
+            "body_1": "Players must not knowingly abuse bugs or unintended behavior, including in:",
+            "item_1": "The DEAFCS website",
+            "item_2": "Matchmaking",
+            "item_3": "Tournaments",
+            "item_4": "Draft",
+            "item_5": "Server or game configuration",
+            "item_6": "Rating, Elo, or stat systems",
+            "item_7": "Permission or access-control systems",
+            "item_8": "Any other unintended system behavior that gives an unfair advantage or damages the service",
+            "body_2": "If you find a serious exploit, please report it instead of using it. Publicly sharing exploitable technical details is discouraged."
+          },
+          "accounts": {
+            "title": "5. Accounts, Steam ID & Identity",
+            "body_1": "Each player may register only one primary Counter-Strike Steam account with DEAFCS. This registered Steam ID is tied to your competitive history: statistics, Elo, badges, MVPs, and verification status all follow it.",
+            "body_2": "You may not create or use additional accounts to bypass sanctions, restrictions, verification requirements, competitive history, bans, or any other rule.",
+            "body_3": "Account sharing is not allowed when it lets someone else play or compete as you. Lending, selling, transferring, or otherwise allowing another person to compete using your registered account is prohibited. You are responsible for keeping your registered account secure, and for activity carried out through it where that is reasonably within your control.",
+            "body_4": "Impersonating another player, organizer, staff member, or DEAFCS representative is prohibited, as is deliberately misleading DEAFCS staff about your identity.",
+            "body_5": "A registered Steam ID is not intended to change routinely. Staff may approve a Steam ID change only in exceptional circumstances, and only once the old registered Steam account has been inactive for at least 12 months. The old and new identities remain linked internally, and a Steam ID change does not reset, hide, or erase competitive history, Elo/rating history, verification status, sanctions, or bans."
+          },
+          "verification": {
+            "title": "6. Player Verification",
+            "body_1": "DEAFCS is built primarily for Deaf and hard-of-hearing players. Verification may be required for selected competitions, tournaments, events, or other contexts where eligibility needs to be confirmed, not for using DEAFCS in general.",
+            "body_2": "Authorized DEAFCS staff can confirm eligibility using reasonable evidence, such as:",
+            "item_1": "Deaf education or background",
+            "item_2": "Deaflympics or deaf-sport participation",
+            "item_3": "Membership in a deaf organization",
+            "item_4": "Confirmation from trusted members of the Deaf community",
+            "item_5": "Other reasonable evidence",
+            "item_6": "Voluntary audiological or medical documentation, if you choose to provide it",
+            "body_3": "No single type of evidence is required in every case. Verification exists to confirm eligibility for DEAFCS competitions and community spaces. It is not a judgment of how deaf someone is.",
+            "body_4": "Only your verification status is public. Any supporting evidence and hearing-related details you share remain private, are reviewed only by authorized staff, and are not kept longer than necessary. If your verification is rejected, you may request a review or appeal."
+          },
+          "competitive_integrity": {
+            "title": "7. Competitive Integrity",
+            "body_1": "Players and teams must compete honestly. The following are prohibited:",
+            "item_1": "Intentionally losing or match fixing",
+            "item_2": "Win trading",
+            "item_3": "Collusion between opponents",
+            "item_4": "Deliberately manipulating Elo, rank, or statistics",
+            "item_5": "Deliberately sabotaging your own team",
+            "item_6": "Arranging fake or manipulated results",
+            "item_7": "Using alternate accounts to influence matchmaking or rankings",
+            "item_8": "Otherwise participating in fraudulent competitive activity",
+            "closing": "Detailed abandon, AFK, ready-check, and queue/party rules are covered in {link}. Detailed forfeit, roster, substitute, coach, veto, and scheduling rules are covered in {link2}."
+          },
+          "community_abuse": {
+            "title": "8. Community & Platform Abuse",
+            "body_1": "Players must not misuse DEAFCS systems. This includes:",
+            "item_1": "Spam",
+            "item_2": "Malicious links or content",
+            "item_3": "Deliberately disruptive use of chat, forum, comments, team or community features, or other communication tools",
+            "item_4": "Attempts to interfere with DEAFCS services or other users",
+            "item_5": "Deliberately abusing reports or support tools",
+            "item_6": "Posting content mainly intended to harass, deceive, disrupt, or damage the community"
+          },
+          "staff_cooperation": {
+            "title": "9. Staff & Organizer Cooperation",
+            "body_1": "Players are expected to follow reasonable instructions from DEAFCS staff and organizers related to active matches, disputes, investigations, tournaments, verification, platform safety and integrity, and serious technical incidents.",
+            "body_2": "Staff decisions are based on the available evidence, the relevant rules, the context, and the severity of the situation. Where appropriate, decisions can be reviewed or appealed."
+          },
+          "reports_evidence": {
+            "title": "10. Reports & Evidence",
+            "body_1": "If you report an issue, please provide accurate information. Screenshots, clips, demos, match information, server information, or other relevant evidence can help staff review a case.",
+            "body_2": "Do not knowingly submit false, manipulated, or malicious reports. Doing so may result in action against the reporter. Please also avoid publicly sharing sensitive verification information or exploit details when making a report; use the available DEAFCS support and reporting tools instead."
+          },
+          "enforcement": {
+            "title": "11. Enforcement & Penalties",
+            "body_1": "Breaking these rules can lead to a range of actions, depending on the situation. Possible actions include:",
+            "item_1": "A warning",
+            "item_2": "Temporary restriction of a feature",
+            "item_3": "Matchmaking restriction",
+            "item_4": "Tournament restriction",
+            "item_5": "Temporary suspension",
+            "item_6": "Permanent removal or permanent competitive ineligibility, in serious cases",
+            "body_2": "What action is taken can depend on the severity of the violation, intent, competitive impact, harm caused, whether the behavior was repeated or part of a prior history, the evidence available, cooperation during any investigation, and whether the violation involved deliberate evasion or deception.",
+            "body_3": "Where a specific Matchmaking Rule or Tournament Rule defines its own penalty for a situation, that specific rule takes precedence in that context."
+          },
+          "rule_changes": {
+            "title": "12. Rule Changes",
+            "body_1": "DEAFCS may update these rules as the platform, competitive systems, and community evolve. Material changes will be reflected on this page and on the related Matchmaking Rules and Tournament Rules pages."
+          }
+        }
       },
       "matchmaking_rules": {
         "title": "Matchmaking Rules",
@@ -4026,6 +4140,7 @@
   },
   "common": {
     "close": "Close",
+    "last_updated": "Last updated: {date}",
     "loading": "Loading",
     "manage_custom_plugins_and_shared_files": "These files are moutned to `csgo` directory when the server is started.",
     "any": "Any",
