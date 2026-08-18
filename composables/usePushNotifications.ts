@@ -90,20 +90,38 @@ export async function subscribeToPush(): Promise<boolean> {
   );
   if (!publicKey) return false;
 
+  // Reported bug: permission already "granted" (no prompt shown, which is
+  // correct — the browser never re-prompts once granted), but tapping
+  // Enable did visibly nothing on a Samsung Galaxy S24 Ultra. Only the
+  // permission prompt above had a timeout; pushManager.subscribe() --
+  // the actual registration with the OS/browser's push service, the
+  // equivalent of an FCM token request under the hood on Android -- had
+  // none, so a device with a stuck or unreachable push service (Samsung's
+  // own background/battery restrictions are a known cause) just hung
+  // forever with pushBusy stuck true and no error, indistinguishable
+  // from "nothing happens".
   const registration = await navigator.serviceWorker.ready;
   const existing = await registration.pushManager.getSubscription();
   const subscription =
     existing ??
-    (await registration.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey: urlBase64ToUint8Array(publicKey),
-    }));
+    (await withTimeout(
+      registration.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      }),
+      15_000,
+      "Timed out registering for push notifications with this device's push service. This can happen when the OS's background/battery restrictions are blocking it.",
+    ));
 
-  await $fetch(pushApiUrl("/subscribe"), {
-    method: "POST",
-    credentials: "include",
-    body: { subscription: subscription.toJSON() },
-  });
+  await withTimeout(
+    $fetch(pushApiUrl("/subscribe"), {
+      method: "POST",
+      credentials: "include",
+      body: { subscription: subscription.toJSON() },
+    }),
+    15_000,
+    "Timed out saving the push subscription to the server.",
+  );
 
   return true;
 }
