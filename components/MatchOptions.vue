@@ -916,6 +916,48 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                     </div>
                   </FormItem>
                 </FormField>
+
+                <FormField v-if="canSetMinRole" v-slot="{ value }" name="min_role">
+                  <FormItem>
+                    <SettingHeader>{{
+                      $t("tournament.form.min_role.label")
+                    }}</SettingHeader>
+                    <FormDescription>{{
+                      $t("tournament.form.min_role.description")
+                    }}</FormDescription>
+                    <Select
+                      :model-value="value ?? 'none'"
+                      @update:model-value="
+                        (val) =>
+                          form.setFieldValue(
+                            'min_role',
+                            val === 'none' ? null : (val as string),
+                          )
+                      "
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="none">
+                            {{ $t("tournament.form.min_role.unrestricted") }}
+                          </SelectItem>
+                          <SelectItem
+                            v-for="role in minRoleOptions"
+                            :key="role.value"
+                            :value="role.value"
+                          >
+                            {{ role.display }}
+                          </SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                </FormField>
               </div>
             </Card>
 
@@ -1735,6 +1777,47 @@ export default {
         this.lockSubstitutes &&
         useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
       );
+    },
+    // Same tournament-scope signal as canSetIndividualRegistration -- min_role
+    // is a tournaments column, not a match_options one, but it's edited from
+    // this shared form alongside the other tournament-only registration
+    // settings.
+    canSetMinRole() {
+      return (
+        this.lockSubstitutes &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
+      );
+    },
+    // Same role list/order as PlayerRoleForm.vue's assignable roles --
+    // moderator is intentionally excluded, it isn't user-facing anywhere
+    // else in the app either.
+    minRoleOptions() {
+      return [
+        {
+          value: e_player_roles_enum.user,
+          display: this.$t("player_roles.user"),
+        },
+        {
+          value: e_player_roles_enum.verified_user,
+          display: this.$t("player_roles.verified_user"),
+        },
+        {
+          value: e_player_roles_enum.streamer,
+          display: this.$t("player_roles.streamer"),
+        },
+        {
+          value: e_player_roles_enum.match_organizer,
+          display: this.$t("player_roles.match_organizer"),
+        },
+        {
+          value: e_player_roles_enum.tournament_organizer,
+          display: this.$t("player_roles.tournament_organizer"),
+        },
+        {
+          value: e_player_roles_enum.administrator,
+          display: this.$t("player_roles.administrator"),
+        },
+      ];
     },
     canSetMatchCancellation() {
       return useAuthStore().isRoleAbove(

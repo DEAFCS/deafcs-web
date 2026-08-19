@@ -4761,8 +4761,7 @@
         "branding": "Branding",
         "details": "Details",
         "classification": "Classification & Venue",
-        "schedule": "Schedule",
-        "registration": "Registration"
+        "schedule": "Schedule"
       },
       "min_role": {
         "label": "Minimum Role",

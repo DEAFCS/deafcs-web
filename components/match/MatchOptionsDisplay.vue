@@ -188,12 +188,6 @@ const BooleanPill = defineComponent({
                   }}</span>
                 </dd>
               </div>
-              <div v-if="minRole !== undefined" class="settings-row">
-                <dt class="settings-row__label">{{
-                  $t("tournament.form.min_role.label")
-                }}</dt>
-                <dd class="settings-row__value">{{ minRoleDisplay }}</dd>
-              </div>
               <div v-if="options.match_mode" class="settings-row">
                 <dt class="settings-row__label">{{
                   $t("match.options.advanced.match_mode.label")
@@ -249,6 +243,12 @@ const BooleanPill = defineComponent({
                 <dd class="settings-row__value tabular-nums">{{
                   options.number_of_substitutes
                 }}</dd>
+              </div>
+              <div v-if="minRole !== undefined" class="settings-row">
+                <dt class="settings-row__label">{{
+                  $t("tournament.form.min_role.label")
+                }}</dt>
+                <dd class="settings-row__value">{{ minRoleDisplay }}</dd>
               </div>
               <div v-if="options.camera_required != null" class="settings-row">
                 <dt class="settings-row__label">{{

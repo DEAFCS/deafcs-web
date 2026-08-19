@@ -3,14 +3,6 @@ import { FormControl, FormField, FormItem } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { Label } from "~/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import AddressSearch from "~/components/AddressSearch.vue";
 import CategorySelect from "~/components/tournament/CategorySelect.vue";
@@ -170,54 +162,6 @@ import {
       </FormField>
     </section>
 
-    <!-- Registration -->
-    <section class="grid gap-4">
-      <div :class="[sectionLabelClasses, 'mb-0']">
-        <span :class="sectionTickClasses"></span>
-        {{ $t("tournament.form.section.registration") }}
-      </div>
-
-      <FormField v-slot="{ value }" name="min_role">
-        <FormItem>
-          <FormLabel>{{ $t("tournament.form.min_role.label") }}</FormLabel>
-          <Select
-            :model-value="value ?? 'none'"
-            @update:model-value="
-              (val) =>
-                form.setFieldValue(
-                  'min_role',
-                  val === 'none' ? null : (val as string),
-                )
-            "
-          >
-            <FormControl>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              <SelectGroup>
-                <SelectItem value="none">
-                  {{ $t("tournament.form.min_role.unrestricted") }}
-                </SelectItem>
-                <SelectItem
-                  v-for="role in minRoleOptions"
-                  :key="role.value"
-                  :value="role.value"
-                >
-                  {{ role.display }}
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <FormDescription>{{
-            $t("tournament.form.min_role.description")
-          }}</FormDescription>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-    </section>
-
     <div class="pb-24"></div>
 
     <SettingsSaveBar
@@ -233,7 +177,7 @@ import {
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { generateMutation } from "~/graphql/graphqlGen";
-import { $, e_player_roles_enum } from "~/generated/zeus";
+import { $ } from "~/generated/zeus";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
 
@@ -261,7 +205,6 @@ export default {
             latitude: z.number().nullable().default(null),
             longitude: z.number().nullable().default(null),
             categories: z.string().array().default([]),
-            min_role: z.string().nullable().default(null),
           }),
         ),
       }),
@@ -301,37 +244,6 @@ export default {
       }
       return `https://${this.apiDomain}/${this.tournament.banner}`;
     },
-    // Same role list/order as PlayerRoleForm.vue's assignable roles --
-    // moderator is intentionally excluded, it isn't user-facing anywhere
-    // else in the app either.
-    minRoleOptions() {
-      return [
-        {
-          value: e_player_roles_enum.user,
-          display: this.$t("player_roles.user"),
-        },
-        {
-          value: e_player_roles_enum.verified_user,
-          display: this.$t("player_roles.verified_user"),
-        },
-        {
-          value: e_player_roles_enum.streamer,
-          display: this.$t("player_roles.streamer"),
-        },
-        {
-          value: e_player_roles_enum.match_organizer,
-          display: this.$t("player_roles.match_organizer"),
-        },
-        {
-          value: e_player_roles_enum.tournament_organizer,
-          display: this.$t("player_roles.tournament_organizer"),
-        },
-        {
-          value: e_player_roles_enum.administrator,
-          display: this.$t("player_roles.administrator"),
-        },
-      ];
-    },
   },
   methods: {
     populate() {
@@ -354,7 +266,6 @@ export default {
         categories: (this.tournament.categories ?? []).map(
           (category: any) => category.category,
         ),
-        min_role: this.tournament.min_role ?? null,
       });
       this.$nextTick(() => {
         this.baseline = JSON.stringify(this.form.values);
@@ -456,7 +367,6 @@ export default {
             location: this.form.values.location || null,
             latitude: this.form.values.latitude ?? null,
             longitude: this.form.values.longitude ?? null,
-            min_role: this.form.values.min_role ?? null,
           },
           mutation: generateMutation({
             update_tournaments_by_pk: [
@@ -470,7 +380,6 @@ export default {
                   location: $("location", "String"),
                   latitude: $("latitude", "float8"),
                   longitude: $("longitude", "float8"),
-                  min_role: $("min_role", "e_player_roles_enum"),
                 },
               },
               { __typename: true },

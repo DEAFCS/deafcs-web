@@ -134,6 +134,7 @@ export default {
             {
               auto_start: z.boolean().default(true),
               negotiated_scheduling: z.boolean().default(false),
+              min_role: z.string().nullable().default(null),
             },
             useApplicationSettingsStore().settings,
           ),
@@ -196,6 +197,7 @@ export default {
         map_veto: true,
         auto_start: this.tournament.auto_start,
         negotiated_scheduling: this.tournament.scheduling_mode === "negotiated",
+        min_role: this.tournament.min_role ?? null,
       });
 
       setupOptions(this.form, this.tournament.options);
@@ -255,6 +257,7 @@ export default {
           variables: {
             auto_start: form.negotiated_scheduling ? false : form.auto_start,
             scheduling_mode: form.negotiated_scheduling ? "negotiated" : "auto",
+            min_role: form.min_role ?? null,
           },
           mutation: generateMutation({
             update_tournaments_by_pk: [
@@ -263,6 +266,7 @@ export default {
                 _set: {
                   auto_start: $("auto_start", "Boolean!"),
                   scheduling_mode: $("scheduling_mode", "String!"),
+                  min_role: $("min_role", "e_player_roles_enum"),
                 },
               },
               { __typename: true },
