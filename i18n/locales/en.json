@@ -4661,7 +4661,12 @@
       "read_less": "Read less",
       "view_tournament_rules": "View Tournament Rules",
       "tournament_rules_hint": "General tournament rules apply to all events. Check this tournament's settings for event-specific match rules.",
-      "load_error": "This tournament couldn't be loaded. Try refreshing the page."
+      "load_error": "This tournament couldn't be loaded. Try refreshing the page.",
+      "awards_showcase": {
+        "title": "Configured Awards",
+        "player": "Player",
+        "team": "Team"
+      }
     },
     "feature_card": {
       "tournament": "Tournament",
@@ -5494,6 +5499,7 @@
       "check_in_setting": "Check In Setting",
       "check_in_duration": "Check-in Time",
       "webcam_required": "Webcam Required",
+      "awards_enabled": "Awards",
       "advanced_settings": "Show Advanced Settings",
       "default_player_models": "Default Player Models"
     },

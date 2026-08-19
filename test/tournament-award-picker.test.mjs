@@ -106,7 +106,13 @@ test("legacy automatic placement override editors and cards are removed", () => 
   assert.equal(existsSync(legacyTrophyConfig), false);
   assert.doesNotMatch(detail, /TournamentAwardsConfig|TournamentTrophiesConfig/);
   assert.doesNotMatch(detail, /v-for="p in placements"/);
-  assert.doesNotMatch(detail, /trophies_enabled|toggleEnabled|savingEnabled/);
+  // trophies_enabled itself is no longer banned: the Tournament Awards
+  // Enabled/Disabled feature deliberately reintroduces it (this time on
+  // TournamentAwardPicker.vue, not a revived TournamentAwardsConfig.vue),
+  // using new state names (awardsEnabled/togglingEnabled) so this still
+  // guards against literally reviving the old toggleEnabled/savingEnabled
+  // per-placement pattern.
+  assert.doesNotMatch(detail, /toggleEnabled|savingEnabled/);
   assert.doesNotMatch(detail, /Trophy Configuration|automatic trophy appearance/i);
 });
 

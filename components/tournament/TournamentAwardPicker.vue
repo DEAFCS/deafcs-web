@@ -11,6 +11,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "~/components/ui/select";
+import { Switch } from "~/components/ui/switch";
 import { toast } from "~/components/ui/toast";
 import {
   TOURNAMENT_AWARD_PLACEMENTS,
@@ -80,6 +81,18 @@ const TOURNAMENT_AWARD_SLOTS_QUERY = gql`
   }
 `;
 
+const UPDATE_TOURNAMENT_AWARDS_ENABLED_MUTATION = gql`
+  mutation UpdateTournamentAwardsEnabled($tournamentId: uuid!, $enabled: Boolean!) {
+    update_tournaments_by_pk(
+      pk_columns: { id: $tournamentId }
+      _set: { trophies_enabled: $enabled }
+    ) {
+      id
+      trophies_enabled
+    }
+  }
+`;
+
 const SET_TOURNAMENT_AWARD_MUTATION = gql`
   mutation SetTournamentAwardPickerSlot(
     $tournamentId: uuid!
@@ -113,6 +126,9 @@ const props = withDefaults(
     matchType?: string | null;
     minPlayersPerLineup?: number | null;
     finished?: boolean;
+    // Random/casual tournaments default this off -- organizers opt in
+    // deliberately when the tournament is meant to award anything.
+    trophiesEnabled?: boolean;
   }>(),
   {
     modelValue: () => ({}),
@@ -120,6 +136,7 @@ const props = withDefaults(
     matchType: null,
     minPlayersPerLineup: null,
     finished: false,
+    trophiesEnabled: false,
   },
 );
 
@@ -136,6 +153,45 @@ const loading = ref(true);
 const saving = ref(false);
 const loadError = ref("");
 const feedback = ref("");
+
+const awardsEnabled = ref(props.trophiesEnabled);
+const togglingEnabled = ref(false);
+watch(
+  () => props.trophiesEnabled,
+  (value) => {
+    awardsEnabled.value = value;
+  },
+);
+
+async function toggleAwardsEnabled(next: boolean) {
+  if (!props.tournamentId || togglingEnabled.value) return;
+  const previous = awardsEnabled.value;
+  awardsEnabled.value = next;
+  togglingEnabled.value = true;
+  try {
+    await client.mutate({
+      mutation: UPDATE_TOURNAMENT_AWARDS_ENABLED_MUTATION,
+      variables: { tournamentId: props.tournamentId, enabled: next },
+    });
+    toast({
+      title: next ? "Awards enabled" : "Awards disabled",
+      description: next
+        ? "Award mappings are visible and this tournament will award them."
+        : "Award mappings are preserved but hidden, and no awards will be granted while disabled.",
+    });
+  } catch (error) {
+    awardsEnabled.value = previous;
+    const description =
+      error instanceof Error ? error.message : "Please try again.";
+    toast({
+      title: "Could not update Awards Enabled",
+      description,
+      variant: "destructive",
+    });
+  } finally {
+    togglingEnabled.value = false;
+  }
+}
 
 const mvpEnabled = computed(() =>
   tournamentMvpEnabled(props.matchType, props.minPlayersPerLineup),
@@ -441,6 +497,7 @@ watch(() => props.tournamentId, loadPicker);
         </p>
       </div>
       <Button
+        v-if="awardsEnabled"
         type="button"
         size="sm"
         variant="outline"
@@ -452,6 +509,41 @@ watch(() => props.tournamentId, loadPicker);
       </Button>
     </div>
 
+    <div
+      class="mt-4 flex items-center justify-between gap-3 rounded-sm border border-border/60 bg-background/45 p-3"
+    >
+      <div>
+        <label
+          id="tournament-awards-enabled-label"
+          class="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.18em]"
+        >
+          Awards Enabled
+        </label>
+        <p class="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Random or casual tournaments should not automatically give awards.
+          Turn this on when the tournament is meant to award Champion,
+          Runner-up, Third Place, and MVP.
+        </p>
+      </div>
+      <Switch
+        aria-labelledby="tournament-awards-enabled-label"
+        :model-value="awardsEnabled"
+        :disabled="!tournamentId || togglingEnabled"
+        @update:model-value="toggleAwardsEnabled($event as boolean)"
+      />
+    </div>
+
+    <div
+      v-if="!awardsEnabled"
+      class="mt-4 rounded-sm border border-dashed border-border bg-background/30 px-4 py-3 text-sm leading-relaxed text-muted-foreground"
+      role="note"
+    >
+      Awards are disabled for this tournament. Existing award mappings below
+      are preserved but hidden, and no awards will be granted while
+      disabled. Turn on Awards Enabled to configure or reveal them.
+    </div>
+
+    <template v-if="awardsEnabled">
     <div
       v-if="finished"
       class="mt-4 rounded-sm border border-[hsl(var(--tac-amber)_/_0.35)] bg-[hsl(var(--tac-amber)_/_0.08)] px-4 py-3 text-sm leading-relaxed"
@@ -594,5 +686,6 @@ watch(() => props.tournamentId, loadPicker);
         {{ saving ? "Saving…" : "Save award mappings" }}
       </Button>
     </div>
+    </template>
   </section>
 </template>

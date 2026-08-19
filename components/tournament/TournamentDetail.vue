@@ -14,6 +14,7 @@ import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.v
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
+import TournamentAwardShowcase from "~/components/tournament/TournamentAwardShowcase.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchOptionsDisplay from "~/components/match/MatchOptionsDisplay.vue";
@@ -667,7 +668,14 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :show-details-by-default="true"
                 :options="tournament.options"
                 :min-role="tournament.min_role"
+                :awards-enabled="tournament.trophies_enabled ?? false"
               ></MatchOptionsDisplay>
+              <TournamentAwardShowcase
+                :tournament-id="tournament.id"
+                :enabled="tournament.trophies_enabled ?? false"
+                :match-type="tournament.options?.type || null"
+                :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
+              />
               <div class="grid gap-1">
                 <NuxtLink
                   to="/tournament-rules"
@@ -843,6 +851,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :match-type="tournament.options?.type || null"
                 :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
                 :finished="tournament.status === 'Finished'"
+                :trophies-enabled="tournament.trophies_enabled ?? false"
               />
             </div>
           </PageTransition>
@@ -1057,6 +1066,7 @@ export default {
               latitude: true,
               longitude: true,
               min_role: true,
+              trophies_enabled: true,
               is_organizer: true,
               can_join: true,
               can_start: true,
