@@ -27,6 +27,7 @@ import {
   UserMinus,
 } from "lucide-vue-next";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
+import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
 import PlayerElo from "~/components/PlayerElo.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import RenderHighlightForPlayerDialog from "~/components/match/RenderHighlightForPlayerDialog.vue";
@@ -185,16 +186,23 @@ const DASH = "—";
                   </div>
                 </NuxtLink>
                 <div class="flex flex-col min-w-0 leading-tight">
-                  <NuxtLink
-                    :to="{
-                      name: 'players-id',
-                      params: { id: member.player.steam_id },
-                    }"
-                    class="truncate text-xs font-medium hover:text-primary"
-                    :class="{ 'text-[#f99e2f] hover:text-[#f99e2f]': isCurrentUser(member) }"
-                  >
-                    {{ member.player.name }}
-                  </NuxtLink>
+                  <div class="flex items-center gap-1.5 min-w-0">
+                    <NuxtLink
+                      :to="{
+                        name: 'players-id',
+                        params: { id: member.player.steam_id },
+                      }"
+                      class="truncate text-xs font-medium hover:text-primary"
+                      :class="{ 'text-[#f99e2f] hover:text-[#f99e2f]': isCurrentUser(member) }"
+                    >
+                      {{ member.player.name }}
+                    </NuxtLink>
+                    <SanctionStatusBadge
+                      v-if="mobileSanctionType(member)"
+                      :type="mobileSanctionType(member)"
+                      variant="inline"
+                    />
+                  </div>
                   <div
                     class="flex items-center gap-1.5 min-w-0 mt-0.5 text-muted-foreground"
                   >
@@ -461,6 +469,21 @@ export default {
     },
   },
   methods: {
+    // Mirrors PlayerDisplay.vue's activeSanctionType -- the mobile row here
+    // is a separate hand-rolled layout (not <LineupMember>/<PlayerDisplay>,
+    // see the .hidden md:block / .md:hidden split above) that never got the
+    // sanction/leaver badge wired in, so it silently showed nothing (reported
+    // bug: no LEAVER badge on the match page). Same severity order: ban >
+    // leaver > mute > gag.
+    mobileSanctionType(member: any): "ban" | "mute" | "gag" | "leaver" | null {
+      const player = member?.player;
+      if (!player) return null;
+      if (player.is_admin_sanctioned) return "ban";
+      if (player.is_leaver_in_match) return "leaver";
+      if (player.is_muted) return "mute";
+      if (player.is_gagged) return "gag";
+      return null;
+    },
     faceitSkillLevel(member: any): number | null {
       return (
         member?.player?.faceit_rank_history?.[0]?.skill_level ??
