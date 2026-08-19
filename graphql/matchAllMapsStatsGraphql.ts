@@ -12,6 +12,17 @@ const partyFields: any = {
   party_source: true,
 };
 
+// Same reason as partyFields above -- generated/zeus predates
+// is_leaver_in_match, AND (more importantly) activeLineup1/2 in
+// MatchTabs.vue shallow-merges this query's lineup_players over the shell
+// query's (matchLineupsGraphql.ts), clobbering its is_leaver_in_match even
+// though that file's selector fetches it. Without this, the LEAVER badge
+// silently disappears on the Overview tab for any match with all-maps stats
+// data. Reuses this query's own $matchId variable.
+const leaverInMatchField: any = {
+  is_leaver_in_match: [{ args: { match_id: $("matchId", "uuid!") } }, true],
+};
+
 // All-maps Overview tab. Reads from player_match_stats_v scoped to the
 // current match (aggregate across all maps) AND player_match_map_stats
 // per-map rows so the row analysis zone can switch between aggregate
@@ -35,6 +46,7 @@ export const matchAllMapsStats = Selector("match_lineups")({
       ...partyFields,
       player: {
         ...playerFields,
+        ...leaverInMatchField,
         match_stats: [
           {
             where: { match_id: { _eq: $("matchId", "uuid!") } },
