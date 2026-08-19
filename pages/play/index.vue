@@ -112,7 +112,7 @@ const settingsOpen = ref(false);
             </div>
             <NuxtLink
               v-if="notVerifiedForMatchmaking"
-              to="/matchmaking-rules"
+              to="/general-rules"
               class="text-[0.68rem] text-muted-foreground hover:text-[hsl(var(--tac-amber))] hover:underline"
             >
               {{ $t("pages.play.matchmaking.learn_verification") }}
