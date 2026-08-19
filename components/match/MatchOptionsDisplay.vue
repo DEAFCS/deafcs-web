@@ -7,6 +7,7 @@ import {
 } from "~/components/ui/collapsible";
 import MiniMapDisplay from "~/components/MinIMapDisplay.vue";
 import { useI18n } from "vue-i18n";
+import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 
 const { t } = useI18n();
 const BooleanPill = defineComponent({
@@ -174,17 +175,14 @@ const BooleanPill = defineComponent({
                 }}</dd>
               </div>
               <div
-                v-if="
-                  (options.check_in_setting === 'Captains' || options.check_in_setting === 'Players') &&
-                  options.check_in_duration != null
-                "
+                v-if="options.check_in_setting === 'Captains' || options.check_in_setting === 'Players'"
                 class="settings-row"
               >
                 <dt class="settings-row__label">{{
                   $t("match.options.check_in_duration")
                 }}</dt>
                 <dd class="settings-row__value tabular-nums">
-                  {{ options.check_in_duration }}
+                  {{ effectiveCheckInDuration }}
                   <span class="settings-row__unit">{{
                     $t("match.options.minutes")
                   }}</span>
@@ -296,6 +294,23 @@ export default {
     return {
       showDetails: this.showDetailsByDefault,
     };
+  },
+  computed: {
+    // Pre-existing tournaments/matches predate the check_in_duration
+    // column, so this is null on rows created before it existed -- the
+    // backend already falls back to the same app-level setting (see
+    // get_int_setting('check_in_duration', 5) in tbu_matches), so the
+    // display must not silently hide the row just because the stored
+    // override is unset.
+    effectiveCheckInDuration() {
+      if (this.options.check_in_duration != null) {
+        return this.options.check_in_duration;
+      }
+      const val = useApplicationSettingsStore().settings.find(
+        (s) => s.name === "check_in_duration",
+      )?.value;
+      return val ? Number(val) : 5;
+    },
   },
 };
 </script>
