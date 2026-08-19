@@ -622,9 +622,21 @@ export default {
                 // the same ban doesn't also show as a Sanction. Steam id
                 // "0" is the reserved system player used exclusively for
                 // those (see SYSTEM_STEAM_ID in disconnect-budget.service.ts).
-                sanctioned_by_steam_id: {
-                  _neq: "0",
-                },
+                //
+                // Reported bug: a plain _neq: "0" also silently excluded
+                // NULL rows (Hasura/Postgres treat "column != 0" as
+                // neither true nor false when column is NULL, so the row
+                // just never matches) -- but NULL is exactly what the
+                // VAC-ban auto-sanction system uses for its own
+                // auto-issued bans, a completely different case from the
+                // leaver system's steam_id 0 sentinel. That hid every
+                // VAC-ban sanction from this list. _or with an explicit
+                // _is_null check restores the null-safe "not equal to 0"
+                // semantics that were actually intended.
+                _or: [
+                  { sanctioned_by_steam_id: { _is_null: true } },
+                  { sanctioned_by_steam_id: { _neq: "0" } },
+                ],
               },
             },
             {
