@@ -663,7 +663,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           <PageTransition>
             <ManageSection :label="$t('tournament.page.match_settings')">
               <MatchOptionsDisplay
-                :show-details-by-default="false"
+                :show-details-by-default="true"
                 :options="tournament.options"
               ></MatchOptionsDisplay>
             </ManageSection>

@@ -7,6 +7,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
+import InlineToken from "~/components/info/InlineToken.vue";
 import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
@@ -230,6 +231,9 @@ function scrollToCategory(hash: string) {
                   >
                     {{ $t(link.labelKey) }}
                   </NuxtLink>
+                </template>
+                <template #menu>
+                  <InlineToken>⋮ menu</InlineToken>
                 </template>
               </i18n-t>
             </AccordionContent>

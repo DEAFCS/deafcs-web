@@ -923,7 +923,7 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
               <div class="p-4 space-y-6">
                 <FormField
                   v-if="canSetcheckInSettings"
-                  v-slot="{ componentField }"
+                  v-slot="{ componentField, value }"
                   name="check_in_setting"
                 >
                   <FormItem>
@@ -952,6 +952,39 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                       </SelectContent>
                     </Select>
                     <FormMessage />
+
+                    <!-- Independent of Match Cancellation's auto_cancel_duration
+                         below -- not shown for Admin, which has no automatic
+                         check-in timer at all. -->
+                    <div
+                      v-if="value === 'Captains' || value === 'Players'"
+                      class="mt-4 space-y-4 pl-4 border-l-2"
+                    >
+                      <FormField
+                        v-slot="{ componentField: checkInDurationField }"
+                        name="check_in_duration"
+                      >
+                        <FormItem>
+                          <FormLabel>{{
+                            $t("match.options.advanced.check_in_duration.label")
+                          }}</FormLabel>
+                          <FormDescription>{{
+                            $t(
+                              "match.options.advanced.check_in_duration.description",
+                            )
+                          }}</FormDescription>
+                          <FormControl>
+                            <Input
+                              v-bind="checkInDurationField"
+                              type="number"
+                              min="1"
+                              :placeholder="checkInDurationDefault"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      </FormField>
+                    </div>
                   </FormItem>
                 </FormField>
 
@@ -1713,6 +1746,12 @@ export default {
         (s) => s.name === "auto_cancel_duration",
       )?.value;
       return val || "15";
+    },
+    checkInDurationDefault(): string {
+      const val = useApplicationSettingsStore().settings.find(
+        (s) => s.name === "check_in_duration",
+      )?.value;
+      return val || "5";
     },
     liveMatchTimeoutDefault(): string {
       const val = useApplicationSettingsStore().settings.find(

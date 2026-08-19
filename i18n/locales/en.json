@@ -3381,6 +3381,7 @@
       "faq": {
         "title": "FAQ",
         "intro": "Answers to common questions about DEAFCS: getting started, your account, matchmaking, tournaments, and the wider community.",
+        "last_updated_date": "19 August 2026",
         "categories": {
           "getting_started": {
             "title": "Getting Started",
@@ -3429,6 +3430,10 @@
               "return_later": {
                 "q": "Can I return to DEAFCS later?",
                 "a": "Yes, you can sign back in with Steam whenever you're ready. See {link} for more on how your account and data are handled."
+              },
+              "banned_after_registering": {
+                "q": "Why am I banned immediately after registering?",
+                "a": "If Steam reports a VAC ban or game ban on your account, DEAFCS automatically restricts it until staff can review it. This doesn't always mean you're permanently banned: the ban may come from a game other than Counter-Strike, and DEAFCS can't automatically tell which game caused it. Contact DEAFCS staff for a review. If the ban is unrelated to Counter-Strike, staff may remove the restriction. Counter-Strike-related bans remain subject to DEAFCS rules. Please don't create another DEAFCS account to try to bypass the restriction. See {link} for the full Steam account, VAC, and game-ban policy."
               }
             }
           },
@@ -3500,7 +3505,7 @@
               },
               "server_problems": {
                 "q": "What happens if a server has problems during a match?",
-                "a": "If you're in an active match, use Contact Support from the match page's ⋮ menu to request an organizer directly. Support is handled with limited staff and resources, so an immediate response can't always be guaranteed. For anything else, you can also reach us via {link}."
+                "a": "If you're in an active match, use Contact Support from the match page's {menu} to request an organizer directly. Support is handled with limited staff and resources, so an immediate response can't always be guaranteed. For anything else, you can also reach us via {link}."
               },
               "ping_difference": {
                 "q": "Why is my ping different from other players?",
@@ -3610,7 +3615,7 @@
           "title": "Live Match Support",
           "description": "If you're in an active match right now and there's a server or match problem, this is the fastest way to get help.",
           "step_1": "Open your match page.",
-          "step_2": "Use the ⋮ menu and select Contact Support.",
+          "step_2": "Use the {menu} and select Contact Support.",
           "step_3": "This directly requests help from a match organizer.",
           "note": "DEAFCS has limited staff and resources, so an immediate response can't always be guaranteed."
         },
@@ -3653,7 +3658,7 @@
         "title": "General Rules",
         "intro": "These rules apply across DEAFCS, including community features, teams, matches, matchmaking, tournaments, Draft, and other DEAFCS services.",
         "intro_2": "More specific {link} and {link2} may also apply on top of these General Rules, depending on what you're playing or organizing.",
-        "last_updated_date": "18 August 2026",
+        "last_updated_date": "19 August 2026",
         "sections": {
           "respect": {
             "title": "1. Respect & Conduct",
@@ -3679,8 +3684,11 @@
           "vac_bans": {
             "title": "3. Counter-Strike VAC & Game Bans",
             "body_1": "Players are expected to keep their registered Counter-Strike account free of VAC bans and official Counter-Strike game bans.",
-            "body_2": "A confirmed VAC ban or official Counter-Strike game ban on a player's registered account results in permanent DEAFCS competitive ineligibility, even if the ban did not happen in a DEAFCS match and the cheating activity was outside DEAFCS. Bans from unrelated games do not automatically trigger this policy.",
-            "body_3": "Appeals are considered only in narrow circumstances, such as a ban being reversed by Valve or a clear administrative error on DEAFCS's side."
+            "body_2": "When you register and Steam reports a VAC ban or game ban on that account, DEAFCS automatically restricts the account until staff can review it. This automatic restriction does not always mean you are permanently banned from DEAFCS: the reported ban may come from a game other than Counter-Strike, and DEAFCS cannot automatically tell which game caused it.",
+            "body_3": "Contact DEAFCS staff for a review. If the reported ban is unrelated to Counter-Strike, staff may remove the restriction. If it is related to Counter-Strike, the restriction remains and is handled under this policy.",
+            "body_4": "Do not create another DEAFCS account to try to bypass an automatic restriction. Providing false information, or attempting to bypass a restriction using another Steam account, may result in additional penalties.",
+            "body_5": "A confirmed VAC ban or official Counter-Strike game ban on a player's registered account results in permanent DEAFCS competitive ineligibility, even if the ban did not happen in a DEAFCS match and the cheating activity was outside DEAFCS. Bans from unrelated games do not automatically trigger this policy.",
+            "body_6": "Appeals are considered only in narrow circumstances, such as a ban being reversed by Valve or a clear administrative error on DEAFCS's side."
           },
           "exploits": {
             "title": "4. Exploits & Bugs",
@@ -3697,14 +3705,28 @@
           },
           "accounts": {
             "title": "5. Accounts, Steam ID & Identity",
-            "body_1": "Each player may register only one primary Counter-Strike Steam account with DEAFCS. This registered Steam ID is tied to your competitive history: statistics, Elo, badges, MVPs, and verification status all follow it.",
-            "body_2": "You may not create or use additional accounts to bypass sanctions, restrictions, verification requirements, competitive history, bans, or any other rule.",
-            "body_3": "Account sharing is not allowed when it lets someone else play or compete as you. Lending, selling, transferring, or otherwise allowing another person to compete using your registered account is prohibited. You are responsible for keeping your registered account secure, and for activity carried out through it where that is reasonably within your control.",
-            "body_4": "Impersonating another player, organizer, staff member, or DEAFCS representative is prohibited, as is deliberately misleading DEAFCS staff about your identity.",
-            "body_5": "A registered Steam ID is not intended to change routinely. Staff may approve a Steam ID change only in exceptional circumstances, and only once the old registered Steam account has been inactive for at least 12 months. The old and new identities remain linked internally, and a Steam ID change does not reset, hide, or erase competitive history, Elo/rating history, verification status, sanctions, or bans."
+            "body_1": "Your DEAFCS account is linked to the Steam account you used when registering. This registered Steam ID is tied to your competitive history: statistics, Elo, badges, MVPs, and verification status all follow it, and it cannot normally be changed.",
+            "body_2": "Each player may use only one active DEAFCS account. You may not create or use additional accounts to bypass sanctions, restrictions, verification requirements, competitive history, bans, or any other rule.",
+            "body_3": "The following are not allowed:",
+            "item_1": "Account sharing: lending, selling, transferring, or otherwise letting someone else play or compete using your account",
+            "item_2": "Using another person's Steam account to play or compete",
+            "item_3": "Smurfing on a second, low-history account",
+            "item_4": "Actively using more than one DEAFCS account",
+            "body_4": "You are responsible for keeping your registered account secure, and for activity carried out through it where that is reasonably within your control.",
+            "body_5": "Impersonating another player, organizer, staff member, or DEAFCS representative is prohibited, as is deliberately misleading DEAFCS staff about your identity."
+          },
+          "moving_accounts": {
+            "title": "6. Moving to a New Steam Account",
+            "body_1": "DEAFCS staff may allow a legitimate move from your old Steam account to a new Steam account. This is normally considered when:",
+            "item_1": "the old account is in good standing",
+            "item_2": "you have not played a DEAFCS match on the old account during the previous 6 months",
+            "item_3": "you contact DEAFCS staff before playing DEAFCS matches on the new account",
+            "body_2": "If the move is approved, the old DEAFCS account is closed and no longer used, rather than treated as a punishment. The new Steam account can then be used for DEAFCS. Historical matches, statistics, results, awards, team history, and other competitive records connected to the old account may remain.",
+            "body_3": "Creating or using a second DEAFCS account within 6 months and playing DEAFCS matches on both accounts is treated as multi-accounting or smurfing, not as an approved move. One account may be permanently banned, and the other may receive a long-term suspension.",
+            "body_4": "Contact DEAFCS staff before you start using a different Steam account for DEAFCS."
           },
           "verification": {
-            "title": "6. Player Verification",
+            "title": "7. Player Verification",
             "body_1": "DEAFCS is built primarily for Deaf and hard-of-hearing players. Verification may be required for selected competitions, tournaments, events, or other contexts where eligibility needs to be confirmed, not for using DEAFCS in general.",
             "body_2": "Authorized DEAFCS staff can confirm eligibility using reasonable evidence, such as:",
             "item_1": "Deaf education or background",
@@ -3717,7 +3739,7 @@
             "body_4": "Only your verification status is public. Any supporting evidence and hearing-related details you share remain private, are reviewed only by authorized staff, and are not kept longer than necessary. If your verification is rejected, you may request a review or appeal."
           },
           "competitive_integrity": {
-            "title": "7. Competitive Integrity",
+            "title": "8. Competitive Integrity",
             "body_1": "Players and teams must compete honestly. The following are prohibited:",
             "item_1": "Intentionally losing or match fixing",
             "item_2": "Win trading",
@@ -3730,7 +3752,7 @@
             "closing": "Detailed abandon, AFK, ready-check, and queue/party rules are covered in {link}. Detailed forfeit, roster, substitute, coach, veto, and scheduling rules are covered in {link2}."
           },
           "community_abuse": {
-            "title": "8. Community & Platform Abuse",
+            "title": "9. Community & Platform Abuse",
             "body_1": "Players must not misuse DEAFCS systems. This includes:",
             "item_1": "Spam",
             "item_2": "Malicious links or content",
@@ -3740,17 +3762,17 @@
             "item_6": "Posting content mainly intended to harass, deceive, disrupt, or damage the community"
           },
           "staff_cooperation": {
-            "title": "9. Staff & Organizer Cooperation",
+            "title": "10. Staff & Organizer Cooperation",
             "body_1": "Players are expected to follow reasonable instructions from DEAFCS staff and organizers related to active matches, disputes, investigations, tournaments, verification, platform safety and integrity, and serious technical incidents.",
             "body_2": "Staff decisions are based on the available evidence, the relevant rules, the context, and the severity of the situation. Where appropriate, decisions can be reviewed or appealed."
           },
           "reports_evidence": {
-            "title": "10. Reports & Evidence",
+            "title": "11. Reports & Evidence",
             "body_1": "If you report an issue, please provide accurate information. Screenshots, clips, demos, match information, server information, or other relevant evidence can help staff review a case.",
             "body_2": "Do not knowingly submit false, manipulated, or malicious reports. Doing so may result in action against the reporter. Please also avoid publicly sharing sensitive verification information or exploit details when making a report; use the available DEAFCS support and reporting tools instead."
           },
           "enforcement": {
-            "title": "11. Enforcement & Penalties",
+            "title": "12. Enforcement & Penalties",
             "body_1": "Breaking these rules can lead to a range of actions, depending on the situation. Possible actions include:",
             "item_1": "A warning",
             "item_2": "Temporary restriction of a feature",
@@ -3762,7 +3784,7 @@
             "body_3": "Where a specific Matchmaking Rule or Tournament Rule defines its own penalty for a situation, that specific rule takes precedence in that context."
           },
           "rule_changes": {
-            "title": "12. Rule Changes",
+            "title": "13. Rule Changes",
             "body_1": "DEAFCS may update these rules as the platform, competitive systems, and community evolve. Material changes will be reflected on this page and on the related Matchmaking Rules and Tournament Rules pages."
           }
         }
@@ -3771,6 +3793,7 @@
         "title": "Matchmaking Rules",
         "intro": "These rules apply to Competitive, Wingman, and Duel matchmaking on DEAFCS.",
         "intro_2": "They apply alongside the {link}, which cover conduct, accounts, and enforcement across all of DEAFCS. Tournaments follow the separate {link2}. Draft games are not standard matchmaking and follow their own eligibility and Elo settings, set by organizers.",
+        "last_updated_date": "19 August 2026",
         "sections": {
           "eligibility": {
             "title": "1. Matchmaking Eligibility",
@@ -3812,7 +3835,7 @@
           "during_match": {
             "title": "7. During the Match",
             "body_1": "Once a match starts, normal DEAFCS conduct and competitive-integrity rules apply in full (see General Rules).",
-            "body_2": "If something goes wrong during a live match, whether a bug, a server issue, or a dispute, use the ⋮ menu on the match page and select Contact Support. This requests help directly from a match organizer.",
+            "body_2": "If something goes wrong during a live match, whether a bug, a server issue, or a dispute, use the {menu} on the match page and select Contact Support. This requests help directly from a match organizer.",
             "body_3": "Matches don't have a general surrender option through the website. In-game, once a disconnected player's reconnect window has expired and they're officially treated as a leaver, their remaining teammates can type {gg} in chat to surrender that match instead of continuing shorthanded. Outside of that, a match ends through normal play, or can be canceled by staff or an organizer if necessary."
           },
           "leaving_abandoning": {
@@ -3826,7 +3849,7 @@
           "disconnects": {
             "title": "9. Disconnects & Server Problems",
             "body_1": "A dropped connection isn't automatically held against you. You can reconnect multiple times, but every disconnect uses part of the same cumulative 5-minute budget for that match. The budget does not reset when you reconnect. Your teammates can't surrender with {gg} immediately after you disconnect; that only becomes available once you've exhausted the budget and are officially treated as a leaver.",
-            "body_2": "If the problem is on DEAFCS's side, such as a server issue, use ⋮ → Contact Support on the match page as soon as possible so a match organizer can look into it while the match is still live."
+            "body_2": "If the problem is on DEAFCS's side, such as a server issue, use the {menu} → Contact Support on the match page as soon as possible so a match organizer can look into it while the match is still live."
           },
           "competitive_integrity": {
             "title": "10. Competitive Integrity",
@@ -3854,7 +3877,8 @@
       },
       "tournament_rules": {
         "title": "Tournament Rules",
-        "intro": "Rules governing DEAFCS tournaments. Full details are coming soon."
+        "intro": "Rules governing DEAFCS tournaments. Full details are coming soon.",
+        "last_updated_date": "19 August 2026"
       },
       "account_data": {
         "title": "Account & Data",
@@ -4537,7 +4561,7 @@
       "no_teams_yet": "No teams yet.",
       "information_tab": "Information",
       "about_section": "About",
-      "match_settings": "Match Settings",
+      "match_settings": "Tournament Settings",
       "read_more": "Read more",
       "read_less": "Read less"
     },
@@ -5296,6 +5320,10 @@
             "everyone": "All Players Required to Check In"
           }
         },
+        "check_in_duration": {
+          "label": "Check-in Time (minutes)",
+          "description": "How long Captains/Players have to check in before the match requires organizer attention. Not used when Check In Setting is Admins."
+        },
         "ready_settings": {
           "label": "Ready Settings",
           "description": "Controls how the match determines to be ready to start.",
@@ -5349,6 +5377,7 @@
       "max_rounds": "Max Rounds",
       "tv_delay": "TV Delay",
       "seconds": "seconds",
+      "minutes": "minutes",
       "coaches": "Coaches",
       "overtime": "Overtime",
       "knife_round": "Knife Round",
@@ -5358,6 +5387,8 @@
       "tech_timeout_setting": "Tech Timeout Setting",
       "ready_setting": "Ready Setting",
       "check_in_setting": "Check In Setting",
+      "check_in_duration": "Check-in Time",
+      "webcam_required": "Webcam Required",
       "advanced_settings": "Show Advanced Settings",
       "default_player_models": "Default Player Models"
     },
@@ -5540,6 +5571,7 @@
       "mobile_label_map": "Map Filter",
       "mobile_label_view": "View",
       "settings": "Match Settings",
+      "tournament_settings": "Tournament Settings",
       "streams": "Match Live Streams",
       "admin": "Admin",
       "randomize_teams": "Randomize Teams",
@@ -5888,7 +5920,8 @@
     "check_in": {
       "checked_in": "Checked In",
       "check_in": "Check In",
-      "checked_in_description": "You have checked in {checked} out of {required} players required to start the match"
+      "checked_in_description": "You have checked in {checked} out of {required} players required to start the match",
+      "time_remaining": "Check in within"
     },
     "coach": {
       "assign": "Assign Coach"

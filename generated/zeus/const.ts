@@ -10765,6 +10765,7 @@ export const AllTypesProps: Record<string,any> = {
 		auto_cancellation:"Boolean_comparison_exp",
 		best_of:"Int_comparison_exp",
 		camera_required:"Boolean_comparison_exp",
+		check_in_duration:"Int_comparison_exp",
 		check_in_setting:"e_check_in_settings_enum_comparison_exp",
 		coaches:"Boolean_comparison_exp",
 		default_models:"Boolean_comparison_exp",
@@ -10830,6 +10831,7 @@ export const AllTypesProps: Record<string,any> = {
 		auto_cancellation:"order_by",
 		best_of:"order_by",
 		camera_required:"order_by",
+		check_in_duration:"order_by",
 		check_in_setting:"order_by",
 		coaches:"order_by",
 		default_models:"order_by",
@@ -16743,6 +16745,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -16772,6 +16775,8 @@ export const AllTypesProps: Record<string,any> = {
 		last_presence_state:"jsonb_comparison_exp",
 		last_read_news_at:"timestamptz_comparison_exp",
 		last_sign_in_at:"timestamptz_comparison_exp",
+		leaver_ban_stage:"Int_comparison_exp",
+		leaver_ban_stage_expires_at:"timestamptz_comparison_exp",
 		name:"String_comparison_exp",
 		name_registered:"Boolean_comparison_exp",
 		player:"players_bool_exp",
@@ -16812,6 +16817,7 @@ export const AllTypesProps: Record<string,any> = {
 		last_presence_state:"jsonb",
 		last_read_news_at:"timestamptz",
 		last_sign_in_at:"timestamptz",
+		leaver_ban_stage_expires_at:"timestamptz",
 		player:"players_obj_rel_insert_input",
 		premier_rank_updated_at:"timestamptz",
 		presence_updated_at:"timestamptz",
@@ -16838,6 +16844,8 @@ export const AllTypesProps: Record<string,any> = {
 		language:"order_by",
 		last_read_news_at:"order_by",
 		last_sign_in_at:"order_by",
+		leaver_ban_stage:"order_by",
+		leaver_ban_stage_expires_at:"order_by",
 		name:"order_by",
 		premier_rank:"order_by",
 		premier_rank_updated_at:"order_by",
@@ -16870,6 +16878,8 @@ export const AllTypesProps: Record<string,any> = {
 		language:"order_by",
 		last_read_news_at:"order_by",
 		last_sign_in_at:"order_by",
+		leaver_ban_stage:"order_by",
+		leaver_ban_stage_expires_at:"order_by",
 		name:"order_by",
 		premier_rank:"order_by",
 		premier_rank_updated_at:"order_by",
@@ -16904,6 +16914,8 @@ export const AllTypesProps: Record<string,any> = {
 		last_presence_state:"order_by",
 		last_read_news_at:"order_by",
 		last_sign_in_at:"order_by",
+		leaver_ban_stage:"order_by",
+		leaver_ban_stage_expires_at:"order_by",
 		name:"order_by",
 		name_registered:"order_by",
 		player:"players_order_by",
@@ -16937,6 +16949,7 @@ export const AllTypesProps: Record<string,any> = {
 		last_presence_state:"jsonb",
 		last_read_news_at:"timestamptz",
 		last_sign_in_at:"timestamptz",
+		leaver_ban_stage_expires_at:"timestamptz",
 		premier_rank_updated_at:"timestamptz",
 		presence_updated_at:"timestamptz",
 		steam_bans_checked_at:"timestamptz",
@@ -16949,6 +16962,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -16960,6 +16974,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -16971,6 +16986,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -16989,6 +17005,7 @@ export const AllTypesProps: Record<string,any> = {
 		last_presence_state:"jsonb",
 		last_read_news_at:"timestamptz",
 		last_sign_in_at:"timestamptz",
+		leaver_ban_stage_expires_at:"timestamptz",
 		premier_rank_updated_at:"timestamptz",
 		presence_updated_at:"timestamptz",
 		steam_bans_checked_at:"timestamptz",
@@ -17001,6 +17018,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -17022,6 +17040,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -17033,6 +17052,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -17044,6 +17064,7 @@ export const AllTypesProps: Record<string,any> = {
 		friend_steam_id:"order_by",
 		game_ban_count:"order_by",
 		invited_by_steam_id:"order_by",
+		leaver_ban_stage:"order_by",
 		premier_rank:"order_by",
 		steam_id:"order_by",
 		vac_ban_count:"order_by"
@@ -17186,6 +17207,7 @@ export const AllTypesProps: Record<string,any> = {
 		on_conflict:"notifications_on_conflict"
 	},
 	notifications_avg_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	notifications_bool_exp:{
@@ -17197,6 +17219,7 @@ export const AllTypesProps: Record<string,any> = {
 		deletable:"Boolean_comparison_exp",
 		deleted_at:"timestamptz_comparison_exp",
 		entity_id:"String_comparison_exp",
+		exclude_steam_id:"bigint_comparison_exp",
 		id:"uuid_comparison_exp",
 		is_read:"Boolean_comparison_exp",
 		message:"String_comparison_exp",
@@ -17217,12 +17240,14 @@ export const AllTypesProps: Record<string,any> = {
 
 	},
 	notifications_inc_input:{
+		exclude_steam_id:"bigint",
 		steam_id:"bigint"
 	},
 	notifications_insert_input:{
 		actions:"jsonb",
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
+		exclude_steam_id:"bigint",
 		id:"uuid",
 		player:"players_obj_rel_insert_input",
 		role:"e_player_roles_enum",
@@ -17233,6 +17258,7 @@ export const AllTypesProps: Record<string,any> = {
 		created_at:"order_by",
 		deleted_at:"order_by",
 		entity_id:"order_by",
+		exclude_steam_id:"order_by",
 		id:"order_by",
 		message:"order_by",
 		steam_id:"order_by",
@@ -17242,6 +17268,7 @@ export const AllTypesProps: Record<string,any> = {
 		created_at:"order_by",
 		deleted_at:"order_by",
 		entity_id:"order_by",
+		exclude_steam_id:"order_by",
 		id:"order_by",
 		message:"order_by",
 		steam_id:"order_by",
@@ -17258,6 +17285,7 @@ export const AllTypesProps: Record<string,any> = {
 		deletable:"order_by",
 		deleted_at:"order_by",
 		entity_id:"order_by",
+		exclude_steam_id:"order_by",
 		id:"order_by",
 		is_read:"order_by",
 		message:"order_by",
@@ -17280,18 +17308,22 @@ export const AllTypesProps: Record<string,any> = {
 		actions:"jsonb",
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
+		exclude_steam_id:"bigint",
 		id:"uuid",
 		role:"e_player_roles_enum",
 		steam_id:"bigint",
 		type:"e_notification_types_enum"
 	},
 	notifications_stddev_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	notifications_stddev_pop_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	notifications_stddev_samp_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	notifications_stream_cursor_input:{
@@ -17302,12 +17334,14 @@ export const AllTypesProps: Record<string,any> = {
 		actions:"jsonb",
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
+		exclude_steam_id:"bigint",
 		id:"uuid",
 		role:"e_player_roles_enum",
 		steam_id:"bigint",
 		type:"e_notification_types_enum"
 	},
 	notifications_sum_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	notifications_update_column: "enum" as const,
@@ -17322,12 +17356,15 @@ export const AllTypesProps: Record<string,any> = {
 		where:"notifications_bool_exp"
 	},
 	notifications_var_pop_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	notifications_var_samp_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	notifications_variance_order_by:{
+		exclude_steam_id:"order_by",
 		steam_id:"order_by"
 	},
 	numeric: `scalar.numeric` as const,
@@ -44458,6 +44495,7 @@ export const ReturnTypes: Record<string,any> = {
 		auto_cancellation:"Boolean",
 		best_of:"Int",
 		camera_required:"Boolean",
+		check_in_duration:"Int",
 		check_in_setting:"e_check_in_settings_enum",
 		coaches:"Boolean",
 		default_models:"Boolean",
@@ -44510,6 +44548,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_avg_fields:{
 		auto_cancel_duration:"Float",
 		best_of:"Float",
+		check_in_duration:"Float",
 		live_match_timeout:"Float",
 		mr:"Float",
 		number_of_substitutes:"Float",
@@ -44519,6 +44558,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_max_fields:{
 		auto_cancel_duration:"Int",
 		best_of:"Int",
+		check_in_duration:"Int",
 		id:"uuid",
 		invite_code:"String",
 		live_match_timeout:"Int",
@@ -44532,6 +44572,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_min_fields:{
 		auto_cancel_duration:"Int",
 		best_of:"Int",
+		check_in_duration:"Int",
 		id:"uuid",
 		invite_code:"String",
 		live_match_timeout:"Int",
@@ -44549,6 +44590,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_stddev_fields:{
 		auto_cancel_duration:"Float",
 		best_of:"Float",
+		check_in_duration:"Float",
 		live_match_timeout:"Float",
 		mr:"Float",
 		number_of_substitutes:"Float",
@@ -44558,6 +44600,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_stddev_pop_fields:{
 		auto_cancel_duration:"Float",
 		best_of:"Float",
+		check_in_duration:"Float",
 		live_match_timeout:"Float",
 		mr:"Float",
 		number_of_substitutes:"Float",
@@ -44567,6 +44610,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_stddev_samp_fields:{
 		auto_cancel_duration:"Float",
 		best_of:"Float",
+		check_in_duration:"Float",
 		live_match_timeout:"Float",
 		mr:"Float",
 		number_of_substitutes:"Float",
@@ -44576,6 +44620,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_sum_fields:{
 		auto_cancel_duration:"Int",
 		best_of:"Int",
+		check_in_duration:"Int",
 		live_match_timeout:"Int",
 		mr:"Int",
 		number_of_substitutes:"Int",
@@ -44585,6 +44630,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_var_pop_fields:{
 		auto_cancel_duration:"Float",
 		best_of:"Float",
+		check_in_duration:"Float",
 		live_match_timeout:"Float",
 		mr:"Float",
 		number_of_substitutes:"Float",
@@ -44594,6 +44640,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_var_samp_fields:{
 		auto_cancel_duration:"Float",
 		best_of:"Float",
+		check_in_duration:"Float",
 		live_match_timeout:"Float",
 		mr:"Float",
 		number_of_substitutes:"Float",
@@ -44603,6 +44650,7 @@ export const ReturnTypes: Record<string,any> = {
 	match_options_variance_fields:{
 		auto_cancel_duration:"Float",
 		best_of:"Float",
+		check_in_duration:"Float",
 		live_match_timeout:"Float",
 		mr:"Float",
 		number_of_substitutes:"Float",
@@ -46328,6 +46376,8 @@ export const ReturnTypes: Record<string,any> = {
 		last_presence_state:"jsonb",
 		last_read_news_at:"timestamptz",
 		last_sign_in_at:"timestamptz",
+		leaver_ban_stage:"Int",
+		leaver_ban_stage_expires_at:"timestamptz",
 		name:"String",
 		name_registered:"Boolean",
 		player:"players",
@@ -46368,6 +46418,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"Float",
 		game_ban_count:"Float",
 		invited_by_steam_id:"Float",
+		leaver_ban_stage:"Float",
 		premier_rank:"Float",
 		steam_id:"Float",
 		vac_ban_count:"Float"
@@ -46392,6 +46443,8 @@ export const ReturnTypes: Record<string,any> = {
 		language:"String",
 		last_read_news_at:"timestamptz",
 		last_sign_in_at:"timestamptz",
+		leaver_ban_stage:"Int",
+		leaver_ban_stage_expires_at:"timestamptz",
 		name:"String",
 		premier_rank:"Int",
 		premier_rank_updated_at:"timestamptz",
@@ -46424,6 +46477,8 @@ export const ReturnTypes: Record<string,any> = {
 		language:"String",
 		last_read_news_at:"timestamptz",
 		last_sign_in_at:"timestamptz",
+		leaver_ban_stage:"Int",
+		leaver_ban_stage_expires_at:"timestamptz",
 		name:"String",
 		premier_rank:"Int",
 		premier_rank_updated_at:"timestamptz",
@@ -46447,6 +46502,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"Float",
 		game_ban_count:"Float",
 		invited_by_steam_id:"Float",
+		leaver_ban_stage:"Float",
 		premier_rank:"Float",
 		steam_id:"Float",
 		vac_ban_count:"Float"
@@ -46458,6 +46514,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"Float",
 		game_ban_count:"Float",
 		invited_by_steam_id:"Float",
+		leaver_ban_stage:"Float",
 		premier_rank:"Float",
 		steam_id:"Float",
 		vac_ban_count:"Float"
@@ -46469,6 +46526,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"Float",
 		game_ban_count:"Float",
 		invited_by_steam_id:"Float",
+		leaver_ban_stage:"Float",
 		premier_rank:"Float",
 		steam_id:"Float",
 		vac_ban_count:"Float"
@@ -46480,6 +46538,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"bigint",
 		game_ban_count:"Int",
 		invited_by_steam_id:"bigint",
+		leaver_ban_stage:"Int",
 		premier_rank:"Int",
 		steam_id:"bigint",
 		vac_ban_count:"Int"
@@ -46491,6 +46550,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"Float",
 		game_ban_count:"Float",
 		invited_by_steam_id:"Float",
+		leaver_ban_stage:"Float",
 		premier_rank:"Float",
 		steam_id:"Float",
 		vac_ban_count:"Float"
@@ -46502,6 +46562,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"Float",
 		game_ban_count:"Float",
 		invited_by_steam_id:"Float",
+		leaver_ban_stage:"Float",
 		premier_rank:"Float",
 		steam_id:"Float",
 		vac_ban_count:"Float"
@@ -46513,6 +46574,7 @@ export const ReturnTypes: Record<string,any> = {
 		friend_steam_id:"Float",
 		game_ban_count:"Float",
 		invited_by_steam_id:"Float",
+		leaver_ban_stage:"Float",
 		premier_rank:"Float",
 		steam_id:"Float",
 		vac_ban_count:"Float"
@@ -46619,6 +46681,7 @@ export const ReturnTypes: Record<string,any> = {
 		deletable:"Boolean",
 		deleted_at:"timestamptz",
 		entity_id:"String",
+		exclude_steam_id:"bigint",
 		id:"uuid",
 		is_read:"Boolean",
 		message:"String",
@@ -46646,12 +46709,14 @@ export const ReturnTypes: Record<string,any> = {
 		variance:"notifications_variance_fields"
 	},
 	notifications_avg_fields:{
+		exclude_steam_id:"Float",
 		steam_id:"Float"
 	},
 	notifications_max_fields:{
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
 		entity_id:"String",
+		exclude_steam_id:"bigint",
 		id:"uuid",
 		message:"String",
 		steam_id:"bigint",
@@ -46661,6 +46726,7 @@ export const ReturnTypes: Record<string,any> = {
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
 		entity_id:"String",
+		exclude_steam_id:"bigint",
 		id:"uuid",
 		message:"String",
 		steam_id:"bigint",
@@ -46671,24 +46737,31 @@ export const ReturnTypes: Record<string,any> = {
 		returning:"notifications"
 	},
 	notifications_stddev_fields:{
+		exclude_steam_id:"Float",
 		steam_id:"Float"
 	},
 	notifications_stddev_pop_fields:{
+		exclude_steam_id:"Float",
 		steam_id:"Float"
 	},
 	notifications_stddev_samp_fields:{
+		exclude_steam_id:"Float",
 		steam_id:"Float"
 	},
 	notifications_sum_fields:{
+		exclude_steam_id:"bigint",
 		steam_id:"bigint"
 	},
 	notifications_var_pop_fields:{
+		exclude_steam_id:"Float",
 		steam_id:"Float"
 	},
 	notifications_var_samp_fields:{
+		exclude_steam_id:"Float",
 		steam_id:"Float"
 	},
 	notifications_variance_fields:{
+		exclude_steam_id:"Float",
 		steam_id:"Float"
 	},
 	numeric: `scalar.numeric` as const,

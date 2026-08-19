@@ -12,6 +12,7 @@ import {
 } from "lucide-vue-next";
 import InfoPage from "~/components/info/InfoPage.vue";
 import ContactCard from "~/components/info/ContactCard.vue";
+import InlineToken from "~/components/info/InlineToken.vue";
 import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
@@ -46,7 +47,15 @@ useHead({
           class="flex list-decimal flex-col gap-1 pl-4 text-sm leading-relaxed text-foreground/90"
         >
           <li>{{ $t("pages.info.contact.live_match.step_1") }}</li>
-          <li>{{ $t("pages.info.contact.live_match.step_2") }}</li>
+          <i18n-t
+            keypath="pages.info.contact.live_match.step_2"
+            tag="li"
+            scope="global"
+          >
+            <template #menu>
+              <InlineToken>⋮ menu</InlineToken>
+            </template>
+          </i18n-t>
           <li>{{ $t("pages.info.contact.live_match.step_3") }}</li>
         </ol>
         <p class="text-xs leading-relaxed text-muted-foreground">

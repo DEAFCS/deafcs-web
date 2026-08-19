@@ -23,11 +23,14 @@ import {
       <CheckIntoMatch :match="match" v-if="showCheckInSection" />
     </div>
 
-    <!-- Time to connect — live countdown before the match auto-cancels
-         (Auto Cancel Duration), shown big/bold (Faceit-style). Only
-         while match.cancels_at is actually a connect deadline (pre-live:
-         WaitingForCheckIn/Scheduled/PickingPlayers/WaitingForServer) --
-         excluded once Live, where cancels_at instead holds the much
+    <!-- Time to connect / Check-in countdown: both share match.cancels_at
+         as their single persisted deadline (a refresh never resets it), so
+         one countdown block covers both; only the label changes. While
+         status is WaitingForCheckIn, cancels_at is the Check-in Time
+         deadline (Captains/Players check_in_setting) rather than a connect
+         deadline -- Admin check-in has no automatic timer at all, so
+         cancels_at stays null and this block naturally stays hidden.
+         Excluded once Live, where cancels_at instead holds the much
          longer "hung live match" safety-net deadline (~3h out, see
          tbu_match_maps.sql's Knife/Live branch), which isn't a
          connect deadline at all and was confusing shown here. Same
@@ -40,7 +43,7 @@ import {
       <span
         class="font-mono text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground"
       >
-        {{ $t("match.time_to_connect") }}
+        {{ isCheckInPhase ? $t("match.check_in.time_remaining") : $t("match.time_to_connect") }}
       </span>
       <span
         class="font-mono text-3xl font-bold leading-none tabular-nums text-destructive"
@@ -247,6 +250,12 @@ export default {
     currentMatchMap() {
       return this.match?.match_maps?.find((m: any) => m.is_current_map);
     },
+    // WaitingForCheckIn is the one phase where cancels_at means "check-in
+    // deadline" rather than "connect deadline" -- see the countdown block's
+    // comment above.
+    isCheckInPhase() {
+      return this.match?.status === e_match_status_enum.WaitingForCheckIn;
+    },
     showConnectCountdown() {
       if (
         !this.match?.cancels_at ||
@@ -254,6 +263,12 @@ export default {
         this.match.status === e_match_status_enum.Canceled
       ) {
         return false;
+      }
+
+      if (this.isCheckInPhase) {
+        // Admin check-in has no automatic timer -- the organizer controls
+        // progression manually, so there's nothing to count down to.
+        return this.match?.options?.check_in_setting !== "Admin";
       }
 
       if (this.match.status !== e_match_status_enum.Live) {

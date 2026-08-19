@@ -1,7 +1,9 @@
 /* eslint-disable */
 
 import { AllTypesProps, ReturnTypes, Ops } from './const';
-export const HOST = "https://api.deafcs.net/v1/graphql"
+
+
+export const HOST="Specify host"
 
 
 export const HEADERS = {}
@@ -22452,6 +22454,7 @@ count?: [{	columns?: Array<ValueTypes["match_maps_select_column"]> | undefined |
 	auto_cancellation?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
 	camera_required?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	check_in_setting?:boolean | `@${string}`,
 	coaches?:boolean | `@${string}`,
 	default_models?:boolean | `@${string}`,
@@ -22525,6 +22528,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_avg_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -22541,6 +22545,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 	auto_cancellation?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	best_of?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	camera_required?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
+	check_in_duration?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	check_in_setting?: ValueTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null | Variable<any, string>,
 	coaches?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	default_models?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -22579,6 +22584,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_inc_input"]: {
 	auto_cancel_duration?: number | undefined | null | Variable<any, string>,
 	best_of?: number | undefined | null | Variable<any, string>,
+	check_in_duration?: number | undefined | null | Variable<any, string>,
 	live_match_timeout?: number | undefined | null | Variable<any, string>,
 	mr?: number | undefined | null | Variable<any, string>,
 	number_of_substitutes?: number | undefined | null | Variable<any, string>,
@@ -22591,6 +22597,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 	auto_cancellation?: boolean | undefined | null | Variable<any, string>,
 	best_of?: number | undefined | null | Variable<any, string>,
 	camera_required?: boolean | undefined | null | Variable<any, string>,
+	check_in_duration?: number | undefined | null | Variable<any, string>,
 	check_in_setting?: ValueTypes["e_check_in_settings_enum"] | undefined | null | Variable<any, string>,
 	coaches?: boolean | undefined | null | Variable<any, string>,
 	default_models?: boolean | undefined | null | Variable<any, string>,
@@ -22625,6 +22632,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_max_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	invite_code?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
@@ -22640,6 +22648,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_min_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	invite_code?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
@@ -22677,6 +22686,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 	auto_cancellation?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	best_of?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	camera_required?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	check_in_duration?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	check_in_setting?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	coaches?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	default_models?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -22720,6 +22730,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 	auto_cancellation?: boolean | undefined | null | Variable<any, string>,
 	best_of?: number | undefined | null | Variable<any, string>,
 	camera_required?: boolean | undefined | null | Variable<any, string>,
+	check_in_duration?: number | undefined | null | Variable<any, string>,
 	check_in_setting?: ValueTypes["e_check_in_settings_enum"] | undefined | null | Variable<any, string>,
 	coaches?: boolean | undefined | null | Variable<any, string>,
 	default_models?: boolean | undefined | null | Variable<any, string>,
@@ -22749,6 +22760,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_stddev_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -22760,6 +22772,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_stddev_pop_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -22771,6 +22784,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_stddev_samp_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -22791,6 +22805,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 	auto_cancellation?: boolean | undefined | null | Variable<any, string>,
 	best_of?: number | undefined | null | Variable<any, string>,
 	camera_required?: boolean | undefined | null | Variable<any, string>,
+	check_in_duration?: number | undefined | null | Variable<any, string>,
 	check_in_setting?: ValueTypes["e_check_in_settings_enum"] | undefined | null | Variable<any, string>,
 	coaches?: boolean | undefined | null | Variable<any, string>,
 	default_models?: boolean | undefined | null | Variable<any, string>,
@@ -22820,6 +22835,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_sum_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -22841,6 +22857,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_var_pop_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -22852,6 +22869,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_var_samp_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -22863,6 +22881,7 @@ count?: [{	columns?: Array<ValueTypes["match_options_select_column"]> | undefine
 ["match_options_variance_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -27757,6 +27776,8 @@ last_presence_state?: [{	/** JSON select path */
 	path?: string | undefined | null | Variable<any, string>},boolean | `@${string}`],
 	last_read_news_at?:boolean | `@${string}`,
 	last_sign_in_at?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
+	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	name_registered?:boolean | `@${string}`,
 	/** An object relationship */
@@ -27850,6 +27871,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -27863,6 +27885,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -27893,6 +27916,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	last_presence_state?: ValueTypes["jsonb_comparison_exp"] | undefined | null | Variable<any, string>,
 	last_read_news_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	last_sign_in_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage_expires_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	name_registered?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
@@ -27932,6 +27957,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	game_ban_count?: number | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
 	premier_rank?: number | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: number | undefined | null | Variable<any, string>
@@ -27959,6 +27985,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	last_presence_state?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	last_read_news_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	last_sign_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
+	leaver_ban_stage_expires_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	name_registered?: boolean | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
@@ -27996,6 +28024,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	language?:boolean | `@${string}`,
 	last_read_news_at?:boolean | `@${string}`,
 	last_sign_in_at?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
+	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	premier_rank_updated_at?:boolean | `@${string}`,
@@ -28030,6 +28060,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	language?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	last_read_news_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	last_sign_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage_expires_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -28063,6 +28095,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	language?:boolean | `@${string}`,
 	last_read_news_at?:boolean | `@${string}`,
 	last_sign_in_at?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
+	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	premier_rank_updated_at?:boolean | `@${string}`,
@@ -28097,6 +28131,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	language?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	last_read_news_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	last_sign_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage_expires_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -28140,6 +28176,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	last_presence_state?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	last_read_news_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	last_sign_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage_expires_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name_registered?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
@@ -28190,6 +28228,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	last_presence_state?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	last_read_news_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	last_sign_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
+	leaver_ban_stage_expires_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	name_registered?: boolean | undefined | null | Variable<any, string>,
 	premier_rank?: number | undefined | null | Variable<any, string>,
@@ -28213,6 +28253,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -28226,6 +28267,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -28238,6 +28280,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -28251,6 +28294,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -28263,6 +28307,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -28276,6 +28321,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -28310,6 +28356,8 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	last_presence_state?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	last_read_news_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	last_sign_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
+	leaver_ban_stage_expires_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	name_registered?: boolean | undefined | null | Variable<any, string>,
 	premier_rank?: number | undefined | null | Variable<any, string>,
@@ -28333,6 +28381,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -28346,6 +28395,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -28376,6 +28426,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -28389,6 +28440,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -28401,6 +28453,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -28414,6 +28467,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -28426,6 +28480,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -28439,6 +28494,7 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -28695,6 +28751,7 @@ actions?: [{	/** JSON select path */
 	deletable?:boolean | `@${string}`,
 	deleted_at?:boolean | `@${string}`,
 	entity_id?:boolean | `@${string}`,
+	exclude_steam_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	is_read?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
@@ -28776,11 +28833,13 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 };
 	/** aggregate avg on columns */
 ["notifications_avg_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by avg() on columns of table "notifications" */
 ["notifications_avg_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Boolean expression to filter rows from the table "notifications". All fields are combined with a logical 'AND'. */
@@ -28793,6 +28852,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	deletable?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	entity_id?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	exclude_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	is_read?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	message?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -28818,6 +28878,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 };
 	/** input type for incrementing numeric columns in table "notifications" */
 ["notifications_inc_input"]: {
+	exclude_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** input type for inserting data into table "notifications" */
@@ -28827,6 +28888,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	deletable?: boolean | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	entity_id?: string | undefined | null | Variable<any, string>,
+	exclude_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_read?: boolean | undefined | null | Variable<any, string>,
 	message?: string | undefined | null | Variable<any, string>,
@@ -28841,6 +28903,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	created_at?:boolean | `@${string}`,
 	deleted_at?:boolean | `@${string}`,
 	entity_id?:boolean | `@${string}`,
+	exclude_steam_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
@@ -28852,6 +28915,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	entity_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -28862,6 +28926,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	created_at?:boolean | `@${string}`,
 	deleted_at?:boolean | `@${string}`,
 	entity_id?:boolean | `@${string}`,
+	exclude_steam_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
@@ -28873,6 +28938,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	entity_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -28899,6 +28965,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	deletable?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	entity_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	is_read?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -28929,6 +28996,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	deletable?: boolean | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	entity_id?: string | undefined | null | Variable<any, string>,
+	exclude_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_read?: boolean | undefined | null | Variable<any, string>,
 	message?: string | undefined | null | Variable<any, string>,
@@ -28939,29 +29007,35 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 };
 	/** aggregate stddev on columns */
 ["notifications_stddev_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev() on columns of table "notifications" */
 ["notifications_stddev_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_pop on columns */
 ["notifications_stddev_pop_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_pop() on columns of table "notifications" */
 ["notifications_stddev_pop_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_samp on columns */
 ["notifications_stddev_samp_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_samp() on columns of table "notifications" */
 ["notifications_stddev_samp_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Streaming cursor of the table "notifications" */
@@ -28978,6 +29052,7 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 	deletable?: boolean | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	entity_id?: string | undefined | null | Variable<any, string>,
+	exclude_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_read?: boolean | undefined | null | Variable<any, string>,
 	message?: string | undefined | null | Variable<any, string>,
@@ -28988,11 +29063,13 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 };
 	/** aggregate sum on columns */
 ["notifications_sum_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by sum() on columns of table "notifications" */
 ["notifications_sum_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** update columns of table "notifications" */
@@ -29017,29 +29094,35 @@ count?: [{	columns?: Array<ValueTypes["notifications_select_column"]> | undefine
 };
 	/** aggregate var_pop on columns */
 ["notifications_var_pop_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_pop() on columns of table "notifications" */
 ["notifications_var_pop_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate var_samp on columns */
 ["notifications_var_samp_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_samp() on columns of table "notifications" */
 ["notifications_var_samp_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate variance on columns */
 ["notifications_variance_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by variance() on columns of table "notifications" */
 ["notifications_variance_order_by"]: {
+	exclude_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	["numeric"]:unknown;
@@ -89857,6 +89940,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_maps_select_column"]> | und
 	auto_cancellation?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
 	camera_required?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	check_in_setting?:boolean | `@${string}`,
 	coaches?:boolean | `@${string}`,
 	default_models?:boolean | `@${string}`,
@@ -89930,6 +90014,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_avg_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -89946,6 +90031,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 	auto_cancellation?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	best_of?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	camera_required?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
+	check_in_duration?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	check_in_setting?: ResolverInputTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null,
 	coaches?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	default_models?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
@@ -89984,6 +90070,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_inc_input"]: {
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -89996,6 +90083,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: ResolverInputTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -90030,6 +90118,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_max_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	invite_code?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
@@ -90045,6 +90134,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_min_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	invite_code?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
@@ -90082,6 +90172,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 	auto_cancellation?: ResolverInputTypes["order_by"] | undefined | null,
 	best_of?: ResolverInputTypes["order_by"] | undefined | null,
 	camera_required?: ResolverInputTypes["order_by"] | undefined | null,
+	check_in_duration?: ResolverInputTypes["order_by"] | undefined | null,
 	check_in_setting?: ResolverInputTypes["order_by"] | undefined | null,
 	coaches?: ResolverInputTypes["order_by"] | undefined | null,
 	default_models?: ResolverInputTypes["order_by"] | undefined | null,
@@ -90125,6 +90216,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: ResolverInputTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -90154,6 +90246,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_stddev_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -90165,6 +90258,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_stddev_pop_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -90176,6 +90270,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_stddev_samp_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -90196,6 +90291,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: ResolverInputTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -90225,6 +90321,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_sum_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -90246,6 +90343,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_var_pop_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -90257,6 +90355,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_var_samp_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -90268,6 +90367,7 @@ count?: [{	columns?: Array<ResolverInputTypes["match_options_select_column"]> | 
 ["match_options_variance_fields"]: AliasType<{
 	auto_cancel_duration?:boolean | `@${string}`,
 	best_of?:boolean | `@${string}`,
+	check_in_duration?:boolean | `@${string}`,
 	live_match_timeout?:boolean | `@${string}`,
 	mr?:boolean | `@${string}`,
 	number_of_substitutes?:boolean | `@${string}`,
@@ -95162,6 +95262,8 @@ last_presence_state?: [{	/** JSON select path */
 	path?: string | undefined | null},boolean | `@${string}`],
 	last_read_news_at?:boolean | `@${string}`,
 	last_sign_in_at?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
+	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	name_registered?:boolean | `@${string}`,
 	/** An object relationship */
@@ -95255,6 +95357,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95268,6 +95371,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -95298,6 +95402,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	last_presence_state?: ResolverInputTypes["jsonb_comparison_exp"] | undefined | null,
 	last_read_news_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	last_sign_in_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
+	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	name?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	name_registered?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: ResolverInputTypes["players_bool_exp"] | undefined | null,
@@ -95337,6 +95443,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -95364,6 +95471,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	last_presence_state?: ResolverInputTypes["jsonb"] | undefined | null,
 	last_read_news_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	player?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
@@ -95401,6 +95510,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	language?:boolean | `@${string}`,
 	last_read_news_at?:boolean | `@${string}`,
 	last_sign_in_at?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
+	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	premier_rank_updated_at?:boolean | `@${string}`,
@@ -95435,6 +95546,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	language?: ResolverInputTypes["order_by"] | undefined | null,
 	last_read_news_at?: ResolverInputTypes["order_by"] | undefined | null,
 	last_sign_in_at?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
@@ -95468,6 +95581,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	language?:boolean | `@${string}`,
 	last_read_news_at?:boolean | `@${string}`,
 	last_sign_in_at?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
+	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	premier_rank_updated_at?:boolean | `@${string}`,
@@ -95502,6 +95617,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	language?: ResolverInputTypes["order_by"] | undefined | null,
 	last_read_news_at?: ResolverInputTypes["order_by"] | undefined | null,
 	last_sign_in_at?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
@@ -95545,6 +95662,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	last_presence_state?: ResolverInputTypes["order_by"] | undefined | null,
 	last_read_news_at?: ResolverInputTypes["order_by"] | undefined | null,
 	last_sign_in_at?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	name_registered?: ResolverInputTypes["order_by"] | undefined | null,
 	player?: ResolverInputTypes["players_order_by"] | undefined | null,
@@ -95595,6 +95714,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	last_presence_state?: ResolverInputTypes["jsonb"] | undefined | null,
 	last_read_news_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	premier_rank?: number | undefined | null,
@@ -95618,6 +95739,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95631,6 +95753,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -95643,6 +95766,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95656,6 +95780,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -95668,6 +95793,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95681,6 +95807,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -95715,6 +95842,8 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	last_presence_state?: ResolverInputTypes["jsonb"] | undefined | null,
 	last_read_news_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	premier_rank?: number | undefined | null,
@@ -95738,6 +95867,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95751,6 +95881,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -95781,6 +95912,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95794,6 +95926,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -95806,6 +95939,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95819,6 +95953,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -95831,6 +95966,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?:boolean | `@${string}`,
 	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
+	leaver_ban_stage?:boolean | `@${string}`,
 	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 	vac_ban_count?:boolean | `@${string}`,
@@ -95844,6 +95980,7 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
 	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
@@ -96100,6 +96237,7 @@ actions?: [{	/** JSON select path */
 	deletable?:boolean | `@${string}`,
 	deleted_at?:boolean | `@${string}`,
 	entity_id?:boolean | `@${string}`,
+	exclude_steam_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	is_read?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
@@ -96181,11 +96319,13 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 };
 	/** aggregate avg on columns */
 ["notifications_avg_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by avg() on columns of table "notifications" */
 ["notifications_avg_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "notifications". All fields are combined with a logical 'AND'. */
@@ -96198,6 +96338,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	deletable?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	deleted_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	entity_id?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	exclude_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
 	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	is_read?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	message?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
@@ -96223,6 +96364,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 };
 	/** input type for incrementing numeric columns in table "notifications" */
 ["notifications_inc_input"]: {
+	exclude_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "notifications" */
@@ -96232,6 +96374,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	deletable?: boolean | undefined | null,
 	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -96246,6 +96389,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	created_at?:boolean | `@${string}`,
 	deleted_at?:boolean | `@${string}`,
 	entity_id?:boolean | `@${string}`,
+	exclude_steam_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
@@ -96257,6 +96401,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	deleted_at?: ResolverInputTypes["order_by"] | undefined | null,
 	entity_id?: ResolverInputTypes["order_by"] | undefined | null,
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	message?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -96267,6 +96412,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	created_at?:boolean | `@${string}`,
 	deleted_at?:boolean | `@${string}`,
 	entity_id?:boolean | `@${string}`,
+	exclude_steam_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
@@ -96278,6 +96424,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	deleted_at?: ResolverInputTypes["order_by"] | undefined | null,
 	entity_id?: ResolverInputTypes["order_by"] | undefined | null,
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	message?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -96304,6 +96451,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	deletable?: ResolverInputTypes["order_by"] | undefined | null,
 	deleted_at?: ResolverInputTypes["order_by"] | undefined | null,
 	entity_id?: ResolverInputTypes["order_by"] | undefined | null,
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	is_read?: ResolverInputTypes["order_by"] | undefined | null,
 	message?: ResolverInputTypes["order_by"] | undefined | null,
@@ -96334,6 +96482,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	deletable?: boolean | undefined | null,
 	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -96344,29 +96493,35 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 };
 	/** aggregate stddev on columns */
 ["notifications_stddev_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev() on columns of table "notifications" */
 ["notifications_stddev_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["notifications_stddev_pop_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_pop() on columns of table "notifications" */
 ["notifications_stddev_pop_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["notifications_stddev_samp_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_samp() on columns of table "notifications" */
 ["notifications_stddev_samp_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "notifications" */
@@ -96383,6 +96538,7 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 	deletable?: boolean | undefined | null,
 	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -96393,11 +96549,13 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 };
 	/** aggregate sum on columns */
 ["notifications_sum_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by sum() on columns of table "notifications" */
 ["notifications_sum_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** update columns of table "notifications" */
@@ -96422,29 +96580,35 @@ count?: [{	columns?: Array<ResolverInputTypes["notifications_select_column"]> | 
 };
 	/** aggregate var_pop on columns */
 ["notifications_var_pop_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_pop() on columns of table "notifications" */
 ["notifications_var_pop_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["notifications_var_samp_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_samp() on columns of table "notifications" */
 ["notifications_var_samp_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["notifications_variance_fields"]: AliasType<{
+	exclude_steam_id?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by variance() on columns of table "notifications" */
 ["notifications_variance_order_by"]: {
+	exclude_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	["numeric"]:unknown;
@@ -155453,6 +155617,7 @@ export type ModelTypes = {
 	auto_cancellation: boolean,
 	best_of: number,
 	camera_required: boolean,
+	check_in_duration?: number | undefined | null,
 	check_in_setting: ModelTypes["e_check_in_settings_enum"],
 	coaches: boolean,
 	default_models?: boolean | undefined | null,
@@ -155515,6 +155680,7 @@ export type ModelTypes = {
 ["match_options_avg_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155530,6 +155696,7 @@ export type ModelTypes = {
 	auto_cancellation?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	best_of?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	camera_required?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
+	check_in_duration?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	check_in_setting?: ModelTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null,
 	coaches?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	default_models?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
@@ -155567,6 +155734,7 @@ export type ModelTypes = {
 ["match_options_inc_input"]: {
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155579,6 +155747,7 @@ export type ModelTypes = {
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: ModelTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -155613,6 +155782,7 @@ export type ModelTypes = {
 ["match_options_max_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	invite_code?: string | undefined | null,
 	live_match_timeout?: number | undefined | null,
@@ -155627,6 +155797,7 @@ export type ModelTypes = {
 ["match_options_min_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	invite_code?: string | undefined | null,
 	live_match_timeout?: number | undefined | null,
@@ -155662,6 +155833,7 @@ export type ModelTypes = {
 	auto_cancellation?: ModelTypes["order_by"] | undefined | null,
 	best_of?: ModelTypes["order_by"] | undefined | null,
 	camera_required?: ModelTypes["order_by"] | undefined | null,
+	check_in_duration?: ModelTypes["order_by"] | undefined | null,
 	check_in_setting?: ModelTypes["order_by"] | undefined | null,
 	coaches?: ModelTypes["order_by"] | undefined | null,
 	default_models?: ModelTypes["order_by"] | undefined | null,
@@ -155704,6 +155876,7 @@ export type ModelTypes = {
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: ModelTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -155733,6 +155906,7 @@ export type ModelTypes = {
 ["match_options_stddev_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155743,6 +155917,7 @@ export type ModelTypes = {
 ["match_options_stddev_pop_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155753,6 +155928,7 @@ export type ModelTypes = {
 ["match_options_stddev_samp_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155772,6 +155948,7 @@ export type ModelTypes = {
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: ModelTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -155801,6 +155978,7 @@ export type ModelTypes = {
 ["match_options_sum_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155820,6 +155998,7 @@ export type ModelTypes = {
 ["match_options_var_pop_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155830,6 +156009,7 @@ export type ModelTypes = {
 ["match_options_var_samp_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -155840,6 +156020,7 @@ export type ModelTypes = {
 ["match_options_variance_fields"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -159905,6 +160086,8 @@ export type ModelTypes = {
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
 	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	/** An object relationship */
@@ -159995,6 +160178,7 @@ export type ModelTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160007,6 +160191,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160037,6 +160222,8 @@ export type ModelTypes = {
 	last_presence_state?: ModelTypes["jsonb_comparison_exp"] | undefined | null,
 	last_read_news_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	last_sign_in_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["Int_comparison_exp"] | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	name?: ModelTypes["String_comparison_exp"] | undefined | null,
 	name_registered?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: ModelTypes["players_bool_exp"] | undefined | null,
@@ -160076,6 +160263,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160103,6 +160291,8 @@ export type ModelTypes = {
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
 	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	player?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
@@ -160140,6 +160330,8 @@ export type ModelTypes = {
 	language?: string | undefined | null,
 	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	premier_rank?: number | undefined | null,
 	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -160173,6 +160365,8 @@ export type ModelTypes = {
 	language?: ModelTypes["order_by"] | undefined | null,
 	last_read_news_at?: ModelTypes["order_by"] | undefined | null,
 	last_sign_in_at?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	premier_rank_updated_at?: ModelTypes["order_by"] | undefined | null,
@@ -160206,6 +160400,8 @@ export type ModelTypes = {
 	language?: string | undefined | null,
 	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	premier_rank?: number | undefined | null,
 	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -160239,6 +160435,8 @@ export type ModelTypes = {
 	language?: ModelTypes["order_by"] | undefined | null,
 	last_read_news_at?: ModelTypes["order_by"] | undefined | null,
 	last_sign_in_at?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	premier_rank_updated_at?: ModelTypes["order_by"] | undefined | null,
@@ -160281,6 +160479,8 @@ export type ModelTypes = {
 	last_presence_state?: ModelTypes["order_by"] | undefined | null,
 	last_read_news_at?: ModelTypes["order_by"] | undefined | null,
 	last_sign_in_at?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	name_registered?: ModelTypes["order_by"] | undefined | null,
 	player?: ModelTypes["players_order_by"] | undefined | null,
@@ -160328,6 +160528,8 @@ export type ModelTypes = {
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
 	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	premier_rank?: number | undefined | null,
@@ -160351,6 +160553,7 @@ export type ModelTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160363,6 +160566,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160375,6 +160579,7 @@ export type ModelTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160387,6 +160592,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160399,6 +160605,7 @@ export type ModelTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160411,6 +160618,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160445,6 +160653,8 @@ export type ModelTypes = {
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
 	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	premier_rank?: number | undefined | null,
@@ -160468,6 +160678,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160480,6 +160691,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160510,6 +160722,7 @@ export type ModelTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160522,6 +160735,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160534,6 +160748,7 @@ export type ModelTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160546,6 +160761,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160558,6 +160774,7 @@ export type ModelTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -160570,6 +160787,7 @@ export type ModelTypes = {
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
 	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
 	premier_rank?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
 	vac_ban_count?: ModelTypes["order_by"] | undefined | null
@@ -160808,6 +161026,7 @@ export type ModelTypes = {
 	deletable: boolean,
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id: ModelTypes["uuid"],
 	is_read: boolean,
 	message: string,
@@ -160886,10 +161105,12 @@ export type ModelTypes = {
 };
 	/** aggregate avg on columns */
 ["notifications_avg_fields"]: {
-		steam_id?: number | undefined | null
+		exclude_steam_id?: number | undefined | null,
+	steam_id?: number | undefined | null
 };
 	/** order by avg() on columns of table "notifications" */
 ["notifications_avg_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "notifications". All fields are combined with a logical 'AND'. */
@@ -160902,6 +161123,7 @@ export type ModelTypes = {
 	deletable?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	deleted_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	entity_id?: ModelTypes["String_comparison_exp"] | undefined | null,
+	exclude_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
 	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	is_read?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	message?: ModelTypes["String_comparison_exp"] | undefined | null,
@@ -160926,6 +161148,7 @@ export type ModelTypes = {
 };
 	/** input type for incrementing numeric columns in table "notifications" */
 ["notifications_inc_input"]: {
+	exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "notifications" */
@@ -160935,6 +161158,7 @@ export type ModelTypes = {
 	deletable?: boolean | undefined | null,
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -160949,6 +161173,7 @@ export type ModelTypes = {
 		created_at?: ModelTypes["timestamptz"] | undefined | null,
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null,
@@ -160959,6 +161184,7 @@ export type ModelTypes = {
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	deleted_at?: ModelTypes["order_by"] | undefined | null,
 	entity_id?: ModelTypes["order_by"] | undefined | null,
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	message?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
@@ -160969,6 +161195,7 @@ export type ModelTypes = {
 		created_at?: ModelTypes["timestamptz"] | undefined | null,
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
 	steam_id?: ModelTypes["bigint"] | undefined | null,
@@ -160979,6 +161206,7 @@ export type ModelTypes = {
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	deleted_at?: ModelTypes["order_by"] | undefined | null,
 	entity_id?: ModelTypes["order_by"] | undefined | null,
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	message?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null,
@@ -161004,6 +161232,7 @@ export type ModelTypes = {
 	deletable?: ModelTypes["order_by"] | undefined | null,
 	deleted_at?: ModelTypes["order_by"] | undefined | null,
 	entity_id?: ModelTypes["order_by"] | undefined | null,
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	is_read?: ModelTypes["order_by"] | undefined | null,
 	message?: ModelTypes["order_by"] | undefined | null,
@@ -161031,6 +161260,7 @@ export type ModelTypes = {
 	deletable?: boolean | undefined | null,
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -161041,26 +161271,32 @@ export type ModelTypes = {
 };
 	/** aggregate stddev on columns */
 ["notifications_stddev_fields"]: {
-		steam_id?: number | undefined | null
+		exclude_steam_id?: number | undefined | null,
+	steam_id?: number | undefined | null
 };
 	/** order by stddev() on columns of table "notifications" */
 ["notifications_stddev_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["notifications_stddev_pop_fields"]: {
-		steam_id?: number | undefined | null
+		exclude_steam_id?: number | undefined | null,
+	steam_id?: number | undefined | null
 };
 	/** order by stddev_pop() on columns of table "notifications" */
 ["notifications_stddev_pop_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["notifications_stddev_samp_fields"]: {
-		steam_id?: number | undefined | null
+		exclude_steam_id?: number | undefined | null,
+	steam_id?: number | undefined | null
 };
 	/** order by stddev_samp() on columns of table "notifications" */
 ["notifications_stddev_samp_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "notifications" */
@@ -161077,6 +161313,7 @@ export type ModelTypes = {
 	deletable?: boolean | undefined | null,
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -161087,10 +161324,12 @@ export type ModelTypes = {
 };
 	/** aggregate sum on columns */
 ["notifications_sum_fields"]: {
-		steam_id?: ModelTypes["bigint"] | undefined | null
+		exclude_steam_id?: ModelTypes["bigint"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** order by sum() on columns of table "notifications" */
 ["notifications_sum_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	["notifications_update_column"]:notifications_update_column;
@@ -161114,26 +161353,32 @@ export type ModelTypes = {
 };
 	/** aggregate var_pop on columns */
 ["notifications_var_pop_fields"]: {
-		steam_id?: number | undefined | null
+		exclude_steam_id?: number | undefined | null,
+	steam_id?: number | undefined | null
 };
 	/** order by var_pop() on columns of table "notifications" */
 ["notifications_var_pop_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["notifications_var_samp_fields"]: {
-		steam_id?: number | undefined | null
+		exclude_steam_id?: number | undefined | null,
+	steam_id?: number | undefined | null
 };
 	/** order by var_samp() on columns of table "notifications" */
 ["notifications_var_samp_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["notifications_variance_fields"]: {
-		steam_id?: number | undefined | null
+		exclude_steam_id?: number | undefined | null,
+	steam_id?: number | undefined | null
 };
 	/** order by variance() on columns of table "notifications" */
 ["notifications_variance_order_by"]: {
+	exclude_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	["numeric"]:any;
@@ -215990,6 +216235,7 @@ export type GraphQLTypes = {
 	auto_cancellation: boolean,
 	best_of: number,
 	camera_required: boolean,
+	check_in_duration?: number | undefined | null,
 	check_in_setting: GraphQLTypes["e_check_in_settings_enum"],
 	coaches: boolean,
 	default_models?: boolean | undefined | null,
@@ -216055,6 +216301,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_avg_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216070,6 +216317,7 @@ export type GraphQLTypes = {
 	auto_cancellation?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	best_of?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	camera_required?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
+	check_in_duration?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	check_in_setting?: GraphQLTypes["e_check_in_settings_enum_comparison_exp"] | undefined | null,
 	coaches?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	default_models?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
@@ -216108,6 +216356,7 @@ export type GraphQLTypes = {
 ["match_options_inc_input"]: {
 		auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216120,6 +216369,7 @@ export type GraphQLTypes = {
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: GraphQLTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -216155,6 +216405,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_max_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	invite_code?: string | undefined | null,
 	live_match_timeout?: number | undefined | null,
@@ -216170,6 +216421,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_min_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	invite_code?: string | undefined | null,
 	live_match_timeout?: number | undefined | null,
@@ -216206,6 +216458,7 @@ export type GraphQLTypes = {
 	auto_cancellation?: GraphQLTypes["order_by"] | undefined | null,
 	best_of?: GraphQLTypes["order_by"] | undefined | null,
 	camera_required?: GraphQLTypes["order_by"] | undefined | null,
+	check_in_duration?: GraphQLTypes["order_by"] | undefined | null,
 	check_in_setting?: GraphQLTypes["order_by"] | undefined | null,
 	coaches?: GraphQLTypes["order_by"] | undefined | null,
 	default_models?: GraphQLTypes["order_by"] | undefined | null,
@@ -216249,6 +216502,7 @@ export type GraphQLTypes = {
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: GraphQLTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -216279,6 +216533,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_stddev_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216290,6 +216545,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_stddev_pop_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216301,6 +216557,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_stddev_samp_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216320,6 +216577,7 @@ export type GraphQLTypes = {
 	auto_cancellation?: boolean | undefined | null,
 	best_of?: number | undefined | null,
 	camera_required?: boolean | undefined | null,
+	check_in_duration?: number | undefined | null,
 	check_in_setting?: GraphQLTypes["e_check_in_settings_enum"] | undefined | null,
 	coaches?: boolean | undefined | null,
 	default_models?: boolean | undefined | null,
@@ -216350,6 +216608,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_sum_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216371,6 +216630,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_var_pop_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216382,6 +216642,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_var_samp_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -216393,6 +216654,7 @@ export type GraphQLTypes = {
 	__typename: "match_options_variance_fields",
 	auto_cancel_duration?: number | undefined | null,
 	best_of?: number | undefined | null,
+	check_in_duration?: number | undefined | null,
 	live_match_timeout?: number | undefined | null,
 	mr?: number | undefined | null,
 	number_of_substitutes?: number | undefined | null,
@@ -220523,6 +220785,8 @@ export type GraphQLTypes = {
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	/** An object relationship */
@@ -220616,6 +220880,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -220628,6 +220893,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -220658,6 +220924,8 @@ export type GraphQLTypes = {
 	last_presence_state?: GraphQLTypes["jsonb_comparison_exp"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	name?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	name_registered?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: GraphQLTypes["players_bool_exp"] | undefined | null,
@@ -220697,6 +220965,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -220724,6 +220993,8 @@ export type GraphQLTypes = {
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	player?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
@@ -220762,6 +221033,8 @@ export type GraphQLTypes = {
 	language?: string | undefined | null,
 	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	premier_rank?: number | undefined | null,
 	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -220795,6 +221068,8 @@ export type GraphQLTypes = {
 	language?: GraphQLTypes["order_by"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["order_by"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank_updated_at?: GraphQLTypes["order_by"] | undefined | null,
@@ -220829,6 +221104,8 @@ export type GraphQLTypes = {
 	language?: string | undefined | null,
 	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	premier_rank?: number | undefined | null,
 	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -220862,6 +221139,8 @@ export type GraphQLTypes = {
 	language?: GraphQLTypes["order_by"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["order_by"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank_updated_at?: GraphQLTypes["order_by"] | undefined | null,
@@ -220905,6 +221184,8 @@ export type GraphQLTypes = {
 	last_presence_state?: GraphQLTypes["order_by"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["order_by"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	name_registered?: GraphQLTypes["order_by"] | undefined | null,
 	player?: GraphQLTypes["players_order_by"] | undefined | null,
@@ -220955,6 +221236,8 @@ export type GraphQLTypes = {
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	premier_rank?: number | undefined | null,
@@ -220979,6 +221262,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -220991,6 +221275,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -221004,6 +221289,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -221016,6 +221302,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -221029,6 +221316,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -221041,6 +221329,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -221075,6 +221364,8 @@ export type GraphQLTypes = {
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
 	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
+	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	premier_rank?: number | undefined | null,
@@ -221099,6 +221390,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -221111,6 +221403,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -221142,6 +221435,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -221154,6 +221448,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -221167,6 +221462,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -221179,6 +221475,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -221192,6 +221489,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: number | undefined | null,
 	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
+	leaver_ban_stage?: number | undefined | null,
 	premier_rank?: number | undefined | null,
 	steam_id?: number | undefined | null,
 	vac_ban_count?: number | undefined | null
@@ -221204,6 +221502,7 @@ export type GraphQLTypes = {
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
 	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
@@ -221460,6 +221759,7 @@ export type GraphQLTypes = {
 	deletable: boolean,
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id: GraphQLTypes["uuid"],
 	is_read: boolean,
 	message: string,
@@ -221541,11 +221841,13 @@ export type GraphQLTypes = {
 	/** aggregate avg on columns */
 ["notifications_avg_fields"]: {
 	__typename: "notifications_avg_fields",
+	exclude_steam_id?: number | undefined | null,
 	steam_id?: number | undefined | null
 };
 	/** order by avg() on columns of table "notifications" */
 ["notifications_avg_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "notifications". All fields are combined with a logical 'AND'. */
 ["notifications_bool_exp"]: {
@@ -221557,6 +221859,7 @@ export type GraphQLTypes = {
 	deletable?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	deleted_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	entity_id?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	exclude_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
 	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	is_read?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	message?: GraphQLTypes["String_comparison_exp"] | undefined | null,
@@ -221582,7 +221885,8 @@ export type GraphQLTypes = {
 };
 	/** input type for incrementing numeric columns in table "notifications" */
 ["notifications_inc_input"]: {
-		steam_id?: GraphQLTypes["bigint"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "notifications" */
 ["notifications_insert_input"]: {
@@ -221591,6 +221895,7 @@ export type GraphQLTypes = {
 	deletable?: boolean | undefined | null,
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -221606,6 +221911,7 @@ export type GraphQLTypes = {
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -221616,6 +221922,7 @@ export type GraphQLTypes = {
 		created_at?: GraphQLTypes["order_by"] | undefined | null,
 	deleted_at?: GraphQLTypes["order_by"] | undefined | null,
 	entity_id?: GraphQLTypes["order_by"] | undefined | null,
+	exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	message?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -221627,6 +221934,7 @@ export type GraphQLTypes = {
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -221637,6 +221945,7 @@ export type GraphQLTypes = {
 		created_at?: GraphQLTypes["order_by"] | undefined | null,
 	deleted_at?: GraphQLTypes["order_by"] | undefined | null,
 	entity_id?: GraphQLTypes["order_by"] | undefined | null,
+	exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	message?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -221663,6 +221972,7 @@ export type GraphQLTypes = {
 	deletable?: GraphQLTypes["order_by"] | undefined | null,
 	deleted_at?: GraphQLTypes["order_by"] | undefined | null,
 	entity_id?: GraphQLTypes["order_by"] | undefined | null,
+	exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	is_read?: GraphQLTypes["order_by"] | undefined | null,
 	message?: GraphQLTypes["order_by"] | undefined | null,
@@ -221693,6 +222003,7 @@ export type GraphQLTypes = {
 	deletable?: boolean | undefined | null,
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -221704,29 +222015,35 @@ export type GraphQLTypes = {
 	/** aggregate stddev on columns */
 ["notifications_stddev_fields"]: {
 	__typename: "notifications_stddev_fields",
+	exclude_steam_id?: number | undefined | null,
 	steam_id?: number | undefined | null
 };
 	/** order by stddev() on columns of table "notifications" */
 ["notifications_stddev_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["notifications_stddev_pop_fields"]: {
 	__typename: "notifications_stddev_pop_fields",
+	exclude_steam_id?: number | undefined | null,
 	steam_id?: number | undefined | null
 };
 	/** order by stddev_pop() on columns of table "notifications" */
 ["notifications_stddev_pop_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["notifications_stddev_samp_fields"]: {
 	__typename: "notifications_stddev_samp_fields",
+	exclude_steam_id?: number | undefined | null,
 	steam_id?: number | undefined | null
 };
 	/** order by stddev_samp() on columns of table "notifications" */
 ["notifications_stddev_samp_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "notifications" */
 ["notifications_stream_cursor_input"]: {
@@ -221742,6 +222059,7 @@ export type GraphQLTypes = {
 	deletable?: boolean | undefined | null,
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	entity_id?: string | undefined | null,
+	exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_read?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -221753,11 +222071,13 @@ export type GraphQLTypes = {
 	/** aggregate sum on columns */
 ["notifications_sum_fields"]: {
 	__typename: "notifications_sum_fields",
+	exclude_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** order by sum() on columns of table "notifications" */
 ["notifications_sum_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** update columns of table "notifications" */
 ["notifications_update_column"]: notifications_update_column;
@@ -221782,29 +222102,35 @@ export type GraphQLTypes = {
 	/** aggregate var_pop on columns */
 ["notifications_var_pop_fields"]: {
 	__typename: "notifications_var_pop_fields",
+	exclude_steam_id?: number | undefined | null,
 	steam_id?: number | undefined | null
 };
 	/** order by var_pop() on columns of table "notifications" */
 ["notifications_var_pop_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["notifications_var_samp_fields"]: {
 	__typename: "notifications_var_samp_fields",
+	exclude_steam_id?: number | undefined | null,
 	steam_id?: number | undefined | null
 };
 	/** order by var_samp() on columns of table "notifications" */
 ["notifications_var_samp_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["notifications_variance_fields"]: {
 	__typename: "notifications_variance_fields",
+	exclude_steam_id?: number | undefined | null,
 	steam_id?: number | undefined | null
 };
 	/** order by variance() on columns of table "notifications" */
 ["notifications_variance_order_by"]: {
-		steam_id?: GraphQLTypes["order_by"] | undefined | null
+		exclude_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	["numeric"]: "scalar" & { name: "numeric" };
 	/** Boolean expression to compare columns of type "numeric". All fields are combined with logical 'AND'. */
@@ -258202,6 +258528,7 @@ export enum e_notification_types_enum {
 	NameChangeDenied = "NameChangeDenied",
 	NameChangeRequest = "NameChangeRequest",
 	NewsPublished = "NewsPublished",
+	OrganizerChatMessage = "OrganizerChatMessage",
 	PlayerReindex = "PlayerReindex",
 	PlayerSanctioned = "PlayerSanctioned",
 	ScrimAlertMatch = "ScrimAlertMatch",
@@ -258498,6 +258825,7 @@ export enum e_tournament_individual_signup_status_constraint {
 export enum e_tournament_individual_signup_status_enum {
 	Assigned = "Assigned",
 	Registered = "Registered",
+	Removed = "Removed",
 	Waitlisted = "Waitlisted"
 }
 /** select columns of table "e_tournament_individual_signup_status" */
@@ -259739,6 +260067,7 @@ export enum match_options_select_column {
 	auto_cancellation = "auto_cancellation",
 	best_of = "best_of",
 	camera_required = "camera_required",
+	check_in_duration = "check_in_duration",
 	check_in_setting = "check_in_setting",
 	coaches = "coaches",
 	default_models = "default_models",
@@ -259770,6 +260099,7 @@ export enum match_options_update_column {
 	auto_cancellation = "auto_cancellation",
 	best_of = "best_of",
 	camera_required = "camera_required",
+	check_in_duration = "check_in_duration",
 	check_in_setting = "check_in_setting",
 	coaches = "coaches",
 	default_models = "default_models",
@@ -259978,6 +260308,8 @@ export enum my_friends_select_column {
 	last_presence_state = "last_presence_state",
 	last_read_news_at = "last_read_news_at",
 	last_sign_in_at = "last_sign_in_at",
+	leaver_ban_stage = "leaver_ban_stage",
+	leaver_ban_stage_expires_at = "leaver_ban_stage_expires_at",
 	name = "name",
 	name_registered = "name_registered",
 	premier_rank = "premier_rank",
@@ -260051,6 +260383,7 @@ export enum notifications_select_column {
 	deletable = "deletable",
 	deleted_at = "deleted_at",
 	entity_id = "entity_id",
+	exclude_steam_id = "exclude_steam_id",
 	id = "id",
 	is_read = "is_read",
 	message = "message",
@@ -260076,6 +260409,7 @@ export enum notifications_update_column {
 	deletable = "deletable",
 	deleted_at = "deleted_at",
 	entity_id = "entity_id",
+	exclude_steam_id = "exclude_steam_id",
 	id = "id",
 	is_read = "is_read",
 	message = "message",

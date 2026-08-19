@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import InfoPage from "~/components/info/InfoPage.vue";
+import InlineToken from "~/components/info/InlineToken.vue";
 import { Card, CardContent } from "~/components/ui/card";
 import {
   tacticalSectionLabelClasses,
@@ -16,13 +17,13 @@ useHead({
 const bodyClasses = "text-sm leading-relaxed text-foreground/90";
 const linkClasses =
   "font-semibold text-[hsl(var(--tac-amber))] hover:underline";
-const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
 </script>
 
 <template>
   <InfoPage
     :title="$t('pages.info.matchmaking_rules.title')"
     :intro="$t('pages.info.matchmaking_rules.intro')"
+    :last-updated="$t('pages.info.matchmaking_rules.last_updated_date')"
   >
     <i18n-t
       keypath="pages.info.matchmaking_rules.intro_2"
@@ -181,10 +182,10 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
               :class="bodyClasses"
             >
               <template #stay>
-                <code :class="ggCodeClasses">.stay</code>
+                <InlineToken>.stay</InlineToken>
               </template>
               <template #switch>
-                <code :class="ggCodeClasses">.switch</code>
+                <InlineToken>.switch</InlineToken>
               </template>
             </i18n-t>
             <p :class="bodyClasses">
@@ -206,9 +207,16 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
           <p :class="bodyClasses">
             {{ $t("pages.info.matchmaking_rules.sections.during_match.body_1") }}
           </p>
-          <p :class="bodyClasses">
-            {{ $t("pages.info.matchmaking_rules.sections.during_match.body_2") }}
-          </p>
+          <i18n-t
+            keypath="pages.info.matchmaking_rules.sections.during_match.body_2"
+            tag="p"
+            scope="global"
+            :class="bodyClasses"
+          >
+            <template #menu>
+              <InlineToken>⋮ menu</InlineToken>
+            </template>
+          </i18n-t>
           <i18n-t
             keypath="pages.info.matchmaking_rules.sections.during_match.body_3"
             tag="p"
@@ -216,7 +224,7 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
             :class="bodyClasses"
           >
             <template #gg>
-              <code :class="ggCodeClasses">.gg</code>
+              <InlineToken>.gg</InlineToken>
             </template>
           </i18n-t>
         </CardContent>
@@ -241,7 +249,7 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
             :class="bodyClasses"
           >
             <template #gg>
-              <code :class="ggCodeClasses">.gg</code>
+              <InlineToken>.gg</InlineToken>
             </template>
           </i18n-t>
           <p :class="bodyClasses">
@@ -273,12 +281,19 @@ const ggCodeClasses = "rounded bg-secondary px-1.5 py-0.5 text-xs";
               :class="bodyClasses"
             >
               <template #gg>
-                <code :class="ggCodeClasses">.gg</code>
+                <InlineToken>.gg</InlineToken>
               </template>
             </i18n-t>
-            <p :class="bodyClasses">
-              {{ $t("pages.info.matchmaking_rules.sections.disconnects.body_2") }}
-            </p>
+            <i18n-t
+              keypath="pages.info.matchmaking_rules.sections.disconnects.body_2"
+              tag="p"
+              scope="global"
+              :class="bodyClasses"
+            >
+              <template #menu>
+                <InlineToken>⋮ menu</InlineToken>
+              </template>
+            </i18n-t>
           </CardContent>
         </Card>
       </div>

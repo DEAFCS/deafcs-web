@@ -13,5 +13,6 @@ useHead({
   <InfoPage
     :title="$t('pages.info.tournament_rules.title')"
     :intro="$t('pages.info.tournament_rules.intro')"
+    :last-updated="$t('pages.info.tournament_rules.last_updated_date')"
   />
 </template>

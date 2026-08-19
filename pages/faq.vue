@@ -26,6 +26,11 @@ const ACCOUNT_DATA_LINK: FaqLink = {
   labelKey: "pages.info.account_data.title",
   slot: "link",
 };
+const GENERAL_RULES_LINK: FaqLink = {
+  to: "/general-rules",
+  labelKey: "pages.info.general_rules.title",
+  slot: "link",
+};
 const MATCHMAKING_RULES_LINK: FaqLink = {
   to: "/matchmaking-rules",
   labelKey: "pages.info.matchmaking_rules.title",
@@ -61,6 +66,7 @@ const categories: FaqCategory[] = [
       { key: "deactivate_account", links: [ACCOUNT_DATA_LINK] },
       { key: "historical_records", links: [ACCOUNT_DATA_LINK] },
       { key: "return_later", links: [ACCOUNT_DATA_LINK] },
+      { key: "banned_after_registering", links: [GENERAL_RULES_LINK] },
     ],
   },
   {
@@ -176,6 +182,7 @@ const rightCategories = pickCategories(RIGHT_CATEGORY_KEYS);
   <InfoPage
     :title="$t('pages.info.faq.title')"
     :intro="$t('pages.info.faq.intro')"
+    :last-updated="$t('pages.info.faq.last_updated_date')"
   />
 
   <div class="mx-auto flex w-full max-w-7xl flex-col gap-6 pb-12">

@@ -76,51 +76,59 @@ const linkClasses =
       </Card>
     </div>
 
-    <!-- Cheating + VAC/Game Bans: comparable content length, paired for balance. -->
-    <div class="grid gap-6 lg:grid-cols-2">
-      <div class="flex flex-col gap-3">
-        <span :class="tacticalSectionLabelClasses">
-          <span :class="tacticalSectionTickClasses" />
-          {{ $t("pages.info.general_rules.sections.cheating.title") }}
-        </span>
-        <Card class="h-full bg-card/20">
-          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-            <p :class="bodyClasses">
-              {{ $t("pages.info.general_rules.sections.cheating.body_1") }}
-            </p>
-            <ul :class="listClasses">
-              <li>{{ $t("pages.info.general_rules.sections.cheating.item_1") }}</li>
-              <li>{{ $t("pages.info.general_rules.sections.cheating.item_2") }}</li>
-              <li>{{ $t("pages.info.general_rules.sections.cheating.item_3") }}</li>
-              <li>{{ $t("pages.info.general_rules.sections.cheating.item_4") }}</li>
-              <li>{{ $t("pages.info.general_rules.sections.cheating.item_5") }}</li>
-            </ul>
-            <p :class="bodyClasses">
-              {{ $t("pages.info.general_rules.sections.cheating.body_2") }}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+    <!-- Cheating: no longer paired with VAC & Game Bans below, which grew too long for a balanced 2-col match. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.general_rules.sections.cheating.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.cheating.body_1") }}
+          </p>
+          <ul :class="listClasses">
+            <li>{{ $t("pages.info.general_rules.sections.cheating.item_1") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.cheating.item_2") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.cheating.item_3") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.cheating.item_4") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.cheating.item_5") }}</li>
+          </ul>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.cheating.body_2") }}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
 
-      <div class="flex flex-col gap-3">
-        <span :class="tacticalSectionLabelClasses">
-          <span :class="tacticalSectionTickClasses" />
-          {{ $t("pages.info.general_rules.sections.vac_bans.title") }}
-        </span>
-        <Card class="h-full bg-card/20">
-          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-            <p :class="bodyClasses">
-              {{ $t("pages.info.general_rules.sections.vac_bans.body_1") }}
-            </p>
-            <p :class="bodyClasses">
-              {{ $t("pages.info.general_rules.sections.vac_bans.body_2") }}
-            </p>
-            <p :class="bodyClasses">
-              {{ $t("pages.info.general_rules.sections.vac_bans.body_3") }}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+    <!-- Counter-Strike VAC & Game Bans: expanded to cover the automatic registration-time restriction and staff review process, kept full width. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.general_rules.sections.vac_bans.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.vac_bans.body_1") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.vac_bans.body_2") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.vac_bans.body_3") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.vac_bans.body_4") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.vac_bans.body_5") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.vac_bans.body_6") }}
+          </p>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Exploits & Bugs: measured too uneven paired with Accounts (text reflow in a
@@ -169,11 +177,46 @@ const linkClasses =
           <p :class="bodyClasses">
             {{ $t("pages.info.general_rules.sections.accounts.body_3") }}
           </p>
+          <ul :class="listClasses">
+            <li>{{ $t("pages.info.general_rules.sections.accounts.item_1") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.accounts.item_2") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.accounts.item_3") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.accounts.item_4") }}</li>
+          </ul>
           <p :class="bodyClasses">
             {{ $t("pages.info.general_rules.sections.accounts.body_4") }}
           </p>
           <p :class="bodyClasses">
             {{ $t("pages.info.general_rules.sections.accounts.body_5") }}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
+    <!-- Moving to a New Steam Account: new section, full width, placed right after Accounts. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.general_rules.sections.moving_accounts.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.moving_accounts.body_1") }}
+          </p>
+          <ul :class="listClasses">
+            <li>{{ $t("pages.info.general_rules.sections.moving_accounts.item_1") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.moving_accounts.item_2") }}</li>
+            <li>{{ $t("pages.info.general_rules.sections.moving_accounts.item_3") }}</li>
+          </ul>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.moving_accounts.body_2") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.moving_accounts.body_3") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.general_rules.sections.moving_accounts.body_4") }}
           </p>
         </CardContent>
       </Card>

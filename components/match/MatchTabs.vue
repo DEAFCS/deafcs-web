@@ -162,7 +162,7 @@ provide("commander", commander);
                 </SelectItem>
               </template>
               <SelectItem value="settings">
-                {{ $t("match.tabs.settings") }}
+                {{ settingsTabLabel }}
               </SelectItem>
               <SelectItem value="streams" :disabled="!canConfigureStreams">
                 {{ $t("match.tabs.streams") }}
@@ -256,7 +256,7 @@ provide("commander", commander);
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem @click="activeTab = 'settings'">
-            {{ $t("match.tabs.settings") }}
+            {{ settingsTabLabel }}
           </DropdownMenuItem>
           <DropdownMenuItem
             :disabled="!canConfigureStreams"
@@ -1090,6 +1090,16 @@ export default {
         e_match_status_enum.Tie,
         e_match_status_enum.Canceled,
       ].includes(this.match.status);
+    },
+    // Only a tournament match's own live-match Settings tab becomes
+    // "Tournament Settings" -- normal matchmaking/draft matches keep the
+    // generic "Match Settings" label. TournamentDetail.vue's separate
+    // pre-match settings tab is already unambiguously tournament-scoped and
+    // is relabeled unconditionally there instead.
+    settingsTabLabel() {
+      return this.match.is_tournament_match
+        ? this.$t("match.tabs.tournament_settings")
+        : this.$t("match.tabs.settings");
     },
     canConfigureStreams() {
       if (this.isMatchTerminal) {

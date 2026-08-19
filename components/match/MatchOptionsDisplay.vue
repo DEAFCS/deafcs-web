@@ -173,6 +173,23 @@ const BooleanPill = defineComponent({
                   options.check_in_setting
                 }}</dd>
               </div>
+              <div
+                v-if="
+                  (options.check_in_setting === 'Captains' || options.check_in_setting === 'Players') &&
+                  options.check_in_duration != null
+                "
+                class="settings-row"
+              >
+                <dt class="settings-row__label">{{
+                  $t("match.options.check_in_duration")
+                }}</dt>
+                <dd class="settings-row__value tabular-nums">
+                  {{ options.check_in_duration }}
+                  <span class="settings-row__unit">{{
+                    $t("match.options.minutes")
+                  }}</span>
+                </dd>
+              </div>
               <div v-if="options.match_mode" class="settings-row">
                 <dt class="settings-row__label">{{
                   $t("match.options.advanced.match_mode.label")
@@ -202,19 +219,11 @@ const BooleanPill = defineComponent({
                   options.auto_cancel_duration
                 }}</dd>
               </div>
-              <div
-                v-if="options.auto_cancellation && options.live_match_timeout != null"
-                class="settings-row"
-              >
-                <dt class="settings-row__label">{{
-                  $t(
-                    "match.options.advanced.auto_cancellation.live_match_timeout.label",
-                  )
-                }}</dt>
-                <dd class="settings-row__value tabular-nums">{{
-                  options.live_match_timeout
-                }}</dd>
-              </div>
+              <!-- Live Match Timeout is intentionally not shown here -- this
+                   component is the public settings summary (live match
+                   Settings tab and the tournament Tournament Settings tab).
+                   The setting itself, and its organizer-facing input in
+                   MatchOptions.vue, are untouched. -->
             </dl>
           </section>
 
@@ -236,6 +245,12 @@ const BooleanPill = defineComponent({
                 <dd class="settings-row__value tabular-nums">{{
                   options.number_of_substitutes
                 }}</dd>
+              </div>
+              <div v-if="options.camera_required != null" class="settings-row">
+                <dt class="settings-row__label">{{
+                  $t("match.options.webcam_required")
+                }}</dt>
+                <dd><BooleanPill :value="options.camera_required" /></dd>
               </div>
             </dl>
           </section>
