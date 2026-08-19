@@ -34,6 +34,7 @@ import {
   MapPin,
   Shuffle,
   UserMinus,
+  AlertTriangle,
 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -955,6 +956,14 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
       </AlertDialogContent>
     </AlertDialog>
   </div>
+  <div v-else-if="tournamentLoadError" class="mx-auto max-w-lg py-16">
+    <Alert variant="destructive">
+      <AlertDescription class="flex items-center gap-2">
+        <AlertTriangle class="h-4 w-4" />
+        {{ $t("tournament.page.load_error") }}
+      </AlertDescription>
+    </Alert>
+  </div>
 </template>
 
 <script lang="ts">
@@ -982,6 +991,7 @@ export default {
     return {
       myTeam: undefined,
       tournament: undefined,
+      tournamentLoadError: false,
       tournamentDialog: false,
       teamSearchQuery: undefined,
       settingsDialogOpen: false,
@@ -1337,6 +1347,7 @@ export default {
         },
         result: function ({ data }) {
           this.tournament = data.tournaments_by_pk;
+          this.tournamentLoadError = false;
           const ctx = useTournamentContext();
           if (this.tournament) {
             const existing = ctx.value;
@@ -1350,6 +1361,12 @@ export default {
           } else {
             ctx.value = null;
           }
+        },
+        // Without this, a query/permission error leaves `tournament` unset
+        // forever and the page silently renders nothing (the only template
+        // gate is `v-if="tournament"`) instead of a visible error state.
+        error: function () {
+          this.tournamentLoadError = true;
         },
       },
       tournament_teams: {
