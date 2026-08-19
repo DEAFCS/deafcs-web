@@ -4663,7 +4663,7 @@
       "tournament_rules_hint": "General tournament rules apply to all events. Check this tournament's settings for event-specific match rules.",
       "load_error": "This tournament couldn't be loaded. Try refreshing the page.",
       "awards_showcase": {
-        "title": "Configured Awards",
+        "title": "Tournament Awards",
         "player": "Player",
         "team": "Team"
       }
