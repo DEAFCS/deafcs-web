@@ -3916,7 +3916,8 @@
           "map_veto": {
             "title": "6. Map Pool & Veto",
             "body_1": "Tournament matches use a map pool and veto process to decide which maps are played, similar to matchmaking (see {link} for the general veto mechanic).",
-            "body_2": "The exact map pool, and whether veto is enabled, is configured per tournament in that tournament's Settings."
+            "body_2": "Official DEAFCS tournaments use the DEAFCS Active Map Pool. The current Active Map Pool will be available on the Map Pool & Veto page once published.",
+            "body_3": "Some tournaments may configure a custom map pool instead. Either way, the exact map pool and veto configuration for a specific tournament is shown in that tournament's Tournament Settings."
           },
           "server_connection": {
             "title": "7. Server Joining & Connection",
@@ -3930,8 +3931,9 @@
           },
           "pauses_timeouts": {
             "title": "9. Technical Pauses & Timeouts",
-            "body_1": "Tournaments may allow pauses for technical issues, and regular in-match timeouts, depending on that tournament's Settings.",
-            "body_2": "Use pauses and timeouts only for their intended purpose. Misuse may be treated as unsporting conduct."
+            "body_1": "Each team has 4 tactical timeouts ({tac}) per match, called for team discussion and strategy. Tactical timeouts are 30 seconds long.",
+            "body_2": "Technical pauses ({pause}) are for genuine technical problems, such as a crash or connection issue, and don't have a fixed time limit.",
+            "body_3": "Don't use technical pauses as extra tactical timeouts. Follow organizer/admin instructions during any pause."
           },
           "webcam": {
             "title": "10. Webcam Requirement",
@@ -3952,8 +3954,14 @@
             "body_1": "Match results, including automatic or organizer-awarded forfeits, are recorded as part of the tournament.",
             "body_2": "Violating DEAFCS rules during a tournament may result in penalties, up to and including removal from the tournament, handled under the same enforcement policy described in {link}."
           },
+          "awards": {
+            "title": "14. Awards",
+            "body_1": "Players can earn individual tournament awards regardless of whether they compete with a permanent DEAFCS team or a tournament-only team.",
+            "body_2": "Team awards are only given to teams registered in the {link} system. A team created only for a tournament may compete normally, but it will not receive a team award for a top-three finish.",
+            "body_3": "Player and team awards are separate. Players on a tournament-only team can still receive their individual awards even though their team isn't eligible for a team award."
+          },
           "settings_note": {
-            "title": "14. Check This Tournament's Settings",
+            "title": "15. Check This Tournament's Settings",
             "body_1": "Tournament Rules describe general behavior that applies across all DEAFCS tournaments. The exact configuration for a specific event is set per tournament in its Tournament Settings, including:",
             "item_1": "Check-in mode/time",
             "item_2": "Map pool/veto",

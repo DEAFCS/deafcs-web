@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import InfoPage from "~/components/info/InfoPage.vue";
+import InlineToken from "~/components/info/InlineToken.vue";
 import { Card, CardContent } from "~/components/ui/card";
 import {
   tacticalSectionLabelClasses,
@@ -181,6 +182,9 @@ const linkClasses =
             <p :class="bodyClasses">
               {{ $t("pages.info.tournament_rules.sections.map_veto.body_2") }}
             </p>
+            <p :class="bodyClasses">
+              {{ $t("pages.info.tournament_rules.sections.map_veto.body_3") }}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -229,11 +233,28 @@ const linkClasses =
         </span>
         <Card class="h-full bg-card/20">
           <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+            <i18n-t
+              keypath="pages.info.tournament_rules.sections.pauses_timeouts.body_1"
+              tag="p"
+              scope="global"
+              :class="bodyClasses"
+            >
+              <template #tac>
+                <InlineToken>.tac</InlineToken>
+              </template>
+            </i18n-t>
+            <i18n-t
+              keypath="pages.info.tournament_rules.sections.pauses_timeouts.body_2"
+              tag="p"
+              scope="global"
+              :class="bodyClasses"
+            >
+              <template #pause>
+                <InlineToken>.pause</InlineToken>
+              </template>
+            </i18n-t>
             <p :class="bodyClasses">
-              {{ $t("pages.info.tournament_rules.sections.pauses_timeouts.body_1") }}
-            </p>
-            <p :class="bodyClasses">
-              {{ $t("pages.info.tournament_rules.sections.pauses_timeouts.body_2") }}
+              {{ $t("pages.info.tournament_rules.sections.pauses_timeouts.body_3") }}
             </p>
           </CardContent>
         </Card>
@@ -336,6 +357,36 @@ const linkClasses =
           </CardContent>
         </Card>
       </div>
+    </div>
+
+    <!-- Awards: standalone, placed right after Results, Forfeits & Penalties. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.tournament_rules.sections.awards.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.awards.body_1") }}
+          </p>
+          <i18n-t
+            keypath="pages.info.tournament_rules.sections.awards.body_2"
+            tag="p"
+            scope="global"
+            :class="bodyClasses"
+          >
+            <template #link>
+              <NuxtLink to="/teams" :class="linkClasses">
+                {{ $t("pages.teams.title") }}
+              </NuxtLink>
+            </template>
+          </i18n-t>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.awards.body_3") }}
+          </p>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Check This Tournament's Settings: closing section, distinguishes Tournament Rules from Tournament Settings. -->
