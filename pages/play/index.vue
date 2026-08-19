@@ -87,22 +87,36 @@ const settingsOpen = ref(false);
         <div
           :class="{
             'pointer-events-none select-none opacity-40 blur-[1px]':
-              inLobbyNotLeader,
+              matchmakingRestricted,
           }"
         >
           <Matchmaking></Matchmaking>
         </div>
         <div
-          v-if="inLobbyNotLeader"
+          v-if="matchmakingRestricted"
           class="absolute inset-0 z-10 grid place-items-center rounded-lg bg-background/40"
         >
           <div
-            class="flex items-center gap-2 rounded-full border border-border bg-card/95 px-4 py-2 shadow-lg"
+            class="flex flex-col items-center gap-2 border border-border bg-card/95 px-4 py-2 shadow-lg"
+            :class="notVerifiedForMatchmaking ? 'rounded-lg' : 'rounded-full'"
           >
-            <Lock class="h-3.5 w-3.5 text-muted-foreground" />
-            <span class="text-xs font-medium text-foreground">
-              {{ $t("pages.play.matchmaking.leader_required") }}
-            </span>
+            <div class="flex items-center gap-2">
+              <Lock class="h-3.5 w-3.5 text-muted-foreground" />
+              <span class="text-xs font-medium text-foreground">
+                {{
+                  notVerifiedForMatchmaking
+                    ? $t("pages.play.matchmaking.verification_required")
+                    : $t("pages.play.matchmaking.leader_required")
+                }}
+              </span>
+            </div>
+            <NuxtLink
+              v-if="notVerifiedForMatchmaking"
+              to="/matchmaking-rules"
+              class="text-[0.68rem] text-muted-foreground hover:text-[hsl(var(--tac-amber))] hover:underline"
+            >
+              {{ $t("pages.play.matchmaking.learn_verification") }}
+            </NuxtLink>
           </div>
         </div>
       </div>
@@ -223,11 +237,12 @@ export default {
       return useApplicationSettingsStore().matchmakingEnabled;
     },
     showMatchmaking() {
-      // Guests see "fake" cards (click prompts login) whenever matchmaking is
-      // enabled in the panel, even if a min-role gates real queueing.
-      return (
-        this.matchmakingAllowed || (this.isGuest && this.matchmakingEnabled)
-      );
+      // The section (and the mode cards inside <Matchmaking>) stays visible
+      // to everyone whenever the panel is enabled -- guests see "fake" cards
+      // that prompt login on click, unverified logged-in users see dimmed
+      // cards behind the verification-required overlay, so new players can
+      // always tell matchmaking exists.
+      return this.matchmakingEnabled;
     },
     currentLobby() {
       return useMatchmakingStore().currentLobby;
@@ -244,6 +259,19 @@ export default {
     },
     inLobbyNotLeader() {
       return !!this.currentLobby && !this.isPartyLeader;
+    },
+    // A logged-in account whose role doesn't meet public.matchmaking_min_role.
+    // Guests get the separate "fake card, click prompts login" treatment
+    // instead, not this overlay.
+    notVerifiedForMatchmaking() {
+      return (
+        !this.isGuest && this.matchmakingEnabled && !this.matchmakingAllowed
+      );
+    },
+    // Verification takes precedence: an unverified account can't queue
+    // regardless of party leadership, so that message wins when both apply.
+    matchmakingRestricted() {
+      return this.notVerifiedForMatchmaking || this.inLobbyNotLeader;
     },
   },
 };

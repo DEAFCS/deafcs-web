@@ -666,6 +666,17 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :show-details-by-default="true"
                 :options="tournament.options"
               ></MatchOptionsDisplay>
+              <div class="grid gap-1">
+                <NuxtLink
+                  to="/tournament-rules"
+                  class="inline-flex w-fit items-center text-xs text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
+                >
+                  {{ $t("tournament.page.view_tournament_rules") }}
+                </NuxtLink>
+                <p class="text-xs text-muted-foreground/70">
+                  {{ $t("tournament.page.tournament_rules_hint") }}
+                </p>
+              </div>
             </ManageSection>
           </PageTransition>
         </TabsContent>

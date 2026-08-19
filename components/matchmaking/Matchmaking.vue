@@ -28,7 +28,7 @@ const mmCardBase =
 </script>
 
 <template>
-  <div v-if="matchmakingAllowed || (isGuest && matchmakingEnabled)">
+  <div v-if="matchmakingEnabled">
     <template v-if="me?.is_banned">
       <Alert class="my-3">
         <AlertDescription class="flex items-center gap-2 text-destructive">
@@ -618,13 +618,10 @@ export default {
       }
       return useMatchmakingStore().joinedMatchmakingQueues.confirmation;
     },
-    matchmakingAllowed(): boolean {
+    matchmakingEnabled(): boolean {
       if (this.isQueuePreview) {
         return true;
       }
-      return useApplicationSettingsStore().matchmakingAllowed;
-    },
-    matchmakingEnabled(): boolean {
       return useApplicationSettingsStore().matchmakingEnabled;
     },
     me() {
