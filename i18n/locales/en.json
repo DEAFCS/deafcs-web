@@ -3879,8 +3879,93 @@
       },
       "tournament_rules": {
         "title": "Tournament Rules",
-        "intro": "Rules governing DEAFCS tournaments. Full details are coming soon.",
-        "last_updated_date": "19 August 2026"
+        "intro": "Rules and general expectations for playing in DEAFCS tournaments, covering registration, teams, matches, and check-in.",
+        "intro_2": "These rules apply alongside {link}, which covers account-wide conduct, and {link2}, which covers general match behavior also used in tournament matches.",
+        "last_updated_date": "19 August 2026",
+        "sections": {
+          "eligibility": {
+            "title": "1. Eligibility & Registration",
+            "body_1": "To register for a tournament, your account must meet DEAFCS's standard account eligibility requirements. See {link} for details.",
+            "body_2": "Each tournament sets its own roster size and registration window. Check that tournament's registration page for its specific requirements before signing up."
+          },
+          "teams_rosters": {
+            "title": "2. Teams & Rosters",
+            "body_1": "Each team has one designated captain, who can be promoted to a different roster member at any time by the team or that tournament's organizer/admin. In Captains check-in mode, and for map veto, the captain acts on behalf of the team.",
+            "body_2": "Some tournaments allow a team coach. Coaches are only available when enabled for that tournament, and must follow Tournament Rules, General Rules, and organizer/admin instructions."
+          },
+          "substitutes": {
+            "title": "3. Substitutes",
+            "body_1": "Tournaments may allow a limited number of substitutes per team. The exact number is set per tournament, check that tournament's Settings.",
+            "body_2": "Substitutes are expected to follow the same rules as regular roster members once added to a match."
+          },
+          "scheduling": {
+            "title": "4. Match Scheduling & Being Ready",
+            "body_1": "Players and teams are expected to be ready and available for their scheduled matches.",
+            "body_2": "Being ready means following that tournament's configured check-in and cancellation rules (see Match Check-In and Match Cancellation below). There's no single lateness rule that applies to every tournament."
+          },
+          "check_in": {
+            "title": "5. Match Check-In",
+            "body_1": "Before a tournament match starts, players may need to check in. Depending on that tournament's Settings, check-in can be handled by Captains, by all Players, or by an Admin.",
+            "body_2": "In Captains or Players mode, a check-in timer may be configured for that tournament. Admin mode does not use that automatic countdown.",
+            "item_1": "Both required sides check in: the match continues normally.",
+            "item_2": "One side checks in and the other does not before the timer expires: the checked-in side receives the match by forfeit.",
+            "item_3": "Neither side checks in: there is no random winner. The match remains unresolved for organizer/admin action.",
+            "body_3": "Match Cancellation is a separate setting from the check-in timer, see below.",
+            "body_4": "The exact check-in mode and timer length are set per tournament, check that tournament's Settings."
+          },
+          "map_veto": {
+            "title": "6. Map Pool & Veto",
+            "body_1": "Tournament matches use a map pool and veto process to decide which maps are played, similar to matchmaking (see {link} for the general veto mechanic).",
+            "body_2": "The exact map pool, and whether veto is enabled, is configured per tournament in that tournament's Settings."
+          },
+          "server_connection": {
+            "title": "7. Server Joining & Connection",
+            "body_1": "Once a match server is ready, players are responsible for connecting promptly using the connect link or button provided.",
+            "body_2": "Connection issues should be reported to the tournament organizer as soon as possible."
+          },
+          "cancellation": {
+            "title": "8. Match Cancellation & No-Shows",
+            "body_1": "Match Cancellation is separate from Match Check-In. If Match Cancellation is enabled and the match does not progress within the configured window, the match may be automatically canceled.",
+            "body_2": "Whether cancellation is enabled, and how long it takes, is configured per tournament, check that tournament's Settings."
+          },
+          "pauses_timeouts": {
+            "title": "9. Technical Pauses & Timeouts",
+            "body_1": "Tournaments may allow pauses for technical issues, and regular in-match timeouts, depending on that tournament's Settings.",
+            "body_2": "Use pauses and timeouts only for their intended purpose. Misuse may be treated as unsporting conduct."
+          },
+          "webcam": {
+            "title": "10. Webcam Requirement",
+            "body_1": "Some tournaments require players to have their webcam on during matches. This only applies when the organizer has enabled it for that tournament, check that tournament's Settings."
+          },
+          "fair_play": {
+            "title": "11. Fair Play, Cheating & Account Restrictions",
+            "body_1": "Tournament matches are covered by DEAFCS's general rules on cheating, exploits, and fair play. See {link} for the full policy.",
+            "body_2": "Account restrictions related to VAC or official Counter-Strike game bans also apply to tournament play. See {link} for details."
+          },
+          "disputes": {
+            "title": "12. Organizer/Admin Rulings & Disputes",
+            "body_1": "Tournament-specific rulings should normally be handled by that tournament's organizer/admin first.",
+            "body_2": "Issues involving DEAFCS-wide rules, platform behavior, or unresolved disputes may be reviewed by DEAFCS staff."
+          },
+          "results_forfeits": {
+            "title": "13. Results, Forfeits & Penalties",
+            "body_1": "Match results, including automatic or organizer-awarded forfeits, are recorded as part of the tournament.",
+            "body_2": "Violating DEAFCS rules during a tournament may result in penalties, up to and including removal from the tournament, handled under the same enforcement policy described in {link}."
+          },
+          "settings_note": {
+            "title": "14. Check This Tournament's Settings",
+            "body_1": "Tournament Rules describe general behavior that applies across all DEAFCS tournaments. The exact configuration for a specific event is set per tournament in its Tournament Settings, including:",
+            "item_1": "Check-in mode/time",
+            "item_2": "Map pool/veto",
+            "item_3": "Match mode",
+            "item_4": "Match cancellation/time",
+            "item_5": "Substitutes",
+            "item_6": "Coaches",
+            "item_7": "Webcam requirement",
+            "item_8": "Other available tournament match options",
+            "body_2": "Always check that tournament's Tournament Settings for its exact configuration before you play."
+          }
+        }
       },
       "account_data": {
         "title": "Account & Data",
