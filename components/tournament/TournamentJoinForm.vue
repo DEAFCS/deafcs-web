@@ -18,7 +18,14 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 </script>
 
 <template>
-  <div v-if="isIndividualRegistration" class="grid gap-4">
+  <div
+    v-if="joinRestrictionMessage"
+    class="rounded-lg border border-border/60 bg-card/40 p-4 text-sm text-muted-foreground"
+  >
+    {{ joinRestrictionMessage }}
+  </div>
+
+  <div v-else-if="isIndividualRegistration" class="grid gap-4">
     <p class="text-sm text-muted-foreground">
       {{ $t("tournament.join.individual.description") }}
     </p>
@@ -350,6 +357,35 @@ export default {
     },
     me() {
       return useAuthStore().me;
+    },
+    isGuest() {
+      return !this.me?.steam_id;
+    },
+    // Organizers bypass min_role entirely (they're managing, not
+    // registering) -- mirrors the Hasura is_organizer bypass branches on
+    // tournament_teams/tournament_team_roster/tournament_individual_signups.
+    belowMinRole() {
+      return (
+        !this.tournament.is_organizer &&
+        !!this.tournament.min_role &&
+        !useAuthStore().isRoleAbove(this.tournament.min_role)
+      );
+    },
+    // Guest takes precedence over a role shortfall -- a guest can't queue
+    // regardless of what role they'd have once logged in.
+    joinRestrictionMessage() {
+      if (this.tournament.is_organizer) {
+        return null;
+      }
+      if (this.isGuest) {
+        return this.$t("tournament.join.login_required");
+      }
+      if (this.belowMinRole) {
+        return this.$t("tournament.join.role_required", {
+          role: this.$t(`player_roles.${this.tournament.min_role}`),
+        });
+      }
+      return null;
     },
     isIndividualRegistration() {
       return !!(this.tournament as any)?.options?.individual_registration_enabled;

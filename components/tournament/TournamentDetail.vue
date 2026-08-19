@@ -239,7 +239,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   size="sm"
                   :class="tournamentHeroJoinButtonClasses"
                   :disabled="individualActionBusy"
-                  @click="joinIndividually"
+                  @click="handleJoinTournament"
                 >
                   <UserPlus class="h-3.5 w-3.5" />
                   {{ $t("tournament.join.title") }}
@@ -666,6 +666,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               <MatchOptionsDisplay
                 :show-details-by-default="true"
                 :options="tournament.options"
+                :min-role="tournament.min_role"
               ></MatchOptionsDisplay>
               <div class="grid gap-1">
                 <NuxtLink
@@ -1055,6 +1056,7 @@ export default {
               location: true,
               latitude: true,
               longitude: true,
+              min_role: true,
               is_organizer: true,
               can_join: true,
               can_start: true,
@@ -1725,14 +1727,11 @@ export default {
     openOrganizersDialog() {
       this.organizersDialogOpen = true;
     },
+    // Shared entry point for both hero registration actions (team and
+    // individual). Always opens the sheet rather than redirecting guests
+    // away -- TournamentJoinForm is the single source of truth for the
+    // guest/min-role messaging, so it decides what to show inside.
     handleJoinTournament() {
-      if (!this.me) {
-        this.$router.push({
-          path: "/login",
-          query: { redirect: this.$route.fullPath },
-        });
-        return;
-      }
       this.joinSheetOpen = true;
     },
     async cancelTournament() {
@@ -1748,34 +1747,6 @@ export default {
       await this.updateTournamentStatus(
         e_tournament_status_enum.RegistrationOpen,
       );
-    },
-    async joinIndividually() {
-      if (this.individualActionBusy) return;
-      this.individualActionBusy = true;
-      try {
-        await this.$apollo.mutate({
-          mutation: generateMutation({
-            insert_tournament_individual_signups_one: [
-              {
-                object: {
-                  tournament_id: this.tournament.id,
-                  player_steam_id: this.me.steam_id,
-                },
-              },
-              { id: true },
-            ],
-          }),
-        });
-        toast({ title: this.$t("tournament.join.title") });
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: this.$t("common.error"),
-          description: (error as Error).message,
-        });
-      } finally {
-        this.individualActionBusy = false;
-      }
     },
     async leaveIndividually() {
       if (this.individualActionBusy || !this.myIndividualSignup) return;

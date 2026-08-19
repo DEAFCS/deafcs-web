@@ -4735,6 +4735,8 @@
       },
       "already_rostered": "On another team",
       "min_lineup_warning": "Select at least {min} players to register.",
+      "login_required": "Log in to register for this tournament.",
+      "role_required": "{role} or higher required to join this tournament.",
       "individual": {
         "description": "This tournament uses individual sign-up -- join on your own, no team needed. Once registration closes, the organizer generates teams automatically, randomly balanced by ELO.",
         "registered": "You're registered",
@@ -4759,7 +4761,13 @@
         "branding": "Branding",
         "details": "Details",
         "classification": "Classification & Venue",
-        "schedule": "Schedule"
+        "schedule": "Schedule",
+        "registration": "Registration"
+      },
+      "min_role": {
+        "label": "Minimum Role",
+        "description": "The minimum account role required to register a team or sign up individually for this tournament.",
+        "unrestricted": "No minimum role"
       },
       "discord_notifications": "Discord Notifications",
       "discord_notifications_description": "Enable Discord notifications for match status changes in this tournament. When off, only panel notifications are sent.",

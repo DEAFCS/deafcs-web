@@ -188,6 +188,12 @@ const BooleanPill = defineComponent({
                   }}</span>
                 </dd>
               </div>
+              <div v-if="minRole !== undefined" class="settings-row">
+                <dt class="settings-row__label">{{
+                  $t("tournament.form.min_role.label")
+                }}</dt>
+                <dd class="settings-row__value">{{ minRoleDisplay }}</dd>
+              </div>
               <div v-if="options.match_mode" class="settings-row">
                 <dt class="settings-row__label">{{
                   $t("match.options.advanced.match_mode.label")
@@ -289,6 +295,13 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Tournament-level, not a match_options field -- omitted (stays
+    // undefined) by callers outside the tournament context, e.g. a plain
+    // match's own Settings tab. null means unrestricted (no minimum role).
+    minRole: {
+      type: String,
+      default: undefined,
+    },
   },
   data() {
     return {
@@ -310,6 +323,12 @@ export default {
         (s) => s.name === "check_in_duration",
       )?.value;
       return val ? Number(val) : 5;
+    },
+    minRoleDisplay() {
+      if (!this.minRole) {
+        return this.$t("tournament.form.min_role.unrestricted");
+      }
+      return this.$t(`player_roles.${this.minRole}`);
     },
   },
 };
