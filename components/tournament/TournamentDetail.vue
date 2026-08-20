@@ -609,7 +609,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
 
       <div class="mt-6">
         <TabsContent value="overview">
-          <PageTransition>
+          <div>
             <div class="flex flex-col gap-6">
               <TournamentStatRibbon
                 :prize-pool="prizePool"
@@ -658,13 +658,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :tournament="tournament"
               ></TournamentStageBuilder>
             </div>
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent
           value="match-settings"
           v-if="!tournament?.is_organizer && tournament.options"
         >
-          <PageTransition>
+          <div>
             <ManageSection :label="$t('tournament.page.match_settings')">
               <MatchOptionsDisplay
                 :show-details-by-default="true"
@@ -683,10 +683,10 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 </p>
               </div>
             </ManageSection>
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="my-team" v-if="myTeam">
-          <PageTransition>
+          <div>
             <div :class="myTeamClasses">
               <div :class="myTeamHeaderClasses">
                 <div :class="myTeamLabelClasses">
@@ -705,7 +705,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 ></TournamentTeam>
               </div>
             </div>
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="teams">
           <TournamentIndividualPlayers
@@ -738,23 +738,19 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               </div>
 
               <div class="space-y-4">
-                <PageTransition
-                  v-for="(team, index) of visibleTeams"
-                  :key="team.id"
-                  :delay="index * 40"
-                >
+                <div v-for="team of visibleTeams" :key="team.id">
                   <div :class="tournamentTeamCardClasses">
                     <TournamentTeam
                       :tournament="tournament"
                       :team="team"
                     ></TournamentTeam>
                   </div>
-                </PageTransition>
+                </div>
               </div>
             </div>
 
             <div v-if="tournament.is_organizer" class="lg:sticky lg:top-6">
-              <PageTransition :delay="150">
+              <div>
                 <aside :class="tournamentAdminPanelClasses">
                   <div
                     :class="[
@@ -787,18 +783,18 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                     ></TournamentJoinForm>
                   </div>
                 </aside>
-              </PageTransition>
+              </div>
             </div>
           </div>
         </TabsContent>
         <TabsContent v-if="standingsTabVisible" value="standings">
-          <PageTransition>
+          <div>
             <TournamentResults
               :tournament="tournament"
               :show-standings="true"
               :show-matches="false"
             />
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent
           v-if="
@@ -807,38 +803,38 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           "
           value="results"
         >
-          <PageTransition>
+          <div>
             <TournamentResults
               :tournament="tournament"
               :show-standings="false"
               :show-matches="true"
             />
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="information" v-if="tournament?.is_organizer">
-          <PageTransition>
+          <div>
             <TournamentInformationForm :tournament="tournament" />
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="match-options" v-if="tournament?.is_organizer">
-          <PageTransition>
+          <div>
             <TournamentMatchOptionsForm :tournament="tournament" />
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="prizes" v-if="tournament?.is_organizer">
-          <PageTransition>
+          <div>
             <TournamentPrizesManage :tournament="tournament" />
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="organizers" v-if="tournament?.is_organizer">
-          <PageTransition>
+          <div>
             <TournamentOrganizers
               :tournament="tournament"
             ></TournamentOrganizers>
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="trophies" v-if="tournament?.is_organizer">
-          <PageTransition>
+          <div>
             <div class="flex flex-col gap-4">
               <TournamentAwardPicker
                 v-model="tournamentAwardSelection"
@@ -849,14 +845,14 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :trophies-enabled="tournament.trophies_enabled ?? false"
               />
             </div>
-          </PageTransition>
+          </div>
         </TabsContent>
         <TabsContent value="notifications" v-if="tournament?.is_organizer">
-          <PageTransition>
+          <div>
             <TournamentNotifications
               :tournament="tournament"
             ></TournamentNotifications>
-          </PageTransition>
+          </div>
         </TabsContent>
       </div>
     </Tabs>
