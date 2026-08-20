@@ -2756,7 +2756,10 @@
         "description": "Queue solo or with your party — teams are auto-balanced and the match starts for you.",
         "leader_required": "Only the party leader can start matchmaking.",
         "verification_required": "Only verified players can queue matchmaking.",
-        "learn_verification": "Learn about verification"
+        "learn_verification": "Learn about verification",
+        "get_verified": "Get Verified",
+        "verification_pending": "Verification Pending",
+        "verification_rejected": "Application Rejected"
       },
       "draft_games": {
         "section_label": "OPEN.MATCHES",

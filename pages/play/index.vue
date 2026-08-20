@@ -110,13 +110,21 @@ const settingsOpen = ref(false);
                 }}
               </span>
             </div>
-            <NuxtLink
+            <Button
               v-if="notVerifiedForMatchmaking"
-              to="/general-rules"
-              class="text-[0.68rem] text-muted-foreground hover:text-[hsl(var(--tac-amber))] hover:underline"
+              as-child
+              size="sm"
+              :class="
+                verificationApplicationStatus === 'pending'
+                  ? 'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.9)]'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-500'
+              "
             >
-              {{ $t("pages.play.matchmaking.learn_verification") }}
-            </NuxtLink>
+              <NuxtLink :to="verificationCtaLink">
+                <component :is="verificationCtaIcon" class="h-3.5 w-3.5" />
+                {{ verificationCtaLabel }}
+              </NuxtLink>
+            </Button>
           </div>
         </div>
       </div>
@@ -165,6 +173,25 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $, e_tournament_status_enum, order_by } from "~/generated/zeus";
 import { simpleTournamentFields } from "~/graphql/simpleTournamentFields";
 import { NOT_LEAGUE_TOURNAMENT } from "~/graphql/tournamentFilters";
+import { ShieldCheck, Clock } from "lucide-vue-next";
+import gql from "graphql-tag";
+
+// Raw GraphQL text, not the Zeus object-selector builder -- generated/zeus
+// predates verification_applications (needs a live Hasura codegen run), so
+// Zeus can't resolve order_by's field type and always quotes it as a
+// string, which Hasura rejects. See pages/verify/index.vue for the same
+// workaround.
+const MY_VERIFICATION_STATUS_QUERY = gql`
+  query MyVerificationStatusForPlay($steamId: bigint!) {
+    verification_applications(
+      where: { player_steam_id: { _eq: $steamId } }
+      order_by: { created_at: desc }
+      limit: 1
+    ) {
+      status
+    }
+  }
+`;
 
 export default {
   data() {
@@ -172,6 +199,12 @@ export default {
       page: 1,
       perPage: 10,
       openRegistrationTournaments: [],
+      // null = no application yet (or not checked): the CTA offers to
+      // apply. "pending"/"rejected" change the button to reflect that
+      // instead (an "approved" applicant no longer sees this overlay at
+      // all, since their role already satisfies matchmaking_min_role by
+      // then).
+      verificationApplicationStatus: null as string | null,
     };
   },
   apollo: {
@@ -216,6 +249,11 @@ export default {
         },
       },
     },
+  },
+  async mounted() {
+    if (!this.isGuest) {
+      await this.fetchVerificationStatus();
+    }
   },
   computed: {
     showSeparators() {
@@ -272,6 +310,39 @@ export default {
     // regardless of party leadership, so that message wins when both apply.
     matchmakingRestricted() {
       return this.notVerifiedForMatchmaking || this.inLobbyNotLeader;
+    },
+    verificationCtaLink() {
+      return this.verificationApplicationStatus === "pending" ||
+        this.verificationApplicationStatus === "rejected"
+        ? "/verify/status"
+        : "/verify";
+    },
+    verificationCtaLabel() {
+      if (this.verificationApplicationStatus === "pending") {
+        return this.$t("pages.play.matchmaking.verification_pending");
+      }
+      if (this.verificationApplicationStatus === "rejected") {
+        return this.$t("pages.play.matchmaking.verification_rejected");
+      }
+      return this.$t("pages.play.matchmaking.get_verified");
+    },
+    verificationCtaIcon() {
+      return this.verificationApplicationStatus === "pending" ? Clock : ShieldCheck;
+    },
+  },
+  methods: {
+    async fetchVerificationStatus() {
+      try {
+        const { data } = await (this.$apollo as any).query({
+          query: MY_VERIFICATION_STATUS_QUERY,
+          variables: { steamId: this.me?.steam_id },
+          fetchPolicy: "network-only",
+        });
+        this.verificationApplicationStatus =
+          data?.verification_applications?.[0]?.status ?? null;
+      } catch {
+        // Best-effort -- the CTA just falls back to "Get Verified" / /verify.
+      }
     },
   },
 };
