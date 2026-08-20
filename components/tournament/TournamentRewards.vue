@@ -134,35 +134,50 @@ function awardForId(awardId?: string | null) {
   return definitions.value.find((award) => award.id === awardId) ?? null;
 }
 
-// MVP renders only in the header, never as a body card.
+// MVP renders only in the header, never inside a placement card.
 const mvpAward = computed(() =>
   mvpEnabled.value ? awardForId(selection.value[0]) : null,
 );
 
-// Body cards: Champion / Runner-up / Third Place only.
+// Champion / Runner-up / Third Place -- in that order, matching podium
+// index 0/1/2 -- for pairing with the same-rank prize card below.
 const bodyPlacements = TOURNAMENT_AWARD_PLACEMENTS.filter(
   (config) => config.placement !== 0,
 );
-const bodyEntries = computed(() =>
-  bodyPlacements
-    .map((config) => ({
-      config,
-      award: awardForId(selection.value[config.placement]),
-    }))
-    .filter(
-      (
-        entry,
-      ): entry is { config: (typeof bodyPlacements)[number]; award: TournamentAwardDefinition } =>
-        !!entry.award,
-    ),
-);
+
+// One standing per podium position (0/1/2 = 1st/2nd/3rd), each carrying
+// whatever exists for that rank: prize money, its configured award, both,
+// or -- if neither exists -- omitted entirely rather than rendering an
+// empty card. This is what lets the award artwork ride inside the existing
+// money card instead of a separate row underneath: index (not array
+// position) is preserved so TIERS[entry.index] still resolves correctly
+// even when a middle rank is skipped.
+const standingEntries = computed(() => {
+  const entries: Array<{
+    index: number;
+    prize: { id: string; place: string; prize: string } | null;
+    award: TournamentAwardDefinition | null;
+  }> = [];
+  for (let index = 0; index < 3; index++) {
+    const prize = podium.value[index] ?? null;
+    const placementConfig = bodyPlacements[index];
+    const award =
+      props.awardsEnabled && placementConfig
+        ? awardForId(selection.value[placementConfig.placement])
+        : null;
+    if (!prize && !award) continue;
+    entries.push({ index, prize, award });
+  }
+  return entries;
+});
+const hasStandings = computed(() => standingEntries.value.length > 0);
 
 const hasAwardsContent = computed(
   () =>
     props.awardsEnabled &&
     (awardsLoading.value ||
       !!awardsLoadError.value ||
-      bodyEntries.value.length > 0 ||
+      standingEntries.value.some((entry) => !!entry.award) ||
       !!mvpAward.value),
 );
 
@@ -229,35 +244,42 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
         </div>
       </div>
 
-      <template v-if="hasPrizes">
+      <template v-if="hasStandings">
         <div class="grid items-end gap-3 sm:grid-cols-3">
           <div
-            v-for="(prize, index) in podium"
-            :key="prize.id"
+            v-for="entry in standingEntries"
+            :key="entry.index"
             :class="[
               'relative overflow-hidden rounded-lg border border-border bg-card/40 px-4 py-4 text-center [backdrop-filter:blur(6px)]',
-              TIERS[index].frame,
-              TIERS[index].order,
+              TIERS[entry.index].frame,
+              TIERS[entry.index].order,
             ]"
           >
             <div
               :class="[
                 'font-mono text-[0.62rem] font-bold uppercase tracking-[0.16em]',
-                TIERS[index].label,
+                TIERS[entry.index].label,
               ]"
             >
-              {{ prize.place || `#${index + 1}` }}
+              {{ entry.prize?.place || `#${entry.index + 1}` }}
+            </div>
+            <div class="mt-1 flex items-center justify-center gap-2">
+              <div
+                v-if="entry.prize"
+                :class="[
+                  'font-sans text-[1.35rem] font-bold leading-none tabular-nums',
+                  TIERS[entry.index].amount,
+                ]"
+              >
+                {{ entry.prize.prize }}
+              </div>
+              <AwardArtwork v-if="entry.award" :award="entry.award" size="xs" />
             </div>
             <div
               :class="[
-                'mt-1 font-sans text-[1.35rem] font-bold leading-none tabular-nums',
-                TIERS[index].amount,
+                'absolute inset-x-0 bottom-0 h-[3px]',
+                TIERS[entry.index].bar,
               ]"
-            >
-              {{ prize.prize }}
-            </div>
-            <div
-              :class="['absolute inset-x-0 bottom-0 h-[3px]', TIERS[index].bar]"
             ></div>
           </div>
         </div>
@@ -280,34 +302,6 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
           </li>
         </ul>
       </template>
-
-      <div
-        v-if="hasAwardsContent"
-        :class="[
-          'flex flex-col gap-3',
-          hasPrizes ? 'border-t border-dashed border-border pt-4' : '',
-        ]"
-      >
-        <div v-if="awardsLoadError" class="text-sm text-muted-foreground">
-          {{ awardsLoadError }}
-        </div>
-        <div v-else class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          <div
-            v-for="entry in bodyEntries"
-            :key="entry.config.slot"
-            class="flex flex-col items-center gap-2 rounded-sm border border-border/60 bg-background/45 p-4 text-center"
-          >
-            <AwardArtwork :award="entry.award" size="md" decorative />
-            <div
-              class="font-mono text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-            >
-              {{ entry.config.shortLabel }} ·
-              {{ $t("tournament.page.awards_showcase.team") }}
-            </div>
-            <div class="text-sm font-semibold">{{ entry.award.name }}</div>
-          </div>
-        </div>
-      </div>
     </div>
   </Card>
 </template>

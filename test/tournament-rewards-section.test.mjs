@@ -6,9 +6,10 @@ import test from "node:test";
 // Consolidates the old standalone Prize Distribution section, the
 // MatchOptionsDisplay "Awards" yes/no row, and the separate
 // TournamentAwardShowcase into one public "Tournament Rewards" section
-// (components/tournament/TournamentRewards.vue). Static source-inspection
-// tests, matching this suite's existing pattern -- no component-mounting
-// harness in this repo.
+// (components/tournament/TournamentRewards.vue). Award artwork for
+// Champion/Runner-up/Third Place rides inside the SAME #1/#2/#3 placement
+// card as the prize money (no separate award-card row underneath) --
+// static source-inspection tests, matching this suite's existing pattern.
 
 const rewardsPath = new URL(
   "../components/tournament/TournamentRewards.vue",
@@ -98,49 +99,49 @@ test("the section shows when prizes exist OR awards are enabled/configured, hide
     rewardsSource.indexOf("const showSection"),
   );
   assert.match(hasAwardsBlock, /props\.awardsEnabled/);
-  assert.match(hasAwardsBlock, /bodyEntries\.value\.length > 0/);
+  assert.match(hasAwardsBlock, /standingEntries\.value\.some\(\(entry\) => !!entry\.award\)/);
   assert.match(hasAwardsBlock, /!!mvpAward\.value/);
 });
 
-test("MVP is computed separately from the body placements and only renders in the header", () => {
+test("MVP is computed separately from the standing placements and only renders in the header", () => {
   const mvpBlock = rewardsSource.slice(
     rewardsSource.indexOf("const mvpAward"),
     rewardsSource.indexOf("const mvpAward") + 150,
   );
   assert.match(mvpBlock, /mvpEnabled\.value \? awardForId\(selection\.value\[0\]\) : null/);
 
-  // Body placements explicitly exclude placement 0 (MVP).
+  // bodyPlacements (used to pair awards with podium ranks) explicitly
+  // excludes placement 0 (MVP).
   const bodyPlacementsBlock = rewardsSource.slice(
     rewardsSource.indexOf("const bodyPlacements"),
     rewardsSource.indexOf("const bodyPlacements") + 150,
   );
   assert.match(bodyPlacementsBlock, /config\.placement !== 0/);
 
-  // Header renders mvpAward via AwardArtwork; the body grid (bodyEntries)
-  // never references mvpAward.
+  // Header renders mvpAward via AwardArtwork.
   const headerBlock = rewardsSource.slice(
     rewardsSource.indexOf('{{ $t("tournament.rewards.title") }}'),
-    rewardsSource.indexOf('<template v-if="hasPrizes">'),
+    rewardsSource.indexOf('<template v-if="hasStandings">'),
   );
   assert.match(headerBlock, /v-if="mvpAward"/);
   assert.match(headerBlock, /<AwardArtwork :award="mvpAward" size="xs" decorative \/>/);
 
-  const bodyGridBlock = rewardsSource.slice(
-    rewardsSource.indexOf('v-for="entry in bodyEntries"'),
-    rewardsSource.indexOf('v-for="entry in bodyEntries"') + 600,
+  // The standing-card block (podium ranks) never references mvpAward.
+  const standingsBlock = rewardsSource.slice(
+    rewardsSource.indexOf('<template v-if="hasStandings">'),
+    rewardsSource.indexOf("</template>", rewardsSource.indexOf('<template v-if="hasStandings">')),
   );
-  assert.doesNotMatch(bodyGridBlock, /mvpAward/);
-  assert.match(bodyGridBlock, /<AwardArtwork :award="entry\.award" size="md" decorative \/>/);
+  assert.doesNotMatch(standingsBlock, /mvpAward/);
 });
 
 test("reuses the shared award placement config/resolver instead of a second hardcoded hierarchy", () => {
-  assert.match(
-    rewardsSource,
-    /from "~\/utilities\/tournamentAwardPicker";/,
-  );
+  assert.match(rewardsSource, /from "~\/utilities\/tournamentAwardPicker";/);
   assert.match(rewardsSource, /TOURNAMENT_AWARD_PLACEMENTS/);
   assert.match(rewardsSource, /effectiveTournamentAwardSelection/);
-  assert.match(rewardsSource, /tournamentMvpEnabled\(props\.matchType, props\.minPlayersPerLineup\)/);
+  assert.match(
+    rewardsSource,
+    /tournamentMvpEnabled\(props\.matchType, props\.minPlayersPerLineup\)/,
+  );
   // No second copy of the placement labels/tiers array.
   assert.doesNotMatch(rewardsSource, /shortLabel:\s*["']Champion["']/);
 });
@@ -152,17 +153,81 @@ test("only one award query pair exists (no duplicate GraphQL query from the old 
   assert.equal(slotQueries.length, 1);
 });
 
-test("prize podium/extras markup is preserved from the old TournamentPrizes.vue", () => {
-  assert.match(rewardsSource, /const podium = computed\(\(\) => props\.prizes\.slice\(0, 3\)\);/);
-  assert.match(rewardsSource, /const extras = computed\(\(\) => props\.prizes\.slice\(3\)\);/);
-  assert.match(rewardsSource, /v-for="\(prize, index\) in podium"/);
-  assert.match(rewardsSource, /v-if="extras\.length > 0"/);
+test("award artwork for Champion/Runner-up/Third Place rides inside the same #1/#2/#3 card as the prize money -- no separate award-card row", () => {
+  // Exactly one placement-card v-for -- the merged standingEntries loop --
+  // not two separate loops (money cards + award cards).
+  const cardLoops = rewardsSource.match(/v-for="entry in standingEntries"/g) ?? [];
+  assert.equal(cardLoops.length, 1);
+
+  // The old separate award-grid loop/classes are gone entirely.
+  assert.doesNotMatch(rewardsSource, /v-for="entry in bodyEntries"/);
+  assert.doesNotMatch(rewardsSource, /sm:grid-cols-2 lg:grid-cols-3/);
+  assert.doesNotMatch(rewardsSource, /awards_showcase\.team/);
+
+  // The dashed divider that only ever separated money from the old award
+  // row is gone (the extras list's own dashed divider is unrelated and
+  // still present -- checked separately below).
+  assert.doesNotMatch(rewardsSource, /hasPrizes \? 'border-t border-dashed border-border pt-4' : ''/);
+
+  // Award artwork is rendered from inside the standing-card block, using
+  // the compact "xs" size (same as the header MVP badge), not the larger
+  // "md" size the old separate row used.
+  const standingsBlock = rewardsSource.slice(
+    rewardsSource.indexOf('<template v-if="hasStandings">'),
+    rewardsSource.indexOf("</template>", rewardsSource.indexOf('<template v-if="hasStandings">')),
+  );
+  assert.match(standingsBlock, /<AwardArtwork v-if="entry\.award" :award="entry\.award" size="xs" \/>/);
+  assert.doesNotMatch(standingsBlock, /size="md"/);
+
+  // No award name text rendered inside the card (keeps card height stable).
+  assert.doesNotMatch(standingsBlock, /entry\.award\.name/);
 });
 
-test("no empty award card renders for an unconfigured placement", () => {
-  const bodyEntriesBlock = rewardsSource.slice(
-    rewardsSource.indexOf("const bodyEntries"),
-    rewardsSource.indexOf("const hasAwardsContent"),
+test("the extras list (prize rows beyond the top 3) keeps its own dashed divider, unaffected", () => {
+  assert.match(
+    rewardsSource,
+    /v-if="extras\.length > 0"[\s\S]{0,40}class="flex flex-col divide-y divide-border\/60 border-t border-dashed border-border pt-1"/,
   );
-  assert.match(bodyEntriesBlock, /!!entry\.award/);
+});
+
+test("placement card container classes are unchanged -- same dimensions as before", () => {
+  assert.match(
+    rewardsSource,
+    /'relative overflow-hidden rounded-lg border border-border bg-card\/40 px-4 py-4 text-center \[backdrop-filter:blur\(6px\)\]'/,
+  );
+  // TIERS drives per-rank accent/frame/order exactly as before -- three
+  // entries, same class strings, keyed by entry.index (not v-for position)
+  // so a skipped middle rank still resolves the correct tier.
+  assert.match(rewardsSource, /TIERS\[entry\.index\]\.frame/);
+  assert.match(rewardsSource, /TIERS\[entry\.index\]\.order/);
+  assert.match(rewardsSource, /TIERS\[entry\.index\]\.label/);
+  assert.match(rewardsSource, /TIERS\[entry\.index\]\.amount/);
+  assert.match(rewardsSource, /TIERS\[entry\.index\]\.bar/);
+});
+
+test("money-only rendering is unchanged: the amount is still the standalone content when no award is configured for that rank", () => {
+  const block = rewardsSource.slice(
+    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">'),
+    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">') + 500,
+  );
+  assert.match(block, /v-if="entry\.prize"/);
+  assert.match(block, /\{\{ entry\.prize\.prize \}\}/);
+});
+
+test("no empty placement card renders when a rank has neither prize money nor a configured award", () => {
+  const standingEntriesBlock = rewardsSource.slice(
+    rewardsSource.indexOf("const standingEntries"),
+    rewardsSource.indexOf("const hasStandings"),
+  );
+  assert.match(standingEntriesBlock, /if \(!prize && !award\) continue;/);
+});
+
+test("standingEntries pairs podium rank with the same-index Champion/Runner-up/Third Place placement", () => {
+  const block = rewardsSource.slice(
+    rewardsSource.indexOf("const standingEntries"),
+    rewardsSource.indexOf("const hasStandings"),
+  );
+  assert.match(block, /const prize = podium\.value\[index\] \?\? null;/);
+  assert.match(block, /const placementConfig = bodyPlacements\[index\];/);
+  assert.match(block, /props\.awardsEnabled && placementConfig/);
 });
