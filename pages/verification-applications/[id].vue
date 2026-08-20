@@ -149,9 +149,42 @@ useHead({
 
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
-import { generateQuery, generateMutation } from "~/graphql/graphqlGen";
-import { order_by } from "~/generated/zeus";
+import { generateMutation } from "~/graphql/graphqlGen";
+import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
+
+// Raw GraphQL text, not the Zeus object-selector builder -- see
+// ALL_APPLICATIONS_QUERY in verification-applications/index.vue for why
+// (order_by needs schema info Zeus doesn't have for this pre-codegen
+// table).
+const APPLICATION_DETAIL_QUERY = gql`
+  query VerificationApplicationDetail($id: uuid!) {
+    verification_applications_by_pk(id: $id) {
+      id
+      status
+      is_deaf
+      country
+      found_via
+      knows_deaf_player
+      deaf_player_steam_url
+      additional_info
+      created_at
+      player {
+        steam_id
+        name
+        avatar_url
+        custom_avatar_url
+        country
+      }
+      messages(order_by: { created_at: asc }) {
+        id
+        is_admin
+        message
+        created_at
+      }
+    }
+  }
+`;
 
 export default {
   data() {
@@ -193,35 +226,8 @@ export default {
       this.loading = true;
       try {
         const { data } = await (this.$apollo as any).query({
-          query: generateQuery(
-            {
-              verification_applications_by_pk: [
-                { id: this.$route.params.id },
-                {
-                  id: true,
-                  status: true,
-                  is_deaf: true,
-                  country: true,
-                  found_via: true,
-                  knows_deaf_player: true,
-                  deaf_player_steam_url: true,
-                  additional_info: true,
-                  created_at: true,
-                  player: {
-                    steam_id: true,
-                    name: true,
-                    avatar_url: true,
-                    custom_avatar_url: true,
-                    country: true,
-                  },
-                  messages: [
-                    { order_by: [{ created_at: order_by.asc }] },
-                    { id: true, is_admin: true, message: true, created_at: true },
-                  ],
-                },
-              ],
-            } as any,
-          ),
+          query: APPLICATION_DETAIL_QUERY,
+          variables: { id: this.$route.params.id },
           fetchPolicy: "network-only",
         });
         this.application = data?.verification_applications_by_pk ?? null;

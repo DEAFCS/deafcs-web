@@ -221,9 +221,28 @@ useHead({
 <script lang="ts">
 import { ChevronsUpDown, Check } from "lucide-vue-next";
 import { getAllCountries } from "countries-and-timezones";
-import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
-import { order_by } from "~/generated/zeus";
+import { generateMutation } from "~/graphql/graphqlGen";
+import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
+
+const MY_APPLICATION_QUERY = gql`
+  query MyVerificationApplication($steamId: bigint!) {
+    verification_applications(
+      where: { player_steam_id: { _eq: $steamId } }
+      order_by: { created_at: desc }
+      limit: 1
+    ) {
+      id
+      status
+      messages(order_by: { created_at: asc }) {
+        id
+        is_admin
+        message
+        created_at
+      }
+    }
+  }
+`;
 
 const DEAF_OPTIONS = ["yes", "no", "hard_of_hearing"] as const;
 const FOUND_VIA_OPTIONS = [
@@ -294,25 +313,15 @@ export default {
       this.loading = true;
       try {
         const { data } = await (this.$apollo as any).query({
-          query: generateQuery(
-            {
-              verification_applications: [
-                {
-                  where: { player_steam_id: { _eq: this.me?.steam_id } },
-                  order_by: [{ created_at: order_by.desc }],
-                  limit: 1,
-                },
-                {
-                  id: true,
-                  status: true,
-                  messages: [
-                    { order_by: [{ created_at: order_by.asc }] },
-                    { id: true, is_admin: true, message: true, created_at: true },
-                  ],
-                },
-              ],
-            } as any,
-          ),
+          // generated/zeus predates this table (needs a live Hasura codegen
+          // run), so Zeus's object-selector builder has no schema info for
+          // it -- it can't tell an order_by value is meant to be a bare
+          // enum, and always quotes strings, sending "desc" instead of desc
+          // (Hasura then rejects it: "expected an enum value for type
+          // order_by, but found a string"). Raw GraphQL text sidesteps that
+          // entirely since nothing needs to resolve the field's type.
+          query: MY_APPLICATION_QUERY,
+          variables: { steamId: this.me?.steam_id },
           fetchPolicy: "network-only",
         });
         this.application = data?.verification_applications?.[0] ?? null;

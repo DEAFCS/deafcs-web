@@ -85,10 +85,32 @@ useHead({
 
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
-import { generateQuery } from "~/graphql/graphqlGen";
-import { order_by } from "~/generated/zeus";
+import gql from "graphql-tag";
 
 const TABS = ["pending", "approved", "rejected"] as const;
+
+// Raw GraphQL text, not the Zeus object-selector builder -- generated/zeus
+// predates this table (needs a live Hasura codegen run), so Zeus can't
+// resolve order_by's field type and always quotes it as a string, which
+// Hasura rejects ("expected an enum value for type order_by, but found a
+// string"). See MY_APPLICATION_QUERY in pages/verify.vue for the same fix.
+const ALL_APPLICATIONS_QUERY = gql`
+  query AllVerificationApplications {
+    verification_applications(order_by: { created_at: desc }) {
+      id
+      status
+      country
+      created_at
+      player {
+        steam_id
+        name
+        avatar_url
+        custom_avatar_url
+        country
+      }
+    }
+  }
+`;
 
 export default {
   data() {
@@ -127,20 +149,7 @@ export default {
       this.loading = true;
       try {
         const { data } = await (this.$apollo as any).query({
-          query: generateQuery(
-            {
-              verification_applications: [
-                { order_by: [{ created_at: order_by.desc }] },
-                {
-                  id: true,
-                  status: true,
-                  country: true,
-                  created_at: true,
-                  player: { steam_id: true, name: true, avatar_url: true, custom_avatar_url: true, country: true },
-                },
-              ],
-            } as any,
-          ),
+          query: ALL_APPLICATIONS_QUERY,
           fetchPolicy: "network-only",
         });
         this.allApplications = data?.verification_applications ?? [];
