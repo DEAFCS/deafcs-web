@@ -149,12 +149,10 @@ useHead({
                 <label for="knows-no" class="text-sm cursor-pointer">{{ $t("common.no") }}</label>
               </div>
             </RadioGroup>
-            <Input
-              v-if="form.knows_deaf_player"
-              v-model="form.deaf_player_steam_url"
-              :placeholder="$t('pages.verify.form.deaf_player_steam_url')"
-              class="mt-2"
-            />
+            <div v-if="form.knows_deaf_player" class="flex flex-col gap-2 mt-2">
+              <label class="text-sm font-medium">{{ $t("pages.verify.form.deaf_player_steam_url") }}*</label>
+              <Input v-model="form.deaf_player_steam_url" placeholder="https://steamcommunity.com/..." />
+            </div>
           </div>
 
           <div class="flex flex-col gap-2">
@@ -285,6 +283,12 @@ export default {
         missing.push("found_via");
       }
       if (this.form.knows_deaf_player === null) missing.push("knows_deaf_player");
+      if (
+        this.form.knows_deaf_player === true &&
+        !this.form.deaf_player_steam_url.trim()
+      ) {
+        missing.push("deaf_player_steam_url");
+      }
       return missing;
     },
     async submit() {

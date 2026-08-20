@@ -2826,6 +2826,10 @@
       "reject": "Reject",
       "rejected": "Application rejected",
       "reject_reason_placeholder": "Optional reason, shown to the player",
+      "delete": "Delete",
+      "deleted": "Application deleted",
+      "delete_confirm_title": "Delete this application?",
+      "delete_confirm_description": "This permanently deletes the application and its full message thread. This cannot be undone.",
       "thread": "Conversation",
       "no_messages": "No messages yet.",
       "columns": {

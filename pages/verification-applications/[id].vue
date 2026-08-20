@@ -37,9 +37,20 @@ useHead({
       <Card class="p-6">
         <div class="flex items-center justify-between gap-4 mb-4">
           <PlayerDisplay :player="application.player" :show-elo="false" linkable />
-          <Badge :variant="statusVariant">
-            {{ $t(`pages.verify.status.${application.status}`) }}
-          </Badge>
+          <div class="flex items-center gap-2">
+            <Badge :variant="statusVariant">
+              {{ $t(`pages.verify.status.${application.status}`) }}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="h-7 w-7 text-muted-foreground hover:text-destructive"
+              :title="$t('pages.verification_applications.delete')"
+              @click="deleteDialogOpen = true"
+            >
+              <Trash2 class="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
         <dl class="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 text-sm">
@@ -144,11 +155,29 @@ useHead({
         </div>
       </DialogContent>
     </Dialog>
+
+    <Dialog v-model:open="deleteDialogOpen">
+      <DialogContent>
+        <DialogTitle>{{ $t("pages.verification_applications.delete_confirm_title") }}</DialogTitle>
+        <p class="text-sm text-muted-foreground">
+          {{ $t("pages.verification_applications.delete_confirm_description") }}
+        </p>
+        <div class="flex justify-end gap-2 mt-2">
+          <Button variant="outline" @click="deleteDialogOpen = false">
+            {{ $t("common.cancel") }}
+          </Button>
+          <Button variant="destructive" :loading="deleting" @click="deleteApplication">
+            {{ $t("pages.verification_applications.delete") }}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   </PageTransition>
 </template>
 
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
+import { Trash2 } from "lucide-vue-next";
 import { generateMutation } from "~/graphql/graphqlGen";
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
@@ -192,8 +221,10 @@ export default {
       loading: true,
       approving: false,
       rejecting: false,
+      deleting: false,
       sending: false,
       rejectDialogOpen: false,
+      deleteDialogOpen: false,
       rejectReason: "",
       reply: "",
       application: null as any,
@@ -290,6 +321,33 @@ export default {
         });
       } finally {
         this.rejecting = false;
+      }
+    },
+    async deleteApplication() {
+      if (this.deleting) return;
+      this.deleting = true;
+      try {
+        await (this.$apollo as any).mutate({
+          mutation: generateMutation(
+            {
+              delete_verification_applications_by_pk: [
+                { id: this.$route.params.id },
+                { id: true },
+              ],
+            } as any,
+          ),
+        });
+        this.deleteDialogOpen = false;
+        toast({ title: this.$t("pages.verification_applications.deleted") });
+        await this.$router.push({ name: "verification-applications" });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.deleting = false;
       }
     },
     async sendReply() {

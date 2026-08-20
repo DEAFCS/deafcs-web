@@ -53,6 +53,7 @@ useHead({
           <TableHead>{{ $t("pages.verification_applications.columns.country") }}</TableHead>
           <TableHead>{{ $t("pages.verification_applications.columns.status") }}</TableHead>
           <TableHead>{{ $t("pages.verification_applications.columns.submitted") }}</TableHead>
+          <TableHead></TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -77,15 +78,46 @@ useHead({
           <TableCell>
             <TimeAgo :date="application.created_at" />
           </TableCell>
+          <TableCell>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="h-7 w-7 text-muted-foreground hover:text-destructive"
+              :title="$t('pages.verification_applications.delete')"
+              @click.stop="deleteTarget = application"
+            >
+              <Trash2 class="h-4 w-4" />
+            </Button>
+          </TableCell>
         </TableRow>
       </TableBody>
     </Table>
+
+    <Dialog :open="!!deleteTarget" @update:open="(open) => !open && (deleteTarget = null)">
+      <DialogContent>
+        <DialogTitle>{{ $t("pages.verification_applications.delete_confirm_title") }}</DialogTitle>
+        <p class="text-sm text-muted-foreground">
+          {{ $t("pages.verification_applications.delete_confirm_description") }}
+        </p>
+        <div class="flex justify-end gap-2 mt-2">
+          <Button variant="outline" @click="deleteTarget = null">
+            {{ $t("common.cancel") }}
+          </Button>
+          <Button variant="destructive" :loading="deleting" @click="deleteApplication">
+            {{ $t("pages.verification_applications.delete") }}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   </PageTransition>
 </template>
 
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
+import { Trash2 } from "lucide-vue-next";
 import gql from "graphql-tag";
+import { generateMutation } from "~/graphql/graphqlGen";
+import { toast } from "@/components/ui/toast";
 
 const TABS = ["pending", "approved", "rejected"] as const;
 
@@ -116,8 +148,10 @@ export default {
   data() {
     return {
       loading: true,
+      deleting: false,
       statusFilter: "pending" as (typeof TABS)[number],
       allApplications: [] as any[],
+      deleteTarget: null as { id: string } | null,
       countries: getAllCountries(),
       tabs: TABS,
     };
@@ -155,6 +189,35 @@ export default {
         this.allApplications = data?.verification_applications ?? [];
       } finally {
         this.loading = false;
+      }
+    },
+    async deleteApplication() {
+      if (this.deleting || !this.deleteTarget) return;
+      this.deleting = true;
+      try {
+        await (this.$apollo as any).mutate({
+          mutation: generateMutation(
+            {
+              delete_verification_applications_by_pk: [
+                { id: this.deleteTarget.id },
+                { id: true },
+              ],
+            } as any,
+          ),
+        });
+        this.allApplications = this.allApplications.filter(
+          (application) => application.id !== this.deleteTarget?.id,
+        );
+        toast({ title: this.$t("pages.verification_applications.deleted") });
+        this.deleteTarget = null;
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.deleting = false;
       }
     },
   },
