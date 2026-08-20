@@ -4757,7 +4757,8 @@
       "stages": "Stages",
       "default_label": "Tournament",
       "organized_by": "By {team}",
-      "solo_random": "Solo Random"
+      "solo_random": "Solo Random",
+      "check_in_window": "Check-in {window}"
     },
     "results_section": {
       "no_data": "NO DATA",
@@ -4851,6 +4852,14 @@
         "details": "Details",
         "classification": "Classification & Venue",
         "schedule": "Schedule"
+      },
+      "attendance": {
+        "open_before": "Check-in opens before start",
+        "open_before_description": "Minutes before the start time that tournament check-in opens. 15 to 240.",
+        "close_before": "Registration & check-in close before start",
+        "close_before_description": "Minutes before the start time that registration and check-in close. 5 to 60.",
+        "preview": "Check-in window: {window}",
+        "invalid_window": "Check-in must open at least 5 minutes before registration closes."
       },
       "min_role": {
         "label": "Minimum Role",
@@ -5160,6 +5169,17 @@
         "overlay_description": "You're registered for {name}. Check in now or you'll be replaced by the next player on the waitlist.",
         "check_in_now": "Check In Now"
       }
+    },
+    "attendance": {
+      "check_in_button": "Check In",
+      "opens_at": "Check-in opens at {time}",
+      "check_in_by": "Check in by {time}",
+      "auto_checked_in": "You're registered and automatically checked in.",
+      "waitlisted_checked_in": "You're checked in and on the waitlist. If a higher-priority player does not check in, you may receive a tournament spot.",
+      "explainer": "Players registered before check-in opens must check in. Registrations made during the check-in window are automatically checked in.",
+      "closes_note": "Registration and check-in close at {time}. Teams are generated automatically afterward.",
+      "team_check_in_button": "Check in for tournament",
+      "team_checked_in_badge": "Your team is checked in"
     },
     "actions": {
       "open_registration": "Open Registration",

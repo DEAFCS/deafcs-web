@@ -34,13 +34,19 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
         class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
       >
         <span class="text-sm font-medium">
-          {{
-            myIndividualSignup.status === "Waitlisted"
-              ? $t("tournament.join.individual.waitlisted")
-              : $t("tournament.join.individual.registered")
-          }}
+          {{ individualAttendanceMessage }}
         </span>
         <Button
+          v-if="showIndividualCheckIn"
+          variant="tactical"
+          type="button"
+          :loading="checkingIn"
+          @click="checkInIndividually"
+        >
+          {{ $t("tournament.attendance.check_in_button") }}
+        </Button>
+        <Button
+          v-else
           variant="destructive"
           type="button"
           :loading="submitting"
@@ -50,6 +56,12 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
           {{ $t("tournament.join.individual.leave") }}
         </Button>
       </div>
+      <p
+        v-if="attendanceExplainer"
+        class="text-xs text-muted-foreground"
+      >
+        {{ attendanceExplainer }}
+      </p>
     </template>
     <Button
       v-else
@@ -277,6 +289,7 @@ import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { e_match_types_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
+import { attendanceWindow, formatClockTime } from "~/utilities/tournamentAttendance";
 
 export default {
   emits: ["close"],
@@ -289,6 +302,7 @@ export default {
   data() {
     return {
       submitting: false,
+      checkingIn: false,
       teamOwner: null,
       autoShortName: true,
       teamRoster: [] as any[],
@@ -405,6 +419,68 @@ export default {
           (signup: any) => String(signup.player_steam_id) === steamId,
         ) ?? null
       );
+    },
+    // Scheduled attendance window (both individual and team tournaments
+    // share this), derived purely from tournament.start + the two
+    // configurable offsets -- see utilities/tournamentAttendance.ts.
+    attendanceWindowTimes() {
+      return attendanceWindow(this.tournament as any);
+    },
+    checkInOpensClock() {
+      return this.attendanceWindowTimes
+        ? formatClockTime(this.attendanceWindowTimes.opensAt)
+        : null;
+    },
+    checkInClosesClock() {
+      return this.attendanceWindowTimes
+        ? formatClockTime(this.attendanceWindowTimes.closesAt)
+        : null;
+    },
+    // The window is only actually open once the backend has stamped
+    // individual_check_in_ends_at (either the automatic scheduler or a
+    // manual "Start check-in") -- the scheduled times above are shown
+    // ahead of that for the "opens at" message.
+    checkInWindowOpen() {
+      const endsAt = (this.tournament as any)?.individual_check_in_ends_at;
+      return !!endsAt && new Date(endsAt) > new Date();
+    },
+    showIndividualCheckIn() {
+      return (
+        this.checkInWindowOpen &&
+        !!this.myIndividualSignup &&
+        !this.myIndividualSignup.checked_in_at
+      );
+    },
+    individualAttendanceMessage() {
+      const signup = this.myIndividualSignup;
+      if (!signup) {
+        return "";
+      }
+      if (signup.checked_in_at) {
+        return signup.status === "Waitlisted"
+          ? this.$t("tournament.attendance.waitlisted_checked_in")
+          : this.$t("tournament.attendance.auto_checked_in");
+      }
+      if (signup.status === "Waitlisted") {
+        return this.$t("tournament.join.individual.waitlisted");
+      }
+      if (this.checkInWindowOpen && this.checkInClosesClock) {
+        return this.$t("tournament.attendance.check_in_by", {
+          time: this.checkInClosesClock,
+        });
+      }
+      if (this.checkInOpensClock) {
+        return this.$t("tournament.attendance.opens_at", {
+          time: this.checkInOpensClock,
+        });
+      }
+      return this.$t("tournament.join.individual.registered");
+    },
+    attendanceExplainer() {
+      if (!this.myIndividualSignup || this.myIndividualSignup.checked_in_at) {
+        return null;
+      }
+      return this.$t("tournament.attendance.explainer");
     },
     teams() {
       return this.me.teams;
@@ -578,6 +654,28 @@ export default {
         });
       } finally {
         this.submitting = false;
+      }
+    },
+    async checkInIndividually() {
+      if (this.checkingIn) return;
+      this.checkingIn = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            checkIntoTournament: [
+              { tournament_id: this.$route.params.tournamentId },
+              { success: true },
+            ],
+          }),
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.checkingIn = false;
       }
     },
     async setOwnerTeamOwner(player) {

@@ -12,6 +12,7 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import AwardBadge from "~/components/award/AwardBadge.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
+import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 
 const { t } = useI18n();
 
@@ -91,6 +92,9 @@ const teamsCount = computed(
 const isLive = computed(() => props.statusVariant === "live");
 const isFinished = computed(() => props.statusVariant === "finished");
 const isRegistration = computed(() => props.statusVariant === "registration");
+const attendanceWindowLabel = computed(() =>
+  isRegistration.value ? formatAttendanceWindowRange(props.tournament) : null,
+);
 
 function teamNameForOccurrence(occurrence: any): string | null {
   const recipients = occurrence?.recipients || [];
@@ -458,6 +462,13 @@ const runnerUps = computed(() => {
           <TimeAgo :date="tournament.start" />
         </span>
       </span>
+    </div>
+
+    <div
+      v-if="attendanceWindowLabel"
+      class="flex items-center justify-end border-t border-border/40 px-3 py-1 font-mono text-[0.55rem] uppercase tracking-[0.18em] text-muted-foreground"
+    >
+      {{ $t("tournament.feature_card.check_in_window", { window: attendanceWindowLabel }) }}
     </div>
 
     <div

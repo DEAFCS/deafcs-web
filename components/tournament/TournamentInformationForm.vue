@@ -122,6 +122,49 @@ import {
           <FormMessage />
         </FormItem>
       </FormField>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <FormField v-slot="{ componentField }" name="attendance_open_before">
+          <FormItem>
+            <FormLabel>{{
+              $t("tournament.form.attendance.open_before")
+            }}</FormLabel>
+            <FormControl>
+              <Input type="number" min="15" max="240" v-bind="componentField" />
+            </FormControl>
+            <FormDescription>{{
+              $t("tournament.form.attendance.open_before_description")
+            }}</FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <FormField v-slot="{ componentField }" name="attendance_close_before">
+          <FormItem>
+            <FormLabel>{{
+              $t("tournament.form.attendance.close_before")
+            }}</FormLabel>
+            <FormControl>
+              <Input type="number" min="5" max="60" v-bind="componentField" />
+            </FormControl>
+            <FormDescription>{{
+              $t("tournament.form.attendance.close_before_description")
+            }}</FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+      </div>
+
+      <p
+        v-if="attendanceWindowPreview"
+        class="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground"
+      >
+        {{
+          $t("tournament.form.attendance.preview", {
+            window: attendanceWindowPreview,
+          })
+        }}
+      </p>
     </section>
 
     <!-- Classification & Venue -->
@@ -180,6 +223,7 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { $ } from "~/generated/zeus";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
+import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 
 export default {
   props: {
@@ -205,7 +249,29 @@ export default {
             latitude: z.number().nullable().default(null),
             longitude: z.number().nullable().default(null),
             categories: z.string().array().default([]),
-          }),
+            // Mirrors the backend CHECK constraints on tournaments
+            // (tournaments_attendance_*): 15-240 / 5-60, open > close, and
+            // at least a 5-minute window between them.
+            attendance_open_before: z.coerce
+              .number()
+              .int()
+              .min(15)
+              .max(240)
+              .default(60),
+            attendance_close_before: z.coerce
+              .number()
+              .int()
+              .min(5)
+              .max(60)
+              .default(15),
+          }).refine(
+            (values) =>
+              values.attendance_open_before - values.attendance_close_before >= 5,
+            {
+              message: this.$t("tournament.form.attendance.invalid_window"),
+              path: ["attendance_open_before"],
+            },
+          ),
         ),
       }),
     };
@@ -244,6 +310,29 @@ export default {
       }
       return `https://${this.apiDomain}/${this.tournament.banner}`;
     },
+    // Live preview of the resulting window, driven by the form's own current
+    // values (not the saved tournament), so it updates as the organizer
+    // types. Suppressed while the values are out of range, rather than
+    // rendering a nonsensical range next to a validation error.
+    attendanceWindowPreview() {
+      const start = this.form.values.start;
+      const openBefore = Number(this.form.values.attendance_open_before);
+      const closeBefore = Number(this.form.values.attendance_close_before);
+      if (
+        !(start instanceof Date) ||
+        Number.isNaN(start.getTime()) ||
+        !Number.isFinite(openBefore) ||
+        !Number.isFinite(closeBefore) ||
+        openBefore - closeBefore < 5
+      ) {
+        return null;
+      }
+      return formatAttendanceWindowRange({
+        start: start.toISOString(),
+        attendance_check_in_open_before_minutes: openBefore,
+        attendance_check_in_close_before_minutes: closeBefore,
+      });
+    },
   },
   methods: {
     populate() {
@@ -266,6 +355,10 @@ export default {
         categories: (this.tournament.categories ?? []).map(
           (category: any) => category.category,
         ),
+        attendance_open_before:
+          this.tournament.attendance_check_in_open_before_minutes ?? 60,
+        attendance_close_before:
+          this.tournament.attendance_check_in_close_before_minutes ?? 15,
       });
       this.$nextTick(() => {
         this.baseline = JSON.stringify(this.form.values);
@@ -367,6 +460,12 @@ export default {
             location: this.form.values.location || null,
             latitude: this.form.values.latitude ?? null,
             longitude: this.form.values.longitude ?? null,
+            attendance_open_before: Number(
+              this.form.values.attendance_open_before,
+            ),
+            attendance_close_before: Number(
+              this.form.values.attendance_close_before,
+            ),
           },
           mutation: generateMutation({
             update_tournaments_by_pk: [
@@ -380,6 +479,14 @@ export default {
                   location: $("location", "String"),
                   latitude: $("latitude", "float8"),
                   longitude: $("longitude", "float8"),
+                  attendance_check_in_open_before_minutes: $(
+                    "attendance_open_before",
+                    "Int",
+                  ),
+                  attendance_check_in_close_before_minutes: $(
+                    "attendance_close_before",
+                    "Int",
+                  ),
                 },
               },
               { __typename: true },

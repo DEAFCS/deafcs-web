@@ -5,6 +5,7 @@ import { GitBranch, Trophy, UsersRound } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import { formatPrizePool } from "~/utilities/prizePool";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
+import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 
 type TournamentStatusVariant = "default" | "finished" | "live" | "registration";
 
@@ -79,6 +80,17 @@ const matchType = computed(() => props.tournament?.options?.type || null);
 const isIndividualRegistration = computed(
   () => !!props.tournament?.options?.individual_registration_enabled,
 );
+
+// Only meaningful while registration is actually open -- before that the
+// window hasn't been scheduled from the tournament's perspective yet, and
+// after that registration/check-in have already resolved. Applies to both
+// team and Solo Random tournaments alike.
+const attendanceWindowLabel = computed(() => {
+  if (props.statusVariant !== "registration") {
+    return null;
+  }
+  return formatAttendanceWindowRange(props.tournament);
+});
 
 const primaryStage = computed(() => {
   return [...(props.tournament?.stages || [])].sort(
@@ -219,6 +231,12 @@ const statusChipClasses = computed(() => {
           class="inline-flex items-center rounded-full border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.12)] px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
         >
           {{ $t("tournament.feature_card.solo_random") }}
+        </span>
+        <span
+          v-if="attendanceWindowLabel"
+          class="inline-flex items-center rounded-full border border-white/20 bg-black/45 px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-white/85"
+        >
+          {{ $t("tournament.feature_card.check_in_window", { window: attendanceWindowLabel }) }}
         </span>
         <span class="inline-flex items-center gap-1.5">
           <GitBranch class="h-3.5 w-3.5 text-white/55" />

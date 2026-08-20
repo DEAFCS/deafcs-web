@@ -1077,6 +1077,8 @@ export default {
               options: matchOptionsFields,
               individual_check_in_ends_at: true,
               individual_check_in_duration_minutes: true,
+              attendance_check_in_open_before_minutes: true,
+              attendance_check_in_close_before_minutes: true,
               individual_signups: [
                 {},
                 {

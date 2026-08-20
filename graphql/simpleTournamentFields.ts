@@ -5,6 +5,7 @@ export const simpleTournamentFields = Selector("tournaments")({
   id: true,
   name: true,
   start: true,
+  status: true,
   description: true,
   logo: true,
   banner: true,
@@ -13,6 +14,8 @@ export const simpleTournamentFields = Selector("tournaments")({
   latitude: true,
   longitude: true,
   trophies_enabled: true,
+  attendance_check_in_open_before_minutes: true,
+  attendance_check_in_close_before_minutes: true,
   e_tournament_status: {
     description: true,
   },

@@ -9,6 +9,8 @@ export default {
   seed: true,
   eligible_at: true,
   can_manage: true,
+  checked_in_at: true,
+  created_at: true,
   captain_steam_id: true,
   owner_steam_id: true,
   captain: playerFields,

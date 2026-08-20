@@ -8,6 +8,12 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 <template>
   <div class="grid gap-6 items-start lg:grid-cols-[minmax(0,1fr)_320px]">
     <div class="min-w-0 space-y-6">
+      <p
+        v-if="closesAtNote"
+        class="text-xs text-muted-foreground"
+      >
+        {{ closesAtNote }}
+      </p>
       <section>
         <div class="mb-3 flex items-center justify-between">
           <h3 class="font-mono text-[0.7rem] uppercase tracking-[0.18em] text-muted-foreground">
@@ -57,6 +63,21 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
             class="flex items-center gap-3 rounded-lg border border-border/60 bg-card/20 px-3 py-2.5 opacity-70"
           >
             <PlayerDisplay :player="signup.player" class="min-w-0 flex-1" />
+            <span
+              v-if="checkInEverOpened"
+              class="shrink-0"
+              :title="
+                signup.checked_in_at
+                  ? $t('tournament.attendance.waitlisted_checked_in')
+                  : $t('tournament.players.not_checked_in')
+              "
+            >
+              <CheckCircle2
+                v-if="signup.checked_in_at"
+                class="h-4 w-4 text-[hsl(var(--tac-amber))]"
+              />
+              <Clock v-else class="h-4 w-4 text-muted-foreground" />
+            </span>
           </li>
         </ul>
       </section>
@@ -137,6 +158,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 <script lang="ts">
 import { generateMutation } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
+import { attendanceWindow, formatClockTime } from "~/utilities/tournamentAttendance";
 
 export default {
   props: {
@@ -161,6 +183,20 @@ export default {
     },
     waitlistedPlayers() {
       return this.signups.filter((s: any) => s.status === "Waitlisted");
+    },
+    // Only meaningful while registration/check-in are still ahead of us --
+    // once closed, teams have already been generated.
+    closesAtNote() {
+      if (this.tournament.status !== "RegistrationOpen") {
+        return null;
+      }
+      const window = attendanceWindow(this.tournament);
+      if (!window) {
+        return null;
+      }
+      return this.$t("tournament.attendance.closes_note", {
+        time: formatClockTime(window.closesAt),
+      });
     },
     removedPlayers() {
       return this.signups.filter((s: any) => s.status === "Removed");

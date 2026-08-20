@@ -241,6 +241,22 @@ import { toast } from "~/components/ui/toast";
           </span>
         </div>
 
+        <span
+          v-if="team.can_manage && team.checked_in_at"
+          class="inline-flex items-center gap-1.5 px-[0.6rem] py-[0.3rem] font-mono text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.12)] border border-[hsl(var(--tac-amber)/0.4)] rounded"
+        >
+          {{ $t("tournament.attendance.team_checked_in_badge") }}
+        </span>
+        <Button
+          v-else-if="showTeamCheckIn"
+          variant="tactical"
+          size="sm"
+          class="h-8"
+          @click="checkInTeam"
+        >
+          {{ $t("tournament.attendance.team_check_in_button") }}
+        </Button>
+
         <Button
           v-if="!tournament.is_organizer && canLeaveTournament"
           variant="outline"
@@ -478,6 +494,21 @@ export default {
       }
 
       return !restrictedStatuses.includes(status);
+    },
+    // Shared tournament-attendance window (both individual and team
+    // tournaments key off the same tournaments.individual_check_in_ends_at
+    // field -- see utilities/tournamentAttendance.ts for the scheduled
+    // open/close times derived from tournament.start).
+    attendanceCheckInOpen() {
+      const endsAt = this.tournament.individual_check_in_ends_at;
+      return !!endsAt && new Date(endsAt) > new Date();
+    },
+    showTeamCheckIn() {
+      return (
+        this.team.can_manage &&
+        this.attendanceCheckInOpen &&
+        !this.team.checked_in_at
+      );
     },
     requiredPlayers() {
       return this.tournament.max_players_per_lineup;
@@ -724,6 +755,24 @@ export default {
       });
     },
     async cancelInvite() {},
+    async checkInTeam() {
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            checkInTournamentTeam: [
+              { tournament_team_id: this.team.id },
+              { success: true },
+            ],
+          }),
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      }
+    },
     async leaveTournament() {
       await this.$apollo.mutate({
         mutation: generateMutation({
