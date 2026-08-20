@@ -2784,7 +2784,7 @@
       "status": {
         "title": "Your Application",
         "pending": "Pending",
-        "pending_description": "Your application is waiting for an admin to review it.",
+        "pending_description": "Thank you for submitting your application. Processing can take up to 48 hours. You'll get a notification in the bell once it's reviewed.",
         "approved": "Approved",
         "approved_description": "Your application was approved. You can now queue matchmaking.",
         "rejected": "Rejected",
