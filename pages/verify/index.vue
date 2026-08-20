@@ -133,7 +133,7 @@ useHead({
 
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium">{{ $t("pages.verify.form.knows_deaf_player") }}*</label>
-            <RadioGroup :model-value="knowsDeafPlayerValue" class="grid gap-2">
+            <RadioGroup v-model="knowsDeafPlayerValue" class="grid gap-2">
               <div
                 class="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer"
                 @click="form.knows_deaf_player = true"
@@ -250,10 +250,22 @@ export default {
         a.name.localeCompare(b.name),
       );
     },
-    knowsDeafPlayerValue() {
-      if (this.form.knows_deaf_player === true) return "yes";
-      if (this.form.knows_deaf_player === false) return "no";
-      return undefined;
+    // A real get/set computed (v-model), not a one-way :model-value -- with
+    // only :model-value, RadioGroupItem's own internal click/keyboard
+    // handling (clicking exactly the circle, not the surrounding label/bar)
+    // had no update:model-value listener to call, so it silently did
+    // nothing. The wrapper divs' own @click still worked since that's a
+    // separate, always-on listener -- reported bug: clicking the small
+    // circle itself did nothing, only clicking the text/bar around it did.
+    knowsDeafPlayerValue: {
+      get(): string | undefined {
+        if (this.form.knows_deaf_player === true) return "yes";
+        if (this.form.knows_deaf_player === false) return "no";
+        return undefined;
+      },
+      set(value: string) {
+        this.form.knows_deaf_player = value === "yes";
+      },
     },
   },
   methods: {
