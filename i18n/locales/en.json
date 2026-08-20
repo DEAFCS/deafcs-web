@@ -944,6 +944,7 @@
     "user": "User",
     "verified_user": "Verified User",
     "streamer": "Streamer",
+    "moderator": "Moderator",
     "match_organizer": "Match Organizer",
     "tournament_organizer": "Tournament Organizer",
     "administrator": "Administrator"
@@ -4824,6 +4825,7 @@
       "min_lineup_warning": "Select at least {min} players to register.",
       "login_required": "Log in to register for this tournament.",
       "role_required": "{role} or higher required to join this tournament.",
+      "member_role_required": "{role} or higher required",
       "individual": {
         "description": "This tournament uses individual sign-up -- join on your own, no team needed. Once registration closes, the organizer generates teams automatically, randomly balanced by ELO.",
         "registered": "You're registered",

@@ -130,6 +130,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
         :exclude="existingTournamentPlayerSteamIds"
         :registeredOnly="true"
         :match-type="tournamentMatchType"
+        :min-role="tournament.min_role"
         v-if="!form.values.add_self_to_lineup && form.values.new_team"
       ></PlayerSearch>
     </template>
@@ -188,6 +189,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
                 :model-value="selectedPlayers.has(member.player_steam_id)"
                 :disabled="
                   isTaken(member) ||
+                  !memberMeetsMinRole(member) ||
                   (!selectedPlayers.has(member.player_steam_id) && atLineupCap)
                 "
                 @click.stop="togglePlayer(member)"
@@ -204,6 +206,12 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
                 class="ml-auto shrink-0 text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground"
               >
                 {{ $t("tournament.join.already_rostered") }}
+              </span>
+              <span
+                v-else-if="!memberMeetsMinRole(member)"
+                class="ml-auto shrink-0 text-[0.62rem] uppercase tracking-[0.12em] text-muted-foreground"
+              >
+                {{ $t("tournament.join.member_role_required", { role: minRoleLabel }) }}
               </span>
             </li>
           </ul>
@@ -451,6 +459,14 @@ export default {
     atLineupCap() {
       return this.maxLineup > 0 && this.selectedPlayers.size >= this.maxLineup;
     },
+    // Dynamic label for the configured minimum role, e.g. "Verified User" --
+    // never hardcode a role name, this tournament's min_role drives it via
+    // the existing player_roles.<role> i18n keys.
+    minRoleLabel() {
+      return this.tournament.min_role
+        ? this.$t(`player_roles.${this.tournament.min_role}`)
+        : null;
+    },
   },
   watch: {
     "form.values.add_self_to_lineup": {
@@ -571,6 +587,20 @@ export default {
     isTaken(member) {
       return this.takenSteamIds.has(member.player_steam_id);
     },
+    // The backend enforces tournament.min_role against this exact target
+    // player (tbi_tournament_team_roster / target_meets_min_role), not just
+    // the acting captain -- mirror that here so an ineligible teammate can't
+    // even be checked in the first place. NULL min_role is unrestricted; a
+    // missing/unresolved member role fails closed via isRoleAtLeast.
+    memberMeetsMinRole(member) {
+      if (!this.tournament.min_role) {
+        return true;
+      }
+      return useAuthStore().isRoleAtLeast(
+        member.player?.role,
+        this.tournament.min_role,
+      );
+    },
     // `member` is itself a team_roster row (it carries its own
     // roster_image_url), so it can be passed directly as the team-specific
     // source -- same as components/teams/TeamMember.vue's rosterImageSrc.
@@ -578,7 +608,7 @@ export default {
       return resolveRosterImageUrl(member, member?.player ?? null, this.apiDomain);
     },
     rosterItemClass(member) {
-      if (this.isTaken(member)) {
+      if (this.isTaken(member) || !this.memberMeetsMinRole(member)) {
         return "cursor-not-allowed opacity-40";
       }
       if (!this.selectedPlayers.has(member.player_steam_id) && this.atLineupCap) {
@@ -587,7 +617,7 @@ export default {
       return "cursor-pointer";
     },
     togglePlayer(member) {
-      if (this.isTaken(member)) {
+      if (this.isTaken(member) || !this.memberMeetsMinRole(member)) {
         return;
       }
       const steamId = member.player_steam_id;
@@ -619,6 +649,8 @@ export default {
                 // consumed by PlayerDisplay's allow-roster-image chain.
                 roster_image_url: true,
                 custom_avatar_url: true,
+                // Drives per-member tournament.min_role eligibility below.
+                role: true,
                 // Mode-specific active-season ELO, resolved by
                 // usePlayerActiveSeasonElo()'s eloForPlayer() inside
                 // PlayerDisplay -- same field PlayerElo already expects.
@@ -655,7 +687,11 @@ export default {
       );
       const order = { Starter: 0, Substitute: 1, Benched: 2 };
       const prioritized = [...this.teamRoster]
-        .filter((member) => !this.takenSteamIds.has(member.player_steam_id))
+        .filter(
+          (member) =>
+            !this.takenSteamIds.has(member.player_steam_id) &&
+            this.memberMeetsMinRole(member),
+        )
         .sort((a, b) => {
           const aCaptain = a.player_steam_id === captainSteamId ? -1 : 0;
           const bCaptain = b.player_steam_id === captainSteamId ? -1 : 0;

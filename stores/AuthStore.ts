@@ -26,6 +26,10 @@ type AuthStoreSetup = {
   hasDiscordLinked: Ref<boolean>;
   hasCheckedSession: Ref<boolean>;
   isRoleAbove: (role: e_player_roles_enum) => boolean;
+  isRoleAtLeast: (
+    actualRole: e_player_roles_enum | undefined | null,
+    requiredRole: e_player_roles_enum,
+  ) => boolean;
   clearMe: () => void;
 };
 
@@ -79,21 +83,39 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
     e_player_roles_enum.administrator,
   ];
 
+  // Compares an arbitrary player's role against a required minimum, using
+  // the same canonical roleOrder as isRoleAbove below -- so a roster/team
+  // eligibility check (e.g. tournament min_role, which gates the TARGET
+  // player, not just the acting session) can reuse this ordering instead of
+  // duplicating a second hardcoded role array in a component.
+  function isRoleAtLeast(
+    actualRole: e_player_roles_enum | undefined | null,
+    requiredRole: e_player_roles_enum,
+  ) {
+    const requiredIndex = roleOrder.indexOf(requiredRole);
+    if (requiredIndex === -1) {
+      return false;
+    }
+
+    // An unknown/missing actual role gate must deny, not grant: indexOf
+    // would map that to -1, which every real role index clears.
+    if (!actualRole) {
+      return false;
+    }
+    const actualIndex = roleOrder.indexOf(actualRole);
+    if (actualIndex === -1) {
+      return false;
+    }
+
+    return actualIndex >= requiredIndex;
+  }
+
   function isRoleAbove(role: e_player_roles_enum) {
     if (!me.value) {
       return false;
     }
 
-    const roleIndex = roleOrder.indexOf(role);
-
-    // An unknown role gate must deny, not grant: the settings-store role
-    // getters return false while settings are still loading, and indexOf
-    // would map that to -1, which every real role index clears.
-    if (roleIndex === -1) {
-      return false;
-    }
-
-    return roleOrder.indexOf(me.value.role) >= roleIndex;
+    return isRoleAtLeast(me.value.role, role);
   }
 
   function setMe(nextMe?: AuthMe | null) {
@@ -353,6 +375,7 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
     hasDiscordLinked,
     hasCheckedSession,
     isRoleAbove,
+    isRoleAtLeast,
   };
 });
 

@@ -390,6 +390,27 @@ export default {
       required: false,
       default: null,
     },
+    // Tournament min_role, when this search is selecting a player who will
+    // land on a tournament roster. The backend enforces this against the
+    // exact target player regardless of who's searching (see
+    // tbi_tournament_team_roster / target_meets_min_role on
+    // tournament_team_roster), so ineligible players are filtered out of
+    // results here rather than letting the picker offer a choice the server
+    // will reject. null/omitted (the default) preserves this component's
+    // existing behavior for every non-tournament consumer.
+    //
+    // This filters results out entirely rather than showing them
+    // disabled-with-a-reason: PlayerSearch has no existing "disabled result"
+    // rendering concept (unlike TeamSearch.vue, which already has one for
+    // team eligibility), and adding one here would mean touching all six
+    // player-row render blocks across mobile/desktop and grouped/ungrouped
+    // modes. Given the backend already fully enforces this, that redesign
+    // isn't taken on here.
+    minRole: {
+      type: String,
+      required: false,
+      default: null,
+    },
   },
   data() {
     return {
@@ -408,7 +429,12 @@ export default {
       return useAuthStore().me;
     },
     canSelectSelf() {
-      return this.self && this.me && !this.exclude.includes(this.me.steam_id);
+      return (
+        this.self &&
+        this.me &&
+        !this.exclude.includes(this.me.steam_id) &&
+        this.meetsMinRole(this.me.role)
+      );
     },
     // The current user, surfaced as a selectable entry (the online presence
     // list never contains yourself). Hidden once you're in `exclude`, i.e.
@@ -440,7 +466,9 @@ export default {
     },
     // Non-grouped results with `me` pinned to the top when selectable.
     displayPlayers(): Player[] {
-      const base = this.players ?? [];
+      const base = (this.players ?? []).filter((p: Player) =>
+        this.meetsMinRole(p.role),
+      );
       if (!this.selfPlayer) return base as Player[];
       const meId = String(this.me?.steam_id);
       return [
@@ -484,6 +512,7 @@ export default {
           const id = String(f.steam_id);
           if (excluded.has(id)) return false;
           if (!this.canSelectSelf && id === meId) return false;
+          if (!this.meetsMinRole(f.role)) return false;
           // Strictly respect the toggle: online-only -> only online friends,
           // otherwise -> only offline friends.
           const online = onlineIds.has(id);
@@ -499,7 +528,8 @@ export default {
       return (this.players ?? []).filter(
         (p: Player) =>
           !this.friendIds.has(String(p.steam_id)) &&
-          (meId === null || String(p.steam_id) !== meId),
+          (meId === null || String(p.steam_id) !== meId) &&
+          this.meetsMinRole(p.role),
       );
     },
     playerGroups(): Array<{ key: string; label: string; players: Player[] }> {
@@ -537,6 +567,13 @@ export default {
     },
   },
   methods: {
+    // NULL/omitted minRole (the default) is unrestricted -- every consumer
+    // that doesn't pass minRole sees unfiltered results, unchanged from
+    // before this prop existed.
+    meetsMinRole(role: string | undefined | null): boolean {
+      if (!this.minRole) return true;
+      return useAuthStore().isRoleAtLeast(role as any, this.minRole as any);
+    },
     setActiveRow(el: HTMLElement | null) {
       this.activeRow = el;
     },
