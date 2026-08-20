@@ -61,9 +61,16 @@ self.addEventListener("notificationclick", (event) => {
       }
 
       if (self.clients.openWindow) {
+        // openChat carries only entity_id (chat routing recovers its own
+        // type from a colon prefix baked into that id, see
+        // useChatNotificationNavigation.ts) -- notificationType carries the
+        // notification's own `type` field for any click-through that isn't
+        // chat (see plugins/chatNotificationClick.client.ts), since that
+        // routing can't recover its target from entity_id alone (it's a
+        // plain id, no embedded type).
         const target =
           type && entityId
-            ? `/?openChat=${encodeURIComponent(entityId)}`
+            ? `/?openChat=${encodeURIComponent(entityId)}&notificationType=${encodeURIComponent(type)}`
             : "/";
         return self.clients.openWindow(target);
       }

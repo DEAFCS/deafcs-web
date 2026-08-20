@@ -178,6 +178,16 @@ useHead({
             />
           </div>
 
+          <div class="flex flex-col gap-2">
+            <label class="text-sm font-medium">{{ $t("pages.verify.form.additional_info") }}</label>
+            <Textarea
+              v-model="form.additional_info"
+              :placeholder="$t('pages.verify.form.additional_info_placeholder')"
+              :maxlength="1000"
+              rows="3"
+            />
+          </div>
+
           <Button
             type="submit"
             variant="tactical"
@@ -217,6 +227,7 @@ export default {
         found_via: "" as string,
         knows_deaf_player: false,
         deaf_player_steam_url: "" as string,
+        additional_info: "" as string,
       },
     };
   },
@@ -292,6 +303,7 @@ export default {
                     deaf_player_steam_url: this.form.knows_deaf_player
                       ? this.form.deaf_player_steam_url?.trim() || null
                       : null,
+                    additional_info: this.form.additional_info?.trim() || null,
                   },
                 },
                 { id: true },

@@ -69,6 +69,11 @@ useHead({
             <template v-else>{{ $t("common.no") }}</template>
           </dd>
 
+          <template v-if="application.additional_info">
+            <dt class="text-muted-foreground">{{ $t("pages.verify.form.additional_info") }}</dt>
+            <dd class="whitespace-pre-wrap">{{ application.additional_info }}</dd>
+          </template>
+
           <dt class="text-muted-foreground">{{ $t("pages.verification_applications.columns.submitted") }}</dt>
           <dd><TimeAgo :date="application.created_at" /></dd>
         </dl>
@@ -188,6 +193,7 @@ export default {
                   found_via: true,
                   knows_deaf_player: true,
                   deaf_player_steam_url: true,
+                  additional_info: true,
                   created_at: true,
                   player: {
                     steam_id: true,

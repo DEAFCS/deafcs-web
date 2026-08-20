@@ -2776,6 +2776,8 @@
         "found_via": "How did you find this website?",
         "knows_deaf_player": "Do you know any deaf players who play CS2?",
         "deaf_player_steam_url": "Steam profile link",
+        "additional_info": "Anything else you'd like to add?",
+        "additional_info_placeholder": "Optional",
         "submit": "Submit Application",
         "submitted": "Application submitted"
       },
