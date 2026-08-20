@@ -206,6 +206,7 @@ useHead({
 import { ChevronsUpDown, Check } from "lucide-vue-next";
 import { getAllCountries } from "countries-and-timezones";
 import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
+import { order_by } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 
 const DEAF_OPTIONS = ["yes", "no", "hard_of_hearing"] as const;
@@ -262,14 +263,14 @@ export default {
               verification_applications: [
                 {
                   where: { player_steam_id: { _eq: this.me?.steam_id } },
-                  order_by: [{ created_at: "desc" }],
+                  order_by: [{ created_at: order_by.desc }],
                   limit: 1,
                 },
                 {
                   id: true,
                   status: true,
                   messages: [
-                    { order_by: [{ created_at: "asc" }] },
+                    { order_by: [{ created_at: order_by.asc }] },
                     { id: true, is_admin: true, message: true, created_at: true },
                   ],
                 },

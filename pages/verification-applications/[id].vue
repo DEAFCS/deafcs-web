@@ -150,6 +150,7 @@ useHead({
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
 import { generateQuery, generateMutation } from "~/graphql/graphqlGen";
+import { order_by } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 
 export default {
@@ -203,7 +204,7 @@ export default {
                     country: true,
                   },
                   messages: [
-                    { order_by: [{ created_at: "asc" }] },
+                    { order_by: [{ created_at: order_by.asc }] },
                     { id: true, is_admin: true, message: true, created_at: true },
                   ],
                 },

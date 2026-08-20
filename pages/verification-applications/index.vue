@@ -86,6 +86,7 @@ useHead({
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
 import { generateQuery } from "~/graphql/graphqlGen";
+import { order_by } from "~/generated/zeus";
 
 const TABS = ["pending", "approved", "rejected"] as const;
 
@@ -129,7 +130,7 @@ export default {
           query: generateQuery(
             {
               verification_applications: [
-                { order_by: [{ created_at: "desc" }] },
+                { order_by: [{ created_at: order_by.desc }] },
                 {
                   id: true,
                   status: true,
