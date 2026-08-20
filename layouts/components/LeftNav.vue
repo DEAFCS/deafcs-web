@@ -29,6 +29,7 @@ import {
   CalendarRange,
   Award,
   Info,
+  UserCheck,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -865,6 +866,26 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
+            <SidebarMenuItem
+              v-if="isAdmin"
+              :tooltip="$t('layouts.app_nav.tooltips.verification_applications')"
+            >
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.verification_applications')"
+              >
+                <NuxtLink
+                  :to="{ name: 'verification-applications' }"
+                  :class="{
+                    'router-link-active': isRouteActive('verification-applications'),
+                  }"
+                >
+                  <UserCheck />
+                  {{ $t("layouts.app_nav.administration.verification_applications") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
             <SidebarMenuItem
               v-if="isTournamentOrganizer || isAdmin"
               :tooltip="$t('layouts.app_nav.tooltips.manage_tournaments')"

@@ -2762,6 +2762,57 @@
         "description": "Browse open pick-up games or create one — captains draft the teams."
       }
     },
+    "verify": {
+      "title": "Verification",
+      "intro": "Answer a few questions to apply for verification. An admin will review your application and get back to you.",
+      "form": {
+        "is_deaf": "Are you deaf?",
+        "is_deaf_options": {
+          "yes": "Yes",
+          "no": "No",
+          "hard_of_hearing": "Hard of hearing"
+        },
+        "country": "Where are you from?",
+        "found_via": "How did you find this website?",
+        "knows_deaf_player": "Do you know any deaf players who play CS2?",
+        "deaf_player_steam_url": "Steam profile link",
+        "submit": "Submit Application",
+        "submitted": "Application submitted"
+      },
+      "status": {
+        "title": "Your Application",
+        "pending": "Pending",
+        "pending_description": "Your application is waiting for an admin to review it.",
+        "approved": "Approved",
+        "approved_description": "Your application was approved. You can now queue matchmaking.",
+        "rejected": "Rejected",
+        "rejected_description": "Your application was rejected. You can apply again below.",
+        "admin": "Admin",
+        "you": "You",
+        "reply_placeholder": "Write a reply",
+        "send_reply": "Send",
+        "apply_again": "Apply Again"
+      }
+    },
+    "verification_applications": {
+      "title": "Verification Applications",
+      "detail_title": "Verification Application",
+      "empty": "No applications in this category.",
+      "not_found": "Application not found.",
+      "approve": "Approve",
+      "approved": "Application approved",
+      "reject": "Reject",
+      "rejected": "Application rejected",
+      "reject_reason_placeholder": "Optional reason, shown to the player",
+      "thread": "Conversation",
+      "no_messages": "No messages yet.",
+      "columns": {
+        "player": "Player",
+        "country": "Country",
+        "status": "Status",
+        "submitted": "Submitted"
+      }
+    },
     "matches": {
       "title": "Matches",
       "create": "Create Match",
@@ -4093,6 +4144,7 @@
         "alerts": "Alerts",
         "seasons": "Seasons",
         "manage_matches": "Manage Matches",
+        "verification_applications": "Apply",
         "manage_tournaments": "Manage Tournaments",
         "manage_league": "Manage League",
         "stream_deck": "Stream Deck",
@@ -4159,6 +4211,7 @@
         "report_issue": "Report an Issue",
         "join_discord": "Join our Discord",
         "manage_matches": "Manage Matches",
+        "verification_applications": "Review verification applications",
         "manage_tournaments": "Manage Tournaments",
         "manage_league": "Manage League",
         "search_players": "Search Players",
