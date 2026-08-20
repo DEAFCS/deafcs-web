@@ -35,9 +35,12 @@ async function routeNonChatNotification(
   }
 
   if (APPLICANT_FACING_VERIFICATION_TYPES.has(type)) {
-    // /verify resolves to the current player's own (most recent)
-    // application on its own -- no id needed in the URL.
-    await navigateTo("/verify");
+    // /verify/status resolves to the current player's own (most recent)
+    // application on its own -- no id needed in the URL. /verify itself is
+    // the submission form only now (a push click here must never land on
+    // the reply thread straight away, per explicit request -- the thread
+    // is reached deliberately, via this notification).
+    await navigateTo("/verify/status");
     return true;
   }
 

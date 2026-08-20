@@ -1048,7 +1048,8 @@
     "expired": "Expired",
     "expires_in_days": "Expires in {days}d",
     "expires_in_hours": "Expires in {hours}h",
-    "expires_in_minutes": "Expires in {minutes}m"
+    "expires_in_minutes": "Expires in {minutes}m",
+    "view_verification_status": "View your verification application"
   },
   "scrim": {
     "request_scrim": "Request Scrim",
@@ -2793,7 +2794,9 @@
         "additional_info": "Anything else you'd like to add?",
         "additional_info_placeholder": "Optional",
         "submit": "Submit Application",
-        "submitted": "Application submitted"
+        "submitted": "Application submitted",
+        "missing_required_title": "Missing required answers",
+        "missing_required_description": "Please answer: {fields}"
       },
       "status": {
         "title": "Your Application",
@@ -2807,7 +2810,10 @@
         "you": "You",
         "reply_placeholder": "Write a reply",
         "send_reply": "Send",
-        "apply_again": "Apply Again"
+        "apply_again": "Apply Again",
+        "view_status": "View application status",
+        "not_found": "No verification application found.",
+        "go_apply": "Apply for verification"
       }
     },
     "verification_applications": {
@@ -4160,7 +4166,7 @@
         "alerts": "Alerts",
         "seasons": "Seasons",
         "manage_matches": "Manage Matches",
-        "verification_applications": "Apply",
+        "verification_applications": "Manage Application",
         "manage_tournaments": "Manage Tournaments",
         "manage_league": "Manage League",
         "stream_deck": "Stream Deck",

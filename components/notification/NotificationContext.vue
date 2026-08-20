@@ -1,17 +1,48 @@
 <script lang="ts">
 import { defineComponent } from "vue";
-import { Swords, Server, HardDrive } from "lucide-vue-next";
+import { Swords, Server, HardDrive, UserCheck } from "lucide-vue-next";
 import { Spinner } from "~/components/ui/spinner";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import TeamRankSummary from "~/components/team/TeamRankSummary.vue";
 import { $ } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
+import gql from "graphql-tag";
 
 const MATCH_TYPES = ["MatchStatusChange", "MatchSupport"];
 const SERVER_TYPES = ["DedicatedServerStatus", "DedicatedServerRconStatus"];
 const NODE_TYPES = ["GameNodeStatus"];
 const PLAYER_TYPES = ["PlayerSanctioned"];
+// Admin-facing: entity_id is the application id, shown as a big clickable
+// applicant card (same idea as PLAYER_TYPES/PlayerSanctioned) linking to the
+// admin review page. Applicant-facing: about the viewer's own application,
+// no player lookup needed -- just a link to their status page.
+const VERIFICATION_ADMIN_TYPES = [
+  "VerificationApplicationSubmitted",
+  "VerificationApplicationPlayerReply",
+];
+const VERIFICATION_APPLICANT_TYPES = [
+  "VerificationApplicationAdminReply",
+  "VerificationApplicationReviewed",
+];
+
+// generated/zeus predates verification_applications (needs a live Hasura
+// codegen run), so it's queried as raw GraphQL text here rather than
+// through typedGql -- see pages/verify/index.vue for the same workaround.
+const VERIFICATION_APPLICANT_QUERY = gql`
+  query VerificationApplicationApplicant($id: uuid!) {
+    verification_applications_by_pk(id: $id) {
+      player {
+        steam_id
+        name
+        avatar_url
+        custom_avatar_url
+        country
+        role
+      }
+    }
+  }
+`;
 const SCRIM_TYPES = [
   "ScrimRequestReceived",
   "ScrimRequestCountered",
@@ -49,6 +80,7 @@ export default defineComponent({
     Swords,
     Server,
     HardDrive,
+    UserCheck,
     Spinner,
     PlayerDisplay,
     Avatar,
@@ -68,12 +100,14 @@ export default defineComponent({
       player: null as any,
       scrim: null as any,
       suggestionPlayers: [] as any[],
+      verificationApplicant: null as any,
       matchLoaded: false,
       serverLoaded: false,
       nodeLoaded: false,
       playerLoaded: false,
       scrimLoaded: false,
       suggestionLoaded: false,
+      verificationApplicantLoaded: false,
     };
   },
   computed: {
@@ -85,6 +119,9 @@ export default defineComponent({
       if (this.kind === "player") return !this.playerLoaded;
       if (this.kind === "scrim") return !this.scrimLoaded;
       if (this.kind === "teamSuggestion") return !this.suggestionLoaded;
+      if (this.kind === "verificationApplicationAdmin") {
+        return !this.verificationApplicantLoaded;
+      }
       return false;
     },
     apiDomain() {
@@ -120,6 +157,7 @@ export default defineComponent({
       if (this.kind === "player") return /^\d+$/.test(this.entityId ?? "");
       if (this.kind === "teamSuggestion")
         return this.suggestionSteamIds.length > 0;
+      if (this.kind === "verificationApplicationApplicant") return true;
       return UUID_RE.test(this.entityId ?? "");
     },
     kind() {
@@ -129,7 +167,16 @@ export default defineComponent({
       if (PLAYER_TYPES.includes(this.type)) return "player";
       if (SCRIM_TYPES.includes(this.type)) return "scrim";
       if (TEAM_SUGGESTION_TYPES.includes(this.type)) return "teamSuggestion";
+      if (VERIFICATION_ADMIN_TYPES.includes(this.type)) {
+        return "verificationApplicationAdmin";
+      }
+      if (VERIFICATION_APPLICANT_TYPES.includes(this.type)) {
+        return "verificationApplicationApplicant";
+      }
       return null;
+    },
+    verificationApplicationUrl() {
+      return `/verification-applications/${this.entityId}`;
     },
     iconComponent() {
       if (this.kind === "match") return "Swords";
@@ -378,6 +425,22 @@ export default defineComponent({
         this.suggestionLoaded = true;
       },
     },
+    verificationApplicant: {
+      skip: function (this: any) {
+        return (
+          this.kind !== "verificationApplicationAdmin" || !this.hasValidEntity
+        );
+      },
+      fetchPolicy: "cache-first",
+      query: VERIFICATION_APPLICANT_QUERY,
+      variables: function (this: any) {
+        return { id: this.entityId };
+      },
+      update: (data: any) => data?.verification_applications_by_pk?.player ?? null,
+      result: function (this: any) {
+        this.verificationApplicantLoaded = true;
+      },
+    },
   },
   methods: {
     teamAvatar(team: any): string | null {
@@ -448,6 +511,26 @@ export default defineComponent({
       size="sm"
     />
   </div>
+  <NuxtLink
+    v-else-if="kind === 'verificationApplicationAdmin' && verificationApplicant"
+    :to="verificationApplicationUrl"
+    class="block rounded border border-border bg-background/40 px-2 py-1 transition-colors hover:border-[hsl(var(--tac-amber)/0.6)]"
+  >
+    <PlayerDisplay
+      :player="verificationApplicant"
+      :show-elo="false"
+      :show-flag="false"
+      size="sm"
+    />
+  </NuxtLink>
+  <NuxtLink
+    v-else-if="kind === 'verificationApplicationApplicant'"
+    to="/verify/status"
+    class="flex items-center gap-2 rounded border border-border bg-background/40 px-2 py-1.5 text-xs font-medium transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:text-[hsl(var(--tac-amber))]"
+  >
+    <UserCheck class="h-3.5 w-3.5 shrink-0" />
+    {{ $t("notification_context.view_verification_status") }}
+  </NuxtLink>
   <NuxtLink
     v-else-if="kind === 'scrim' && scrim"
     :to="scrimLink"

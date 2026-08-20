@@ -3,7 +3,6 @@ import { useI18n } from "vue-i18n";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
-import TimeAgo from "~/components/TimeAgo.vue";
 
 const { t } = useI18n();
 
@@ -25,64 +24,28 @@ useHead({
         <Spinner class="h-6 w-6" />
       </div>
 
-      <!-- Already have an application: show status + thread instead of the form. -->
-      <Card v-else-if="application" class="p-6">
-        <div class="flex items-center justify-between gap-4 mb-4">
-          <h3 class="font-mono text-sm tracking-[0.2em] uppercase text-muted-foreground">
-            {{ $t("pages.verify.status.title") }}
-          </h3>
-          <Badge :variant="statusVariant">
-            {{ $t(`pages.verify.status.${application.status}`) }}
-          </Badge>
-        </div>
-
-        <p class="text-sm text-muted-foreground mb-6">
-          {{ $t(`pages.verify.status.${application.status}_description`) }}
+      <!-- Just submitted, or an application is already pending/approved --
+           a short confirmation only. The status/reply thread lives on its
+           own page (pages/verify/status.vue), reached from the bell
+           notification once it's reviewed/replied to -- not landed on
+           straight after submitting. -->
+      <Card v-else-if="justSubmitted || (existingApplication && existingApplication.status !== 'rejected')" class="p-6">
+        <h3 class="font-mono text-sm tracking-[0.2em] uppercase text-muted-foreground mb-3">
+          {{ $t("pages.verify.status.title") }}
+        </h3>
+        <p class="text-sm text-muted-foreground">
+          {{ $t(`pages.verify.status.${existingApplication?.status ?? "pending"}_description`) }}
         </p>
-
-        <div class="flex flex-col gap-3 mb-6" v-if="application.messages?.length">
-          <div
-            v-for="message in application.messages"
-            :key="message.id"
-            class="flex flex-col gap-1 rounded-lg border border-border/60 bg-card/40 p-3"
-            :class="{ 'ml-8': !message.is_admin, 'mr-8': message.is_admin }"
-          >
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-medium text-foreground">
-                {{ message.is_admin ? $t("pages.verify.status.admin") : $t("pages.verify.status.you") }}
-              </span>
-              <TimeAgo :date="message.created_at" class="text-xs text-muted-foreground" />
-            </div>
-            <p class="text-sm text-foreground/90 whitespace-pre-wrap">{{ message.message }}</p>
-          </div>
-        </div>
-
-        <form
-          v-if="application.status === 'pending'"
-          @submit.prevent="sendReply"
-          class="flex flex-col gap-2"
+        <NuxtLink
+          v-if="existingApplication?.status === 'approved'"
+          to="/verify/status"
+          class="inline-block mt-4 text-sm text-[hsl(var(--tac-amber))] hover:underline"
         >
-          <Textarea
-            v-model="reply"
-            :placeholder="$t('pages.verify.status.reply_placeholder')"
-            rows="3"
-          />
-          <Button type="submit" :loading="sending" :disabled="!reply.trim()" class="self-end">
-            {{ $t("pages.verify.status.send_reply") }}
-          </Button>
-        </form>
-
-        <Button
-          v-if="application.status === 'rejected'"
-          variant="outline"
-          class="mt-4"
-          @click="startOver"
-        >
-          {{ $t("pages.verify.status.apply_again") }}
-        </Button>
+          {{ $t("pages.verify.status.view_status") }}
+        </NuxtLink>
       </Card>
 
-      <!-- No application yet: show the form. -->
+      <!-- No application, or the last one was rejected: show the form. -->
       <Card v-else class="p-6">
         <p class="text-sm text-muted-foreground mb-6">
           {{ $t("pages.verify.intro") }}
@@ -90,7 +53,7 @@ useHead({
 
         <form @submit.prevent="submit" class="flex flex-col gap-6">
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium">{{ $t("pages.verify.form.is_deaf") }}</label>
+            <label class="text-sm font-medium">{{ $t("pages.verify.form.is_deaf") }}*</label>
             <RadioGroup v-model="form.is_deaf" class="grid gap-2">
               <div
                 v-for="option in deafOptions"
@@ -107,7 +70,7 @@ useHead({
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium">{{ $t("pages.verify.form.country") }}</label>
+            <label class="text-sm font-medium">{{ $t("pages.verify.form.country") }}*</label>
             <Popover v-model:open="countryOpen">
               <PopoverTrigger as-child>
                 <Button role="combobox" variant="outline" class="justify-between">
@@ -148,7 +111,7 @@ useHead({
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium">{{ $t("pages.verify.form.found_via") }}</label>
+            <label class="text-sm font-medium">{{ $t("pages.verify.form.found_via") }}*</label>
             <Select v-model="form.found_via">
               <SelectTrigger>
                 <SelectValue :placeholder="$t('pages.verify.form.found_via_placeholder')" />
@@ -169,8 +132,8 @@ useHead({
           </div>
 
           <div class="flex flex-col gap-2">
-            <label class="text-sm font-medium">{{ $t("pages.verify.form.knows_deaf_player") }}</label>
-            <RadioGroup :model-value="form.knows_deaf_player ? 'yes' : 'no'" class="grid gap-2">
+            <label class="text-sm font-medium">{{ $t("pages.verify.form.knows_deaf_player") }}*</label>
+            <RadioGroup :model-value="knowsDeafPlayerValue" class="grid gap-2">
               <div
                 class="flex items-center space-x-3 rounded-lg border p-3 hover:bg-muted/50 transition-colors cursor-pointer"
                 @click="form.knows_deaf_player = true"
@@ -204,12 +167,7 @@ useHead({
             />
           </div>
 
-          <Button
-            type="submit"
-            variant="tactical"
-            :loading="submitting"
-            :disabled="!canSubmit"
-          >
+          <Button type="submit" variant="tactical" :loading="submitting">
             {{ $t("pages.verify.form.submit") }}
           </Button>
         </form>
@@ -225,8 +183,13 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
 
-const MY_APPLICATION_QUERY = gql`
-  query MyVerificationApplication($steamId: bigint!) {
+// Raw GraphQL text, not the Zeus object-selector builder -- generated/zeus
+// predates this table (needs a live Hasura codegen run), so Zeus can't
+// resolve order_by's field type and always quotes it as a string, which
+// Hasura rejects ("expected an enum value for type order_by, but found a
+// string").
+const MY_APPLICATION_STATUS_QUERY = gql`
+  query MyVerificationApplicationStatus($steamId: bigint!) {
     verification_applications(
       where: { player_steam_id: { _eq: $steamId } }
       order_by: { created_at: desc }
@@ -234,12 +197,6 @@ const MY_APPLICATION_QUERY = gql`
     ) {
       id
       status
-      messages(order_by: { created_at: asc }) {
-        id
-        is_admin
-        message
-        created_at
-      }
     }
   }
 `;
@@ -263,26 +220,28 @@ export default {
     return {
       loading: true,
       submitting: false,
-      sending: false,
       countryOpen: false,
+      justSubmitted: false,
       countries: getAllCountries(),
-      application: null as any,
-      reply: "",
+      existingApplication: null as { id: string; status: string } | null,
       deafOptions: DEAF_OPTIONS,
       foundViaOptions: FOUND_VIA_OPTIONS,
       form: {
-        is_deaf: "yes" as string,
+        // Nothing pre-selected -- these used to default to "yes"/false,
+        // which rendered as an already-checked radio option despite the
+        // applicant never having touched it (reported bug).
+        is_deaf: "" as string,
         country: "" as string,
         found_via: "" as string,
         found_via_other: "" as string,
-        knows_deaf_player: false,
+        knows_deaf_player: null as boolean | null,
         deaf_player_steam_url: "" as string,
         additional_info: "" as string,
       },
     };
   },
   async mounted() {
-    await this.fetchApplication();
+    await this.fetchStatus();
   },
   computed: {
     me() {
@@ -293,47 +252,59 @@ export default {
         a.name.localeCompare(b.name),
       );
     },
-    canSubmit() {
-      if (!this.form.is_deaf || !this.form.country || !this.form.found_via) {
-        return false;
-      }
-      if (this.form.found_via === "other" && !this.form.found_via_other.trim()) {
-        return false;
-      }
-      return true;
-    },
-    statusVariant() {
-      if (this.application?.status === "approved") return "default";
-      if (this.application?.status === "rejected") return "destructive";
-      return "secondary";
+    knowsDeafPlayerValue() {
+      if (this.form.knows_deaf_player === true) return "yes";
+      if (this.form.knows_deaf_player === false) return "no";
+      return undefined;
     },
   },
   methods: {
-    async fetchApplication() {
+    async fetchStatus() {
       this.loading = true;
       try {
         const { data } = await (this.$apollo as any).query({
-          // generated/zeus predates this table (needs a live Hasura codegen
-          // run), so Zeus's object-selector builder has no schema info for
-          // it -- it can't tell an order_by value is meant to be a bare
-          // enum, and always quotes strings, sending "desc" instead of desc
-          // (Hasura then rejects it: "expected an enum value for type
-          // order_by, but found a string"). Raw GraphQL text sidesteps that
-          // entirely since nothing needs to resolve the field's type.
-          query: MY_APPLICATION_QUERY,
+          query: MY_APPLICATION_STATUS_QUERY,
           variables: { steamId: this.me?.steam_id },
           fetchPolicy: "network-only",
         });
-        this.application = data?.verification_applications?.[0] ?? null;
+        this.existingApplication = data?.verification_applications?.[0] ?? null;
       } finally {
         this.loading = false;
       }
     },
-    startOver() {
-      this.application = null;
+    // Returns the list of missing-required-field message keys, empty if
+    // the form is complete. Named, not just a boolean, so submit() can
+    // surface exactly what's missing (reported: the submit button just
+    // stayed disabled with no explanation).
+    missingFields(): string[] {
+      const missing: string[] = [];
+      if (!this.form.is_deaf) missing.push("is_deaf");
+      if (!this.form.country) missing.push("country");
+      if (!this.form.found_via) missing.push("found_via");
+      if (this.form.found_via === "other" && !this.form.found_via_other.trim()) {
+        missing.push("found_via");
+      }
+      if (this.form.knows_deaf_player === null) missing.push("knows_deaf_player");
+      return missing;
     },
     async submit() {
-      if (!this.canSubmit || this.submitting) return;
+      if (this.submitting) return;
+
+      const missing = this.missingFields();
+      if (missing.length > 0) {
+        const fieldLabels = missing
+          .map((field) => this.$t(`pages.verify.form.${field}`))
+          .join(", ");
+        toast({
+          variant: "destructive",
+          title: this.$t("pages.verify.form.missing_required_title"),
+          description: this.$t("pages.verify.form.missing_required_description", {
+            fields: fieldLabels,
+          }),
+        });
+        return;
+      }
+
       this.submitting = true;
       try {
         await (this.$apollo as any).mutate({
@@ -360,8 +331,9 @@ export default {
             } as any,
           ),
         });
-        toast({ title: this.$t("pages.verify.form.submitted") });
-        await this.fetchApplication();
+        // Confirmation only -- not the status/reply thread. See the
+        // comment on the top-level Card v-else-if above.
+        this.justSubmitted = true;
       } catch (error) {
         toast({
           variant: "destructive",
@@ -370,37 +342,6 @@ export default {
         });
       } finally {
         this.submitting = false;
-      }
-    },
-    async sendReply() {
-      if (!this.reply.trim() || this.sending || !this.application) return;
-      this.sending = true;
-      try {
-        await (this.$apollo as any).mutate({
-          mutation: generateMutation(
-            {
-              insert_verification_application_messages_one: [
-                {
-                  object: {
-                    application_id: this.application.id,
-                    message: this.reply.trim(),
-                  },
-                },
-                { id: true },
-              ],
-            } as any,
-          ),
-        });
-        this.reply = "";
-        await this.fetchApplication();
-      } catch (error) {
-        toast({
-          variant: "destructive",
-          title: this.$t("common.error"),
-          description: (error as Error).message,
-        });
-      } finally {
-        this.sending = false;
       }
     },
   },
