@@ -149,7 +149,23 @@ useHead({
 
           <div class="flex flex-col gap-2">
             <label class="text-sm font-medium">{{ $t("pages.verify.form.found_via") }}</label>
-            <Input v-model="form.found_via" :maxlength="300" />
+            <Select v-model="form.found_via">
+              <SelectTrigger>
+                <SelectValue :placeholder="$t('pages.verify.form.found_via_placeholder')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="option in foundViaOptions" :key="option" :value="option">
+                  {{ $t(`pages.verify.form.found_via_options.${option}`) }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+            <Input
+              v-if="form.found_via === 'other'"
+              v-model="form.found_via_other"
+              :maxlength="300"
+              :placeholder="$t('pages.verify.form.found_via_other_placeholder')"
+              class="mt-2"
+            />
           </div>
 
           <div class="flex flex-col gap-2">
@@ -210,6 +226,18 @@ import { order_by } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 
 const DEAF_OPTIONS = ["yes", "no", "hard_of_hearing"] as const;
+const FOUND_VIA_OPTIONS = [
+  "google",
+  "discord",
+  "reddit",
+  "youtube",
+  "twitch",
+  "tiktok",
+  "instagram_facebook",
+  "friend",
+  "steam",
+  "other",
+] as const;
 
 export default {
   data() {
@@ -222,10 +250,12 @@ export default {
       application: null as any,
       reply: "",
       deafOptions: DEAF_OPTIONS,
+      foundViaOptions: FOUND_VIA_OPTIONS,
       form: {
         is_deaf: "yes" as string,
         country: "" as string,
         found_via: "" as string,
+        found_via_other: "" as string,
         knows_deaf_player: false,
         deaf_player_steam_url: "" as string,
         additional_info: "" as string,
@@ -245,7 +275,13 @@ export default {
       );
     },
     canSubmit() {
-      return !!this.form.is_deaf && !!this.form.country && !!this.form.found_via.trim();
+      if (!this.form.is_deaf || !this.form.country || !this.form.found_via) {
+        return false;
+      }
+      if (this.form.found_via === "other" && !this.form.found_via_other.trim()) {
+        return false;
+      }
+      return true;
     },
     statusVariant() {
       if (this.application?.status === "approved") return "default";
@@ -299,7 +335,10 @@ export default {
                   object: {
                     is_deaf: this.form.is_deaf,
                     country: this.form.country,
-                    found_via: this.form.found_via.trim(),
+                    found_via:
+                      this.form.found_via === "other"
+                        ? this.form.found_via_other.trim()
+                        : this.form.found_via,
                     knows_deaf_player: this.form.knows_deaf_player,
                     deaf_player_steam_url: this.form.knows_deaf_player
                       ? this.form.deaf_player_steam_url?.trim() || null

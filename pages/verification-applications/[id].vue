@@ -53,7 +53,7 @@ useHead({
           </dd>
 
           <dt class="text-muted-foreground">{{ $t("pages.verify.form.found_via") }}</dt>
-          <dd>{{ application.found_via }}</dd>
+          <dd>{{ foundViaLabel(application.found_via) }}</dd>
 
           <dt class="text-muted-foreground">{{ $t("pages.verify.form.knows_deaf_player") }}</dt>
           <dd>
@@ -178,6 +178,17 @@ export default {
     },
   },
   methods: {
+    // found_via stores the option key (e.g. "discord") for every choice
+    // except "other", which stores the applicant's own free text instead --
+    // show the translated label when it's a known key, the raw value
+    // otherwise (older rows, before this became a dropdown, are free text).
+    foundViaLabel(value: string): string {
+      const known = ["google", "discord", "reddit", "youtube", "twitch", "tiktok", "instagram_facebook", "friend", "steam"];
+      if (known.includes(value)) {
+        return this.$t(`pages.verify.form.found_via_options.${value}`);
+      }
+      return value;
+    },
     async fetchApplication() {
       this.loading = true;
       try {
