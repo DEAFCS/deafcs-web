@@ -7,14 +7,13 @@ import TournamentTeam from "~/components/tournament/TournamentTeam.vue";
 import TournamentInformationForm from "~/components/tournament/TournamentInformationForm.vue";
 import TournamentMatchOptionsForm from "~/components/tournament/TournamentMatchOptionsForm.vue";
 import TournamentOrganizers from "~/components/tournament/TournamentOrganizers.vue";
-import TournamentPrizes from "~/components/tournament/TournamentPrizes.vue";
+import TournamentRewards from "~/components/tournament/TournamentRewards.vue";
 import TournamentPrizesManage from "~/components/tournament/TournamentPrizesManage.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
-import TournamentAwardShowcase from "~/components/tournament/TournamentAwardShowcase.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchOptionsDisplay from "~/components/match/MatchOptionsDisplay.vue";
@@ -620,10 +619,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :location="shortLocation"
               ></TournamentStatRibbon>
 
-              <TournamentPrizes
-                v-if="hasPrizes"
+              <TournamentRewards
                 :prizes="tournament.prizes"
-              ></TournamentPrizes>
+                :tournament-id="tournament.id"
+                :awards-enabled="tournament.trophies_enabled ?? false"
+                :match-type="tournament.options?.type || null"
+                :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
+              ></TournamentRewards>
 
               <ManageSection
                 v-if="tournament.description"
@@ -668,14 +670,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :show-details-by-default="true"
                 :options="tournament.options"
                 :min-role="tournament.min_role"
-                :awards-enabled="tournament.trophies_enabled ?? false"
               ></MatchOptionsDisplay>
-              <TournamentAwardShowcase
-                :tournament-id="tournament.id"
-                :enabled="tournament.trophies_enabled ?? false"
-                :match-type="tournament.options?.type || null"
-                :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
-              />
               <div class="grid gap-1">
                 <NuxtLink
                   to="/tournament-rules"
@@ -1576,9 +1571,6 @@ export default {
     },
     prizePool() {
       return formatPrizePool(this.tournament?.prizes);
-    },
-    hasPrizes() {
-      return (this.tournament?.prizes?.length ?? 0) > 0;
     },
     shortLocation() {
       const loc = this.tournament?.location;

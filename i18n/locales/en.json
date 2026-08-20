@@ -5205,6 +5205,9 @@
       "move_up": "Move up",
       "move_down": "Move down"
     },
+    "rewards": {
+      "title": "Tournament Rewards"
+    },
     "stats": {
       "prize_pool": "Prize Pool",
       "teams": "Teams",

@@ -256,12 +256,6 @@ const BooleanPill = defineComponent({
                 }}</dt>
                 <dd><BooleanPill :value="options.camera_required" /></dd>
               </div>
-              <div v-if="awardsEnabled !== undefined" class="settings-row">
-                <dt class="settings-row__label">{{
-                  $t("match.options.awards_enabled")
-                }}</dt>
-                <dd><BooleanPill :value="awardsEnabled" /></dd>
-              </div>
             </dl>
           </section>
 
@@ -306,13 +300,6 @@ export default {
     // match's own Settings tab. null means unrestricted (no minimum role).
     minRole: {
       type: String,
-      default: undefined,
-    },
-    // Tournament-level, same convention as minRole: omitted (undefined) by
-    // callers outside the tournament context, so the row only appears on a
-    // tournament's own Settings tab.
-    awardsEnabled: {
-      type: Boolean,
       default: undefined,
     },
   },
