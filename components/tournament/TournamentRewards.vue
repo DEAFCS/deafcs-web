@@ -5,7 +5,6 @@ import { useApolloClient } from "@vue/apollo-composable";
 import { Trophy } from "lucide-vue-next";
 import { Card } from "~/components/ui/card";
 import AwardArtwork from "~/components/award/AwardArtwork.vue";
-import { formatPrizePool } from "~/utilities/prizePool";
 import {
   TOURNAMENT_AWARD_PLACEMENTS,
   effectiveTournamentAwardSelection,
@@ -84,7 +83,6 @@ const props = withDefaults(
 
 const podium = computed(() => props.prizes.slice(0, 3));
 const extras = computed(() => props.prizes.slice(3));
-const pool = computed(() => formatPrizePool(props.prizes));
 const hasPrizes = computed(() => props.prizes.length > 0);
 
 // Champion sits center, runner-up left, third right (desktop). Each rank drives
@@ -223,24 +221,16 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
         >
           {{ $t("tournament.rewards.title") }}
         </span>
-        <div class="ml-auto flex items-center gap-3">
-          <div v-if="mvpAward" class="flex items-center gap-2">
-            <AwardArtwork :award="mvpAward" size="xs" decorative />
-            <div class="flex flex-col text-left leading-tight">
-              <span
-                class="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
-              >
-                {{ $t("trophies.mvp") }}
-              </span>
-              <span class="text-xs font-medium">{{ mvpAward.name }}</span>
-            </div>
+        <div v-if="mvpAward" class="ml-auto flex items-center gap-2">
+          <AwardArtwork :award="mvpAward" size="xs" decorative />
+          <div class="flex flex-col text-left leading-tight">
+            <span
+              class="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+            >
+              {{ $t("trophies.mvp") }}
+            </span>
+            <span class="text-xs font-medium">{{ mvpAward.name }}</span>
           </div>
-          <span
-            v-if="pool"
-            class="font-sans text-base font-bold tabular-nums text-[hsl(var(--tac-amber))]"
-          >
-            {{ pool }}
-          </span>
         </div>
       </div>
 
@@ -267,7 +257,7 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
               <div
                 v-if="entry.prize"
                 :class="[
-                  'font-sans text-[1.35rem] font-bold leading-none tabular-nums',
+                  'translate-y-px font-sans text-[1.35rem] font-bold leading-none tabular-nums',
                   TIERS[entry.index].amount,
                 ]"
               >

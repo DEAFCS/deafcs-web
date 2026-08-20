@@ -86,6 +86,30 @@ test("section title is Tournament Rewards, driven by i18n (not hardcoded)", () =
   assert.equal(enLocale.tournament.rewards.title, "Tournament Rewards");
 });
 
+test("the header no longer repeats the total prize-pool amount -- the summary bar above the section already shows it", () => {
+  assert.doesNotMatch(rewardsSource, /formatPrizePool/);
+  assert.doesNotMatch(rewardsSource, /from "~\/utilities\/prizePool"/);
+  assert.doesNotMatch(rewardsSource, /const pool = computed/);
+
+  const headerBlock = rewardsSource.slice(
+    rewardsSource.indexOf('{{ $t("tournament.rewards.title") }}'),
+    rewardsSource.indexOf('<template v-if="hasStandings">'),
+  );
+  assert.doesNotMatch(headerBlock, /\{\{ pool \}\}/);
+  assert.doesNotMatch(headerBlock, /text-\[hsl\(var\(--tac-amber\)\)\]">\s*\{\{ pool/);
+});
+
+test("the header's right side renders only the MVP block -- nothing else -- and is absent entirely when there's no MVP", () => {
+  const headerBlock = rewardsSource.slice(
+    rewardsSource.indexOf('{{ $t("tournament.rewards.title") }}'),
+    rewardsSource.indexOf('<template v-if="hasStandings">'),
+  );
+  assert.match(headerBlock, /<div v-if="mvpAward" class="ml-auto flex items-center gap-2">/);
+  // Only one ml-auto element -- not a wrapper plus a separate sibling span.
+  const mlAutoMatches = headerBlock.match(/ml-auto/g) ?? [];
+  assert.equal(mlAutoMatches.length, 1);
+});
+
 test("the section shows when prizes exist OR awards are enabled/configured, hides otherwise", () => {
   const showSectionBlock = rewardsSource.slice(
     rewardsSource.indexOf("const showSection"),
@@ -212,6 +236,23 @@ test("money-only rendering is unchanged: the amount is still the standalone cont
   );
   assert.match(block, /v-if="entry\.prize"/);
   assert.match(block, /\{\{ entry\.prize\.prize \}\}/);
+});
+
+test("the amount and award artwork stay on the same items-center row, with a tight line-height plus a small optical nudge -- no margin/card-height changes", () => {
+  const rowBlock = rewardsSource.slice(
+    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">'),
+    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">') + 500,
+  );
+  // Row itself: unchanged flex/items-center/justify-center, no height/margin added.
+  assert.match(rowBlock, /^<div class="mt-1 flex items-center justify-center gap-2">/);
+
+  // Amount keeps its existing tight line-height and gets a minimal (1px)
+  // optical nudge only -- not a margin or the row/card dimensions.
+  assert.match(rowBlock, /'translate-y-px font-sans text-\[1\.35rem\] font-bold leading-none tabular-nums'/);
+
+  // The artwork itself is untouched -- still the compact "xs" size, no
+  // extra wrapper or size bump introduced to fix alignment.
+  assert.match(rowBlock, /<AwardArtwork v-if="entry\.award" :award="entry\.award" size="xs" \/>/);
 });
 
 test("no empty placement card renders when a rank has neither prize money nor a configured award", () => {
