@@ -11887,6 +11887,9 @@ export const AllTypesProps: Record<string,any> = {
 		approveNameChange:{
 			steam_id:"bigint"
 		},
+		approveVerificationApplication:{
+			application_id:"uuid"
+		},
 		approve_league_season_movements:{
 			args:"approve_league_season_movements_args",
 			distinct_on:"league_team_movements_select_column",
@@ -11919,6 +11922,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		cancelScrimRequest:{
 			request_id:"uuid"
+		},
+		checkInTournamentTeam:{
+			tournament_team_id:"uuid"
 		},
 		checkIntoMatch:{
 			match_id:"uuid"
@@ -12995,6 +13001,18 @@ export const AllTypesProps: Record<string,any> = {
 		delete_v_team_stage_results_by_pk:{
 			tournament_stage_id:"uuid",
 			tournament_team_id:"uuid"
+		},
+		delete_verification_application_messages:{
+			where:"verification_application_messages_bool_exp"
+		},
+		delete_verification_application_messages_by_pk:{
+			id:"uuid"
+		},
+		delete_verification_applications:{
+			where:"verification_applications_bool_exp"
+		},
+		delete_verification_applications_by_pk:{
+			id:"uuid"
 		},
 		denyInvite:{
 			invite_id:"uuid"
@@ -14330,6 +14348,22 @@ export const AllTypesProps: Record<string,any> = {
 			object:"v_team_stage_results_insert_input",
 			on_conflict:"v_team_stage_results_on_conflict"
 		},
+		insert_verification_application_messages:{
+			objects:"verification_application_messages_insert_input",
+			on_conflict:"verification_application_messages_on_conflict"
+		},
+		insert_verification_application_messages_one:{
+			object:"verification_application_messages_insert_input",
+			on_conflict:"verification_application_messages_on_conflict"
+		},
+		insert_verification_applications:{
+			objects:"verification_applications_insert_input",
+			on_conflict:"verification_applications_on_conflict"
+		},
+		insert_verification_applications_one:{
+			object:"verification_applications_insert_input",
+			on_conflict:"verification_applications_on_conflict"
+		},
 		joinDraftGame:{
 			draftGameId:"uuid"
 		},
@@ -14392,6 +14426,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		registerName:{
 
+		},
+		rejectVerificationApplication:{
+			application_id:"uuid"
 		},
 		removeAbandonedMatch:{
 			id:"uuid"
@@ -16673,6 +16710,32 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_v_team_stage_results_many:{
 			updates:"v_team_stage_results_updates"
+		},
+		update_verification_application_messages:{
+			_inc:"verification_application_messages_inc_input",
+			_set:"verification_application_messages_set_input",
+			where:"verification_application_messages_bool_exp"
+		},
+		update_verification_application_messages_by_pk:{
+			_inc:"verification_application_messages_inc_input",
+			_set:"verification_application_messages_set_input",
+			pk_columns:"verification_application_messages_pk_columns_input"
+		},
+		update_verification_application_messages_many:{
+			updates:"verification_application_messages_updates"
+		},
+		update_verification_applications:{
+			_inc:"verification_applications_inc_input",
+			_set:"verification_applications_set_input",
+			where:"verification_applications_bool_exp"
+		},
+		update_verification_applications_by_pk:{
+			_inc:"verification_applications_inc_input",
+			_set:"verification_applications_set_input",
+			pk_columns:"verification_applications_pk_columns_input"
+		},
+		update_verification_applications_many:{
+			updates:"verification_applications_updates"
 		},
 		validateGamedata:{
 			game_server_node_id:"uuid"
@@ -26374,6 +26437,32 @@ export const AllTypesProps: Record<string,any> = {
 			distinct_on:"v_tournament_player_stats_select_column",
 			order_by:"v_tournament_player_stats_order_by",
 			where:"v_tournament_player_stats_bool_exp"
+		},
+		verification_application_messages:{
+			distinct_on:"verification_application_messages_select_column",
+			order_by:"verification_application_messages_order_by",
+			where:"verification_application_messages_bool_exp"
+		},
+		verification_application_messages_aggregate:{
+			distinct_on:"verification_application_messages_select_column",
+			order_by:"verification_application_messages_order_by",
+			where:"verification_application_messages_bool_exp"
+		},
+		verification_application_messages_by_pk:{
+			id:"uuid"
+		},
+		verification_applications:{
+			distinct_on:"verification_applications_select_column",
+			order_by:"verification_applications_order_by",
+			where:"verification_applications_bool_exp"
+		},
+		verification_applications_aggregate:{
+			distinct_on:"verification_applications_select_column",
+			order_by:"verification_applications_order_by",
+			where:"verification_applications_bool_exp"
+		},
+		verification_applications_by_pk:{
+			id:"uuid"
 		}
 	},
 	recalculate_tournament_awards_args:{
@@ -30400,6 +30489,40 @@ export const AllTypesProps: Record<string,any> = {
 		v_tournament_player_stats_stream:{
 			cursor:"v_tournament_player_stats_stream_cursor_input",
 			where:"v_tournament_player_stats_bool_exp"
+		},
+		verification_application_messages:{
+			distinct_on:"verification_application_messages_select_column",
+			order_by:"verification_application_messages_order_by",
+			where:"verification_application_messages_bool_exp"
+		},
+		verification_application_messages_aggregate:{
+			distinct_on:"verification_application_messages_select_column",
+			order_by:"verification_application_messages_order_by",
+			where:"verification_application_messages_bool_exp"
+		},
+		verification_application_messages_by_pk:{
+			id:"uuid"
+		},
+		verification_application_messages_stream:{
+			cursor:"verification_application_messages_stream_cursor_input",
+			where:"verification_application_messages_bool_exp"
+		},
+		verification_applications:{
+			distinct_on:"verification_applications_select_column",
+			order_by:"verification_applications_order_by",
+			where:"verification_applications_bool_exp"
+		},
+		verification_applications_aggregate:{
+			distinct_on:"verification_applications_select_column",
+			order_by:"verification_applications_order_by",
+			where:"verification_applications_bool_exp"
+		},
+		verification_applications_by_pk:{
+			id:"uuid"
+		},
+		verification_applications_stream:{
+			cursor:"verification_applications_stream_cursor_input",
+			where:"verification_applications_bool_exp"
 		}
 	},
 	system_alerts_aggregate_fields:{
@@ -33435,6 +33558,7 @@ export const AllTypesProps: Record<string,any> = {
 		player_steam_id:"bigint_comparison_exp",
 		role:"e_team_roles_enum_comparison_exp",
 		roster_image_url_snapshot:"String_comparison_exp",
+		target_meets_min_role:"Boolean_comparison_exp",
 		tournament:"tournaments_bool_exp",
 		tournament_id:"uuid_comparison_exp",
 		tournament_team:"tournament_teams_bool_exp",
@@ -33477,6 +33601,7 @@ export const AllTypesProps: Record<string,any> = {
 		player_steam_id:"order_by",
 		role:"order_by",
 		roster_image_url_snapshot:"order_by",
+		target_meets_min_role:"order_by",
 		tournament:"tournaments_order_by",
 		tournament_id:"order_by",
 		tournament_team:"tournament_teams_order_by",
@@ -33594,6 +33719,7 @@ export const AllTypesProps: Record<string,any> = {
 		can_manage:"Boolean_comparison_exp",
 		captain:"players_bool_exp",
 		captain_steam_id:"bigint_comparison_exp",
+		checked_in_at:"timestamptz_comparison_exp",
 		created_at:"timestamptz_comparison_exp",
 		creator:"players_bool_exp",
 		eligible_at:"timestamptz_comparison_exp",
@@ -33620,6 +33746,7 @@ export const AllTypesProps: Record<string,any> = {
 	tournament_teams_insert_input:{
 		captain:"players_obj_rel_insert_input",
 		captain_steam_id:"bigint",
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		creator:"players_obj_rel_insert_input",
 		eligible_at:"timestamptz",
@@ -33635,6 +33762,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	tournament_teams_max_order_by:{
 		captain_steam_id:"order_by",
+		checked_in_at:"order_by",
 		created_at:"order_by",
 		eligible_at:"order_by",
 		id:"order_by",
@@ -33647,6 +33775,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	tournament_teams_min_order_by:{
 		captain_steam_id:"order_by",
+		checked_in_at:"order_by",
 		created_at:"order_by",
 		eligible_at:"order_by",
 		id:"order_by",
@@ -33670,6 +33799,7 @@ export const AllTypesProps: Record<string,any> = {
 		can_manage:"order_by",
 		captain:"players_order_by",
 		captain_steam_id:"order_by",
+		checked_in_at:"order_by",
 		created_at:"order_by",
 		creator:"players_order_by",
 		eligible_at:"order_by",
@@ -33692,6 +33822,7 @@ export const AllTypesProps: Record<string,any> = {
 	tournament_teams_select_column: "enum" as const,
 	tournament_teams_set_input:{
 		captain_steam_id:"bigint",
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		eligible_at:"timestamptz",
 		id:"uuid",
@@ -33720,6 +33851,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	tournament_teams_stream_cursor_value_input:{
 		captain_steam_id:"bigint",
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		eligible_at:"timestamptz",
 		id:"uuid",
@@ -34299,6 +34431,8 @@ export const AllTypesProps: Record<string,any> = {
 		on_conflict:"tournaments_on_conflict"
 	},
 	tournaments_avg_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
@@ -34309,6 +34443,8 @@ export const AllTypesProps: Record<string,any> = {
 		_not:"tournaments_bool_exp",
 		_or:"tournaments_bool_exp",
 		admin:"players_bool_exp",
+		attendance_check_in_close_before_minutes:"Int_comparison_exp",
+		attendance_check_in_open_before_minutes:"Int_comparison_exp",
 		auto_start:"Boolean_comparison_exp",
 		awards_enabled:"Boolean_comparison_exp",
 		banner:"String_comparison_exp",
@@ -34424,6 +34560,8 @@ export const AllTypesProps: Record<string,any> = {
 		trophy_configs:"tournament_trophy_configs_arr_rel_insert_input"
 	},
 	tournaments_max_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		banner:"order_by",
 		created_at:"order_by",
 		description:"order_by",
@@ -34445,6 +34583,8 @@ export const AllTypesProps: Record<string,any> = {
 		start:"order_by"
 	},
 	tournaments_min_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		banner:"order_by",
 		created_at:"order_by",
 		description:"order_by",
@@ -34476,6 +34616,8 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	tournaments_order_by:{
 		admin:"players_order_by",
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		auto_start:"order_by",
 		awards_enabled:"order_by",
 		banner:"order_by",
@@ -34571,18 +34713,24 @@ export const AllTypesProps: Record<string,any> = {
 		status:"e_tournament_status_enum"
 	},
 	tournaments_stddev_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_stddev_pop_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_stddev_samp_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
@@ -34605,6 +34753,8 @@ export const AllTypesProps: Record<string,any> = {
 		status:"e_tournament_status_enum"
 	},
 	tournaments_sum_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
@@ -34617,18 +34767,24 @@ export const AllTypesProps: Record<string,any> = {
 		where:"tournaments_bool_exp"
 	},
 	tournaments_var_pop_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_var_samp_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	tournaments_variance_order_by:{
+		attendance_check_in_close_before_minutes:"order_by",
+		attendance_check_in_open_before_minutes:"order_by",
 		individual_check_in_duration_minutes:"order_by",
 		latitude:"order_by",
 		longitude:"order_by",
@@ -38428,6 +38584,266 @@ export const AllTypesProps: Record<string,any> = {
 		kills:"order_by",
 		matches_played:"order_by",
 		player_steam_id:"order_by"
+	},
+	verification_application_messages_aggregate_bool_exp:{
+		bool_and:"verification_application_messages_aggregate_bool_exp_bool_and",
+		bool_or:"verification_application_messages_aggregate_bool_exp_bool_or",
+		count:"verification_application_messages_aggregate_bool_exp_count"
+	},
+	verification_application_messages_aggregate_bool_exp_bool_and:{
+		arguments:"verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns",
+		filter:"verification_application_messages_bool_exp",
+		predicate:"Boolean_comparison_exp"
+	},
+	verification_application_messages_aggregate_bool_exp_bool_or:{
+		arguments:"verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns",
+		filter:"verification_application_messages_bool_exp",
+		predicate:"Boolean_comparison_exp"
+	},
+	verification_application_messages_aggregate_bool_exp_count:{
+		arguments:"verification_application_messages_select_column",
+		filter:"verification_application_messages_bool_exp",
+		predicate:"Int_comparison_exp"
+	},
+	verification_application_messages_aggregate_fields:{
+		count:{
+			columns:"verification_application_messages_select_column"
+		}
+	},
+	verification_application_messages_aggregate_order_by:{
+		avg:"verification_application_messages_avg_order_by",
+		count:"order_by",
+		max:"verification_application_messages_max_order_by",
+		min:"verification_application_messages_min_order_by",
+		stddev:"verification_application_messages_stddev_order_by",
+		stddev_pop:"verification_application_messages_stddev_pop_order_by",
+		stddev_samp:"verification_application_messages_stddev_samp_order_by",
+		sum:"verification_application_messages_sum_order_by",
+		var_pop:"verification_application_messages_var_pop_order_by",
+		var_samp:"verification_application_messages_var_samp_order_by",
+		variance:"verification_application_messages_variance_order_by"
+	},
+	verification_application_messages_arr_rel_insert_input:{
+		data:"verification_application_messages_insert_input",
+		on_conflict:"verification_application_messages_on_conflict"
+	},
+	verification_application_messages_avg_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_bool_exp:{
+		_and:"verification_application_messages_bool_exp",
+		_not:"verification_application_messages_bool_exp",
+		_or:"verification_application_messages_bool_exp",
+		application:"verification_applications_bool_exp",
+		application_id:"uuid_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		id:"uuid_comparison_exp",
+		is_admin:"Boolean_comparison_exp",
+		message:"String_comparison_exp",
+		sender:"players_bool_exp",
+		sender_steam_id:"bigint_comparison_exp"
+	},
+	verification_application_messages_constraint: "enum" as const,
+	verification_application_messages_inc_input:{
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_insert_input:{
+		application:"verification_applications_obj_rel_insert_input",
+		application_id:"uuid",
+		created_at:"timestamptz",
+		id:"uuid",
+		sender:"players_obj_rel_insert_input",
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_max_order_by:{
+		application_id:"order_by",
+		created_at:"order_by",
+		id:"order_by",
+		message:"order_by",
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_min_order_by:{
+		application_id:"order_by",
+		created_at:"order_by",
+		id:"order_by",
+		message:"order_by",
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_on_conflict:{
+		constraint:"verification_application_messages_constraint",
+		update_columns:"verification_application_messages_update_column",
+		where:"verification_application_messages_bool_exp"
+	},
+	verification_application_messages_order_by:{
+		application:"verification_applications_order_by",
+		application_id:"order_by",
+		created_at:"order_by",
+		id:"order_by",
+		is_admin:"order_by",
+		message:"order_by",
+		sender:"players_order_by",
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_pk_columns_input:{
+		id:"uuid"
+	},
+	verification_application_messages_select_column: "enum" as const,
+	verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns: "enum" as const,
+	verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns: "enum" as const,
+	verification_application_messages_set_input:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		id:"uuid",
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_stddev_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_stddev_pop_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_stddev_samp_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_stream_cursor_input:{
+		initial_value:"verification_application_messages_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	verification_application_messages_stream_cursor_value_input:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		id:"uuid",
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_sum_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_update_column: "enum" as const,
+	verification_application_messages_updates:{
+		_inc:"verification_application_messages_inc_input",
+		_set:"verification_application_messages_set_input",
+		where:"verification_application_messages_bool_exp"
+	},
+	verification_application_messages_var_pop_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_var_samp_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_application_messages_variance_order_by:{
+		sender_steam_id:"order_by"
+	},
+	verification_applications:{
+		messages:{
+			distinct_on:"verification_application_messages_select_column",
+			order_by:"verification_application_messages_order_by",
+			where:"verification_application_messages_bool_exp"
+		},
+		messages_aggregate:{
+			distinct_on:"verification_application_messages_select_column",
+			order_by:"verification_application_messages_order_by",
+			where:"verification_application_messages_bool_exp"
+		}
+	},
+	verification_applications_aggregate_fields:{
+		count:{
+			columns:"verification_applications_select_column"
+		}
+	},
+	verification_applications_bool_exp:{
+		_and:"verification_applications_bool_exp",
+		_not:"verification_applications_bool_exp",
+		_or:"verification_applications_bool_exp",
+		additional_info:"String_comparison_exp",
+		country:"String_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		deaf_player_steam_url:"String_comparison_exp",
+		found_via:"String_comparison_exp",
+		id:"uuid_comparison_exp",
+		is_deaf:"String_comparison_exp",
+		knows_deaf_player:"Boolean_comparison_exp",
+		messages:"verification_application_messages_bool_exp",
+		messages_aggregate:"verification_application_messages_aggregate_bool_exp",
+		player:"players_bool_exp",
+		player_steam_id:"bigint_comparison_exp",
+		reviewed_at:"timestamptz_comparison_exp",
+		reviewed_by:"players_bool_exp",
+		reviewed_by_steam_id:"bigint_comparison_exp",
+		status:"String_comparison_exp",
+		updated_at:"timestamptz_comparison_exp"
+	},
+	verification_applications_constraint: "enum" as const,
+	verification_applications_inc_input:{
+		player_steam_id:"bigint",
+		reviewed_by_steam_id:"bigint"
+	},
+	verification_applications_insert_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		messages:"verification_application_messages_arr_rel_insert_input",
+		player:"players_obj_rel_insert_input",
+		player_steam_id:"bigint",
+		reviewed_at:"timestamptz",
+		reviewed_by:"players_obj_rel_insert_input",
+		reviewed_by_steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	verification_applications_obj_rel_insert_input:{
+		data:"verification_applications_insert_input",
+		on_conflict:"verification_applications_on_conflict"
+	},
+	verification_applications_on_conflict:{
+		constraint:"verification_applications_constraint",
+		update_columns:"verification_applications_update_column",
+		where:"verification_applications_bool_exp"
+	},
+	verification_applications_order_by:{
+		additional_info:"order_by",
+		country:"order_by",
+		created_at:"order_by",
+		deaf_player_steam_url:"order_by",
+		found_via:"order_by",
+		id:"order_by",
+		is_deaf:"order_by",
+		knows_deaf_player:"order_by",
+		messages_aggregate:"verification_application_messages_aggregate_order_by",
+		player:"players_order_by",
+		player_steam_id:"order_by",
+		reviewed_at:"order_by",
+		reviewed_by:"players_order_by",
+		reviewed_by_steam_id:"order_by",
+		status:"order_by",
+		updated_at:"order_by"
+	},
+	verification_applications_pk_columns_input:{
+		id:"uuid"
+	},
+	verification_applications_select_column: "enum" as const,
+	verification_applications_set_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		player_steam_id:"bigint",
+		reviewed_at:"timestamptz",
+		reviewed_by_steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	verification_applications_stream_cursor_input:{
+		initial_value:"verification_applications_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	verification_applications_stream_cursor_value_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		player_steam_id:"bigint",
+		reviewed_at:"timestamptz",
+		reviewed_by_steam_id:"bigint",
+		updated_at:"timestamptz"
+	},
+	verification_applications_update_column: "enum" as const,
+	verification_applications_updates:{
+		_inc:"verification_applications_inc_input",
+		_set:"verification_applications_set_input",
+		where:"verification_applications_bool_exp"
 	},
 	ID: `scalar.ID` as const
 }
@@ -45079,6 +45495,7 @@ export const ReturnTypes: Record<string,any> = {
 		addDraftPlayer:"SuccessOutput",
 		addSteamPresenceBotAccount:"SuccessOutput",
 		approveNameChange:"SuccessOutput",
+		approveVerificationApplication:"SuccessOutput",
 		approve_league_season_movements:"league_team_movements",
 		archiveAward:"Award",
 		assignSteamPresenceBot:"SteamPresenceBotAssignment",
@@ -45096,6 +45513,7 @@ export const ReturnTypes: Record<string,any> = {
 		cancelRefreshAllPlayers:"SuccessOutput",
 		cancelReparseAllDemos:"SuccessOutput",
 		cancelScrimRequest:"SuccessOutput",
+		checkInTournamentTeam:"SuccessOutput",
 		checkIntoMatch:"SuccessOutput",
 		checkIntoTournament:"SuccessOutput",
 		clearClipRenderBatch:"SuccessOutput",
@@ -45440,6 +45858,10 @@ export const ReturnTypes: Record<string,any> = {
 		delete_v_pool_maps:"v_pool_maps_mutation_response",
 		delete_v_team_stage_results:"v_team_stage_results_mutation_response",
 		delete_v_team_stage_results_by_pk:"v_team_stage_results",
+		delete_verification_application_messages:"verification_application_messages_mutation_response",
+		delete_verification_application_messages_by_pk:"verification_application_messages",
+		delete_verification_applications:"verification_applications_mutation_response",
+		delete_verification_applications_by_pk:"verification_applications",
 		denyInvite:"SuccessOutput",
 		denyNameChange:"SuccessOutput",
 		forfeitMatch:"SuccessOutput",
@@ -45779,6 +46201,10 @@ export const ReturnTypes: Record<string,any> = {
 		insert_v_pool_maps_one:"v_pool_maps",
 		insert_v_team_stage_results:"v_team_stage_results_mutation_response",
 		insert_v_team_stage_results_one:"v_team_stage_results",
+		insert_verification_application_messages:"verification_application_messages_mutation_response",
+		insert_verification_application_messages_one:"verification_application_messages",
+		insert_verification_applications:"verification_applications_mutation_response",
+		insert_verification_applications_one:"verification_applications",
 		joinDraftGame:"SuccessOutput",
 		joinDraftGameAsParty:"SuccessOutput",
 		kickServerPlayer:"KickResult",
@@ -45805,6 +46231,7 @@ export const ReturnTypes: Record<string,any> = {
 		refreshFaceitRank:"SuccessOutput",
 		refreshLiveHud:"SuccessOutput",
 		registerName:"SuccessOutput",
+		rejectVerificationApplication:"SuccessOutput",
 		removeAbandonedMatch:"SuccessOutput",
 		removeFixtures:"SuccessOutput",
 		removeSteamPresenceBotAccount:"SuccessOutput",
@@ -46357,6 +46784,12 @@ export const ReturnTypes: Record<string,any> = {
 		update_v_team_stage_results:"v_team_stage_results_mutation_response",
 		update_v_team_stage_results_by_pk:"v_team_stage_results",
 		update_v_team_stage_results_many:"v_team_stage_results_mutation_response",
+		update_verification_application_messages:"verification_application_messages_mutation_response",
+		update_verification_application_messages_by_pk:"verification_application_messages",
+		update_verification_application_messages_many:"verification_application_messages_mutation_response",
+		update_verification_applications:"verification_applications_mutation_response",
+		update_verification_applications_by_pk:"verification_applications",
+		update_verification_applications_many:"verification_applications_mutation_response",
 		validateGamedata:"SuccessOutput",
 		watchDemo:"WatchDemoOutput",
 		writeServerFile:"SuccessOutput"
@@ -52772,7 +53205,13 @@ export const ReturnTypes: Record<string,any> = {
 		v_team_tournament_results:"v_team_tournament_results",
 		v_team_tournament_results_aggregate:"v_team_tournament_results_aggregate",
 		v_tournament_player_stats:"v_tournament_player_stats",
-		v_tournament_player_stats_aggregate:"v_tournament_player_stats_aggregate"
+		v_tournament_player_stats_aggregate:"v_tournament_player_stats_aggregate",
+		verification_application_messages:"verification_application_messages",
+		verification_application_messages_aggregate:"verification_application_messages_aggregate",
+		verification_application_messages_by_pk:"verification_application_messages",
+		verification_applications:"verification_applications",
+		verification_applications_aggregate:"verification_applications_aggregate",
+		verification_applications_by_pk:"verification_applications"
 	},
 	seasons:{
 		created_at:"timestamptz",
@@ -53988,7 +54427,15 @@ export const ReturnTypes: Record<string,any> = {
 		v_team_tournament_results_stream:"v_team_tournament_results",
 		v_tournament_player_stats:"v_tournament_player_stats",
 		v_tournament_player_stats_aggregate:"v_tournament_player_stats_aggregate",
-		v_tournament_player_stats_stream:"v_tournament_player_stats"
+		v_tournament_player_stats_stream:"v_tournament_player_stats",
+		verification_application_messages:"verification_application_messages",
+		verification_application_messages_aggregate:"verification_application_messages_aggregate",
+		verification_application_messages_by_pk:"verification_application_messages",
+		verification_application_messages_stream:"verification_application_messages",
+		verification_applications:"verification_applications",
+		verification_applications_aggregate:"verification_applications_aggregate",
+		verification_applications_by_pk:"verification_applications",
+		verification_applications_stream:"verification_applications"
 	},
 	system_alerts:{
 		created_at:"timestamptz",
@@ -55563,6 +56010,7 @@ export const ReturnTypes: Record<string,any> = {
 		player_steam_id:"bigint",
 		role:"e_team_roles_enum",
 		roster_image_url_snapshot:"String",
+		target_meets_min_role:"Boolean",
 		tournament:"tournaments",
 		tournament_id:"uuid",
 		tournament_team:"tournament_teams",
@@ -55629,6 +56077,7 @@ export const ReturnTypes: Record<string,any> = {
 		can_manage:"Boolean",
 		captain:"players",
 		captain_steam_id:"bigint",
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		creator:"players",
 		eligible_at:"timestamptz",
@@ -55671,6 +56120,7 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	tournament_teams_max_fields:{
 		captain_steam_id:"bigint",
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		eligible_at:"timestamptz",
 		id:"uuid",
@@ -55683,6 +56133,7 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	tournament_teams_min_fields:{
 		captain_steam_id:"bigint",
+		checked_in_at:"timestamptz",
 		created_at:"timestamptz",
 		eligible_at:"timestamptz",
 		id:"uuid",
@@ -55927,6 +56378,8 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	tournaments:{
 		admin:"players",
+		attendance_check_in_close_before_minutes:"Int",
+		attendance_check_in_open_before_minutes:"Int",
 		auto_start:"Boolean",
 		awards_enabled:"Boolean",
 		banner:"String",
@@ -56025,6 +56478,8 @@ export const ReturnTypes: Record<string,any> = {
 		variance:"tournaments_variance_fields"
 	},
 	tournaments_avg_fields:{
+		attendance_check_in_close_before_minutes:"Float",
+		attendance_check_in_open_before_minutes:"Float",
 		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
@@ -56033,6 +56488,8 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_max_fields:{
+		attendance_check_in_close_before_minutes:"Int",
+		attendance_check_in_open_before_minutes:"Int",
 		banner:"String",
 		created_at:"timestamptz",
 		description:"String",
@@ -56056,6 +56513,8 @@ export const ReturnTypes: Record<string,any> = {
 		start:"timestamptz"
 	},
 	tournaments_min_fields:{
+		attendance_check_in_close_before_minutes:"Int",
+		attendance_check_in_open_before_minutes:"Int",
 		banner:"String",
 		created_at:"timestamptz",
 		description:"String",
@@ -56083,6 +56542,8 @@ export const ReturnTypes: Record<string,any> = {
 		returning:"tournaments"
 	},
 	tournaments_stddev_fields:{
+		attendance_check_in_close_before_minutes:"Float",
+		attendance_check_in_open_before_minutes:"Float",
 		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
@@ -56091,6 +56552,8 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_stddev_pop_fields:{
+		attendance_check_in_close_before_minutes:"Float",
+		attendance_check_in_open_before_minutes:"Float",
 		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
@@ -56099,6 +56562,8 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_stddev_samp_fields:{
+		attendance_check_in_close_before_minutes:"Float",
+		attendance_check_in_open_before_minutes:"Float",
 		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
@@ -56107,6 +56572,8 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_sum_fields:{
+		attendance_check_in_close_before_minutes:"Int",
+		attendance_check_in_open_before_minutes:"Int",
 		individual_check_in_duration_minutes:"Int",
 		latitude:"float8",
 		longitude:"float8",
@@ -56115,6 +56582,8 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"bigint"
 	},
 	tournaments_var_pop_fields:{
+		attendance_check_in_close_before_minutes:"Float",
+		attendance_check_in_open_before_minutes:"Float",
 		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
@@ -56123,6 +56592,8 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_var_samp_fields:{
+		attendance_check_in_close_before_minutes:"Float",
+		attendance_check_in_open_before_minutes:"Float",
 		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
@@ -56131,6 +56602,8 @@ export const ReturnTypes: Record<string,any> = {
 		organizer_steam_id:"Float"
 	},
 	tournaments_variance_fields:{
+		attendance_check_in_close_before_minutes:"Float",
+		attendance_check_in_open_before_minutes:"Float",
 		individual_check_in_duration_minutes:"Float",
 		latitude:"Float",
 		longitude:"Float",
@@ -60059,6 +60532,175 @@ export const ReturnTypes: Record<string,any> = {
 		kills:"Float",
 		matches_played:"Float",
 		player_steam_id:"Float"
+	},
+	verification_application_messages:{
+		application:"verification_applications",
+		application_id:"uuid",
+		created_at:"timestamptz",
+		id:"uuid",
+		is_admin:"Boolean",
+		message:"String",
+		sender:"players",
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_aggregate:{
+		aggregate:"verification_application_messages_aggregate_fields",
+		nodes:"verification_application_messages"
+	},
+	verification_application_messages_aggregate_fields:{
+		avg:"verification_application_messages_avg_fields",
+		count:"Int",
+		max:"verification_application_messages_max_fields",
+		min:"verification_application_messages_min_fields",
+		stddev:"verification_application_messages_stddev_fields",
+		stddev_pop:"verification_application_messages_stddev_pop_fields",
+		stddev_samp:"verification_application_messages_stddev_samp_fields",
+		sum:"verification_application_messages_sum_fields",
+		var_pop:"verification_application_messages_var_pop_fields",
+		var_samp:"verification_application_messages_var_samp_fields",
+		variance:"verification_application_messages_variance_fields"
+	},
+	verification_application_messages_avg_fields:{
+		sender_steam_id:"Float"
+	},
+	verification_application_messages_max_fields:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		id:"uuid",
+		message:"String",
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_min_fields:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		id:"uuid",
+		message:"String",
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_mutation_response:{
+		affected_rows:"Int",
+		returning:"verification_application_messages"
+	},
+	verification_application_messages_stddev_fields:{
+		sender_steam_id:"Float"
+	},
+	verification_application_messages_stddev_pop_fields:{
+		sender_steam_id:"Float"
+	},
+	verification_application_messages_stddev_samp_fields:{
+		sender_steam_id:"Float"
+	},
+	verification_application_messages_sum_fields:{
+		sender_steam_id:"bigint"
+	},
+	verification_application_messages_var_pop_fields:{
+		sender_steam_id:"Float"
+	},
+	verification_application_messages_var_samp_fields:{
+		sender_steam_id:"Float"
+	},
+	verification_application_messages_variance_fields:{
+		sender_steam_id:"Float"
+	},
+	verification_applications:{
+		additional_info:"String",
+		country:"String",
+		created_at:"timestamptz",
+		deaf_player_steam_url:"String",
+		found_via:"String",
+		id:"uuid",
+		is_deaf:"String",
+		knows_deaf_player:"Boolean",
+		messages:"verification_application_messages",
+		messages_aggregate:"verification_application_messages_aggregate",
+		player:"players",
+		player_steam_id:"bigint",
+		reviewed_at:"timestamptz",
+		reviewed_by:"players",
+		reviewed_by_steam_id:"bigint",
+		status:"String",
+		updated_at:"timestamptz"
+	},
+	verification_applications_aggregate:{
+		aggregate:"verification_applications_aggregate_fields",
+		nodes:"verification_applications"
+	},
+	verification_applications_aggregate_fields:{
+		avg:"verification_applications_avg_fields",
+		count:"Int",
+		max:"verification_applications_max_fields",
+		min:"verification_applications_min_fields",
+		stddev:"verification_applications_stddev_fields",
+		stddev_pop:"verification_applications_stddev_pop_fields",
+		stddev_samp:"verification_applications_stddev_samp_fields",
+		sum:"verification_applications_sum_fields",
+		var_pop:"verification_applications_var_pop_fields",
+		var_samp:"verification_applications_var_samp_fields",
+		variance:"verification_applications_variance_fields"
+	},
+	verification_applications_avg_fields:{
+		player_steam_id:"Float",
+		reviewed_by_steam_id:"Float"
+	},
+	verification_applications_max_fields:{
+		additional_info:"String",
+		country:"String",
+		created_at:"timestamptz",
+		deaf_player_steam_url:"String",
+		found_via:"String",
+		id:"uuid",
+		is_deaf:"String",
+		player_steam_id:"bigint",
+		reviewed_at:"timestamptz",
+		reviewed_by_steam_id:"bigint",
+		status:"String",
+		updated_at:"timestamptz"
+	},
+	verification_applications_min_fields:{
+		additional_info:"String",
+		country:"String",
+		created_at:"timestamptz",
+		deaf_player_steam_url:"String",
+		found_via:"String",
+		id:"uuid",
+		is_deaf:"String",
+		player_steam_id:"bigint",
+		reviewed_at:"timestamptz",
+		reviewed_by_steam_id:"bigint",
+		status:"String",
+		updated_at:"timestamptz"
+	},
+	verification_applications_mutation_response:{
+		affected_rows:"Int",
+		returning:"verification_applications"
+	},
+	verification_applications_stddev_fields:{
+		player_steam_id:"Float",
+		reviewed_by_steam_id:"Float"
+	},
+	verification_applications_stddev_pop_fields:{
+		player_steam_id:"Float",
+		reviewed_by_steam_id:"Float"
+	},
+	verification_applications_stddev_samp_fields:{
+		player_steam_id:"Float",
+		reviewed_by_steam_id:"Float"
+	},
+	verification_applications_sum_fields:{
+		player_steam_id:"bigint",
+		reviewed_by_steam_id:"bigint"
+	},
+	verification_applications_var_pop_fields:{
+		player_steam_id:"Float",
+		reviewed_by_steam_id:"Float"
+	},
+	verification_applications_var_samp_fields:{
+		player_steam_id:"Float",
+		reviewed_by_steam_id:"Float"
+	},
+	verification_applications_variance_fields:{
+		player_steam_id:"Float",
+		reviewed_by_steam_id:"Float"
 	},
 	ID: `scalar.ID` as const
 }

@@ -1,9 +1,7 @@
 /* eslint-disable */
 
 import { AllTypesProps, ReturnTypes, Ops } from './const';
-
-
-export const HOST="Specify host"
+export const HOST = "https://api.deafcs.net/v1/graphql"
 
 
 export const HEADERS = {}
@@ -24619,6 +24617,7 @@ acceptInvite?: [{	invite_id: ValueTypes["uuid"] | Variable<any, string>,	type: s
 addDraftPlayer?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	steamId: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string | Variable<any, string>,	friend_capacity?: number | undefined | null | Variable<any, string>,	username: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 approveNameChange?: [{	name: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+approveVerificationApplication?: [{	application_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 approve_league_season_movements?: [{	/** input parameters for function "approve_league_season_movements" */
 	args: ValueTypes["approve_league_season_movements_args"] | Variable<any, string>,	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["league_team_movements_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
@@ -24649,6 +24648,7 @@ cancelMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueType
 	/** Request cancellation of the in-progress reparse-all-demos run (admin only). Stops after the current demo finishes. */
 	cancelReparseAllDemos?:ValueTypes["SuccessOutput"],
 cancelScrimRequest?: [{	request_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+checkInTournamentTeam?: [{	tournament_team_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 checkIntoMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 checkIntoTournament?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 clearClipRenderBatch?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -25166,6 +25166,12 @@ delete_v_pool_maps?: [{	/** filter the rows which have to be deleted */
 delete_v_team_stage_results?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["v_team_stage_results_bool_exp"] | Variable<any, string>},ValueTypes["v_team_stage_results_mutation_response"]],
 delete_v_team_stage_results_by_pk?: [{	tournament_stage_id: ValueTypes["uuid"] | Variable<any, string>,	tournament_team_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["v_team_stage_results"]],
+delete_verification_application_messages?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["verification_application_messages_bool_exp"] | Variable<any, string>},ValueTypes["verification_application_messages_mutation_response"]],
+delete_verification_application_messages_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["verification_application_messages"]],
+delete_verification_applications?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["verification_applications_bool_exp"] | Variable<any, string>},ValueTypes["verification_applications_mutation_response"]],
+delete_verification_applications_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["verification_applications"]],
 denyInvite?: [{	invite_id: ValueTypes["uuid"] | Variable<any, string>,	type: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 denyNameChange?: [{	name: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 forfeitMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	winning_lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -26151,6 +26157,18 @@ insert_v_team_stage_results?: [{	/** the rows to be inserted */
 insert_v_team_stage_results_one?: [{	/** the row to be inserted */
 	object: ValueTypes["v_team_stage_results_insert_input"] | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["v_team_stage_results_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["v_team_stage_results"]],
+insert_verification_application_messages?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["verification_application_messages_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["verification_application_messages_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages_mutation_response"]],
+insert_verification_application_messages_one?: [{	/** the row to be inserted */
+	object: ValueTypes["verification_application_messages_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["verification_application_messages_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages"]],
+insert_verification_applications?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["verification_applications_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["verification_applications_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["verification_applications_mutation_response"]],
+insert_verification_applications_one?: [{	/** the row to be inserted */
+	object: ValueTypes["verification_applications_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["verification_applications_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["verification_applications"]],
 joinDraftGame?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	inviteCode?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 joinDraftGameAsParty?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	inviteCode?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 kickServerPlayer?: [{	reason?: string | undefined | null | Variable<any, string>,	serverId: string | Variable<any, string>,	steam_id: string | Variable<any, string>},ValueTypes["KickResult"]],
@@ -26202,6 +26220,7 @@ reconnectLive?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTy
 refreshFaceitRank?: [{	steam_id: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 refreshLiveHud?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 registerName?: [{	name: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
+rejectVerificationApplication?: [{	application_id: ValueTypes["uuid"] | Variable<any, string>,	reason?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 removeAbandonedMatch?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 	/** Remove dev fixture data (dev only) */
 	removeFixtures?:ValueTypes["SuccessOutput"],
@@ -27746,6 +27765,24 @@ update_v_team_stage_results_by_pk?: [{	/** increments the numeric columns with g
 	_set?: ValueTypes["v_team_stage_results_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["v_team_stage_results_pk_columns_input"] | Variable<any, string>},ValueTypes["v_team_stage_results"]],
 update_v_team_stage_results_many?: [{	/** updates to execute, in order */
 	updates: Array<ValueTypes["v_team_stage_results_updates"]> | Variable<any, string>},ValueTypes["v_team_stage_results_mutation_response"]],
+update_verification_application_messages?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["verification_application_messages_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["verification_application_messages_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["verification_application_messages_bool_exp"] | Variable<any, string>},ValueTypes["verification_application_messages_mutation_response"]],
+update_verification_application_messages_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["verification_application_messages_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["verification_application_messages_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["verification_application_messages_pk_columns_input"] | Variable<any, string>},ValueTypes["verification_application_messages"]],
+update_verification_application_messages_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["verification_application_messages_updates"]> | Variable<any, string>},ValueTypes["verification_application_messages_mutation_response"]],
+update_verification_applications?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["verification_applications_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["verification_applications_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["verification_applications_bool_exp"] | Variable<any, string>},ValueTypes["verification_applications_mutation_response"]],
+update_verification_applications_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["verification_applications_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["verification_applications_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["verification_applications_pk_columns_input"] | Variable<any, string>},ValueTypes["verification_applications"]],
+update_verification_applications_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["verification_applications_updates"]> | Variable<any, string>},ValueTypes["verification_applications_mutation_response"]],
 validateGamedata?: [{	game_server_node_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 watchDemo?: [{	match_map_demo_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	match_map_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["WatchDemoOutput"]],
 writeServerFile?: [{	content: string | Variable<any, string>,	file_path: string | Variable<any, string>,	node_id: string | Variable<any, string>,	server_id?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -46089,6 +46126,32 @@ v_tournament_player_stats_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["v_tournament_player_stats_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["v_tournament_player_stats_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["v_tournament_player_stats_aggregate"]],
+verification_application_messages?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_application_messages_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages"]],
+verification_application_messages_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_application_messages_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages_aggregate"]],
+verification_application_messages_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["verification_application_messages"]],
+verification_applications?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_applications_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_applications_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_applications"]],
+verification_applications_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_applications_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_applications_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_applications_aggregate"]],
+verification_applications_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["verification_applications"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["recalculate_tournament_awards_args"]: {
@@ -51001,6 +51064,40 @@ v_tournament_player_stats_stream?: [{	/** maximum number of rows returned in a s
 	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
 	cursor: Array<ValueTypes["v_tournament_player_stats_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["v_tournament_player_stats_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["v_tournament_player_stats"]],
+verification_application_messages?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_application_messages_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages"]],
+verification_application_messages_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_application_messages_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages_aggregate"]],
+verification_application_messages_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["verification_application_messages"]],
+verification_application_messages_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["verification_application_messages_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages"]],
+verification_applications?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_applications_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_applications_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_applications"]],
+verification_applications_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_applications_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_applications_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_applications_aggregate"]],
+verification_applications_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["verification_applications"]],
+verification_applications_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["verification_applications_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_applications"]],
 		__typename?: boolean | `@${string}`
 }>;
 	/** columns and relationships of "system_alerts" */
@@ -56832,6 +56929,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_invites_select_column"]> 
 	player_steam_id?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
 	roster_image_url_snapshot?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_team_roster_target_meets_min_role" */
+	target_meets_min_role?:boolean | `@${string}`,
 	/** An object relationship */
 	tournament?:ValueTypes["tournaments"],
 	tournament_id?:boolean | `@${string}`,
@@ -56909,6 +57008,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["e_team_roles_enum_comparison_exp"] | undefined | null | Variable<any, string>,
 	roster_image_url_snapshot?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	target_meets_min_role?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	tournament?: ValueTypes["tournaments_bool_exp"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_bool_exp"] | undefined | null | Variable<any, string>,
@@ -56983,6 +57083,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	roster_image_url_snapshot?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	target_meets_min_role?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament?: ValueTypes["tournaments_order_by"] | undefined | null | Variable<any, string>,
 	tournament_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tournament_team?: ValueTypes["tournament_teams_order_by"] | undefined | null | Variable<any, string>,
@@ -57098,6 +57199,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_team_roster_select_column"]> |
 	/** An object relationship */
 	captain?:ValueTypes["players"],
 	captain_steam_id?:boolean | `@${string}`,
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** An object relationship */
 	creator?:ValueTypes["players"],
@@ -57212,6 +57314,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	can_manage?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	captain?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	creator?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
 	eligible_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -57242,6 +57345,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 ["tournament_teams_insert_input"]: {
 	captain?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	creator?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	eligible_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -57261,6 +57365,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	/** aggregate max on columns */
 ["tournament_teams_max_fields"]: AliasType<{
 	captain_steam_id?:boolean | `@${string}`,
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	eligible_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
@@ -57275,6 +57380,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	/** order by max() on columns of table "tournament_teams" */
 ["tournament_teams_max_order_by"]: {
 	captain_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	eligible_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -57288,6 +57394,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	/** aggregate min on columns */
 ["tournament_teams_min_fields"]: AliasType<{
 	captain_steam_id?:boolean | `@${string}`,
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	eligible_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
@@ -57302,6 +57409,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	/** order by min() on columns of table "tournament_teams" */
 ["tournament_teams_min_order_by"]: {
 	captain_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	eligible_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -57337,6 +57445,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	can_manage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	captain?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	creator?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
 	eligible_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -57362,6 +57471,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	/** input type for updating data in table "tournament_teams" */
 ["tournament_teams_set_input"]: {
 	captain_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	eligible_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
@@ -57421,6 +57531,7 @@ count?: [{	columns?: Array<ValueTypes["tournament_teams_select_column"]> | undef
 	/** Initial value of the column from where the streaming should start */
 ["tournament_teams_stream_cursor_value_input"]: {
 	captain_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	checked_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	eligible_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
@@ -58146,6 +58257,8 @@ count?: [{	columns?: Array<ValueTypes["tournament_trophy_configs_select_column"]
 ["tournaments"]: AliasType<{
 	/** An object relationship */
 	admin?:ValueTypes["players"],
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	auto_start?:boolean | `@${string}`,
 	awards_enabled?:boolean | `@${string}`,
 	banner?:boolean | `@${string}`,
@@ -58494,6 +58607,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -58506,6 +58621,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58517,6 +58634,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	_not?: ValueTypes["tournaments_bool_exp"] | undefined | null | Variable<any, string>,
 	_or?: Array<ValueTypes["tournaments_bool_exp"]> | undefined | null | Variable<any, string>,
 	admin?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
+	attendance_check_in_close_before_minutes?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	auto_start?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	awards_enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	banner?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -58601,6 +58720,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_constraint"]:tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: number | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: number | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["float8"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["float8"] | undefined | null | Variable<any, string>,
@@ -58609,6 +58730,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	/** input type for inserting data into table "tournaments" */
 ["tournaments_insert_input"]: {
 	admin?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	attendance_check_in_close_before_minutes?: number | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: number | undefined | null | Variable<any, string>,
 	auto_start?: boolean | undefined | null | Variable<any, string>,
 	awards_enabled?: boolean | undefined | null | Variable<any, string>,
 	banner?: string | undefined | null | Variable<any, string>,
@@ -58665,6 +58788,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate max on columns */
 ["tournaments_max_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	banner?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
@@ -58692,6 +58817,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by max() on columns of table "tournaments" */
 ["tournaments_max_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	banner?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	description?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58714,6 +58841,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate min on columns */
 ["tournaments_min_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	banner?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
@@ -58741,6 +58870,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by min() on columns of table "tournaments" */
 ["tournaments_min_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	banner?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	description?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58784,6 +58915,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 	/** Ordering options when selecting data from "tournaments". */
 ["tournaments_order_by"]: {
 	admin?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	auto_start?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	awards_enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	banner?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58880,6 +59013,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 ["tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns"]:tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns;
 	/** input type for updating data in table "tournaments" */
 ["tournaments_set_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: number | undefined | null | Variable<any, string>,
 	auto_start?: boolean | undefined | null | Variable<any, string>,
 	awards_enabled?: boolean | undefined | null | Variable<any, string>,
 	banner?: string | undefined | null | Variable<any, string>,
@@ -58921,6 +59056,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -58933,6 +59070,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58940,6 +59079,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -58952,6 +59093,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58959,6 +59102,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -58971,6 +59116,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -58985,6 +59132,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournaments_stream_cursor_value_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: number | undefined | null | Variable<any, string>,
 	auto_start?: boolean | undefined | null | Variable<any, string>,
 	awards_enabled?: boolean | undefined | null | Variable<any, string>,
 	banner?: string | undefined | null | Variable<any, string>,
@@ -59026,6 +59175,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -59038,6 +59189,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -59055,6 +59208,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -59067,6 +59222,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -59074,6 +59231,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -59086,6 +59245,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -59093,6 +59254,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 };
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -59105,6 +59268,8 @@ count?: [{	columns?: Array<ValueTypes["tournaments_select_column"]> | undefined 
 }>;
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
+	attendance_check_in_close_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attendance_check_in_open_before_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	individual_check_in_duration_minutes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	latitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	longitude?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -68401,6 +68566,568 @@ count?: [{	columns?: Array<ValueTypes["v_tournament_player_stats_select_column"]
 	matches_played?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
+	/** columns and relationships of "verification_application_messages" */
+["verification_application_messages"]: AliasType<{
+	/** An object relationship */
+	application?:ValueTypes["verification_applications"],
+	application_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_admin?:boolean | `@${string}`,
+	message?:boolean | `@${string}`,
+	/** An object relationship */
+	sender?:ValueTypes["players"],
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "verification_application_messages" */
+["verification_application_messages_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["verification_application_messages_aggregate_fields"],
+	nodes?:ValueTypes["verification_application_messages"],
+		__typename?: boolean | `@${string}`
+}>;
+	["verification_application_messages_aggregate_bool_exp"]: {
+	bool_and?: ValueTypes["verification_application_messages_aggregate_bool_exp_bool_and"] | undefined | null | Variable<any, string>,
+	bool_or?: ValueTypes["verification_application_messages_aggregate_bool_exp_bool_or"] | undefined | null | Variable<any, string>,
+	count?: ValueTypes["verification_application_messages_aggregate_bool_exp_count"] | undefined | null | Variable<any, string>
+};
+	["verification_application_messages_aggregate_bool_exp_bool_and"]: {
+	arguments: ValueTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"] | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Boolean_comparison_exp"] | Variable<any, string>
+};
+	["verification_application_messages_aggregate_bool_exp_bool_or"]: {
+	arguments: ValueTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"] | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Boolean_comparison_exp"] | Variable<any, string>
+};
+	["verification_application_messages_aggregate_bool_exp_count"]: {
+	arguments?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Int_comparison_exp"] | Variable<any, string>
+};
+	/** aggregate fields of "verification_application_messages" */
+["verification_application_messages_aggregate_fields"]: AliasType<{
+	avg?:ValueTypes["verification_application_messages_avg_fields"],
+count?: [{	columns?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["verification_application_messages_max_fields"],
+	min?:ValueTypes["verification_application_messages_min_fields"],
+	stddev?:ValueTypes["verification_application_messages_stddev_fields"],
+	stddev_pop?:ValueTypes["verification_application_messages_stddev_pop_fields"],
+	stddev_samp?:ValueTypes["verification_application_messages_stddev_samp_fields"],
+	sum?:ValueTypes["verification_application_messages_sum_fields"],
+	var_pop?:ValueTypes["verification_application_messages_var_pop_fields"],
+	var_samp?:ValueTypes["verification_application_messages_var_samp_fields"],
+	variance?:ValueTypes["verification_application_messages_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by aggregate values of table "verification_application_messages" */
+["verification_application_messages_aggregate_order_by"]: {
+	avg?: ValueTypes["verification_application_messages_avg_order_by"] | undefined | null | Variable<any, string>,
+	count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	max?: ValueTypes["verification_application_messages_max_order_by"] | undefined | null | Variable<any, string>,
+	min?: ValueTypes["verification_application_messages_min_order_by"] | undefined | null | Variable<any, string>,
+	stddev?: ValueTypes["verification_application_messages_stddev_order_by"] | undefined | null | Variable<any, string>,
+	stddev_pop?: ValueTypes["verification_application_messages_stddev_pop_order_by"] | undefined | null | Variable<any, string>,
+	stddev_samp?: ValueTypes["verification_application_messages_stddev_samp_order_by"] | undefined | null | Variable<any, string>,
+	sum?: ValueTypes["verification_application_messages_sum_order_by"] | undefined | null | Variable<any, string>,
+	var_pop?: ValueTypes["verification_application_messages_var_pop_order_by"] | undefined | null | Variable<any, string>,
+	var_samp?: ValueTypes["verification_application_messages_var_samp_order_by"] | undefined | null | Variable<any, string>,
+	variance?: ValueTypes["verification_application_messages_variance_order_by"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting array relation for remote table "verification_application_messages" */
+["verification_application_messages_arr_rel_insert_input"]: {
+	data: Array<ValueTypes["verification_application_messages_insert_input"]> | Variable<any, string>,
+	/** upsert condition */
+	on_conflict?: ValueTypes["verification_application_messages_on_conflict"] | undefined | null | Variable<any, string>
+};
+	/** aggregate avg on columns */
+["verification_application_messages_avg_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by avg() on columns of table "verification_application_messages" */
+["verification_application_messages_avg_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** Boolean expression to filter rows from the table "verification_application_messages". All fields are combined with a logical 'AND'. */
+["verification_application_messages_bool_exp"]: {
+	_and?: Array<ValueTypes["verification_application_messages_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["verification_application_messages_bool_exp"]> | undefined | null | Variable<any, string>,
+	application?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>,
+	application_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	is_admin?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
+	message?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	sender?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
+	sender_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "verification_application_messages" */
+["verification_application_messages_constraint"]:verification_application_messages_constraint;
+	/** input type for incrementing numeric columns in table "verification_application_messages" */
+["verification_application_messages_inc_input"]: {
+	sender_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "verification_application_messages" */
+["verification_application_messages_insert_input"]: {
+	application?: ValueTypes["verification_applications_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	application_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	is_admin?: boolean | undefined | null | Variable<any, string>,
+	message?: string | undefined | null | Variable<any, string>,
+	sender?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	sender_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["verification_application_messages_max_fields"]: AliasType<{
+	application_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	message?:boolean | `@${string}`,
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by max() on columns of table "verification_application_messages" */
+["verification_application_messages_max_order_by"]: {
+	application_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate min on columns */
+["verification_application_messages_min_fields"]: AliasType<{
+	application_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	message?:boolean | `@${string}`,
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by min() on columns of table "verification_application_messages" */
+["verification_application_messages_min_order_by"]: {
+	application_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** response of any mutation on the table "verification_application_messages" */
+["verification_application_messages_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["verification_application_messages"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "verification_application_messages" */
+["verification_application_messages_on_conflict"]: {
+	constraint: ValueTypes["verification_application_messages_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["verification_application_messages_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "verification_application_messages". */
+["verification_application_messages_order_by"]: {
+	application?: ValueTypes["verification_applications_order_by"] | undefined | null | Variable<any, string>,
+	application_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	is_admin?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	sender?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: verification_application_messages */
+["verification_application_messages_pk_columns_input"]: {
+	id: ValueTypes["uuid"] | Variable<any, string>
+};
+	/** select columns of table "verification_application_messages" */
+["verification_application_messages_select_column"]:verification_application_messages_select_column;
+	/** select "verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns" columns of table "verification_application_messages" */
+["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"]:verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns" columns of table "verification_application_messages" */
+["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"]:verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns;
+	/** input type for updating data in table "verification_application_messages" */
+["verification_application_messages_set_input"]: {
+	application_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	is_admin?: boolean | undefined | null | Variable<any, string>,
+	message?: string | undefined | null | Variable<any, string>,
+	sender_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev on columns */
+["verification_application_messages_stddev_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev_pop on columns */
+["verification_application_messages_stddev_pop_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_pop_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev_samp on columns */
+["verification_application_messages_stddev_samp_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_samp_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** Streaming cursor of the table "verification_application_messages" */
+["verification_application_messages_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["verification_application_messages_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_application_messages_stream_cursor_value_input"]: {
+	application_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	is_admin?: boolean | undefined | null | Variable<any, string>,
+	message?: string | undefined | null | Variable<any, string>,
+	sender_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** aggregate sum on columns */
+["verification_application_messages_sum_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by sum() on columns of table "verification_application_messages" */
+["verification_application_messages_sum_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** update columns of table "verification_application_messages" */
+["verification_application_messages_update_column"]:verification_application_messages_update_column;
+	["verification_application_messages_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["verification_application_messages_inc_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["verification_application_messages_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["verification_application_messages_bool_exp"] | Variable<any, string>
+};
+	/** aggregate var_pop on columns */
+["verification_application_messages_var_pop_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_var_pop_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate var_samp on columns */
+["verification_application_messages_var_samp_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_var_samp_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate variance on columns */
+["verification_application_messages_variance_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by variance() on columns of table "verification_application_messages" */
+["verification_application_messages_variance_order_by"]: {
+	sender_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** columns and relationships of "verification_applications" */
+["verification_applications"]: AliasType<{
+	additional_info?:boolean | `@${string}`,
+	country?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deaf_player_steam_url?:boolean | `@${string}`,
+	found_via?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_deaf?:boolean | `@${string}`,
+	knows_deaf_player?:boolean | `@${string}`,
+messages?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_application_messages_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages"]],
+messages_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["verification_application_messages_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["verification_application_messages_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["verification_application_messages_aggregate"]],
+	/** An object relationship */
+	player?:ValueTypes["players"],
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_at?:boolean | `@${string}`,
+	/** An object relationship */
+	reviewed_by?:ValueTypes["players"],
+	reviewed_by_steam_id?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "verification_applications" */
+["verification_applications_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["verification_applications_aggregate_fields"],
+	nodes?:ValueTypes["verification_applications"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "verification_applications" */
+["verification_applications_aggregate_fields"]: AliasType<{
+	avg?:ValueTypes["verification_applications_avg_fields"],
+count?: [{	columns?: Array<ValueTypes["verification_applications_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["verification_applications_max_fields"],
+	min?:ValueTypes["verification_applications_min_fields"],
+	stddev?:ValueTypes["verification_applications_stddev_fields"],
+	stddev_pop?:ValueTypes["verification_applications_stddev_pop_fields"],
+	stddev_samp?:ValueTypes["verification_applications_stddev_samp_fields"],
+	sum?:ValueTypes["verification_applications_sum_fields"],
+	var_pop?:ValueTypes["verification_applications_var_pop_fields"],
+	var_samp?:ValueTypes["verification_applications_var_samp_fields"],
+	variance?:ValueTypes["verification_applications_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["verification_applications_avg_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "verification_applications". All fields are combined with a logical 'AND'. */
+["verification_applications_bool_exp"]: {
+	_and?: Array<ValueTypes["verification_applications_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["verification_applications_bool_exp"]> | undefined | null | Variable<any, string>,
+	additional_info?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	country?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	deaf_player_steam_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	found_via?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	is_deaf?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	knows_deaf_player?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
+	messages?: ValueTypes["verification_application_messages_bool_exp"] | undefined | null | Variable<any, string>,
+	messages_aggregate?: ValueTypes["verification_application_messages_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
+	player?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
+	player_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	reviewed_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	reviewed_by?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
+	reviewed_by_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	status?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "verification_applications" */
+["verification_applications_constraint"]:verification_applications_constraint;
+	/** input type for incrementing numeric columns in table "verification_applications" */
+["verification_applications_inc_input"]: {
+	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	reviewed_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "verification_applications" */
+["verification_applications_insert_input"]: {
+	additional_info?: string | undefined | null | Variable<any, string>,
+	country?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	deaf_player_steam_url?: string | undefined | null | Variable<any, string>,
+	found_via?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	is_deaf?: string | undefined | null | Variable<any, string>,
+	knows_deaf_player?: boolean | undefined | null | Variable<any, string>,
+	messages?: ValueTypes["verification_application_messages_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
+	player?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	reviewed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	reviewed_by?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	reviewed_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	status?: string | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["verification_applications_max_fields"]: AliasType<{
+	additional_info?:boolean | `@${string}`,
+	country?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deaf_player_steam_url?:boolean | `@${string}`,
+	found_via?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_deaf?:boolean | `@${string}`,
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_at?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["verification_applications_min_fields"]: AliasType<{
+	additional_info?:boolean | `@${string}`,
+	country?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deaf_player_steam_url?:boolean | `@${string}`,
+	found_via?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_deaf?:boolean | `@${string}`,
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_at?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "verification_applications" */
+["verification_applications_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["verification_applications"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** input type for inserting object relation for remote table "verification_applications" */
+["verification_applications_obj_rel_insert_input"]: {
+	data: ValueTypes["verification_applications_insert_input"] | Variable<any, string>,
+	/** upsert condition */
+	on_conflict?: ValueTypes["verification_applications_on_conflict"] | undefined | null | Variable<any, string>
+};
+	/** on_conflict condition type for table "verification_applications" */
+["verification_applications_on_conflict"]: {
+	constraint: ValueTypes["verification_applications_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["verification_applications_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["verification_applications_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "verification_applications". */
+["verification_applications_order_by"]: {
+	additional_info?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	country?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	deaf_player_steam_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	found_via?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	is_deaf?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	knows_deaf_player?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	messages_aggregate?: ValueTypes["verification_application_messages_aggregate_order_by"] | undefined | null | Variable<any, string>,
+	player?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
+	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	reviewed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	reviewed_by?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
+	reviewed_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: verification_applications */
+["verification_applications_pk_columns_input"]: {
+	id: ValueTypes["uuid"] | Variable<any, string>
+};
+	/** select columns of table "verification_applications" */
+["verification_applications_select_column"]:verification_applications_select_column;
+	/** input type for updating data in table "verification_applications" */
+["verification_applications_set_input"]: {
+	additional_info?: string | undefined | null | Variable<any, string>,
+	country?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	deaf_player_steam_url?: string | undefined | null | Variable<any, string>,
+	found_via?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	is_deaf?: string | undefined | null | Variable<any, string>,
+	knows_deaf_player?: boolean | undefined | null | Variable<any, string>,
+	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	reviewed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	reviewed_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	status?: string | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev on columns */
+["verification_applications_stddev_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["verification_applications_stddev_pop_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["verification_applications_stddev_samp_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "verification_applications" */
+["verification_applications_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["verification_applications_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_applications_stream_cursor_value_input"]: {
+	additional_info?: string | undefined | null | Variable<any, string>,
+	country?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	deaf_player_steam_url?: string | undefined | null | Variable<any, string>,
+	found_via?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	is_deaf?: string | undefined | null | Variable<any, string>,
+	knows_deaf_player?: boolean | undefined | null | Variable<any, string>,
+	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	reviewed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	reviewed_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	status?: string | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** aggregate sum on columns */
+["verification_applications_sum_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "verification_applications" */
+["verification_applications_update_column"]:verification_applications_update_column;
+	["verification_applications_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["verification_applications_inc_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["verification_applications_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["verification_applications_bool_exp"] | Variable<any, string>
+};
+	/** aggregate var_pop on columns */
+["verification_applications_var_pop_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["verification_applications_var_samp_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["verification_applications_variance_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["ID"]:unknown
   }
 
@@ -92115,6 +92842,7 @@ acceptInvite?: [{	invite_id: ResolverInputTypes["uuid"],	type: string},ResolverI
 addDraftPlayer?: [{	draftGameId: ResolverInputTypes["uuid"],	steamId: string},ResolverInputTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string,	friend_capacity?: number | undefined | null,	username: string},ResolverInputTypes["SuccessOutput"]],
 approveNameChange?: [{	name: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["SuccessOutput"]],
+approveVerificationApplication?: [{	application_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 approve_league_season_movements?: [{	/** input parameters for function "approve_league_season_movements" */
 	args: ResolverInputTypes["approve_league_season_movements_args"],	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["league_team_movements_select_column"]> | undefined | null,	/** limit the number of rows returned */
@@ -92145,6 +92873,7 @@ cancelMatch?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["Succe
 	/** Request cancellation of the in-progress reparse-all-demos run (admin only). Stops after the current demo finishes. */
 	cancelReparseAllDemos?:ResolverInputTypes["SuccessOutput"],
 cancelScrimRequest?: [{	request_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+checkInTournamentTeam?: [{	tournament_team_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 checkIntoMatch?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 checkIntoTournament?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 clearClipRenderBatch?: [{	match_map_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -92662,6 +93391,12 @@ delete_v_pool_maps?: [{	/** filter the rows which have to be deleted */
 delete_v_team_stage_results?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["v_team_stage_results_bool_exp"]},ResolverInputTypes["v_team_stage_results_mutation_response"]],
 delete_v_team_stage_results_by_pk?: [{	tournament_stage_id: ResolverInputTypes["uuid"],	tournament_team_id: ResolverInputTypes["uuid"]},ResolverInputTypes["v_team_stage_results"]],
+delete_verification_application_messages?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["verification_application_messages_bool_exp"]},ResolverInputTypes["verification_application_messages_mutation_response"]],
+delete_verification_application_messages_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["verification_application_messages"]],
+delete_verification_applications?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["verification_applications_bool_exp"]},ResolverInputTypes["verification_applications_mutation_response"]],
+delete_verification_applications_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["verification_applications"]],
 denyInvite?: [{	invite_id: ResolverInputTypes["uuid"],	type: string},ResolverInputTypes["SuccessOutput"]],
 denyNameChange?: [{	name: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["SuccessOutput"]],
 forfeitMatch?: [{	match_id: ResolverInputTypes["uuid"],	winning_lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -93647,6 +94382,18 @@ insert_v_team_stage_results?: [{	/** the rows to be inserted */
 insert_v_team_stage_results_one?: [{	/** the row to be inserted */
 	object: ResolverInputTypes["v_team_stage_results_insert_input"],	/** upsert condition */
 	on_conflict?: ResolverInputTypes["v_team_stage_results_on_conflict"] | undefined | null},ResolverInputTypes["v_team_stage_results"]],
+insert_verification_application_messages?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["verification_application_messages_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["verification_application_messages_on_conflict"] | undefined | null},ResolverInputTypes["verification_application_messages_mutation_response"]],
+insert_verification_application_messages_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["verification_application_messages_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["verification_application_messages_on_conflict"] | undefined | null},ResolverInputTypes["verification_application_messages"]],
+insert_verification_applications?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["verification_applications_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["verification_applications_on_conflict"] | undefined | null},ResolverInputTypes["verification_applications_mutation_response"]],
+insert_verification_applications_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["verification_applications_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["verification_applications_on_conflict"] | undefined | null},ResolverInputTypes["verification_applications"]],
 joinDraftGame?: [{	draftGameId: ResolverInputTypes["uuid"],	inviteCode?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
 joinDraftGameAsParty?: [{	draftGameId: ResolverInputTypes["uuid"],	inviteCode?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
 kickServerPlayer?: [{	reason?: string | undefined | null,	serverId: string,	steam_id: string},ResolverInputTypes["KickResult"]],
@@ -93698,6 +94445,7 @@ reconnectLive?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["Suc
 refreshFaceitRank?: [{	steam_id: string},ResolverInputTypes["SuccessOutput"]],
 refreshLiveHud?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 registerName?: [{	name: string},ResolverInputTypes["SuccessOutput"]],
+rejectVerificationApplication?: [{	application_id: ResolverInputTypes["uuid"],	reason?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
 removeAbandonedMatch?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 	/** Remove dev fixture data (dev only) */
 	removeFixtures?:ResolverInputTypes["SuccessOutput"],
@@ -95242,6 +95990,24 @@ update_v_team_stage_results_by_pk?: [{	/** increments the numeric columns with g
 	_set?: ResolverInputTypes["v_team_stage_results_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["v_team_stage_results_pk_columns_input"]},ResolverInputTypes["v_team_stage_results"]],
 update_v_team_stage_results_many?: [{	/** updates to execute, in order */
 	updates: Array<ResolverInputTypes["v_team_stage_results_updates"]>},ResolverInputTypes["v_team_stage_results_mutation_response"]],
+update_verification_application_messages?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["verification_application_messages_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["verification_application_messages_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["verification_application_messages_bool_exp"]},ResolverInputTypes["verification_application_messages_mutation_response"]],
+update_verification_application_messages_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["verification_application_messages_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["verification_application_messages_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["verification_application_messages_pk_columns_input"]},ResolverInputTypes["verification_application_messages"]],
+update_verification_application_messages_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["verification_application_messages_updates"]>},ResolverInputTypes["verification_application_messages_mutation_response"]],
+update_verification_applications?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["verification_applications_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["verification_applications_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["verification_applications_bool_exp"]},ResolverInputTypes["verification_applications_mutation_response"]],
+update_verification_applications_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["verification_applications_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["verification_applications_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["verification_applications_pk_columns_input"]},ResolverInputTypes["verification_applications"]],
+update_verification_applications_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["verification_applications_updates"]>},ResolverInputTypes["verification_applications_mutation_response"]],
 validateGamedata?: [{	game_server_node_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 watchDemo?: [{	match_map_demo_id?: ResolverInputTypes["uuid"] | undefined | null,	match_map_id: ResolverInputTypes["uuid"]},ResolverInputTypes["WatchDemoOutput"]],
 writeServerFile?: [{	content: string,	file_path: string,	node_id: string,	server_id?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
@@ -113585,6 +114351,32 @@ v_tournament_player_stats_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["v_tournament_player_stats_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["v_tournament_player_stats_bool_exp"] | undefined | null},ResolverInputTypes["v_tournament_player_stats_aggregate"]],
+verification_application_messages?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_application_messages_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null},ResolverInputTypes["verification_application_messages"]],
+verification_application_messages_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_application_messages_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null},ResolverInputTypes["verification_application_messages_aggregate"]],
+verification_application_messages_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["verification_application_messages"]],
+verification_applications?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_applications_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_applications_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null},ResolverInputTypes["verification_applications"]],
+verification_applications_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_applications_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_applications_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null},ResolverInputTypes["verification_applications_aggregate"]],
+verification_applications_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["verification_applications"]],
 		__typename?: boolean | `@${string}`
 }>;
 	["recalculate_tournament_awards_args"]: {
@@ -118497,6 +119289,40 @@ v_tournament_player_stats_stream?: [{	/** maximum number of rows returned in a s
 	batch_size: number,	/** cursor to stream the results returned by the query */
 	cursor: Array<ResolverInputTypes["v_tournament_player_stats_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
 	where?: ResolverInputTypes["v_tournament_player_stats_bool_exp"] | undefined | null},ResolverInputTypes["v_tournament_player_stats"]],
+verification_application_messages?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_application_messages_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null},ResolverInputTypes["verification_application_messages"]],
+verification_application_messages_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_application_messages_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null},ResolverInputTypes["verification_application_messages_aggregate"]],
+verification_application_messages_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["verification_application_messages"]],
+verification_application_messages_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["verification_application_messages_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null},ResolverInputTypes["verification_application_messages"]],
+verification_applications?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_applications_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_applications_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null},ResolverInputTypes["verification_applications"]],
+verification_applications_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_applications_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_applications_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null},ResolverInputTypes["verification_applications_aggregate"]],
+verification_applications_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["verification_applications"]],
+verification_applications_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["verification_applications_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null},ResolverInputTypes["verification_applications"]],
 		__typename?: boolean | `@${string}`
 }>;
 	/** columns and relationships of "system_alerts" */
@@ -124328,6 +125154,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_invites_select_co
 	player_steam_id?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
 	roster_image_url_snapshot?:boolean | `@${string}`,
+	/** A computed field, executes function "tournament_team_roster_target_meets_min_role" */
+	target_meets_min_role?:boolean | `@${string}`,
 	/** An object relationship */
 	tournament?:ResolverInputTypes["tournaments"],
 	tournament_id?:boolean | `@${string}`,
@@ -124405,6 +125233,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
 	role?: ResolverInputTypes["e_team_roles_enum_comparison_exp"] | undefined | null,
 	roster_image_url_snapshot?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	target_meets_min_role?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	tournament?: ResolverInputTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_bool_exp"] | undefined | null,
@@ -124479,6 +125308,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	role?: ResolverInputTypes["order_by"] | undefined | null,
 	roster_image_url_snapshot?: ResolverInputTypes["order_by"] | undefined | null,
+	target_meets_min_role?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament?: ResolverInputTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: ResolverInputTypes["order_by"] | undefined | null,
 	tournament_team?: ResolverInputTypes["tournament_teams_order_by"] | undefined | null,
@@ -124594,6 +125424,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_team_roster_select_col
 	/** An object relationship */
 	captain?:ResolverInputTypes["players"],
 	captain_steam_id?:boolean | `@${string}`,
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** An object relationship */
 	creator?:ResolverInputTypes["players"],
@@ -124708,6 +125539,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	can_manage?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	captain?: ResolverInputTypes["players_bool_exp"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	checked_in_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	creator?: ResolverInputTypes["players_bool_exp"] | undefined | null,
 	eligible_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -124738,6 +125570,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 ["tournament_teams_insert_input"]: {
 	captain?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	checked_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	creator?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
 	eligible_at?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -124757,6 +125590,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	/** aggregate max on columns */
 ["tournament_teams_max_fields"]: AliasType<{
 	captain_steam_id?:boolean | `@${string}`,
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	eligible_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
@@ -124771,6 +125605,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	/** order by max() on columns of table "tournament_teams" */
 ["tournament_teams_max_order_by"]: {
 	captain_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	eligible_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -124784,6 +125619,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	/** aggregate min on columns */
 ["tournament_teams_min_fields"]: AliasType<{
 	captain_steam_id?:boolean | `@${string}`,
+	checked_in_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	eligible_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
@@ -124798,6 +125634,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	/** order by min() on columns of table "tournament_teams" */
 ["tournament_teams_min_order_by"]: {
 	captain_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	eligible_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -124833,6 +125670,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	can_manage?: ResolverInputTypes["order_by"] | undefined | null,
 	captain?: ResolverInputTypes["players_order_by"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	checked_in_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	creator?: ResolverInputTypes["players_order_by"] | undefined | null,
 	eligible_at?: ResolverInputTypes["order_by"] | undefined | null,
@@ -124858,6 +125696,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	/** input type for updating data in table "tournament_teams" */
 ["tournament_teams_set_input"]: {
 	captain_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	checked_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	eligible_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
@@ -124917,6 +125756,7 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_teams_select_column"]>
 	/** Initial value of the column from where the streaming should start */
 ["tournament_teams_stream_cursor_value_input"]: {
 	captain_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	checked_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	eligible_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
@@ -125642,6 +126482,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournament_trophy_configs_select_
 ["tournaments"]: AliasType<{
 	/** An object relationship */
 	admin?:ResolverInputTypes["players"],
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	auto_start?:boolean | `@${string}`,
 	awards_enabled?:boolean | `@${string}`,
 	banner?:boolean | `@${string}`,
@@ -125990,6 +126832,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126002,6 +126846,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126013,6 +126859,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	_not?: ResolverInputTypes["tournaments_bool_exp"] | undefined | null,
 	_or?: Array<ResolverInputTypes["tournaments_bool_exp"]> | undefined | null,
 	admin?: ResolverInputTypes["players_bool_exp"] | undefined | null,
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	auto_start?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	awards_enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	banner?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
@@ -126097,6 +126945,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_constraint"]:tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: ResolverInputTypes["float8"] | undefined | null,
 	longitude?: ResolverInputTypes["float8"] | undefined | null,
@@ -126105,6 +126955,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	/** input type for inserting data into table "tournaments" */
 ["tournaments_insert_input"]: {
 	admin?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
@@ -126161,6 +127013,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate max on columns */
 ["tournaments_max_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	banner?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
@@ -126188,6 +127042,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by max() on columns of table "tournaments" */
 ["tournaments_max_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	banner?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	description?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126210,6 +127066,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate min on columns */
 ["tournaments_min_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	banner?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	description?:boolean | `@${string}`,
@@ -126237,6 +127095,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by min() on columns of table "tournaments" */
 ["tournaments_min_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	banner?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	description?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126280,6 +127140,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 	/** Ordering options when selecting data from "tournaments". */
 ["tournaments_order_by"]: {
 	admin?: ResolverInputTypes["players_order_by"] | undefined | null,
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	auto_start?: ResolverInputTypes["order_by"] | undefined | null,
 	awards_enabled?: ResolverInputTypes["order_by"] | undefined | null,
 	banner?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126376,6 +127238,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 ["tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns"]:tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns;
 	/** input type for updating data in table "tournaments" */
 ["tournaments_set_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
@@ -126417,6 +127281,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126429,6 +127295,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126436,6 +127304,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126448,6 +127318,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126455,6 +127327,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126467,6 +127341,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126481,6 +127357,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournaments_stream_cursor_value_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
@@ -126522,6 +127400,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126534,6 +127414,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126551,6 +127433,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126563,6 +127447,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126570,6 +127456,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126582,6 +127470,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -126589,6 +127479,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 };
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: AliasType<{
+	attendance_check_in_close_before_minutes?:boolean | `@${string}`,
+	attendance_check_in_open_before_minutes?:boolean | `@${string}`,
 	individual_check_in_duration_minutes?:boolean | `@${string}`,
 	latitude?:boolean | `@${string}`,
 	longitude?:boolean | `@${string}`,
@@ -126601,6 +127493,8 @@ count?: [{	columns?: Array<ResolverInputTypes["tournaments_select_column"]> | un
 }>;
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
+	attendance_check_in_close_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ResolverInputTypes["order_by"] | undefined | null,
 	latitude?: ResolverInputTypes["order_by"] | undefined | null,
 	longitude?: ResolverInputTypes["order_by"] | undefined | null,
@@ -135897,6 +136791,568 @@ count?: [{	columns?: Array<ResolverInputTypes["v_tournament_player_stats_select_
 	matches_played?: ResolverInputTypes["order_by"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
+	/** columns and relationships of "verification_application_messages" */
+["verification_application_messages"]: AliasType<{
+	/** An object relationship */
+	application?:ResolverInputTypes["verification_applications"],
+	application_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_admin?:boolean | `@${string}`,
+	message?:boolean | `@${string}`,
+	/** An object relationship */
+	sender?:ResolverInputTypes["players"],
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "verification_application_messages" */
+["verification_application_messages_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["verification_application_messages_aggregate_fields"],
+	nodes?:ResolverInputTypes["verification_application_messages"],
+		__typename?: boolean | `@${string}`
+}>;
+	["verification_application_messages_aggregate_bool_exp"]: {
+	bool_and?: ResolverInputTypes["verification_application_messages_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: ResolverInputTypes["verification_application_messages_aggregate_bool_exp_bool_or"] | undefined | null,
+	count?: ResolverInputTypes["verification_application_messages_aggregate_bool_exp_count"] | undefined | null
+};
+	["verification_application_messages_aggregate_bool_exp_bool_and"]: {
+	arguments: ResolverInputTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Boolean_comparison_exp"]
+};
+	["verification_application_messages_aggregate_bool_exp_bool_or"]: {
+	arguments: ResolverInputTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Boolean_comparison_exp"]
+};
+	["verification_application_messages_aggregate_bool_exp_count"]: {
+	arguments?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "verification_application_messages" */
+["verification_application_messages_aggregate_fields"]: AliasType<{
+	avg?:ResolverInputTypes["verification_application_messages_avg_fields"],
+count?: [{	columns?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["verification_application_messages_max_fields"],
+	min?:ResolverInputTypes["verification_application_messages_min_fields"],
+	stddev?:ResolverInputTypes["verification_application_messages_stddev_fields"],
+	stddev_pop?:ResolverInputTypes["verification_application_messages_stddev_pop_fields"],
+	stddev_samp?:ResolverInputTypes["verification_application_messages_stddev_samp_fields"],
+	sum?:ResolverInputTypes["verification_application_messages_sum_fields"],
+	var_pop?:ResolverInputTypes["verification_application_messages_var_pop_fields"],
+	var_samp?:ResolverInputTypes["verification_application_messages_var_samp_fields"],
+	variance?:ResolverInputTypes["verification_application_messages_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by aggregate values of table "verification_application_messages" */
+["verification_application_messages_aggregate_order_by"]: {
+	avg?: ResolverInputTypes["verification_application_messages_avg_order_by"] | undefined | null,
+	count?: ResolverInputTypes["order_by"] | undefined | null,
+	max?: ResolverInputTypes["verification_application_messages_max_order_by"] | undefined | null,
+	min?: ResolverInputTypes["verification_application_messages_min_order_by"] | undefined | null,
+	stddev?: ResolverInputTypes["verification_application_messages_stddev_order_by"] | undefined | null,
+	stddev_pop?: ResolverInputTypes["verification_application_messages_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: ResolverInputTypes["verification_application_messages_stddev_samp_order_by"] | undefined | null,
+	sum?: ResolverInputTypes["verification_application_messages_sum_order_by"] | undefined | null,
+	var_pop?: ResolverInputTypes["verification_application_messages_var_pop_order_by"] | undefined | null,
+	var_samp?: ResolverInputTypes["verification_application_messages_var_samp_order_by"] | undefined | null,
+	variance?: ResolverInputTypes["verification_application_messages_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "verification_application_messages" */
+["verification_application_messages_arr_rel_insert_input"]: {
+	data: Array<ResolverInputTypes["verification_application_messages_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: ResolverInputTypes["verification_application_messages_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["verification_application_messages_avg_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by avg() on columns of table "verification_application_messages" */
+["verification_application_messages_avg_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "verification_application_messages". All fields are combined with a logical 'AND'. */
+["verification_application_messages_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["verification_application_messages_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["verification_application_messages_bool_exp"]> | undefined | null,
+	application?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null,
+	application_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	is_admin?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
+	message?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	sender?: ResolverInputTypes["players_bool_exp"] | undefined | null,
+	sender_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "verification_application_messages" */
+["verification_application_messages_constraint"]:verification_application_messages_constraint;
+	/** input type for incrementing numeric columns in table "verification_application_messages" */
+["verification_application_messages_inc_input"]: {
+	sender_steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "verification_application_messages" */
+["verification_application_messages_insert_input"]: {
+	application?: ResolverInputTypes["verification_applications_obj_rel_insert_input"] | undefined | null,
+	application_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
+	sender_steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** aggregate max on columns */
+["verification_application_messages_max_fields"]: AliasType<{
+	application_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	message?:boolean | `@${string}`,
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by max() on columns of table "verification_application_messages" */
+["verification_application_messages_max_order_by"]: {
+	application_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	message?: ResolverInputTypes["order_by"] | undefined | null,
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["verification_application_messages_min_fields"]: AliasType<{
+	application_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	message?:boolean | `@${string}`,
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by min() on columns of table "verification_application_messages" */
+["verification_application_messages_min_order_by"]: {
+	application_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	message?: ResolverInputTypes["order_by"] | undefined | null,
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "verification_application_messages" */
+["verification_application_messages_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["verification_application_messages"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "verification_application_messages" */
+["verification_application_messages_on_conflict"]: {
+	constraint: ResolverInputTypes["verification_application_messages_constraint"],
+	update_columns: Array<ResolverInputTypes["verification_application_messages_update_column"]>,
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "verification_application_messages". */
+["verification_application_messages_order_by"]: {
+	application?: ResolverInputTypes["verification_applications_order_by"] | undefined | null,
+	application_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	is_admin?: ResolverInputTypes["order_by"] | undefined | null,
+	message?: ResolverInputTypes["order_by"] | undefined | null,
+	sender?: ResolverInputTypes["players_order_by"] | undefined | null,
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: verification_application_messages */
+["verification_application_messages_pk_columns_input"]: {
+	id: ResolverInputTypes["uuid"]
+};
+	/** select columns of table "verification_application_messages" */
+["verification_application_messages_select_column"]:verification_application_messages_select_column;
+	/** select "verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns" columns of table "verification_application_messages" */
+["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"]:verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns" columns of table "verification_application_messages" */
+["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"]:verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns;
+	/** input type for updating data in table "verification_application_messages" */
+["verification_application_messages_set_input"]: {
+	application_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["verification_application_messages_stddev_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["verification_application_messages_stddev_pop_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_pop_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["verification_application_messages_stddev_samp_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_samp_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "verification_application_messages" */
+["verification_application_messages_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["verification_application_messages_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_application_messages_stream_cursor_value_input"]: {
+	application_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** aggregate sum on columns */
+["verification_application_messages_sum_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by sum() on columns of table "verification_application_messages" */
+["verification_application_messages_sum_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** update columns of table "verification_application_messages" */
+["verification_application_messages_update_column"]:verification_application_messages_update_column;
+	["verification_application_messages_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["verification_application_messages_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["verification_application_messages_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["verification_application_messages_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["verification_application_messages_var_pop_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_var_pop_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["verification_application_messages_var_samp_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_var_samp_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["verification_application_messages_variance_fields"]: AliasType<{
+	sender_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by variance() on columns of table "verification_application_messages" */
+["verification_application_messages_variance_order_by"]: {
+	sender_steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** columns and relationships of "verification_applications" */
+["verification_applications"]: AliasType<{
+	additional_info?:boolean | `@${string}`,
+	country?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deaf_player_steam_url?:boolean | `@${string}`,
+	found_via?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_deaf?:boolean | `@${string}`,
+	knows_deaf_player?:boolean | `@${string}`,
+messages?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_application_messages_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null},ResolverInputTypes["verification_application_messages"]],
+messages_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["verification_application_messages_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["verification_application_messages_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null},ResolverInputTypes["verification_application_messages_aggregate"]],
+	/** An object relationship */
+	player?:ResolverInputTypes["players"],
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_at?:boolean | `@${string}`,
+	/** An object relationship */
+	reviewed_by?:ResolverInputTypes["players"],
+	reviewed_by_steam_id?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "verification_applications" */
+["verification_applications_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["verification_applications_aggregate_fields"],
+	nodes?:ResolverInputTypes["verification_applications"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "verification_applications" */
+["verification_applications_aggregate_fields"]: AliasType<{
+	avg?:ResolverInputTypes["verification_applications_avg_fields"],
+count?: [{	columns?: Array<ResolverInputTypes["verification_applications_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["verification_applications_max_fields"],
+	min?:ResolverInputTypes["verification_applications_min_fields"],
+	stddev?:ResolverInputTypes["verification_applications_stddev_fields"],
+	stddev_pop?:ResolverInputTypes["verification_applications_stddev_pop_fields"],
+	stddev_samp?:ResolverInputTypes["verification_applications_stddev_samp_fields"],
+	sum?:ResolverInputTypes["verification_applications_sum_fields"],
+	var_pop?:ResolverInputTypes["verification_applications_var_pop_fields"],
+	var_samp?:ResolverInputTypes["verification_applications_var_samp_fields"],
+	variance?:ResolverInputTypes["verification_applications_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate avg on columns */
+["verification_applications_avg_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Boolean expression to filter rows from the table "verification_applications". All fields are combined with a logical 'AND'. */
+["verification_applications_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["verification_applications_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["verification_applications_bool_exp"]> | undefined | null,
+	additional_info?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	country?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	deaf_player_steam_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	found_via?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	is_deaf?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	knows_deaf_player?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
+	messages?: ResolverInputTypes["verification_application_messages_bool_exp"] | undefined | null,
+	messages_aggregate?: ResolverInputTypes["verification_application_messages_aggregate_bool_exp"] | undefined | null,
+	player?: ResolverInputTypes["players_bool_exp"] | undefined | null,
+	player_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	reviewed_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	reviewed_by?: ResolverInputTypes["players_bool_exp"] | undefined | null,
+	reviewed_by_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	status?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "verification_applications" */
+["verification_applications_constraint"]:verification_applications_constraint;
+	/** input type for incrementing numeric columns in table "verification_applications" */
+["verification_applications_inc_input"]: {
+	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	reviewed_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "verification_applications" */
+["verification_applications_insert_input"]: {
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	messages?: ResolverInputTypes["verification_application_messages_arr_rel_insert_input"] | undefined | null,
+	player?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
+	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	reviewed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	reviewed_by?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
+	reviewed_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["verification_applications_max_fields"]: AliasType<{
+	additional_info?:boolean | `@${string}`,
+	country?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deaf_player_steam_url?:boolean | `@${string}`,
+	found_via?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_deaf?:boolean | `@${string}`,
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_at?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["verification_applications_min_fields"]: AliasType<{
+	additional_info?:boolean | `@${string}`,
+	country?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deaf_player_steam_url?:boolean | `@${string}`,
+	found_via?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	is_deaf?:boolean | `@${string}`,
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_at?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "verification_applications" */
+["verification_applications_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["verification_applications"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** input type for inserting object relation for remote table "verification_applications" */
+["verification_applications_obj_rel_insert_input"]: {
+	data: ResolverInputTypes["verification_applications_insert_input"],
+	/** upsert condition */
+	on_conflict?: ResolverInputTypes["verification_applications_on_conflict"] | undefined | null
+};
+	/** on_conflict condition type for table "verification_applications" */
+["verification_applications_on_conflict"]: {
+	constraint: ResolverInputTypes["verification_applications_constraint"],
+	update_columns: Array<ResolverInputTypes["verification_applications_update_column"]>,
+	where?: ResolverInputTypes["verification_applications_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "verification_applications". */
+["verification_applications_order_by"]: {
+	additional_info?: ResolverInputTypes["order_by"] | undefined | null,
+	country?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	deaf_player_steam_url?: ResolverInputTypes["order_by"] | undefined | null,
+	found_via?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	is_deaf?: ResolverInputTypes["order_by"] | undefined | null,
+	knows_deaf_player?: ResolverInputTypes["order_by"] | undefined | null,
+	messages_aggregate?: ResolverInputTypes["verification_application_messages_aggregate_order_by"] | undefined | null,
+	player?: ResolverInputTypes["players_order_by"] | undefined | null,
+	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	reviewed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	reviewed_by?: ResolverInputTypes["players_order_by"] | undefined | null,
+	reviewed_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	status?: ResolverInputTypes["order_by"] | undefined | null,
+	updated_at?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: verification_applications */
+["verification_applications_pk_columns_input"]: {
+	id: ResolverInputTypes["uuid"]
+};
+	/** select columns of table "verification_applications" */
+["verification_applications_select_column"]:verification_applications_select_column;
+	/** input type for updating data in table "verification_applications" */
+["verification_applications_set_input"]: {
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	reviewed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["verification_applications_stddev_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_pop on columns */
+["verification_applications_stddev_pop_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate stddev_samp on columns */
+["verification_applications_stddev_samp_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** Streaming cursor of the table "verification_applications" */
+["verification_applications_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["verification_applications_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_applications_stream_cursor_value_input"]: {
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	reviewed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** aggregate sum on columns */
+["verification_applications_sum_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** update columns of table "verification_applications" */
+["verification_applications_update_column"]:verification_applications_update_column;
+	["verification_applications_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["verification_applications_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["verification_applications_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["verification_applications_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["verification_applications_var_pop_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate var_samp on columns */
+["verification_applications_var_samp_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate variance on columns */
+["verification_applications_variance_fields"]: AliasType<{
+	player_steam_id?:boolean | `@${string}`,
+	reviewed_by_steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["ID"]:unknown
   }
 
@@ -157568,6 +159024,8 @@ export type ModelTypes = {
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: ModelTypes["SuccessOutput"] | undefined | null,
 	approveNameChange?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Approve a verification application and bump the player's role (admin only). */
+	approveVerificationApplication?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "approve_league_season_movements" which returns "league_team_movements" */
 	approve_league_season_movements: Array<ModelTypes["league_team_movements"]>,
 	/** Archive or unarchive a custom award definition */
@@ -157602,6 +159060,8 @@ export type ModelTypes = {
 	cancelReparseAllDemos?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** cancelScrimRequest */
 	cancelScrimRequest?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Captain/authorized team representative confirms tournament attendance for their team */
+	checkInTournamentTeam?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** checkIntoMatch */
 	checkIntoMatch?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Player self-check-in during a tournament's individual sign-up check-in window */
@@ -158286,6 +159746,14 @@ export type ModelTypes = {
 	delete_v_team_stage_results?: ModelTypes["v_team_stage_results_mutation_response"] | undefined | null,
 	/** delete single row from the table: "v_team_stage_results" */
 	delete_v_team_stage_results_by_pk?: ModelTypes["v_team_stage_results"] | undefined | null,
+	/** delete data from the table: "verification_application_messages" */
+	delete_verification_application_messages?: ModelTypes["verification_application_messages_mutation_response"] | undefined | null,
+	/** delete single row from the table: "verification_application_messages" */
+	delete_verification_application_messages_by_pk?: ModelTypes["verification_application_messages"] | undefined | null,
+	/** delete data from the table: "verification_applications" */
+	delete_verification_applications?: ModelTypes["verification_applications_mutation_response"] | undefined | null,
+	/** delete single row from the table: "verification_applications" */
+	delete_verification_applications_by_pk?: ModelTypes["verification_applications"] | undefined | null,
 	denyInvite?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Deny a player's name change request and notify them (admin/match_organizer only). */
 	denyNameChange?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -158961,6 +160429,14 @@ export type ModelTypes = {
 	insert_v_team_stage_results?: ModelTypes["v_team_stage_results_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "v_team_stage_results" */
 	insert_v_team_stage_results_one?: ModelTypes["v_team_stage_results"] | undefined | null,
+	/** insert data into the table: "verification_application_messages" */
+	insert_verification_application_messages?: ModelTypes["verification_application_messages_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "verification_application_messages" */
+	insert_verification_application_messages_one?: ModelTypes["verification_application_messages"] | undefined | null,
+	/** insert data into the table: "verification_applications" */
+	insert_verification_applications?: ModelTypes["verification_applications_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "verification_applications" */
+	insert_verification_applications_one?: ModelTypes["verification_applications"] | undefined | null,
 	/** joinDraftGame */
 	joinDraftGame?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** joinDraftGameAsParty */
@@ -159003,6 +160479,8 @@ export type ModelTypes = {
 	refreshFaceitRank?: ModelTypes["SuccessOutput"] | undefined | null,
 	refreshLiveHud?: ModelTypes["SuccessOutput"] | undefined | null,
 	registerName?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Reject a verification application (admin only). */
+	rejectVerificationApplication?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Removes an abandoned_matches row, lifts the still-active system-issued ban tied to it (if any), and undoes one step of the player's leaver_ban_stage escalation -- see SanctionsService.removeAbandonedMatch. */
 	removeAbandonedMatch: ModelTypes["SuccessOutput"],
 	/** Remove dev fixture data (dev only) */
@@ -160076,6 +161554,18 @@ export type ModelTypes = {
 	update_v_team_stage_results_by_pk?: ModelTypes["v_team_stage_results"] | undefined | null,
 	/** update multiples rows of table: "v_team_stage_results" */
 	update_v_team_stage_results_many?: Array<ModelTypes["v_team_stage_results_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "verification_application_messages" */
+	update_verification_application_messages?: ModelTypes["verification_application_messages_mutation_response"] | undefined | null,
+	/** update single row of the table: "verification_application_messages" */
+	update_verification_application_messages_by_pk?: ModelTypes["verification_application_messages"] | undefined | null,
+	/** update multiples rows of table: "verification_application_messages" */
+	update_verification_application_messages_many?: Array<ModelTypes["verification_application_messages_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "verification_applications" */
+	update_verification_applications?: ModelTypes["verification_applications_mutation_response"] | undefined | null,
+	/** update single row of the table: "verification_applications" */
+	update_verification_applications_by_pk?: ModelTypes["verification_applications"] | undefined | null,
+	/** update multiples rows of table: "verification_applications" */
+	update_verification_applications_many?: Array<ModelTypes["verification_applications_mutation_response"] | undefined | null> | undefined | null,
 	/** Validate CS2 gamedata signatures/offsets on a node (5stack.gg test instance only) */
 	validateGamedata?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Spawn a per-user game-streamer pod to play back a finished match's demo */
@@ -176054,7 +177544,19 @@ export type ModelTypes = {
 	/** fetch data from the table: "v_tournament_player_stats" */
 	v_tournament_player_stats: Array<ModelTypes["v_tournament_player_stats"]>,
 	/** fetch aggregated fields from the table: "v_tournament_player_stats" */
-	v_tournament_player_stats_aggregate: ModelTypes["v_tournament_player_stats_aggregate"]
+	v_tournament_player_stats_aggregate: ModelTypes["v_tournament_player_stats_aggregate"],
+	/** fetch data from the table: "verification_application_messages" */
+	verification_application_messages: Array<ModelTypes["verification_application_messages"]>,
+	/** fetch aggregated fields from the table: "verification_application_messages" */
+	verification_application_messages_aggregate: ModelTypes["verification_application_messages_aggregate"],
+	/** fetch data from the table: "verification_application_messages" using primary key columns */
+	verification_application_messages_by_pk?: ModelTypes["verification_application_messages"] | undefined | null,
+	/** fetch data from the table: "verification_applications" */
+	verification_applications: Array<ModelTypes["verification_applications"]>,
+	/** fetch aggregated fields from the table: "verification_applications" */
+	verification_applications_aggregate: ModelTypes["verification_applications_aggregate"],
+	/** fetch data from the table: "verification_applications" using primary key columns */
+	verification_applications_by_pk?: ModelTypes["verification_applications"] | undefined | null
 };
 	["recalculate_tournament_awards_args"]: {
 	_tournament_id?: ModelTypes["uuid"] | undefined | null
@@ -178982,7 +180484,23 @@ export type ModelTypes = {
 	/** fetch aggregated fields from the table: "v_tournament_player_stats" */
 	v_tournament_player_stats_aggregate: ModelTypes["v_tournament_player_stats_aggregate"],
 	/** fetch data from the table in a streaming manner: "v_tournament_player_stats" */
-	v_tournament_player_stats_stream: Array<ModelTypes["v_tournament_player_stats"]>
+	v_tournament_player_stats_stream: Array<ModelTypes["v_tournament_player_stats"]>,
+	/** fetch data from the table: "verification_application_messages" */
+	verification_application_messages: Array<ModelTypes["verification_application_messages"]>,
+	/** fetch aggregated fields from the table: "verification_application_messages" */
+	verification_application_messages_aggregate: ModelTypes["verification_application_messages_aggregate"],
+	/** fetch data from the table: "verification_application_messages" using primary key columns */
+	verification_application_messages_by_pk?: ModelTypes["verification_application_messages"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "verification_application_messages" */
+	verification_application_messages_stream: Array<ModelTypes["verification_application_messages"]>,
+	/** fetch data from the table: "verification_applications" */
+	verification_applications: Array<ModelTypes["verification_applications"]>,
+	/** fetch aggregated fields from the table: "verification_applications" */
+	verification_applications_aggregate: ModelTypes["verification_applications_aggregate"],
+	/** fetch data from the table: "verification_applications" using primary key columns */
+	verification_applications_by_pk?: ModelTypes["verification_applications"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "verification_applications" */
+	verification_applications_stream: Array<ModelTypes["verification_applications"]>
 };
 	/** columns and relationships of "system_alerts" */
 ["system_alerts"]: {
@@ -184396,6 +185914,8 @@ export type ModelTypes = {
 	player_steam_id: ModelTypes["bigint"],
 	role: ModelTypes["e_team_roles_enum"],
 	roster_image_url_snapshot?: string | undefined | null,
+	/** A computed field, executes function "tournament_team_roster_target_meets_min_role" */
+	target_meets_min_role?: boolean | undefined | null,
 	/** An object relationship */
 	tournament: ModelTypes["tournaments"],
 	tournament_id: ModelTypes["uuid"],
@@ -184469,6 +185989,7 @@ export type ModelTypes = {
 	player_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
 	role?: ModelTypes["e_team_roles_enum_comparison_exp"] | undefined | null,
 	roster_image_url_snapshot?: ModelTypes["String_comparison_exp"] | undefined | null,
+	target_meets_min_role?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	tournament?: ModelTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_bool_exp"] | undefined | null,
@@ -184539,6 +186060,7 @@ export type ModelTypes = {
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
 	role?: ModelTypes["order_by"] | undefined | null,
 	roster_image_url_snapshot?: ModelTypes["order_by"] | undefined | null,
+	target_meets_min_role?: ModelTypes["order_by"] | undefined | null,
 	tournament?: ModelTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: ModelTypes["order_by"] | undefined | null,
 	tournament_team?: ModelTypes["tournament_teams_order_by"] | undefined | null,
@@ -184645,6 +186167,7 @@ export type ModelTypes = {
 	/** An object relationship */
 	captain?: ModelTypes["players"] | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at: ModelTypes["timestamptz"],
 	/** An object relationship */
 	creator: ModelTypes["players"],
@@ -184739,6 +186262,7 @@ export type ModelTypes = {
 	can_manage?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	captain?: ModelTypes["players_bool_exp"] | undefined | null,
 	captain_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	creator?: ModelTypes["players_bool_exp"] | undefined | null,
 	eligible_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -184768,6 +186292,7 @@ export type ModelTypes = {
 ["tournament_teams_insert_input"]: {
 	captain?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	creator?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
 	eligible_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -184787,6 +186312,7 @@ export type ModelTypes = {
 	/** aggregate max on columns */
 ["tournament_teams_max_fields"]: {
 		captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	eligible_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
@@ -184800,6 +186326,7 @@ export type ModelTypes = {
 	/** order by max() on columns of table "tournament_teams" */
 ["tournament_teams_max_order_by"]: {
 	captain_steam_id?: ModelTypes["order_by"] | undefined | null,
+	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	eligible_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
@@ -184813,6 +186340,7 @@ export type ModelTypes = {
 	/** aggregate min on columns */
 ["tournament_teams_min_fields"]: {
 		captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	eligible_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
@@ -184826,6 +186354,7 @@ export type ModelTypes = {
 	/** order by min() on columns of table "tournament_teams" */
 ["tournament_teams_min_order_by"]: {
 	captain_steam_id?: ModelTypes["order_by"] | undefined | null,
+	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	eligible_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
@@ -184860,6 +186389,7 @@ export type ModelTypes = {
 	can_manage?: ModelTypes["order_by"] | undefined | null,
 	captain?: ModelTypes["players_order_by"] | undefined | null,
 	captain_steam_id?: ModelTypes["order_by"] | undefined | null,
+	checked_in_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	creator?: ModelTypes["players_order_by"] | undefined | null,
 	eligible_at?: ModelTypes["order_by"] | undefined | null,
@@ -184884,6 +186414,7 @@ export type ModelTypes = {
 	/** input type for updating data in table "tournament_teams" */
 ["tournament_teams_set_input"]: {
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	eligible_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
@@ -184940,6 +186471,7 @@ export type ModelTypes = {
 	/** Initial value of the column from where the streaming should start */
 ["tournament_teams_stream_cursor_value_input"]: {
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	checked_in_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	eligible_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
@@ -185628,6 +187160,8 @@ export type ModelTypes = {
 ["tournaments"]: {
 		/** An object relationship */
 	admin: ModelTypes["players"],
+	attendance_check_in_close_before_minutes: number,
+	attendance_check_in_open_before_minutes: number,
 	auto_start: boolean,
 	awards_enabled: boolean,
 	banner?: string | undefined | null,
@@ -185877,7 +187411,9 @@ export type ModelTypes = {
 };
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -185888,6 +187424,8 @@ export type ModelTypes = {
 };
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -185899,6 +187437,8 @@ export type ModelTypes = {
 	_not?: ModelTypes["tournaments_bool_exp"] | undefined | null,
 	_or?: Array<ModelTypes["tournaments_bool_exp"]> | undefined | null,
 	admin?: ModelTypes["players_bool_exp"] | undefined | null,
+	attendance_check_in_close_before_minutes?: ModelTypes["Int_comparison_exp"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	auto_start?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	awards_enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	banner?: ModelTypes["String_comparison_exp"] | undefined | null,
@@ -185982,6 +187522,8 @@ export type ModelTypes = {
 	["tournaments_constraint"]:tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	longitude?: ModelTypes["float8"] | undefined | null,
@@ -185990,6 +187532,8 @@ export type ModelTypes = {
 	/** input type for inserting data into table "tournaments" */
 ["tournaments_insert_input"]: {
 	admin?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
@@ -186046,7 +187590,9 @@ export type ModelTypes = {
 };
 	/** aggregate max on columns */
 ["tournaments_max_fields"]: {
-		banner?: string | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	banner?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
@@ -186072,6 +187618,8 @@ export type ModelTypes = {
 };
 	/** order by max() on columns of table "tournaments" */
 ["tournaments_max_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	banner?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	description?: ModelTypes["order_by"] | undefined | null,
@@ -186094,7 +187642,9 @@ export type ModelTypes = {
 };
 	/** aggregate min on columns */
 ["tournaments_min_fields"]: {
-		banner?: string | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	banner?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	description?: string | undefined | null,
 	discord_guild_id?: string | undefined | null,
@@ -186120,6 +187670,8 @@ export type ModelTypes = {
 };
 	/** order by min() on columns of table "tournaments" */
 ["tournaments_min_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	banner?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	description?: ModelTypes["order_by"] | undefined | null,
@@ -186162,6 +187714,8 @@ export type ModelTypes = {
 	/** Ordering options when selecting data from "tournaments". */
 ["tournaments_order_by"]: {
 	admin?: ModelTypes["players_order_by"] | undefined | null,
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	auto_start?: ModelTypes["order_by"] | undefined | null,
 	awards_enabled?: ModelTypes["order_by"] | undefined | null,
 	banner?: ModelTypes["order_by"] | undefined | null,
@@ -186247,6 +187801,8 @@ export type ModelTypes = {
 	["tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns"]:tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns;
 	/** input type for updating data in table "tournaments" */
 ["tournaments_set_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
@@ -186288,7 +187844,9 @@ export type ModelTypes = {
 };
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -186299,6 +187857,8 @@ export type ModelTypes = {
 };
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -186306,7 +187866,9 @@ export type ModelTypes = {
 };
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -186317,6 +187879,8 @@ export type ModelTypes = {
 };
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -186324,7 +187888,9 @@ export type ModelTypes = {
 };
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -186335,6 +187901,8 @@ export type ModelTypes = {
 };
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -186349,6 +187917,8 @@ export type ModelTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournaments_stream_cursor_value_input"]: {
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
@@ -186390,7 +187960,9 @@ export type ModelTypes = {
 };
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: ModelTypes["float8"] | undefined | null,
 	longitude?: ModelTypes["float8"] | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -186401,6 +187973,8 @@ export type ModelTypes = {
 };
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -186417,7 +187991,9 @@ export type ModelTypes = {
 };
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -186428,6 +188004,8 @@ export type ModelTypes = {
 };
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -186435,7 +188013,9 @@ export type ModelTypes = {
 };
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -186446,6 +188026,8 @@ export type ModelTypes = {
 };
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -186453,7 +188035,9 @@ export type ModelTypes = {
 };
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
 	/** A computed field, executes function "tournament_max_players_per_lineup" */
@@ -186464,6 +188048,8 @@ export type ModelTypes = {
 };
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
+	attendance_check_in_close_before_minutes?: ModelTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: ModelTypes["order_by"] | undefined | null,
 	individual_check_in_duration_minutes?: ModelTypes["order_by"] | undefined | null,
 	latitude?: ModelTypes["order_by"] | undefined | null,
 	longitude?: ModelTypes["order_by"] | undefined | null,
@@ -195262,6 +196848,524 @@ export type ModelTypes = {
 	kills?: ModelTypes["order_by"] | undefined | null,
 	matches_played?: ModelTypes["order_by"] | undefined | null,
 	player_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** columns and relationships of "verification_application_messages" */
+["verification_application_messages"]: {
+		/** An object relationship */
+	application: ModelTypes["verification_applications"],
+	application_id: ModelTypes["uuid"],
+	created_at: ModelTypes["timestamptz"],
+	id: ModelTypes["uuid"],
+	is_admin: boolean,
+	message: string,
+	/** An object relationship */
+	sender: ModelTypes["players"],
+	sender_steam_id: ModelTypes["bigint"]
+};
+	/** aggregated selection of "verification_application_messages" */
+["verification_application_messages_aggregate"]: {
+		aggregate?: ModelTypes["verification_application_messages_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["verification_application_messages"]>
+};
+	["verification_application_messages_aggregate_bool_exp"]: {
+	bool_and?: ModelTypes["verification_application_messages_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: ModelTypes["verification_application_messages_aggregate_bool_exp_bool_or"] | undefined | null,
+	count?: ModelTypes["verification_application_messages_aggregate_bool_exp_count"] | undefined | null
+};
+	["verification_application_messages_aggregate_bool_exp_bool_and"]: {
+	arguments: ModelTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Boolean_comparison_exp"]
+};
+	["verification_application_messages_aggregate_bool_exp_bool_or"]: {
+	arguments: ModelTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Boolean_comparison_exp"]
+};
+	["verification_application_messages_aggregate_bool_exp_count"]: {
+	arguments?: Array<ModelTypes["verification_application_messages_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "verification_application_messages" */
+["verification_application_messages_aggregate_fields"]: {
+		avg?: ModelTypes["verification_application_messages_avg_fields"] | undefined | null,
+	count: number,
+	max?: ModelTypes["verification_application_messages_max_fields"] | undefined | null,
+	min?: ModelTypes["verification_application_messages_min_fields"] | undefined | null,
+	stddev?: ModelTypes["verification_application_messages_stddev_fields"] | undefined | null,
+	stddev_pop?: ModelTypes["verification_application_messages_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: ModelTypes["verification_application_messages_stddev_samp_fields"] | undefined | null,
+	sum?: ModelTypes["verification_application_messages_sum_fields"] | undefined | null,
+	var_pop?: ModelTypes["verification_application_messages_var_pop_fields"] | undefined | null,
+	var_samp?: ModelTypes["verification_application_messages_var_samp_fields"] | undefined | null,
+	variance?: ModelTypes["verification_application_messages_variance_fields"] | undefined | null
+};
+	/** order by aggregate values of table "verification_application_messages" */
+["verification_application_messages_aggregate_order_by"]: {
+	avg?: ModelTypes["verification_application_messages_avg_order_by"] | undefined | null,
+	count?: ModelTypes["order_by"] | undefined | null,
+	max?: ModelTypes["verification_application_messages_max_order_by"] | undefined | null,
+	min?: ModelTypes["verification_application_messages_min_order_by"] | undefined | null,
+	stddev?: ModelTypes["verification_application_messages_stddev_order_by"] | undefined | null,
+	stddev_pop?: ModelTypes["verification_application_messages_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: ModelTypes["verification_application_messages_stddev_samp_order_by"] | undefined | null,
+	sum?: ModelTypes["verification_application_messages_sum_order_by"] | undefined | null,
+	var_pop?: ModelTypes["verification_application_messages_var_pop_order_by"] | undefined | null,
+	var_samp?: ModelTypes["verification_application_messages_var_samp_order_by"] | undefined | null,
+	variance?: ModelTypes["verification_application_messages_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "verification_application_messages" */
+["verification_application_messages_arr_rel_insert_input"]: {
+	data: Array<ModelTypes["verification_application_messages_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: ModelTypes["verification_application_messages_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["verification_application_messages_avg_fields"]: {
+		sender_steam_id?: number | undefined | null
+};
+	/** order by avg() on columns of table "verification_application_messages" */
+["verification_application_messages_avg_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "verification_application_messages". All fields are combined with a logical 'AND'. */
+["verification_application_messages_bool_exp"]: {
+	_and?: Array<ModelTypes["verification_application_messages_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["verification_application_messages_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["verification_application_messages_bool_exp"]> | undefined | null,
+	application?: ModelTypes["verification_applications_bool_exp"] | undefined | null,
+	application_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	is_admin?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
+	message?: ModelTypes["String_comparison_exp"] | undefined | null,
+	sender?: ModelTypes["players_bool_exp"] | undefined | null,
+	sender_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null
+};
+	["verification_application_messages_constraint"]:verification_application_messages_constraint;
+	/** input type for incrementing numeric columns in table "verification_application_messages" */
+["verification_application_messages_inc_input"]: {
+	sender_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "verification_application_messages" */
+["verification_application_messages_insert_input"]: {
+	application?: ModelTypes["verification_applications_obj_rel_insert_input"] | undefined | null,
+	application_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
+	sender_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** aggregate max on columns */
+["verification_application_messages_max_fields"]: {
+		application_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** order by max() on columns of table "verification_application_messages" */
+["verification_application_messages_max_order_by"]: {
+	application_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	message?: ModelTypes["order_by"] | undefined | null,
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["verification_application_messages_min_fields"]: {
+		application_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** order by min() on columns of table "verification_application_messages" */
+["verification_application_messages_min_order_by"]: {
+	application_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	message?: ModelTypes["order_by"] | undefined | null,
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "verification_application_messages" */
+["verification_application_messages_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["verification_application_messages"]>
+};
+	/** on_conflict condition type for table "verification_application_messages" */
+["verification_application_messages_on_conflict"]: {
+	constraint: ModelTypes["verification_application_messages_constraint"],
+	update_columns: Array<ModelTypes["verification_application_messages_update_column"]>,
+	where?: ModelTypes["verification_application_messages_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "verification_application_messages". */
+["verification_application_messages_order_by"]: {
+	application?: ModelTypes["verification_applications_order_by"] | undefined | null,
+	application_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	is_admin?: ModelTypes["order_by"] | undefined | null,
+	message?: ModelTypes["order_by"] | undefined | null,
+	sender?: ModelTypes["players_order_by"] | undefined | null,
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: verification_application_messages */
+["verification_application_messages_pk_columns_input"]: {
+	id: ModelTypes["uuid"]
+};
+	["verification_application_messages_select_column"]:verification_application_messages_select_column;
+	["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"]:verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns;
+	["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"]:verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns;
+	/** input type for updating data in table "verification_application_messages" */
+["verification_application_messages_set_input"]: {
+	application_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["verification_application_messages_stddev_fields"]: {
+		sender_steam_id?: number | undefined | null
+};
+	/** order by stddev() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["verification_application_messages_stddev_pop_fields"]: {
+		sender_steam_id?: number | undefined | null
+};
+	/** order by stddev_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_pop_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["verification_application_messages_stddev_samp_fields"]: {
+		sender_steam_id?: number | undefined | null
+};
+	/** order by stddev_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_samp_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "verification_application_messages" */
+["verification_application_messages_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["verification_application_messages_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_application_messages_stream_cursor_value_input"]: {
+	application_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** aggregate sum on columns */
+["verification_application_messages_sum_fields"]: {
+		sender_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** order by sum() on columns of table "verification_application_messages" */
+["verification_application_messages_sum_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	["verification_application_messages_update_column"]:verification_application_messages_update_column;
+	["verification_application_messages_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ModelTypes["verification_application_messages_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["verification_application_messages_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["verification_application_messages_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["verification_application_messages_var_pop_fields"]: {
+		sender_steam_id?: number | undefined | null
+};
+	/** order by var_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_var_pop_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["verification_application_messages_var_samp_fields"]: {
+		sender_steam_id?: number | undefined | null
+};
+	/** order by var_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_var_samp_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["verification_application_messages_variance_fields"]: {
+		sender_steam_id?: number | undefined | null
+};
+	/** order by variance() on columns of table "verification_application_messages" */
+["verification_application_messages_variance_order_by"]: {
+	sender_steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** columns and relationships of "verification_applications" */
+["verification_applications"]: {
+		additional_info?: string | undefined | null,
+	country: string,
+	created_at: ModelTypes["timestamptz"],
+	deaf_player_steam_url?: string | undefined | null,
+	found_via: string,
+	id: ModelTypes["uuid"],
+	is_deaf: string,
+	knows_deaf_player: boolean,
+	/** An array relationship */
+	messages: Array<ModelTypes["verification_application_messages"]>,
+	/** An aggregate relationship */
+	messages_aggregate: ModelTypes["verification_application_messages_aggregate"],
+	/** An object relationship */
+	player: ModelTypes["players"],
+	player_steam_id: ModelTypes["bigint"],
+	reviewed_at?: ModelTypes["timestamptz"] | undefined | null,
+	/** An object relationship */
+	reviewed_by?: ModelTypes["players"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	status: string,
+	updated_at: ModelTypes["timestamptz"]
+};
+	/** aggregated selection of "verification_applications" */
+["verification_applications_aggregate"]: {
+		aggregate?: ModelTypes["verification_applications_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["verification_applications"]>
+};
+	/** aggregate fields of "verification_applications" */
+["verification_applications_aggregate_fields"]: {
+		avg?: ModelTypes["verification_applications_avg_fields"] | undefined | null,
+	count: number,
+	max?: ModelTypes["verification_applications_max_fields"] | undefined | null,
+	min?: ModelTypes["verification_applications_min_fields"] | undefined | null,
+	stddev?: ModelTypes["verification_applications_stddev_fields"] | undefined | null,
+	stddev_pop?: ModelTypes["verification_applications_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: ModelTypes["verification_applications_stddev_samp_fields"] | undefined | null,
+	sum?: ModelTypes["verification_applications_sum_fields"] | undefined | null,
+	var_pop?: ModelTypes["verification_applications_var_pop_fields"] | undefined | null,
+	var_samp?: ModelTypes["verification_applications_var_samp_fields"] | undefined | null,
+	variance?: ModelTypes["verification_applications_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["verification_applications_avg_fields"]: {
+		player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "verification_applications". All fields are combined with a logical 'AND'. */
+["verification_applications_bool_exp"]: {
+	_and?: Array<ModelTypes["verification_applications_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["verification_applications_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["verification_applications_bool_exp"]> | undefined | null,
+	additional_info?: ModelTypes["String_comparison_exp"] | undefined | null,
+	country?: ModelTypes["String_comparison_exp"] | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	deaf_player_steam_url?: ModelTypes["String_comparison_exp"] | undefined | null,
+	found_via?: ModelTypes["String_comparison_exp"] | undefined | null,
+	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	is_deaf?: ModelTypes["String_comparison_exp"] | undefined | null,
+	knows_deaf_player?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
+	messages?: ModelTypes["verification_application_messages_bool_exp"] | undefined | null,
+	messages_aggregate?: ModelTypes["verification_application_messages_aggregate_bool_exp"] | undefined | null,
+	player?: ModelTypes["players_bool_exp"] | undefined | null,
+	player_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	reviewed_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	reviewed_by?: ModelTypes["players_bool_exp"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	status?: ModelTypes["String_comparison_exp"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	["verification_applications_constraint"]:verification_applications_constraint;
+	/** input type for incrementing numeric columns in table "verification_applications" */
+["verification_applications_inc_input"]: {
+	player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "verification_applications" */
+["verification_applications_insert_input"]: {
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	messages?: ModelTypes["verification_application_messages_arr_rel_insert_input"] | undefined | null,
+	player?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
+	player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	reviewed_at?: ModelTypes["timestamptz"] | undefined | null,
+	reviewed_by?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["verification_applications_max_fields"]: {
+		additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	reviewed_at?: ModelTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate min on columns */
+["verification_applications_min_fields"]: {
+		additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	reviewed_at?: ModelTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** response of any mutation on the table "verification_applications" */
+["verification_applications_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["verification_applications"]>
+};
+	/** input type for inserting object relation for remote table "verification_applications" */
+["verification_applications_obj_rel_insert_input"]: {
+	data: ModelTypes["verification_applications_insert_input"],
+	/** upsert condition */
+	on_conflict?: ModelTypes["verification_applications_on_conflict"] | undefined | null
+};
+	/** on_conflict condition type for table "verification_applications" */
+["verification_applications_on_conflict"]: {
+	constraint: ModelTypes["verification_applications_constraint"],
+	update_columns: Array<ModelTypes["verification_applications_update_column"]>,
+	where?: ModelTypes["verification_applications_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "verification_applications". */
+["verification_applications_order_by"]: {
+	additional_info?: ModelTypes["order_by"] | undefined | null,
+	country?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	deaf_player_steam_url?: ModelTypes["order_by"] | undefined | null,
+	found_via?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	is_deaf?: ModelTypes["order_by"] | undefined | null,
+	knows_deaf_player?: ModelTypes["order_by"] | undefined | null,
+	messages_aggregate?: ModelTypes["verification_application_messages_aggregate_order_by"] | undefined | null,
+	player?: ModelTypes["players_order_by"] | undefined | null,
+	player_steam_id?: ModelTypes["order_by"] | undefined | null,
+	reviewed_at?: ModelTypes["order_by"] | undefined | null,
+	reviewed_by?: ModelTypes["players_order_by"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	status?: ModelTypes["order_by"] | undefined | null,
+	updated_at?: ModelTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: verification_applications */
+["verification_applications_pk_columns_input"]: {
+	id: ModelTypes["uuid"]
+};
+	["verification_applications_select_column"]:verification_applications_select_column;
+	/** input type for updating data in table "verification_applications" */
+["verification_applications_set_input"]: {
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	reviewed_at?: ModelTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["verification_applications_stddev_fields"]: {
+		player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["verification_applications_stddev_pop_fields"]: {
+		player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["verification_applications_stddev_samp_fields"]: {
+		player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "verification_applications" */
+["verification_applications_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["verification_applications_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_applications_stream_cursor_value_input"]: {
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	reviewed_at?: ModelTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate sum on columns */
+["verification_applications_sum_fields"]: {
+		player_steam_id?: ModelTypes["bigint"] | undefined | null,
+	reviewed_by_steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	["verification_applications_update_column"]:verification_applications_update_column;
+	["verification_applications_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ModelTypes["verification_applications_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["verification_applications_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["verification_applications_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["verification_applications_var_pop_fields"]: {
+		player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["verification_applications_var_samp_fields"]: {
+		player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["verification_applications_variance_fields"]: {
+		player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
 };
 	["ID"]:any
     }
@@ -218276,6 +220380,8 @@ export type GraphQLTypes = {
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	approveNameChange?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Approve a verification application and bump the player's role (admin only). */
+	approveVerificationApplication?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "approve_league_season_movements" which returns "league_team_movements" */
 	approve_league_season_movements: Array<GraphQLTypes["league_team_movements"]>,
 	/** Archive or unarchive a custom award definition */
@@ -218310,6 +220416,8 @@ export type GraphQLTypes = {
 	cancelReparseAllDemos?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** cancelScrimRequest */
 	cancelScrimRequest?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Captain/authorized team representative confirms tournament attendance for their team */
+	checkInTournamentTeam?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** checkIntoMatch */
 	checkIntoMatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Player self-check-in during a tournament's individual sign-up check-in window */
@@ -218994,6 +221102,14 @@ export type GraphQLTypes = {
 	delete_v_team_stage_results?: GraphQLTypes["v_team_stage_results_mutation_response"] | undefined | null,
 	/** delete single row from the table: "v_team_stage_results" */
 	delete_v_team_stage_results_by_pk?: GraphQLTypes["v_team_stage_results"] | undefined | null,
+	/** delete data from the table: "verification_application_messages" */
+	delete_verification_application_messages?: GraphQLTypes["verification_application_messages_mutation_response"] | undefined | null,
+	/** delete single row from the table: "verification_application_messages" */
+	delete_verification_application_messages_by_pk?: GraphQLTypes["verification_application_messages"] | undefined | null,
+	/** delete data from the table: "verification_applications" */
+	delete_verification_applications?: GraphQLTypes["verification_applications_mutation_response"] | undefined | null,
+	/** delete single row from the table: "verification_applications" */
+	delete_verification_applications_by_pk?: GraphQLTypes["verification_applications"] | undefined | null,
 	denyInvite?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Deny a player's name change request and notify them (admin/match_organizer only). */
 	denyNameChange?: GraphQLTypes["SuccessOutput"] | undefined | null,
@@ -219669,6 +221785,14 @@ export type GraphQLTypes = {
 	insert_v_team_stage_results?: GraphQLTypes["v_team_stage_results_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "v_team_stage_results" */
 	insert_v_team_stage_results_one?: GraphQLTypes["v_team_stage_results"] | undefined | null,
+	/** insert data into the table: "verification_application_messages" */
+	insert_verification_application_messages?: GraphQLTypes["verification_application_messages_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "verification_application_messages" */
+	insert_verification_application_messages_one?: GraphQLTypes["verification_application_messages"] | undefined | null,
+	/** insert data into the table: "verification_applications" */
+	insert_verification_applications?: GraphQLTypes["verification_applications_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "verification_applications" */
+	insert_verification_applications_one?: GraphQLTypes["verification_applications"] | undefined | null,
 	/** joinDraftGame */
 	joinDraftGame?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** joinDraftGameAsParty */
@@ -219711,6 +221835,8 @@ export type GraphQLTypes = {
 	refreshFaceitRank?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	refreshLiveHud?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	registerName?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Reject a verification application (admin only). */
+	rejectVerificationApplication?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Removes an abandoned_matches row, lifts the still-active system-issued ban tied to it (if any), and undoes one step of the player's leaver_ban_stage escalation -- see SanctionsService.removeAbandonedMatch. */
 	removeAbandonedMatch: GraphQLTypes["SuccessOutput"],
 	/** Remove dev fixture data (dev only) */
@@ -220784,6 +222910,18 @@ export type GraphQLTypes = {
 	update_v_team_stage_results_by_pk?: GraphQLTypes["v_team_stage_results"] | undefined | null,
 	/** update multiples rows of table: "v_team_stage_results" */
 	update_v_team_stage_results_many?: Array<GraphQLTypes["v_team_stage_results_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "verification_application_messages" */
+	update_verification_application_messages?: GraphQLTypes["verification_application_messages_mutation_response"] | undefined | null,
+	/** update single row of the table: "verification_application_messages" */
+	update_verification_application_messages_by_pk?: GraphQLTypes["verification_application_messages"] | undefined | null,
+	/** update multiples rows of table: "verification_application_messages" */
+	update_verification_application_messages_many?: Array<GraphQLTypes["verification_application_messages_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "verification_applications" */
+	update_verification_applications?: GraphQLTypes["verification_applications_mutation_response"] | undefined | null,
+	/** update single row of the table: "verification_applications" */
+	update_verification_applications_by_pk?: GraphQLTypes["verification_applications"] | undefined | null,
+	/** update multiples rows of table: "verification_applications" */
+	update_verification_applications_many?: Array<GraphQLTypes["verification_applications_mutation_response"] | undefined | null> | undefined | null,
 	/** Validate CS2 gamedata signatures/offsets on a node (5stack.gg test instance only) */
 	validateGamedata?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Spawn a per-user game-streamer pod to play back a finished match's demo */
@@ -237341,7 +239479,19 @@ export type GraphQLTypes = {
 	/** fetch data from the table: "v_tournament_player_stats" */
 	v_tournament_player_stats: Array<GraphQLTypes["v_tournament_player_stats"]>,
 	/** fetch aggregated fields from the table: "v_tournament_player_stats" */
-	v_tournament_player_stats_aggregate: GraphQLTypes["v_tournament_player_stats_aggregate"]
+	v_tournament_player_stats_aggregate: GraphQLTypes["v_tournament_player_stats_aggregate"],
+	/** fetch data from the table: "verification_application_messages" */
+	verification_application_messages: Array<GraphQLTypes["verification_application_messages"]>,
+	/** fetch aggregated fields from the table: "verification_application_messages" */
+	verification_application_messages_aggregate: GraphQLTypes["verification_application_messages_aggregate"],
+	/** fetch data from the table: "verification_application_messages" using primary key columns */
+	verification_application_messages_by_pk?: GraphQLTypes["verification_application_messages"] | undefined | null,
+	/** fetch data from the table: "verification_applications" */
+	verification_applications: Array<GraphQLTypes["verification_applications"]>,
+	/** fetch aggregated fields from the table: "verification_applications" */
+	verification_applications_aggregate: GraphQLTypes["verification_applications_aggregate"],
+	/** fetch data from the table: "verification_applications" using primary key columns */
+	verification_applications_by_pk?: GraphQLTypes["verification_applications"] | undefined | null
 };
 	["recalculate_tournament_awards_args"]: {
 		_tournament_id?: GraphQLTypes["uuid"] | undefined | null
@@ -240358,7 +242508,23 @@ export type GraphQLTypes = {
 	/** fetch aggregated fields from the table: "v_tournament_player_stats" */
 	v_tournament_player_stats_aggregate: GraphQLTypes["v_tournament_player_stats_aggregate"],
 	/** fetch data from the table in a streaming manner: "v_tournament_player_stats" */
-	v_tournament_player_stats_stream: Array<GraphQLTypes["v_tournament_player_stats"]>
+	v_tournament_player_stats_stream: Array<GraphQLTypes["v_tournament_player_stats"]>,
+	/** fetch data from the table: "verification_application_messages" */
+	verification_application_messages: Array<GraphQLTypes["verification_application_messages"]>,
+	/** fetch aggregated fields from the table: "verification_application_messages" */
+	verification_application_messages_aggregate: GraphQLTypes["verification_application_messages_aggregate"],
+	/** fetch data from the table: "verification_application_messages" using primary key columns */
+	verification_application_messages_by_pk?: GraphQLTypes["verification_application_messages"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "verification_application_messages" */
+	verification_application_messages_stream: Array<GraphQLTypes["verification_application_messages"]>,
+	/** fetch data from the table: "verification_applications" */
+	verification_applications: Array<GraphQLTypes["verification_applications"]>,
+	/** fetch aggregated fields from the table: "verification_applications" */
+	verification_applications_aggregate: GraphQLTypes["verification_applications_aggregate"],
+	/** fetch data from the table: "verification_applications" using primary key columns */
+	verification_applications_by_pk?: GraphQLTypes["verification_applications"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "verification_applications" */
+	verification_applications_stream: Array<GraphQLTypes["verification_applications"]>
 };
 	/** columns and relationships of "system_alerts" */
 ["system_alerts"]: {
@@ -246101,6 +248267,8 @@ export type GraphQLTypes = {
 	player_steam_id: GraphQLTypes["bigint"],
 	role: GraphQLTypes["e_team_roles_enum"],
 	roster_image_url_snapshot?: string | undefined | null,
+	/** A computed field, executes function "tournament_team_roster_target_meets_min_role" */
+	target_meets_min_role?: boolean | undefined | null,
 	/** An object relationship */
 	tournament: GraphQLTypes["tournaments"],
 	tournament_id: GraphQLTypes["uuid"],
@@ -246177,6 +248345,7 @@ export type GraphQLTypes = {
 	player_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
 	role?: GraphQLTypes["e_team_roles_enum_comparison_exp"] | undefined | null,
 	roster_image_url_snapshot?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	target_meets_min_role?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	tournament?: GraphQLTypes["tournaments_bool_exp"] | undefined | null,
 	tournament_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_bool_exp"] | undefined | null,
@@ -246251,6 +248420,7 @@ export type GraphQLTypes = {
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	role?: GraphQLTypes["order_by"] | undefined | null,
 	roster_image_url_snapshot?: GraphQLTypes["order_by"] | undefined | null,
+	target_meets_min_role?: GraphQLTypes["order_by"] | undefined | null,
 	tournament?: GraphQLTypes["tournaments_order_by"] | undefined | null,
 	tournament_id?: GraphQLTypes["order_by"] | undefined | null,
 	tournament_team?: GraphQLTypes["tournament_teams_order_by"] | undefined | null,
@@ -246367,6 +248537,7 @@ export type GraphQLTypes = {
 	/** An object relationship */
 	captain?: GraphQLTypes["players"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at: GraphQLTypes["timestamptz"],
 	/** An object relationship */
 	creator: GraphQLTypes["players"],
@@ -246464,6 +248635,7 @@ export type GraphQLTypes = {
 	can_manage?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	captain?: GraphQLTypes["players_bool_exp"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	creator?: GraphQLTypes["players_bool_exp"] | undefined | null,
 	eligible_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -246494,6 +248666,7 @@ export type GraphQLTypes = {
 ["tournament_teams_insert_input"]: {
 		captain?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	creator?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
 	eligible_at?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -246514,6 +248687,7 @@ export type GraphQLTypes = {
 ["tournament_teams_max_fields"]: {
 	__typename: "tournament_teams_max_fields",
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	eligible_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
@@ -246527,6 +248701,7 @@ export type GraphQLTypes = {
 	/** order by max() on columns of table "tournament_teams" */
 ["tournament_teams_max_order_by"]: {
 		captain_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	eligible_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
@@ -246541,6 +248716,7 @@ export type GraphQLTypes = {
 ["tournament_teams_min_fields"]: {
 	__typename: "tournament_teams_min_fields",
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	eligible_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
@@ -246554,6 +248730,7 @@ export type GraphQLTypes = {
 	/** order by min() on columns of table "tournament_teams" */
 ["tournament_teams_min_order_by"]: {
 		captain_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	eligible_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
@@ -246589,6 +248766,7 @@ export type GraphQLTypes = {
 		can_manage?: GraphQLTypes["order_by"] | undefined | null,
 	captain?: GraphQLTypes["players_order_by"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	checked_in_at?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	creator?: GraphQLTypes["players_order_by"] | undefined | null,
 	eligible_at?: GraphQLTypes["order_by"] | undefined | null,
@@ -246614,6 +248792,7 @@ export type GraphQLTypes = {
 	/** input type for updating data in table "tournament_teams" */
 ["tournament_teams_set_input"]: {
 		captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	eligible_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
@@ -246673,6 +248852,7 @@ export type GraphQLTypes = {
 	/** Initial value of the column from where the streaming should start */
 ["tournament_teams_stream_cursor_value_input"]: {
 		captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	checked_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	eligible_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
@@ -247399,6 +249579,8 @@ export type GraphQLTypes = {
 	__typename: "tournaments",
 	/** An object relationship */
 	admin: GraphQLTypes["players"],
+	attendance_check_in_close_before_minutes: number,
+	attendance_check_in_open_before_minutes: number,
 	auto_start: boolean,
 	awards_enabled: boolean,
 	banner?: string | undefined | null,
@@ -247651,6 +249833,8 @@ export type GraphQLTypes = {
 	/** aggregate avg on columns */
 ["tournaments_avg_fields"]: {
 	__typename: "tournaments_avg_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
@@ -247662,7 +249846,9 @@ export type GraphQLTypes = {
 };
 	/** order by avg() on columns of table "tournaments" */
 ["tournaments_avg_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -247673,6 +249859,8 @@ export type GraphQLTypes = {
 	_not?: GraphQLTypes["tournaments_bool_exp"] | undefined | null,
 	_or?: Array<GraphQLTypes["tournaments_bool_exp"]> | undefined | null,
 	admin?: GraphQLTypes["players_bool_exp"] | undefined | null,
+	attendance_check_in_close_before_minutes?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	auto_start?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	awards_enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	banner?: GraphQLTypes["String_comparison_exp"] | undefined | null,
@@ -247757,7 +249945,9 @@ export type GraphQLTypes = {
 ["tournaments_constraint"]: tournaments_constraint;
 	/** input type for incrementing numeric columns in table "tournaments" */
 ["tournaments_inc_input"]: {
-		individual_check_in_duration_minutes?: number | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	longitude?: GraphQLTypes["float8"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null
@@ -247765,6 +249955,8 @@ export type GraphQLTypes = {
 	/** input type for inserting data into table "tournaments" */
 ["tournaments_insert_input"]: {
 		admin?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
@@ -247822,6 +250014,8 @@ export type GraphQLTypes = {
 	/** aggregate max on columns */
 ["tournaments_max_fields"]: {
 	__typename: "tournaments_max_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	banner?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	description?: string | undefined | null,
@@ -247848,7 +250042,9 @@ export type GraphQLTypes = {
 };
 	/** order by max() on columns of table "tournaments" */
 ["tournaments_max_order_by"]: {
-		banner?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	banner?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	description?: GraphQLTypes["order_by"] | undefined | null,
 	discord_guild_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -247871,6 +250067,8 @@ export type GraphQLTypes = {
 	/** aggregate min on columns */
 ["tournaments_min_fields"]: {
 	__typename: "tournaments_min_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	banner?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	description?: string | undefined | null,
@@ -247897,7 +250095,9 @@ export type GraphQLTypes = {
 };
 	/** order by min() on columns of table "tournaments" */
 ["tournaments_min_order_by"]: {
-		banner?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	banner?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	description?: GraphQLTypes["order_by"] | undefined | null,
 	discord_guild_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -247940,6 +250140,8 @@ export type GraphQLTypes = {
 	/** Ordering options when selecting data from "tournaments". */
 ["tournaments_order_by"]: {
 		admin?: GraphQLTypes["players_order_by"] | undefined | null,
+	attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	auto_start?: GraphQLTypes["order_by"] | undefined | null,
 	awards_enabled?: GraphQLTypes["order_by"] | undefined | null,
 	banner?: GraphQLTypes["order_by"] | undefined | null,
@@ -248036,7 +250238,9 @@ export type GraphQLTypes = {
 ["tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns"]: tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns;
 	/** input type for updating data in table "tournaments" */
 ["tournaments_set_input"]: {
-		auto_start?: boolean | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -248078,6 +250282,8 @@ export type GraphQLTypes = {
 	/** aggregate stddev on columns */
 ["tournaments_stddev_fields"]: {
 	__typename: "tournaments_stddev_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
@@ -248089,7 +250295,9 @@ export type GraphQLTypes = {
 };
 	/** order by stddev() on columns of table "tournaments" */
 ["tournaments_stddev_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -248097,6 +250305,8 @@ export type GraphQLTypes = {
 	/** aggregate stddev_pop on columns */
 ["tournaments_stddev_pop_fields"]: {
 	__typename: "tournaments_stddev_pop_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
@@ -248108,7 +250318,9 @@ export type GraphQLTypes = {
 };
 	/** order by stddev_pop() on columns of table "tournaments" */
 ["tournaments_stddev_pop_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -248116,6 +250328,8 @@ export type GraphQLTypes = {
 	/** aggregate stddev_samp on columns */
 ["tournaments_stddev_samp_fields"]: {
 	__typename: "tournaments_stddev_samp_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
@@ -248127,7 +250341,9 @@ export type GraphQLTypes = {
 };
 	/** order by stddev_samp() on columns of table "tournaments" */
 ["tournaments_stddev_samp_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -248141,7 +250357,9 @@ export type GraphQLTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["tournaments_stream_cursor_value_input"]: {
-		auto_start?: boolean | undefined | null,
+		attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
+	auto_start?: boolean | undefined | null,
 	awards_enabled?: boolean | undefined | null,
 	banner?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -248183,6 +250401,8 @@ export type GraphQLTypes = {
 	/** aggregate sum on columns */
 ["tournaments_sum_fields"]: {
 	__typename: "tournaments_sum_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: GraphQLTypes["float8"] | undefined | null,
 	longitude?: GraphQLTypes["float8"] | undefined | null,
@@ -248194,7 +250414,9 @@ export type GraphQLTypes = {
 };
 	/** order by sum() on columns of table "tournaments" */
 ["tournaments_sum_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -248212,6 +250434,8 @@ export type GraphQLTypes = {
 	/** aggregate var_pop on columns */
 ["tournaments_var_pop_fields"]: {
 	__typename: "tournaments_var_pop_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
@@ -248223,7 +250447,9 @@ export type GraphQLTypes = {
 };
 	/** order by var_pop() on columns of table "tournaments" */
 ["tournaments_var_pop_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -248231,6 +250457,8 @@ export type GraphQLTypes = {
 	/** aggregate var_samp on columns */
 ["tournaments_var_samp_fields"]: {
 	__typename: "tournaments_var_samp_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
@@ -248242,7 +250470,9 @@ export type GraphQLTypes = {
 };
 	/** order by var_samp() on columns of table "tournaments" */
 ["tournaments_var_samp_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -248250,6 +250480,8 @@ export type GraphQLTypes = {
 	/** aggregate variance on columns */
 ["tournaments_variance_fields"]: {
 	__typename: "tournaments_variance_fields",
+	attendance_check_in_close_before_minutes?: number | undefined | null,
+	attendance_check_in_open_before_minutes?: number | undefined | null,
 	individual_check_in_duration_minutes?: number | undefined | null,
 	latitude?: number | undefined | null,
 	longitude?: number | undefined | null,
@@ -248261,7 +250493,9 @@ export type GraphQLTypes = {
 };
 	/** order by variance() on columns of table "tournaments" */
 ["tournaments_variance_order_by"]: {
-		individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
+		attendance_check_in_close_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	attendance_check_in_open_before_minutes?: GraphQLTypes["order_by"] | undefined | null,
+	individual_check_in_duration_minutes?: GraphQLTypes["order_by"] | undefined | null,
 	latitude?: GraphQLTypes["order_by"] | undefined | null,
 	longitude?: GraphQLTypes["order_by"] | undefined | null,
 	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
@@ -257557,6 +259791,560 @@ export type GraphQLTypes = {
 	matches_played?: GraphQLTypes["order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
+	/** columns and relationships of "verification_application_messages" */
+["verification_application_messages"]: {
+	__typename: "verification_application_messages",
+	/** An object relationship */
+	application: GraphQLTypes["verification_applications"],
+	application_id: GraphQLTypes["uuid"],
+	created_at: GraphQLTypes["timestamptz"],
+	id: GraphQLTypes["uuid"],
+	is_admin: boolean,
+	message: string,
+	/** An object relationship */
+	sender: GraphQLTypes["players"],
+	sender_steam_id: GraphQLTypes["bigint"]
+};
+	/** aggregated selection of "verification_application_messages" */
+["verification_application_messages_aggregate"]: {
+	__typename: "verification_application_messages_aggregate",
+	aggregate?: GraphQLTypes["verification_application_messages_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["verification_application_messages"]>
+};
+	["verification_application_messages_aggregate_bool_exp"]: {
+		bool_and?: GraphQLTypes["verification_application_messages_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: GraphQLTypes["verification_application_messages_aggregate_bool_exp_bool_or"] | undefined | null,
+	count?: GraphQLTypes["verification_application_messages_aggregate_bool_exp_count"] | undefined | null
+};
+	["verification_application_messages_aggregate_bool_exp_bool_and"]: {
+		arguments: GraphQLTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Boolean_comparison_exp"]
+};
+	["verification_application_messages_aggregate_bool_exp_bool_or"]: {
+		arguments: GraphQLTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Boolean_comparison_exp"]
+};
+	["verification_application_messages_aggregate_bool_exp_count"]: {
+		arguments?: Array<GraphQLTypes["verification_application_messages_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["verification_application_messages_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "verification_application_messages" */
+["verification_application_messages_aggregate_fields"]: {
+	__typename: "verification_application_messages_aggregate_fields",
+	avg?: GraphQLTypes["verification_application_messages_avg_fields"] | undefined | null,
+	count: number,
+	max?: GraphQLTypes["verification_application_messages_max_fields"] | undefined | null,
+	min?: GraphQLTypes["verification_application_messages_min_fields"] | undefined | null,
+	stddev?: GraphQLTypes["verification_application_messages_stddev_fields"] | undefined | null,
+	stddev_pop?: GraphQLTypes["verification_application_messages_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: GraphQLTypes["verification_application_messages_stddev_samp_fields"] | undefined | null,
+	sum?: GraphQLTypes["verification_application_messages_sum_fields"] | undefined | null,
+	var_pop?: GraphQLTypes["verification_application_messages_var_pop_fields"] | undefined | null,
+	var_samp?: GraphQLTypes["verification_application_messages_var_samp_fields"] | undefined | null,
+	variance?: GraphQLTypes["verification_application_messages_variance_fields"] | undefined | null
+};
+	/** order by aggregate values of table "verification_application_messages" */
+["verification_application_messages_aggregate_order_by"]: {
+		avg?: GraphQLTypes["verification_application_messages_avg_order_by"] | undefined | null,
+	count?: GraphQLTypes["order_by"] | undefined | null,
+	max?: GraphQLTypes["verification_application_messages_max_order_by"] | undefined | null,
+	min?: GraphQLTypes["verification_application_messages_min_order_by"] | undefined | null,
+	stddev?: GraphQLTypes["verification_application_messages_stddev_order_by"] | undefined | null,
+	stddev_pop?: GraphQLTypes["verification_application_messages_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: GraphQLTypes["verification_application_messages_stddev_samp_order_by"] | undefined | null,
+	sum?: GraphQLTypes["verification_application_messages_sum_order_by"] | undefined | null,
+	var_pop?: GraphQLTypes["verification_application_messages_var_pop_order_by"] | undefined | null,
+	var_samp?: GraphQLTypes["verification_application_messages_var_samp_order_by"] | undefined | null,
+	variance?: GraphQLTypes["verification_application_messages_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "verification_application_messages" */
+["verification_application_messages_arr_rel_insert_input"]: {
+		data: Array<GraphQLTypes["verification_application_messages_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: GraphQLTypes["verification_application_messages_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["verification_application_messages_avg_fields"]: {
+	__typename: "verification_application_messages_avg_fields",
+	sender_steam_id?: number | undefined | null
+};
+	/** order by avg() on columns of table "verification_application_messages" */
+["verification_application_messages_avg_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "verification_application_messages". All fields are combined with a logical 'AND'. */
+["verification_application_messages_bool_exp"]: {
+		_and?: Array<GraphQLTypes["verification_application_messages_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["verification_application_messages_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["verification_application_messages_bool_exp"]> | undefined | null,
+	application?: GraphQLTypes["verification_applications_bool_exp"] | undefined | null,
+	application_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	is_admin?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
+	message?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	sender?: GraphQLTypes["players_bool_exp"] | undefined | null,
+	sender_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "verification_application_messages" */
+["verification_application_messages_constraint"]: verification_application_messages_constraint;
+	/** input type for incrementing numeric columns in table "verification_application_messages" */
+["verification_application_messages_inc_input"]: {
+		sender_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "verification_application_messages" */
+["verification_application_messages_insert_input"]: {
+		application?: GraphQLTypes["verification_applications_obj_rel_insert_input"] | undefined | null,
+	application_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
+	sender_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** aggregate max on columns */
+["verification_application_messages_max_fields"]: {
+	__typename: "verification_application_messages_max_fields",
+	application_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** order by max() on columns of table "verification_application_messages" */
+["verification_application_messages_max_order_by"]: {
+		application_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	message?: GraphQLTypes["order_by"] | undefined | null,
+	sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["verification_application_messages_min_fields"]: {
+	__typename: "verification_application_messages_min_fields",
+	application_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** order by min() on columns of table "verification_application_messages" */
+["verification_application_messages_min_order_by"]: {
+		application_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	message?: GraphQLTypes["order_by"] | undefined | null,
+	sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "verification_application_messages" */
+["verification_application_messages_mutation_response"]: {
+	__typename: "verification_application_messages_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["verification_application_messages"]>
+};
+	/** on_conflict condition type for table "verification_application_messages" */
+["verification_application_messages_on_conflict"]: {
+		constraint: GraphQLTypes["verification_application_messages_constraint"],
+	update_columns: Array<GraphQLTypes["verification_application_messages_update_column"]>,
+	where?: GraphQLTypes["verification_application_messages_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "verification_application_messages". */
+["verification_application_messages_order_by"]: {
+		application?: GraphQLTypes["verification_applications_order_by"] | undefined | null,
+	application_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	is_admin?: GraphQLTypes["order_by"] | undefined | null,
+	message?: GraphQLTypes["order_by"] | undefined | null,
+	sender?: GraphQLTypes["players_order_by"] | undefined | null,
+	sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: verification_application_messages */
+["verification_application_messages_pk_columns_input"]: {
+		id: GraphQLTypes["uuid"]
+};
+	/** select columns of table "verification_application_messages" */
+["verification_application_messages_select_column"]: verification_application_messages_select_column;
+	/** select "verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns" columns of table "verification_application_messages" */
+["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"]: verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns" columns of table "verification_application_messages" */
+["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"]: verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns;
+	/** input type for updating data in table "verification_application_messages" */
+["verification_application_messages_set_input"]: {
+		application_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["verification_application_messages_stddev_fields"]: {
+	__typename: "verification_application_messages_stddev_fields",
+	sender_steam_id?: number | undefined | null
+};
+	/** order by stddev() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["verification_application_messages_stddev_pop_fields"]: {
+	__typename: "verification_application_messages_stddev_pop_fields",
+	sender_steam_id?: number | undefined | null
+};
+	/** order by stddev_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_pop_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["verification_application_messages_stddev_samp_fields"]: {
+	__typename: "verification_application_messages_stddev_samp_fields",
+	sender_steam_id?: number | undefined | null
+};
+	/** order by stddev_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_stddev_samp_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "verification_application_messages" */
+["verification_application_messages_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["verification_application_messages_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_application_messages_stream_cursor_value_input"]: {
+		application_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_admin?: boolean | undefined | null,
+	message?: string | undefined | null,
+	sender_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** aggregate sum on columns */
+["verification_application_messages_sum_fields"]: {
+	__typename: "verification_application_messages_sum_fields",
+	sender_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** order by sum() on columns of table "verification_application_messages" */
+["verification_application_messages_sum_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** update columns of table "verification_application_messages" */
+["verification_application_messages_update_column"]: verification_application_messages_update_column;
+	["verification_application_messages_updates"]: {
+		/** increments the numeric columns with given value of the filtered values */
+	_inc?: GraphQLTypes["verification_application_messages_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["verification_application_messages_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["verification_application_messages_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["verification_application_messages_var_pop_fields"]: {
+	__typename: "verification_application_messages_var_pop_fields",
+	sender_steam_id?: number | undefined | null
+};
+	/** order by var_pop() on columns of table "verification_application_messages" */
+["verification_application_messages_var_pop_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["verification_application_messages_var_samp_fields"]: {
+	__typename: "verification_application_messages_var_samp_fields",
+	sender_steam_id?: number | undefined | null
+};
+	/** order by var_samp() on columns of table "verification_application_messages" */
+["verification_application_messages_var_samp_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["verification_application_messages_variance_fields"]: {
+	__typename: "verification_application_messages_variance_fields",
+	sender_steam_id?: number | undefined | null
+};
+	/** order by variance() on columns of table "verification_application_messages" */
+["verification_application_messages_variance_order_by"]: {
+		sender_steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** columns and relationships of "verification_applications" */
+["verification_applications"]: {
+	__typename: "verification_applications",
+	additional_info?: string | undefined | null,
+	country: string,
+	created_at: GraphQLTypes["timestamptz"],
+	deaf_player_steam_url?: string | undefined | null,
+	found_via: string,
+	id: GraphQLTypes["uuid"],
+	is_deaf: string,
+	knows_deaf_player: boolean,
+	/** An array relationship */
+	messages: Array<GraphQLTypes["verification_application_messages"]>,
+	/** An aggregate relationship */
+	messages_aggregate: GraphQLTypes["verification_application_messages_aggregate"],
+	/** An object relationship */
+	player: GraphQLTypes["players"],
+	player_steam_id: GraphQLTypes["bigint"],
+	reviewed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	/** An object relationship */
+	reviewed_by?: GraphQLTypes["players"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	status: string,
+	updated_at: GraphQLTypes["timestamptz"]
+};
+	/** aggregated selection of "verification_applications" */
+["verification_applications_aggregate"]: {
+	__typename: "verification_applications_aggregate",
+	aggregate?: GraphQLTypes["verification_applications_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["verification_applications"]>
+};
+	/** aggregate fields of "verification_applications" */
+["verification_applications_aggregate_fields"]: {
+	__typename: "verification_applications_aggregate_fields",
+	avg?: GraphQLTypes["verification_applications_avg_fields"] | undefined | null,
+	count: number,
+	max?: GraphQLTypes["verification_applications_max_fields"] | undefined | null,
+	min?: GraphQLTypes["verification_applications_min_fields"] | undefined | null,
+	stddev?: GraphQLTypes["verification_applications_stddev_fields"] | undefined | null,
+	stddev_pop?: GraphQLTypes["verification_applications_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: GraphQLTypes["verification_applications_stddev_samp_fields"] | undefined | null,
+	sum?: GraphQLTypes["verification_applications_sum_fields"] | undefined | null,
+	var_pop?: GraphQLTypes["verification_applications_var_pop_fields"] | undefined | null,
+	var_samp?: GraphQLTypes["verification_applications_var_samp_fields"] | undefined | null,
+	variance?: GraphQLTypes["verification_applications_variance_fields"] | undefined | null
+};
+	/** aggregate avg on columns */
+["verification_applications_avg_fields"]: {
+	__typename: "verification_applications_avg_fields",
+	player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** Boolean expression to filter rows from the table "verification_applications". All fields are combined with a logical 'AND'. */
+["verification_applications_bool_exp"]: {
+		_and?: Array<GraphQLTypes["verification_applications_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["verification_applications_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["verification_applications_bool_exp"]> | undefined | null,
+	additional_info?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	country?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	deaf_player_steam_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	found_via?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	is_deaf?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	knows_deaf_player?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
+	messages?: GraphQLTypes["verification_application_messages_bool_exp"] | undefined | null,
+	messages_aggregate?: GraphQLTypes["verification_application_messages_aggregate_bool_exp"] | undefined | null,
+	player?: GraphQLTypes["players_bool_exp"] | undefined | null,
+	player_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	reviewed_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	reviewed_by?: GraphQLTypes["players_bool_exp"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	status?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "verification_applications" */
+["verification_applications_constraint"]: verification_applications_constraint;
+	/** input type for incrementing numeric columns in table "verification_applications" */
+["verification_applications_inc_input"]: {
+		player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "verification_applications" */
+["verification_applications_insert_input"]: {
+		additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	messages?: GraphQLTypes["verification_application_messages_arr_rel_insert_input"] | undefined | null,
+	player?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
+	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	reviewed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	reviewed_by?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["verification_applications_max_fields"]: {
+	__typename: "verification_applications_max_fields",
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	reviewed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate min on columns */
+["verification_applications_min_fields"]: {
+	__typename: "verification_applications_min_fields",
+	additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	reviewed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** response of any mutation on the table "verification_applications" */
+["verification_applications_mutation_response"]: {
+	__typename: "verification_applications_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["verification_applications"]>
+};
+	/** input type for inserting object relation for remote table "verification_applications" */
+["verification_applications_obj_rel_insert_input"]: {
+		data: GraphQLTypes["verification_applications_insert_input"],
+	/** upsert condition */
+	on_conflict?: GraphQLTypes["verification_applications_on_conflict"] | undefined | null
+};
+	/** on_conflict condition type for table "verification_applications" */
+["verification_applications_on_conflict"]: {
+		constraint: GraphQLTypes["verification_applications_constraint"],
+	update_columns: Array<GraphQLTypes["verification_applications_update_column"]>,
+	where?: GraphQLTypes["verification_applications_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "verification_applications". */
+["verification_applications_order_by"]: {
+		additional_info?: GraphQLTypes["order_by"] | undefined | null,
+	country?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	deaf_player_steam_url?: GraphQLTypes["order_by"] | undefined | null,
+	found_via?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	is_deaf?: GraphQLTypes["order_by"] | undefined | null,
+	knows_deaf_player?: GraphQLTypes["order_by"] | undefined | null,
+	messages_aggregate?: GraphQLTypes["verification_application_messages_aggregate_order_by"] | undefined | null,
+	player?: GraphQLTypes["players_order_by"] | undefined | null,
+	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	reviewed_at?: GraphQLTypes["order_by"] | undefined | null,
+	reviewed_by?: GraphQLTypes["players_order_by"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	status?: GraphQLTypes["order_by"] | undefined | null,
+	updated_at?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: verification_applications */
+["verification_applications_pk_columns_input"]: {
+		id: GraphQLTypes["uuid"]
+};
+	/** select columns of table "verification_applications" */
+["verification_applications_select_column"]: verification_applications_select_column;
+	/** input type for updating data in table "verification_applications" */
+["verification_applications_set_input"]: {
+		additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	reviewed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["verification_applications_stddev_fields"]: {
+	__typename: "verification_applications_stddev_fields",
+	player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["verification_applications_stddev_pop_fields"]: {
+	__typename: "verification_applications_stddev_pop_fields",
+	player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["verification_applications_stddev_samp_fields"]: {
+	__typename: "verification_applications_stddev_samp_fields",
+	player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** Streaming cursor of the table "verification_applications" */
+["verification_applications_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["verification_applications_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["verification_applications_stream_cursor_value_input"]: {
+		additional_info?: string | undefined | null,
+	country?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deaf_player_steam_url?: string | undefined | null,
+	found_via?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	is_deaf?: string | undefined | null,
+	knows_deaf_player?: boolean | undefined | null,
+	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	reviewed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	status?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate sum on columns */
+["verification_applications_sum_fields"]: {
+	__typename: "verification_applications_sum_fields",
+	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	reviewed_by_steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** update columns of table "verification_applications" */
+["verification_applications_update_column"]: verification_applications_update_column;
+	["verification_applications_updates"]: {
+		/** increments the numeric columns with given value of the filtered values */
+	_inc?: GraphQLTypes["verification_applications_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["verification_applications_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["verification_applications_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["verification_applications_var_pop_fields"]: {
+	__typename: "verification_applications_var_pop_fields",
+	player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate var_samp on columns */
+["verification_applications_var_samp_fields"]: {
+	__typename: "verification_applications_var_samp_fields",
+	player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
+	/** aggregate variance on columns */
+["verification_applications_variance_fields"]: {
+	__typename: "verification_applications_variance_fields",
+	player_steam_id?: number | undefined | null,
+	reviewed_by_steam_id?: number | undefined | null
+};
 	["ID"]: "scalar" & { name: "ID" }
     }
 /** unique or primary key constraints on table "_map_pool" */
@@ -258582,7 +261370,12 @@ export enum e_notification_types_enum {
 	ScrimTimeChanged = "ScrimTimeChanged",
 	StorageScan = "StorageScan",
 	TournamentCreated = "TournamentCreated",
-	TournamentReminder = "TournamentReminder"
+	TournamentReminder = "TournamentReminder",
+	VerificationApplicationAdminReply = "VerificationApplicationAdminReply",
+	VerificationApplicationPlayerReply = "VerificationApplicationPlayerReply",
+	VerificationApplicationReplied = "VerificationApplicationReplied",
+	VerificationApplicationReviewed = "VerificationApplicationReviewed",
+	VerificationApplicationSubmitted = "VerificationApplicationSubmitted"
 }
 /** select columns of table "e_notification_types" */
 export enum e_notification_types_select_column {
@@ -262399,6 +265192,7 @@ export enum tournament_teams_constraint {
 /** select columns of table "tournament_teams" */
 export enum tournament_teams_select_column {
 	captain_steam_id = "captain_steam_id",
+	checked_in_at = "checked_in_at",
 	created_at = "created_at",
 	eligible_at = "eligible_at",
 	id = "id",
@@ -262412,6 +265206,7 @@ export enum tournament_teams_select_column {
 /** update columns of table "tournament_teams" */
 export enum tournament_teams_update_column {
 	captain_steam_id = "captain_steam_id",
+	checked_in_at = "checked_in_at",
 	created_at = "created_at",
 	eligible_at = "eligible_at",
 	id = "id",
@@ -262464,6 +265259,8 @@ export enum tournaments_constraint {
 }
 /** select columns of table "tournaments" */
 export enum tournaments_select_column {
+	attendance_check_in_close_before_minutes = "attendance_check_in_close_before_minutes",
+	attendance_check_in_open_before_minutes = "attendance_check_in_open_before_minutes",
 	auto_start = "auto_start",
 	awards_enabled = "awards_enabled",
 	banner = "banner",
@@ -262585,6 +265382,8 @@ export enum tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_ar
 }
 /** update columns of table "tournaments" */
 export enum tournaments_update_column {
+	attendance_check_in_close_before_minutes = "attendance_check_in_close_before_minutes",
+	attendance_check_in_open_before_minutes = "attendance_check_in_open_before_minutes",
 	auto_start = "auto_start",
 	awards_enabled = "awards_enabled",
 	banner = "banner",
@@ -263344,6 +266143,73 @@ export enum v_tournament_player_stats_select_column_v_tournament_player_stats_ag
 export enum v_tournament_player_stats_select_column_v_tournament_player_stats_aggregate_bool_exp_var_samp_arguments_columns {
 	headshot_percentage = "headshot_percentage",
 	kdr = "kdr"
+}
+/** unique or primary key constraints on table "verification_application_messages" */
+export enum verification_application_messages_constraint {
+	verification_application_messages_pkey = "verification_application_messages_pkey"
+}
+/** select columns of table "verification_application_messages" */
+export enum verification_application_messages_select_column {
+	application_id = "application_id",
+	created_at = "created_at",
+	id = "id",
+	is_admin = "is_admin",
+	message = "message",
+	sender_steam_id = "sender_steam_id"
+}
+/** select "verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns" columns of table "verification_application_messages" */
+export enum verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns {
+	is_admin = "is_admin"
+}
+/** select "verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns" columns of table "verification_application_messages" */
+export enum verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns {
+	is_admin = "is_admin"
+}
+/** update columns of table "verification_application_messages" */
+export enum verification_application_messages_update_column {
+	application_id = "application_id",
+	created_at = "created_at",
+	id = "id",
+	is_admin = "is_admin",
+	message = "message",
+	sender_steam_id = "sender_steam_id"
+}
+/** unique or primary key constraints on table "verification_applications" */
+export enum verification_applications_constraint {
+	verification_applications_one_pending_per_player = "verification_applications_one_pending_per_player",
+	verification_applications_pkey = "verification_applications_pkey"
+}
+/** select columns of table "verification_applications" */
+export enum verification_applications_select_column {
+	additional_info = "additional_info",
+	country = "country",
+	created_at = "created_at",
+	deaf_player_steam_url = "deaf_player_steam_url",
+	found_via = "found_via",
+	id = "id",
+	is_deaf = "is_deaf",
+	knows_deaf_player = "knows_deaf_player",
+	player_steam_id = "player_steam_id",
+	reviewed_at = "reviewed_at",
+	reviewed_by_steam_id = "reviewed_by_steam_id",
+	status = "status",
+	updated_at = "updated_at"
+}
+/** update columns of table "verification_applications" */
+export enum verification_applications_update_column {
+	additional_info = "additional_info",
+	country = "country",
+	created_at = "created_at",
+	deaf_player_steam_url = "deaf_player_steam_url",
+	found_via = "found_via",
+	id = "id",
+	is_deaf = "is_deaf",
+	knows_deaf_player = "knows_deaf_player",
+	player_steam_id = "player_steam_id",
+	reviewed_at = "reviewed_at",
+	reviewed_by_steam_id = "reviewed_by_steam_id",
+	status = "status",
+	updated_at = "updated_at"
 }
 
 type ZEUS_VARIABLES = {
@@ -267244,5 +270110,50 @@ type ZEUS_VARIABLES = {
 	["v_tournament_player_stats_var_pop_order_by"]: ValueTypes["v_tournament_player_stats_var_pop_order_by"];
 	["v_tournament_player_stats_var_samp_order_by"]: ValueTypes["v_tournament_player_stats_var_samp_order_by"];
 	["v_tournament_player_stats_variance_order_by"]: ValueTypes["v_tournament_player_stats_variance_order_by"];
+	["verification_application_messages_aggregate_bool_exp"]: ValueTypes["verification_application_messages_aggregate_bool_exp"];
+	["verification_application_messages_aggregate_bool_exp_bool_and"]: ValueTypes["verification_application_messages_aggregate_bool_exp_bool_and"];
+	["verification_application_messages_aggregate_bool_exp_bool_or"]: ValueTypes["verification_application_messages_aggregate_bool_exp_bool_or"];
+	["verification_application_messages_aggregate_bool_exp_count"]: ValueTypes["verification_application_messages_aggregate_bool_exp_count"];
+	["verification_application_messages_aggregate_order_by"]: ValueTypes["verification_application_messages_aggregate_order_by"];
+	["verification_application_messages_arr_rel_insert_input"]: ValueTypes["verification_application_messages_arr_rel_insert_input"];
+	["verification_application_messages_avg_order_by"]: ValueTypes["verification_application_messages_avg_order_by"];
+	["verification_application_messages_bool_exp"]: ValueTypes["verification_application_messages_bool_exp"];
+	["verification_application_messages_constraint"]: ValueTypes["verification_application_messages_constraint"];
+	["verification_application_messages_inc_input"]: ValueTypes["verification_application_messages_inc_input"];
+	["verification_application_messages_insert_input"]: ValueTypes["verification_application_messages_insert_input"];
+	["verification_application_messages_max_order_by"]: ValueTypes["verification_application_messages_max_order_by"];
+	["verification_application_messages_min_order_by"]: ValueTypes["verification_application_messages_min_order_by"];
+	["verification_application_messages_on_conflict"]: ValueTypes["verification_application_messages_on_conflict"];
+	["verification_application_messages_order_by"]: ValueTypes["verification_application_messages_order_by"];
+	["verification_application_messages_pk_columns_input"]: ValueTypes["verification_application_messages_pk_columns_input"];
+	["verification_application_messages_select_column"]: ValueTypes["verification_application_messages_select_column"];
+	["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"]: ValueTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_and_arguments_columns"];
+	["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"]: ValueTypes["verification_application_messages_select_column_verification_application_messages_aggregate_bool_exp_bool_or_arguments_columns"];
+	["verification_application_messages_set_input"]: ValueTypes["verification_application_messages_set_input"];
+	["verification_application_messages_stddev_order_by"]: ValueTypes["verification_application_messages_stddev_order_by"];
+	["verification_application_messages_stddev_pop_order_by"]: ValueTypes["verification_application_messages_stddev_pop_order_by"];
+	["verification_application_messages_stddev_samp_order_by"]: ValueTypes["verification_application_messages_stddev_samp_order_by"];
+	["verification_application_messages_stream_cursor_input"]: ValueTypes["verification_application_messages_stream_cursor_input"];
+	["verification_application_messages_stream_cursor_value_input"]: ValueTypes["verification_application_messages_stream_cursor_value_input"];
+	["verification_application_messages_sum_order_by"]: ValueTypes["verification_application_messages_sum_order_by"];
+	["verification_application_messages_update_column"]: ValueTypes["verification_application_messages_update_column"];
+	["verification_application_messages_updates"]: ValueTypes["verification_application_messages_updates"];
+	["verification_application_messages_var_pop_order_by"]: ValueTypes["verification_application_messages_var_pop_order_by"];
+	["verification_application_messages_var_samp_order_by"]: ValueTypes["verification_application_messages_var_samp_order_by"];
+	["verification_application_messages_variance_order_by"]: ValueTypes["verification_application_messages_variance_order_by"];
+	["verification_applications_bool_exp"]: ValueTypes["verification_applications_bool_exp"];
+	["verification_applications_constraint"]: ValueTypes["verification_applications_constraint"];
+	["verification_applications_inc_input"]: ValueTypes["verification_applications_inc_input"];
+	["verification_applications_insert_input"]: ValueTypes["verification_applications_insert_input"];
+	["verification_applications_obj_rel_insert_input"]: ValueTypes["verification_applications_obj_rel_insert_input"];
+	["verification_applications_on_conflict"]: ValueTypes["verification_applications_on_conflict"];
+	["verification_applications_order_by"]: ValueTypes["verification_applications_order_by"];
+	["verification_applications_pk_columns_input"]: ValueTypes["verification_applications_pk_columns_input"];
+	["verification_applications_select_column"]: ValueTypes["verification_applications_select_column"];
+	["verification_applications_set_input"]: ValueTypes["verification_applications_set_input"];
+	["verification_applications_stream_cursor_input"]: ValueTypes["verification_applications_stream_cursor_input"];
+	["verification_applications_stream_cursor_value_input"]: ValueTypes["verification_applications_stream_cursor_value_input"];
+	["verification_applications_update_column"]: ValueTypes["verification_applications_update_column"];
+	["verification_applications_updates"]: ValueTypes["verification_applications_updates"];
 	["ID"]: ValueTypes["ID"];
 }
