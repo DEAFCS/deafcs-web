@@ -879,11 +879,18 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           <SheetTitle class="text-2xl">
             {{ $t("tournament.join.title") }}
           </SheetTitle>
+          <!-- The roster-size requirement is a TEAM tournament rule. Showing
+               it unconditionally told Solo Random players "You need at least 2
+               players to join this tournament" on a format whose entire point
+               is signing up alone -- the form body below already branched
+               correctly, only this header did not. -->
           <SheetDescription>
             {{
-              $t("tournament.join.requirements", {
-                count: tournament.min_players_per_lineup,
-              })
+              tournament.options?.individual_registration_enabled
+                ? $t("tournament.join.individual.sheet_description")
+                : $t("tournament.join.requirements", {
+                    count: tournament.min_players_per_lineup,
+                  })
             }}
           </SheetDescription>
         </SheetHeader>
@@ -1094,11 +1101,14 @@ export default {
                   player_steam_id: true,
                   status: true,
                   checked_in_at: true,
-                  player: {
-                    name: true,
-                    avatar_url: true,
-                    custom_avatar_url: true,
-                  },
+                  // The shared playerFields fragment, not a hand-rolled
+                  // subset. The previous three-field selection was why every
+                  // Solo Random row fell back to the globe icon (no country),
+                  // could not link to a profile (no steam_id), and showed no
+                  // ELO -- PlayerDisplay was being handed a player object it
+                  // could not work with. Every other participant list on the
+                  // site already passes this fragment.
+                  player: playerFields,
                 },
               ],
               organizers: [

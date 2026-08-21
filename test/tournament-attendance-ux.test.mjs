@@ -227,12 +227,27 @@ test("the obsolete manual Solo Random check-in panel is gone from the players ta
 });
 
 test("Add Player is organizer-only and only while registration is open", () => {
+  // The two conditions are now named guards shared with the check-in/remove
+  // actions, rather than inlined here -- same rules, one definition each.
   const canAdd = individualPlayersSource.slice(
     individualPlayersSource.indexOf("canAddPlayers()"),
-    individualPlayersSource.indexOf("canAddPlayers()") + 260,
+    individualPlayersSource.indexOf("canAddPlayers()") + 200,
   );
-  assert.match(canAdd, /this\.tournament\?\.is_organizer/);
-  assert.match(canAdd, /status === "RegistrationOpen"/);
+  assert.match(canAdd, /this\.isOrganizer/);
+  assert.match(canAdd, /this\.participantsEditable/);
+
+  const isOrganizer = individualPlayersSource.slice(
+    individualPlayersSource.indexOf("isOrganizer()"),
+    individualPlayersSource.indexOf("isOrganizer()") + 120,
+  );
+  assert.match(isOrganizer, /this\.tournament\?\.is_organizer/);
+
+  const editable = individualPlayersSource.slice(
+    individualPlayersSource.indexOf("participantsEditable()"),
+    individualPlayersSource.indexOf("participantsEditable()") + 160,
+  );
+  assert.match(editable, /status === "RegistrationOpen"/);
+
   assert.match(individualPlayersSource, /v-if="canAddPlayers"/);
 });
 

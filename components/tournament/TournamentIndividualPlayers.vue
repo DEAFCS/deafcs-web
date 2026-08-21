@@ -3,6 +3,17 @@ import { UserX } from "lucide-vue-next";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PlayerSearch from "~/components/PlayerSearch.vue";
 import TournamentAttendanceBadge from "~/components/tournament/TournamentAttendanceBadge.vue";
+import TournamentIndividualPlayerActions from "~/components/tournament/TournamentIndividualPlayerActions.vue";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 </script>
 
 <template>
@@ -10,6 +21,7 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
     <p v-if="closesAtNote" class="text-xs text-muted-foreground">
       {{ closesAtNote }}
     </p>
+
     <section>
       <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3
@@ -48,11 +60,31 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
           :key="signup.id"
           class="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/40 px-3 py-2.5"
         >
-          <PlayerDisplay :player="signup.player" class="min-w-0 flex-1" />
-          <TournamentAttendanceBadge
-            v-if="showAttendanceStatus"
-            :checked-in="!!signup.checked_in_at"
+          <!-- linkable + match-type turn this into the same identity block
+               used everywhere else: profile link, real country flag, and the
+               tournament's own mode ELO. -->
+          <PlayerDisplay
+            :player="signup.player"
+            :linkable="true"
+            :match-type="tournament?.options?.type"
+            truncate-name
+            class="min-w-0 flex-1"
           />
+          <div class="flex shrink-0 items-center gap-2">
+            <TournamentAttendanceBadge
+              v-if="showAttendanceStatus"
+              :checked-in="!!signup.checked_in_at"
+            />
+            <TournamentIndividualPlayerActions
+              :signup="signup"
+              :can-check-in="canCheckIn(signup)"
+              :can-remove="canRemove(signup)"
+              :is-self="isSelf(signup)"
+              :busy="busyId === signup.id"
+              @check-in="checkInPlayer(signup)"
+              @remove="promptRemove(signup)"
+            />
+          </div>
         </li>
       </ul>
     </section>
@@ -71,15 +103,32 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
           :key="signup.id"
           class="flex items-center justify-between gap-3 rounded-lg border border-border/60 bg-card/20 px-3 py-2.5"
         >
-          <PlayerDisplay :player="signup.player" class="min-w-0 flex-1" />
-          <!-- Waitlisted and checked in are two separate facts: the section
-               already says "waitlist", so the badge stays green for a player
-               who has done what was asked and only changes its wording. -->
-          <TournamentAttendanceBadge
-            v-if="showAttendanceStatus"
-            :checked-in="!!signup.checked_in_at"
-            variant="waitlisted"
+          <PlayerDisplay
+            :player="signup.player"
+            :linkable="true"
+            :match-type="tournament?.options?.type"
+            truncate-name
+            class="min-w-0 flex-1"
           />
+          <div class="flex shrink-0 items-center gap-2">
+            <!-- Waitlisted and checked in are two separate facts: the section
+                 already says "waitlist", so the badge stays green for a player
+                 who has done what was asked and only changes its wording. -->
+            <TournamentAttendanceBadge
+              v-if="showAttendanceStatus"
+              :checked-in="!!signup.checked_in_at"
+              variant="waitlisted"
+            />
+            <TournamentIndividualPlayerActions
+              :signup="signup"
+              :can-check-in="canCheckIn(signup)"
+              :can-remove="canRemove(signup)"
+              :is-self="isSelf(signup)"
+              :busy="busyId === signup.id"
+              @check-in="checkInPlayer(signup)"
+              @remove="promptRemove(signup)"
+            />
+          </div>
         </li>
       </ul>
     </section>
@@ -97,10 +146,54 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
           :key="signup.id"
           class="flex items-center gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 opacity-70"
         >
-          <PlayerDisplay :player="signup.player" class="min-w-0 flex-1" />
+          <PlayerDisplay
+            :player="signup.player"
+            :linkable="true"
+            :match-type="tournament?.options?.type"
+            truncate-name
+            class="min-w-0 flex-1"
+          />
         </li>
       </ul>
     </section>
+
+    <AlertDialog :open="!!pendingRemoval">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>
+            {{
+              pendingRemovalIsSelf
+                ? $t("tournament.players.confirm_leave")
+                : $t("tournament.players.confirm_remove_player")
+            }}
+          </AlertDialogTitle>
+          <AlertDialogDescription>
+            {{
+              pendingRemovalIsSelf
+                ? $t("tournament.players.leave_description")
+                : $t("tournament.players.remove_player_description", {
+                    name: pendingRemoval?.player?.name ?? "",
+                  })
+            }}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="pendingRemoval = null">
+            {{ $t("common.cancel") }}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            class="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            @click="confirmRemove"
+          >
+            {{
+              pendingRemovalIsSelf
+                ? $t("tournament.team.leave_tournament")
+                : $t("tournament.players.remove_player")
+            }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
@@ -109,6 +202,7 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
 import {
   attendanceWindow,
+  attendanceCheckInOpen,
   formatClockTime,
   showAttendanceStatuses,
 } from "~/utilities/tournamentAttendance";
@@ -123,9 +217,14 @@ export default {
   data() {
     return {
       addingPlayer: false,
+      busyId: null as string | null,
+      pendingRemoval: null as any,
     };
   },
   computed: {
+    me() {
+      return useAuthStore().me;
+    },
     signups() {
       return this.tournament?.individual_signups ?? [];
     },
@@ -157,22 +256,121 @@ export default {
     showAttendanceStatus() {
       return showAttendanceStatuses(this.tournament as any);
     },
-    // The backend refuses anything else (RegistrationOpen +
-    // individual_registration_enabled + organizer), so the control simply
-    // matches those conditions rather than inventing its own.
+    isOrganizer() {
+      return !!this.tournament?.is_organizer;
+    },
+    // The registration/check-in cutoff is exactly the RegistrationOpen ->
+    // RegistrationClosed transition, so participant edits track the status --
+    // the same guard removeTournamentIndividualPlayer enforces server-side.
+    participantsEditable() {
+      return this.tournament?.status === "RegistrationOpen";
+    },
+    checkInWindowOpen() {
+      return attendanceCheckInOpen(this.tournament as any);
+    },
     canAddPlayers() {
-      return (
-        !!this.tournament?.is_organizer &&
-        this.tournament?.status === "RegistrationOpen"
-      );
+      return this.isOrganizer && this.participantsEditable;
     },
     // Already-signed-up players (in any state, including Removed) are
     // filtered out of the picker rather than offered and then rejected.
     signedUpSteamIds() {
       return this.signups.map((s: any) => String(s.player_steam_id));
     },
+    pendingRemovalIsSelf() {
+      return this.pendingRemoval ? this.isSelf(this.pendingRemoval) : false;
+    },
   },
   methods: {
+    isSelf(signup: any) {
+      const steamId = String(this.me?.steam_id ?? "");
+      return !!steamId && String(signup.player_steam_id) === steamId;
+    },
+    // Organizer acting for someone else, or the player themselves. Both need
+    // the window genuinely open -- an organizer gets no cutoff bypass.
+    canCheckIn(signup: any) {
+      if (signup.checked_in_at) return false;
+      if (!this.checkInWindowOpen) return false;
+      return this.isOrganizer || this.isSelf(signup);
+    },
+    canRemove(signup: any) {
+      if (!this.participantsEditable) return false;
+      if (signup.status === "Assigned" || signup.status === "Removed") {
+        return false;
+      }
+      return this.isOrganizer || this.isSelf(signup);
+    },
+    async checkInPlayer(signup: any) {
+      if (this.busyId) return;
+      this.busyId = signup.id;
+      try {
+        // Checking yourself in goes through the player's own action; only an
+        // organizer acting on somebody else needs the elevated one.
+        const mutation = this.isSelf(signup)
+          ? generateMutation({
+              checkIntoTournament: [
+                { tournament_id: this.tournament.id },
+                { success: true },
+              ],
+            })
+          : generateMutation({
+              checkInTournamentIndividualPlayer: [
+                {
+                  tournament_id: this.tournament.id,
+                  player_steam_id: String(signup.player_steam_id),
+                },
+                { success: true, status: true, already_checked_in: true },
+              ],
+            });
+        await this.$apollo.mutate({ mutation });
+        toast({ title: this.$t("tournament.players.check_in_player_success") });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("tournament.players.check_in_player_failed"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.busyId = null;
+      }
+    },
+    promptRemove(signup: any) {
+      this.pendingRemoval = signup;
+    },
+    async confirmRemove() {
+      const signup = this.pendingRemoval;
+      this.pendingRemoval = null;
+      if (!signup || this.busyId) return;
+      const wasSelf = this.isSelf(signup);
+      this.busyId = signup.id;
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            removeTournamentIndividualPlayer: [
+              {
+                tournament_id: this.tournament.id,
+                player_steam_id: String(signup.player_steam_id),
+              },
+              { success: true, was_self: true },
+            ],
+          }),
+        });
+        toast({
+          title: wasSelf
+            ? this.$t("tournament.players.leave_success")
+            : this.$t("tournament.players.remove_player_success"),
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: wasSelf
+            ? this.$t("tournament.players.leave_failed")
+            : this.$t("tournament.players.remove_player_failed"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.busyId = null;
+      }
+    },
     async addPlayer(player: { steam_id: string }) {
       if (this.addingPlayer || !player?.steam_id) return;
       this.addingPlayer = true;

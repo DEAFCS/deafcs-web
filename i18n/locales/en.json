@@ -4830,7 +4830,8 @@
         "description": "This tournament uses individual sign-up -- join on your own, no team needed. Once registration closes, the organizer generates teams automatically, randomly balanced by ELO.",
         "registered": "You're registered",
         "waitlisted": "You're on the waitlist",
-        "leave": "Leave"
+        "leave": "Leave",
+        "sheet_description": "Individual sign-up. Join on your own, no team needed. Teams are generated automatically once registration and check-in close, balanced by ELO."
       }
     },
     "tournament_team": {
@@ -5171,7 +5172,19 @@
       "add_player": "Add Player",
       "add_player_added": "Player added to the tournament",
       "add_player_waitlisted": "Player added to the waitlist",
-      "add_player_failed": "Could not add player"
+      "add_player_failed": "Could not add player",
+      "check_in_player": "Check in player",
+      "check_in_player_success": "Checked in",
+      "check_in_player_failed": "Could not check in player",
+      "remove_player": "Remove player",
+      "confirm_remove_player": "Remove this player?",
+      "remove_player_description": "{name} will be removed from this tournament and their spot freed up. They can sign up again while registration is open.",
+      "remove_player_success": "Player removed",
+      "remove_player_failed": "Could not remove player",
+      "confirm_leave": "Leave this tournament?",
+      "leave_description": "Your sign-up will be removed and your spot freed up. You can join again while registration is open.",
+      "leave_success": "You left the tournament",
+      "leave_failed": "Could not leave the tournament"
     },
     "attendance": {
       "check_in_button": "Check In",
