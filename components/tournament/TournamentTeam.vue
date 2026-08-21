@@ -408,6 +408,7 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import {
   attendanceCheckInOpen,
   showAttendanceStatuses,
+  generatedTeamIds,
 } from "~/utilities/tournamentAttendance";
 
 export default {
@@ -509,8 +510,22 @@ export default {
     attendanceCheckInOpen() {
       return attendanceCheckInOpen(this.tournament as any);
     },
+    // A team generated from Solo Random individual sign-ups never needs
+    // tournament attendance: its players each completed attendance
+    // individually, before the team existed. Generation only stamps the
+    // signups, never the team's own checked_in_at, so without this the card
+    // showed a permanent "Pending check-in" for a team that had nothing left
+    // to confirm -- and offered its captain a second, meaningless check-in.
+    // Identified from the signups' tournament_team_id, i.e. real data, not
+    // the generated "Team N" naming.
+    isGeneratedTeam() {
+      return generatedTeamIds(
+        this.tournament?.individual_signups as any,
+      ).has(String(this.team.id));
+    },
     showTeamCheckIn() {
       return (
+        !this.isGeneratedTeam &&
         this.team.can_manage &&
         this.attendanceCheckInOpen &&
         !this.team.checked_in_at
@@ -519,6 +534,9 @@ export default {
     // Public: every viewer sees every registered team's attendance state,
     // not just their own. Lifecycle lives in the shared helper.
     showAttendanceStatus() {
+      if (this.isGeneratedTeam) {
+        return false;
+      }
       return showAttendanceStatuses(this.tournament as any);
     },
     requiredPlayers() {

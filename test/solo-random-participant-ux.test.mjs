@@ -31,7 +31,7 @@ test("the signup query uses the shared playerFields fragment, not a hand-rolled 
   // the missing ELO: the row was handed a player object with three fields.
   const block = detailSource.slice(
     detailSource.indexOf("individual_signups: ["),
-    detailSource.indexOf("individual_signups: [") + 900,
+    detailSource.indexOf("individual_signups: [") + 1400,
   );
   assert.match(block, /player: playerFields/);
   assert.doesNotMatch(block, /player: \{\s*\n\s*name: true/);

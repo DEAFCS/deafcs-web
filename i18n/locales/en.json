@@ -4735,6 +4735,7 @@
       "my_team": "My Team",
       "my_team_hint": "Manage your roster, invites, and readiness for this tournament.",
       "roster_section": "Roster",
+      "not_selected_section": "Not selected",
       "no_teams_yet": "No teams yet.",
       "information_tab": "Information",
       "about_section": "About",
@@ -4827,11 +4828,10 @@
       "role_required": "{role} or higher required to join this tournament.",
       "member_role_required": "{role} or higher required",
       "individual": {
-        "description": "This tournament uses individual sign-up -- join on your own, no team needed. Once registration closes, the organizer generates teams automatically, randomly balanced by ELO.",
         "registered": "You're registered",
         "waitlisted": "You're on the waitlist",
         "leave": "Leave",
-        "sheet_description": "Individual sign-up. Join on your own, no team needed. Teams are generated automatically once registration and check-in close, balanced by ELO."
+        "sheet_description": "Individual sign-up. Join on your own, no team needed. Teams are generated automatically after registration and check-in close, balanced by ELO."
       }
     },
     "tournament_team": {
@@ -5195,6 +5195,11 @@
       "explainer": "Players registered before check-in opens must check in. Registrations made during the check-in window are automatically checked in.",
       "closes_note": "Registration and check-in close at {time}. Teams are generated automatically afterward.",
       "team_check_in_button": "Check in for tournament",
+      "not_selected": {
+        "status": "Not selected",
+        "short": "You were not placed into a full team.",
+        "description": "These players were not placed into a full team. Selection is based on registration order."
+      },
       "status": {
         "checked_in": "Checked-in",
         "checked_in_hint": "Confirmed for this tournament.",

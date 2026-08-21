@@ -5,6 +5,7 @@ import { GitBranch, Trophy, UsersRound } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import { formatPrizePool } from "~/utilities/prizePool";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
+import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
 import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 
 type TournamentStatusVariant = "default" | "finished" | "live" | "registration";
@@ -226,12 +227,11 @@ const statusChipClasses = computed(() => {
           {{ $t("tournament.feature_card.teams") }}
         </span>
         <MatchTypeBadge v-if="matchType" :type="matchType" size="default" />
-        <span
+        <TournamentSoloRandomBadge
           v-if="isIndividualRegistration"
-          class="inline-flex items-center rounded-full border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.12)] px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
-        >
-          {{ $t("tournament.feature_card.solo_random") }}
-        </span>
+          :match-type="matchType"
+          size="card"
+        />
         <span
           v-if="attendanceWindowLabel"
           class="inline-flex items-center rounded-full border border-white/20 bg-black/45 px-2 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em] text-white/85"

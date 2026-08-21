@@ -12,6 +12,8 @@ import TournamentPrizesManage from "~/components/tournament/TournamentPrizesMana
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
 import TournamentCheckInInfo from "~/components/tournament/TournamentCheckInInfo.vue";
+import TournamentNotSelectedSection from "~/components/tournament/TournamentNotSelectedSection.vue";
+import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
@@ -404,12 +406,14 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   <span :class="tournamentHeroModeTagClasses">
                     {{ tournament.options.type }}
                   </span>
-                  <span
+                  <!-- Same shared badge the listing card uses, so the two
+                       cannot drift apart again. Class set is identical to
+                       tournamentHeroModeTagClasses, which this replaced. -->
+                  <TournamentSoloRandomBadge
                     v-if="isIndividualRegistration"
-                    :class="tournamentHeroModeTagClasses"
-                  >
-                    {{ $t("tournament.feature_card.solo_random") }}
-                  </span>
+                    :match-type="tournament.options?.type"
+                    size="detail"
+                  />
                   <span
                     v-if="stageCount > 1"
                     :class="[
@@ -759,6 +763,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   </div>
                 </div>
               </div>
+
+              <!-- Directly under the generated teams: who did not make the
+                   selected pool. Renders itself only once Solo Random teams
+                   exist, so a normal team tournament never shows it. -->
+              <TournamentNotSelectedSection
+                :tournament="tournament"
+              ></TournamentNotSelectedSection>
             </div>
 
             <div v-if="tournament.is_organizer" class="lg:sticky lg:top-6">
@@ -1101,6 +1112,13 @@ export default {
                   player_steam_id: true,
                   status: true,
                   checked_in_at: true,
+                  // Which generated team this signup landed on, if any.
+                  // Already exposed to guest/user; drives two things with no
+                  // backend change: identifying teams that came out of Solo
+                  // Random generation, and telling a finalized sit-out
+                  // ("Waitlisted, teams generated, no team") apart from a
+                  // player still waiting before the cutoff.
+                  tournament_team_id: true,
                   // The shared playerFields fragment, not a hand-rolled
                   // subset. The previous three-field selection was why every
                   // Solo Random row fell back to the globe icon (no country),

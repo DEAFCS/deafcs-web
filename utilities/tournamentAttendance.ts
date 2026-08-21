@@ -126,3 +126,70 @@ export function showAttendanceStatuses(
   }
   return attendanceCheckInOpened(tournament);
 }
+
+// --- Solo Random finalization -----------------------------------------------
+//
+// Two things need to know when a Solo Random tournament's participant pool has
+// been finalized, and both are derived from data the page already loads rather
+// than any new column or status:
+//
+//   * Generated teams. Team generation creates tournament_teams rows and
+//     stamps each selected signup with tournament_team_id, but never sets the
+//     team's own checked_in_at -- those players completed tournament
+//     attendance individually, before the team existed. Reading the team ids
+//     back off the signups identifies generated teams from real data instead
+//     of guessing at names like "Team 1".
+//
+//   * Sitting out. Generation assigns as many players as fill whole teams and
+//     leaves the remainder Waitlisted. Before the cutoff, Waitlisted means
+//     "a spot may still open". Once teams exist it means the opposite: the
+//     pool is final and this player is sitting out. The presence of generated
+//     teams is what separates the two, so no "not_selected" status is needed.
+
+export type TournamentSignupLike = {
+  player_steam_id?: string | number | null;
+  status?: string | null;
+  checked_in_at?: string | null;
+  tournament_team_id?: string | null;
+};
+
+// Team ids that came out of Solo Random generation.
+export function generatedTeamIds(
+  signups?: Array<TournamentSignupLike> | null,
+): Set<string> {
+  const ids = new Set<string>();
+  for (const signup of signups ?? []) {
+    if (signup?.tournament_team_id) {
+      ids.add(String(signup.tournament_team_id));
+    }
+  }
+  return ids;
+}
+
+// Have Solo Random teams been generated yet? Only meaningful for individual
+// registration; a team tournament's teams are registered, not generated.
+export function soloRandomTeamsGenerated(
+  signups?: Array<TournamentSignupLike> | null,
+): boolean {
+  return generatedTeamIds(signups).size > 0;
+}
+
+// This signup is finalized and sitting out: teams have been generated and it
+// did not get one. Deliberately does NOT require checked_in_at -- a player who
+// was Waitlisted from the start sits out for the same reason and should get
+// the same explanation, not silence.
+export function isFinalizedSitOut(
+  signup?: TournamentSignupLike | null,
+  signups?: Array<TournamentSignupLike> | null,
+): boolean {
+  if (!signup) {
+    return false;
+  }
+  if (signup.tournament_team_id) {
+    return false;
+  }
+  if (signup.status !== "Waitlisted") {
+    return false;
+  }
+  return soloRandomTeamsGenerated(signups);
+}
