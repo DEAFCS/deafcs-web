@@ -193,3 +193,55 @@ export function isFinalizedSitOut(
   }
   return soloRandomTeamsGenerated(signups);
 }
+
+// --- Schedule freeze --------------------------------------------------------
+//
+// The four organizer-editable values that define the attendance schedule are
+// the tournament's start (date and time, one control) plus the two offsets.
+// Once the window has opened, the scheduler and every registered participant
+// are already acting on it, so changing any of them retroactively moves a
+// window that is currently in force. Live testing produced exactly that
+// confusion.
+//
+// Delegates to attendanceCheckInOpened rather than recomputing anything, so
+// the lock can never disagree with the badge/panel lifecycle. Naturally
+// one-way for the tournament's life: opensAt stays in the past once reached,
+// and the backend stamp only ever confirms it, so the fields never quietly
+// become editable again after the window has passed.
+//
+// Callers must pass the PERSISTED tournament, never live form values --
+// otherwise an organizer could push the start into the future and unfreeze
+// themselves. The backend enforces the same rule against OLD values.
+export function isAttendanceScheduleFrozen(
+  tournament?: TournamentAttendanceTiming | null,
+): boolean {
+  return attendanceCheckInOpened(tournament);
+}
+
+// --- Individual leave eligibility -------------------------------------------
+//
+// One rule for every "leave this Solo Random tournament" control, mirroring
+// what removeTournamentIndividualPlayer already enforces server-side.
+//
+// Being checked in deliberately does NOT block leaving: a player may register,
+// check in, change their mind and leave, right up until the participant pool
+// is finalized. The header button used to disable itself for the whole
+// attendance window, which is why it disagreed with the player row.
+export function canLeaveIndividualTournament(
+  signup?: TournamentSignupLike | null,
+  tournament?: { status?: string | null } | null,
+): boolean {
+  if (!signup || !tournament) {
+    return false;
+  }
+  // The registration/check-in cutoff is the RegistrationOpen ->
+  // RegistrationClosed transition, so the status is the cutoff.
+  if (tournament.status !== "RegistrationOpen") {
+    return false;
+  }
+  // Assigned to a generated team: they are in the bracket now.
+  if (signup.tournament_team_id) {
+    return false;
+  }
+  return signup.status === "Registered" || signup.status === "Waitlisted";
+}

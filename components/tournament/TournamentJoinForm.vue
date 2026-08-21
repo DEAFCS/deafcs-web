@@ -52,7 +52,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
           variant="destructive"
           type="button"
           :loading="submitting"
-          :disabled="myIndividualSignup.status !== 'Registered'"
+          :disabled="!canLeaveIndividually"
           @click="leaveIndividually"
         >
           {{ $t("tournament.join.individual.leave") }}
@@ -490,6 +490,13 @@ export default {
       }
       return this.$t("tournament.join.individual.registered");
     },
+    // Shared with the header and player-row Leave controls.
+    canLeaveIndividually() {
+      return canLeaveIndividualTournament(
+        this.myIndividualSignup as any,
+        this.tournament as any,
+      );
+    },
     finalizedSitOut() {
       return isFinalizedSitOut(
         this.myIndividualSignup as any,
@@ -661,11 +668,15 @@ export default {
       try {
         await this.$apollo.mutate({
           mutation: generateMutation({
-            delete_tournament_individual_signups: [
+            // Canonical action, same as the header and player-row controls.
+            removeTournamentIndividualPlayer: [
               {
-                where: { id: { _eq: this.myIndividualSignup.id } },
+                tournament_id: this.tournament.id,
+                player_steam_id: String(
+                  this.myIndividualSignup.player_steam_id,
+                ),
               },
-              { affected_rows: true },
+              { success: true, was_self: true },
             ],
           }),
         });

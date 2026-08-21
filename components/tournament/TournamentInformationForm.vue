@@ -116,6 +116,7 @@ import {
           <FormControl>
             <DateTimePicker
               :model-value="value"
+              :disabled="scheduleFrozen"
               @update:model-value="(date) => form.setFieldValue('start', date)"
             />
           </FormControl>
@@ -130,7 +131,13 @@ import {
               $t("tournament.form.attendance.open_before")
             }}</FormLabel>
             <FormControl>
-              <Input type="number" min="15" max="240" v-bind="componentField" />
+              <Input
+                type="number"
+                min="15"
+                max="240"
+                :disabled="scheduleFrozen"
+                v-bind="componentField"
+              />
             </FormControl>
             <FormDescription>{{
               $t("tournament.form.attendance.open_before_description")
@@ -145,7 +152,13 @@ import {
               $t("tournament.form.attendance.close_before")
             }}</FormLabel>
             <FormControl>
-              <Input type="number" min="5" max="60" v-bind="componentField" />
+              <Input
+                type="number"
+                min="5"
+                max="60"
+                :disabled="scheduleFrozen"
+                v-bind="componentField"
+              />
             </FormControl>
             <FormDescription>{{
               $t("tournament.form.attendance.close_before_description")
@@ -164,6 +177,15 @@ import {
             window: attendanceWindowPreview,
           })
         }}
+      </p>
+
+      <!-- One notice for the whole schedule group rather than repeating it on
+           each of the four locked values. -->
+      <p
+        v-if="scheduleFrozen"
+        class="rounded-md border border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground"
+      >
+        {{ $t("tournament.form.attendance.locked") }}
       </p>
     </section>
 
@@ -223,7 +245,10 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { $ } from "~/generated/zeus";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
-import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
+import {
+  formatAttendanceWindowRange,
+  isAttendanceScheduleFrozen,
+} from "~/utilities/tournamentAttendance";
 
 export default {
   props: {
@@ -311,9 +336,24 @@ export default {
       return `https://${this.apiDomain}/${this.tournament.banner}`;
     },
     // Live preview of the resulting window, driven by the form's own current
-    // values (not the saved tournament), so it updates as the organizer
-    // types. Suppressed while the values are out of range, rather than
-    // rendering a nonsensical range next to a validation error.
+    // Once tournament attendance check-in has opened, the four values that
+    // define that window -- the start (one datetime control) and the two
+    // offsets -- are frozen. The scheduler and every participant are already
+    // acting on the window, so moving it retroactively is what produced the
+    // confusing state during live testing.
+    //
+    // Deliberately reads the PERSISTED tournament, never this.form.values:
+    // otherwise an organizer could push the start into the future and unfreeze
+    // themselves. The backend enforces the identical rule against OLD values.
+    //
+    // Not keyed off individual_registration_enabled -- this is about tournament
+    // attendance, which normal team tournaments use too.
+    scheduleFrozen() {
+      return isAttendanceScheduleFrozen(this.tournament as any);
+    },
+    // Uses live form values (not the saved tournament), so it updates as the
+    // organizer types. Suppressed while the values are out of range, rather
+    // than rendering a nonsensical range next to a validation error.
     attendanceWindowPreview() {
       const start = this.form.values.start;
       const openBefore = Number(this.form.values.attendance_open_before);

@@ -205,6 +205,7 @@ import {
   attendanceCheckInOpen,
   formatClockTime,
   showAttendanceStatuses,
+  canLeaveIndividualTournament,
 } from "~/utilities/tournamentAttendance";
 
 export default {
@@ -292,9 +293,12 @@ export default {
       if (!this.checkInWindowOpen) return false;
       return this.isOrganizer || this.isSelf(signup);
     },
+    // Eligibility itself is the shared rule, so this row and the header Leave
+    // button can never disagree again; who may act on it is the only extra
+    // condition. Removed rows are excluded here because the shared rule only
+    // accepts Registered/Waitlisted.
     canRemove(signup: any) {
-      if (!this.participantsEditable) return false;
-      if (signup.status === "Assigned" || signup.status === "Removed") {
+      if (!canLeaveIndividualTournament(signup, this.tournament as any)) {
         return false;
       }
       return this.isOrganizer || this.isSelf(signup);

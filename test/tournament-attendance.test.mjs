@@ -191,9 +191,10 @@ test("organizer settings: client validation mirrors the backend CHECK constraint
     schemaBlock,
     /attendance_open_before - values\.attendance_close_before >= 5/,
   );
-  // Input elements carry matching native bounds.
-  assert.match(informationFormSource, /type="number" min="15" max="240"/);
-  assert.match(informationFormSource, /type="number" min="5" max="60"/);
+  // Input elements carry matching native bounds. They became multi-line when
+  // the schedule-freeze :disabled binding was added; the bounds are unchanged.
+  assert.match(informationFormSource, /type="number"\s+min="15"\s+max="240"/);
+  assert.match(informationFormSource, /type="number"\s+min="5"\s+max="60"/);
 });
 
 test("organizer settings: calculated window preview is driven by live form values and suppressed when invalid", () => {

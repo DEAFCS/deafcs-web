@@ -91,6 +91,7 @@ import {
   tacticalTabsTriggerClasses,
 } from "~/utilities/tacticalClasses";
 import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
+import { canLeaveIndividualTournament } from "~/utilities/tournamentAttendance";
 
 const tournamentHeroClasses =
   "relative isolate overflow-hidden rounded-lg border border-border px-7 py-6 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
@@ -224,11 +225,15 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
             <div :class="tournamentHeroToplineClasses">
               <div :class="tournamentHeroActionsClasses">
+                <!-- Same rule as the player-row Leave action. It used to be
+                     disabled for the whole attendance window, so a checked-in
+                     player saw an enabled Leave in their row and a disabled one
+                     up here. Being checked in never blocks leaving. -->
                 <Button
                   v-if="isIndividualRegistration && myIndividualSignup"
                   size="sm"
                   :class="tournamentHeroLeaveButtonClasses"
-                  :disabled="individualActionBusy || checkInCurrentlyActive"
+                  :disabled="individualActionBusy || !canLeaveIndividually"
                   @click="leaveIndividually"
                 >
                   <UserMinus class="h-3.5 w-3.5" />
@@ -1513,6 +1518,14 @@ export default {
       const endsAt = this.tournament?.individual_check_in_ends_at;
       return !!endsAt && new Date(endsAt) > new Date();
     },
+    // Shared with the player-row Leave action, mirroring what
+    // removeTournamentIndividualPlayer enforces server-side.
+    canLeaveIndividually() {
+      return canLeaveIndividualTournament(
+        this.myIndividualSignup as any,
+        this.tournament as any,
+      );
+    },
     canGenerateTeams() {
       return (
         this.tournament?.is_organizer &&
@@ -1792,11 +1805,19 @@ export default {
       if (this.individualActionBusy || !this.myIndividualSignup) return;
       this.individualActionBusy = true;
       try {
+        // The canonical action, same as the player-row Leave, so the cutoff
+        // and finalization guards are enforced in one place rather than
+        // relying on a direct delete permission.
         await this.$apollo.mutate({
           mutation: generateMutation({
-            delete_tournament_individual_signups: [
-              { where: { id: { _eq: this.myIndividualSignup.id } } },
-              { affected_rows: true },
+            removeTournamentIndividualPlayer: [
+              {
+                tournament_id: this.tournament.id,
+                player_steam_id: String(
+                  this.myIndividualSignup.player_steam_id,
+                ),
+              },
+              { success: true, was_self: true },
             ],
           }),
         });

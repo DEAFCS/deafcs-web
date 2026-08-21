@@ -4859,6 +4859,7 @@
         "close_before": "Registration & check-in close before start",
         "close_before_description": "Minutes before the start time that registration and check-in close. 5 to 60.",
         "preview": "Check-in window: {window}",
+        "locked": "Schedule and check-in timing can't be changed after check-in has started.",
         "invalid_window": "Check-in must open at least 5 minutes before registration closes."
       },
       "min_role": {

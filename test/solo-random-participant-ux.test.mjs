@@ -123,8 +123,14 @@ test("remove/leave is gated on the cutoff and on finalized participants", () => 
     individualPlayersSource.indexOf("canRemove(signup: any)"),
     individualPlayersSource.indexOf("async checkInPlayer"),
   );
-  assert.match(canRemove, /if \(!this\.participantsEditable\) return false/);
-  assert.match(canRemove, /"Assigned"/);
+  // The cutoff and finalized-participant gates now live in the shared
+  // canLeaveIndividualTournament helper, which the header Leave button uses
+  // too -- same rules, one definition. Asserted there in
+  // tournament-schedule-lock.test.mjs.
+  assert.match(
+    canRemove,
+    /canLeaveIndividualTournament\(signup, this\.tournament as any\)/,
+  );
   assert.match(canRemove, /this\.isOrganizer \|\| this\.isSelf\(signup\)/);
 });
 
