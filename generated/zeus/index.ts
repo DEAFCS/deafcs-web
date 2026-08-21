@@ -987,6 +987,12 @@ export type ValueTypes = {
 	_neq?: boolean | undefined | null | Variable<any, string>,
 	_nin?: Array<boolean> | undefined | null | Variable<any, string>
 };
+	["CheckInTournamentIndividualPlayerOutput"]: AliasType<{
+	already_checked_in?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	success?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["ClipAudioInput"]: {
 	duck_game_audio?: boolean | undefined | null | Variable<any, string>,
 	fade_in_ms?: number | undefined | null | Variable<any, string>,
@@ -1449,6 +1455,11 @@ export type ValueTypes = {
 	running?:boolean | `@${string}`,
 	started_at?:boolean | `@${string}`,
 	total?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["RemoveTournamentIndividualPlayerOutput"]: AliasType<{
+	success?:boolean | `@${string}`,
+	was_self?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["ReparseAllStartedOutput"]: AliasType<{
@@ -24655,6 +24666,7 @@ cancelMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueType
 	/** Request cancellation of the in-progress reparse-all-demos run (admin only). Stops after the current demo finishes. */
 	cancelReparseAllDemos?:ValueTypes["SuccessOutput"],
 cancelScrimRequest?: [{	request_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+checkInTournamentIndividualPlayer?: [{	player_steam_id: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["CheckInTournamentIndividualPlayerOutput"]],
 checkInTournamentTeam?: [{	tournament_team_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 checkIntoMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 checkIntoTournament?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -26232,6 +26244,7 @@ removeAbandonedMatch?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueT
 	/** Remove dev fixture data (dev only) */
 	removeFixtures?:ValueTypes["SuccessOutput"],
 removeSteamPresenceBotAccount?: [{	account_id: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
+removeTournamentIndividualPlayer?: [{	player_steam_id: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["RemoveTournamentIndividualPlayerOutput"]],
 remove_league_team_from_season?: [{	/** input parameters for function "remove_league_team_from_season" */
 	args: ValueTypes["remove_league_team_from_season_args"] | Variable<any, string>,	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["league_team_seasons_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
@@ -69219,6 +69232,12 @@ export type ResolverInputTypes = {
 	_neq?: boolean | undefined | null,
 	_nin?: Array<boolean> | undefined | null
 };
+	["CheckInTournamentIndividualPlayerOutput"]: AliasType<{
+	already_checked_in?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	success?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["ClipAudioInput"]: {
 	duck_game_audio?: boolean | undefined | null,
 	fade_in_ms?: number | undefined | null,
@@ -69681,6 +69700,11 @@ export type ResolverInputTypes = {
 	running?:boolean | `@${string}`,
 	started_at?:boolean | `@${string}`,
 	total?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["RemoveTournamentIndividualPlayerOutput"]: AliasType<{
+	success?:boolean | `@${string}`,
+	was_self?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["ReparseAllStartedOutput"]: AliasType<{
@@ -92887,6 +92911,7 @@ cancelMatch?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["Succe
 	/** Request cancellation of the in-progress reparse-all-demos run (admin only). Stops after the current demo finishes. */
 	cancelReparseAllDemos?:ResolverInputTypes["SuccessOutput"],
 cancelScrimRequest?: [{	request_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+checkInTournamentIndividualPlayer?: [{	player_steam_id: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["CheckInTournamentIndividualPlayerOutput"]],
 checkInTournamentTeam?: [{	tournament_team_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 checkIntoMatch?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 checkIntoTournament?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -94464,6 +94489,7 @@ removeAbandonedMatch?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["Su
 	/** Remove dev fixture data (dev only) */
 	removeFixtures?:ResolverInputTypes["SuccessOutput"],
 removeSteamPresenceBotAccount?: [{	account_id: string},ResolverInputTypes["SuccessOutput"]],
+removeTournamentIndividualPlayer?: [{	player_steam_id: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["RemoveTournamentIndividualPlayerOutput"]],
 remove_league_team_from_season?: [{	/** input parameters for function "remove_league_team_from_season" */
 	args: ResolverInputTypes["remove_league_team_from_season_args"],	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["league_team_seasons_select_column"]> | undefined | null,	/** limit the number of rows returned */
@@ -137444,6 +137470,11 @@ export type ModelTypes = {
 	_neq?: boolean | undefined | null,
 	_nin?: Array<boolean> | undefined | null
 };
+	["CheckInTournamentIndividualPlayerOutput"]: {
+		already_checked_in: boolean,
+	status: string,
+	success: boolean
+};
 	["ClipAudioInput"]: {
 	duck_game_audio?: boolean | undefined | null,
 	fade_in_ms?: number | undefined | null,
@@ -137857,6 +137888,10 @@ export type ModelTypes = {
 	running: boolean,
 	started_at?: string | undefined | null,
 	total: number
+};
+	["RemoveTournamentIndividualPlayerOutput"]: {
+		success: boolean,
+	was_self: boolean
 };
 	["ReparseAllStartedOutput"]: {
 		running: boolean,
@@ -159081,6 +159116,8 @@ export type ModelTypes = {
 	cancelReparseAllDemos?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** cancelScrimRequest */
 	cancelScrimRequest?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Organizer/admin confirms tournament attendance for another Solo Random player */
+	checkInTournamentIndividualPlayer?: ModelTypes["CheckInTournamentIndividualPlayerOutput"] | undefined | null,
 	/** Captain/authorized team representative confirms tournament attendance for their team */
 	checkInTournamentTeam?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** checkIntoMatch */
@@ -160508,6 +160545,8 @@ export type ModelTypes = {
 	removeFixtures?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Remove a friends-role presence bot account */
 	removeSteamPresenceBotAccount?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Organizer removes a Solo Random sign-up, or a player leaves one they joined */
+	removeTournamentIndividualPlayer?: ModelTypes["RemoveTournamentIndividualPlayerOutput"] | undefined | null,
 	/** execute VOLATILE function "remove_league_team_from_season" which returns "league_team_seasons" */
 	remove_league_team_from_season: Array<ModelTypes["league_team_seasons"]>,
 	/** Rename file or directory on game server */
@@ -197466,6 +197505,12 @@ export type GraphQLTypes = {
 	_neq?: boolean | undefined | null,
 	_nin?: Array<boolean> | undefined | null
 };
+	["CheckInTournamentIndividualPlayerOutput"]: {
+	__typename: "CheckInTournamentIndividualPlayerOutput",
+	already_checked_in: boolean,
+	status: string,
+	success: boolean
+};
 	["ClipAudioInput"]: {
 		duck_game_audio?: boolean | undefined | null,
 	fade_in_ms?: number | undefined | null,
@@ -197929,6 +197974,11 @@ export type GraphQLTypes = {
 	running: boolean,
 	started_at?: string | undefined | null,
 	total: number
+};
+	["RemoveTournamentIndividualPlayerOutput"]: {
+	__typename: "RemoveTournamentIndividualPlayerOutput",
+	success: boolean,
+	was_self: boolean
 };
 	["ReparseAllStartedOutput"]: {
 	__typename: "ReparseAllStartedOutput",
@@ -220445,6 +220495,8 @@ export type GraphQLTypes = {
 	cancelReparseAllDemos?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** cancelScrimRequest */
 	cancelScrimRequest?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Organizer/admin confirms tournament attendance for another Solo Random player */
+	checkInTournamentIndividualPlayer?: GraphQLTypes["CheckInTournamentIndividualPlayerOutput"] | undefined | null,
 	/** Captain/authorized team representative confirms tournament attendance for their team */
 	checkInTournamentTeam?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** checkIntoMatch */
@@ -221872,6 +221924,8 @@ export type GraphQLTypes = {
 	removeFixtures?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Remove a friends-role presence bot account */
 	removeSteamPresenceBotAccount?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Organizer removes a Solo Random sign-up, or a player leaves one they joined */
+	removeTournamentIndividualPlayer?: GraphQLTypes["RemoveTournamentIndividualPlayerOutput"] | undefined | null,
 	/** execute VOLATILE function "remove_league_team_from_season" which returns "league_team_seasons" */
 	remove_league_team_from_season: Array<GraphQLTypes["league_team_seasons"]>,
 	/** Rename file or directory on game server */
