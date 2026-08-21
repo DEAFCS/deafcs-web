@@ -11884,6 +11884,9 @@ export const AllTypesProps: Record<string,any> = {
 		addSteamPresenceBotAccount:{
 
 		},
+		addTournamentIndividualPlayer:{
+			tournament_id:"uuid"
+		},
 		approveNameChange:{
 			steam_id:"bigint"
 		},
@@ -38874,6 +38877,11 @@ export const ReturnTypes: Record<string,any> = {
 		wait_event:"String",
 		wait_event_type:"String"
 	},
+	AddTournamentIndividualPlayerOutput:{
+		checked_in:"Boolean",
+		status:"String",
+		success:"Boolean"
+	},
 	ApiKeyResponse:{
 		key:"String"
 	},
@@ -45494,6 +45502,7 @@ export const ReturnTypes: Record<string,any> = {
 		acceptInvite:"SuccessOutput",
 		addDraftPlayer:"SuccessOutput",
 		addSteamPresenceBotAccount:"SuccessOutput",
+		addTournamentIndividualPlayer:"AddTournamentIndividualPlayerOutput",
 		approveNameChange:"SuccessOutput",
 		approveVerificationApplication:"SuccessOutput",
 		approve_league_season_movements:"league_team_movements",

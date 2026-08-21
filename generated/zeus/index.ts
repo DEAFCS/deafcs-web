@@ -936,6 +936,12 @@ export type ValueTypes = {
 	wait_event_type?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["AddTournamentIndividualPlayerOutput"]: AliasType<{
+	checked_in?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	success?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["ApiKeyResponse"]: AliasType<{
 	key?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -24616,6 +24622,7 @@ ResetTournamentMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	
 acceptInvite?: [{	invite_id: ValueTypes["uuid"] | Variable<any, string>,	type: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 addDraftPlayer?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	steamId: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string | Variable<any, string>,	friend_capacity?: number | undefined | null | Variable<any, string>,	username: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
+addTournamentIndividualPlayer?: [{	player_steam_id: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["AddTournamentIndividualPlayerOutput"]],
 approveNameChange?: [{	name: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 approveVerificationApplication?: [{	application_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 approve_league_season_movements?: [{	/** input parameters for function "approve_league_season_movements" */
@@ -69161,6 +69168,12 @@ export type ResolverInputTypes = {
 	wait_event_type?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["AddTournamentIndividualPlayerOutput"]: AliasType<{
+	checked_in?:boolean | `@${string}`,
+	status?:boolean | `@${string}`,
+	success?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["ApiKeyResponse"]: AliasType<{
 	key?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -92841,6 +92854,7 @@ ResetTournamentMatch?: [{	match_id: ResolverInputTypes["uuid"],	reset_status?: s
 acceptInvite?: [{	invite_id: ResolverInputTypes["uuid"],	type: string},ResolverInputTypes["SuccessOutput"]],
 addDraftPlayer?: [{	draftGameId: ResolverInputTypes["uuid"],	steamId: string},ResolverInputTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string,	friend_capacity?: number | undefined | null,	username: string},ResolverInputTypes["SuccessOutput"]],
+addTournamentIndividualPlayer?: [{	player_steam_id: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["AddTournamentIndividualPlayerOutput"]],
 approveNameChange?: [{	name: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["SuccessOutput"]],
 approveVerificationApplication?: [{	application_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 approve_league_season_movements?: [{	/** input parameters for function "approve_league_season_movements" */
@@ -137383,6 +137397,11 @@ export type ModelTypes = {
 	wait_event?: string | undefined | null,
 	wait_event_type?: string | undefined | null
 };
+	["AddTournamentIndividualPlayerOutput"]: {
+		checked_in: boolean,
+	status: string,
+	success: boolean
+};
 	["ApiKeyResponse"]: {
 		key: string
 };
@@ -159023,6 +159042,8 @@ export type ModelTypes = {
 	addDraftPlayer?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Organizer/admin adds an existing player to a Solo Random individual sign-up pool */
+	addTournamentIndividualPlayer?: ModelTypes["AddTournamentIndividualPlayerOutput"] | undefined | null,
 	approveNameChange?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Approve a verification application and bump the player's role (admin only). */
 	approveVerificationApplication?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -197394,6 +197415,12 @@ export type GraphQLTypes = {
 	wait_event?: string | undefined | null,
 	wait_event_type?: string | undefined | null
 };
+	["AddTournamentIndividualPlayerOutput"]: {
+	__typename: "AddTournamentIndividualPlayerOutput",
+	checked_in: boolean,
+	status: string,
+	success: boolean
+};
 	["ApiKeyResponse"]: {
 	__typename: "ApiKeyResponse",
 	key: string
@@ -220379,6 +220406,8 @@ export type GraphQLTypes = {
 	addDraftPlayer?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Organizer/admin adds an existing player to a Solo Random individual sign-up pool */
+	addTournamentIndividualPlayer?: GraphQLTypes["AddTournamentIndividualPlayerOutput"] | undefined | null,
 	approveNameChange?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Approve a verification application and bump the player's role (admin only). */
 	approveVerificationApplication?: GraphQLTypes["SuccessOutput"] | undefined | null,
