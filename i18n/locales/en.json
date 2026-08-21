@@ -5038,6 +5038,7 @@
       "round_match": "{prefix} Round {round} Match {match}",
       "bye_round": "Bye Round",
       "scheduled_for": "Scheduled for",
+      "waiting_for_teams": "Waiting for teams",
       "upper_bracket": "Upper Bracket",
       "lower_bracket": "Lower Bracket",
       "winner_of": "Winner of",

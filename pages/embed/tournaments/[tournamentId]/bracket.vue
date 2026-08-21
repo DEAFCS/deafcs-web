@@ -144,6 +144,10 @@ export default {
               id: true,
               name: true,
               status: true,
+              // Decides whether a bracket's projected ETA is shown or replaced
+              // with the dependency wording -- see TournamentMatch.vue. Without
+              // it the embed would keep rendering the misleading countdown.
+              auto_start: true,
               stages: [
                 { order_by: [{ order: order_by.asc }] },
                 {
