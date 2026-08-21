@@ -11,6 +11,7 @@ import TournamentRewards from "~/components/tournament/TournamentRewards.vue";
 import TournamentPrizesManage from "~/components/tournament/TournamentPrizesManage.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
+import TournamentCheckInInfo from "~/components/tournament/TournamentCheckInInfo.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
@@ -618,6 +619,17 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :start="tournament.start"
                 :location="shortLocation"
               ></TournamentStatRibbon>
+
+              <!-- Keyed off the raw option, not isIndividualRegistration:
+                   that flips to false once Solo Random teams have been
+                   generated, which would swap this panel to the normal-team
+                   rules for a tournament that never used them. -->
+              <TournamentCheckInInfo
+                :tournament="tournament"
+                :is-individual-registration="
+                  !!tournament.options?.individual_registration_enabled
+                "
+              ></TournamentCheckInInfo>
 
               <TournamentRewards
                 :prizes="tournament.prizes"

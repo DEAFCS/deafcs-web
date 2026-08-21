@@ -5167,7 +5167,11 @@
         "overlay_title": "Confirm you're still in",
         "overlay_description": "You're registered for {name}. Check in now or you'll be replaced by the next player on the waitlist.",
         "check_in_now": "Check In Now"
-      }
+      },
+      "add_player": "Add Player",
+      "add_player_added": "Player added to the tournament",
+      "add_player_waitlisted": "Player added to the waitlist",
+      "add_player_failed": "Could not add player"
     },
     "attendance": {
       "check_in_button": "Check In",
@@ -5178,7 +5182,29 @@
       "explainer": "Players registered before check-in opens must check in. Registrations made during the check-in window are automatically checked in.",
       "closes_note": "Registration and check-in close at {time}. Teams are generated automatically afterward.",
       "team_check_in_button": "Check in for tournament",
-      "team_checked_in_badge": "Your team is checked in"
+      "status": {
+        "checked_in": "Checked-in",
+        "checked_in_hint": "Confirmed for this tournament.",
+        "pending": "Pending check-in",
+        "pending_hint": "Has not confirmed attendance yet.",
+        "checked_in_waitlisted_hint": "Confirmed, and waiting for a spot to open up."
+      },
+      "info": {
+        "title": "Tournament Check-in",
+        "window_label": "Check-in:",
+        "closes_label": "Registration closes:",
+        "closes_at": "Registration and check-in close at {time}.",
+        "team": {
+          "pre_registered": "Teams registered before check-in opens must check in.",
+          "representative": "A captain or an authorized team representative checks in for the whole team.",
+          "late_registered": "Teams that register during the check-in window are checked in automatically."
+        },
+        "individual": {
+          "pre_registered": "Players registered before check-in opens must check in.",
+          "late_registered": "Players who register during the check-in window are checked in automatically.",
+          "teams_generated": "Teams are generated automatically once check-in closes."
+        }
+      }
     },
     "actions": {
       "open_registration": "Open Registration",

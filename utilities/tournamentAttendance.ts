@@ -11,6 +11,10 @@ export type TournamentAttendanceTiming = {
   start?: string | null;
   attendance_check_in_open_before_minutes?: number | null;
   attendance_check_in_close_before_minutes?: number | null;
+  // Present on the fuller tournament objects the detail page loads; used by
+  // the visibility helpers below, which tolerate their absence.
+  status?: string | null;
+  individual_check_in_ends_at?: string | null;
 };
 
 export type AttendanceWindow = {
@@ -60,4 +64,65 @@ export function formatAttendanceWindowRange(
     return null;
   }
   return `${formatClockTime(window.opensAt)}–${formatClockTime(window.closesAt)}`;
+}
+
+// --- Attendance status visibility -------------------------------------------
+//
+// Attendance state (checked in / still pending) is public: every registered
+// team and every Solo Random signup already exposes checked_in_at to the
+// `guest` select permission, so anyone looking at the tournament can see who
+// has confirmed. The value of showing it is that it is scannable at a glance,
+// which only works if every participant carries a status, not just your own.
+//
+// Lifecycle, deliberately narrow so the badges are information rather than
+// clutter:
+//
+//   RegistrationOpen  - shown from the moment the window opens. Before that,
+//                       nobody has been asked to check in yet, so a wall of
+//                       "Pending check-in" would be misleading.
+//   RegistrationClosed- still shown. This is the pre-start period where
+//                       attendance has just been finalized and users most
+//                       need to see that the surviving participants really
+//                       did check in.
+//   Live / Finished / - hidden. Every remaining participant checked in by
+//   Cancelled           definition, so the badge stops carrying information
+//                       and the bracket becomes the story.
+const ATTENDANCE_VISIBLE_STATUSES = ["RegistrationOpen", "RegistrationClosed"];
+
+// The scheduled window is currently open. Keyed off the backend's
+// individual_check_in_ends_at (the same field the check-in actions validate
+// against) rather than the derived schedule, so the button only appears when
+// the backend would actually accept a check-in.
+export function attendanceCheckInOpen(
+  tournament?: TournamentAttendanceTiming | null,
+): boolean {
+  const endsAt = tournament?.individual_check_in_ends_at;
+  return !!endsAt && new Date(endsAt) > new Date();
+}
+
+// The window has opened at some point -- currently open, or already closed.
+// Accepts either signal: the backend having stamped
+// individual_check_in_ends_at, or the derived schedule's open time having
+// passed (which covers the seconds before ProcessTournamentAttendance's next
+// pass).
+export function attendanceCheckInOpened(
+  tournament?: TournamentAttendanceTiming | null,
+): boolean {
+  if (tournament?.individual_check_in_ends_at) {
+    return true;
+  }
+  const window = attendanceWindow(tournament);
+  return !!window && window.opensAt <= new Date();
+}
+
+export function showAttendanceStatuses(
+  tournament?: TournamentAttendanceTiming | null,
+): boolean {
+  if (!tournament?.status) {
+    return false;
+  }
+  if (!ATTENDANCE_VISIBLE_STATUSES.includes(tournament.status)) {
+    return false;
+  }
+  return attendanceCheckInOpened(tournament);
 }

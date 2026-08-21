@@ -23,6 +23,7 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { toast } from "~/components/ui/toast";
+import TournamentAttendanceBadge from "~/components/tournament/TournamentAttendanceBadge.vue";
 </script>
 
 <template>
@@ -241,14 +242,12 @@ import { toast } from "~/components/ui/toast";
           </span>
         </div>
 
-        <span
-          v-if="team.can_manage && team.checked_in_at"
-          class="inline-flex items-center gap-1.5 px-[0.6rem] py-[0.3rem] font-mono text-[0.65rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.12)] border border-[hsl(var(--tac-amber)/0.4)] rounded"
-        >
-          {{ $t("tournament.attendance.team_checked_in_badge") }}
-        </span>
+        <!-- Own team, still pending, window open: the actionable control.
+             Everyone else (and this team once it is confirmed) gets the
+             same compact public status badge, so the whole roster list can
+             be scanned at a glance. -->
         <Button
-          v-else-if="showTeamCheckIn"
+          v-if="showTeamCheckIn"
           variant="tactical"
           size="sm"
           class="h-8"
@@ -256,6 +255,10 @@ import { toast } from "~/components/ui/toast";
         >
           {{ $t("tournament.attendance.team_check_in_button") }}
         </Button>
+        <TournamentAttendanceBadge
+          v-else-if="showAttendanceStatus"
+          :checked-in="!!team.checked_in_at"
+        />
 
         <Button
           v-if="!tournament.is_organizer && canLeaveTournament"
@@ -402,6 +405,10 @@ import { toast } from "~/components/ui/toast";
 import { e_team_roles_enum, e_tournament_status_enum } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { generateMutation } from "~/graphql/graphqlGen";
+import {
+  attendanceCheckInOpen,
+  showAttendanceStatuses,
+} from "~/utilities/tournamentAttendance";
 
 export default {
   props: {
@@ -500,8 +507,7 @@ export default {
     // field -- see utilities/tournamentAttendance.ts for the scheduled
     // open/close times derived from tournament.start).
     attendanceCheckInOpen() {
-      const endsAt = this.tournament.individual_check_in_ends_at;
-      return !!endsAt && new Date(endsAt) > new Date();
+      return attendanceCheckInOpen(this.tournament as any);
     },
     showTeamCheckIn() {
       return (
@@ -509,6 +515,11 @@ export default {
         this.attendanceCheckInOpen &&
         !this.team.checked_in_at
       );
+    },
+    // Public: every viewer sees every registered team's attendance state,
+    // not just their own. Lifecycle lives in the shared helper.
+    showAttendanceStatus() {
+      return showAttendanceStatuses(this.tournament as any);
     },
     requiredPlayers() {
       return this.tournament.max_players_per_lineup;

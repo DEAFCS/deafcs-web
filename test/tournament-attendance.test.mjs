@@ -133,7 +133,11 @@ test("TournamentIndividualPlayers: waitlisted rows also show a check-in indicato
     individualPlayersSource.indexOf("</section>", individualPlayersSource.indexOf('$t("tournament.players.waitlist"')),
   );
   assert.match(waitlistBlock, /signup\.checked_in_at/);
-  assert.match(waitlistBlock, /tournament\.attendance\.waitlisted_checked_in/);
+  // The indicator is now the shared public status badge rather than an
+  // inline icon+title, and the waitlist wording moved into it as a variant
+  // (see tournament-attendance-ux.test.mjs).
+  assert.match(waitlistBlock, /<TournamentAttendanceBadge/);
+  assert.match(waitlistBlock, /variant="waitlisted"/);
 
   assert.match(individualPlayersSource, /from "~\/utilities\/tournamentAttendance"/);
   assert.match(individualPlayersSource, /v-if="closesAtNote"/);
