@@ -4425,10 +4425,9 @@
       "iphone": "iPhone",
       "android": "Android",
       "scan_hint": "Scan this with your phone's camera to open deafcs.net on your phone.",
-      "android_scan_hint": "Scan this with your phone's camera to download the DEAFCS app.",
-      "android_step1": "Scan the QR code — DEAFCS.apk downloads to your phone",
-      "android_step2": "Open the downloaded file and tap Install (allow 'install unknown apps' for your browser if asked)",
-      "android_download_button": "Or download DEAFCS.apk directly",
+      "android_scan_hint": "Scan this with your phone's camera to open deafcs.net on your phone.",
+      "android_step1": "Open the 3-dot menu in the top right corner of Chrome",
+      "android_step2": "Tap 'Install app'",
       "ios_steps": {
         "0": "Tap the '•••' menu button in Safari's bottom bar",
         "1": "Tap 'Share'",
