@@ -441,12 +441,5 @@ const runnerUps = computed(() => {
     >
       {{ $t("tournament.feature_card.check_in_window", { window: attendanceWindowLabel }) }}
     </div>
-
-    <div
-      v-if="isFinished && hasPodium"
-      class="flex items-center justify-end gap-1.5 border-t border-border/40 px-3 py-1 font-mono text-[0.55rem] uppercase tracking-[0.18em] text-muted-foreground"
-    >
-      <TimeAgo :date="tournament.start" />
-    </div>
   </NuxtLink>
 </template>
