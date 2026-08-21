@@ -190,7 +190,16 @@ async function fetchAwardData(tournamentIds: string[]) {
             id: true,
             tournament_id: true,
             placement: true,
-            award: { image_url: true },
+            // Full definition so TournamentCompactCard can render the real
+            // award artwork rather than a placement-coloured fallback.
+            award: {
+              id: true,
+              name: true,
+              tier: true,
+              silhouette: true,
+              image_url: true,
+              system_key: true,
+            },
             recipients: [
               {} as any,
               {

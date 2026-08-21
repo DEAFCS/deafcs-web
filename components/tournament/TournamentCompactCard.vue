@@ -9,9 +9,10 @@ import {
   UsersRound,
 } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
-import AwardBadge from "~/components/award/AwardBadge.vue";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
-import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
+import { awardArtworkDefinitionFor } from "~/utilities/awardOccurrenceResolution";
+import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
 import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 
 const { t } = useI18n();
@@ -25,7 +26,7 @@ const props = withDefaults(
     tournament: any;
     // Tournament-scoped award_occurrences (placements 1-3) and
     // tournament_award_slots for this card's tournament, fetched by the
-    // parent RecentTournaments.vue — see resolveAwardArtwork/
+    // parent RecentTournaments.vue, see awardArtworkDefinitionFor/
     // mapAwardRecipientToTrophy for the shared resolution logic (same
     // artwork priority as pages/teams/index.vue and TournamentResults.vue).
     awardOccurrences?: any[];
@@ -159,21 +160,13 @@ const podium = computed(() => {
 
 const hasPodium = computed(() => !!podium.value.gold);
 
-const trophyConfigFor = (placement: number) => {
-  const occurrence = occurrenceForPlacement(placement);
-  return resolveAwardArtwork(
+const awardArtworkFor = (placement: number) =>
+  awardArtworkDefinitionFor(
     placement,
-    occurrence?.award?.image_url,
+    occurrenceForPlacement(placement)?.award,
     props.tournament?.id,
     props.awardSlots,
   );
-};
-
-const primaryStage = computed(() => {
-  return [...(props.tournament?.stages || [])].sort(
-    (a: any, b: any) => (a.order || 0) - (b.order || 0),
-  )[0];
-});
 
 const statusIcon = computed(() => {
   if (props.statusVariant === "registration") return TicketCheck;
@@ -260,14 +253,14 @@ const runnerUps = computed(() => {
     placement: 2 | 3;
     label: string;
     name: string;
-    config: any;
+    award: AwardArtworkDefinition;
   }> = [];
   if (podium.value.silver) {
     entries.push({
       placement: 2,
       label: t("tournament.compact_card.second"),
       name: podium.value.silver,
-      config: trophyConfigFor(2),
+      award: awardArtworkFor(2),
     });
   }
   if (podium.value.bronze) {
@@ -275,7 +268,7 @@ const runnerUps = computed(() => {
       placement: 3,
       label: t("tournament.compact_card.third"),
       name: podium.value.bronze,
-      config: trophyConfigFor(3),
+      award: awardArtworkFor(3),
     });
   }
   return entries;
@@ -387,18 +380,7 @@ const runnerUps = computed(() => {
         <div
           class="relative grid h-14 w-14 shrink-0 place-items-center rounded-md border border-[hsl(var(--tac-amber)/0.4)] bg-[radial-gradient(ellipse_at_center,hsl(var(--tac-amber)/0.18)_0%,transparent_70%)]"
         >
-          <AwardBadge
-            :tournament-id="tournament.id"
-            :placement="1"
-            :tournament-name="tournament.name"
-            :tournament-start="tournament.start"
-            :tournament-type="primaryStage?.type"
-            :custom-name="trophyConfigFor(1)?.custom_name"
-            :silhouette-override="trophyConfigFor(1)?.silhouette"
-            :image-url="trophyConfigFor(1)?.image_url"
-            size="sm"
-            :interactive="false"
-          />
+          <AwardArtwork :award="awardArtworkFor(1)" size="sm" decorative />
         </div>
         <div class="min-w-0 flex-1">
           <div
@@ -424,18 +406,7 @@ const runnerUps = computed(() => {
           :key="entry.placement"
           class="flex items-center gap-2"
         >
-          <AwardBadge
-            :tournament-id="tournament.id"
-            :placement="entry.placement"
-            :tournament-name="tournament.name"
-            :tournament-start="tournament.start"
-            :tournament-type="primaryStage?.type"
-            :custom-name="entry.config?.custom_name"
-            :silhouette-override="entry.config?.silhouette"
-            :image-url="entry.config?.image_url"
-            size="xs"
-            :interactive="false"
-          />
+          <AwardArtwork :award="entry.award" size="xs" decorative />
           <span
             class="min-w-0 flex-1 truncate text-xs font-medium text-foreground/85"
             :title="entry.name"

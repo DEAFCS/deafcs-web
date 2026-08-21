@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchTableRow from "~/components/MatchTableRow.vue";
-import AwardBadge from "~/components/award/AwardBadge.vue";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import StageStandings from "~/components/tournament/StageStandings.vue";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
@@ -78,19 +78,9 @@ import {
                   }"
                   aria-hidden="true"
                 ></div>
-                <AwardBadge
-                  :tournament-id="tournament.id"
-                  :placement="entry.placement"
-                  :tournament-name="tournament.name"
-                  :tournament-start="tournament.start"
-                  :tournament-type="entry.tournamentType"
-                  :custom-name="trophyConfigFor(entry.placement)?.custom_name"
-                  :silhouette-override="
-                    trophyConfigFor(entry.placement)?.silhouette
-                  "
-                  :image-url="trophyConfigFor(entry.placement)?.image_url"
+                <AwardArtwork
+                  :award="awardArtworkFor(entry.placement)"
                   :size="entry.placement === 1 ? 'lg' : 'md'"
-                  :interactive="false"
                   class="relative z-[1]"
                 />
               </div>
@@ -286,17 +276,9 @@ import {
               }"
               aria-hidden="true"
             ></div>
-            <AwardBadge
-              :tournament-id="tournament.id"
-              :placement="0"
-              :tournament-name="tournament.name"
-              :tournament-start="tournament.start"
-              :tournament-type="finalStageType"
-              :custom-name="trophyConfigFor(0)?.custom_name"
-              :silhouette-override="trophyConfigFor(0)?.silhouette"
-              :image-url="trophyConfigFor(0)?.image_url"
+            <AwardArtwork
+              :award="awardArtworkFor(0)"
               size="md"
-              :interactive="false"
               class="relative z-[1]"
             />
           </div>
@@ -466,7 +448,7 @@ import { mapFields } from "~/graphql/mapGraphql";
 import { playerFields } from "~/graphql/playerFields";
 import { eloFields } from "~/graphql/eloFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
-import { resolveAwardArtwork } from "~/utilities/awardOccurrenceResolution";
+import { awardArtworkDefinitionFor } from "~/utilities/awardOccurrenceResolution";
 import {
   resolveTournamentPlayerAvatarUrl,
   tournamentAllowsCurrentRosterImage,
@@ -687,8 +669,15 @@ export default {
             {
               id: true,
               placement: true,
+              // Full definition so the podium/MVP artwork renders through
+              // AwardArtwork -- see utilities/awardOccurrenceResolution.ts.
               award: {
+                id: true,
+                name: true,
+                tier: true,
+                silhouette: true,
                 image_url: true,
+                system_key: true,
               },
               recipients: [
                 {},
@@ -794,21 +783,19 @@ export default {
       if (placement === 2) return this.$t("trophies.second_place");
       return this.$t("trophies.third_place");
     },
-    trophyConfigFor(placement: number) {
+    // The award definition granted for this placement (with any
+    // per-tournament slot override applied), rendered through AwardArtwork so
+    // the podium shows the real award and its uploaded artwork.
+    awardArtworkFor(placement: number) {
       const occurrence = ((this as any).awardOccurrences || []).find(
         (o: any) => o.placement === placement,
       );
-      const artwork = resolveAwardArtwork(
+      return awardArtworkDefinitionFor(
         placement,
-        occurrence?.award?.image_url,
+        occurrence?.award,
         (this.tournament as any)?.id,
         (this as any).tournamentAwardSlots,
       );
-      return {
-        custom_name: artwork.custom_name,
-        silhouette: artwork.silhouette,
-        image_url: artwork.image_url,
-      };
     },
     displayTeamName(tournamentTeam: any, fallbackId?: string) {
       const underlying = tournamentTeam?.team?.name;

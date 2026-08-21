@@ -3,7 +3,8 @@ import gql from "graphql-tag";
 import { computed, ref, watch, onMounted } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { Users } from "lucide-vue-next";
-import AwardBadge from "~/components/award/AwardBadge.vue";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
+import { awardArtworkDefinitionFor } from "~/utilities/awardOccurrenceResolution";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { Skeleton } from "~/components/ui/skeleton";
 import Empty from "~/components/ui/empty/Empty.vue";
@@ -13,55 +14,76 @@ import { tacticalSectionLabelClasses, tacticalSectionTickClasses } from "~/utili
 // retroactively as tournaments are attached/detached.
 const props = defineProps<{ eventId: string; refreshKey?: string | number }>();
 
-// Selects only the trophy fields this component renders (badge config,
-// tournament context, and the team/player identity per row); the `player`
-// relation exists so the medal table can show a name/avatar without a second
-// round-trip. Written as a raw `gql`
-// document (rather than `typedGql`) to avoid a zeus `ExtractVariables`
-// inference conflict when a nested `$(...)` argument sits alongside sibling
-// selector fields; see EventLeaderboard.vue for the same pattern.
-const EVENT_STANDINGS_QUERY = gql`
+// The event's tournaments. Awards come from a second, dependent query rather
+// than the legacy `tournament_trophies` compatibility view, which carries no
+// relation to the `awards` row behind a grant and so could only ever render
+// the old procedural trophy artwork. Written as raw `gql` documents (rather
+// than `typedGql`) to avoid a zeus `ExtractVariables` inference conflict when
+// a nested `$(...)` argument sits alongside sibling selector fields; see
+// EventLeaderboard.vue for the same pattern.
+const EVENT_TOURNAMENTS_QUERY = gql`
   query GetEventStandings($eventId: uuid!) {
     events_by_pk(id: $eventId) {
       tournaments {
         tournament {
           id
           name
-          trophies {
-            id
-            tournament_team_id
-            player_steam_id
-            placement
-            tournament {
-              name
-              start
-              stages(order_by: { order: desc }, limit: 1) {
-                type
-              }
-            }
-            tournament_team {
-              name
-              team {
-                id
-                name
-              }
-            }
-            trophy_config {
-              custom_name
-              silhouette
-              image_url
-            }
-            team {
-              id
-              name
-            }
-            player {
-              name
-              avatar_url
-            }
-          }
         }
       }
+    }
+  }
+`;
+
+// Same award_occurrences/tournament_award_slots pair every other award
+// surface reads (see RecentTournaments.vue and TournamentResults.vue), just
+// batched across the event's tournaments. The `award` selection is the whole
+// definition because AwardArtwork resolves uploaded artwork, procedural
+// silhouettes and the tier icon from it; the `player` relation exists so the
+// medal table can show a name/avatar without a third round-trip.
+const EVENT_AWARDS_QUERY = gql`
+  query GetEventStandingsAwards($tournamentIds: [uuid!]!) {
+    award_occurrences(where: { tournament_id: { _in: $tournamentIds } }) {
+      id
+      tournament_id
+      placement
+      award {
+        id
+        name
+        tier
+        silhouette
+        image_url
+        system_key
+      }
+      # The legacy tournament_trophies view this replaced was defined
+      # WHERE r.revoked_at IS NULL, so a revoked grant must stay hidden here.
+      recipients(where: { revoked_at: { _is_null: true } }) {
+        id
+        team_id
+        player_steam_id
+        tournament_team_id
+        tournament_team {
+          name
+          team {
+            id
+            name
+          }
+        }
+        team {
+          id
+          name
+        }
+        player {
+          name
+          avatar_url
+        }
+      }
+    }
+    tournament_award_slots(where: { tournament_id: { _in: $tournamentIds } }) {
+      tournament_id
+      slot
+      custom_name
+      silhouette_override
+      image_override
     }
   }
 `;
@@ -71,18 +93,72 @@ const { client: apolloClient } = useApolloClient();
 const tournamentCards = ref<any[]>([]);
 const loading = ref(true);
 
+// Flattens award_occurrences -> recipients into the per-recipient row shape
+// this component already collapses and counts: one canonical team row plus one
+// row per roster player for placements 1-3, player-scoped rows for MVP. Each
+// row carries the resolved award definition for AwardArtwork.
+function trophyRowsFor(
+  tournamentId: string,
+  occurrences: any[],
+  slots: any[],
+): any[] {
+  const rows: any[] = [];
+  for (const occurrence of occurrences) {
+    if (occurrence.tournament_id !== tournamentId) continue;
+    const award = awardArtworkDefinitionFor(
+      occurrence.placement,
+      occurrence.award,
+      tournamentId,
+      slots,
+    );
+    for (const recipient of occurrence.recipients || []) {
+      rows.push({
+        id: recipient.id,
+        placement: occurrence.placement,
+        tournament_team_id: recipient.tournament_team_id,
+        player_steam_id: recipient.player_steam_id,
+        tournament_team: recipient.tournament_team,
+        team: recipient.team,
+        player: recipient.player,
+        award,
+      });
+    }
+  }
+  return rows;
+}
+
 async function fetchStandings() {
   loading.value = true;
   try {
     const { data } = await apolloClient.query({
-      query: EVENT_STANDINGS_QUERY,
+      query: EVENT_TOURNAMENTS_QUERY,
       variables: { eventId: props.eventId },
       fetchPolicy: "network-only",
     });
     const entries = (data as any)?.events_by_pk?.tournaments || [];
-    tournamentCards.value = entries
+    const tournaments = entries
       .map((entry: any) => entry.tournament)
       .filter((tournament: any) => !!tournament);
+
+    if (!tournaments.length) {
+      tournamentCards.value = [];
+      return;
+    }
+
+    const { data: awardData } = await apolloClient.query({
+      query: EVENT_AWARDS_QUERY,
+      variables: {
+        tournamentIds: tournaments.map((tournament: any) => tournament.id),
+      },
+      fetchPolicy: "network-only",
+    });
+    const occurrences = (awardData as any)?.award_occurrences || [];
+    const slots = (awardData as any)?.tournament_award_slots || [];
+
+    tournamentCards.value = tournaments.map((tournament: any) => ({
+      ...tournament,
+      trophies: trophyRowsFor(tournament.id, occurrences, slots),
+    }));
   } catch (error) {
     console.error("Error fetching event standings:", error);
     tournamentCards.value = [];
@@ -309,17 +385,7 @@ const medalTable = computed<MedalRow[]>(() => {
                   :key="trophy.id"
                   class="flex flex-col items-center gap-1"
                 >
-                  <AwardBadge
-                    :tournament-id="tournament.id"
-                    :placement="trophy.placement"
-                    :tournament-name="tournament.name"
-                    :tournament-start="trophy.tournament?.start"
-                    :tournament-type="trophy.tournament?.stages?.[0]?.type"
-                    :custom-name="trophy.trophy_config?.custom_name"
-                    :silhouette-override="trophy.trophy_config?.silhouette"
-                    :image-url="trophy.trophy_config?.image_url"
-                    size="sm"
-                  />
+                  <AwardArtwork :award="trophy.award" size="sm" />
                   <component
                     :is="entityLinkTo(trophy) ? 'NuxtLink' : 'span'"
                     :to="entityLinkTo(trophy) ?? undefined"

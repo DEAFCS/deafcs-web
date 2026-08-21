@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import AwardBadge from "./AwardBadge.vue";
+import AwardArtwork from "./AwardArtwork.vue";
 import AwardModal from "./AwardModal.vue";
+import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
 
 interface Award {
   id: string;
@@ -28,6 +29,10 @@ interface Award {
     name?: string | null;
     short_name?: string | null;
   } | null;
+  // Artwork definition resolved by mapAwardRecipientToTrophy: the real award
+  // behind this grant (or its per-tournament slot override), rendered through
+  // AwardArtwork. `trophy_config` stays for the nameplate text below.
+  award?: AwardArtworkDefinition | null;
   trophy_config?: {
     custom_name?: string | null;
     silhouette?: number | null;
@@ -204,15 +209,9 @@ function placementUplight(placement: number) {
           }"
         ></div>
 
-        <AwardBadge
-          :tournament-id="trophy.tournament_id"
-          :placement="trophy.placement"
-          :tournament-name="trophy.tournament?.name"
-          :tournament-start="trophy.tournament?.start"
-          :tournament-type="trophy.tournament?.stages?.[0]?.type"
-          :custom-name="trophy.trophy_config?.custom_name"
-          :silhouette-override="trophy.trophy_config?.silhouette"
-          :image-url="trophy.trophy_config?.image_url"
+        <AwardArtwork
+          v-if="trophy.award"
+          :award="trophy.award"
           size="md"
           class="relative z-[1]"
         />

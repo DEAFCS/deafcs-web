@@ -21,7 +21,25 @@ const compactCardSource = await read(
 // the legacy tournament_trophies compatibility view.
 assert.match(awardFieldsSource, /Selector\("award_recipients"\)/);
 assert.doesNotMatch(awardFieldsSource, /tournament_trophies/);
-assert.match(awardFieldsSource, /award:\s*\{\s*image_url: true,/);
+
+// The whole award definition, not just its image: AwardArtwork needs
+// tier/silhouette/system_key to choose between uploaded artwork, a procedural
+// silhouette and the plain tier icon. Selecting only image_url is what forced
+// every placement surface back onto the old generated AwardBadge cup.
+for (const field of [
+  "id",
+  "name",
+  "tier",
+  "silhouette",
+  "image_url",
+  "system_key",
+]) {
+  assert.match(
+    awardFieldsSource,
+    new RegExp(`award:\\s*\\{[^}]*\\b${field}: true`),
+    `awardFields must select awards.${field}`,
+  );
+}
 
 // Team profile: scoped by team_id, no dependency on the legacy view.
 assert.match(teamSource, /award_recipients: \[/);
@@ -103,7 +121,7 @@ assert.doesNotMatch(recentTournamentsSource, /\btrophies:\s*\[/);
 // artwork through the same resolveAwardArtwork chain as the podium and
 // teams-list surfaces, with no lingering trophy_configs/trophies_enabled
 // reads off the raw tournament object.
-assert.match(compactCardSource, /resolveAwardArtwork/);
+assert.match(compactCardSource, /awardArtworkDefinitionFor/);
 assert.match(compactCardSource, /awardOccurrences\?:\s*any\[\]/);
 assert.match(compactCardSource, /awardSlots\?:\s*any\[\]/);
 assert.doesNotMatch(compactCardSource, /tournament\?\.trophies\b/);
@@ -111,5 +129,50 @@ assert.doesNotMatch(compactCardSource, /tournament\?\.trophy_configs/);
 assert.doesNotMatch(compactCardSource, /tournament\?\.trophies_enabled/);
 assert.doesNotMatch(compactCardSource, /trophiesEnabled/);
 assert.doesNotMatch(compactCardSource, /tournament_trophies/);
+
+// --- Placement artwork renders through AwardArtwork ----------------------
+//
+// Finished-tournament placements and player/team historical awards used to
+// render AwardBadge directly, which draws a procedural gold/silver/bronze cup
+// seeded off the tournament id and ignores the award actually granted. Every
+// one of those surfaces now goes through AwardArtwork, so a custom award and
+// its uploaded artwork show up wherever the grant does.
+const awardCaseSource = await read("components/award/AwardCase.vue");
+const awardModalSource = await read("components/award/AwardModal.vue");
+const teamsTableSource = await read("components/TeamsTable.vue");
+const eventStandingsSource = await read("components/events/EventStandings.vue");
+
+for (const [label, source] of [
+  ["AwardCase", awardCaseSource],
+  ["AwardModal", awardModalSource],
+  ["TeamsTable", teamsTableSource],
+  ["TournamentCompactCard", compactCardSource],
+  ["TournamentResults", podiumSource],
+  ["EventStandings", eventStandingsSource],
+]) {
+  assert.match(source, /import AwardArtwork/, `${label} must import AwardArtwork`);
+  assert.match(source, /<AwardArtwork/, `${label} must render AwardArtwork`);
+  assert.doesNotMatch(source, /AwardBadge/, `${label} must not render AwardBadge`);
+}
+
+// AwardBadge itself is not dead: AwardArtwork still delegates to it for an
+// award whose definition picks an explicit procedural silhouette.
+const artworkComponentSource = await read("components/award/AwardArtwork.vue");
+assert.match(artworkComponentSource, /import AwardBadge/);
+assert.match(artworkComponentSource, /artwork\.kind === 'silhouette'/);
+
+// Event standings: migrated off the legacy tournament_trophies view (which
+// has no relation to the awards row behind a grant) onto the same
+// award_occurrences/tournament_award_slots pair as every other surface.
+assert.match(eventStandingsSource, /award_occurrences\(where: \{ tournament_id: \{ _in: \$tournamentIds \} \}\)/);
+assert.match(eventStandingsSource, /tournament_award_slots\(where: \{ tournament_id: \{ _in: \$tournamentIds \} \}\)/);
+assert.match(eventStandingsSource, /awardArtworkDefinitionFor/);
+assert.doesNotMatch(eventStandingsSource, /trophy_config/);
+
+// The podium and the compact card resolve their artwork through the shared
+// helper rather than re-deriving it per component.
+assert.match(podiumSource, /awardArtworkDefinitionFor/);
+assert.doesNotMatch(podiumSource, /trophyConfigFor/);
+assert.doesNotMatch(compactCardSource, /trophyConfigFor/);
 
 console.log("award surface query wiring checks passed");

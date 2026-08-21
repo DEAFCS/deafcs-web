@@ -271,10 +271,11 @@ export default {
       }
       return [...ids];
     },
-    // Flattens the live award_recipients rows into the same trophy_config
-    // shape TeamsTable/AwardBadge already consume, resolving artwork fresh
-    // on every read: slot.image_override -> live awards.image_url -> null
-    // (AwardBadge's procedural fallback). See utilities/awardOccurrenceResolution.ts.
+    // Flattens the live award_recipients rows into the shape TeamsTable
+    // consumes, resolving the award definition fresh on every read so the
+    // per-tournament slot override wins over the live awards row. TeamsTable
+    // renders it through AwardArtwork. See
+    // utilities/awardOccurrenceResolution.ts.
     teamTrophies(): any[] {
       return (this.teamAwardRecipients as Array<any>).map((recipient) =>
         mapAwardRecipientToTrophy(recipient, this.teamAwardSlots as any[]),
