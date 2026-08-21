@@ -120,6 +120,41 @@ const showEngraving = computed(() =>
   ["md", "hero", "lg"].includes(props.size),
 );
 const showOverlay = computed(() => props.size !== "xs");
+
+// The drawn trophy does not fill its viewBox: the tallest silhouette starts
+// at y=35 (the star-topped cup's star; every other one starts at 55) and the
+// plinth always ends at y=212, with the engraving running to ~252. The old
+// viewBoxes started at y=0, so ~35-55 units of dead space sat above the
+// artwork against only 8 below it -- and because the badge's own box is
+// square, that pushed the *visible* trophy about 10% of the box height below
+// centre.
+//
+// Inside a bordered frame (the compact card's champion tile, the podium's
+// glow plate) that reads fine, but a bare badge sitting inline next to text
+// -- the 2nd/3rd-place rows on a tournament card, on /tournaments and on a
+// player profile -- visibly sagged below its label, which is what made the
+// bronze row look detached.
+//
+// Both viewBoxes below are centred on the real artwork instead. The engraved
+// sizes keep their exact height (so md/hero/lg render at precisely the same
+// scale as before, just aligned); the compact sizes additionally shed most of
+// the dead space, so a 32px badge is a trophy rather than a trophy floating
+// in a 32px box.
+const ART_TOP = 35;
+const ART_BOTTOM_PLAIN = 212;
+const ART_BOTTOM_ENGRAVED = 252;
+const ENGRAVED_VIEWBOX_HEIGHT = 260;
+const COMPACT_PADDING = 10;
+
+const viewBox = computed(() => {
+  if (showEngraving.value) {
+    const centre = (ART_TOP + ART_BOTTOM_ENGRAVED) / 2;
+    const top = centre - ENGRAVED_VIEWBOX_HEIGHT / 2;
+    return `0 ${top} 200 ${ENGRAVED_VIEWBOX_HEIGHT}`;
+  }
+  const height = ART_BOTTOM_PLAIN - ART_TOP + COMPACT_PADDING * 2;
+  return `0 ${ART_TOP - COMPACT_PADDING} 200 ${height}`;
+});
 </script>
 
 <template>
@@ -159,7 +194,7 @@ const showOverlay = computed(() => props.size !== "xs");
     </div>
     <svg
       v-if="!resolvedImageSrc"
-      :viewBox="`0 0 200 ${showEngraving ? 260 : 220}`"
+      :viewBox="viewBox"
       xmlns="http://www.w3.org/2000/svg"
       role="img"
       :aria-label="altText || `${palette.label} trophy${tournamentName ? ' for ' + tournamentName : ''}`"
