@@ -4248,7 +4248,84 @@
       },
       "terms_of_service": {
         "title": "Terms of Service",
-        "intro": "The terms governing use of DEAFCS. The full terms are being finalized and will be published here."
+        "intro": "The terms governing your use of DEAFCS, its competitions, and its community spaces.",
+        "last_updated_date": "22 August 2026",
+        "sections": {
+          "acceptance": {
+            "title": "1. Acceptance of These Terms",
+            "body_1": "By using DEAFCS, you agree to these Terms.",
+            "body_2": "Participating in matches, tournaments, and leagues is also governed by {link}, {link2}, and {link3}, which apply alongside these Terms.",
+            "body_3": "See {link} for how your information is handled."
+          },
+          "eligibility_accounts": {
+            "title": "2. Eligibility & Accounts",
+            "body_1": "You need a Steam account to use DEAFCS. There's no separate DEAFCS username or password.",
+            "body_2": "You're responsible for activity carried out through your DEAFCS account, and for providing accurate information when asked, such as during registration or player verification.",
+            "body_3": "DEAFCS may restrict access where eligibility requirements or the rules described in this policy and in General Rules aren't met."
+          },
+          "steam_identity": {
+            "title": "3. Steam Identity & Competitive Identity",
+            "body_1": "One Steam account corresponds to one DEAFCS competitive identity. Your matches, stats, ELO, and history are tied to that identity over time.",
+            "body_2": "You must not use account restrictions, closures, or alternate Steam accounts to obtain a clean competitive reset. The same Steam identity stays connected to its historical results and ratings, and restricting or closing access to an account does not create a fresh competitive record.",
+            "closing": "See {link} for more on how this works."
+          },
+          "verification": {
+            "title": "4. Player Verification",
+            "body_1": "DEAFCS is built for the Deaf and hard-of-hearing competitive community, and some features require completing player verification.",
+            "body_2": "If you apply, the information you provide must be truthful and accurate. DEAFCS staff may ask follow-up questions, and DEAFCS decides eligibility.",
+            "body_3": "If DEAFCS later determines that verification or eligibility information was false or misleading, DEAFCS may remove your verified status and apply sanctions under {link}.",
+            "body_4": "If your application is rejected, you may reapply where the current process allows it."
+          },
+          "fair_play": {
+            "title": "5. Fair Play & Rules",
+            "body_1": "You must follow {link}, and {link2} or {link3} where applicable.",
+            "body_2": "This includes not cheating, manipulating results or ratings, abusing exploits, intentionally disrupting matches or tournaments, or providing false identity or eligibility information.",
+            "body_3": "Detailed rules and penalties are defined in those pages rather than repeated here."
+          },
+          "sanctions": {
+            "title": "6. Sanctions & Enforcement",
+            "body_1": "DEAFCS may apply warnings, restrictions, bans, or other sanctions described in {link} and the other rules pages where a player or team breaks them.",
+            "body_2": "Sanctions may be temporary or permanent depending on the situation. They restrict things like participating in matchmaking or tournaments. They do not erase historical competitive records, and they can't be bypassed by attempting to reset your identity or history.",
+            "closing": "If you have questions about a sanction, contact DEAFCS through {link}."
+          },
+          "teams_tournaments": {
+            "title": "7. Teams, Tournaments & Organizers",
+            "body_1": "If you create or join a team, you're responsible for accurate rosters and for your team's participation in matches and tournaments.",
+            "body_2": "Tournament organizers are responsible for running their events fairly and within DEAFCS's tools and rules. Individual tournaments may add requirements on top of the general rules, shown in that tournament's own settings.",
+            "closing": "Scheduling, check-in, no-shows, and forfeits are governed by {link}."
+          },
+          "prizes_awards": {
+            "title": "8. Prizes & Awards",
+            "body_1": "Tournament pages may describe prizes or rewards for that event. This is set by the tournament's organizer, and prize pools and awards can differ between tournaments, so check that tournament's own page for what actually applies.",
+            "body_2": "Where an organizer offers a prize, the organizer, not DEAFCS, is responsible for providing it. DEAFCS does not process payments or guarantee delivery of organizer-provided prizes.",
+            "body_3": "DEAFCS also grants its own awards and trophies, which are recorded as part of a player's or team's history."
+          },
+          "content_you_provide": {
+            "title": "9. Content You Provide",
+            "body_1": "If you upload or provide content, such as a custom avatar, roster or team images, or other profile content, you must have the right to do so.",
+            "body_2": "Content must not be illegal, abusive, misleading, or infringe someone else's rights.",
+            "body_3": "DEAFCS may remove content that violates these Terms or the rules pages."
+          },
+          "competitive_history": {
+            "title": "10. Competitive & Historical Records",
+            "body_1": "DEAFCS records competition data such as matches, tournament and team participation, results, statistics, ELO and rating history, standings, awards, and relevant penalties.",
+            "body_2": "These records involve other players and teams, not only you. Changes to your account, or restrictions placed on it, do not automatically erase historical competition records connected to it, and you cannot demand a competitive reset simply by restricting or leaving an account.",
+            "body_3": "If a genuine error is found in a record, it may be corrected consistent with the relevant rules."
+          },
+          "service_availability": {
+            "title": "11. Service Availability",
+            "body_1": "DEAFCS may experience downtime, maintenance, bugs, server issues, match interruptions, or unavailable third-party services from time to time.",
+            "body_2": "DEAFCS may change, suspend, or discontinue features when necessary. Uninterrupted or error-free service isn't guaranteed."
+          },
+          "changes": {
+            "title": "12. Changes to DEAFCS and These Terms",
+            "body_1": "DEAFCS's features, rules, and these Terms may change over time. The date below reflects the current version, so please check back periodically."
+          },
+          "contact": {
+            "title": "13. Contact",
+            "body_1": "For questions about these Terms, see {link}."
+          }
+        }
       },
       "forum": {
         "title": "Forum",
