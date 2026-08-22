@@ -3504,7 +3504,7 @@
               },
               "deactivate_account": {
                 "q": "Can I deactivate my account?",
-                "a": "Yes. {link} explains what deactivating your account means, including what happens to your account and historical competitive records."
+                "a": "There's no self-service \"deactivate\" option today. {link} explains what happens to your account and historical competitive records if your access to DEAFCS is ever restricted or closed."
               },
               "historical_records": {
                 "q": "What happens to my historical match records if I deactivate my account?",
@@ -4090,7 +4090,66 @@
       },
       "account_data": {
         "title": "Account & Data",
-        "intro": "Information about your DEAFCS account and the data associated with it. Full details are coming soon."
+        "intro": "How your DEAFCS account, Steam identity, and competitive history fit together, and what stays part of the record even if your access to DEAFCS ever changes.",
+        "last_updated_date": "22 August 2026",
+        "sections": {
+          "your_account": {
+            "title": "Your DEAFCS Account",
+            "body_1": "Your DEAFCS account is created the moment you sign in with Steam. There's no separate DEAFCS username or password to set up.",
+            "body_2": "Signing in links your Steam identity to a DEAFCS profile. Everything you do on DEAFCS, including matches, tournaments, teams, and stats, becomes associated with that identity."
+          },
+          "steam_identity": {
+            "title": "Your Steam Identity",
+            "body_1": "Your Steam account is the core of your DEAFCS identity. One Steam account corresponds to one DEAFCS competitive identity, and that link is what ties your matches, stats, ELO, and history together over time.",
+            "body_2": "If access to your DEAFCS account is ever restricted or closed, that doesn't create a clean slate. The same Steam ID isn't meant to be used to start over with fresh stats or a fresh ELO: your competitive identity and history stay connected to it."
+          },
+          "profile_data": {
+            "title": "Profile Data You Control",
+            "body_1": "Some parts of your profile come straight from Steam and update automatically. Your Steam name and avatar refresh each time you sign in.",
+            "item_1": "Country: you can set this yourself at any time.",
+            "item_2": "Custom avatar: you can upload your own avatar to use instead of your Steam avatar.",
+            "item_3": "Discord: you can link or unlink a Discord account.",
+            "item_4": "Display name: regular name changes go through a request that DEAFCS staff reviews, rather than being editable directly.",
+            "body_2": "You can also leave any team you're a member of at any time, subject to that team's own roster rules."
+          },
+          "verification": {
+            "title": "Player Verification",
+            "body_1": "DEAFCS is built for the Deaf and hard-of-hearing competitive community. Some features may require completing player verification to confirm you meet that eligibility.",
+            "body_2": "When you apply, the information you submit, including your hearing status, country, and any additional details, is visible only to you and to authorized DEAFCS administrators. Staff may follow up with questions before a decision is made.",
+            "body_3": "If your application is approved, your verified status is attached to your DEAFCS account and may be shown publicly on your profile. The application details themselves are not made public.",
+            "body_4": "Verification records are kept to maintain accurate eligibility records, look into abuse or false claims if they come up, and resolve disputes.",
+            "closing": "See {link} for the full verification process and eligibility rules."
+          },
+          "competitive_history": {
+            "title": "Competitive History",
+            "body_1": "DEAFCS keeps a historical record of competitive activity, including:",
+            "item_1": "Matches you've played",
+            "item_2": "Tournament participation and results",
+            "item_3": "Team and roster history",
+            "item_4": "Player statistics",
+            "item_5": "ELO and rating changes",
+            "item_6": "Standings and rankings",
+            "item_7": "Awards",
+            "item_8": "Penalties such as no-shows, forfeits, or sanctions where they affect competitive integrity",
+            "body_2": "Your current account and profile are not the same thing as your historical competitive record. Restricting or closing access to an account does not erase matches, tournament results, statistics, ELO history, awards, or other competition records tied to it.",
+            "body_3": "These records describe competitions that involved other players and teams too. Keeping them accurate protects everyone's results and prevents a restricted account from resetting its history and starting over."
+          },
+          "access_restrictions": {
+            "title": "Account Access & Restrictions",
+            "body_1": "DEAFCS may restrict a player's participation through bans or other sanctions, most often for the kinds of rule violations covered in {link}, {link2}, and {link3}.",
+            "body_2": "A restriction can limit things like joining matchmaking or playing in tournaments. It does not erase your competitive history, and it isn't a way to reset your identity: restrictions stay tied to the same Steam-based account they were issued to."
+          },
+          "returning": {
+            "title": "Returning to DEAFCS",
+            "body_1": "If you take a break from DEAFCS, you don't need to do anything to come back. Just sign in with the same Steam account whenever you're ready.",
+            "body_2": "Your existing matches, stats, ELO, and history continue with the same identity. Taking time away doesn't create a new player record or reset what came before."
+          },
+          "data_requests": {
+            "title": "Data & Privacy Requests",
+            "body_1": "If you have questions about your account or the data associated with it, you can {link}.",
+            "body_2": "Requests about your data, including corrections, are currently handled manually by DEAFCS staff rather than through a self-service tool. See {link2} for more on how your data is handled."
+          }
+        }
       },
       "privacy_policy": {
         "title": "Privacy Policy",
