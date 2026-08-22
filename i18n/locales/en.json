@@ -3962,31 +3962,56 @@
         "title": "Tournament Rules",
         "intro": "Rules and general expectations for playing in DEAFCS tournaments, covering registration, teams, matches, and check-in.",
         "intro_2": "These rules apply alongside {link}, which covers account-wide conduct, and {link2}, which covers general match behavior also used in tournament matches.",
-        "last_updated_date": "19 August 2026",
+        "last_updated_date": "22 August 2026",
         "sections": {
           "eligibility": {
             "title": "1. Eligibility & Registration",
             "body_1": "To register for a tournament, your account must meet DEAFCS's standard account eligibility requirements. See {link} for details.",
-            "body_2": "Each tournament sets its own roster size and registration window. Check that tournament's registration page for its specific requirements before signing up."
+            "body_2": "Each tournament sets its own roster size and registration window, and enables team registration, individual (Solo Random) registration, or both. Check that tournament's registration page for its specific requirements before signing up.",
+            "body_3": "If a tournament offers individual registration, see Solo Random Tournaments below for how that works."
+          },
+          "solo_random": {
+            "title": "2. Solo Random Tournaments",
+            "body_1": "Some tournaments allow individual registration instead of, or alongside, team registration. In these Solo Random tournaments, you register on your own without needing a premade team.",
+            "body_2": "Solo Random registrants must complete tournament attendance check-in like any other participant, see Tournament Check-In & Attendance below.",
+            "body_3": "After the attendance window closes, eligible checked-in players are automatically grouped into new teams. Generated teams don't need a separate team check-in, your individual attendance check-in already covers it.",
+            "body_4": "Generated teams are balanced using the relevant game mode's ELO for that tournament, spreading skill across teams as evenly as the available pool allows.",
+            "item_1": "If there aren't enough eligible checked-in players to fill full teams for everyone, some players won't be assigned a team. Selection is based on registration order: players who registered earlier are selected first.",
+            "item_2": "Before teams are generated, being on the waitlist doesn't mean you're out. If a higher-priority player doesn't check in, waitlisted players can still be promoted into an open spot.",
+            "item_3": "Once teams are generated, a checked-in player who wasn't assigned a team is marked Not selected. This isn't a no-show, it just means there weren't enough full-team slots for everyone who checked in.",
+            "body_5": "Once you're assigned to a generated team, you're part of that team for the rest of the tournament, the same as any other team tournament participant. You can leave your individual signup while registration is still open and before you've been assigned to a team; once you're assigned, normal team rules apply."
           },
           "teams_rosters": {
-            "title": "2. Teams & Rosters",
+            "title": "3. Teams & Rosters",
             "body_1": "Each team has one designated captain, who can be promoted to a different roster member at any time by the team or that tournament's organizer/admin. In Captains check-in mode, and for map veto, the captain acts on behalf of the team.",
-            "body_2": "Some tournaments allow a team coach. Coaches are only available when enabled for that tournament, and must follow Tournament Rules, General Rules, and organizer/admin instructions."
+            "body_2": "Some tournaments allow a team coach. Coaches are only available when enabled for that tournament, and must follow Tournament Rules, General Rules, and organizer/admin instructions.",
+            "body_3": "Team tournaments require registering a team roster ahead of time, separate from Solo Random's individual signup described above. If a tournament offers both, pick whichever registration path matches how you want to play."
           },
           "substitutes": {
-            "title": "3. Substitutes",
+            "title": "4. Substitutes",
             "body_1": "Tournaments may allow a limited number of substitutes per team. The exact number is set per tournament, check that tournament's Settings.",
             "body_2": "Substitutes are expected to follow the same rules as regular roster members once added to a match."
           },
+          "attendance": {
+            "title": "5. Tournament Check-In & Attendance",
+            "body_1": "Before a tournament begins, registered players and teams must confirm they're actually available to play. This is Tournament Attendance, separate from Match Check-In below, which happens later for one specific match.",
+            "body_2": "The organizer sets the tournament's attendance check-in window relative to its start time. The registration and check-in schedule shown on the tournament page is authoritative, always check it there rather than assuming a fixed time.",
+            "item_1": "If you registered before the check-in window opened, you must check in yourself before it closes.",
+            "item_2": "If you register during the check-in window, you're checked in automatically.",
+            "item_3": "For team tournaments, a captain or an authorized team representative checks in on behalf of the whole team.",
+            "body_3": "Missing the attendance window has real consequences. A team that never checks in is removed from the tournament. A Solo Random registrant who never checks in is removed and replaced by the next eligible player on the waitlist.",
+            "body_4": "Tournament Attendance is separate from Match Check-In below. Confirming your attendance for the tournament doesn't check you in for an individual match later on."
+          },
           "scheduling": {
-            "title": "4. Match Scheduling & Being Ready",
+            "title": "6. Match Scheduling & Being Ready",
             "body_1": "Players and teams are expected to be ready and available for their scheduled matches.",
-            "body_2": "Being ready means following that tournament's configured check-in and cancellation rules (see Match Check-In and Match Cancellation below). There's no single lateness rule that applies to every tournament."
+            "body_2": "Being ready means following that tournament's configured check-in and cancellation rules (see Match Check-In and Match Cancellation below). There's no single lateness rule that applies to every tournament.",
+            "body_3": "Once a tournament's attendance check-in window has opened, its start time and check-in window can no longer be changed. This keeps the deadline participants are already acting on from shifting after the fact.",
+            "body_4": "A confirmed match time set by the organizer or agreed through scheduling is a real commitment. A projected or estimated time shown on the bracket is only an estimate, later rounds depend on when earlier matches finish. If a tournament has Auto Start enabled, a match can become available as soon as both participants are known, sometimes sooner than an earlier projection suggested. Match Check-In still applies either way, follow the live bracket and match status rather than an earlier projected time."
           },
           "check_in": {
-            "title": "5. Match Check-In",
-            "body_1": "Before a tournament match starts, players may need to check in. Depending on that tournament's Settings, check-in can be handled by Captains, by all Players, or by an Admin.",
+            "title": "7. Match Check-In",
+            "body_1": "Match Check-In is separate from Tournament Attendance above, and applies to a single tournament match rather than the whole event. Before a tournament match starts, players may need to check in. Depending on that tournament's Settings, check-in can be handled by Captains, by all Players, or by an Admin.",
             "body_2": "In Captains or Players mode, a check-in timer may be configured for that tournament. Admin mode does not use that automatic countdown.",
             "item_1": "Both required sides check in: the match continues normally.",
             "item_2": "One side checks in and the other does not before the timer expires: the checked-in side receives the match by forfeit.",
@@ -3995,63 +4020,70 @@
             "body_4": "The exact check-in mode and timer length are set per tournament, check that tournament's Settings."
           },
           "map_veto": {
-            "title": "6. Map Pool & Veto",
+            "title": "8. Map Pool & Veto",
             "body_1": "Tournament matches use a map pool and veto process to decide which maps are played, similar to matchmaking (see {link} for the general veto mechanic).",
             "body_2": "Official DEAFCS tournaments use the DEAFCS Active Map Pool. The current Active Map Pool will be available on the Map Pool & Veto page once published.",
             "body_3": "Some tournaments may configure a custom map pool instead. Either way, the exact map pool and veto configuration for a specific tournament is shown in that tournament's Tournament Settings."
           },
           "server_connection": {
-            "title": "7. Server Joining & Connection",
+            "title": "9. Server Joining & Connection",
             "body_1": "Once a match server is ready, players are responsible for connecting promptly using the connect link or button provided.",
             "body_2": "Connection issues should be reported to the tournament organizer as soon as possible."
           },
           "cancellation": {
-            "title": "8. Match Cancellation & No-Shows",
+            "title": "10. Match Cancellation & No-Shows",
             "body_1": "Match Cancellation is separate from Match Check-In. If Match Cancellation is enabled and the match does not progress within the configured window, the match may be automatically canceled.",
-            "body_2": "Whether cancellation is enabled, and how long it takes, is configured per tournament, check that tournament's Settings."
+            "body_2": "Whether cancellation is enabled, and how long it takes, is configured per tournament, check that tournament's Settings.",
+            "body_3": "A Solo Random player who registered and checked in, but wasn't assigned a team because there weren't enough full-team slots, is not a no-show, see Solo Random Tournaments above. No-show status applies only when a player or team fails a required check-in or readiness step."
           },
           "pauses_timeouts": {
-            "title": "9. Technical Pauses & Timeouts",
+            "title": "11. Technical Pauses & Timeouts",
             "body_1": "Each team has 4 tactical timeouts ({tac}) per match, called for team discussion and strategy. Tactical timeouts are 30 seconds long.",
             "body_2": "Technical pauses ({pause}) are for genuine technical problems, such as a crash or connection issue, and don't have a fixed time limit.",
             "body_3": "Don't use technical pauses as extra tactical timeouts. Follow organizer/admin instructions during any pause."
           },
           "webcam": {
-            "title": "10. Webcam Requirement",
+            "title": "12. Webcam Requirement",
             "body_1": "Some tournaments require players to have their webcam on during matches. This only applies when the organizer has enabled it for that tournament, check that tournament's Settings."
           },
           "fair_play": {
-            "title": "11. Fair Play, Cheating & Account Restrictions",
+            "title": "13. Fair Play, Cheating & Account Restrictions",
             "body_1": "Tournament matches are covered by DEAFCS's general rules on cheating, exploits, and fair play. See {link} for the full policy.",
             "body_2": "Account restrictions related to VAC or official Counter-Strike game bans also apply to tournament play. See {link} for details."
           },
           "disputes": {
-            "title": "12. Organizer/Admin Rulings & Disputes",
+            "title": "14. Organizer/Admin Rulings & Disputes",
             "body_1": "Tournament-specific rulings should normally be handled by that tournament's organizer/admin first.",
             "body_2": "Issues involving DEAFCS-wide rules, platform behavior, or unresolved disputes may be reviewed by DEAFCS staff."
           },
           "results_forfeits": {
-            "title": "13. Results, Forfeits & Penalties",
+            "title": "15. Results, Forfeits & Penalties",
             "body_1": "Match results, including automatic or organizer-awarded forfeits, are recorded as part of the tournament.",
             "body_2": "Violating DEAFCS rules during a tournament may result in penalties, up to and including removal from the tournament, handled under the same enforcement policy described in {link}."
           },
           "awards": {
-            "title": "14. Awards",
+            "title": "16. Prizes & Awards",
             "body_1": "Players can earn individual tournament awards regardless of whether they compete with a permanent DEAFCS team or a tournament-only team.",
             "body_2": "Team awards are only given to teams registered in the {link} system. A team created only for a tournament may compete normally, but it will not receive a team award for a top-three finish.",
-            "body_3": "Player and team awards are separate. Players on a tournament-only team can still receive their individual awards even though their team isn't eligible for a team award."
+            "body_3": "Player and team awards are separate. Players on a tournament-only team can still receive their individual awards even though their team isn't eligible for a team award.",
+            "body_4": "Prize pools and awards can differ between tournaments. The tournament page is the authoritative source for that tournament's configured prizes and awards, always check it there rather than assuming a standard prize.",
+            "body_5": "Prizes and awards are granted according to the tournament's final official result. If an organizer or admin corrects a match result or applies a penalty (see Results, Forfeits & Penalties above), awards are granted based on the corrected result."
           },
           "settings_note": {
-            "title": "15. Check This Tournament's Settings",
+            "title": "17. Check This Tournament's Settings",
             "body_1": "Tournament Rules describe general behavior that applies across all DEAFCS tournaments. The exact configuration for a specific event is set per tournament in its Tournament Settings, including:",
-            "item_1": "Check-in mode/time",
-            "item_2": "Map pool/veto",
-            "item_3": "Match mode",
-            "item_4": "Match cancellation/time",
-            "item_5": "Substitutes",
-            "item_6": "Coaches",
-            "item_7": "Webcam requirement",
-            "item_8": "Other available tournament match options",
+            "item_1": "Individual (Solo Random) registration",
+            "item_2": "Tournament attendance window",
+            "item_3": "Check-in mode/time",
+            "item_4": "Map pool/veto",
+            "item_5": "Match mode",
+            "item_6": "Match cancellation/time",
+            "item_7": "Substitutes",
+            "item_8": "Coaches",
+            "item_9": "Webcam requirement",
+            "item_10": "Auto Start",
+            "item_11": "Prizes and awards",
+            "item_12": "Other available tournament match options",
             "body_2": "Always check that tournament's Tournament Settings for its exact configuration before you play."
           }
         }
