@@ -497,8 +497,17 @@ export default {
         e_tournament_status_enum.Finished,
       ];
 
+      // Once registration closes the bracket exists and a normal
+      // participant/captain can no longer unilaterally pull the team --
+      // matches the narrowed tournament_teams delete_permissions (Setup/
+      // RegistrationOpen only for a non-organizer). Organizers keep the
+      // existing wider window via canRemoveTeam.
       if (!this.tournament.is_organizer) {
-        restrictedStatuses.push(e_tournament_status_enum.Live);
+        restrictedStatuses.push(
+          e_tournament_status_enum.RegistrationClosed,
+          e_tournament_status_enum.Live,
+          e_tournament_status_enum.Paused,
+        );
       }
 
       return !restrictedStatuses.includes(status);
@@ -595,8 +604,13 @@ export default {
         e_tournament_status_enum.Finished,
       ];
 
+      // Same narrowed window as canLeaveTournament -- see its comment.
       if (!this.tournament.is_organizer) {
-        restrictedStatuses.push(e_tournament_status_enum.Live);
+        restrictedStatuses.push(
+          e_tournament_status_enum.RegistrationClosed,
+          e_tournament_status_enum.Live,
+          e_tournament_status_enum.Paused,
+        );
       }
 
       return !restrictedStatuses.includes(status);
