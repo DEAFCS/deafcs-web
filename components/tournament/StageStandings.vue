@@ -11,6 +11,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import { ChevronRight } from "lucide-vue-next";
 import { kdColor } from "~/utils/statTiers";
+import { e_tournament_status_enum } from "~/generated/zeus";
 import {
   resolveTournamentPlayerAvatarUrl,
   tournamentAllowsCurrentRosterImage,
@@ -43,6 +44,9 @@ import {
                 </TableHead>
                 <TableHead class="text-center">
                   {{ $t("tournament.results_table.matches") }}
+                </TableHead>
+                <TableHead v-if="showPrizeColumn" class="text-center">
+                  {{ $t("tournament.results_table.prize") }}
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -98,13 +102,19 @@ import {
                   <TableCell class="text-center font-mono tabular-nums">
                     {{ entry.matchesPlayed }}
                   </TableCell>
+                  <TableCell
+                    v-if="showPrizeColumn"
+                    class="text-center font-mono tabular-nums"
+                  >
+                    {{ prizeForPlacement(entry.placement) || "—" }}
+                  </TableCell>
                 </TableRow>
                 <TableRow
                   v-if="isExpanded(entry.teamId)"
                   class="hover:bg-transparent"
                 >
                   <TableCell
-                    colspan="6"
+                    :colspan="columnCount"
                     class="border-t border-border/40 bg-background/40 p-0"
                   >
                     <div
@@ -239,7 +249,7 @@ import {
               </template>
               <TableRow v-if="group.entries.length === 0">
                 <TableCell
-                  colspan="6"
+                  :colspan="columnCount"
                   class="text-center text-muted-foreground"
                 >
                   {{ $t("tournament.stage.no_standings") }}
@@ -289,6 +299,22 @@ export default {
       type: Array,
       default: () => [],
     },
+    // Ordered (by tournament.prizes' own `order` field) list of configured
+    // prizes -- index 0 is 1st place, index 1 is 2nd, etc., the same
+    // position-based convention TournamentRewards.vue already uses for the
+    // podium. Only passed by the top-level Standings tab (TournamentResults)
+    // -- left unset for the bracket-embedded group standings so Overview's
+    // rendering is untouched.
+    prizes: {
+      type: Array,
+      default: () => [],
+    },
+    // Opt-in: keeps the Overview-embedded standings (TournamentStage.vue,
+    // multi-group stages) visually identical to before this feature existed.
+    showPrizeColumn: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -296,6 +322,19 @@ export default {
     };
   },
   computed: {
+    // Live/Paused placement is provisional (see tournament-rules copy and
+    // the standings/results tab's own "LIVE - PROVISIONAL" label) -- a
+    // prize must never be inferred from a raw placement value until the
+    // tournament is actually Finished.
+    isFinished(): boolean {
+      return (
+        (this.tournament as any)?.status ===
+        e_tournament_status_enum.Finished
+      );
+    },
+    columnCount(): number {
+      return this.showPrizeColumn ? 7 : 6;
+    },
     apiDomain() {
       return useRuntimeConfig().public.apiDomain;
     },
@@ -366,6 +405,7 @@ export default {
 
         const entries = sorted.map((row: any) => ({
           rank: Number(row.rank) || 0,
+          placement: Number(row.placement) || 0,
           teamId: row.tournament_team_id || row.team?.id,
           teamLinkId: row.team?.team?.id || null,
           teamName: this.displayTeamName(
@@ -421,6 +461,20 @@ export default {
         this.apiDomain,
         member,
       );
+    },
+    // Never trust a Live/Paused placement for prize purposes -- only
+    // Finished placement is final (see tournament rules: live placement is
+    // provisional and format-dependent). Position-based lookup, not a
+    // parse of the free-text `place` label: prizes[0] is whatever the
+    // organizer configured for 1st, matching TournamentRewards.vue's own
+    // `podium = prizes.slice(0, 3)` convention. Tied teams share a
+    // placement and therefore share the same prize entry.
+    prizeForPlacement(placement: number): string | null {
+      if (!this.isFinished) return null;
+      const index = Number(placement) - 1;
+      if (!Number.isFinite(index) || index < 0) return null;
+      const row = (this.prizes as any[])[index];
+      return row?.prize ?? null;
     },
     isExpanded(teamId: string | undefined) {
       if (!teamId) return false;

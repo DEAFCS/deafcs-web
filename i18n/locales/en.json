@@ -4755,7 +4755,8 @@
       "pending": "Pending"
     },
     "results_table": {
-      "matches": "Matches"
+      "matches": "Matches",
+      "prize": "Prize"
     },
     "final_standings_podium": "▚ FINAL STANDINGS · PODIUM",
     "page": {
@@ -4804,6 +4805,9 @@
     },
     "standings_section": {
       "no_roster": "NO ROSTER"
+    },
+    "stats_section": {
+      "no_data": "No stats yet"
     },
     "trophies_config": {
       "title": "Trophy Configuration",
@@ -5132,6 +5136,9 @@
     },
     "results": {
       "title": "Results"
+    },
+    "stats_tab": {
+      "title": "Stats"
     },
     "organizer": {
       "title": "Tournament Organizers",

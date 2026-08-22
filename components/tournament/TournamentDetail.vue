@@ -16,6 +16,7 @@ import TournamentNotSelectedSection from "~/components/tournament/TournamentNotS
 import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
+import TournamentStats from "~/components/tournament/TournamentStats.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -554,6 +555,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 {{ $t("tournament.standings.title") }}
               </TabsTrigger>
               <TabsTrigger
+                v-if="statsTabVisible"
+                value="stats"
+                :class="tacticalTabsTriggerClasses"
+              >
+                {{ $t("tournament.stats_tab.title") }}
+              </TabsTrigger>
+              <TabsTrigger
                 v-if="
                   tournament.status === e_tournament_status_enum.Live ||
                   tournament.status === e_tournament_status_enum.Finished
@@ -821,6 +829,14 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               :tournament="tournament"
               :show-standings="true"
               :show-matches="false"
+            />
+          </div>
+        </TabsContent>
+        <TabsContent v-if="statsTabVisible" value="stats">
+          <div>
+            <TournamentStats
+              :tournament="tournament"
+              :active="activeTab === 'stats'"
             />
           </div>
         </TabsContent>
@@ -1705,6 +1721,10 @@ export default {
         tabs.push("standings");
       }
 
+      if (this.statsTabVisible) {
+        tabs.push("stats");
+      }
+
       if (
         this.tournament?.status === e_tournament_status_enum.Live ||
         this.tournament?.status === e_tournament_status_enum.Finished
@@ -1732,6 +1752,18 @@ export default {
         status === e_tournament_status_enum.Paused ||
         status === e_tournament_status_enum.Finished
       );
+    },
+    // Reuses the same status gate as Standings rather than an async
+    // "does any stat row exist yet" check: that would require a
+    // query/aggregate round-trip to decide tab *visibility* itself, which
+    // risks the tab appearing/disappearing out from under
+    // syncActiveTabFromRoute (e.g. a ?tab=stats deep link resolving before
+    // the existence check returns). TournamentStats.vue instead renders its
+    // own "No stats yet" empty state when the leaderboard comes back empty,
+    // which avoids that race without showing an empty tab throughout
+    // Setup/RegistrationOpen/RegistrationClosed.
+    statsTabVisible() {
+      return this.standingsTabVisible;
     },
   },
   methods: {

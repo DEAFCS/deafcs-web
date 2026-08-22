@@ -407,6 +407,8 @@ import {
             :stage="stage"
             :tournament="tournament"
             :player-stats="tournamentPlayerStats"
+            :prizes="tournament.prizes || []"
+            :show-prize-column="true"
           />
         </CardContent>
       </Card>
