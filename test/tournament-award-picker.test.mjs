@@ -264,7 +264,7 @@ test("creation persists only non-default enabled mappings", () => {
   assert.match(wizard, /v-model="awardSelections"/);
   assert.match(
     wizard,
-    /const tournamentId = data\.insert_tournaments_one\.id;[\s\S]*persistTournamentAwardSelections\(tournamentId\)/,
+    /const tournamentId = data\.insert_tournaments_one\.id;[\s\S]*persistAwardConfiguration\(tournamentId\)/,
   );
   assert.match(wizard, /picker\.persistSelections\(tournamentId, true\)/);
 });
@@ -276,6 +276,60 @@ test("partial creation failures direct organizers to recovery without recreating
   );
   assert.match(wizard, /Some selections may already have been saved/);
   assert.match(wizard, /awardMappingsFailed \? \{ tab: "trophies" \}/);
+});
+
+// The switch that controls whether awards are actually granted used to be
+// permanently unusable during create -- disabled by prop (`!tournamentId`)
+// and its handler early-returning for the same reason -- so organizers could
+// configure award selections in step 5 but never actually turn awards on.
+test("Awards Enabled is usable during create, not gated on an existing tournament", () => {
+  assert.doesNotMatch(picker, /:disabled="!tournamentId \|\| togglingEnabled"/);
+  assert.match(picker, /:disabled="togglingEnabled"/);
+
+  // toggleAwardsEnabled must no longer bail out before recording the choice
+  // just because there is no tournament yet -- it should always update the
+  // local ref/emit, and only skip the network write when there is nothing to
+  // write to.
+  const toggleFn = picker.slice(
+    picker.indexOf("async function toggleAwardsEnabled"),
+    picker.indexOf("async function toggleAwardsEnabled") + 700,
+  );
+  assert.doesNotMatch(toggleFn, /if \(!props\.tournamentId \|\| togglingEnabled\.value\) return;/);
+  assert.match(toggleFn, /awardsEnabled\.value = next;/);
+  assert.match(toggleFn, /emit\("update:trophiesEnabled", next\);/);
+  assert.match(toggleFn, /if \(!props\.tournamentId\) \{/);
+
+  // The actual mutation call is factored into its own function so the
+  // creation wizard can invoke the identical write post-creation instead of
+  // duplicating it.
+  assert.match(
+    picker,
+    /async function applyAwardsEnabled\(next: boolean, tournamentId: string\)/,
+  );
+  assert.match(
+    picker,
+    /await client\.mutate\(\{\s*mutation: UPDATE_TOURNAMENT_AWARDS_ENABLED_MUTATION,\s*variables: \{ tournamentId, enabled: next \},/,
+  );
+  assert.match(picker, /defineExpose\(\{ persistSelections, applyAwardsEnabled \}\);/);
+});
+
+test("the creation wizard applies the pending Awards Enabled choice through the picker's own exposed method", () => {
+  assert.match(wizard, /v-model:trophies-enabled="awardsEnabledPending"/);
+  assert.match(wizard, /awardsEnabledPending: false,/);
+
+  const applyFn = wizard.slice(
+    wizard.indexOf("async persistAwardConfiguration"),
+    wizard.indexOf("async persistAwardConfiguration") + 1200,
+  );
+  // Only writes when the organizer actually turned it on -- the tournament
+  // already defaults to disabled, so there is nothing to change otherwise.
+  assert.match(applyFn, /if \(this\.awardsEnabledPending && picker\.applyAwardsEnabled\)/);
+  assert.match(applyFn, /picker\.applyAwardsEnabled\(true, tournamentId\)/);
+  assert.match(applyFn, /picker\.persistSelections\(tournamentId, true\)/);
+  // A rejected task must propagate, not be silently swallowed, so create()'s
+  // existing awardMappingsFailed handling still fires for this failure mode.
+  assert.match(applyFn, /Promise\.allSettled\(tasks\)/);
+  assert.match(applyFn, /if \(failure\) throw failure\.reason;/);
 });
 
 test("the picker does not create occurrences, recipients, or definitions", () => {
