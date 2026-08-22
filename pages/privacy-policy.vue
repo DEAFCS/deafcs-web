@@ -155,38 +155,25 @@ const linkClasses =
       </Card>
     </div>
 
-    <!-- Public Information + Security: both short, paired for balance. -->
-    <div class="grid gap-6 lg:grid-cols-2">
-      <div class="flex flex-col gap-3">
-        <span :class="tacticalSectionLabelClasses">
-          <span :class="tacticalSectionTickClasses" />
-          {{ $t("pages.info.privacy_policy.sections.public_information.title") }}
-        </span>
-        <Card class="h-full bg-card/20">
-          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-            <p :class="bodyClasses">
-              {{ $t("pages.info.privacy_policy.sections.public_information.body_1") }}
-            </p>
-            <p :class="bodyClasses">
-              {{ $t("pages.info.privacy_policy.sections.public_information.body_2") }}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div class="flex flex-col gap-3">
-        <span :class="tacticalSectionLabelClasses">
-          <span :class="tacticalSectionTickClasses" />
-          {{ $t("pages.info.privacy_policy.sections.security.title") }}
-        </span>
-        <Card class="h-full bg-card/20">
-          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-            <p :class="bodyClasses">
-              {{ $t("pages.info.privacy_policy.sections.security.body_1") }}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+    <!-- Public Information: short, kept full width and in numeric order
+         between Competitive & Historical Records (5) and Third-Party
+         Services (7) -- do not pair this with Security (10), which reads
+         out of order this early in the page. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.privacy_policy.sections.public_information.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.privacy_policy.sections.public_information.body_1") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.privacy_policy.sections.public_information.body_2") }}
+          </p>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Third-Party Services: long list, full width. -->
@@ -278,8 +265,22 @@ const linkClasses =
       </Card>
     </div>
 
-    <!-- Changes to This Policy + Contact: both short, paired for balance. -->
+    <!-- Security + Changes to This Policy: both short, numerically adjacent (10, 11), paired for balance. -->
     <div class="grid gap-6 lg:grid-cols-2">
+      <div class="flex flex-col gap-3">
+        <span :class="tacticalSectionLabelClasses">
+          <span :class="tacticalSectionTickClasses" />
+          {{ $t("pages.info.privacy_policy.sections.security.title") }}
+        </span>
+        <Card class="h-full bg-card/20">
+          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+            <p :class="bodyClasses">
+              {{ $t("pages.info.privacy_policy.sections.security.body_1") }}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
       <div class="flex flex-col gap-3">
         <span :class="tacticalSectionLabelClasses">
           <span :class="tacticalSectionTickClasses" />
@@ -293,29 +294,30 @@ const linkClasses =
           </CardContent>
         </Card>
       </div>
+    </div>
 
-      <div class="flex flex-col gap-3">
-        <span :class="tacticalSectionLabelClasses">
-          <span :class="tacticalSectionTickClasses" />
-          {{ $t("pages.info.privacy_policy.sections.contact.title") }}
-        </span>
-        <Card class="h-full bg-card/20">
-          <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-            <i18n-t
-              keypath="pages.info.privacy_policy.sections.contact.body_1"
-              tag="p"
-              scope="global"
-              :class="bodyClasses"
-            >
-              <template #link>
-                <NuxtLink to="/contact" :class="linkClasses">
-                  {{ $t("pages.info.contact.title") }}
-                </NuxtLink>
-              </template>
-            </i18n-t>
-          </CardContent>
-        </Card>
-      </div>
+    <!-- Contact: full width, final section. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.privacy_policy.sections.contact.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <i18n-t
+            keypath="pages.info.privacy_policy.sections.contact.body_1"
+            tag="p"
+            scope="global"
+            :class="bodyClasses"
+          >
+            <template #link>
+              <NuxtLink to="/contact" :class="linkClasses">
+                {{ $t("pages.info.contact.title") }}
+              </NuxtLink>
+            </template>
+          </i18n-t>
+        </CardContent>
+      </Card>
     </div>
   </div>
 </template>

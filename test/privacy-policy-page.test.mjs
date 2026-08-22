@@ -45,6 +45,42 @@ test("all twelve intended sections exist with a title", () => {
   }
 });
 
+test("sections render in strict numeric order in the template (1 through 12), not just exist", () => {
+  // A prior layout bug paired Security (10) with Public Information (6) for
+  // visual balance without checking numeric order, so Security rendered
+  // between sections 6 and 7 even though the title text itself says "10.".
+  // Presence alone doesn't catch that -- assert each section's first
+  // reference in the template source appears strictly after the previous
+  // section's, in numeric order.
+  const orderedKeys = [
+    "who_we_are",
+    "information_we_collect",
+    "how_we_use_information",
+    "verification",
+    "competitive_history",
+    "public_information",
+    "third_party_services",
+    "data_retention",
+    "your_choices",
+    "security",
+    "changes",
+    "contact",
+  ];
+  let previousIndex = -1;
+  let previousKey = null;
+  for (const key of orderedKeys) {
+    const marker = `sections.${key}.title`;
+    const index = pageSource.indexOf(marker);
+    assert.notEqual(index, -1, `no reference to ${marker} found in template`);
+    assert.ok(
+      index > previousIndex,
+      `section "${key}" (numbered after "${previousKey}") renders before it in the template -- expected strictly increasing source position`,
+    );
+    previousIndex = index;
+    previousKey = key;
+  }
+});
+
 test("verification section states the private/public distinction accurately", () => {
   const section = privacy.sections.verification;
   const allText = Object.values(section).join(" ");
