@@ -121,6 +121,31 @@ function isPublicRoute(path: string): boolean {
   return false;
 }
 
+// Deliberately NOT the same list as isPublicRoute above. isPublicRoute
+// answers "can a guest reach this without logging in" -- it includes pages
+// like /play, /watch, /tournaments, /teams that are browsable by guests but
+// also host real authenticated actions (e.g. /play's Join Queue button).
+// Reusing that list as the Terms-acceptance exemption incorrectly exempted
+// every one of those mixed pages too: an authenticated-but-unaccepted
+// player could reach /play and click Join Queue without ever being routed
+// to /terms-acceptance, only discovering the requirement when the backend
+// rejected the join-queue call. This list is only the pages explicitly
+// approved as reachable without accepting terms -- genuinely public/legal
+// reading, nothing that hosts a gated action.
+function isTermsExemptRoute(path: string): boolean {
+  const termsExemptRoutes = [
+    "/terms-of-service",
+    "/privacy-policy",
+    "/general-rules",
+    "/matchmaking-rules",
+    "/tournament-rules",
+    "/account-data",
+    "/contact",
+  ];
+
+  return termsExemptRoutes.includes(path) || isAuthTransportRoute(path);
+}
+
 export default defineNuxtRouteMiddleware(async (to) => {
   if (process.server) return;
 
@@ -172,15 +197,17 @@ export default defineNuxtRouteMiddleware(async (to) => {
     return navigateTo("/");
   }
 
-  // Terms re-acceptance gate. Reuses isPublicRoute as the exemption list --
-  // anything reachable without logging in (legal pages, rules, contact,
-  // public browsing) must stay reachable without accepting terms too. The
-  // explicit path check on top of that is what actually prevents a redirect
-  // loop back to itself.
+  // Terms re-acceptance gate. Uses isTermsExemptRoute, NOT isPublicRoute --
+  // see that function's comment for why: isPublicRoute also covers pages
+  // guests can browse that host real authenticated actions (/play, /watch,
+  // /tournaments, ...), and exempting those from the Terms gate too let an
+  // unaccepted player reach and use them. The explicit path check on top of
+  // isTermsExemptRoute is what actually prevents a redirect loop back to
+  // /terms-acceptance itself.
   if (
     hasMe &&
     to.path !== "/terms-acceptance" &&
-    !isPublicRoute(to.path)
+    !isTermsExemptRoute(to.path)
   ) {
     if (!useAuthStore().hasAcceptedCurrentTerms) {
       return navigateTo(

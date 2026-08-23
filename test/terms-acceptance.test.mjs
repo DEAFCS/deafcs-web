@@ -6,9 +6,11 @@ import test from "node:test";
 // authenticated-but-unaccepted players to it: checkbox defaults unchecked,
 // the Accept button is gated on it, Privacy is a separate notice (not part
 // of the agreement wording), the middleware exempts the page itself (no
-// redirect loop) and reuses isPublicRoute as the exemption list, and the
-// live acceptance state is sourced from the me/player subscription data,
-// not a one-off fetch.
+// redirect loop) and uses a dedicated, narrow isTermsExemptRoute allowlist
+// (NOT isPublicRoute -- see terms-gate-route-classification.test.mjs for
+// the production incident that caused that split), and the live acceptance
+// state is sourced from the me/player subscription data, not a one-off
+// fetch.
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
@@ -117,9 +119,16 @@ test("AuthStore exposes a hasAcceptedCurrentTerms computed sourced from live me 
   assert.match(authStore, /hasAcceptedCurrentTerms,/);
 });
 
-test("the middleware gates authenticated-unaccepted players to /terms-acceptance, reusing isPublicRoute as the exemption list", () => {
+test("the middleware gates authenticated-unaccepted players to /terms-acceptance, using the dedicated isTermsExemptRoute allowlist (not isPublicRoute)", () => {
   assert.match(middleware, /to\.path !== "\/terms-acceptance"/);
-  assert.match(middleware, /!isPublicRoute\(to\.path\)/);
+  assert.match(middleware, /!isTermsExemptRoute\(to\.path\)/);
+  // The production incident this guards against: isPublicRoute also exempts
+  // pages guests can browse that host real authenticated actions (/play's
+  // Join Queue), so reusing it let an unaccepted player reach and use them.
+  assert.doesNotMatch(
+    middleware.slice(middleware.indexOf("Terms re-acceptance gate")),
+    /!isPublicRoute\(to\.path\)/,
+  );
   assert.match(middleware, /useAuthStore\(\)\.hasAcceptedCurrentTerms/);
   assert.match(middleware, /navigateTo\(\s*`\/terms-acceptance/);
 });
@@ -129,7 +138,11 @@ test("no redirect loop: the terms gate explicitly excludes its own route", () =>
   assert.match(gateBlock, /to\.path !== "\/terms-acceptance"/);
 });
 
-test("legal/public routes referenced by the acceptance page remain in the public allowlist", () => {
+test("legal/public routes referenced by the acceptance page are in the Terms-exempt allowlist specifically", () => {
+  const isTermsExemptRouteSrc = middleware.slice(
+    middleware.indexOf("function isTermsExemptRoute"),
+    middleware.indexOf("export default defineNuxtRouteMiddleware"),
+  );
   for (const path of [
     "/terms-of-service",
     "/privacy-policy",
@@ -139,7 +152,10 @@ test("legal/public routes referenced by the acceptance page remain in the public
     "/account-data",
     "/contact",
   ]) {
-    assert.match(middleware, new RegExp(`["']${path.replace("/", "\\/")}["']`));
+    assert.match(
+      isTermsExemptRouteSrc,
+      new RegExp(`["']${path.replace("/", "\\/")}["']`),
+    );
   }
 });
 
