@@ -171,4 +171,21 @@ export default defineNuxtRouteMiddleware(async (to) => {
     }
     return navigateTo("/");
   }
+
+  // Terms re-acceptance gate. Reuses isPublicRoute as the exemption list --
+  // anything reachable without logging in (legal pages, rules, contact,
+  // public browsing) must stay reachable without accepting terms too. The
+  // explicit path check on top of that is what actually prevents a redirect
+  // loop back to itself.
+  if (
+    hasMe &&
+    to.path !== "/terms-acceptance" &&
+    !isPublicRoute(to.path)
+  ) {
+    if (!useAuthStore().hasAcceptedCurrentTerms) {
+      return navigateTo(
+        `/terms-acceptance${to.path === "/" ? "" : `?redirect=${to.path}`}`,
+      );
+    }
+  }
 });

@@ -151,7 +151,13 @@ test("Last Updated is wired through InfoPage the same way as the other Info page
     pageSource,
     /:last-updated="\$t\('pages\.info\.terms_of_service\.last_updated_date'\)"/,
   );
-  assert.equal(terms.last_updated_date, "22 August 2026");
+  assert.equal(terms.last_updated_date, "23 August 2026");
+});
+
+test("states that DEAFCS records the accepted Terms version and time", () => {
+  const section = terms.sections.acceptance;
+  assert.match(section.body_4, /records.*version.*accepted/i);
+  assert.match(pageSource, /sections\.acceptance\.body_4/);
 });
 
 test("no em dashes in the new Terms copy", () => {

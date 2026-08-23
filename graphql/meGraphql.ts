@@ -11,6 +11,7 @@ export const meFields = Selector("players")({
   language: true,
   country: true,
   show_match_ready_modal: true,
+  has_accepted_current_terms: true,
   teams: [
     {},
     {

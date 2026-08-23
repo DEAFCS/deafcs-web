@@ -169,7 +169,13 @@ test("Last Updated is wired through InfoPage the same way as the other Info page
     pageSource,
     /:last-updated="\$t\('pages\.info\.privacy_policy\.last_updated_date'\)"/,
   );
-  assert.equal(privacy.last_updated_date, "22 August 2026");
+  assert.equal(privacy.last_updated_date, "23 August 2026");
+});
+
+test("discloses the new Terms acceptance record data category", () => {
+  const section = privacy.sections.information_we_collect;
+  assert.match(section.item_7, /Terms.*version.*accepted/i);
+  assert.match(pageSource, /information_we_collect\.item_7/);
 });
 
 test("Contact and Account & Data links are wired structurally", () => {

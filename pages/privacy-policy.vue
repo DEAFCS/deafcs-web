@@ -73,6 +73,7 @@ const linkClasses =
             <li>{{ $t("pages.info.privacy_policy.sections.information_we_collect.item_4") }}</li>
             <li>{{ $t("pages.info.privacy_policy.sections.information_we_collect.item_5") }}</li>
             <li>{{ $t("pages.info.privacy_policy.sections.information_we_collect.item_6") }}</li>
+            <li>{{ $t("pages.info.privacy_policy.sections.information_we_collect.item_7") }}</li>
           </ul>
           <p :class="bodyClasses">
             {{ $t("pages.info.privacy_policy.sections.information_we_collect.body_2") }}

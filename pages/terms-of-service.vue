@@ -71,6 +71,9 @@ const linkClasses =
               </NuxtLink>
             </template>
           </i18n-t>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.terms_of_service.sections.acceptance.body_4") }}
+          </p>
         </CardContent>
       </Card>
     </div>
