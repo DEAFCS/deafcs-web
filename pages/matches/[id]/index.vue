@@ -12,6 +12,7 @@ import MatchInfo from "~/components/match/MatchInfo.vue";
 import MatchHighlightsReel from "~/components/match/MatchHighlightsReel.vue";
 import MatchActions from "~/components/match/MatchActions.vue";
 import CameraRequirementOverlay from "~/components/match/CameraRequirementOverlay.vue";
+import StreamerCameraOverlay from "~/components/match/StreamerCameraOverlay.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
@@ -171,6 +172,11 @@ const vsBaseClasses =
       v-if="showCameraOverlay"
       :match-id="match.id"
       @update:ready="cameraReady = $event"
+    />
+    <StreamerCameraOverlay
+      v-if="showStreamerCameraOverlay"
+      :match-id="match.id"
+      @update:ready="streamerCameraReady = $event"
     />
     <template v-if="match">
     <PageTransition>
@@ -671,6 +677,8 @@ export default {
       // so a disconnect mid-match re-blocks without needing this page
       // to unmount/remount anything.
       cameraReady: false,
+      // Same reasoning as cameraReady above, for StreamerCameraOverlay.
+      streamerCameraReady: false,
     };
   },
   watch: {
@@ -1055,6 +1063,17 @@ export default {
       }
       return (
         !!this.match?.options?.camera_required &&
+        ["Veto", "Live", "WaitingForServer"].includes(this.match?.status)
+      );
+    },
+    // Same shape as showCameraOverlay, no spot-check equivalent (that's
+    // an admin anti-cheat concept, doesn't apply to the public stream
+    // overlay). Also stays mounted for the whole active match and
+    // decides its own visibility off live status, same reasoning.
+    showStreamerCameraOverlay() {
+      return (
+        this.isCameraPlayer &&
+        !!this.match?.options?.streamer_camera_enabled &&
         ["Veto", "Live", "WaitingForServer"].includes(this.match?.status)
       );
     },
