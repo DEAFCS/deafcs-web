@@ -190,7 +190,16 @@ async function fetchAwardData(tournamentIds: string[]) {
             id: true,
             tournament_id: true,
             placement: true,
-            award: { image_url: true },
+            // Full definition so TournamentCompactCard can render the real
+            // award artwork rather than a placement-coloured fallback.
+            award: {
+              id: true,
+              name: true,
+              tier: true,
+              silhouette: true,
+              image_url: true,
+              system_key: true,
+            },
             recipients: [
               {} as any,
               {
@@ -318,7 +327,7 @@ const shouldRender = computed(() => {
       <Skeleton
         v-for="i in 4"
         :key="i"
-        class="aspect-video w-96 shrink-0 rounded-md"
+        class="min-h-[236px] w-96 shrink-0 rounded-md"
       />
     </div>
 
@@ -343,7 +352,7 @@ const shouldRender = computed(() => {
         :status-label="statusLabel"
         :award-occurrences="occurrencesByTournamentId[tournament.id] || []"
         :award-slots="tournamentAwardSlots"
-        class="aspect-video w-96 shrink-0 snap-start"
+        class="min-h-[236px] w-96 shrink-0 snap-start"
       />
     </HorizontalScrollRow>
 

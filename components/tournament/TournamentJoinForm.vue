@@ -25,10 +25,12 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
     {{ joinRestrictionMessage }}
   </div>
 
+  <!-- The individual sign-up explanation lives once, in the drawer header
+       (TournamentDetail's SheetDescription). It used to be repeated here as
+       well, and this copy had also gone stale: it still said the organizer
+       generates the teams, which has been automatic since the attendance
+       scheduler shipped. -->
   <div v-else-if="isIndividualRegistration" class="grid gap-4">
-    <p class="text-sm text-muted-foreground">
-      {{ $t("tournament.join.individual.description") }}
-    </p>
     <template v-if="myIndividualSignup">
       <div
         class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
@@ -50,7 +52,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
           variant="destructive"
           type="button"
           :loading="submitting"
-          :disabled="myIndividualSignup.status !== 'Registered'"
+          :disabled="!canLeaveIndividually"
           @click="leaveIndividually"
         >
           {{ $t("tournament.join.individual.leave") }}
@@ -289,7 +291,11 @@ import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { e_match_types_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
-import { attendanceWindow, formatClockTime } from "~/utilities/tournamentAttendance";
+import {
+  attendanceWindow,
+  formatClockTime,
+  isFinalizedSitOut,
+} from "~/utilities/tournamentAttendance";
 
 export default {
   emits: ["close"],
@@ -456,6 +462,14 @@ export default {
       if (!signup) {
         return "";
       }
+      // Once teams have been generated the pool is final, so the waitlist
+      // copy below ("a spot may open if a higher-priority player does not
+      // check in") has become untrue -- there is no longer a phase in which
+      // that can happen. Say plainly that they are sitting out instead. Not a
+      // no-show: they did everything asked of them.
+      if (this.finalizedSitOut) {
+        return this.$t("tournament.attendance.not_selected.short");
+      }
       if (signup.checked_in_at) {
         return signup.status === "Waitlisted"
           ? this.$t("tournament.attendance.waitlisted_checked_in")
@@ -476,7 +490,24 @@ export default {
       }
       return this.$t("tournament.join.individual.registered");
     },
+    // Shared with the header and player-row Leave controls.
+    canLeaveIndividually() {
+      return canLeaveIndividualTournament(
+        this.myIndividualSignup as any,
+        this.tournament as any,
+      );
+    },
+    finalizedSitOut() {
+      return isFinalizedSitOut(
+        this.myIndividualSignup as any,
+        (this.tournament as any)?.individual_signups,
+      );
+    },
     attendanceExplainer() {
+      // Nothing left to explain about checking in once the pool is final.
+      if (this.finalizedSitOut) {
+        return null;
+      }
       if (!this.myIndividualSignup || this.myIndividualSignup.checked_in_at) {
         return null;
       }
@@ -637,11 +668,15 @@ export default {
       try {
         await this.$apollo.mutate({
           mutation: generateMutation({
-            delete_tournament_individual_signups: [
+            // Canonical action, same as the header and player-row controls.
+            removeTournamentIndividualPlayer: [
               {
-                where: { id: { _eq: this.myIndividualSignup.id } },
+                tournament_id: this.tournament.id,
+                player_steam_id: String(
+                  this.myIndividualSignup.player_steam_id,
+                ),
               },
-              { affected_rows: true },
+              { success: true, was_self: true },
             ],
           }),
         });

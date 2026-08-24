@@ -16,6 +16,7 @@ type AuthMe = InputType<GraphQLTypes["players"], typeof meFields>;
 type AuthStoreSetup = {
   me: Ref<AuthMe | undefined>;
   getMe: () => Promise<boolean>;
+  fetchMe: () => Promise<boolean>;
   isUser: ComputedRef<boolean>;
   isVerifiedUser: ComputedRef<boolean>;
   isStreamer: ComputedRef<boolean>;
@@ -23,6 +24,7 @@ type AuthStoreSetup = {
   isMatchOrganizer: ComputedRef<boolean>;
   isTournamentOrganizer: ComputedRef<boolean>;
   isAdmin: ComputedRef<boolean>;
+  hasAcceptedCurrentTerms: ComputedRef<boolean>;
   hasDiscordLinked: Ref<boolean>;
   hasCheckedSession: Ref<boolean>;
   isRoleAbove: (role: e_player_roles_enum) => boolean;
@@ -351,6 +353,13 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
     () => me.value?.role === e_player_roles_enum.tournament_organizer,
   );
 
+  // Defaults to false while `me` is unresolved -- the middleware only reads
+  // this once a session is confirmed, so an unauthenticated/unloaded state
+  // never gets mistaken for "accepted".
+  const hasAcceptedCurrentTerms = computed(
+    () => me.value?.has_accepted_current_terms === true,
+  );
+
   const cachedMe = loadCachedMe();
   if (cachedMe?.steam_id) {
     me.value = cachedMe;
@@ -364,6 +373,7 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
   return {
     me,
     getMe,
+    fetchMe,
     clearMe,
     isUser,
     isVerifiedUser,
@@ -372,6 +382,7 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
     isMatchOrganizer,
     isTournamentOrganizer,
     isAdmin,
+    hasAcceptedCurrentTerms,
     hasDiscordLinked,
     hasCheckedSession,
     isRoleAbove,

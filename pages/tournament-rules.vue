@@ -70,6 +70,41 @@ const linkClasses =
           <p :class="bodyClasses">
             {{ $t("pages.info.tournament_rules.sections.eligibility.body_2") }}
           </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.eligibility.body_3") }}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
+    <!-- Solo Random Tournaments: standalone, richest new section. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.tournament_rules.sections.solo_random.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.solo_random.body_1") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.solo_random.body_2") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.solo_random.body_3") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.solo_random.body_4") }}
+          </p>
+          <ul :class="listClasses">
+            <li>{{ $t("pages.info.tournament_rules.sections.solo_random.item_1") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.solo_random.item_2") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.solo_random.item_3") }}</li>
+          </ul>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.solo_random.body_5") }}
+          </p>
         </CardContent>
       </Card>
     </div>
@@ -88,6 +123,9 @@ const linkClasses =
             </p>
             <p :class="bodyClasses">
               {{ $t("pages.info.tournament_rules.sections.teams_rosters.body_2") }}
+            </p>
+            <p :class="bodyClasses">
+              {{ $t("pages.info.tournament_rules.sections.teams_rosters.body_3") }}
             </p>
           </CardContent>
         </Card>
@@ -111,6 +149,35 @@ const linkClasses =
       </div>
     </div>
 
+    <!-- Tournament Check-In & Attendance: standalone, distinct from Match Check-In below. -->
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.tournament_rules.sections.attendance.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.attendance.body_1") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.attendance.body_2") }}
+          </p>
+          <ul :class="listClasses">
+            <li>{{ $t("pages.info.tournament_rules.sections.attendance.item_1") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.attendance.item_2") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.attendance.item_3") }}</li>
+          </ul>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.attendance.body_3") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.attendance.body_4") }}
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+
     <!-- Match Scheduling & Being Ready: standalone, sets up the Check-In section below. -->
     <div class="flex flex-col gap-3">
       <span :class="tacticalSectionLabelClasses">
@@ -124,6 +191,12 @@ const linkClasses =
           </p>
           <p :class="bodyClasses">
             {{ $t("pages.info.tournament_rules.sections.scheduling.body_2") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.scheduling.body_3") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.scheduling.body_4") }}
           </p>
         </CardContent>
       </Card>
@@ -221,6 +294,9 @@ const linkClasses =
             </p>
             <p :class="bodyClasses">
               {{ $t("pages.info.tournament_rules.sections.cancellation.body_2") }}
+            </p>
+            <p :class="bodyClasses">
+              {{ $t("pages.info.tournament_rules.sections.cancellation.body_3") }}
             </p>
           </CardContent>
         </Card>
@@ -385,6 +461,12 @@ const linkClasses =
           <p :class="bodyClasses">
             {{ $t("pages.info.tournament_rules.sections.awards.body_3") }}
           </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.awards.body_4") }}
+          </p>
+          <p :class="bodyClasses">
+            {{ $t("pages.info.tournament_rules.sections.awards.body_5") }}
+          </p>
         </CardContent>
       </Card>
     </div>
@@ -409,6 +491,10 @@ const linkClasses =
             <li>{{ $t("pages.info.tournament_rules.sections.settings_note.item_6") }}</li>
             <li>{{ $t("pages.info.tournament_rules.sections.settings_note.item_7") }}</li>
             <li>{{ $t("pages.info.tournament_rules.sections.settings_note.item_8") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.settings_note.item_9") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.settings_note.item_10") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.settings_note.item_11") }}</li>
+            <li>{{ $t("pages.info.tournament_rules.sections.settings_note.item_12") }}</li>
           </ul>
           <p :class="bodyClasses">
             {{ $t("pages.info.tournament_rules.sections.settings_note.body_2") }}

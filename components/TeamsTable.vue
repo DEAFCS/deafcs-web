@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
-import AwardBadge from "~/components/award/AwardBadge.vue";
+import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import {
   Tooltip,
   TooltipContent,
@@ -139,17 +139,11 @@ import { resolveAvatarUrl } from "~/utilities/avatarUrl";
                   :aria-label="trophyAriaLabel(trophy)"
                   @click.stop.prevent="goToTournament(trophy.tournament_id)"
                 >
-                  <AwardBadge
-                    :tournament-id="trophy.tournament_id"
-                    :placement="trophy.placement"
-                    :tournament-name="trophy.tournament?.name"
-                    :tournament-start="trophy.tournament?.start"
-                    :tournament-type="trophy.tournament?.stages?.[0]?.type"
-                    :custom-name="trophy.trophy_config?.custom_name"
-                    :silhouette-override="trophy.trophy_config?.silhouette"
-                    :image-url="trophy.trophy_config?.image_url"
+                  <AwardArtwork
+                    v-if="trophy.award"
+                    :award="trophy.award"
                     size="xs"
-                    :interactive="false"
+                    decorative
                   />
                 </button>
               </TooltipTrigger>

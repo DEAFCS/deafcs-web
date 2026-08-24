@@ -11884,6 +11884,9 @@ export const AllTypesProps: Record<string,any> = {
 		addSteamPresenceBotAccount:{
 
 		},
+		addTournamentIndividualPlayer:{
+			tournament_id:"uuid"
+		},
 		approveNameChange:{
 			steam_id:"bigint"
 		},
@@ -11922,6 +11925,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		cancelScrimRequest:{
 			request_id:"uuid"
+		},
+		checkInTournamentIndividualPlayer:{
+			tournament_id:"uuid"
 		},
 		checkInTournamentTeam:{
 			tournament_team_id:"uuid"
@@ -14435,6 +14441,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		removeSteamPresenceBotAccount:{
 
+		},
+		removeTournamentIndividualPlayer:{
+			tournament_id:"uuid"
 		},
 		remove_league_team_from_season:{
 			args:"remove_league_team_from_season_args",
@@ -38874,6 +38883,11 @@ export const ReturnTypes: Record<string,any> = {
 		wait_event:"String",
 		wait_event_type:"String"
 	},
+	AddTournamentIndividualPlayerOutput:{
+		checked_in:"Boolean",
+		status:"String",
+		success:"Boolean"
+	},
 	ApiKeyResponse:{
 		key:"String"
 	},
@@ -38903,6 +38917,11 @@ export const ReturnTypes: Record<string,any> = {
 		revoked_at:"String",
 		team_id:"uuid",
 		tournament_team_id:"uuid"
+	},
+	CheckInTournamentIndividualPlayerOutput:{
+		already_checked_in:"Boolean",
+		status:"String",
+		success:"Boolean"
 	},
 	ConnectionByState:{
 		count:"Int",
@@ -39261,6 +39280,10 @@ export const ReturnTypes: Record<string,any> = {
 		running:"Boolean",
 		started_at:"String",
 		total:"Int"
+	},
+	RemoveTournamentIndividualPlayerOutput:{
+		success:"Boolean",
+		was_self:"Boolean"
 	},
 	ReparseAllStartedOutput:{
 		running:"Boolean",
@@ -45494,6 +45517,7 @@ export const ReturnTypes: Record<string,any> = {
 		acceptInvite:"SuccessOutput",
 		addDraftPlayer:"SuccessOutput",
 		addSteamPresenceBotAccount:"SuccessOutput",
+		addTournamentIndividualPlayer:"AddTournamentIndividualPlayerOutput",
 		approveNameChange:"SuccessOutput",
 		approveVerificationApplication:"SuccessOutput",
 		approve_league_season_movements:"league_team_movements",
@@ -45513,6 +45537,7 @@ export const ReturnTypes: Record<string,any> = {
 		cancelRefreshAllPlayers:"SuccessOutput",
 		cancelReparseAllDemos:"SuccessOutput",
 		cancelScrimRequest:"SuccessOutput",
+		checkInTournamentIndividualPlayer:"CheckInTournamentIndividualPlayerOutput",
 		checkInTournamentTeam:"SuccessOutput",
 		checkIntoMatch:"SuccessOutput",
 		checkIntoTournament:"SuccessOutput",
@@ -46235,6 +46260,7 @@ export const ReturnTypes: Record<string,any> = {
 		removeAbandonedMatch:"SuccessOutput",
 		removeFixtures:"SuccessOutput",
 		removeSteamPresenceBotAccount:"SuccessOutput",
+		removeTournamentIndividualPlayer:"RemoveTournamentIndividualPlayerOutput",
 		remove_league_team_from_season:"league_team_seasons",
 		renameServerItem:"SuccessOutput",
 		reorder_league_divisions:"league_divisions",

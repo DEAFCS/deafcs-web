@@ -18,6 +18,7 @@ import {
           variant="outline"
           class="w-[280px] justify-start text-left font-normal"
           :class="{ ['text-muted-foreground']: !startDate }"
+          :disabled="disabled"
         >
           <CalendarIcon class="mr-2 h-4 w-4" />
           {{ startDate || $t("common.pick_date") }}
@@ -32,7 +33,12 @@ import {
       </PopoverContent>
     </Popover>
 
-    <Input type="time" v-model="startTime" style="color-scheme: dark" />
+    <Input
+      type="time"
+      v-model="startTime"
+      :disabled="disabled"
+      style="color-scheme: dark"
+    />
   </div>
 </template>
 
@@ -45,6 +51,13 @@ export default {
       type: [Date, String],
       required: false,
       default: null,
+    },
+    // Locks both halves of the control together: date and time define one
+    // value, so they must never be independently editable.
+    disabled: {
+      type: Boolean,
+      required: false,
+      default: false,
     },
     // Create disables past days; editing an existing start must allow them.
     disablePastDates: {

@@ -11,8 +11,12 @@ import TournamentRewards from "~/components/tournament/TournamentRewards.vue";
 import TournamentPrizesManage from "~/components/tournament/TournamentPrizesManage.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
+import TournamentCheckInInfo from "~/components/tournament/TournamentCheckInInfo.vue";
+import TournamentNotSelectedSection from "~/components/tournament/TournamentNotSelectedSection.vue";
+import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
+import TournamentStats from "~/components/tournament/TournamentStats.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -88,6 +92,7 @@ import {
   tacticalTabsTriggerClasses,
 } from "~/utilities/tacticalClasses";
 import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
+import { canLeaveIndividualTournament } from "~/utilities/tournamentAttendance";
 
 const tournamentHeroClasses =
   "relative isolate overflow-hidden rounded-lg border border-border px-7 py-6 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
@@ -221,11 +226,15 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
             <div :class="tournamentHeroToplineClasses">
               <div :class="tournamentHeroActionsClasses">
+                <!-- Same rule as the player-row Leave action. It used to be
+                     disabled for the whole attendance window, so a checked-in
+                     player saw an enabled Leave in their row and a disabled one
+                     up here. Being checked in never blocks leaving. -->
                 <Button
                   v-if="isIndividualRegistration && myIndividualSignup"
                   size="sm"
                   :class="tournamentHeroLeaveButtonClasses"
-                  :disabled="individualActionBusy || checkInCurrentlyActive"
+                  :disabled="individualActionBusy || !canLeaveIndividually"
                   @click="leaveIndividually"
                 >
                   <UserMinus class="h-3.5 w-3.5" />
@@ -403,12 +412,14 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   <span :class="tournamentHeroModeTagClasses">
                     {{ tournament.options.type }}
                   </span>
-                  <span
+                  <!-- Same shared badge the listing card uses, so the two
+                       cannot drift apart again. Class set is identical to
+                       tournamentHeroModeTagClasses, which this replaced. -->
+                  <TournamentSoloRandomBadge
                     v-if="isIndividualRegistration"
-                    :class="tournamentHeroModeTagClasses"
-                  >
-                    {{ $t("tournament.feature_card.solo_random") }}
-                  </span>
+                    :match-type="tournament.options?.type"
+                    size="detail"
+                  />
                   <span
                     v-if="stageCount > 1"
                     :class="[
@@ -544,6 +555,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 {{ $t("tournament.standings.title") }}
               </TabsTrigger>
               <TabsTrigger
+                v-if="statsTabVisible"
+                value="stats"
+                :class="tacticalTabsTriggerClasses"
+              >
+                {{ $t("tournament.stats_tab.title") }}
+              </TabsTrigger>
+              <TabsTrigger
                 v-if="
                   tournament.status === e_tournament_status_enum.Live ||
                   tournament.status === e_tournament_status_enum.Finished
@@ -618,6 +636,17 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :start="tournament.start"
                 :location="shortLocation"
               ></TournamentStatRibbon>
+
+              <!-- Keyed off the raw option, not isIndividualRegistration:
+                   that flips to false once Solo Random teams have been
+                   generated, which would swap this panel to the normal-team
+                   rules for a tournament that never used them. -->
+              <TournamentCheckInInfo
+                :tournament="tournament"
+                :is-individual-registration="
+                  !!tournament.options?.individual_registration_enabled
+                "
+              ></TournamentCheckInInfo>
 
               <TournamentRewards
                 :prizes="tournament.prizes"
@@ -747,6 +776,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   </div>
                 </div>
               </div>
+
+              <!-- Directly under the generated teams: who did not make the
+                   selected pool. Renders itself only once Solo Random teams
+                   exist, so a normal team tournament never shows it. -->
+              <TournamentNotSelectedSection
+                :tournament="tournament"
+              ></TournamentNotSelectedSection>
             </div>
 
             <div v-if="tournament.is_organizer" class="lg:sticky lg:top-6">
@@ -793,6 +829,14 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               :tournament="tournament"
               :show-standings="true"
               :show-matches="false"
+            />
+          </div>
+        </TabsContent>
+        <TabsContent v-if="statsTabVisible" value="stats">
+          <div>
+            <TournamentStats
+              :tournament="tournament"
+              :active="activeTab === 'stats'"
             />
           </div>
         </TabsContent>
@@ -867,11 +911,18 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           <SheetTitle class="text-2xl">
             {{ $t("tournament.join.title") }}
           </SheetTitle>
+          <!-- The roster-size requirement is a TEAM tournament rule. Showing
+               it unconditionally told Solo Random players "You need at least 2
+               players to join this tournament" on a format whose entire point
+               is signing up alone -- the form body below already branched
+               correctly, only this header did not. -->
           <SheetDescription>
             {{
-              $t("tournament.join.requirements", {
-                count: tournament.min_players_per_lineup,
-              })
+              tournament.options?.individual_registration_enabled
+                ? $t("tournament.join.individual.sheet_description")
+                : $t("tournament.join.requirements", {
+                    count: tournament.min_players_per_lineup,
+                  })
             }}
           </SheetDescription>
         </SheetHeader>
@@ -1082,11 +1133,21 @@ export default {
                   player_steam_id: true,
                   status: true,
                   checked_in_at: true,
-                  player: {
-                    name: true,
-                    avatar_url: true,
-                    custom_avatar_url: true,
-                  },
+                  // Which generated team this signup landed on, if any.
+                  // Already exposed to guest/user; drives two things with no
+                  // backend change: identifying teams that came out of Solo
+                  // Random generation, and telling a finalized sit-out
+                  // ("Waitlisted, teams generated, no team") apart from a
+                  // player still waiting before the cutoff.
+                  tournament_team_id: true,
+                  // The shared playerFields fragment, not a hand-rolled
+                  // subset. The previous three-field selection was why every
+                  // Solo Random row fell back to the globe icon (no country),
+                  // could not link to a profile (no steam_id), and showed no
+                  // ELO -- PlayerDisplay was being handed a player object it
+                  // could not work with. Every other participant list on the
+                  // site already passes this fragment.
+                  player: playerFields,
                 },
               ],
               organizers: [
@@ -1473,6 +1534,14 @@ export default {
       const endsAt = this.tournament?.individual_check_in_ends_at;
       return !!endsAt && new Date(endsAt) > new Date();
     },
+    // Shared with the player-row Leave action, mirroring what
+    // removeTournamentIndividualPlayer enforces server-side.
+    canLeaveIndividually() {
+      return canLeaveIndividualTournament(
+        this.myIndividualSignup as any,
+        this.tournament as any,
+      );
+    },
     canGenerateTeams() {
       return (
         this.tournament?.is_organizer &&
@@ -1652,6 +1721,10 @@ export default {
         tabs.push("standings");
       }
 
+      if (this.statsTabVisible) {
+        tabs.push("stats");
+      }
+
       if (
         this.tournament?.status === e_tournament_status_enum.Live ||
         this.tournament?.status === e_tournament_status_enum.Finished
@@ -1679,6 +1752,18 @@ export default {
         status === e_tournament_status_enum.Paused ||
         status === e_tournament_status_enum.Finished
       );
+    },
+    // Reuses the same status gate as Standings rather than an async
+    // "does any stat row exist yet" check: that would require a
+    // query/aggregate round-trip to decide tab *visibility* itself, which
+    // risks the tab appearing/disappearing out from under
+    // syncActiveTabFromRoute (e.g. a ?tab=stats deep link resolving before
+    // the existence check returns). TournamentStats.vue instead renders its
+    // own "No stats yet" empty state when the leaderboard comes back empty,
+    // which avoids that race without showing an empty tab throughout
+    // Setup/RegistrationOpen/RegistrationClosed.
+    statsTabVisible() {
+      return this.standingsTabVisible;
     },
   },
   methods: {
@@ -1752,11 +1837,19 @@ export default {
       if (this.individualActionBusy || !this.myIndividualSignup) return;
       this.individualActionBusy = true;
       try {
+        // The canonical action, same as the player-row Leave, so the cutoff
+        // and finalization guards are enforced in one place rather than
+        // relying on a direct delete permission.
         await this.$apollo.mutate({
           mutation: generateMutation({
-            delete_tournament_individual_signups: [
-              { where: { id: { _eq: this.myIndividualSignup.id } } },
-              { affected_rows: true },
+            removeTournamentIndividualPlayer: [
+              {
+                tournament_id: this.tournament.id,
+                player_steam_id: String(
+                  this.myIndividualSignup.player_steam_id,
+                ),
+              },
+              { success: true, was_self: true },
             ],
           }),
         });

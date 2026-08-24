@@ -38,13 +38,38 @@ const pixelSizes: Record<AwardArtworkSize, number> = {
   lg: 192,
 };
 
-const fallbackIconClasses: Record<AwardArtworkSize, string> = {
-  xs: "h-6 w-6",
-  sm: "h-10 w-10",
-  md: "h-20 w-20",
-  hero: "h-28 w-28",
-  lg: "h-32 w-32",
-};
+// The tier-fallback icon is derived from the artwork box rather than kept in
+// a parallel class table. The old table drifted between 0.67 (`lg`) and 0.78
+// (`hero`) of the box, so the same trophy sat with visibly different margins
+// depending only on the size it was asked for, and `xs` -- the size the
+// tournament card's runner-up rows use -- was among the tightest.
+//
+// 5/7 is the ratio `sm` and `md` already used and which reads correctly, so
+// those two are unchanged; `xs`, `hero` and `lg` move onto it. Rounding to an
+// even number keeps the icon on whole pixels inside the (always even) box, so
+// it stays crisp and centres without a half-pixel offset.
+const FALLBACK_ICON_RATIO = 5 / 7;
+const fallbackIconPixels = computed(
+  () => Math.round((pixelSizes[props.size] * FALLBACK_ICON_RATIO) / 2) * 2,
+);
+
+// Lucide's trophy is symmetric in its 24-unit viewBox (ink spans y=1..23), so
+// the icon already centres inside its box. The nudge is for what sits *around*
+// the box: at `xs` the icon is used in dense last-in-container rows -- the
+// tournament compact card's 3rd-place row is the clearest case, where the row
+// is the final child of a fixed-height `overflow-hidden` card. There the ink's
+// centre-line lands ~0.5px inside the clip edge, and because the ~1.8px stroke
+// is centred on that line its lower half gets shaved off, which reads as a
+// trophy with its base cut away.
+//
+// One pixel up puts the whole stroke inside the boundary. It stays well within
+// the 32px box (6px above the ink, 4px below), so nothing overflows and the
+// row height is untouched. Deliberately `xs`-only: the larger sizes are hero
+// and profile displays with room to spare, and shifting those would be a
+// visible misalignment for no gain.
+const fallbackIconTransform = computed(() =>
+  props.size === "xs" ? "translateY(-1px)" : undefined,
+);
 
 watch(
   () => props.award.image_url,
@@ -89,8 +114,12 @@ function markImageUnavailable() {
     />
     <Trophy
       v-else
-      :class="fallbackIconClasses[size]"
-      :style="{ color: artwork.tierColor }"
+      :style="{
+        color: artwork.tierColor,
+        width: `${fallbackIconPixels}px`,
+        height: `${fallbackIconPixels}px`,
+        transform: fallbackIconTransform,
+      }"
       :role="decorative ? undefined : 'img'"
       :aria-label="decorative ? undefined : artwork.altText"
     />

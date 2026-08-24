@@ -38,16 +38,19 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
           type="button"
           class="flex items-center gap-2 rounded-sm border px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors"
           :class="
-            index === currentStep
-              ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)_/_0.12)] text-[hsl(var(--tac-amber))]'
-              : index < currentStep
-                ? 'border-border bg-muted/30 text-foreground'
-                : 'border-border bg-background/40 text-muted-foreground'
+            step.disabled
+              ? 'cursor-not-allowed border-border/40 bg-background/20 text-muted-foreground/40'
+              : index === currentStep
+                ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)_/_0.12)] text-[hsl(var(--tac-amber))]'
+                : index < currentStep
+                  ? 'border-border bg-muted/30 text-foreground'
+                  : 'border-border bg-background/40 text-muted-foreground'
           "
-          :disabled="index > furthestStep"
+          :disabled="step.disabled || index > furthestStep"
+          :aria-disabled="step.disabled"
           @click="goTo(index)"
         >
-          <Check v-if="index < currentStep" class="h-3 w-3" />
+          <Check v-if="!step.disabled && index < currentStep" class="h-3 w-3" />
           <span v-else>{{ index + 1 }}</span>
           {{ step.label }}
         </button>
@@ -148,6 +151,49 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
             <FormMessage />
           </FormItem>
         </FormField>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <FormField v-slot="{ componentField }" name="attendance_open_before">
+            <FormItem>
+              <FormLabel>{{
+                $t("tournament.form.attendance.open_before")
+              }}</FormLabel>
+              <FormControl>
+                <Input type="number" min="15" max="240" v-bind="componentField" />
+              </FormControl>
+              <FormDescription>{{
+                $t("tournament.form.attendance.open_before_description")
+              }}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+
+          <FormField v-slot="{ componentField }" name="attendance_close_before">
+            <FormItem>
+              <FormLabel>{{
+                $t("tournament.form.attendance.close_before")
+              }}</FormLabel>
+              <FormControl>
+                <Input type="number" min="5" max="60" v-bind="componentField" />
+              </FormControl>
+              <FormDescription>{{
+                $t("tournament.form.attendance.close_before_description")
+              }}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+        </div>
+
+        <p
+          v-if="attendanceWindowPreview"
+          class="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground"
+        >
+          {{
+            $t("tournament.form.attendance.preview", {
+              window: attendanceWindowPreview,
+            })
+          }}
+        </p>
       </div>
     </div>
 
@@ -256,6 +302,7 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
       <TournamentAwardPicker
         ref="awardPicker"
         v-model="awardSelections"
+        v-model:trophies-enabled="awardsEnabledPending"
         :match-type="form.values.type || null"
         @ready="awardPickerReady = $event"
       />
@@ -303,6 +350,8 @@ import {
   setupOptionsVariables,
   setupOptionsSetMutation,
 } from "~/utilities/setupOptions";
+import { requiresLocation } from "~/utilities/tournamentCategories";
+import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 
 export default {
   data() {
@@ -314,6 +363,13 @@ export default {
       prizes: [] as Array<{ id: number; place: string; prize: string }>,
       awardSelections: {} as Record<number, string>,
       awardPickerReady: false,
+      // Awards are disabled for a new tournament by default (the tournaments
+      // table's own default), so this starts false to match. The picker's
+      // Awards Enabled switch is usable during create -- see
+      // TournamentAwardPicker.vue's toggleAwardsEnabled -- and this is the
+      // v-model that carries the organizer's choice until the tournament
+      // (and therefore trophies_enabled) exists.
+      awardsEnabledPending: false,
       bannerBlob: null as Blob | null,
       form: useForm({
         keepValuesOnUnmount: true,
@@ -336,18 +392,52 @@ export default {
               categories: z.string().array().default([]),
               auto_start: z.boolean().default(true),
               negotiated_scheduling: z.boolean().default(false),
+              min_role: z.string().nullable().default(null),
+              // Mirrors TournamentInformationForm.vue and the backend CHECK
+              // constraints on tournaments (tournaments_attendance_*):
+              // 15-240 / 5-60, and at least a 5-minute gap between them.
+              attendance_open_before: z.coerce
+                .number()
+                .int()
+                .min(15)
+                .max(240)
+                .default(60),
+              attendance_close_before: z.coerce
+                .number()
+                .int()
+                .min(5)
+                .max(60)
+                .default(15),
             },
             useApplicationSettingsStore().settings,
+          ).refine(
+            (values) =>
+              values.attendance_open_before - values.attendance_close_before >=
+              5,
+            {
+              message: this.$t("tournament.form.attendance.invalid_window"),
+              path: ["attendance_open_before"],
+            },
           ),
         ),
       }),
     };
   },
   computed: {
+    // Canonical category IDs only -- LAN and LocationEvent tournaments happen
+    // at a physical venue, so Location is required; every other combination
+    // (including Online Event, League, or no category yet) does not need it.
+    locationRequired() {
+      return requiresLocation(this.form.values.categories ?? []);
+    },
     steps() {
       return [
         { key: "information", label: this.$t("tournament.wizard.information") },
-        { key: "location", label: this.$t("tournament.wizard.location") },
+        {
+          key: "location",
+          label: this.$t("tournament.wizard.location"),
+          disabled: !this.locationRequired,
+        },
         {
           key: "match_options",
           label: this.$t("tournament.wizard.match_options"),
@@ -355,6 +445,28 @@ export default {
         { key: "prizes", label: this.$t("tournament.wizard.prizes") },
         { key: "awards", label: "Awards" },
       ];
+    },
+    // Same live preview as TournamentInformationForm.vue's schedule section,
+    // driven by the form's current values so it updates as the organizer
+    // types. Suppressed while the values are out of range.
+    attendanceWindowPreview() {
+      const start = this.form.values.start;
+      const openBefore = Number(this.form.values.attendance_open_before);
+      const closeBefore = Number(this.form.values.attendance_close_before);
+      if (
+        !(start instanceof Date) ||
+        Number.isNaN(start.getTime()) ||
+        !Number.isFinite(openBefore) ||
+        !Number.isFinite(closeBefore) ||
+        openBefore - closeBefore < 5
+      ) {
+        return null;
+      }
+      return formatAttendanceWindowRange({
+        start: start.toISOString(),
+        attendance_check_in_open_before_minutes: openBefore,
+        attendance_check_in_close_before_minutes: closeBefore,
+      });
     },
   },
   methods: {
@@ -431,20 +543,49 @@ export default {
       const results = await Promise.all([
         this.form.validateField("name"),
         this.form.validateField("start"),
+        this.form.validateField("attendance_open_before"),
+        this.form.validateField("attendance_close_before"),
       ]);
       return results.every((result) => result.valid);
+    },
+    // Location (step 1) is skipped in both directions when the selected
+    // categories don't require a physical venue -- see `locationRequired`.
+    // Step numbering itself never changes: a skipped step is still shown,
+    // just disabled, so the visible "2 LOCATION" label stays put.
+    nextEnabledStep(from: number): number {
+      let step = from;
+      while (step < this.steps.length - 1 && this.steps[step].disabled) {
+        step++;
+      }
+      return step;
+    },
+    previousEnabledStep(from: number): number {
+      let step = from;
+      while (step > 0 && this.steps[step].disabled) {
+        step--;
+      }
+      return step;
     },
     async next() {
       if (!(await this.validateStep(this.currentStep))) {
         return;
       }
-      this.currentStep = Math.min(this.currentStep + 1, this.steps.length - 1);
+      const target = this.nextEnabledStep(
+        Math.min(this.currentStep + 1, this.steps.length - 1),
+      );
+      this.currentStep = Math.min(target, this.steps.length - 1);
       this.furthestStep = Math.max(this.furthestStep, this.currentStep);
     },
     back() {
-      this.currentStep = Math.max(this.currentStep - 1, 0);
+      const target = this.previousEnabledStep(
+        Math.max(this.currentStep - 1, 0),
+      );
+      this.currentStep = Math.max(target, 0);
     },
     async goTo(step: number) {
+      if (this.steps[step]?.disabled) {
+        return;
+      }
       if (step > this.furthestStep) {
         return;
       }
@@ -481,6 +622,12 @@ export default {
           this.form.setFieldValue("match_mode", "admin");
         }
         const form = this.form.values;
+        // A category set that doesn't require a physical venue (e.g. Online
+        // Event) must not submit stale address data left over from an
+        // earlier LAN/Location Event selection. The values themselves stay
+        // in form state untouched, so switching categories back restores
+        // them -- only the submitted payload is affected.
+        const locationEnabled = requiresLocation(form.categories ?? []);
 
         const { data } = await this.$apollo.mutate({
           variables: setupOptionsVariables(form),
@@ -492,9 +639,10 @@ export default {
                   start: form.start,
                   description: form.description,
                   homepage: form.homepage || null,
-                  location: form.location || null,
-                  latitude: form.latitude ?? null,
-                  longitude: form.longitude ?? null,
+                  location: locationEnabled ? form.location || null : null,
+                  latitude: locationEnabled ? form.latitude ?? null : null,
+                  longitude: locationEnabled ? form.longitude ?? null : null,
+                  min_role: form.min_role ?? null,
                   auto_start: form.negotiated_scheduling
                     ? false
                     : form.auto_start,
@@ -523,9 +671,20 @@ export default {
             description: error?.message,
           });
         }
+        try {
+          await this.persistAttendanceSchedule(tournamentId);
+        } catch (error: any) {
+          toast({
+            variant: "destructive",
+            title: "Tournament created, but registration/check-in timing needs attention",
+            description:
+              error?.message ||
+              "Open Settings to review and save the schedule.",
+          });
+        }
         let awardMappingsFailed = false;
         try {
-          await this.persistTournamentAwardSelections(tournamentId);
+          await this.persistAwardConfiguration(tournamentId);
         } catch (error: any) {
           awardMappingsFailed = true;
           toast({
@@ -550,16 +709,79 @@ export default {
         this.submitting = false;
       }
     },
-    async persistTournamentAwardSelections(tournamentId: string) {
+    // Reuses the exact same helpers TournamentAwardPicker.vue exposes for
+    // its own post-creation "Awards Enabled" toggle and "Save award
+    // mappings" button -- no separate award-writing logic lives here. Both
+    // calls run concurrently and either failing is surfaced to the caller,
+    // so create() can flag the tournament for a manual review rather than
+    // reporting a misleading full success.
+    async persistAwardConfiguration(tournamentId: string) {
       const picker = this.$refs.awardPicker as {
+        applyAwardsEnabled?: (
+          next: boolean,
+          tournamentId: string,
+        ) => Promise<void>;
         persistSelections?: (
           tournamentId: string,
           onlyOverrides?: boolean,
         ) => Promise<number>;
       };
-      if (!picker?.persistSelections) return;
-      // Built-in defaults need no rows: missing slots already resolve to them.
-      await picker.persistSelections(tournamentId, true);
+      if (!picker) return;
+
+      const tasks: Promise<unknown>[] = [];
+      // The tournaments table already defaults new rows to disabled, so
+      // there is nothing to write when the organizer left it off.
+      if (this.awardsEnabledPending && picker.applyAwardsEnabled) {
+        tasks.push(picker.applyAwardsEnabled(true, tournamentId));
+      }
+      if (picker.persistSelections) {
+        // Built-in defaults need no rows: missing slots already resolve to them.
+        tasks.push(picker.persistSelections(tournamentId, true));
+      }
+
+      const results = await Promise.allSettled(tasks);
+      const failure = results.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected",
+      );
+      if (failure) throw failure.reason;
+    },
+    // Same field names, bounds, and update mutation shape as
+    // TournamentInformationForm.vue's save() -- attendance_check_in_*_minutes
+    // aren't insertable on tournaments (see insert_permissions), so this
+    // applies them as a follow-up update, exactly like the edit screen would.
+    // A no-op when the organizer left both fields at their defaults, since
+    // those already match the columns' own DB defaults.
+    async persistAttendanceSchedule(tournamentId: string) {
+      const openBefore = Number(this.form.values.attendance_open_before);
+      const closeBefore = Number(this.form.values.attendance_close_before);
+      if (openBefore === 60 && closeBefore === 15) {
+        return;
+      }
+      await this.$apollo.mutate({
+        variables: {
+          attendance_open_before: openBefore,
+          attendance_close_before: closeBefore,
+        },
+        mutation: generateMutation({
+          update_tournaments_by_pk: [
+            {
+              pk_columns: { id: tournamentId },
+              _set: {
+                attendance_check_in_open_before_minutes: $(
+                  "attendance_open_before",
+                  "Int",
+                ),
+                attendance_check_in_close_before_minutes: $(
+                  "attendance_close_before",
+                  "Int",
+                ),
+              },
+            },
+            { __typename: true },
+          ],
+        }),
+      });
     },
     async persistCategoriesAndPrizes(tournamentId: string) {
       const categories: string[] = this.form.values.categories ?? [];

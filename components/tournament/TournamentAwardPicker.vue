@@ -142,6 +142,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   "update:modelValue": [value: TournamentAwardSelection];
+  "update:trophiesEnabled": [value: boolean];
   ready: [value: boolean];
 }>();
 
@@ -163,16 +164,37 @@ watch(
   },
 );
 
-async function toggleAwardsEnabled(next: boolean) {
-  if (!props.tournamentId || togglingEnabled.value) return;
-  const previous = awardsEnabled.value;
-  awardsEnabled.value = next;
+// The actual write, factored out so both the click handler below and the
+// creation wizard's post-creation apply step (TournamentCreateWizard.vue's
+// persistAwardConfiguration) go through the exact same mutation rather than
+// each having their own copy of it.
+async function applyAwardsEnabled(next: boolean, tournamentId: string) {
   togglingEnabled.value = true;
   try {
     await client.mutate({
       mutation: UPDATE_TOURNAMENT_AWARDS_ENABLED_MUTATION,
-      variables: { tournamentId: props.tournamentId, enabled: next },
+      variables: { tournamentId, enabled: next },
     });
+  } finally {
+    togglingEnabled.value = false;
+  }
+}
+
+async function toggleAwardsEnabled(next: boolean) {
+  if (togglingEnabled.value) return;
+  const previous = awardsEnabled.value;
+  awardsEnabled.value = next;
+  emit("update:trophiesEnabled", next);
+
+  if (!props.tournamentId) {
+    // Creation wizard: no tournament exists yet to write to. The choice is
+    // tracked locally (and via the trophiesEnabled v-model) and applied by
+    // the wizard once the tournament id is known.
+    return;
+  }
+
+  try {
+    await applyAwardsEnabled(next, props.tournamentId);
     toast({
       title: next ? "Awards enabled" : "Awards disabled",
       description: next
@@ -181,6 +203,7 @@ async function toggleAwardsEnabled(next: boolean) {
     });
   } catch (error) {
     awardsEnabled.value = previous;
+    emit("update:trophiesEnabled", previous);
     const description =
       error instanceof Error ? error.message : "Please try again.";
     toast({
@@ -188,8 +211,6 @@ async function toggleAwardsEnabled(next: boolean) {
       description,
       variant: "destructive",
     });
-  } finally {
-    togglingEnabled.value = false;
   }
 }
 
@@ -471,7 +492,7 @@ async function persistSelections(
   }
 }
 
-defineExpose({ persistSelections });
+defineExpose({ persistSelections, applyAwardsEnabled });
 
 onMounted(loadPicker);
 watch(() => props.tournamentId, loadPicker);
@@ -528,7 +549,7 @@ watch(() => props.tournamentId, loadPicker);
       <Switch
         aria-labelledby="tournament-awards-enabled-label"
         :model-value="awardsEnabled"
-        :disabled="!tournamentId || togglingEnabled"
+        :disabled="togglingEnabled"
         @update:model-value="toggleAwardsEnabled($event as boolean)"
       />
     </div>

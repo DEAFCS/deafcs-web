@@ -1248,6 +1248,22 @@
     }
   },
   "pages": {
+    "terms_acceptance": {
+      "title": "Welcome to DEAFCS",
+      "intro": "Before continuing, please review and accept the terms and rules that apply when using DEAFCS.",
+      "checkbox_label": "I agree to the Terms of Service and DEAFCS Rules.",
+      "links_label": "Review before accepting:",
+      "terms_of_service": "Terms of Service",
+      "general_rules": "General Rules",
+      "matchmaking_rules": "Matchmaking Rules",
+      "tournament_rules": "Tournament Rules",
+      "privacy_notice": "See our {privacy_policy} to learn how DEAFCS handles your information.",
+      "privacy_policy": "Privacy Policy",
+      "accept_button": "Accept & Continue",
+      "accepting": "Accepting...",
+      "logout": "Log out",
+      "error": "Something went wrong accepting the terms. Please try again."
+    },
     "system_metrics": {
       "cpu_usage": "CPU Usage",
       "memory_usage": "Memory Usage",
@@ -3504,7 +3520,7 @@
               },
               "deactivate_account": {
                 "q": "Can I deactivate my account?",
-                "a": "Yes. {link} explains what deactivating your account means, including what happens to your account and historical competitive records."
+                "a": "There's no self-service \"deactivate\" option today. {link} explains what happens to your account and historical competitive records if your access to DEAFCS is ever restricted or closed."
               },
               "historical_records": {
                 "q": "What happens to my historical match records if I deactivate my account?",
@@ -3819,7 +3835,7 @@
             "item_5": "Other reasonable evidence",
             "item_6": "Voluntary audiological or medical documentation, if you choose to provide it",
             "body_3": "No single type of evidence is required in every case. Verification exists to confirm eligibility for DEAFCS competitions and community spaces. It is not a judgment of how deaf someone is.",
-            "body_4": "Only your verification status is public. Any supporting evidence and hearing-related details you share remain private, are reviewed only by authorized staff, and are not kept longer than necessary. If your verification is rejected, you may request a review or appeal."
+            "body_4": "Only your verification status is public. Any supporting evidence and hearing-related details you share remain private and are reviewed only by authorized staff. If your verification is rejected, you may request a review or appeal."
           },
           "competitive_integrity": {
             "title": "8. Competitive Integrity",
@@ -3962,31 +3978,56 @@
         "title": "Tournament Rules",
         "intro": "Rules and general expectations for playing in DEAFCS tournaments, covering registration, teams, matches, and check-in.",
         "intro_2": "These rules apply alongside {link}, which covers account-wide conduct, and {link2}, which covers general match behavior also used in tournament matches.",
-        "last_updated_date": "19 August 2026",
+        "last_updated_date": "22 August 2026",
         "sections": {
           "eligibility": {
             "title": "1. Eligibility & Registration",
             "body_1": "To register for a tournament, your account must meet DEAFCS's standard account eligibility requirements. See {link} for details.",
-            "body_2": "Each tournament sets its own roster size and registration window. Check that tournament's registration page for its specific requirements before signing up."
+            "body_2": "Each tournament sets its own roster size and registration window, and enables team registration, individual (Solo Random) registration, or both. Check that tournament's registration page for its specific requirements before signing up.",
+            "body_3": "If a tournament offers individual registration, see Solo Random Tournaments below for how that works."
+          },
+          "solo_random": {
+            "title": "2. Solo Random Tournaments",
+            "body_1": "Some tournaments allow individual registration instead of, or alongside, team registration. In these Solo Random tournaments, you register on your own without needing a premade team.",
+            "body_2": "Solo Random registrants must complete tournament attendance check-in like any other participant, see Tournament Check-In & Attendance below.",
+            "body_3": "After the attendance window closes, eligible checked-in players are automatically grouped into new teams. Generated teams don't need a separate team check-in, your individual attendance check-in already covers it.",
+            "body_4": "Generated teams are balanced using the relevant game mode's ELO for that tournament, spreading skill across teams as evenly as the available pool allows.",
+            "item_1": "If there aren't enough eligible checked-in players to fill full teams for everyone, some players won't be assigned a team. Selection is based on registration order: players who registered earlier are selected first.",
+            "item_2": "Before teams are generated, being on the waitlist doesn't mean you're out. If a higher-priority player doesn't check in, waitlisted players can still be promoted into an open spot.",
+            "item_3": "Once teams are generated, a checked-in player who wasn't assigned a team is marked Not selected. This isn't a no-show, it just means there weren't enough full-team slots for everyone who checked in.",
+            "body_5": "Once you're assigned to a generated team, you're part of that team for the rest of the tournament, the same as any other team tournament participant. You can leave your individual signup while registration is still open and before you've been assigned to a team; once you're assigned, normal team rules apply."
           },
           "teams_rosters": {
-            "title": "2. Teams & Rosters",
+            "title": "3. Teams & Rosters",
             "body_1": "Each team has one designated captain, who can be promoted to a different roster member at any time by the team or that tournament's organizer/admin. In Captains check-in mode, and for map veto, the captain acts on behalf of the team.",
-            "body_2": "Some tournaments allow a team coach. Coaches are only available when enabled for that tournament, and must follow Tournament Rules, General Rules, and organizer/admin instructions."
+            "body_2": "Some tournaments allow a team coach. Coaches are only available when enabled for that tournament, and must follow Tournament Rules, General Rules, and organizer/admin instructions.",
+            "body_3": "Team tournaments require registering a team roster ahead of time, separate from Solo Random's individual signup described above. If a tournament offers both, pick whichever registration path matches how you want to play."
           },
           "substitutes": {
-            "title": "3. Substitutes",
+            "title": "4. Substitutes",
             "body_1": "Tournaments may allow a limited number of substitutes per team. The exact number is set per tournament, check that tournament's Settings.",
             "body_2": "Substitutes are expected to follow the same rules as regular roster members once added to a match."
           },
+          "attendance": {
+            "title": "5. Tournament Check-In & Attendance",
+            "body_1": "Before a tournament begins, registered players and teams must confirm they're actually available to play. This is Tournament Attendance, separate from Match Check-In below, which happens later for one specific match.",
+            "body_2": "The organizer sets the tournament's attendance check-in window relative to its start time. The registration and check-in schedule shown on the tournament page is authoritative, always check it there rather than assuming a fixed time.",
+            "item_1": "If you registered before the check-in window opened, you must check in yourself before it closes.",
+            "item_2": "If you register during the check-in window, you're checked in automatically.",
+            "item_3": "For team tournaments, a captain or an authorized team representative checks in on behalf of the whole team.",
+            "body_3": "Missing the attendance window has real consequences. A team that never checks in is removed from the tournament. A Solo Random registrant who never checks in is removed and replaced by the next eligible player on the waitlist.",
+            "body_4": "Tournament Attendance is separate from Match Check-In below. Confirming your attendance for the tournament doesn't check you in for an individual match later on."
+          },
           "scheduling": {
-            "title": "4. Match Scheduling & Being Ready",
+            "title": "6. Match Scheduling & Being Ready",
             "body_1": "Players and teams are expected to be ready and available for their scheduled matches.",
-            "body_2": "Being ready means following that tournament's configured check-in and cancellation rules (see Match Check-In and Match Cancellation below). There's no single lateness rule that applies to every tournament."
+            "body_2": "Being ready means following that tournament's configured check-in and cancellation rules (see Match Check-In and Match Cancellation below). There's no single lateness rule that applies to every tournament.",
+            "body_3": "Once a tournament's attendance check-in window has opened, its start time and check-in window can no longer be changed. This keeps the deadline participants are already acting on from shifting after the fact.",
+            "body_4": "A confirmed match time set by the organizer or agreed through scheduling is a real commitment. A projected or estimated time shown on the bracket is only an estimate, later rounds depend on when earlier matches finish. If a tournament has Auto Start enabled, a match can become available as soon as both participants are known, sometimes sooner than an earlier projection suggested. Match Check-In still applies either way, follow the live bracket and match status rather than an earlier projected time."
           },
           "check_in": {
-            "title": "5. Match Check-In",
-            "body_1": "Before a tournament match starts, players may need to check in. Depending on that tournament's Settings, check-in can be handled by Captains, by all Players, or by an Admin.",
+            "title": "7. Match Check-In",
+            "body_1": "Match Check-In is separate from Tournament Attendance above, and applies to a single tournament match rather than the whole event. Before a tournament match starts, players may need to check in. Depending on that tournament's Settings, check-in can be handled by Captains, by all Players, or by an Admin.",
             "body_2": "In Captains or Players mode, a check-in timer may be configured for that tournament. Admin mode does not use that automatic countdown.",
             "item_1": "Both required sides check in: the match continues normally.",
             "item_2": "One side checks in and the other does not before the timer expires: the checked-in side receives the match by forfeit.",
@@ -3995,78 +4036,314 @@
             "body_4": "The exact check-in mode and timer length are set per tournament, check that tournament's Settings."
           },
           "map_veto": {
-            "title": "6. Map Pool & Veto",
+            "title": "8. Map Pool & Veto",
             "body_1": "Tournament matches use a map pool and veto process to decide which maps are played, similar to matchmaking (see {link} for the general veto mechanic).",
             "body_2": "Official DEAFCS tournaments use the DEAFCS Active Map Pool. The current Active Map Pool will be available on the Map Pool & Veto page once published.",
             "body_3": "Some tournaments may configure a custom map pool instead. Either way, the exact map pool and veto configuration for a specific tournament is shown in that tournament's Tournament Settings."
           },
           "server_connection": {
-            "title": "7. Server Joining & Connection",
+            "title": "9. Server Joining & Connection",
             "body_1": "Once a match server is ready, players are responsible for connecting promptly using the connect link or button provided.",
             "body_2": "Connection issues should be reported to the tournament organizer as soon as possible."
           },
           "cancellation": {
-            "title": "8. Match Cancellation & No-Shows",
+            "title": "10. Match Cancellation & No-Shows",
             "body_1": "Match Cancellation is separate from Match Check-In. If Match Cancellation is enabled and the match does not progress within the configured window, the match may be automatically canceled.",
-            "body_2": "Whether cancellation is enabled, and how long it takes, is configured per tournament, check that tournament's Settings."
+            "body_2": "Whether cancellation is enabled, and how long it takes, is configured per tournament, check that tournament's Settings.",
+            "body_3": "A Solo Random player who registered and checked in, but wasn't assigned a team because there weren't enough full-team slots, is not a no-show, see Solo Random Tournaments above. No-show status applies only when a player or team fails a required check-in or readiness step."
           },
           "pauses_timeouts": {
-            "title": "9. Technical Pauses & Timeouts",
+            "title": "11. Technical Pauses & Timeouts",
             "body_1": "Each team has 4 tactical timeouts ({tac}) per match, called for team discussion and strategy. Tactical timeouts are 30 seconds long.",
             "body_2": "Technical pauses ({pause}) are for genuine technical problems, such as a crash or connection issue, and don't have a fixed time limit.",
             "body_3": "Don't use technical pauses as extra tactical timeouts. Follow organizer/admin instructions during any pause."
           },
           "webcam": {
-            "title": "10. Webcam Requirement",
+            "title": "12. Webcam Requirement",
             "body_1": "Some tournaments require players to have their webcam on during matches. This only applies when the organizer has enabled it for that tournament, check that tournament's Settings."
           },
           "fair_play": {
-            "title": "11. Fair Play, Cheating & Account Restrictions",
+            "title": "13. Fair Play, Cheating & Account Restrictions",
             "body_1": "Tournament matches are covered by DEAFCS's general rules on cheating, exploits, and fair play. See {link} for the full policy.",
             "body_2": "Account restrictions related to VAC or official Counter-Strike game bans also apply to tournament play. See {link} for details."
           },
           "disputes": {
-            "title": "12. Organizer/Admin Rulings & Disputes",
+            "title": "14. Organizer/Admin Rulings & Disputes",
             "body_1": "Tournament-specific rulings should normally be handled by that tournament's organizer/admin first.",
             "body_2": "Issues involving DEAFCS-wide rules, platform behavior, or unresolved disputes may be reviewed by DEAFCS staff."
           },
           "results_forfeits": {
-            "title": "13. Results, Forfeits & Penalties",
+            "title": "15. Results, Forfeits & Penalties",
             "body_1": "Match results, including automatic or organizer-awarded forfeits, are recorded as part of the tournament.",
             "body_2": "Violating DEAFCS rules during a tournament may result in penalties, up to and including removal from the tournament, handled under the same enforcement policy described in {link}."
           },
           "awards": {
-            "title": "14. Awards",
+            "title": "16. Prizes & Awards",
             "body_1": "Players can earn individual tournament awards regardless of whether they compete with a permanent DEAFCS team or a tournament-only team.",
             "body_2": "Team awards are only given to teams registered in the {link} system. A team created only for a tournament may compete normally, but it will not receive a team award for a top-three finish.",
-            "body_3": "Player and team awards are separate. Players on a tournament-only team can still receive their individual awards even though their team isn't eligible for a team award."
+            "body_3": "Player and team awards are separate. Players on a tournament-only team can still receive their individual awards even though their team isn't eligible for a team award.",
+            "body_4": "Prize pools and awards can differ between tournaments. The tournament page is the authoritative source for that tournament's configured prizes and awards, always check it there rather than assuming a standard prize.",
+            "body_5": "Prizes and awards are granted according to the tournament's final official result. If an organizer or admin corrects a match result or applies a penalty (see Results, Forfeits & Penalties above), awards are granted based on the corrected result."
           },
           "settings_note": {
-            "title": "15. Check This Tournament's Settings",
+            "title": "17. Check This Tournament's Settings",
             "body_1": "Tournament Rules describe general behavior that applies across all DEAFCS tournaments. The exact configuration for a specific event is set per tournament in its Tournament Settings, including:",
-            "item_1": "Check-in mode/time",
-            "item_2": "Map pool/veto",
-            "item_3": "Match mode",
-            "item_4": "Match cancellation/time",
-            "item_5": "Substitutes",
-            "item_6": "Coaches",
-            "item_7": "Webcam requirement",
-            "item_8": "Other available tournament match options",
+            "item_1": "Individual (Solo Random) registration",
+            "item_2": "Tournament attendance window",
+            "item_3": "Check-in mode/time",
+            "item_4": "Map pool/veto",
+            "item_5": "Match mode",
+            "item_6": "Match cancellation/time",
+            "item_7": "Substitutes",
+            "item_8": "Coaches",
+            "item_9": "Webcam requirement",
+            "item_10": "Auto Start",
+            "item_11": "Prizes and awards",
+            "item_12": "Other available tournament match options",
             "body_2": "Always check that tournament's Tournament Settings for its exact configuration before you play."
           }
         }
       },
       "account_data": {
         "title": "Account & Data",
-        "intro": "Information about your DEAFCS account and the data associated with it. Full details are coming soon."
+        "intro": "How your DEAFCS account, Steam identity, and competitive history fit together, and what stays part of the record even if your access to DEAFCS ever changes.",
+        "last_updated_date": "22 August 2026",
+        "sections": {
+          "your_account": {
+            "title": "Your DEAFCS Account",
+            "body_1": "Your DEAFCS account is created the moment you sign in with Steam. There's no separate DEAFCS username or password to set up.",
+            "body_2": "Signing in links your Steam identity to a DEAFCS profile. Everything you do on DEAFCS, including matches, tournaments, teams, and stats, becomes associated with that identity."
+          },
+          "steam_identity": {
+            "title": "Your Steam Identity",
+            "body_1": "Your Steam account is the core of your DEAFCS identity. One Steam account corresponds to one DEAFCS competitive identity, and that link is what ties your matches, stats, ELO, and history together over time.",
+            "body_2": "If access to your DEAFCS account is ever restricted or closed, that doesn't create a clean slate. The same Steam ID isn't meant to be used to start over with fresh stats or a fresh ELO: your competitive identity and history stay connected to it."
+          },
+          "profile_data": {
+            "title": "Profile Data You Control",
+            "body_1": "Some parts of your profile come straight from Steam and update automatically. Your Steam name and avatar refresh each time you sign in.",
+            "item_1": "Country: you can set this yourself at any time.",
+            "item_2": "Custom avatar: you can upload your own avatar to use instead of your Steam avatar.",
+            "item_3": "Discord: you can link or unlink a Discord account.",
+            "item_4": "Display name: regular name changes go through a request that DEAFCS staff reviews, rather than being editable directly.",
+            "body_2": "You can also leave any team you're a member of at any time, subject to that team's own roster rules."
+          },
+          "verification": {
+            "title": "Player Verification",
+            "body_1": "DEAFCS is built for the Deaf and hard-of-hearing competitive community. Some features may require completing player verification to confirm you meet that eligibility.",
+            "body_2": "When you apply, the information you submit, including your hearing status, country, and any additional details, is visible only to you and to authorized DEAFCS administrators. Staff may follow up with questions before a decision is made.",
+            "body_3": "If your application is approved, your verified status is attached to your DEAFCS account and may be shown publicly on your profile. The application details themselves are not made public.",
+            "body_4": "Verification records are kept to maintain accurate eligibility records, look into abuse or false claims if they come up, and resolve disputes.",
+            "closing": "See {link} for the full verification process and eligibility rules."
+          },
+          "competitive_history": {
+            "title": "Competitive History",
+            "body_1": "DEAFCS keeps a historical record of competitive activity, including:",
+            "item_1": "Matches you've played",
+            "item_2": "Tournament participation and results",
+            "item_3": "Team and roster history",
+            "item_4": "Player statistics",
+            "item_5": "ELO and rating changes",
+            "item_6": "Standings and rankings",
+            "item_7": "Awards",
+            "item_8": "Penalties such as no-shows, forfeits, or sanctions where they affect competitive integrity",
+            "body_2": "Your current account and profile are not the same thing as your historical competitive record. Restricting or closing access to an account does not erase matches, tournament results, statistics, ELO history, awards, or other competition records tied to it.",
+            "body_3": "These records describe competitions that involved other players and teams too. Keeping them accurate protects everyone's results and prevents a restricted account from resetting its history and starting over."
+          },
+          "access_restrictions": {
+            "title": "Account Access & Restrictions",
+            "body_1": "DEAFCS may restrict a player's participation through bans or other sanctions, most often for the kinds of rule violations covered in {link}, {link2}, and {link3}.",
+            "body_2": "A restriction can limit things like joining matchmaking or playing in tournaments. It does not erase your competitive history, and it isn't a way to reset your identity: restrictions stay tied to the same Steam-based account they were issued to."
+          },
+          "returning": {
+            "title": "Returning to DEAFCS",
+            "body_1": "If you take a break from DEAFCS, you don't need to do anything to come back. Just sign in with the same Steam account whenever you're ready.",
+            "body_2": "Your existing matches, stats, ELO, and history continue with the same identity. Taking time away doesn't create a new player record or reset what came before."
+          },
+          "data_requests": {
+            "title": "Data & Privacy Requests",
+            "body_1": "If you have questions about your account or the data associated with it, you can {link}.",
+            "body_2": "Requests about your data, including corrections, are currently handled manually by DEAFCS staff rather than through a self-service tool. See {link2} for more on how your data is handled."
+          }
+        }
       },
       "privacy_policy": {
         "title": "Privacy Policy",
-        "intro": "How DEAFCS handles your data. The full privacy policy is being finalized and will be published here."
+        "intro": "How DEAFCS collects, uses, and protects the information connected to your account and competitive activity.",
+        "last_updated_date": "23 August 2026",
+        "sections": {
+          "who_we_are": {
+            "title": "1. Who We Are",
+            "body_1": "DEAFCS operates the DEAFCS competitive Counter-Strike platform at deafcs.net, built for the Deaf and hard-of-hearing gaming community.",
+            "body_2": "This policy explains what information DEAFCS collects, why it's used, and the choices available to you. If you have questions, see {link}."
+          },
+          "information_we_collect": {
+            "title": "2. Information We Collect",
+            "body_1": "DEAFCS collects information in the following categories:",
+            "item_1": "Steam and account information: your Steam ID, Steam display name, Steam avatar, any custom avatar or country you set, your account role, and any sanctions, bans, or VAC/game-ban information associated with your account.",
+            "item_2": "Profile and social information: a linked Discord ID if you choose to connect one, friends, teams and rosters, invites, and notifications.",
+            "item_3": "Verification information: the details submitted through the player verification process, described in the section below.",
+            "item_4": "Competitive information: matches, tournaments, leagues, team rosters, results, statistics, ELO and rating history, standings, awards, and related records, including Faceit or CS2 Premier rank information where linked, all described further in Competitive & Historical Records.",
+            "item_5": "Technical and service information: session data used to keep you signed in, search-index data used to power player search, and, if you enable push notifications, the technical details needed to deliver them, such as your browser's push subscription and device or browser information.",
+            "item_6": "Uploaded content: avatars, roster images, and demo or clip files uploaded by you or by organizers.",
+            "item_7": "Terms acceptance records: the Terms of Service version you accepted and the time you accepted it.",
+            "body_2": "Some of this information comes directly from you, some comes from Steam when you sign in, and some is generated by your activity on DEAFCS, such as playing a match."
+          },
+          "how_we_use_information": {
+            "title": "3. How We Use Information",
+            "body_1": "DEAFCS uses the information described above to:",
+            "item_1": "Authenticate your account and identify you across DEAFCS",
+            "item_2": "Provide and display your profile",
+            "item_3": "Determine eligibility, including player verification",
+            "item_4": "Run matchmaking, tournaments, and leagues",
+            "item_5": "Maintain rankings, ELO, and statistics",
+            "item_6": "Enforce rules and sanctions, and prevent abuse or competitive resets",
+            "item_7": "Operate social features such as teams, friends, and notifications",
+            "item_8": "Store and display demos, clips, avatars, and tournament assets",
+            "item_9": "Maintain the security and general functioning of the service"
+          },
+          "verification": {
+            "title": "4. Player Verification",
+            "body_1": "DEAFCS is built for the Deaf and hard-of-hearing competitive community, and some features require completing player verification to confirm eligibility.",
+            "body_2": "When you apply, you provide information such as your hearing status, country, how you found DEAFCS, whether you know another Deaf player who can vouch for you, and any additional details you choose to share.",
+            "body_3": "This information, along with any messages exchanged with staff during review, is visible only to you and to authorized DEAFCS administrators. No other player, role, or member of the public can see it.",
+            "body_4": "If your application is approved, your verified status is attached to your DEAFCS account and may be shown publicly on your profile. The application details themselves are never made public.",
+            "body_5": "Verification records are currently retained unless an administrator manually removes them. They may be used to maintain accurate eligibility records, look into abuse or false claims, and resolve disputes."
+          },
+          "competitive_history": {
+            "title": "5. Competitive & Historical Records",
+            "body_1": "DEAFCS maintains historical competition records, including matches, tournament and team roster participation, statistics, ELO and rating history, standings, awards, and penalties such as no-shows, forfeits, or sanctions where they affect competitive integrity.",
+            "body_2": "These records describe competitions that involved other players and teams, not only you. Changes to your account, or restrictions placed on it, do not automatically erase historical competition records connected to it.",
+            "body_3": "Maintaining these records helps keep results accurate, preserves rankings and statistics, and keeps a player's competitive identity continuous, rather than allowing a restricted account to reset its history and start over."
+          },
+          "public_information": {
+            "title": "6. Public Information",
+            "body_1": "Some information is visible to other users and visitors without an account, including your Steam or display name, avatar, country, verified status, and competitive activity such as matches, tournaments, teams, statistics, ELO, rankings, and awards.",
+            "body_2": "Verification application content and any messages exchanged during review are never public. They remain visible only to you and authorized administrators."
+          },
+          "third_party_services": {
+            "title": "7. Third-Party Services",
+            "body_1": "DEAFCS uses a small number of third-party services to operate the platform:",
+            "item_1": "Steam: used for sign-in and identity, and to check publicly available information such as VAC and game-ban status.",
+            "item_2": "Discord (optional): if you link a Discord account, DEAFCS stores your Discord ID and may use it for match or tournament automation, such as voice channels and notifications.",
+            "item_3": "Typesense: powers player search and holds a copy of profile and statistic information for that purpose.",
+            "item_4": "Object storage, including Backblaze B2 in production: stores uploaded files such as avatars, roster images, and match demos or clips.",
+            "item_5": "Web push: if you enable push notifications, your browser's own push service handles delivery.",
+            "item_6": "Stream providers: viewing a Twitch, YouTube, or Kick stream embedded on a match page may share standard browser information with that provider.",
+            "item_7": "Google Tag Manager: present in the DEAFCS codebase, but only active if enabled by DEAFCS administrators.",
+            "body_2": "These services process data under their own privacy terms where applicable."
+          },
+          "data_retention": {
+            "title": "8. Data Storage & Retention",
+            "body_1": "We keep information for as long as it is needed for the purposes described in this policy, including operating DEAFCS, maintaining competition records, enforcing rules, and resolving disputes. Some categories of information currently have no automatic deletion schedule.",
+            "body_2": "Verification application and message records are retained unless an administrator manually removes them.",
+            "body_3": "Chat messages are an exception: they are stored only briefly (for about 24 hours) and are not kept as a permanent record."
+          },
+          "your_choices": {
+            "title": "9. Your Choices & Requests",
+            "body_1": "You can manage some of your information directly:",
+            "item_1": "Set or update your country",
+            "item_2": "Upload or remove a custom avatar",
+            "item_3": "Link or unlink a Discord account",
+            "item_4": "Leave a team you're a member of",
+            "body_2": "Other changes, such as a display-name change, go through a request that DEAFCS staff reviews rather than being editable directly.",
+            "body_3": "DEAFCS does not currently offer self-service account deletion, deactivation, or data export. If you have questions about your account or data, including access, correction, or deletion, contact DEAFCS through {link}. See also {link2} for how your account and competitive history work."
+          },
+          "security": {
+            "title": "10. Security",
+            "body_1": "DEAFCS uses technical and access controls to limit who can see private account and verification data, restricting it to the player concerned and authorized staff."
+          },
+          "changes": {
+            "title": "11. Changes to This Policy",
+            "body_1": "This policy may change as DEAFCS and its features change. The date below reflects the most recent update."
+          },
+          "contact": {
+            "title": "12. Contact",
+            "body_1": "For questions about this policy or your data, see {link}."
+          }
+        }
       },
       "terms_of_service": {
         "title": "Terms of Service",
-        "intro": "The terms governing use of DEAFCS. The full terms are being finalized and will be published here."
+        "intro": "The terms governing your use of DEAFCS, its competitions, and its community spaces.",
+        "last_updated_date": "23 August 2026",
+        "sections": {
+          "acceptance": {
+            "title": "1. Acceptance of These Terms",
+            "body_1": "By using DEAFCS, you agree to these Terms.",
+            "body_2": "Participating in matches, tournaments, and leagues is also governed by {link}, {link2}, and {link3}, which apply alongside these Terms.",
+            "body_3": "See {link} for how your information is handled.",
+            "body_4": "DEAFCS records the Terms version you accepted and when you accepted it."
+          },
+          "eligibility_accounts": {
+            "title": "2. Eligibility & Accounts",
+            "body_1": "You need a Steam account to use DEAFCS. There's no separate DEAFCS username or password.",
+            "body_2": "You're responsible for activity carried out through your DEAFCS account, and for providing accurate information when asked, such as during registration or player verification.",
+            "body_3": "DEAFCS may restrict access where eligibility requirements or the rules described in this policy and in General Rules aren't met."
+          },
+          "steam_identity": {
+            "title": "3. Steam Identity & Competitive Identity",
+            "body_1": "One Steam account corresponds to one DEAFCS competitive identity. Your matches, stats, ELO, and history are tied to that identity over time.",
+            "body_2": "You must not use account restrictions, closures, or alternate Steam accounts to obtain a clean competitive reset. The same Steam identity stays connected to its historical results and ratings, and restricting or closing access to an account does not create a fresh competitive record.",
+            "closing": "See {link} for more on how this works."
+          },
+          "verification": {
+            "title": "4. Player Verification",
+            "body_1": "DEAFCS is built for the Deaf and hard-of-hearing competitive community, and some features require completing player verification.",
+            "body_2": "If you apply, the information you provide must be truthful and accurate. DEAFCS staff may ask follow-up questions, and DEAFCS decides eligibility.",
+            "body_3": "If DEAFCS later determines that verification or eligibility information was false or misleading, DEAFCS may remove your verified status and apply sanctions under {link}.",
+            "body_4": "If your application is rejected, you may reapply where the current process allows it."
+          },
+          "fair_play": {
+            "title": "5. Fair Play & Rules",
+            "body_1": "You must follow {link}, and {link2} or {link3} where applicable.",
+            "body_2": "This includes not cheating, manipulating results or ratings, abusing exploits, intentionally disrupting matches or tournaments, or providing false identity or eligibility information.",
+            "body_3": "Detailed rules and penalties are defined in those pages rather than repeated here."
+          },
+          "sanctions": {
+            "title": "6. Sanctions & Enforcement",
+            "body_1": "DEAFCS may apply warnings, restrictions, bans, or other sanctions described in {link} and the other rules pages where a player or team breaks them.",
+            "body_2": "Sanctions may be temporary or permanent depending on the situation. They restrict things like participating in matchmaking or tournaments. They do not erase historical competitive records, and they can't be bypassed by attempting to reset your identity or history.",
+            "closing": "If you have questions about a sanction, contact DEAFCS through {link}."
+          },
+          "teams_tournaments": {
+            "title": "7. Teams, Tournaments & Organizers",
+            "body_1": "If you create or join a team, you're responsible for accurate rosters and for your team's participation in matches and tournaments.",
+            "body_2": "Tournament organizers are responsible for running their events fairly and within DEAFCS's tools and rules. Individual tournaments may add requirements on top of the general rules, shown in that tournament's own settings.",
+            "closing": "Scheduling, check-in, no-shows, and forfeits are governed by {link}."
+          },
+          "prizes_awards": {
+            "title": "8. Prizes & Awards",
+            "body_1": "Tournament pages may describe prizes or rewards for that event. This is set by the tournament's organizer, and prize pools and awards can differ between tournaments, so check that tournament's own page for what actually applies.",
+            "body_2": "Where an organizer offers a prize, the organizer, not DEAFCS, is responsible for providing it. DEAFCS does not process payments or guarantee delivery of organizer-provided prizes.",
+            "body_3": "DEAFCS also grants its own awards and trophies, which are recorded as part of a player's or team's history."
+          },
+          "content_you_provide": {
+            "title": "9. Content You Provide",
+            "body_1": "If you upload or provide content, such as a custom avatar, roster or team images, or other profile content, you must have the right to do so.",
+            "body_2": "Content must not be illegal, abusive, misleading, or infringe someone else's rights.",
+            "body_3": "DEAFCS may remove content that violates these Terms or the rules pages."
+          },
+          "competitive_history": {
+            "title": "10. Competitive & Historical Records",
+            "body_1": "DEAFCS records competition data such as matches, tournament and team participation, results, statistics, ELO and rating history, standings, awards, and relevant penalties.",
+            "body_2": "These records involve other players and teams, not only you. Changes to your account, or restrictions placed on it, do not automatically erase historical competition records connected to it, and you cannot demand a competitive reset simply by restricting or leaving an account.",
+            "body_3": "If a genuine error is found in a record, it may be corrected consistent with the relevant rules."
+          },
+          "service_availability": {
+            "title": "11. Service Availability",
+            "body_1": "DEAFCS may experience downtime, maintenance, bugs, server issues, match interruptions, or unavailable third-party services from time to time.",
+            "body_2": "DEAFCS may change, suspend, or discontinue features when necessary. Uninterrupted or error-free service isn't guaranteed."
+          },
+          "changes": {
+            "title": "12. Changes to DEAFCS and These Terms",
+            "body_1": "DEAFCS's features, rules, and these Terms may change over time. The date below reflects the current version, so please check back periodically."
+          },
+          "contact": {
+            "title": "13. Contact",
+            "body_1": "For questions about these Terms, see {link}."
+          }
+        }
       },
       "forum": {
         "title": "Forum",
@@ -4723,7 +5000,8 @@
       "pending": "Pending"
     },
     "results_table": {
-      "matches": "Matches"
+      "matches": "Matches",
+      "prize": "Prize"
     },
     "final_standings_podium": "▚ FINAL STANDINGS · PODIUM",
     "page": {
@@ -4735,6 +5013,7 @@
       "my_team": "My Team",
       "my_team_hint": "Manage your roster, invites, and readiness for this tournament.",
       "roster_section": "Roster",
+      "not_selected_section": "Not selected",
       "no_teams_yet": "No teams yet.",
       "information_tab": "Information",
       "about_section": "About",
@@ -4771,6 +5050,9 @@
     },
     "standings_section": {
       "no_roster": "NO ROSTER"
+    },
+    "stats_section": {
+      "no_data": "No stats yet"
     },
     "trophies_config": {
       "title": "Trophy Configuration",
@@ -4827,10 +5109,10 @@
       "role_required": "{role} or higher required to join this tournament.",
       "member_role_required": "{role} or higher required",
       "individual": {
-        "description": "This tournament uses individual sign-up -- join on your own, no team needed. Once registration closes, the organizer generates teams automatically, randomly balanced by ELO.",
         "registered": "You're registered",
         "waitlisted": "You're on the waitlist",
-        "leave": "Leave"
+        "leave": "Leave",
+        "sheet_description": "Individual sign-up. Join on your own, no team needed. Teams are generated automatically after registration and check-in close, balanced by ELO."
       }
     },
     "tournament_team": {
@@ -4858,6 +5140,7 @@
         "close_before": "Registration & check-in close before start",
         "close_before_description": "Minutes before the start time that registration and check-in close. 5 to 60.",
         "preview": "Check-in window: {window}",
+        "locked": "Schedule and check-in timing can't be changed after check-in has started.",
         "invalid_window": "Check-in must open at least 5 minutes before registration closes."
       },
       "min_role": {
@@ -5036,6 +5319,7 @@
       "round_match": "{prefix} Round {round} Match {match}",
       "bye_round": "Bye Round",
       "scheduled_for": "Scheduled for",
+      "waiting_for_teams": "Waiting for teams",
       "upper_bracket": "Upper Bracket",
       "lower_bracket": "Lower Bracket",
       "winner_of": "Winner of",
@@ -5097,6 +5381,9 @@
     },
     "results": {
       "title": "Results"
+    },
+    "stats_tab": {
+      "title": "Stats"
     },
     "organizer": {
       "title": "Tournament Organizers",
@@ -5167,7 +5454,23 @@
         "overlay_title": "Confirm you're still in",
         "overlay_description": "You're registered for {name}. Check in now or you'll be replaced by the next player on the waitlist.",
         "check_in_now": "Check In Now"
-      }
+      },
+      "add_player": "Add Player",
+      "add_player_added": "Player added to the tournament",
+      "add_player_waitlisted": "Player added to the waitlist",
+      "add_player_failed": "Could not add player",
+      "check_in_player": "Check in player",
+      "check_in_player_success": "Checked in",
+      "check_in_player_failed": "Could not check in player",
+      "remove_player": "Remove player",
+      "confirm_remove_player": "Remove this player?",
+      "remove_player_description": "{name} will be removed from this tournament and their spot freed up. They can sign up again while registration is open.",
+      "remove_player_success": "Player removed",
+      "remove_player_failed": "Could not remove player",
+      "confirm_leave": "Leave this tournament?",
+      "leave_description": "Your sign-up will be removed and your spot freed up. You can join again while registration is open.",
+      "leave_success": "You left the tournament",
+      "leave_failed": "Could not leave the tournament"
     },
     "attendance": {
       "check_in_button": "Check In",
@@ -5178,7 +5481,34 @@
       "explainer": "Players registered before check-in opens must check in. Registrations made during the check-in window are automatically checked in.",
       "closes_note": "Registration and check-in close at {time}. Teams are generated automatically afterward.",
       "team_check_in_button": "Check in for tournament",
-      "team_checked_in_badge": "Your team is checked in"
+      "not_selected": {
+        "status": "Not selected",
+        "short": "You were not placed into a full team.",
+        "description": "These players were not placed into a full team. Selection is based on registration order."
+      },
+      "status": {
+        "checked_in": "Checked-in",
+        "checked_in_hint": "Confirmed for this tournament.",
+        "pending": "Pending check-in",
+        "pending_hint": "Has not confirmed attendance yet.",
+        "checked_in_waitlisted_hint": "Confirmed, and waiting for a spot to open up."
+      },
+      "info": {
+        "title": "Tournament Check-in",
+        "window_label": "Check-in:",
+        "closes_label": "Registration closes:",
+        "closes_at": "Registration and check-in close at {time}.",
+        "team": {
+          "pre_registered": "Teams registered before check-in opens must check in.",
+          "representative": "A captain or an authorized team representative checks in for the whole team.",
+          "late_registered": "Teams that register during the check-in window are checked in automatically."
+        },
+        "individual": {
+          "pre_registered": "Players registered before check-in opens must check in.",
+          "late_registered": "Players who register during the check-in window are checked in automatically.",
+          "teams_generated": "Teams are generated automatically once check-in closes."
+        }
+      }
     },
     "actions": {
       "open_registration": "Open Registration",

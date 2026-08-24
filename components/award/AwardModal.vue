@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import AwardBadge from "./AwardBadge.vue";
+import AwardArtwork from "./AwardArtwork.vue";
+import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
 import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
@@ -38,6 +39,8 @@ interface Award {
     name?: string | null;
     short_name?: string | null;
   } | null;
+  // See AwardCase.vue: resolved by mapAwardRecipientToTrophy.
+  award?: AwardArtworkDefinition | null;
   trophy_config?: {
     custom_name?: string | null;
     silhouette?: number | null;
@@ -169,18 +172,7 @@ const trophyTeam = computed(() => {
           aria-hidden="true"
         ></div>
         <div class="relative z-[1] flex justify-center">
-          <AwardBadge
-            :tournament-id="trophy.tournament_id"
-            :placement="trophy.placement"
-            :tournament-name="tournamentName"
-            :tournament-start="trophy.tournament?.start"
-            :tournament-type="tournamentType"
-            :custom-name="trophy.trophy_config?.custom_name"
-            :silhouette-override="trophy.trophy_config?.silhouette"
-            :image-url="trophy.trophy_config?.image_url"
-            size="lg"
-            :interactive="false"
-          />
+          <AwardArtwork v-if="trophy.award" :award="trophy.award" size="lg" />
         </div>
       </div>
 

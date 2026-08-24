@@ -59,6 +59,10 @@ const props = defineProps<{
   tournament?: {
     is_organizer?: boolean;
     status?: string;
+    // Whether later rounds start themselves once their feeders resolve.
+    // Only used to decide how a bracket's projected ETA is presented -- see
+    // showWaitingForTeams below.
+    auto_start?: boolean;
     options?: {
       best_of?: number;
     };
@@ -68,6 +72,52 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "schedule-bracket", bracket: Bracket): void;
 }>();
+
+// How a not-yet-materialized bracket presents its timing.
+//
+// tournament_brackets carries two different timestamps and they mean opposite
+// things:
+//
+//   scheduled_at  - a REAL schedule someone committed to: an organizer setting
+//                   a date/time via the schedule dialog, a league fixture, or
+//                   an accepted negotiated time. Always shown, always a
+//                   countdown.
+//   scheduled_eta - a PROJECTION. calculate_tournament_bracket_start_times
+//                   wipes and recomputes it across the whole tournament every
+//                   time anything moves, and only while the tournament is
+//                   Live. Nobody agreed to it.
+//
+// Rendering the projection as "Scheduled for / in 1 hour" read as a promise:
+// with auto start on, a later-round match actually begins as soon as both
+// feeders resolve, which can be immediately. Players could reasonably see an
+// hour on the card and walk away. What the card is really expressing there is
+// a dependency, not a time, so it says so instead.
+//
+// Deliberately narrow. The projection is only replaced when it exists AND auto
+// start is on AND the participants are still unknown, so a bracket that simply
+// has no timing information stays blank exactly as before -- this does not
+// stamp "Waiting for teams" across every empty future card.
+const hasRealSchedule = (bracket: Bracket) => !!bracket.scheduled_at;
+
+const hasProjectedEta = (bracket: Bracket) =>
+  !bracket.match && !bracket.scheduled_at && !!bracket.scheduled_eta;
+
+const participantsKnown = (bracket: Bracket) =>
+  !!bracket.team_1 && !!bracket.team_2;
+
+const showWaitingForTeams = (bracket: Bracket) =>
+  hasProjectedEta(bracket) &&
+  !!props.tournament?.auto_start &&
+  !participantsKnown(bracket);
+
+// Auto start off means nothing will start this match on its own -- the
+// organizer schedules it -- so the projection keeps its existing presentation
+// and the manual scheduling UX is unchanged.
+//
+// With auto start on and both participants known, nothing is shown: the match
+// materializes within the minute and its real status takes over the card.
+const showProjectedEta = (bracket: Bracket) =>
+  hasProjectedEta(bracket) && !props.tournament?.auto_start;
 
 const { t } = useI18n();
 const nuxtApp = useNuxtApp();
@@ -743,9 +793,10 @@ const shouldShowCrossBracketDestination = (
         </div>
       </div>
 
-      <!-- Display organizer-set schedule if available -->
+      <!-- A real committed schedule: organizer-set, league, or negotiated.
+           Unchanged. -->
       <div
-        v-if="bracket.scheduled_at && !bracket.match"
+        v-if="hasRealSchedule(bracket) && !bracket.match"
         class="text-xs text-muted-foreground flex flex-col items-center gap-1"
       >
         <span>{{ $t("common.scheduled") }}</span>
@@ -753,9 +804,22 @@ const shouldShowCrossBracketDestination = (
           <TimeAgo :date="bracket.scheduled_at"></TimeAgo>
         </span>
       </div>
-      <!-- Display auto-calculated ETA if no organizer schedule -->
+      <!-- Auto start will begin this the moment its feeders resolve, so the
+           projected ETA would be a misleading promise. States the dependency
+           instead, with no countdown, and deliberately not in the green a real
+           schedule uses. -->
       <div
-        v-else-if="bracket.scheduled_eta && !bracket.match"
+        v-else-if="showWaitingForTeams(bracket)"
+        class="text-xs text-muted-foreground flex flex-col items-center gap-1"
+      >
+        <span class="text-blue-400 font-medium">
+          {{ $t("tournament.match.waiting_for_teams") }}
+        </span>
+      </div>
+      <!-- Auto start off: the organizer drives scheduling, so the projection
+           keeps its existing presentation. -->
+      <div
+        v-else-if="showProjectedEta(bracket)"
         class="text-xs text-muted-foreground flex flex-col items-center gap-1"
       >
         <span>{{ $t("tournament.match.scheduled_for") }}</span>
