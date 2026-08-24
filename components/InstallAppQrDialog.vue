@@ -12,6 +12,7 @@ import { Button } from "~/components/ui/button";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import AppleIcon from "~/components/icons/AppleIcon.vue";
 import AndroidIcon from "~/components/icons/AndroidIcon.vue";
+import PhoneDownloadIcon from "~/components/icons/PhoneDownloadIcon.vue";
 import {
   Smartphone,
   ArrowLeft,
@@ -73,7 +74,7 @@ function nextIosStep() {
   <FiveStackToolTip>
     <template #trigger>
       <Button size="sm" @click="dialogOpen = true">
-        <Smartphone />
+        <PhoneDownloadIcon class="w-4 h-4" />
       </Button>
     </template>
     {{ $t("pwa.install_dialog.trigger_tooltip") }}
