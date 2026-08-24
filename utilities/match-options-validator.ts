@@ -27,6 +27,7 @@ export default function matchOptionsValidator(
     round_restart_delay: z.number().min(0).max(60).nullable().optional(),
     halftime_pausematch: z.boolean().default(false),
     camera_required: z.boolean().default(false),
+    streamer_camera_enabled: z.boolean().default(false),
     individual_registration_enabled: z.boolean().default(false),
     knife_round: z.boolean().default(true),
     default_models: z.boolean().default(defaultPlayerModels),

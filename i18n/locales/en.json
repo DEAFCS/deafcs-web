@@ -5915,6 +5915,10 @@
           "label": "Require Webcam",
           "description": "Players must connect a webcam before they can see the server connect info. Admins and tournament organizers can view player cameras from the match page."
         },
+        "streamer_camera_enabled": {
+          "label": "Live Camera in Stream",
+          "description": "Players must connect their camera before they can play. Their live camera feed is shown on their avatar in the match stream, visible to everyone watching."
+        },
         "individual_registration_enabled": {
           "label": "Individual Sign-up",
           "description": "Players join the tournament on their own instead of as a team. Once registration closes, teams are generated automatically, ELO-balanced at random."

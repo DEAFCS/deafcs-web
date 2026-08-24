@@ -889,6 +889,37 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                 </FormField>
 
                 <FormField
+                  v-if="canSetStreamerCamera"
+                  v-slot="{ value, handleChange }"
+                  name="streamer_camera_enabled"
+                >
+                  <FormItem>
+                    <div
+                      class="flex flex-row items-center justify-between cursor-pointer"
+                      @click="handleChange(!value)"
+                    >
+                      <div class="space-y-0.5">
+                        <SettingHeader>{{
+                          $t("match.options.advanced.streamer_camera_enabled.label")
+                        }}</SettingHeader>
+                        <FormDescription>{{
+                          $t(
+                            "match.options.advanced.streamer_camera_enabled.description",
+                          )
+                        }}</FormDescription>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          class="pointer-events-none"
+                          :model-value="value"
+                          @update:model-value="handleChange"
+                        />
+                      </FormControl>
+                    </div>
+                  </FormItem>
+                </FormField>
+
+                <FormField
                   v-if="canSetIndividualRegistration"
                   v-slot="{ value, handleChange }"
                   name="individual_registration_enabled"
@@ -1363,6 +1394,18 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Tournament + draft only, same reasoning as lockSubstitutes above --
+    // a regular one-off match/scrim has no public stream overlay to
+    // enable this for, so the setting would just be noise there.
+    // Explicitly opt-in per caller (TournamentCreateWizard,
+    // TournamentMatchOptionsForm, CreateDraftGame) rather than derived,
+    // since unlike lockSubstitutes there's no single existing signal
+    // that already means "tournament or draft".
+    showStreamerCamera: {
+      required: false,
+      type: Boolean,
+      default: false,
+    },
   },
   apollo: {
     e_match_types: {
@@ -1767,6 +1810,16 @@ export default {
     // around it) should even know the option exists.
     canSetCameraRequired() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
+    },
+    // Deliberately separate from canSetCameraRequired above -- this is
+    // the public-stream camera overlay, not the admin-only anti-cheat
+    // webcam check, so it also needs the showStreamerCamera prop (see
+    // its definition) on top of the same role check.
+    canSetStreamerCamera() {
+      return (
+        this.showStreamerCamera &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
+      );
     },
     // Only makes sense at tournament scope (a standalone match/draft has
     // no registration/waitlist of its own) -- lockSubstitutes is only ever

@@ -634,7 +634,7 @@ const submit = form.handleSubmit(async (values: any) => {
         {{ $t("draft_games.room.back_to_room") }}
       </Button>
     </div>
-    <MatchOptions :form="form">
+    <MatchOptions :form="form" :show-streamer-camera="true">
       <template v-if="canManageElo" #before-overtime>
         <div
           class="flex flex-row items-center justify-between cursor-pointer"
@@ -899,7 +899,7 @@ const submit = form.handleSubmit(async (values: any) => {
 
     <Transition name="step">
       <div v-show="step === 1">
-        <MatchOptions :form="form">
+        <MatchOptions :form="form" :show-streamer-camera="true">
           <template v-if="canManageElo" #before-overtime>
             <div
               class="flex flex-row items-center justify-between cursor-pointer"
