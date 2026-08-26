@@ -13,7 +13,6 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
       :hide-best-of="true"
       :hide-match-mode="true"
       :lock-substitutes="true"
-      :show-streamer-camera="true"
     >
       <FormField v-slot="{ value, handleChange }" name="negotiated_scheduling">
         <FormItem>

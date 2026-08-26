@@ -27,7 +27,6 @@ export const matchOptionsFields = Selector("match_options")({
   tech_timeout_setting: true,
   ready_setting: true,
   camera_required: true,
-  streamer_camera_enabled: true,
   individual_registration_enabled: true,
   map_pool_id: true,
   map_pool: {

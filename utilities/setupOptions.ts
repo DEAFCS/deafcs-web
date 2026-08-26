@@ -39,7 +39,6 @@ export const setupOptions = (
     round_restart_delay: options.round_restart_delay ?? null,
     halftime_pausematch: options.halftime_pausematch ?? false,
     camera_required: options.camera_required ?? false,
-    streamer_camera_enabled: options.streamer_camera_enabled ?? false,
     individual_registration_enabled:
       options.individual_registration_enabled ?? false,
     check_in_setting: options.check_in_setting,
@@ -78,7 +77,6 @@ export function setupOptionsVariables(
     round_restart_delay?: number | null;
     halftime_pausematch?: boolean;
     camera_required?: boolean;
-    streamer_camera_enabled?: boolean;
     individual_registration_enabled?: boolean;
     map_pool?: {
       id: string;
@@ -200,7 +198,6 @@ export function setupOptionsVariables(
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
       ? {
           camera_required: values.camera_required ?? false,
-          streamer_camera_enabled: values.streamer_camera_enabled ?? false,
           individual_registration_enabled:
             values.individual_registration_enabled ?? false,
         }
@@ -262,7 +259,6 @@ export function setupOptionsSetMutation(hasMapPoolId: boolean = true) {
     ...(useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
       ? {
           camera_required: $("camera_required", "Boolean!"),
-          streamer_camera_enabled: $("streamer_camera_enabled", "Boolean!"),
           individual_registration_enabled: $(
             "individual_registration_enabled",
             "Boolean!",

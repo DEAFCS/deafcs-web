@@ -5769,28 +5769,6 @@
     "recent": {
       "title": "Recent Matches"
     },
-    "streamer_camera": {
-      "title": "Live camera required for this match",
-      "description": "Connect a camera to continue. It will be shown on your avatar in the live stream, visible to everyone watching.",
-      "choose_device": "Connect a camera to continue. Choose how you'd like to connect:",
-      "this_computer": "This computer",
-      "mobile": "Mobile",
-      "scan_hint": "Scan this with your phone's camera:",
-      "popup_hint": "A window opened to connect your camera on this computer. If it didn't, click below.",
-      "open_window": "Open camera window",
-      "waiting": "Waiting for your camera…",
-      "connect_title": "Connect your camera",
-      "live_badge": "Live in stream",
-      "keep_open": "Don't close this page — keep it open for the rest of the match.",
-      "camera_label": "Camera",
-      "tap_to_start": "Tap below to start your camera. It needs to stay connected for the whole match.",
-      "selected_device": "Selected device",
-      "start": "Start camera",
-      "connect": "Connect camera",
-      "connecting": "Connecting…",
-      "try_again": "Try again",
-      "live_pill": "Camera live in stream"
-    },
     "options": {
       "allow_coaches": "Allow Coaches",
       "group": {
@@ -5936,10 +5914,6 @@
         "camera_required": {
           "label": "Require Webcam",
           "description": "Players must connect a webcam before they can see the server connect info. Admins and tournament organizers can view player cameras from the match page."
-        },
-        "streamer_camera_enabled": {
-          "label": "Live Camera in Stream",
-          "description": "Players must connect their camera before they can play. Their live camera feed is shown on their avatar in the match stream, visible to everyone watching."
         },
         "individual_registration_enabled": {
           "label": "Individual Sign-up",

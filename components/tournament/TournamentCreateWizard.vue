@@ -224,7 +224,6 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
         :hide-best-of="true"
         :hide-match-mode="true"
         :lock-substitutes="true"
-        :show-streamer-camera="true"
       >
         <FormField
           v-slot="{ value, handleChange }"
