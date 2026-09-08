@@ -127,14 +127,14 @@ useHead({ title: () => t("pages.terms_acceptances.title") });
           </TableCell>
           <TableCell>
             <span v-if="player.has_accepted_current_terms">{{ currentTermsVersion }}</span>
-            <span v-else class="text-muted-foreground">&mdash;</span>
+            <span v-else class="text-muted-foreground">-</span>
           </TableCell>
           <TableCell>
             <TimeAgo
               v-if="player.has_accepted_current_terms && acceptedAtBySteamId[player.steam_id]"
               :date="acceptedAtBySteamId[player.steam_id]"
             />
-            <span v-else class="text-muted-foreground">&mdash;</span>
+            <span v-else class="text-muted-foreground">-</span>
           </TableCell>
         </TableRow>
       </TableBody>
