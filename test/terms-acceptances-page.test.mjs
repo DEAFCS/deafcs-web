@@ -120,3 +120,89 @@ test("the page waits for the canonical current Terms version before fetching or 
     /async fetchPlayers\(\)\s*\{\s*\n(?:[^\n]*\n)*?\s*if \(!this\.currentTermsVersion\)\s*\{\s*\n\s*return;/,
   );
 });
+
+// Regression coverage for the production incident: the page queried
+// players_aggregate in the same request as players. administrator is only
+// ever used as an inherited role (hasura/metadata/inherited_roles.yaml), and
+// Hasura does not expose _aggregate root fields for inherited roles even
+// though the plain players field works fine -- confirmed against a real
+// Hasura instance, reproducing the exact production error verbatim: "field
+// 'players_aggregate' not found in type: 'query_root'". Because the query
+// threw and nothing caught it, `players` was never reassigned from its `[]`
+// initial value, so the page silently rendered "No registered players
+// found" instead of any error.
+test("the page no longer queries players_aggregate (inherited roles don't expose it)", () => {
+  // Matches the GraphQL field-selection usage specifically (players_aggregate
+  // as a query key), not the word appearing in an explanatory code comment.
+  assert.doesNotMatch(pageSource, /players_aggregate:\s*\[/);
+  assert.doesNotMatch(pageSource, /\bplayers_aggregate\s*\{/);
+});
+
+test("pagination uses a fetch-one-extra-row pattern instead of a total count", () => {
+  assert.match(pageSource, /limit:\s*this\.perPage \+ 1/);
+  assert.match(
+    pageSource,
+    /this\.hasNextPage = rows\.length > this\.perPage;/,
+  );
+  assert.match(pageSource, /this\.players = rows\.slice\(0, this\.perPage\);/);
+  // The old total-count-driven Pagination.vue component required
+  // players_aggregate's count; it's gone, replaced by manual Previous/Next.
+  assert.doesNotMatch(pageSource, /~\/components\/Pagination\.vue/);
+  assert.doesNotMatch(pageSource, /<Pagination\b/);
+  assert.match(pageSource, /\{\{ \$t\("common\.previous"\) \}\}/);
+  assert.match(pageSource, /\{\{ \$t\("common\.next"\) \}\}/);
+  assert.match(pageSource, /:disabled="page === 1 \|\| loading"/);
+  assert.match(pageSource, /:disabled="!hasNextPage \|\| loading"/);
+});
+
+test("a fetchPlayers query error sets an error state instead of masquerading as an empty result", () => {
+  assert.match(pageSource, /error: null as Error \| null/);
+  // error is reset at the start of every fetch, so a retry can clear a
+  // previous failure.
+  assert.match(pageSource, /this\.error = null;/);
+  assert.match(
+    pageSource,
+    /catch \(caught\) \{\s*\n\s*if \(token === this\.searchToken\) \{\s*\n\s*this\.error =/,
+  );
+  // On error, players is explicitly cleared -- combined with the template
+  // ordering check below, this proves the error branch is what renders, not
+  // the plain "no players" branch falling through on stale/empty data.
+  assert.match(
+    pageSource,
+    /this\.error =\s*\n?\s*caught instanceof Error[\s\S]{0,80}this\.players = \[\];/,
+  );
+});
+
+test("the error state renders before the empty state in the template, so a query failure can never be mistaken for zero results", () => {
+  const errorBranch = pageSource.indexOf('v-else-if="error"');
+  const emptyBranch = pageSource.indexOf('v-else-if="!players.length"');
+  assert.ok(errorBranch > 0, "error branch not found");
+  assert.ok(emptyBranch > 0, "empty branch not found");
+  assert.ok(
+    errorBranch < emptyBranch,
+    "error branch must appear before the empty-results branch",
+  );
+  assert.match(pageSource, /pages\.terms_acceptances\.error_title/);
+  assert.match(pageSource, /pages\.terms_acceptances\.error_description/);
+  assert.match(pageSource, /pages\.terms_acceptances\.retry/);
+  // Retry re-runs the same fetch, not a page reload or a different method.
+  assert.match(pageSource, /@click="fetchPlayers"/);
+});
+
+test("a fetchAcceptances failure degrades Accepted At gracefully instead of failing the whole page", () => {
+  const fetchAcceptancesSrc = pageSource.slice(
+    pageSource.indexOf("async fetchAcceptances("),
+    pageSource.indexOf("},\n  },\n};"),
+  );
+  assert.match(fetchAcceptancesSrc, /try \{/);
+  assert.match(fetchAcceptancesSrc, /catch \(caught\) \{/);
+  // It must not set the page-level `error` -- only clear the accepted-at map.
+  assert.doesNotMatch(fetchAcceptancesSrc, /this\.error =/);
+});
+
+test("error/empty copy keys exist and carry no em dashes", () => {
+  for (const key of ["error_title", "error_description", "retry"]) {
+    assert.ok(copy[key], `missing pages.terms_acceptances.${key}`);
+  }
+  assert.doesNotMatch(JSON.stringify(copy), /—/);
+});

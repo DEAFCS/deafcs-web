@@ -2863,6 +2863,9 @@
       "title": "Terms Acceptances",
       "search_placeholder": "Search by name or Steam ID",
       "empty": "No registered players found.",
+      "error_title": "Could not load Terms acceptances",
+      "error_description": "Please try again in a moment.",
+      "retry": "Try again",
       "columns": {
         "player": "Player",
         "steam_id": "Steam ID",

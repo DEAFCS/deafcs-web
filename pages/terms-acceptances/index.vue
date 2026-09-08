@@ -4,7 +4,9 @@ import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
-import Pagination from "~/components/Pagination.vue";
+import Empty from "~/components/ui/empty/Empty.vue";
+import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
+import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
 import {
   InputGroup,
   InputGroupAddon,
@@ -69,6 +71,24 @@ useHead({ title: () => t("pages.terms_acceptances.title") });
       <Spinner class="h-6 w-6" />
     </div>
 
+    <Empty
+      v-else-if="error"
+      class="min-h-52 border border-dashed border-destructive/50"
+      role="alert"
+    >
+      <EmptyTitle>{{ $t("pages.terms_acceptances.error_title") }}</EmptyTitle>
+      <EmptyDescription>{{
+        $t("pages.terms_acceptances.error_description")
+      }}</EmptyDescription>
+      <button
+        type="button"
+        class="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        @click="fetchPlayers"
+      >
+        {{ $t("pages.terms_acceptances.retry") }}
+      </button>
+    </Empty>
+
     <div
       v-else-if="!players.length"
       class="text-sm text-muted-foreground py-12 text-center"
@@ -120,13 +140,28 @@ useHead({ title: () => t("pages.terms_acceptances.title") });
       </TableBody>
     </Table>
 
-    <Pagination
-      :page="page"
-      :per-page="perPage"
-      @page="(_page: number) => { page = _page; }"
-      :total="total"
-      v-if="total"
-    ></Pagination>
+    <div
+      v-if="!loading && !error && players.length"
+      class="mt-4 flex items-center justify-between"
+    >
+      <Button
+        variant="outline"
+        size="sm"
+        :disabled="page === 1 || loading"
+        @click="page = page - 1"
+      >
+        {{ $t("common.previous") }}
+      </Button>
+      <span class="text-xs text-muted-foreground tabular-nums">{{ page }}</span>
+      <Button
+        variant="outline"
+        size="sm"
+        :disabled="!hasNextPage || loading"
+        @click="page = page + 1"
+      >
+        {{ $t("common.next") }}
+      </Button>
+    </div>
   </PageTransition>
 </template>
 
@@ -159,9 +194,10 @@ export default {
   data() {
     return {
       loading: true,
+      error: null as Error | null,
       players: [] as any[],
       acceptedAtBySteamId: {} as Record<string, string>,
-      total: 0,
+      hasNextPage: false,
       page: 1,
       perPage: 25,
       search: "",
@@ -240,15 +276,24 @@ export default {
       }
       const token = ++this.searchToken;
       this.loading = true;
+      this.error = null;
       try {
         const where = this.buildWhere();
+        // No players_aggregate here: `administrator` is only ever an
+        // inherited role (see hasura/metadata/inherited_roles.yaml), and
+        // Hasura does not expose _aggregate root fields for inherited
+        // roles even though the `players` list field itself works fine --
+        // confirmed against a real Hasura instance, reproducing the exact
+        // production error ("field 'players_aggregate' not found in type:
+        // 'query_root'"). Fetching one extra row instead of a total count
+        // avoids needing a new admin permission just for pagination.
         const { data } = await (this.$apollo as any).query({
           query: generateQuery({
             players: [
               {
                 where,
                 order_by: [{ name: "asc" }],
-                limit: this.perPage,
+                limit: this.perPage + 1,
                 offset: (this.page - 1) * this.perPage,
               },
               {
@@ -260,10 +305,6 @@ export default {
                 has_accepted_current_terms: true,
               },
             ],
-            players_aggregate: [
-              { where },
-              { aggregate: { count: true } },
-            ],
           } as any),
           fetchPolicy: "network-only",
         });
@@ -272,9 +313,17 @@ export default {
           return;
         }
 
-        this.players = data?.players ?? [];
-        this.total = data?.players_aggregate?.aggregate?.count ?? 0;
+        const rows = data?.players ?? [];
+        this.hasNextPage = rows.length > this.perPage;
+        this.players = rows.slice(0, this.perPage);
         await this.fetchAcceptances(token);
+      } catch (caught) {
+        if (token === this.searchToken) {
+          this.error =
+            caught instanceof Error ? caught : new Error(String(caught));
+          this.players = [];
+          this.hasNextPage = false;
+        }
       } finally {
         if (token === this.searchToken) {
           this.loading = false;
@@ -294,21 +343,30 @@ export default {
         return;
       }
 
-      const { data } = await (this.$apollo as any).query({
-        query: TERMS_ACCEPTANCES_QUERY,
-        variables: { steamIds, version },
-        fetchPolicy: "network-only",
-      });
+      try {
+        const { data } = await (this.$apollo as any).query({
+          query: TERMS_ACCEPTANCES_QUERY,
+          variables: { steamIds, version },
+          fetchPolicy: "network-only",
+        });
 
-      if (token !== this.searchToken) {
-        return;
-      }
+        if (token !== this.searchToken) {
+          return;
+        }
 
-      const map: Record<string, string> = {};
-      for (const row of data?.player_terms_acceptances ?? []) {
-        map[row.player_steam_id] = row.accepted_at;
+        const map: Record<string, string> = {};
+        for (const row of data?.player_terms_acceptances ?? []) {
+          map[row.player_steam_id] = row.accepted_at;
+        }
+        this.acceptedAtBySteamId = map;
+      } catch (caught) {
+        // The player list itself already loaded successfully -- a failure
+        // here only means Accepted At falls back to "-" for this page, not
+        // a full page error.
+        if (token === this.searchToken) {
+          this.acceptedAtBySteamId = {};
+        }
       }
-      this.acceptedAtBySteamId = map;
     },
   },
 };
