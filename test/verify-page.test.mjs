@@ -23,45 +23,192 @@ test("hearing status keeps the existing enum values, only relabels them", () => 
   assert.equal(copy.form.is_deaf_options.no, "Neither / Other");
 });
 
-test("hearing status, country, and account declaration are the only required fields", () => {
-  const missingFieldsSrc = pageSource.slice(
-    pageSource.indexOf("missingFields(): string[]"),
-    pageSource.indexOf("async submit()"),
+test("hearing status, country, and account declaration are the only required fields (test #1, #2, #3)", () => {
+  const requiredSrc = pageSource.slice(
+    pageSource.indexOf("requiredMissingFields(): string[]"),
+    pageSource.indexOf("invalidOptionalFields(): string[]"),
   );
-  assert.match(missingFieldsSrc, /if \(!this\.form\.is_deaf\) missing\.push\("is_deaf"\)/);
-  assert.match(missingFieldsSrc, /if \(!this\.form\.country\) missing\.push\("country"\)/);
+  assert.match(requiredSrc, /if \(!this\.form\.is_deaf\) missing\.push\("is_deaf"\)/);
+  assert.match(requiredSrc, /if \(!this\.form\.country\) missing\.push\("country"\)/);
   assert.match(
-    missingFieldsSrc,
+    requiredSrc,
     /if \(!this\.form\.account_declaration_accepted\)[\s\S]{0,40}missing\.push\("account_declaration"\)/,
   );
-  // found_via, knows_deaf_player, the nickname/steam-url pair, and the three
-  // social fields must NOT be unconditionally required.
-  assert.doesNotMatch(missingFieldsSrc, /if \(!this\.form\.found_via\)/);
-  assert.doesNotMatch(missingFieldsSrc, /if \(this\.form\.knows_deaf_player === null\)/);
+  // knows_deaf_player and the nickname/steam-url pair must NOT be
+  // unconditionally required -- only requiredMissingFields() (this slice)
+  // can ever produce the "Missing required answers" toast.
+  assert.doesNotMatch(requiredSrc, /if \(this\.form\.knows_deaf_player === null\)/);
   assert.doesNotMatch(
-    missingFieldsSrc,
+    requiredSrc,
     /this\.form\.knows_deaf_player === true &&[\s\S]{0,60}deaf_player_steam_url/,
   );
 });
 
-test("found_via's own free-text 'other' sub-field is the only thing that can still block it", () => {
+test("found_via itself is optional; only its own free-text 'other' sub-field can still block it (test #4)", () => {
+  const requiredSrc = pageSource.slice(
+    pageSource.indexOf("requiredMissingFields(): string[]"),
+    pageSource.indexOf("invalidOptionalFields(): string[]"),
+  );
+  assert.doesNotMatch(requiredSrc, /if \(!this\.form\.found_via\) missing\.push/);
   assert.match(
-    pageSource,
+    requiredSrc,
     /found_via === "other" && !this\.form\.found_via_other\.trim\(\)/,
   );
 });
 
-test("social and known-player URLs are validated as URLs only when non-empty, never required", () => {
-  assert.match(pageSource, /function isValidHttpUrl\(value: string\): boolean/);
-  assert.match(pageSource, /if \(trimmed && !isValidHttpUrl\(trimmed\)\)/);
-  for (const field of [
-    "social_instagram_url",
-    "social_facebook_url",
-    "social_vk_url",
-    "deaf_player_steam_url",
-  ]) {
-    assert.match(pageSource, new RegExp(`"${field}", this\\.form\\.${field}`));
+test("empty optional fields are always accepted -- invalidOptionalFields() only fires on a non-empty, malformed value (test #5-#10)", () => {
+  const invalidSrc = pageSource.slice(
+    pageSource.indexOf("invalidOptionalFields(): string[]"),
+    pageSource.indexOf("async submit()"),
+  );
+  // Steam URL, Instagram, Facebook, and VK are each guarded by `<trimmed> &&`
+  // -- an empty trimmed value short-circuits before the format check runs,
+  // so leaving any of them blank can never be flagged, whether or not
+  // knows_deaf_player is Yes (deaf_player_nickname has no format validator
+  // at all -- it's free text, never blocked).
+  assert.match(invalidSrc, /if \(steamUrl && !isValidSteamProfileUrl\(steamUrl\)\)/);
+  assert.match(invalidSrc, /if \(instagram && !isValidInstagramHandle\(instagram\)\)/);
+  assert.match(invalidSrc, /if \(facebook && !isValidFacebookProfileUrl\(facebook\)\)/);
+  assert.match(invalidSrc, /if \(vk && !isValidVkValue\(vk\)\)/);
+  assert.doesNotMatch(pageSource, /deaf_player_nickname.*isValid/);
+  // additional_info has no validator reference anywhere in the file.
+  assert.doesNotMatch(pageSource, /isValid\w*\(this\.form\.additional_info/);
+});
+
+test("Instagram accepts a bare username or @username, never requires a full URL (test #11)", () => {
+  assert.match(pageSource, /const INSTAGRAM_HANDLE_RE = \/\^@\?\[A-Za-z0-9\._\]\{1,30\}\$\//);
+  assert.match(pageSource, /function isValidInstagramHandle\(value: string\): boolean/);
+  // Sanity-check the actual regex behavior, not just its presence.
+  const re = /^@?[A-Za-z0-9._]{1,30}$/;
+  assert.ok(re.test("username"));
+  assert.ok(re.test("@username"));
+  assert.ok(re.test("john.doe_92"));
+  assert.ok(!re.test("https://instagram.com/username"));
+  assert.ok(!re.test("two words"));
+});
+
+test("Facebook requires an actual facebook.com host when non-empty, not just any URL -- malformed/unrelated value is a format error, not missing-required (test #12, #15)", () => {
+  assert.match(pageSource, /function isValidFacebookProfileUrl\(value: string\): boolean/);
+  assert.match(pageSource, /\/\(\^\|\\\.\)facebook\\\.com\$\//);
+
+  const invalidSrc = pageSource.slice(
+    pageSource.indexOf("invalidOptionalFields(): string[]"),
+    pageSource.indexOf("async submit()"),
+  );
+  assert.match(invalidSrc, /invalid\.push\("social_facebook_url"\)/);
+  // Confirms it lands in invalidOptionalFields(), never in
+  // requiredMissingFields() -- the two use different local variable names
+  // (`invalid` vs `missing`) precisely so they can never be conflated.
+  const requiredSrc = pageSource.slice(
+    pageSource.indexOf("requiredMissingFields(): string[]"),
+    pageSource.indexOf("invalidOptionalFields(): string[]"),
+  );
+  assert.doesNotMatch(requiredSrc, /social_facebook_url/);
+
+  // Sanity-check the actual validator behavior, not just its presence --
+  // mirrors isValidFacebookProfileUrl exactly.
+  function isValidFacebookProfileUrl(value) {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+      return /(^|\.)facebook\.com$/.test(url.hostname);
+    } catch {
+      return false;
+    }
   }
+  assert.ok(isValidFacebookProfileUrl("https://facebook.com/example"));
+  assert.ok(isValidFacebookProfileUrl("https://www.facebook.com/example"));
+  assert.ok(isValidFacebookProfileUrl("https://m.facebook.com/example"));
+  assert.ok(!isValidFacebookProfileUrl("https://example.com/example"));
+  assert.ok(!isValidFacebookProfileUrl("not a url"));
+});
+
+test("Facebook: empty is allowed, real facebook.com URLs (bare and www) are allowed, an unrelated domain is rejected as invalid", () => {
+  // Exercises invalidOptionalFields() end to end for exactly the cases
+  // called out: blank never blocks, facebook.com and www.facebook.com pass,
+  // a non-Facebook domain is caught as a format error.
+  function isValidFacebookProfileUrl(value) {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+      return /(^|\.)facebook\.com$/.test(url.hostname);
+    } catch {
+      return false;
+    }
+  }
+  function facebookIsInvalid(rawValue) {
+    const trimmed = rawValue.trim();
+    return !!trimmed && !isValidFacebookProfileUrl(trimmed);
+  }
+  assert.equal(facebookIsInvalid(""), false);
+  assert.equal(facebookIsInvalid("https://facebook.com/example"), false);
+  assert.equal(facebookIsInvalid("https://www.facebook.com/example"), false);
+  assert.equal(facebookIsInvalid("https://example.com/example"), true);
+});
+
+test("Steam profile requires an actual steamcommunity.com /id/ or /profiles/ URL, not just any URL (test #13, #15)", () => {
+  assert.match(pageSource, /function isValidSteamProfileUrl\(value: string\): boolean/);
+  assert.match(pageSource, /\/\(\^\|\\\.\)steamcommunity\\\.com\$\//);
+  assert.match(pageSource, /\/\^\\\/\(id\|profiles\)\\\/\//);
+  // A generic valid URL that isn't a Steam profile URl must still fail --
+  // proves this is stricter than the generic isValidHttpUrl used elsewhere.
+  function isValidSteamProfileUrl(value) {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+      return (
+        /(^|\.)steamcommunity\.com$/.test(url.hostname) &&
+        /^\/(id|profiles)\//.test(url.pathname)
+      );
+    } catch {
+      return false;
+    }
+  }
+  assert.ok(isValidSteamProfileUrl("https://steamcommunity.com/id/example"));
+  assert.ok(isValidSteamProfileUrl("https://steamcommunity.com/profiles/76561198000000000"));
+  assert.ok(!isValidSteamProfileUrl("https://example.com/not-steam"));
+  assert.ok(!isValidSteamProfileUrl("not a url"));
+  const requiredSrc = pageSource.slice(
+    pageSource.indexOf("requiredMissingFields(): string[]"),
+    pageSource.indexOf("invalidOptionalFields(): string[]"),
+  );
+  assert.doesNotMatch(requiredSrc, /deaf_player_steam_url/);
+});
+
+test("VK accepts a bare username, a profile ID, or a full vk.com URL (test #14)", () => {
+  assert.match(pageSource, /function isValidVkValue\(value: string\): boolean/);
+  const VK_HANDLE_RE = /^[A-Za-z0-9_.]{2,32}$/;
+  assert.ok(VK_HANDLE_RE.test("username"));
+  assert.ok(VK_HANDLE_RE.test("id123456"));
+  assert.ok(!VK_HANDLE_RE.test("a"));
+  assert.match(pageSource, /\/\(\^\|\\\.\)vk\\\.com\$\//);
+});
+
+test("Instagram and VK values are normalized into real clickable URLs before being stored", () => {
+  assert.match(pageSource, /function normalizeInstagramHandle\(value: string\): string/);
+  assert.match(pageSource, /`https:\/\/instagram\.com\/\$\{value\.replace\(\/\^@\/, ""\)\}`/);
+  assert.match(pageSource, /function normalizeVkValue\(value: string\): string/);
+  assert.match(
+    pageSource,
+    /isValidHttpUrl\(value\) \? value : `https:\/\/vk\.com\/\$\{value\}`/,
+  );
+  const submitSrc = pageSource.slice(pageSource.indexOf("async submit()"));
+  assert.match(submitSrc, /normalizeInstagramHandle\(instagramTrimmed\)/);
+  assert.match(submitSrc, /normalizeVkValue\(vkTrimmed\)/);
+});
+
+test("a required-missing error and an invalid-format error are two distinct, non-conflatable toasts (test #15)", () => {
+  assert.match(pageSource, /pages\.verify\.form\.missing_required_title/);
+  assert.match(pageSource, /pages\.verify\.form\.invalid_format_title/);
+  assert.notEqual(copy.form.missing_required_title, copy.form.invalid_format_title);
+  // requiredMissingFields() is checked and returned from first; only if it
+  // is empty does invalidOptionalFields() get a chance to block submission
+  // -- so a required-missing case can never be reported as a format error.
+  const submitSrc = pageSource.slice(pageSource.indexOf("async submit()"));
+  const requiredCheckIndex = submitSrc.indexOf("requiredMissingFields()");
+  const invalidCheckIndex = submitSrc.indexOf("invalidOptionalFields()");
+  assert.ok(requiredCheckIndex >= 0 && invalidCheckIndex >= 0);
+  assert.ok(requiredCheckIndex < invalidCheckIndex);
 });
 
 test("who-do-you-know (nickname + Steam URL) only appears when knows_deaf_player is Yes, and both stay optional", () => {
@@ -277,7 +424,7 @@ test("known-player section has proper visible Nickname and Steam profile labels,
   assert.match(pageSource, /for="deaf-player-steam-url"/);
   assert.match(pageSource, /id="deaf-player-steam-url"/);
   assert.equal(copy.form.deaf_player_nickname, "Nickname");
-  assert.equal(copy.form.deaf_player_steam_url, "Steam profile");
+  assert.equal(copy.form.deaf_player_steam_url, "Steam profile URL");
 });
 
 test("Steam profile field uses the project's existing SteamIcon in an icon+input row, with an accessible label", () => {
@@ -303,9 +450,9 @@ test("Instagram, Facebook, and VK are icon+input rows with accessible labels, us
   // VK has no lucide/project brand icon -- a small text fallback, not a new
   // icon library and not a hand-drawn brand mark.
   assert.match(pageSource, />VK<\/span>/);
-  assert.match(pageSource, /placeholder="https:\/\/instagram\.com\/\.\.\."/);
+  assert.match(pageSource, /placeholder="@username"/);
   assert.match(pageSource, /placeholder="https:\/\/facebook\.com\/\.\.\."/);
-  assert.match(pageSource, /placeholder="https:\/\/vk\.com\/\.\.\."/);
+  assert.match(pageSource, /placeholder="username or https:\/\/vk\.com\/\.\.\."/);
 });
 
 test("TikTok is removed from the selectable found_via options, but its i18n key survives for historical rows", () => {

@@ -2822,7 +2822,7 @@
         "knows_deaf_player": "Do you know any DEAFCS or deaf Counter-Strike players?",
         "who_do_you_know": "Who do you know?",
         "deaf_player_nickname": "Nickname",
-        "deaf_player_steam_url": "Steam profile",
+        "deaf_player_steam_url": "Steam profile URL",
         "social_profiles_note": "These may help the verification team identify you and are not required for approval. We will not make them public automatically.",
         "social_instagram_url": "Instagram",
         "social_facebook_url": "Facebook",
@@ -2835,7 +2835,9 @@
         "submit": "Submit Verification Application",
         "submitted": "Application submitted",
         "missing_required_title": "Missing required answers",
-        "missing_required_description": "Please answer: {fields}"
+        "missing_required_description": "Please answer: {fields}",
+        "invalid_format_title": "Check these fields",
+        "invalid_format_description": "These are optional, but the value you entered doesn't look right: {fields}"
       },
       "status": {
         "title": "Your Application",

@@ -248,7 +248,7 @@ useHead({
                     </InputGroupAddon>
                     <InputGroupInput
                       v-model="form.social_instagram_url"
-                      placeholder="https://instagram.com/..."
+                      placeholder="@username"
                       :aria-label="$t('pages.verify.form.social_instagram_url')"
                     />
                   </InputGroup>
@@ -268,7 +268,7 @@ useHead({
                     </InputGroupAddon>
                     <InputGroupInput
                       v-model="form.social_vk_url"
-                      placeholder="https://vk.com/..."
+                      placeholder="username or https://vk.com/..."
                       :aria-label="$t('pages.verify.form.social_vk_url')"
                     />
                   </InputGroup>
@@ -388,6 +388,67 @@ function isValidHttpUrl(value: string): boolean {
   }
 }
 
+// Steam profile: must actually be a steamcommunity.com /id/... or
+// /profiles/... URL, not just any well-formed http(s) URL -- a malformed
+// or unrelated URL here is a format error, distinct from generic
+// isValidHttpUrl (which has no platform-specific requirement).
+function isValidSteamProfileUrl(value: string): boolean {
+  if (!isValidHttpUrl(value)) return false;
+  try {
+    const url = new URL(value);
+    return (
+      /(^|\.)steamcommunity\.com$/.test(url.hostname) &&
+      /^\/(id|profiles)\//.test(url.pathname)
+    );
+  } catch {
+    return false;
+  }
+}
+
+// Facebook: must actually be a facebook.com host (facebook.com,
+// www.facebook.com, m.facebook.com, ...), not just any well-formed
+// http(s) URL -- same reasoning as the Steam validator above.
+function isValidFacebookProfileUrl(value: string): boolean {
+  if (!isValidHttpUrl(value)) return false;
+  try {
+    return /(^|\.)facebook\.com$/.test(new URL(value).hostname);
+  } catch {
+    return false;
+  }
+}
+
+// Instagram: a bare username or @username, never a full URL -- the form
+// only ever asks for the handle. 1-30 chars, letters/digits/periods/
+// underscores, matching Instagram's own username character rules.
+const INSTAGRAM_HANDLE_RE = /^@?[A-Za-z0-9._]{1,30}$/;
+function isValidInstagramHandle(value: string): boolean {
+  return INSTAGRAM_HANDLE_RE.test(value);
+}
+// Normalized to a real, clickable instagram.com URL for storage -- the
+// admin detail page renders this value directly as an <a :href>, so a bare
+// "@username" stored as-is would silently link nowhere useful there.
+function normalizeInstagramHandle(value: string): string {
+  return `https://instagram.com/${value.replace(/^@/, "")}`;
+}
+
+// VK: a bare username, a profile ID like "id123456", or a full vk.com URL.
+const VK_HANDLE_RE = /^[A-Za-z0-9_.]{2,32}$/;
+function isValidVkValue(value: string): boolean {
+  if (isValidHttpUrl(value)) {
+    try {
+      return /(^|\.)vk\.com$/.test(new URL(value).hostname);
+    } catch {
+      return false;
+    }
+  }
+  return VK_HANDLE_RE.test(value);
+}
+// Same reasoning as Instagram: normalize a bare username/id into a real
+// clickable vk.com URL; an already-full URL is left exactly as entered.
+function normalizeVkValue(value: string): string {
+  return isValidHttpUrl(value) ? value : `https://vk.com/${value}`;
+}
+
 export default {
   data() {
     return {
@@ -464,11 +525,12 @@ export default {
         this.loading = false;
       }
     },
-    // Returns the list of missing/invalid-field message keys, empty if the
-    // form is complete. Named, not just a boolean, so submit() can surface
-    // exactly what's wrong (reported: the submit button just stayed
-    // disabled with no explanation, for the old required-field set).
-    missingFields(): string[] {
+    // The only three fields that can ever block submission by being empty.
+    // Everything else on this form (found_via's own "other" sub-field aside
+    // -- a self-inflicted requirement tied to that one selection, not a
+    // top-level required field) is optional and must never end up here
+    // just because it's visible or was touched.
+    requiredMissingFields(): string[] {
       const missing: string[] = [];
       if (!this.form.is_deaf) missing.push("is_deaf");
       if (!this.form.country) missing.push("country");
@@ -478,23 +540,39 @@ export default {
       if (!this.form.account_declaration_accepted) {
         missing.push("account_declaration");
       }
-      for (const [field, value] of [
-        ["social_instagram_url", this.form.social_instagram_url],
-        ["social_facebook_url", this.form.social_facebook_url],
-        ["social_vk_url", this.form.social_vk_url],
-        ["deaf_player_steam_url", this.form.deaf_player_steam_url],
-      ] as const) {
-        const trimmed = value.trim();
-        if (trimmed && !isValidHttpUrl(trimmed)) {
-          missing.push(field);
-        }
-      }
       return missing;
+    },
+    // A non-empty optional field that doesn't match its expected format.
+    // Deliberately a separate list from requiredMissingFields() above --
+    // "you typed something that doesn't look right" and "you skipped a
+    // required field" are different problems and must not share a message
+    // (production bug: a malformed but optional Instagram/Steam value was
+    // reported as "Missing required answers", which is simply false --
+    // leaving either blank is, and always was, accepted).
+    invalidOptionalFields(): string[] {
+      const invalid: string[] = [];
+      const steamUrl = this.form.deaf_player_steam_url.trim();
+      if (steamUrl && !isValidSteamProfileUrl(steamUrl)) {
+        invalid.push("deaf_player_steam_url");
+      }
+      const instagram = this.form.social_instagram_url.trim();
+      if (instagram && !isValidInstagramHandle(instagram)) {
+        invalid.push("social_instagram_url");
+      }
+      const facebook = this.form.social_facebook_url.trim();
+      if (facebook && !isValidFacebookProfileUrl(facebook)) {
+        invalid.push("social_facebook_url");
+      }
+      const vk = this.form.social_vk_url.trim();
+      if (vk && !isValidVkValue(vk)) {
+        invalid.push("social_vk_url");
+      }
+      return invalid;
     },
     async submit() {
       if (this.submitting) return;
 
-      const missing = this.missingFields();
+      const missing = this.requiredMissingFields();
       if (missing.length > 0) {
         const fieldLabels = missing
           .map((field) => this.$t(`pages.verify.form.${field}`))
@@ -508,6 +586,24 @@ export default {
         });
         return;
       }
+
+      const invalid = this.invalidOptionalFields();
+      if (invalid.length > 0) {
+        const fieldLabels = invalid
+          .map((field) => this.$t(`pages.verify.form.${field}`))
+          .join(", ");
+        toast({
+          variant: "destructive",
+          title: this.$t("pages.verify.form.invalid_format_title"),
+          description: this.$t("pages.verify.form.invalid_format_description", {
+            fields: fieldLabels,
+          }),
+        });
+        return;
+      }
+
+      const instagramTrimmed = this.form.social_instagram_url.trim();
+      const vkTrimmed = this.form.social_vk_url.trim();
 
       this.submitting = true;
       try {
@@ -530,9 +626,15 @@ export default {
                     deaf_player_steam_url: this.form.knows_deaf_player
                       ? this.form.deaf_player_steam_url?.trim() || null
                       : null,
-                    social_instagram_url: this.form.social_instagram_url?.trim() || null,
+                    // Normalized to real clickable URLs -- the admin detail
+                    // page renders these as a raw <a :href>, so a bare
+                    // "@username" or "id123456" stored as-is would link
+                    // nowhere useful there.
+                    social_instagram_url: instagramTrimmed
+                      ? normalizeInstagramHandle(instagramTrimmed)
+                      : null,
                     social_facebook_url: this.form.social_facebook_url?.trim() || null,
-                    social_vk_url: this.form.social_vk_url?.trim() || null,
+                    social_vk_url: vkTrimmed ? normalizeVkValue(vkTrimmed) : null,
                     additional_info: this.form.additional_info?.trim() || null,
                     // The actual stored value is server-controlled, not
                     // this one: hasura/triggers/verification_applications.sql
