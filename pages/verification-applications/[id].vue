@@ -33,7 +33,7 @@ useHead({
       {{ $t("pages.verification_applications.not_found") }}
     </div>
 
-    <div v-else class="mx-auto max-w-2xl flex flex-col gap-6">
+    <div v-else class="mx-auto max-w-4xl flex flex-col gap-6">
       <Card class="p-6">
         <div class="flex items-center justify-between gap-4 mb-4">
           <PlayerDisplay :player="application.player" :show-elo="false" linkable />
