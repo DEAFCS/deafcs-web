@@ -2785,16 +2785,26 @@
     },
     "verify": {
       "title": "Verification",
-      "intro": "Answer a few questions to apply for verification. An admin will review your application and get back to you.",
+      "intro": "Only fields marked Required must be completed. Community connections and social profiles are optional and never required for approval. An administrator reviews every application and will get back to you.",
+      "webcam_notice": {
+        "title": "Webcam verification",
+        "body_1": "Most applications can be reviewed using the information you provide and community knowledge. If we cannot confidently verify you, a short live webcam verification may be required before approval.",
+        "body_2": "Webcam verification is only used to confirm eligibility and identity for DEAFCS verification. Do not submit webcam recordings through this form."
+      },
       "form": {
-        "is_deaf": "Are you deaf?",
+        "sections": {
+          "about_you": "About You",
+          "community": "Community",
+          "social_profiles": "Social Profiles"
+        },
+        "is_deaf": "Hearing status",
         "is_deaf_options": {
-          "yes": "Yes",
-          "no": "No",
+          "yes": "Deaf",
+          "no": "Neither / Other",
           "hard_of_hearing": "Hard of hearing"
         },
-        "country": "Where are you from?",
-        "found_via": "How did you find this website?",
+        "country": "Country",
+        "found_via": "How did you hear about DEAFCS?",
         "found_via_placeholder": "Select an option",
         "found_via_other_placeholder": "Please specify",
         "found_via_options": {
@@ -2809,11 +2819,20 @@
           "steam": "Steam",
           "other": "Other"
         },
-        "knows_deaf_player": "Do you know any deaf players who play CS2?",
-        "deaf_player_steam_url": "Steam profile link",
-        "additional_info": "Anything else you'd like to add?",
+        "knows_deaf_player": "Do you know any DEAFCS or deaf Counter-Strike players?",
+        "who_do_you_know": "Who do you know?",
+        "deaf_player_nickname": "Nickname",
+        "deaf_player_steam_url": "Steam profile URL",
+        "social_profiles_note": "These may help the verification team identify you and are not required for approval. We will not make them public automatically.",
+        "social_instagram_url": "Instagram",
+        "social_facebook_url": "Facebook",
+        "social_vk_url": "VK",
+        "additional_info": "Anything else you'd like us to know?",
         "additional_info_placeholder": "Optional",
-        "submit": "Submit Application",
+        "account_declaration_title": "Account Declaration",
+        "account_declaration_label": "I confirm that this is the Steam account I will use for DEAFCS and that I will not use another Steam account to create or use a second DEAFCS account for matchmaking, tournaments, leagues, or other competitive features.",
+        "account_declaration": "Account declaration",
+        "submit": "Submit Verification Application",
         "submitted": "Application submitted",
         "missing_required_title": "Missing required answers",
         "missing_required_description": "Please answer: {fields}"
@@ -2852,6 +2871,9 @@
       "delete_confirm_description": "This permanently deletes the application and its full message thread. This cannot be undone.",
       "thread": "Conversation",
       "no_messages": "No messages yet.",
+      "account_declaration": "Account declaration",
+      "declared": "Declared",
+      "not_declared": "Not declared",
       "columns": {
         "player": "Player",
         "country": "Country",
@@ -4788,6 +4810,8 @@
     "or": "or",
     "yes": "Yes",
     "no": "No",
+    "required": "Required",
+    "optional": "Optional",
     "more": "More",
     "columns": "Columns",
     "none": "None",

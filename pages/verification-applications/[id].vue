@@ -67,23 +67,70 @@ useHead({
           <dd>{{ foundViaLabel(application.found_via) }}</dd>
 
           <dt class="text-muted-foreground">{{ $t("pages.verify.form.knows_deaf_player") }}</dt>
-          <dd>
-            <template v-if="application.knows_deaf_player">
-              {{ $t("common.yes") }}
+          <dd>{{ application.knows_deaf_player ? $t("common.yes") : $t("common.no") }}</dd>
+
+          <template v-if="application.knows_deaf_player">
+            <dt class="text-muted-foreground">{{ $t("pages.verify.form.deaf_player_nickname") }}</dt>
+            <dd>{{ application.deaf_player_nickname || emptyValue }}</dd>
+
+            <dt class="text-muted-foreground">{{ $t("pages.verify.form.deaf_player_steam_url") }}</dt>
+            <dd>
               <a
                 v-if="application.deaf_player_steam_url"
                 :href="application.deaf_player_steam_url"
                 target="_blank"
-                class="text-[hsl(var(--tac-amber))] hover:underline ml-1"
+                class="text-[hsl(var(--tac-amber))] hover:underline"
               >{{ application.deaf_player_steam_url }}</a>
-            </template>
-            <template v-else>{{ $t("common.no") }}</template>
+              <template v-else>{{ emptyValue }}</template>
+            </dd>
+          </template>
+
+          <dt class="text-muted-foreground">{{ $t("pages.verify.form.social_instagram_url") }}</dt>
+          <dd>
+            <a
+              v-if="application.social_instagram_url"
+              :href="application.social_instagram_url"
+              target="_blank"
+              class="text-[hsl(var(--tac-amber))] hover:underline"
+            >{{ application.social_instagram_url }}</a>
+            <template v-else>{{ emptyValue }}</template>
+          </dd>
+
+          <dt class="text-muted-foreground">{{ $t("pages.verify.form.social_facebook_url") }}</dt>
+          <dd>
+            <a
+              v-if="application.social_facebook_url"
+              :href="application.social_facebook_url"
+              target="_blank"
+              class="text-[hsl(var(--tac-amber))] hover:underline"
+            >{{ application.social_facebook_url }}</a>
+            <template v-else>{{ emptyValue }}</template>
+          </dd>
+
+          <dt class="text-muted-foreground">{{ $t("pages.verify.form.social_vk_url") }}</dt>
+          <dd>
+            <a
+              v-if="application.social_vk_url"
+              :href="application.social_vk_url"
+              target="_blank"
+              class="text-[hsl(var(--tac-amber))] hover:underline"
+            >{{ application.social_vk_url }}</a>
+            <template v-else>{{ emptyValue }}</template>
           </dd>
 
           <template v-if="application.additional_info">
             <dt class="text-muted-foreground">{{ $t("pages.verify.form.additional_info") }}</dt>
             <dd class="whitespace-pre-wrap">{{ application.additional_info }}</dd>
           </template>
+
+          <dt class="text-muted-foreground">{{ $t("pages.verification_applications.account_declaration") }}</dt>
+          <dd>
+            <template v-if="application.account_declaration_accepted_at">
+              {{ $t("pages.verification_applications.declared") }}
+              <TimeAgo :date="application.account_declaration_accepted_at" class="ml-1" />
+            </template>
+            <template v-else>{{ $t("pages.verification_applications.not_declared") }}</template>
+          </dd>
 
           <dt class="text-muted-foreground">{{ $t("pages.verification_applications.columns.submitted") }}</dt>
           <dd><TimeAgo :date="application.created_at" /></dd>
@@ -196,7 +243,12 @@ const APPLICATION_DETAIL_QUERY = gql`
       found_via
       knows_deaf_player
       deaf_player_steam_url
+      deaf_player_nickname
+      social_instagram_url
+      social_facebook_url
+      social_vk_url
       additional_info
+      account_declaration_accepted_at
       created_at
       player {
         steam_id
@@ -240,13 +292,24 @@ export default {
       if (this.application?.status === "rejected") return "destructive";
       return "secondary";
     },
+    // found_via became optional after this admin page was built -- reuse
+    // the same placeholder as every other optional field below rather than
+    // a bare blank cell.
+    emptyValue(): string {
+      return "-";
+    },
   },
   methods: {
     // found_via stores the option key (e.g. "discord") for every choice
     // except "other", which stores the applicant's own free text instead --
     // show the translated label when it's a known key, the raw value
     // otherwise (older rows, before this became a dropdown, are free text).
-    foundViaLabel(value: string): string {
+    // A null value means the applicant left it blank (optional since it
+    // became nullable).
+    foundViaLabel(value: string | null): string {
+      if (!value) {
+        return this.emptyValue;
+      }
       const known = ["google", "discord", "reddit", "youtube", "twitch", "tiktok", "instagram_facebook", "friend", "steam"];
       if (known.includes(value)) {
         return this.$t(`pages.verify.form.found_via_options.${value}`);

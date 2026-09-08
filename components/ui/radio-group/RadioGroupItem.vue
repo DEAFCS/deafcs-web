@@ -27,8 +27,15 @@ const forwardedProps = useForwardProps(delegatedProps)
       )
     "
   >
-    <RadioGroupIndicator class="flex items-center justify-center">
-      <CheckIcon class="h-3.5 w-3.5 text-primary" />
-    </RadioGroupIndicator>
+    <!-- Default fallback preserves every existing caller's plain
+         circle+checkmark indicator. A page that needs a differently-styled
+         radio (e.g. a compact selectable pill) can pass its own slot
+         content instead -- still a real role="radio" element underneath,
+         just with custom appearance driven by data-[state=checked]. -->
+    <slot>
+      <RadioGroupIndicator class="flex items-center justify-center">
+        <CheckIcon class="h-3.5 w-3.5 text-primary" />
+      </RadioGroupIndicator>
+    </slot>
   </RadioGroupItem>
 </template>
