@@ -232,3 +232,112 @@ test("admin approve/reject/delete behavior is untouched", () => {
   assert.match(detailSource, /rejectVerificationApplication/);
   assert.match(detailSource, /delete_verification_applications_by_pk/);
 });
+
+// Production bug fix: the compact pill's own classes (h-8, rounded-md, ...)
+// never actually beat RadioGroupItem's hardcoded aspect-square/h-4/w-4/
+// rounded-full -- there was no conflicting w-*/aspect-* utility in the pill
+// class string for tailwind-merge to resolve in its favor, so the pill got
+// squashed into a fixed tiny square with the label text overflowing/
+// overlapping outside it. The fix makes RadioGroupItem.vue apply that fixed
+// circle sizing ONLY when no custom slot content is passed, so a pill like
+// this one has nothing fixed left to fight -- it sizes to its own classes.
+test("the shared RadioGroupItem component conditionally drops fixed circle sizing for custom-content callers only", async () => {
+  const radioGroupItemSource = await read("../components/ui/radio-group/RadioGroupItem.vue");
+  assert.match(radioGroupItemSource, /const hasCustomContent = !!slots\.default;/);
+  assert.match(radioGroupItemSource, /!hasCustomContent && 'aspect-square h-4 w-4 rounded-full/);
+  // The always-applied base must NOT itself contain a fixed width/aspect
+  // class outside that conditional -- otherwise it would leak into every
+  // custom-content caller (the exact bug being fixed) regardless of what
+  // the page's own pill classes try to override.
+  const baseClassLine = radioGroupItemSource.slice(
+    radioGroupItemSource.indexOf("cn("),
+    radioGroupItemSource.indexOf("!hasCustomContent"),
+  );
+  assert.doesNotMatch(baseClassLine, /\bw-4\b/);
+  assert.doesNotMatch(baseClassLine, /\baspect-square\b/);
+});
+
+test("the compact pill class carries no fixed width/aspect-ratio utility of its own (nothing to fight, none needed)", () => {
+  assert.doesNotMatch(pageSource, /compactRadioPillClass =\s*\n?\s*"[^"]*\bw-4\b/);
+  assert.doesNotMatch(pageSource, /compactRadioPillClass =\s*\n?\s*"[^"]*\baspect-square\b/);
+  assert.match(pageSource, /compactRadioPillClass =\s*\n?\s*"[^"]*whitespace-nowrap/);
+});
+
+test("hearing status RadioGroup wraps compactly with a gap, not a single-column stack", () => {
+  const isDeafBlock = pageSource.slice(
+    pageSource.indexOf('label class="text-sm font-medium">{{ $t("pages.verify.form.is_deaf")'),
+    pageSource.indexOf("</RadioGroup>") + "</RadioGroup>".length,
+  );
+  assert.match(isDeafBlock, /class="flex flex-wrap gap-2"/);
+});
+
+test("known-player section has proper visible Nickname and Steam profile labels, not just placeholders", () => {
+  assert.match(pageSource, /for="deaf-player-nickname"/);
+  assert.match(pageSource, /id="deaf-player-nickname"/);
+  assert.match(pageSource, /for="deaf-player-steam-url"/);
+  assert.match(pageSource, /id="deaf-player-steam-url"/);
+  assert.equal(copy.form.deaf_player_nickname, "Nickname");
+  assert.equal(copy.form.deaf_player_steam_url, "Steam profile");
+});
+
+test("Steam profile field uses the project's existing SteamIcon in an icon+input row, with an accessible label", () => {
+  assert.match(pageSource, /import SteamIcon from "~\/components\/icons\/SteamIcon\.vue";/);
+  const steamFieldBlock = pageSource.slice(
+    pageSource.indexOf('for="deaf-player-steam-url"'),
+    pageSource.indexOf("</InputGroup>", pageSource.indexOf('for="deaf-player-steam-url"')),
+  );
+  assert.match(steamFieldBlock, /<InputGroup>/);
+  assert.match(steamFieldBlock, /<SteamIcon class="h-4 w-4 fill-current" \/>/);
+  assert.match(steamFieldBlock, /<InputGroupInput/);
+  assert.match(steamFieldBlock, /:aria-label="\$t\('pages\.verify\.form\.deaf_player_steam_url'\)"/);
+  assert.match(steamFieldBlock, /placeholder="https:\/\/steamcommunity\.com\/\.\.\."/);
+});
+
+test("Instagram, Facebook, and VK are icon+input rows with accessible labels, using existing project icons (no new library)", () => {
+  assert.match(pageSource, /import \{ Info, Instagram, Facebook \} from "lucide-vue-next";/);
+  assert.match(pageSource, /<InputGroupAddon[^>]*>[\s\S]{0,60}<Instagram class="h-4 w-4" \/>/);
+  assert.match(pageSource, /<InputGroupAddon[^>]*>[\s\S]{0,60}<Facebook class="h-4 w-4" \/>/);
+  assert.match(pageSource, /:aria-label="\$t\('pages\.verify\.form\.social_instagram_url'\)"/);
+  assert.match(pageSource, /:aria-label="\$t\('pages\.verify\.form\.social_facebook_url'\)"/);
+  assert.match(pageSource, /:aria-label="\$t\('pages\.verify\.form\.social_vk_url'\)"/);
+  // VK has no lucide/project brand icon -- a small text fallback, not a new
+  // icon library and not a hand-drawn brand mark.
+  assert.match(pageSource, />VK<\/span>/);
+  assert.match(pageSource, /placeholder="https:\/\/instagram\.com\/\.\.\."/);
+  assert.match(pageSource, /placeholder="https:\/\/facebook\.com\/\.\.\."/);
+  assert.match(pageSource, /placeholder="https:\/\/vk\.com\/\.\.\."/);
+});
+
+test("TikTok is removed from the selectable found_via options, but its i18n key survives for historical rows", () => {
+  assert.doesNotMatch(pageSource, /"tiktok",\s*\n\s*"instagram_facebook"/);
+  const foundViaOptionsSrc = pageSource.slice(
+    pageSource.indexOf("const FOUND_VIA_OPTIONS = ["),
+    pageSource.indexOf("] as const;", pageSource.indexOf("const FOUND_VIA_OPTIONS = [")),
+  );
+  assert.doesNotMatch(foundViaOptionsSrc, /"tiktok"/);
+  for (const option of [
+    "google",
+    "discord",
+    "reddit",
+    "youtube",
+    "twitch",
+    "instagram_facebook",
+    "friend",
+    "steam",
+    "other",
+  ]) {
+    assert.match(foundViaOptionsSrc, new RegExp(`"${option}"`));
+  }
+  // The admin detail page's foundViaLabel() still needs this to render any
+  // historical application that used it.
+  assert.equal(copy.form.found_via_options.tiktok, "TikTok");
+  assert.match(detailSource, /"tiktok"/);
+});
+
+test("submit button is full width, not left-aligned/self-start", () => {
+  assert.match(
+    pageSource,
+    /<Button type="submit" variant="tactical" :loading="submitting" class="w-full">/,
+  );
+  assert.doesNotMatch(pageSource, /variant="tactical" :loading="submitting" class="self-start"/);
+});

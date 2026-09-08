@@ -8,7 +8,9 @@ import { Alert, AlertTitle, AlertDescription } from "~/components/ui/alert";
 import { Checkbox } from "~/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "~/components/ui/radio-group";
 import { Card, CardContent } from "~/components/ui/card";
-import { Info } from "lucide-vue-next";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "~/components/ui/input-group";
+import SteamIcon from "~/components/icons/SteamIcon.vue";
+import { Info, Instagram, Facebook } from "lucide-vue-next";
 
 const { t } = useI18n();
 
@@ -200,15 +202,35 @@ useHead({
                       <label class="text-sm font-medium">{{ $t("pages.verify.form.who_do_you_know") }}</label>
                       <RequirementBadge :required="false" />
                     </div>
-                    <Input
-                      v-model="form.deaf_player_nickname"
-                      :maxlength="200"
-                      :placeholder="$t('pages.verify.form.deaf_player_nickname')"
-                    />
-                    <Input
-                      v-model="form.deaf_player_steam_url"
-                      :placeholder="$t('pages.verify.form.deaf_player_steam_url')"
-                    />
+
+                    <div class="flex flex-col gap-1.5">
+                      <label for="deaf-player-nickname" class="text-xs text-muted-foreground">
+                        {{ $t("pages.verify.form.deaf_player_nickname") }}
+                      </label>
+                      <Input
+                        id="deaf-player-nickname"
+                        v-model="form.deaf_player_nickname"
+                        :maxlength="200"
+                        :aria-label="$t('pages.verify.form.deaf_player_nickname')"
+                      />
+                    </div>
+
+                    <div class="flex flex-col gap-1.5">
+                      <label for="deaf-player-steam-url" class="text-xs text-muted-foreground">
+                        {{ $t("pages.verify.form.deaf_player_steam_url") }}
+                      </label>
+                      <InputGroup>
+                        <InputGroupAddon :title="$t('pages.verify.form.deaf_player_steam_url')">
+                          <SteamIcon class="h-4 w-4 fill-current" />
+                        </InputGroupAddon>
+                        <InputGroupInput
+                          id="deaf-player-steam-url"
+                          v-model="form.deaf_player_steam_url"
+                          placeholder="https://steamcommunity.com/..."
+                          :aria-label="$t('pages.verify.form.deaf_player_steam_url')"
+                        />
+                      </InputGroup>
+                    </div>
                   </div>
                 </div>
 
@@ -220,18 +242,36 @@ useHead({
                   <p class="text-xs text-muted-foreground">
                     {{ $t("pages.verify.form.social_profiles_note") }}
                   </p>
-                  <Input
-                    v-model="form.social_instagram_url"
-                    :placeholder="$t('pages.verify.form.social_instagram_url')"
-                  />
-                  <Input
-                    v-model="form.social_facebook_url"
-                    :placeholder="$t('pages.verify.form.social_facebook_url')"
-                  />
-                  <Input
-                    v-model="form.social_vk_url"
-                    :placeholder="$t('pages.verify.form.social_vk_url')"
-                  />
+                  <InputGroup>
+                    <InputGroupAddon :title="$t('pages.verify.form.social_instagram_url')">
+                      <Instagram class="h-4 w-4" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      v-model="form.social_instagram_url"
+                      placeholder="https://instagram.com/..."
+                      :aria-label="$t('pages.verify.form.social_instagram_url')"
+                    />
+                  </InputGroup>
+                  <InputGroup>
+                    <InputGroupAddon :title="$t('pages.verify.form.social_facebook_url')">
+                      <Facebook class="h-4 w-4" />
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      v-model="form.social_facebook_url"
+                      placeholder="https://facebook.com/..."
+                      :aria-label="$t('pages.verify.form.social_facebook_url')"
+                    />
+                  </InputGroup>
+                  <InputGroup>
+                    <InputGroupAddon :title="$t('pages.verify.form.social_vk_url')">
+                      <span class="text-[10px] font-bold leading-none tracking-wide" aria-hidden="true">VK</span>
+                    </InputGroupAddon>
+                    <InputGroupInput
+                      v-model="form.social_vk_url"
+                      placeholder="https://vk.com/..."
+                      :aria-label="$t('pages.verify.form.social_vk_url')"
+                    />
+                  </InputGroup>
                 </div>
               </CardContent>
             </Card>
@@ -268,7 +308,7 @@ useHead({
           </CardContent>
         </Card>
 
-        <Button type="submit" variant="tactical" :loading="submitting" class="self-start">
+        <Button type="submit" variant="tactical" :loading="submitting" class="w-full">
           {{ $t("pages.verify.form.submit") }}
         </Button>
       </form>
@@ -310,13 +350,16 @@ const MY_APPLICATION_STATUS_QUERY = gql`
 // Other), so historical applications and the admin detail page's rendering
 // stay correct without a data migration.
 const DEAF_OPTIONS = ["yes", "hard_of_hearing", "no"] as const;
+// "tiktok" removed from the selectable list only -- its i18n key
+// (pages.verify.form.found_via_options.tiktok) stays in en.json since
+// verification-applications/[id].vue's foundViaLabel() still needs it to
+// render any historical application that used it correctly.
 const FOUND_VIA_OPTIONS = [
   "google",
   "discord",
   "reddit",
   "youtube",
   "twitch",
-  "tiktok",
   "instagram_facebook",
   "friend",
   "steam",
@@ -328,9 +371,13 @@ const FOUND_VIA_OPTIONS = [
 // switching to the tactical/amber look via data-[state=checked] -- reka-ui
 // sets that attribute on the underlying real role="radio" button itself, so
 // this is still a semantic radiogroup, just restyled away from the default
-// circle+checkmark indicator (see RadioGroupItem.vue's fallback slot).
+// circle+checkmark indicator. RadioGroupItem.vue only applies its fixed
+// circle sizing (aspect-square/h-4/w-4/rounded-full) when NO custom slot
+// content is passed, so a pill like this one sizes naturally to its own
+// classes/text with nothing fixed left to fight -- no w-4/aspect-square
+// leaking through and squashing the label (the production bug this fixed).
 const compactRadioPillClass =
-  "inline-flex items-center justify-center whitespace-nowrap rounded-md h-8 px-3 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground data-[state=checked]:border-transparent data-[state=checked]:bg-[hsl(var(--tac-amber))] data-[state=checked]:text-[hsl(var(--tac-amber-foreground))] data-[state=checked]:font-bold data-[state=checked]:uppercase data-[state=checked]:tracking-[0.18em] data-[state=checked]:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.4),0_6px_16px_-6px_hsl(var(--tac-amber)/0.5)] data-[state=checked]:hover:bg-[hsl(var(--tac-amber)/0.9)]";
+  "inline-flex items-center justify-center whitespace-nowrap rounded-md h-8 px-3 text-xs font-medium text-foreground transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground data-[state=checked]:border-transparent data-[state=checked]:bg-[hsl(var(--tac-amber))] data-[state=checked]:text-[hsl(var(--tac-amber-foreground))] data-[state=checked]:font-bold data-[state=checked]:uppercase data-[state=checked]:tracking-[0.18em] data-[state=checked]:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.4),0_6px_16px_-6px_hsl(var(--tac-amber)/0.5)] data-[state=checked]:hover:bg-[hsl(var(--tac-amber)/0.9)]";
 
 function isValidHttpUrl(value: string): boolean {
   try {
