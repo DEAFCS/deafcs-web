@@ -69,21 +69,40 @@ useHead({
           <dt class="text-muted-foreground">{{ $t("pages.verify.form.knows_deaf_player") }}</dt>
           <dd>{{ application.knows_deaf_player ? $t("common.yes") : $t("common.no") }}</dd>
 
-          <template v-if="application.knows_deaf_player">
-            <dt class="text-muted-foreground">{{ $t("pages.verify.form.deaf_player_nickname") }}</dt>
-            <dd>{{ application.deaf_player_nickname || emptyValue }}</dd>
-
-            <dt class="text-muted-foreground">{{ $t("pages.verify.form.deaf_player_steam_url") }}</dt>
-            <dd>
-              <a
-                v-if="application.deaf_player_steam_url"
-                :href="application.deaf_player_steam_url"
-                target="_blank"
-                class="text-[hsl(var(--tac-amber))] hover:underline"
-              >{{ application.deaf_player_steam_url }}</a>
-              <template v-else>{{ emptyValue }}</template>
-            </dd>
-          </template>
+          <dt class="text-muted-foreground self-start">{{ $t("pages.verification_applications.community_references") }}</dt>
+          <dd>
+            <div v-if="application.known_players?.length" class="flex flex-col gap-1">
+              <div v-for="(reference, index) in application.known_players" :key="reference.id">
+                {{ $t("pages.verify.form.known_players.player_label", { n: index + 1 }) }} /
+                {{ $t("pages.verify.form.known_players.nickname") }}: {{ reference.nickname || emptyValue }} /
+                {{ $t("pages.verify.form.known_players.steam_profile_url") }}:
+                <a
+                  v-if="reference.steam_profile_url"
+                  :href="reference.steam_profile_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[hsl(var(--tac-amber))] hover:underline"
+                >{{ reference.steam_profile_url }}</a>
+                <template v-else>{{ emptyValue }}</template>
+              </div>
+            </div>
+            <div v-else-if="application.deaf_player_nickname || application.deaf_player_steam_url" class="flex flex-col gap-1">
+              <span class="text-xs text-muted-foreground">{{ $t("pages.verification_applications.legacy_reference") }}</span>
+              <div>
+                {{ $t("pages.verify.form.known_players.nickname") }}: {{ application.deaf_player_nickname || emptyValue }} /
+                {{ $t("pages.verify.form.known_players.steam_profile_url") }}:
+                <a
+                  v-if="application.deaf_player_steam_url"
+                  :href="application.deaf_player_steam_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[hsl(var(--tac-amber))] hover:underline"
+                >{{ application.deaf_player_steam_url }}</a>
+                <template v-else>{{ emptyValue }}</template>
+              </div>
+            </div>
+            <template v-else>{{ $t("pages.verification_applications.no_community_references") }}</template>
+          </dd>
 
           <dt class="text-muted-foreground">{{ $t("pages.verify.form.social_instagram_url") }}</dt>
           <dd>
@@ -244,6 +263,12 @@ const APPLICATION_DETAIL_QUERY = gql`
       knows_deaf_player
       deaf_player_steam_url
       deaf_player_nickname
+      known_players(order_by: { sort_order: asc }) {
+        id
+        nickname
+        steam_profile_url
+        sort_order
+      }
       social_instagram_url
       social_facebook_url
       social_vk_url

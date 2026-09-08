@@ -2820,9 +2820,19 @@
           "other": "Other"
         },
         "knows_deaf_player": "Do you know any DEAFCS or deaf Counter-Strike players?",
+        "knows_deaf_player_explanation": "Community connections can help us confirm your application. If needed, DEAFCS may contact someone you list to help verify that they know you. You do not need to know anyone to be approved.",
+        "knows_deaf_player_privacy_note": "Only list people you are comfortable with DEAFCS contacting about your verification.",
         "who_do_you_know": "Who do you know?",
         "deaf_player_nickname": "Nickname",
         "deaf_player_steam_url": "Steam profile URL",
+        "known_players_steam_url": "Community reference Steam profile URL",
+        "known_players": {
+          "player_label": "Player {n}",
+          "nickname": "Nickname",
+          "steam_profile_url": "Steam profile URL",
+          "add_another": "Add another player",
+          "remove": "Remove"
+        },
         "social_profiles_note": "These may help the verification team identify you and are not required for approval. We will not make them public automatically.",
         "social_instagram_url": "Instagram",
         "social_facebook_url": "Facebook",
@@ -2876,6 +2886,9 @@
       "account_declaration": "Account declaration",
       "declared": "Declared",
       "not_declared": "Not declared",
+      "community_references": "Community References",
+      "no_community_references": "No community references provided.",
+      "legacy_reference": "Legacy reference",
       "columns": {
         "player": "Player",
         "country": "Country",

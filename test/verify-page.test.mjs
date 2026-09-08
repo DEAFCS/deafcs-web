@@ -34,14 +34,11 @@ test("hearing status, country, and account declaration are the only required fie
     requiredSrc,
     /if \(!this\.form\.account_declaration_accepted\)[\s\S]{0,40}missing\.push\("account_declaration"\)/,
   );
-  // knows_deaf_player and the nickname/steam-url pair must NOT be
+  // knows_deaf_player and the known-player reference list must NOT be
   // unconditionally required -- only requiredMissingFields() (this slice)
   // can ever produce the "Missing required answers" toast.
   assert.doesNotMatch(requiredSrc, /if \(this\.form\.knows_deaf_player === null\)/);
-  assert.doesNotMatch(
-    requiredSrc,
-    /this\.form\.knows_deaf_player === true &&[\s\S]{0,60}deaf_player_steam_url/,
-  );
+  assert.doesNotMatch(requiredSrc, /known_players/);
 });
 
 test("found_via itself is optional; only its own free-text 'other' sub-field can still block it (test #4)", () => {
@@ -61,16 +58,16 @@ test("empty optional fields are always accepted -- invalidOptionalFields() only 
     pageSource.indexOf("invalidOptionalFields(): string[]"),
     pageSource.indexOf("async submit()"),
   );
-  // Steam URL, Instagram, Facebook, and VK are each guarded by `<trimmed> &&`
-  // -- an empty trimmed value short-circuits before the format check runs,
-  // so leaving any of them blank can never be flagged, whether or not
-  // knows_deaf_player is Yes (deaf_player_nickname has no format validator
-  // at all -- it's free text, never blocked).
-  assert.match(invalidSrc, /if \(steamUrl && !isValidSteamProfileUrl\(steamUrl\)\)/);
+  // Every known-player row's Steam URL is guarded the same way: an empty
+  // trimmed value short-circuits before the format check runs, so leaving
+  // any row (or all of them) blank can never be flagged. Nickname has no
+  // format validator at all -- it's free text, never blocked.
+  assert.match(invalidSrc, /const steamUrl = player\.steam_profile_url\.trim\(\);/);
+  assert.match(invalidSrc, /return steamUrl && !isValidSteamProfileUrl\(steamUrl\);/);
   assert.match(invalidSrc, /if \(instagram && !isValidInstagramHandle\(instagram\)\)/);
   assert.match(invalidSrc, /if \(facebook && !isValidFacebookProfileUrl\(facebook\)\)/);
   assert.match(invalidSrc, /if \(vk && !isValidVkValue\(vk\)\)/);
-  assert.doesNotMatch(pageSource, /deaf_player_nickname.*isValid/);
+  assert.doesNotMatch(pageSource, /player\.nickname.*isValid/);
   // additional_info has no validator reference anywhere in the file.
   assert.doesNotMatch(pageSource, /isValid\w*\(this\.form\.additional_info/);
 });
@@ -211,23 +208,127 @@ test("a required-missing error and an invalid-format error are two distinct, non
   assert.ok(requiredCheckIndex < invalidCheckIndex);
 });
 
-test("who-do-you-know (nickname + Steam URL) only appears when knows_deaf_player is Yes, and both stay optional", () => {
-  assert.match(pageSource, /v-if="form\.knows_deaf_player"/);
-  assert.match(pageSource, /pages\.verify\.form\.who_do_you_know/);
-  assert.match(pageSource, /v-model="form\.deaf_player_nickname"/);
-  assert.match(pageSource, /v-model="form\.deaf_player_steam_url"/);
+test("repeatable known-player references only appear when knows_deaf_player is Yes, and Player 1 can stay fully empty (community references #3)", () => {
+  assert.match(pageSource, /v-if="form\.knows_deaf_player" class="flex flex-col gap-4 mt-2"/);
+  assert.match(pageSource, /v-for="\(player, index\) in form\.known_players"/);
+  assert.match(pageSource, /v-model="player\.nickname"/);
+  assert.match(pageSource, /v-model="player\.steam_profile_url"/);
+  // Player 1 starts as a single fully-empty row, not required to be filled.
+  assert.match(
+    pageSource,
+    /known_players: \[\{ nickname: "", steam_profile_url: "" \}\]/,
+  );
 });
 
-test("clearing knows_deaf_player to false nulls the nickname/steam-url on submit, not just hides the inputs", () => {
+test("+ Add another player control exists, caps the list at 3, and Remove only appears on non-first rows (community references #6, #7, #8)", () => {
+  assert.match(pageSource, /pages\.verify\.form\.known_players\.add_another/);
+  assert.match(pageSource, /@click="addKnownPlayer"/);
+  assert.match(pageSource, /v-if="form\.known_players\.length < 3"/);
+  assert.match(pageSource, /const MAX_KNOWN_PLAYERS = 3;/);
+  assert.match(
+    pageSource,
+    /addKnownPlayer\(\) \{\s*\n\s*if \(this\.form\.known_players\.length < MAX_KNOWN_PLAYERS\) \{/,
+  );
+
+  assert.match(pageSource, /v-if="index > 0"[\s\S]{0,300}@click="removeKnownPlayer\(index\)"/);
+  assert.match(pageSource, /pages\.verify\.form\.known_players\.remove/);
+  assert.match(
+    pageSource,
+    /removeKnownPlayer\(index: number\) \{\s*\n\s*if \(index > 0\) \{\s*\n\s*this\.form\.known_players\.splice\(index, 1\);/,
+  );
+});
+
+test("submitting with knows_deaf_player Yes and zero completed references sends an empty known_players list, not an error (community references #9)", () => {
   const submitSrc = pageSource.slice(pageSource.indexOf("async submit()"));
   assert.match(
     submitSrc,
-    /deaf_player_nickname: this\.form\.knows_deaf_player\s*\n\s*\?\s*this\.form\.deaf_player_nickname\?\.trim\(\) \|\| null\s*\n\s*: null/,
+    /\.filter\(\(player\) => player\.nickname \|\| player\.steam_profile_url\)/,
   );
-  assert.match(
-    submitSrc,
-    /deaf_player_steam_url: this\.form\.knows_deaf_player\s*\n\s*\?\s*this\.form\.deaf_player_steam_url\?\.trim\(\) \|\| null\s*\n\s*: null/,
+  assert.match(submitSrc, /known_players: \{ data: knownPlayersData \}/);
+  // No requiredMissingFields()/invalidOptionalFields() check can ever block
+  // submission over an empty known_players list -- neither references
+  // form.known_players at all except inside invalidOptionalFields()'s Steam
+  // URL format check, which only fires on a non-empty malformed value.
+  const requiredSrc = pageSource.slice(
+    pageSource.indexOf("requiredMissingFields(): string[]"),
+    pageSource.indexOf("invalidOptionalFields(): string[]"),
   );
+  assert.doesNotMatch(requiredSrc, /known_players/);
+});
+
+test("Yes/No toggle: known_players is submitted only when knows_deaf_player is Yes; hidden draft rows are never sent while No is selected", () => {
+  // Extracts and actually executes the real knownPlayersData expression
+  // from submit() (rather than re-implementing it by hand), so this proves
+  // the shipped logic behaves correctly, not just a parallel copy of it.
+  const start = pageSource.indexOf("const knownPlayersData = this.form.knows_deaf_player");
+  const end = pageSource.indexOf(";\n\n      this.submitting = true;", start);
+  assert.ok(start >= 0 && end > start, "could not locate the knownPlayersData computation in submit()");
+  const expr = pageSource.slice(start, end).replace(/^const knownPlayersData = /, "");
+  // The expression references `this.form` (it's lifted verbatim from
+  // submit()), so it's invoked with a fake `this` rather than a plain arg.
+  const compute = new Function("MAX_KNOWN_PLAYERS", `return (${expr});`);
+  const MAX_KNOWN_PLAYERS = 3;
+
+  // Yes + completed references -> references are submitted, re-numbered 1..N.
+  const yesCompleted = compute.call(
+    {
+      form: {
+        knows_deaf_player: true,
+        known_players: [
+          { nickname: "Alice", steam_profile_url: "" },
+          { nickname: "", steam_profile_url: "https://steamcommunity.com/id/bob" },
+        ],
+      },
+    },
+    MAX_KNOWN_PLAYERS,
+  );
+  assert.deepEqual(yesCompleted, [
+    { nickname: "Alice", steam_profile_url: null, sort_order: 1 },
+    { nickname: null, steam_profile_url: "https://steamcommunity.com/id/bob", sort_order: 2 },
+  ]);
+
+  // Yes + zero completed references -> zero references submitted.
+  const yesZero = compute.call(
+    {
+      form: {
+        knows_deaf_player: true,
+        known_players: [{ nickname: "", steam_profile_url: "" }],
+      },
+    },
+    MAX_KNOWN_PLAYERS,
+  );
+  assert.deepEqual(yesZero, []);
+
+  // No + previously entered hidden references -> zero references submitted,
+  // even though the (locally preserved) draft rows still hold real values.
+  // Toggling Yes -> No must never leak hidden draft input into the mutation.
+  const noWithHiddenDrafts = compute.call(
+    {
+      form: {
+        knows_deaf_player: false,
+        known_players: [
+          {
+            nickname: "StillDraftedButHidden",
+            steam_profile_url: "https://steamcommunity.com/id/hidden",
+          },
+        ],
+      },
+    },
+    MAX_KNOWN_PLAYERS,
+  );
+  assert.deepEqual(noWithHiddenDrafts, []);
+});
+
+test("known_players is sent as a nested insert, not serialized into additional_info or numbered parent columns (community references #10, data model)", () => {
+  const submitSrc = pageSource.slice(pageSource.indexOf("async submit()"));
+  assert.match(submitSrc, /known_players: \{ data: knownPlayersData \}/);
+  assert.doesNotMatch(pageSource, /deaf_player_nickname_2/);
+  assert.doesNotMatch(pageSource, /deaf_player_steam_url_2/);
+  assert.doesNotMatch(pageSource, /known_player_2|known_player_3/);
+  // The single-reference legacy columns are no longer sent on new
+  // submissions -- only the nested known_players insert carries them now.
+  assert.doesNotMatch(submitSrc, /deaf_player_nickname:/);
+  assert.doesNotMatch(submitSrc, /deaf_player_steam_url:/);
 });
 
 test("social profile inputs and their explanatory optional copy exist", () => {
@@ -329,6 +430,72 @@ test("desktop layout is the 2-column card grid matching the Rules-page pattern, 
   assert.match(pageSource, /tacticalSectionTickClasses/);
 });
 
+test("Social Profiles now lives in the About You card, not the Community card (community references #1)", () => {
+  const aboutYouStart = pageSource.indexOf("<!-- About You -->");
+  const communityStart = pageSource.indexOf("<!-- Community -->");
+  const socialProfilesIndex = pageSource.indexOf("pages.verify.form.sections.social_profiles");
+  assert.ok(aboutYouStart >= 0 && communityStart >= 0 && socialProfilesIndex >= 0);
+  assert.ok(socialProfilesIndex > aboutYouStart && socialProfilesIndex < communityStart);
+  // The Community card content, from its own comment onward, must not
+  // reference Social Profiles at all -- it only has the community question
+  // and the known-player references now.
+  assert.doesNotMatch(pageSource.slice(communityStart), /sections\.social_profiles/);
+});
+
+test("Community explanation copy exists: not required to know anyone, DEAFCS may contact a listed reference, privacy note is separate and smaller (community references #2, #3, #4)", () => {
+  assert.match(pageSource, /pages\.verify\.form\.knows_deaf_player_explanation/);
+  assert.match(pageSource, /pages\.verify\.form\.knows_deaf_player_privacy_note/);
+  assert.match(copy.form.knows_deaf_player_explanation, /you do not need to know anyone to be approved/i);
+  assert.match(copy.form.knows_deaf_player_explanation, /may contact/i);
+  assert.match(copy.form.knows_deaf_player_privacy_note, /comfortable with DEAFCS contacting/i);
+  // Explanation sits directly under the question, above the Yes/No radios.
+  const knowsDeafPlayerIndex = pageSource.indexOf('$t("pages.verify.form.knows_deaf_player")');
+  const explanationIndex = pageSource.indexOf("knows_deaf_player_explanation");
+  const radioGroupIndex = pageSource.indexOf('v-model="knowsDeafPlayerValue"');
+  assert.ok(knowsDeafPlayerIndex < explanationIndex && explanationIndex < radioGroupIndex);
+});
+
+test("known-player Steam URL: blank is always accepted, a non-empty malformed URL is blocked as invalid format (community references: optional + malformed blocked)", () => {
+  function isValidSteamProfileUrl(value) {
+    try {
+      const url = new URL(value);
+      if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+      return (
+        /(^|\.)steamcommunity\.com$/.test(url.hostname) &&
+        /^\/(id|profiles)\//.test(url.pathname)
+      );
+    } catch {
+      return false;
+    }
+  }
+  function hasInvalidKnownPlayerSteamUrl(players) {
+    return players.some((player) => {
+      const steamUrl = player.steam_profile_url.trim();
+      return steamUrl && !isValidSteamProfileUrl(steamUrl);
+    });
+  }
+  assert.equal(hasInvalidKnownPlayerSteamUrl([{ steam_profile_url: "" }]), false);
+  assert.equal(hasInvalidKnownPlayerSteamUrl([{ steam_profile_url: "   " }]), false);
+  assert.equal(
+    hasInvalidKnownPlayerSteamUrl([{ steam_profile_url: "https://steamcommunity.com/id/example" }]),
+    false,
+  );
+  assert.equal(hasInvalidKnownPlayerSteamUrl([{ steam_profile_url: "not-a-url" }]), true);
+  assert.equal(
+    hasInvalidKnownPlayerSteamUrl([{ steam_profile_url: "https://example.com/not-steam" }]),
+    true,
+  );
+  // A blank first row alongside one malformed second row still blocks --
+  // it's a per-row check across the whole array, not just index 0.
+  assert.equal(
+    hasInvalidKnownPlayerSteamUrl([
+      { steam_profile_url: "" },
+      { steam_profile_url: "not-a-url" },
+    ]),
+    true,
+  );
+});
+
 test("submit button reads Submit Verification Application", () => {
   assert.equal(copy.form.submit, "Submit Verification Application");
 });
@@ -380,6 +547,40 @@ test("admin approve/reject/delete behavior is untouched", () => {
   assert.match(detailSource, /delete_verification_applications_by_pk/);
 });
 
+test("admin detail page selects the known_players relationship and renders a COMMUNITY REFERENCES section with multiple players, an empty state, and a legacy fallback (community references admin)", () => {
+  assert.match(
+    detailSource,
+    /known_players\(order_by: \{ sort_order: asc \}\) \{\s*\n\s*id\s*\n\s*nickname\s*\n\s*steam_profile_url\s*\n\s*sort_order\s*\n\s*\}/,
+  );
+  assert.match(detailSource, /pages\.verification_applications\.community_references/);
+  assert.match(detailSource, /v-for="\(reference, index\) in application\.known_players"/);
+  assert.match(detailSource, /pages\.verify\.form\.known_players\.player_label/, );
+  assert.match(detailSource, /pages\.verification_applications\.no_community_references/);
+  assert.match(detailSource, /pages\.verification_applications\.legacy_reference/);
+  assert.equal(
+    enLocale.pages.verification_applications.no_community_references,
+    "No community references provided.",
+  );
+
+  // Steam profile links for the new reference list are clickable and safe.
+  const referencesBlock = detailSource.slice(
+    detailSource.indexOf("community_references"),
+    detailSource.indexOf("social_instagram_url"),
+  );
+  const safeLinkOccurrences = referencesBlock.match(/target="_blank"\s*\n\s*rel="noopener noreferrer"/g);
+  assert.ok(safeLinkOccurrences && safeLinkOccurrences.length >= 2);
+
+  // Approve/reject logic must not have been touched by this section.
+  assert.doesNotMatch(referencesBlock, /approve|reject/i);
+});
+
+test("no numbered parent-table fields (e.g. deaf_player_nickname_2, known_player_3) were introduced anywhere -- the data model uses a real child table (data model)", () => {
+  for (const source of [pageSource, detailSource, JSON.stringify(enLocale)]) {
+    assert.doesNotMatch(source, /deaf_player_(nickname|steam_url)_[0-9]/);
+    assert.doesNotMatch(source, /known_player(s)?_(nickname|steam_url)_[0-9]/);
+  }
+});
+
 // Production bug fix: the compact pill's own classes (h-8, rounded-md, ...)
 // never actually beat RadioGroupItem's hardcoded aspect-square/h-4/w-4/
 // rounded-full -- there was no conflicting w-*/aspect-* utility in the pill
@@ -418,25 +619,25 @@ test("hearing status RadioGroup wraps compactly with a gap, not a single-column 
   assert.match(isDeafBlock, /class="flex flex-wrap gap-2"/);
 });
 
-test("known-player section has proper visible Nickname and Steam profile labels, not just placeholders", () => {
-  assert.match(pageSource, /for="deaf-player-nickname"/);
-  assert.match(pageSource, /id="deaf-player-nickname"/);
-  assert.match(pageSource, /for="deaf-player-steam-url"/);
-  assert.match(pageSource, /id="deaf-player-steam-url"/);
-  assert.equal(copy.form.deaf_player_nickname, "Nickname");
-  assert.equal(copy.form.deaf_player_steam_url, "Steam profile URL");
+test("known-player rows have proper visible Nickname and Steam profile labels, not just placeholders", () => {
+  assert.match(pageSource, /:for="`known-player-nickname-\$\{index\}`"/);
+  assert.match(pageSource, /:id="`known-player-nickname-\$\{index\}`"/);
+  assert.match(pageSource, /:for="`known-player-steam-url-\$\{index\}`"/);
+  assert.match(pageSource, /:id="`known-player-steam-url-\$\{index\}`"/);
+  assert.equal(copy.form.known_players.nickname, "Nickname");
+  assert.equal(copy.form.known_players.steam_profile_url, "Steam profile URL");
 });
 
 test("Steam profile field uses the project's existing SteamIcon in an icon+input row, with an accessible label", () => {
   assert.match(pageSource, /import SteamIcon from "~\/components\/icons\/SteamIcon\.vue";/);
   const steamFieldBlock = pageSource.slice(
-    pageSource.indexOf('for="deaf-player-steam-url"'),
-    pageSource.indexOf("</InputGroup>", pageSource.indexOf('for="deaf-player-steam-url"')),
+    pageSource.indexOf(':for="`known-player-steam-url-${index}`"'),
+    pageSource.indexOf("</InputGroup>", pageSource.indexOf(':for="`known-player-steam-url-${index}`"')),
   );
   assert.match(steamFieldBlock, /<InputGroup>/);
   assert.match(steamFieldBlock, /<SteamIcon class="h-4 w-4 fill-current" \/>/);
   assert.match(steamFieldBlock, /<InputGroupInput/);
-  assert.match(steamFieldBlock, /:aria-label="\$t\('pages\.verify\.form\.deaf_player_steam_url'\)"/);
+  assert.match(steamFieldBlock, /:aria-label="\$t\('pages\.verify\.form\.known_players\.steam_profile_url'\)"/);
   assert.match(steamFieldBlock, /placeholder="https:\/\/steamcommunity\.com\/\.\.\."/);
 });
 

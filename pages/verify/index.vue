@@ -167,72 +167,6 @@ useHead({
                     class="mt-2"
                   />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <!-- Community + Social Profiles -->
-          <div class="flex flex-col gap-3">
-            <span :class="tacticalSectionLabelClasses">
-              <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
-              {{ $t("pages.verify.form.sections.community") }}
-            </span>
-            <Card class="bg-card/20">
-              <CardContent class="flex flex-col gap-6 p-4 sm:p-6">
-                <div class="flex flex-col gap-2">
-                  <div class="flex items-center gap-2">
-                    <label class="text-sm font-medium">{{ $t("pages.verify.form.knows_deaf_player") }}</label>
-                    <RequirementBadge :required="false" />
-                  </div>
-                  <RadioGroup
-                    v-model="knowsDeafPlayerValue"
-                    class="flex flex-wrap gap-2"
-                    :aria-label="$t('pages.verify.form.knows_deaf_player')"
-                  >
-                    <RadioGroupItem value="yes" :class="compactRadioPillClass">
-                      {{ $t("common.yes") }}
-                    </RadioGroupItem>
-                    <RadioGroupItem value="no" :class="compactRadioPillClass">
-                      {{ $t("common.no") }}
-                    </RadioGroupItem>
-                  </RadioGroup>
-
-                  <div v-if="form.knows_deaf_player" class="flex flex-col gap-3 mt-2">
-                    <div class="flex items-center gap-2">
-                      <label class="text-sm font-medium">{{ $t("pages.verify.form.who_do_you_know") }}</label>
-                      <RequirementBadge :required="false" />
-                    </div>
-
-                    <div class="flex flex-col gap-1.5">
-                      <label for="deaf-player-nickname" class="text-xs text-muted-foreground">
-                        {{ $t("pages.verify.form.deaf_player_nickname") }}
-                      </label>
-                      <Input
-                        id="deaf-player-nickname"
-                        v-model="form.deaf_player_nickname"
-                        :maxlength="200"
-                        :aria-label="$t('pages.verify.form.deaf_player_nickname')"
-                      />
-                    </div>
-
-                    <div class="flex flex-col gap-1.5">
-                      <label for="deaf-player-steam-url" class="text-xs text-muted-foreground">
-                        {{ $t("pages.verify.form.deaf_player_steam_url") }}
-                      </label>
-                      <InputGroup>
-                        <InputGroupAddon :title="$t('pages.verify.form.deaf_player_steam_url')">
-                          <SteamIcon class="h-4 w-4 fill-current" />
-                        </InputGroupAddon>
-                        <InputGroupInput
-                          id="deaf-player-steam-url"
-                          v-model="form.deaf_player_steam_url"
-                          placeholder="https://steamcommunity.com/..."
-                          :aria-label="$t('pages.verify.form.deaf_player_steam_url')"
-                        />
-                      </InputGroup>
-                    </div>
-                  </div>
-                </div>
 
                 <div class="flex flex-col gap-3 border-t border-border/50 pt-4">
                   <div class="flex items-center gap-2">
@@ -272,6 +206,106 @@ useHead({
                       :aria-label="$t('pages.verify.form.social_vk_url')"
                     />
                   </InputGroup>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <!-- Community -->
+          <div class="flex flex-col gap-3">
+            <span :class="tacticalSectionLabelClasses">
+              <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
+              {{ $t("pages.verify.form.sections.community") }}
+            </span>
+            <Card class="bg-card/20">
+              <CardContent class="flex flex-col gap-6 p-4 sm:p-6">
+                <div class="flex flex-col gap-2">
+                  <div class="flex items-center gap-2">
+                    <label class="text-sm font-medium">{{ $t("pages.verify.form.knows_deaf_player") }}</label>
+                    <RequirementBadge :required="false" />
+                  </div>
+                  <p class="text-xs text-muted-foreground">
+                    {{ $t("pages.verify.form.knows_deaf_player_explanation") }}
+                  </p>
+                  <p class="text-[11px] text-muted-foreground/70">
+                    {{ $t("pages.verify.form.knows_deaf_player_privacy_note") }}
+                  </p>
+                  <RadioGroup
+                    v-model="knowsDeafPlayerValue"
+                    class="flex flex-wrap gap-2"
+                    :aria-label="$t('pages.verify.form.knows_deaf_player')"
+                  >
+                    <RadioGroupItem value="yes" :class="compactRadioPillClass">
+                      {{ $t("common.yes") }}
+                    </RadioGroupItem>
+                    <RadioGroupItem value="no" :class="compactRadioPillClass">
+                      {{ $t("common.no") }}
+                    </RadioGroupItem>
+                  </RadioGroup>
+
+                  <div v-if="form.knows_deaf_player" class="flex flex-col gap-4 mt-2">
+                    <div
+                      v-for="(player, index) in form.known_players"
+                      :key="index"
+                      class="flex flex-col gap-3 rounded-lg border border-border/50 p-3"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          {{ $t("pages.verify.form.known_players.player_label", { n: index + 1 }) }}
+                        </span>
+                        <Button
+                          v-if="index > 0"
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          class="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                          @click="removeKnownPlayer(index)"
+                        >
+                          {{ $t("pages.verify.form.known_players.remove") }}
+                        </Button>
+                      </div>
+
+                      <div class="flex flex-col gap-1.5">
+                        <label :for="`known-player-nickname-${index}`" class="text-xs text-muted-foreground">
+                          {{ $t("pages.verify.form.known_players.nickname") }}
+                        </label>
+                        <Input
+                          :id="`known-player-nickname-${index}`"
+                          v-model="player.nickname"
+                          :maxlength="200"
+                          :aria-label="$t('pages.verify.form.known_players.nickname')"
+                        />
+                      </div>
+
+                      <div class="flex flex-col gap-1.5">
+                        <label :for="`known-player-steam-url-${index}`" class="text-xs text-muted-foreground">
+                          {{ $t("pages.verify.form.known_players.steam_profile_url") }}
+                        </label>
+                        <InputGroup>
+                          <InputGroupAddon :title="$t('pages.verify.form.known_players.steam_profile_url')">
+                            <SteamIcon class="h-4 w-4 fill-current" />
+                          </InputGroupAddon>
+                          <InputGroupInput
+                            :id="`known-player-steam-url-${index}`"
+                            v-model="player.steam_profile_url"
+                            placeholder="https://steamcommunity.com/..."
+                            :aria-label="$t('pages.verify.form.known_players.steam_profile_url')"
+                          />
+                        </InputGroup>
+                      </div>
+                    </div>
+
+                    <Button
+                      v-if="form.known_players.length < 3"
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      class="self-start"
+                      @click="addKnownPlayer"
+                    >
+                      {{ $t("pages.verify.form.known_players.add_another") }}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -319,7 +353,6 @@ useHead({
 <script lang="ts">
 import { ChevronsUpDown, Check } from "lucide-vue-next";
 import { getAllCountries } from "countries-and-timezones";
-import { generateMutation } from "~/graphql/graphqlGen";
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
 import {
@@ -365,6 +398,25 @@ const FOUND_VIA_OPTIONS = [
   "steam",
   "other",
 ] as const;
+
+// Community references: up to 3 repeatable known-player rows, stored in
+// verification_application_known_players (not numbered parent columns) --
+// see hasura/migrations/default/*_create_table_verification_application_
+// known_players in api-deafcs for the child table and its sort_order
+// CHECK/UNIQUE-based max-3 enforcement at the database level.
+const MAX_KNOWN_PLAYERS = 3;
+
+// Raw GraphQL text, not the Zeus object-selector builder -- the
+// known_players array relationship/table postdate the last Zeus codegen
+// run against a live Hasura schema, same reason MY_APPLICATION_STATUS_QUERY
+// above already uses raw gql.
+const INSERT_APPLICATION_MUTATION = gql`
+  mutation InsertVerificationApplication($object: verification_applications_insert_input!) {
+    insert_verification_applications_one(object: $object) {
+      id
+    }
+  }
+`;
 
 // Compact selectable-pill styling for the two RadioGroups above: same
 // dimensions/typography as buttonVariants' size "sm", outline by default,
@@ -472,8 +524,15 @@ export default {
         found_via: "" as string,
         found_via_other: "" as string,
         knows_deaf_player: null as boolean | null,
-        deaf_player_nickname: "" as string,
-        deaf_player_steam_url: "" as string,
+        // Player 1 starts fully empty and visible whenever the editor
+        // renders -- min 0 completed references is allowed even with YES
+        // selected, this row just doesn't have to be filled in. Preserved
+        // across a YES -> NO -> YES toggle rather than reset, so draft
+        // input isn't silently lost.
+        known_players: [{ nickname: "", steam_profile_url: "" }] as Array<{
+          nickname: string;
+          steam_profile_url: string;
+        }>,
         social_instagram_url: "" as string,
         social_facebook_url: "" as string,
         social_vk_url: "" as string,
@@ -512,6 +571,21 @@ export default {
     },
   },
   methods: {
+    // Capped at MAX_KNOWN_PLAYERS -- the "+ Add another player" control
+    // itself is v-if-hidden once the array reaches that length, this guard
+    // just keeps the method safe to call from anywhere else too.
+    addKnownPlayer() {
+      if (this.form.known_players.length < MAX_KNOWN_PLAYERS) {
+        this.form.known_players.push({ nickname: "", steam_profile_url: "" });
+      }
+    },
+    // Player 1 (index 0) has no Remove control in the template and is never
+    // removed here either, so the list can never drop below one visible row.
+    removeKnownPlayer(index: number) {
+      if (index > 0) {
+        this.form.known_players.splice(index, 1);
+      }
+    },
     async fetchStatus() {
       this.loading = true;
       try {
@@ -551,9 +625,15 @@ export default {
     // leaving either blank is, and always was, accepted).
     invalidOptionalFields(): string[] {
       const invalid: string[] = [];
-      const steamUrl = this.form.deaf_player_steam_url.trim();
-      if (steamUrl && !isValidSteamProfileUrl(steamUrl)) {
-        invalid.push("deaf_player_steam_url");
+      // Every known-player row's Steam URL is independently optional --
+      // blank never blocks, and a single malformed row is enough to report
+      // once (no per-row duplicate messages).
+      const hasInvalidKnownPlayerSteamUrl = this.form.known_players.some((player) => {
+        const steamUrl = player.steam_profile_url.trim();
+        return steamUrl && !isValidSteamProfileUrl(steamUrl);
+      });
+      if (hasInvalidKnownPlayerSteamUrl) {
+        invalid.push("known_players_steam_url");
       }
       const instagram = this.form.social_instagram_url.trim();
       if (instagram && !isValidInstagramHandle(instagram)) {
@@ -605,50 +685,57 @@ export default {
       const instagramTrimmed = this.form.social_instagram_url.trim();
       const vkTrimmed = this.form.social_vk_url.trim();
 
+      // Only non-empty rows are sent, re-numbered 1..N -- Player 1 left
+      // fully blank (or the whole list, when knows_deaf_player is No) is a
+      // valid submission with zero known_players rows, not an error.
+      const knownPlayersData = this.form.knows_deaf_player
+        ? this.form.known_players
+            .map((player) => ({
+              nickname: player.nickname?.trim() || null,
+              steam_profile_url: player.steam_profile_url?.trim() || null,
+            }))
+            .filter((player) => player.nickname || player.steam_profile_url)
+            .slice(0, MAX_KNOWN_PLAYERS)
+            .map((player, index) => ({ ...player, sort_order: index + 1 }))
+        : [];
+
       this.submitting = true;
       try {
         await (this.$apollo as any).mutate({
-          mutation: generateMutation(
-            {
-              insert_verification_applications_one: [
-                {
-                  object: {
-                    is_deaf: this.form.is_deaf,
-                    country: this.form.country,
-                    found_via:
-                      this.form.found_via === "other"
-                        ? this.form.found_via_other.trim()
-                        : this.form.found_via || null,
-                    knows_deaf_player: this.form.knows_deaf_player ?? false,
-                    deaf_player_nickname: this.form.knows_deaf_player
-                      ? this.form.deaf_player_nickname?.trim() || null
-                      : null,
-                    deaf_player_steam_url: this.form.knows_deaf_player
-                      ? this.form.deaf_player_steam_url?.trim() || null
-                      : null,
-                    // Normalized to real clickable URLs -- the admin detail
-                    // page renders these as a raw <a :href>, so a bare
-                    // "@username" or "id123456" stored as-is would link
-                    // nowhere useful there.
-                    social_instagram_url: instagramTrimmed
-                      ? normalizeInstagramHandle(instagramTrimmed)
-                      : null,
-                    social_facebook_url: this.form.social_facebook_url?.trim() || null,
-                    social_vk_url: vkTrimmed ? normalizeVkValue(vkTrimmed) : null,
-                    additional_info: this.form.additional_info?.trim() || null,
-                    // The actual stored value is server-controlled, not
-                    // this one: hasura/triggers/verification_applications.sql
-                    // overwrites it with now() on every insert and rejects
-                    // the insert outright if it arrives null. This is just
-                    // the client's signal that the (required, UI-blocked)
-                    // checkbox was checked.
-                    account_declaration_accepted_at: new Date().toISOString(),
-                  },
-                },
-                { id: true },
-              ],
-            } as any,
-          ),
+          mutation: INSERT_APPLICATION_MUTATION,
+          variables: {
+            object: {
+              is_deaf: this.form.is_deaf,
+              country: this.form.country,
+              found_via:
+                this.form.found_via === "other"
+                  ? this.form.found_via_other.trim()
+                  : this.form.found_via || null,
+              knows_deaf_player: this.form.knows_deaf_player ?? false,
+              // Nested insert: known_players rows are created in the same
+              // transaction as the application itself, so a failed parent
+              // insert (e.g. a missing account declaration) can never leave
+              // orphaned reference rows behind.
+              known_players: { data: knownPlayersData },
+              // Normalized to real clickable URLs -- the admin detail
+              // page renders these as a raw <a :href>, so a bare
+              // "@username" or "id123456" stored as-is would link
+              // nowhere useful there.
+              social_instagram_url: instagramTrimmed
+                ? normalizeInstagramHandle(instagramTrimmed)
+                : null,
+              social_facebook_url: this.form.social_facebook_url?.trim() || null,
+              social_vk_url: vkTrimmed ? normalizeVkValue(vkTrimmed) : null,
+              additional_info: this.form.additional_info?.trim() || null,
+              // The actual stored value is server-controlled, not
+              // this one: hasura/triggers/verification_applications.sql
+              // overwrites it with now() on every insert and rejects
+              // the insert outright if it arrives null. This is just
+              // the client's signal that the (required, UI-blocked)
+              // checkbox was checked.
+              account_declaration_accepted_at: new Date().toISOString(),
+            },
+          },
         });
         // Confirmation only -- not the status/reply thread. See the
         // comment on the top-level Card v-else-if above.
