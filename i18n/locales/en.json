@@ -2859,6 +2859,23 @@
         "submitted": "Submitted"
       }
     },
+    "terms_acceptances": {
+      "title": "Terms Acceptances",
+      "search_placeholder": "Search by name or Steam ID",
+      "empty": "No registered players found.",
+      "columns": {
+        "player": "Player",
+        "steam_id": "Steam ID",
+        "status": "Status",
+        "version": "Terms Version",
+        "accepted_at": "Accepted At"
+      },
+      "status": {
+        "all": "All",
+        "accepted": "Accepted",
+        "not_accepted": "Not accepted"
+      }
+    },
     "matches": {
       "title": "Matches",
       "create": "Create Match",
@@ -4453,6 +4470,7 @@
         "manage_matches": "Manage Matches",
         "verification_applications": "Manage Application",
         "manage_tournaments": "Manage Tournaments",
+        "terms_acceptances": "Terms Acceptances",
         "manage_league": "Manage League",
         "stream_deck": "Stream Deck",
         "manage_events": "Manage Events",
@@ -4520,6 +4538,7 @@
         "manage_matches": "Manage Matches",
         "verification_applications": "Review verification applications",
         "manage_tournaments": "Manage Tournaments",
+        "terms_acceptances": "Review player Terms acceptances",
         "manage_league": "Manage League",
         "search_players": "Search Players",
         "leagues": "League",

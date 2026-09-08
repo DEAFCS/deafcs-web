@@ -578,6 +578,16 @@ export const useApplicationSettingsStore = defineStore(
       return settings.value.find((s) => s.name === "public.brand_name")?.value;
     });
 
+    // Canonical current Terms version (see TermsService.SETTING_NAME in
+    // api-deafcs) -- never hardcode this, it changes whenever an admin bumps
+    // the Terms.
+    const currentTermsVersion = computed(() => {
+      return (
+        settings.value.find((s) => s.name === "public.terms_version")
+          ?.value ?? null
+      );
+    });
+
     const logoUrl = computed(() => {
       return settings.value.find((s) => s.name === "public.logo_url")?.value;
     });
@@ -633,6 +643,7 @@ export const useApplicationSettingsStore = defineStore(
 
     return {
       settings,
+      currentTermsVersion,
       availableRegions,
       maxAcceptableLatency,
       matchCreateRole,

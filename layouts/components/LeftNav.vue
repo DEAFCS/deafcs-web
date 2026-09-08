@@ -30,6 +30,7 @@ import {
   Award,
   Info,
   UserCheck,
+  FileCheck2,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -905,6 +906,26 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   <Badge size="sm" v-if="managingTournamentsCount > 0">
                     {{ managingTournamentsCount }}
                   </Badge>
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem
+              v-if="isAdmin"
+              :tooltip="$t('layouts.app_nav.tooltips.terms_acceptances')"
+            >
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.terms_acceptances')"
+              >
+                <NuxtLink
+                  :to="{ name: 'terms-acceptances' }"
+                  :class="{
+                    'router-link-active': isRouteActive('terms-acceptances'),
+                  }"
+                >
+                  <FileCheck2 />
+                  {{ $t("layouts.app_nav.administration.terms_acceptances") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
