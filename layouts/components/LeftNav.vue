@@ -1376,7 +1376,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               :tooltip="$t('layouts.app_nav.tooltips.report_issue')"
             >
               <a
-                :href="githubUrl"
+                href="https://github.com/DEAFCS/deafcs-web/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-muted-foreground transition-colors hover:text-foreground"

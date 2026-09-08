@@ -230,22 +230,6 @@ const whyDeafcsFeatures = [
               <ArrowRight aria-hidden="true" />
             </a>
           </Button>
-          <Button
-            as-child
-            variant="outline"
-            size="lg"
-            class="min-h-11 w-full border-border/80 bg-background/40 hover:border-[hsl(var(--tac-amber)/0.5)] sm:w-auto"
-          >
-            <a
-              :href="loginLinks.discordInvite"
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Join the DEAFCS Discord community"
-            >
-              Join Discord
-              <ArrowRight aria-hidden="true" />
-            </a>
-          </Button>
         </div>
       </div>
     </section>
