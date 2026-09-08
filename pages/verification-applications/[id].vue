@@ -146,7 +146,6 @@ useHead({
           <dd>
             <template v-if="application.account_declaration_accepted_at">
               {{ $t("pages.verification_applications.declared") }}
-              <TimeAgo :date="application.account_declaration_accepted_at" class="ml-1" />
             </template>
             <template v-else>{{ $t("pages.verification_applications.not_declared") }}</template>
           </dd>

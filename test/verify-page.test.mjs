@@ -541,6 +541,30 @@ test("admin detail page shows account declaration status distinctly from submitt
   assert.equal(enLocale.pages.verification_applications.not_declared, "Not declared");
 });
 
+test("account declaration row shows only the Declared/Not declared label, no redundant relative-time -- Submitted keeps its own TimeAgo", () => {
+  const declarationBlock = detailSource.slice(
+    detailSource.indexOf('$t("pages.verification_applications.account_declaration")'),
+    detailSource.indexOf('$t("pages.verification_applications.columns.submitted")'),
+  );
+  assert.match(declarationBlock, /pages\.verification_applications\.declared/);
+  assert.match(declarationBlock, /pages\.verification_applications\.not_declared/);
+  // No TimeAgo rendered next to the declaration status -- that's the
+  // redundant "Declared [icon] 14 minutes ago" this change removes. The
+  // underlying account_declaration_accepted_at data/query/v-if condition
+  // is untouched; only the TimeAgo display was dropped.
+  assert.doesNotMatch(declarationBlock, /<TimeAgo/);
+  assert.match(
+    declarationBlock,
+    /v-if="application\.account_declaration_accepted_at"/,
+  );
+
+  const submittedBlock = detailSource.slice(
+    detailSource.indexOf('$t("pages.verification_applications.columns.submitted")'),
+    detailSource.indexOf('$t("pages.verification_applications.columns.submitted")') + 200,
+  );
+  assert.match(submittedBlock, /<TimeAgo :date="application\.created_at" \/>/);
+});
+
 test("admin approve/reject/delete behavior is untouched", () => {
   assert.match(detailSource, /approveVerificationApplication/);
   assert.match(detailSource, /rejectVerificationApplication/);
