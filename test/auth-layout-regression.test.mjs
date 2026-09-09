@@ -96,6 +96,26 @@ test("auth initialization has one middleware owner and navigation does not force
   assert.match(logout, /await navigateTo\("\/", \{ replace: true \}\)/);
 });
 
+test("all logged-in navigation variants show My Support Requests", () => {
+  const guestTopNavStart = topNav.indexOf("<template v-else>");
+  const loggedInTopNav = topNav.slice(
+    topNav.indexOf('<template v-if="me">'),
+    guestTopNavStart,
+  );
+  const guestTopNav = topNav.slice(guestTopNavStart);
+
+  assert.match(
+    loggedInTopNav,
+    /<NuxtLink to="\/support"[^>]*>[\s\S]*My Support Requests/,
+  );
+  assert.doesNotMatch(loggedInTopNav, /isAdmin|administrator/);
+  assert.doesNotMatch(guestTopNav, /My Support Requests|to="\/support"/);
+  assert.match(
+    leftNav,
+    /<NuxtLink[\s\S]*?to="\/support"[\s\S]*?My Support Requests/,
+  );
+});
+
 test("the global preloader only fades once after the app mounts", () => {
   assert.match(preloader, /app\.hook\("app:mounted"/);
   assert.equal((preloader.match(/document\.body\.classList\.add/g) ?? []).length, 1);

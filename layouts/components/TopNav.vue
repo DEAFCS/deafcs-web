@@ -30,6 +30,7 @@ import {
   ShieldCheck,
   FileText,
   MessagesSquare,
+  LifeBuoy,
 } from "lucide-vue-next";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
@@ -1000,6 +1001,15 @@ const loginArrowClasses =
                   >
                     <Settings class="h-4 w-4" />
                     {{ $t("layouts.app_nav.profile.my_account") }}
+                  </NuxtLink>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  class="flex gap-2 p-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-topnav-accent focus:bg-[hsl(var(--tac-amber)/0.08)]"
+                  as-child
+                >
+                  <NuxtLink to="/support" class="flex items-center gap-2">
+                    <LifeBuoy class="h-4 w-4" />
+                    My Support Requests
                   </NuxtLink>
                 </DropdownMenuItem>
               </DropdownMenuGroup>
