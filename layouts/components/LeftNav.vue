@@ -31,6 +31,7 @@ import {
   Info,
   UserCheck,
   FileCheck2,
+  LifeBuoy,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
@@ -339,10 +340,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               group.name || $t("layouts.app_nav.plugins.title")
             }}</SidebarGroupLabel>
             <SidebarMenu>
-              <SidebarMenuItem
-                v-for="plugin in group.plugins"
-                :key="plugin.id"
-              >
+              <SidebarMenuItem v-for="plugin in group.plugins" :key="plugin.id">
                 <SidebarMenuButton as-child :tooltip="plugin.title">
                   <NuxtLink
                     :to="`/apps/${plugin.slug}`"
@@ -529,7 +527,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             >
               <SidebarMenuItem>
                 <CollapsibleTrigger as-child>
-                  <SidebarMenuButton :tooltip="$t('layouts.app_nav.tooltips.info')">
+                  <SidebarMenuButton
+                    :tooltip="$t('layouts.app_nav.tooltips.info')"
+                  >
                     <Info />
                     <span>{{ $t("layouts.app_nav.administration.info") }}</span>
                     <ChevronRight
@@ -585,7 +585,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                             'router-link-active': $route.path === '/contact',
                           }"
                         >
-                          {{ $t("layouts.app_nav.administration.info_contact") }}
+                          {{
+                            $t("layouts.app_nav.administration.info_contact")
+                          }}
                         </NuxtLink>
                       </SidebarMenuSubButton>
                     </SidebarMenuSubItem>
@@ -605,7 +607,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                           }"
                         >
                           {{
-                            $t("layouts.app_nav.administration.info_general_rules")
+                            $t(
+                              "layouts.app_nav.administration.info_general_rules",
+                            )
                           }}
                         </NuxtLink>
                       </SidebarMenuSubButton>
@@ -672,7 +676,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                           }"
                         >
                           {{
-                            $t("layouts.app_nav.administration.info_account_data")
+                            $t(
+                              "layouts.app_nav.administration.info_account_data",
+                            )
                           }}
                         </NuxtLink>
                       </SidebarMenuSubButton>
@@ -768,7 +774,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                     <DropdownMenuItem class="flex gap-2" as-child>
                       <NuxtLink to="/general-rules">
                         {{
-                          $t("layouts.app_nav.administration.info_general_rules")
+                          $t(
+                            "layouts.app_nav.administration.info_general_rules",
+                          )
                         }}
                       </NuxtLink>
                     </DropdownMenuItem>
@@ -869,20 +877,44 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             </SidebarMenuItem>
             <SidebarMenuItem
               v-if="isAdmin"
-              :tooltip="$t('layouts.app_nav.tooltips.verification_applications')"
+              :tooltip="
+                $t('layouts.app_nav.tooltips.verification_applications')
+              "
             >
               <SidebarMenuButton
                 as-child
-                :tooltip="$t('layouts.app_nav.tooltips.verification_applications')"
+                :tooltip="
+                  $t('layouts.app_nav.tooltips.verification_applications')
+                "
               >
                 <NuxtLink
                   :to="{ name: 'verification-applications' }"
                   :class="{
-                    'router-link-active': isRouteActive('verification-applications'),
+                    'router-link-active': isRouteActive(
+                      'verification-applications',
+                    ),
                   }"
                 >
                   <UserCheck />
-                  {{ $t("layouts.app_nav.administration.verification_applications") }}
+                  {{
+                    $t(
+                      "layouts.app_nav.administration.verification_applications",
+                    )
+                  }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem v-if="isAdmin" tooltip="Review support requests">
+              <SidebarMenuButton as-child tooltip="Review support requests">
+                <NuxtLink
+                  :to="{ name: 'support-requests' }"
+                  :class="{
+                    'router-link-active': isRouteActive('support-requests'),
+                  }"
+                >
+                  <LifeBuoy />
+                  Support Requests
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -1461,6 +1493,18 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                     >
                       <Settings class="size-4" />
                       {{ $t("layouts.app_nav.profile.my_account") }}
+                    </NuxtLink>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem class="flex gap-2" as-child>
+                    <NuxtLink
+                      to="/support"
+                      :class="{
+                        'router-link-active': isRouteActive('support'),
+                      }"
+                    >
+                      <LifeBuoy class="size-4" />
+                      My Support Requests
                     </NuxtLink>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>

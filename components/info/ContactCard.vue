@@ -2,6 +2,7 @@
 import type { Component } from "vue";
 import { Card, CardContent } from "~/components/ui/card";
 import { Badge } from "~/components/ui/badge";
+import { Button } from "~/components/ui/button";
 
 // Shared shape for the Contact page's routing cards: an icon + purpose text,
 // plus either an internal link (via the default slot, when a real
@@ -13,6 +14,9 @@ defineProps<{
   description?: string;
   status?: string;
   highlight?: boolean;
+  to?: string;
+  href?: string;
+  action?: string;
 }>();
 </script>
 
@@ -38,10 +42,7 @@ defineProps<{
         }}</span>
       </div>
 
-      <p
-        v-if="description"
-        class="text-sm leading-relaxed text-foreground/90"
-      >
+      <p v-if="description" class="text-sm leading-relaxed text-foreground/90">
         {{ description }}
       </p>
 
@@ -50,6 +51,13 @@ defineProps<{
       <Badge v-if="status" variant="secondary" class="w-fit font-normal">
         {{ status }}
       </Badge>
+
+      <Button v-if="to" as-child variant="outline" class="w-fit">
+        <NuxtLink :to="to">{{ action }}</NuxtLink>
+      </Button>
+      <Button v-else-if="href" as-child variant="outline" class="w-fit">
+        <a :href="href">{{ action }}</a>
+      </Button>
     </CardContent>
   </Card>
 </template>
