@@ -59,6 +59,19 @@ const wrapperClass = computed(() =>
     : "mb-3 p-3 rounded-md border border-border bg-card/40 relative",
 );
 
+// Support-request notifications (SupportRequestSubmitted / *PlayerReply /
+// *AdminReply) carry the request id in entity_id and read as a plain
+// title + subject line -- no embedded link. Per request, the title
+// itself is the click target here (both admin and requester land on the
+// same /support/{id} thread page).
+const titleLink = computed(() => {
+  const { type, entity_id } = props.notification;
+  if (type?.startsWith("SupportRequest") && entity_id) {
+    return `/support/${entity_id}`;
+  }
+  return null;
+});
+
 const deleting = ref(false);
 const dismissed = ref(false);
 const actioningIndex = ref<number | null>(null);
@@ -123,7 +136,18 @@ onBeforeUnmount(() => {
       <Trash2 class="h-4 w-4" />
       <span class="sr-only">{{ $t("common.delete") }}</span>
     </Button>
+    <NuxtLink
+      v-if="titleLink"
+      :to="titleLink"
+      :class="[
+        'block text-lg font-semibold mb-2 transition-colors hover:text-[hsl(var(--tac-amber))]',
+        notification.is_read ? 'text-muted-foreground' : '',
+      ]"
+    >
+      {{ notification.title }}
+    </NuxtLink>
     <h3
+      v-else
       :class="[
         'text-lg font-semibold mb-2',
         notification.is_read ? 'text-muted-foreground' : '',
