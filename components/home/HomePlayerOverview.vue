@@ -17,8 +17,6 @@ import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview
 import HomeLiveMatchesPreview from "~/components/home/HomeLiveMatchesPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import { Button } from "~/components/ui/button";
-import getGraphqlClient from "~/graphql/getGraphqlClient";
-import { generateQuery } from "~/graphql/graphqlGen";
 import {
   tacticalCardHeadingClasses,
   tacticalSectionLabelClasses,
@@ -101,16 +99,14 @@ async function loadTotalPlayers() {
   }
 
   try {
-    const { data } = await getGraphqlClient().query({
-      query: generateQuery({
-        players_aggregate: [
-          { where: { last_sign_in_at: { _is_null: false } } },
-          { aggregate: { count: true } },
-        ],
-      }),
-      fetchPolicy: "network-only",
+    const response = await $fetch<{ found?: number }>("/api/players-search", {
+      method: "POST",
+      body: {
+        registeredOnly: true,
+        per_page: 0,
+      },
     });
-    const count = data?.players_aggregate?.aggregate?.count;
+    const count = response?.found;
     totalPlayers.value = typeof count === "number" ? count : null;
   } catch (error) {
     console.error("Failed to load homepage player count", error);

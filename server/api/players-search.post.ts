@@ -159,7 +159,9 @@ export default defineEventHandler(async (event) => {
     infix: ["fallback", "off"],
     ...(filterBy.length > 0 ? { filter_by: filterBy.join(" && ") } : {}),
     ...(body.page ? { page: body.page } : {}),
-    ...(body.per_page ? { per_page: body.per_page } : {}),
+    ...(body.per_page !== undefined && body.per_page !== null
+      ? { per_page: body.per_page }
+      : {}),
   };
 
   const results = await client

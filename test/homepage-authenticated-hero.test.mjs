@@ -18,6 +18,10 @@ const socket = await readFile(
   new URL("../web-sockets/Socket.ts", import.meta.url),
   "utf8",
 );
+const playersSearchApi = await readFile(
+  new URL("../server/api/players-search.post.ts", import.meta.url),
+  "utf8",
+);
 
 test("authenticated homepage hero uses the real player nickname and bundled banner", async () => {
   assert.match(playerOverview, /Welcome back, \{\{ playerName \}\}/);
@@ -30,13 +34,21 @@ test("authenticated homepage hero uses the real player nickname and bundled bann
   );
 });
 
-test("total players comes from a Hasura aggregate count without downloading player rows", () => {
+test("total players uses the supported registered-player count without returning player rows", () => {
   assert.match(
     playerOverview,
-    /players_aggregate:\s*\[[\s\S]*last_sign_in_at:\s*\{ _is_null: false \}[\s\S]*aggregate:\s*\{ count: true \}/,
+    /\$fetch<\{ found\?: number \}>\("\/api\/players-search",\s*\{[\s\S]*method: "POST"[\s\S]*registeredOnly: true[\s\S]*per_page: 0/,
   );
-  assert.match(playerOverview, /fetchPolicy: "network-only"/);
-  assert.doesNotMatch(playerOverview, /data\?\.players\?\.length/);
+  assert.match(playerOverview, /const count = response\?\.found/);
+  assert.doesNotMatch(playerOverview, /players_aggregate|getGraphqlClient|generateQuery/);
+  assert.match(
+    playersSearchApi,
+    /body\.registeredOnly[\s\S]*filterBy\.push\(`is_registered:=true`\)/,
+  );
+  assert.match(
+    playersSearchApi,
+    /body\.per_page !== undefined && body\.per_page !== null[\s\S]*\? \{ per_page: body\.per_page \}/,
+  );
 });
 
 test("online now reuses the established websocket presence snapshot", () => {
