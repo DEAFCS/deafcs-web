@@ -126,7 +126,7 @@ onMounted(() => {
   <main class="min-w-0 space-y-8 pb-12">
     <section
       aria-labelledby="authenticated-home-hero-title"
-      class="homepage-entry relative isolate min-h-[23rem] overflow-hidden rounded-xl border border-border/70 bg-card/45 shadow-[0_18px_60px_hsl(0_0%_0%/0.22)] sm:min-h-[24rem]"
+      class="homepage-entry relative isolate min-h-[23rem] overflow-hidden rounded-xl border border-border/70 bg-card/45 sm:min-h-[24rem]"
     >
       <NuxtImg
         src="/img/home/deafcs-banner.png"
