@@ -6,7 +6,6 @@ import {
   Medal,
   Play,
   Trophy,
-  UserRound,
   UsersRound,
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
@@ -16,7 +15,6 @@ import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeLiveMatchesPreview from "~/components/home/HomeLiveMatchesPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
-import { Button } from "~/components/ui/button";
 import {
   tacticalCardHeadingClasses,
   tacticalSectionLabelClasses,
@@ -76,7 +74,6 @@ const featureCardInteractiveClasses =
 const authStore = useAuthStore();
 const matchmakingStore = useMatchmakingStore();
 const player = computed(() => props.previewPlayer ?? authStore.me);
-const steamId = computed(() => String(player.value?.steam_id ?? ""));
 const playerName = computed(() => player.value?.name?.trim() || "");
 const totalPlayers = ref<number | null>(null);
 const onlinePlayers = computed<number | null>(() =>
@@ -84,10 +81,6 @@ const onlinePlayers = computed<number | null>(() =>
     ? matchmakingStore.onlinePlayerSteamIds.length
     : null,
 );
-const profilePath = computed(() => ({
-  name: "players-id",
-  params: { id: steamId.value },
-}));
 
 function formatStat(value: number | null) {
   return value === null ? "—" : new Intl.NumberFormat().format(value);
@@ -158,16 +151,6 @@ onMounted(() => {
             <template v-if="playerName">Welcome back, {{ playerName }}</template>
             <template v-else>Welcome back</template>
           </p>
-          <Button
-            as-child
-            variant="outline"
-            class="h-9 shrink-0 gap-2 border-border/80 bg-background/55 px-3 backdrop-blur transition-[border-color,color,background-color,transform] hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))] active:scale-[0.98]"
-          >
-            <NuxtLink :to="profilePath" aria-label="View my profile">
-              <UserRound class="size-4" aria-hidden="true" />
-              <span class="hidden sm:inline">MY STATS</span>
-            </NuxtLink>
-          </Button>
         </div>
 
         <div class="mt-7">

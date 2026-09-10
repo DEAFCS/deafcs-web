@@ -498,10 +498,10 @@ test("comingSoon state disables only League and cannot accidentally disable Play
   );
 });
 
-test('the profile header button reads "MY STATS", not "VIEW MY PROFILE", and its destination is unchanged', () => {
+test("the authenticated hero no longer shows a MY STATS / profile button", () => {
   assert.doesNotMatch(playerOverview, /VIEW MY PROFILE/);
-  assert.match(playerOverview, />MY STATS<\/span>/);
-  assert.match(playerOverview, /:to="profilePath"/);
+  assert.doesNotMatch(playerOverview, />MY STATS<\/span>/);
+  assert.doesNotMatch(playerOverview, /:to="profilePath"/);
 });
 
 // ---------------------------------------------------------------------------
