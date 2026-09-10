@@ -1,14 +1,24 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { ArrowRight, Medal, Play, Trophy, UserRound } from "lucide-vue-next";
+import { computed, onMounted, ref } from "vue";
+import {
+  Activity,
+  ArrowRight,
+  Medal,
+  Play,
+  Trophy,
+  UserRound,
+  UsersRound,
+} from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
+import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
 import HomeLatestNewsPreview from "~/components/home/HomeLatestNewsPreview.vue";
 import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview.vue";
 import HomeLiveMatchesPreview from "~/components/home/HomeLiveMatchesPreview.vue";
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
-import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import { Button } from "~/components/ui/button";
+import getGraphqlClient from "~/graphql/getGraphqlClient";
+import { generateQuery } from "~/graphql/graphqlGen";
 import {
   tacticalCardHeadingClasses,
   tacticalSectionLabelClasses,
@@ -66,43 +76,150 @@ const featureCardInteractiveClasses =
   "group/feature cursor-pointer transition-[border-color,background,box-shadow,transform] duration-200 hover:scale-[1.01] hover:border-[hsl(var(--tac-amber)/0.55)] hover:[background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,hsl(var(--tac-amber)/0.10)_100%)] hover:shadow-[0_0_24px_hsl(var(--tac-amber)/0.12)] active:scale-[0.995] focus-visible:border-[hsl(var(--tac-amber))] focus-visible:shadow-[0_0_0_2px_hsl(var(--tac-amber)/0.35)]";
 
 const authStore = useAuthStore();
+const matchmakingStore = useMatchmakingStore();
 const player = computed(() => props.previewPlayer ?? authStore.me);
 const steamId = computed(() => String(player.value?.steam_id ?? ""));
 const playerName = computed(() => player.value?.name?.trim() || "");
+const totalPlayers = ref<number | null>(null);
+const onlinePlayers = computed<number | null>(() =>
+  matchmakingStore.hasOnlinePlayerSnapshot
+    ? matchmakingStore.onlinePlayerSteamIds.length
+    : null,
+);
 const profilePath = computed(() => ({
   name: "players-id",
   params: { id: steamId.value },
 }));
+
+function formatStat(value: number | null) {
+  return value === null ? "—" : new Intl.NumberFormat().format(value);
+}
+
+async function loadTotalPlayers() {
+  if (props.previewPlayer) {
+    return;
+  }
+
+  try {
+    const { data } = await getGraphqlClient().query({
+      query: generateQuery({
+        players_aggregate: [
+          { where: { last_sign_in_at: { _is_null: false } } },
+          { aggregate: { count: true } },
+        ],
+      }),
+      fetchPolicy: "network-only",
+    });
+    const count = data?.players_aggregate?.aggregate?.count;
+    totalPlayers.value = typeof count === "number" ? count : null;
+  } catch (error) {
+    console.error("Failed to load homepage player count", error);
+  }
+}
+
+onMounted(() => {
+  void loadTotalPlayers();
+});
 </script>
 
 <template>
   <main class="min-w-0 space-y-8 pb-12">
-    <div class="homepage-entry space-y-8">
-      <TacticalPageHeader inline-actions>
-        <template #title>DEAFCS</template>
-        <template #actions>
+    <section
+      aria-labelledby="authenticated-home-hero-title"
+      class="homepage-entry relative isolate min-h-[23rem] overflow-hidden rounded-xl border border-border/70 bg-card/45 shadow-[0_18px_60px_hsl(0_0%_0%/0.22)] sm:min-h-[24rem]"
+    >
+      <NuxtImg
+        src="/img/home/deafcs-banner.png"
+        width="2160"
+        height="728"
+        sizes="100vw lg:78vw"
+        alt=""
+        class="home-auth-hero__art pointer-events-none absolute inset-y-0 right-0 h-full w-full object-cover object-[74%_center] opacity-50 sm:object-[78%_center] sm:opacity-65 lg:w-[78%] lg:object-right lg:opacity-95"
+        aria-hidden="true"
+      />
+      <div
+        class="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,hsl(var(--background)/0.98)_0%,hsl(var(--background)/0.9)_58%,hsl(var(--background)/0.4)_100%)] lg:bg-[linear-gradient(90deg,hsl(var(--background)/0.98)_0%,hsl(var(--background)/0.94)_38%,hsl(var(--background)/0.45)_66%,transparent_100%)]"
+        aria-hidden="true"
+      ></div>
+      <div
+        class="pointer-events-none absolute inset-0 opacity-30 [background-image:repeating-linear-gradient(135deg,transparent_0,transparent_15px,hsl(var(--muted-foreground)/0.035)_15px,hsl(var(--muted-foreground)/0.035)_16px)]"
+        aria-hidden="true"
+      ></div>
+      <span
+        class="pointer-events-none absolute left-3 top-3 h-5 w-5 border-l-2 border-t-2 border-[hsl(var(--tac-amber)/0.78)]"
+        aria-hidden="true"
+      ></span>
+      <span
+        class="pointer-events-none absolute bottom-3 right-3 h-5 w-5 border-b-2 border-r-2 border-[hsl(var(--tac-amber)/0.78)]"
+        aria-hidden="true"
+      ></span>
+
+      <div class="relative z-10 flex min-h-[23rem] max-w-2xl flex-col px-5 py-6 sm:min-h-[24rem] sm:px-8 sm:py-7 lg:px-10">
+        <div class="flex max-w-lg items-center justify-between gap-4">
+          <p
+            class="min-w-0 truncate font-mono text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] sm:text-xs"
+          >
+            <template v-if="playerName">Welcome back, {{ playerName }}</template>
+            <template v-else>Welcome back</template>
+          </p>
           <Button
             as-child
             variant="outline"
-            class="h-[clamp(1.75rem,4.2vw,3rem)] gap-2 bg-card/60 px-4 !py-0 backdrop-blur transition-[border-color,color,background-color,transform] hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))] active:scale-[0.98] max-sm:aspect-square max-sm:!px-0"
+            class="h-9 shrink-0 gap-2 border-border/80 bg-background/55 px-3 backdrop-blur transition-[border-color,color,background-color,transform] hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))] active:scale-[0.98]"
           >
             <NuxtLink :to="profilePath" aria-label="View my profile">
               <UserRound class="size-4" aria-hidden="true" />
               <span class="hidden sm:inline">MY STATS</span>
             </NuxtLink>
           </Button>
-        </template>
-      </TacticalPageHeader>
+        </div>
 
-      <header>
-        <h2 class="text-xl font-black tracking-tight sm:text-2xl">
-          <template v-if="playerName"
-            >Welcome back, {{ playerName }}</template
+        <div class="mt-7">
+          <h1
+            id="authenticated-home-hero-title"
+            class="text-[2.35rem] font-black uppercase leading-[0.9] tracking-[-0.045em] text-foreground sm:text-5xl lg:text-[3.55rem]"
           >
-          <template v-else>Welcome back</template>
-        </h2>
-      </header>
-    </div>
+            Compete.<br />
+            Connect.<br />
+            <span class="text-[hsl(var(--tac-amber))]">Conquer.</span>
+          </h1>
+          <p class="mt-4 max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+            The home of competitive Counter-Strike for the deaf community.
+          </p>
+        </div>
+
+        <dl
+          aria-label="DEAFCS community statistics"
+          class="mt-auto grid w-full max-w-lg grid-cols-2 divide-x divide-border/70 overflow-hidden rounded-md border border-border/70 bg-background/60 shadow-[0_10px_30px_hsl(0_0%_0%/0.16)] backdrop-blur-md"
+        >
+          <div class="flex min-w-0 items-center gap-3 px-3 py-2.5 sm:px-4">
+            <UsersRound
+              class="size-5 shrink-0 text-[hsl(var(--tac-amber))]"
+              aria-hidden="true"
+            />
+            <div class="min-w-0">
+              <dd class="font-mono text-xl font-black tabular-nums text-foreground sm:text-2xl">
+                {{ formatStat(totalPlayers) }}
+              </dd>
+              <dt class="truncate text-[0.62rem] font-bold uppercase tracking-[0.13em] text-muted-foreground sm:text-[0.68rem]">
+                Total Players
+              </dt>
+            </div>
+          </div>
+          <div class="flex min-w-0 items-center gap-3 px-3 py-2.5 sm:px-4">
+            <Activity class="size-5 shrink-0 text-emerald-400" aria-hidden="true" />
+            <div class="min-w-0">
+              <dd class="font-mono text-xl font-black tabular-nums text-foreground sm:text-2xl">
+                {{ formatStat(onlinePlayers) }}
+              </dd>
+              <dt class="truncate text-[0.62rem] font-bold uppercase tracking-[0.13em] text-muted-foreground sm:text-[0.68rem]">
+                Online Now
+              </dt>
+            </div>
+          </div>
+        </dl>
+      </div>
+    </section>
 
     <section
       aria-label="Player overview"
@@ -291,3 +408,10 @@ const profilePath = computed(() => ({
     </section>
   </main>
 </template>
+
+<style scoped>
+.home-auth-hero__art {
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 20%, black 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 20%, black 100%);
+}
+</style>

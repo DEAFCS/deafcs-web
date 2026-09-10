@@ -413,7 +413,9 @@ socket.listen("matchmaking:region-stats", (data) => {
 });
 
 socket.listen("players-online", (onlinePlayerSteamIds) => {
-  useMatchmakingStore().onlinePlayerSteamIds = onlinePlayerSteamIds;
+  const matchmakingStore = useMatchmakingStore();
+  matchmakingStore.onlinePlayerSteamIds = onlinePlayerSteamIds;
+  matchmakingStore.hasOnlinePlayerSnapshot = true;
 });
 
 socket.listen("matchmaking:error", (data: { message: string }) => {

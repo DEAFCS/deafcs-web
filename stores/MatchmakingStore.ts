@@ -37,6 +37,7 @@ function safeParseLocalStorage<T>(key: string): T | null {
 export const useMatchmakingStore = defineStore("matchmaking", () => {
   const playersOnline = ref([]);
   const onlinePlayerSteamIds = ref<string[]>([]);
+  const hasOnlinePlayerSnapshot = ref(false);
 
   const joinedMatchmakingQueues = ref<{
     details?: {
@@ -713,6 +714,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     regionStats,
     playersOnline,
     onlinePlayerSteamIds,
+    hasOnlinePlayerSnapshot,
     joinedMatchmakingQueues,
 
     checkLatenies,

@@ -161,7 +161,7 @@ const whyDeafcsFeatures = [
 
 <template>
   <LoadingScreen
-    v-if="!authStore.hasCheckedSession"
+    v-if="!authStore.hasCheckedSession && !previewHomeState"
     class="min-h-[60vh]"
   />
 
