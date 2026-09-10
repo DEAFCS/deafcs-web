@@ -136,24 +136,20 @@ onBeforeUnmount(() => {
       <Trash2 class="h-4 w-4" />
       <span class="sr-only">{{ $t("common.delete") }}</span>
     </Button>
-    <NuxtLink
-      v-if="titleLink"
-      :to="titleLink"
-      :class="[
-        'block text-lg font-semibold mb-2 transition-colors hover:text-[hsl(var(--tac-amber))]',
-        notification.is_read ? 'text-muted-foreground' : '',
-      ]"
-    >
-      {{ notification.title }}
-    </NuxtLink>
     <h3
-      v-else
       :class="[
         'text-lg font-semibold mb-2',
         notification.is_read ? 'text-muted-foreground' : '',
       ]"
     >
-      {{ notification.title }}
+      <NuxtLink
+        v-if="titleLink"
+        :to="titleLink"
+        class="hover:text-[hsl(var(--tac-amber))] transition-colors"
+      >
+        {{ notification.title }}
+      </NuxtLink>
+      <template v-else>{{ notification.title }}</template>
     </h3>
 
     <template v-if="notification.type !== 'NameChangeRequest'">
