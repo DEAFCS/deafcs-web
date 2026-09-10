@@ -29,6 +29,7 @@ const SUPPORT_REQUEST_TYPES = new Set([
   "SupportRequestSubmitted",
   "SupportRequestPlayerReply",
   "SupportRequestAdminReply",
+  "SupportRequestClosed",
 ]);
 
 // Returns true if it handled the click (caller should not also try chat
