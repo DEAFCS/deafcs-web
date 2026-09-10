@@ -179,11 +179,11 @@ onMounted(() => {
             id="authenticated-home-hero-title"
             class="text-[2.35rem] font-black uppercase leading-[0.9] tracking-[-0.045em] text-foreground sm:text-5xl lg:text-[3.55rem]"
           >
+            Play.<br />
             Compete.<br />
-            Connect.<br />
-            <span class="text-[hsl(var(--tac-amber))]">Conquer.</span>
+            <span class="text-[hsl(var(--tac-amber))]">Together.</span>
           </h1>
-          <p class="mt-4 max-w-md text-sm leading-6 text-muted-foreground sm:text-base">
+          <p class="mb-4 mt-4 text-sm leading-6 text-muted-foreground sm:text-base">
             The home of competitive Counter-Strike for the deaf community.
           </p>
         </div>
