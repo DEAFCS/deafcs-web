@@ -21,6 +21,16 @@ const APPLICANT_FACING_VERIFICATION_TYPES = new Set([
   "VerificationApplicationReviewed",
 ]);
 
+// Support-request notifications (see api-deafcs support-requests.controller).
+// Both sides land on the same thread page -- /support/{id} renders the
+// admin view or the requester view off the viewer's role on its own -- so
+// unlike verification there's no direction split needed here.
+const SUPPORT_REQUEST_TYPES = new Set([
+  "SupportRequestSubmitted",
+  "SupportRequestPlayerReply",
+  "SupportRequestAdminReply",
+]);
+
 // Returns true if it handled the click (caller should not also try chat
 // routing), false if this notification type isn't one it knows about.
 async function routeNonChatNotification(
@@ -41,6 +51,11 @@ async function routeNonChatNotification(
     // the reply thread straight away, per explicit request -- the thread
     // is reached deliberately, via this notification).
     await navigateTo("/verify/status");
+    return true;
+  }
+
+  if (SUPPORT_REQUEST_TYPES.has(type) && entityId) {
+    await navigateTo(`/support/${entityId}`);
     return true;
   }
 
