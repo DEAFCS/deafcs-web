@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { ExternalLink } from "lucide-vue-next";
+import { NuxtImg } from "#components";
 import InfoPage from "~/components/info/InfoPage.vue";
 import TeamMemberCard from "~/components/info/TeamMemberCard.vue";
 import { Card, CardContent } from "~/components/ui/card";
@@ -140,7 +141,18 @@ const teamMembers = computed(() => [
         {{ $t("pages.info.about.partner.title") }}
       </span>
       <Card class="bg-card/20">
-        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
+        <CardContent
+          class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-6"
+        >
+          <div class="flex shrink-0 items-center justify-center sm:w-32">
+            <NuxtImg
+              src="/img/partners/8temporary-logo.png"
+              alt="8temporary"
+              width="200"
+              height="175"
+              class="h-16 w-auto object-contain sm:h-20"
+            />
+          </div>
           <div class="flex max-w-3xl flex-col gap-3">
             <i18n-t
               keypath="pages.info.about.partner.intro"
@@ -163,6 +175,58 @@ const teamMembers = computed(() => [
             <p class="text-sm leading-relaxed text-foreground/90">
               {{ $t("pages.info.about.partner.body") }}
             </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+
+    <div class="flex flex-col gap-3">
+      <span :class="tacticalSectionLabelClasses">
+        <span :class="tacticalSectionTickClasses" />
+        {{ $t("pages.info.about.platform.title") }}
+      </span>
+      <Card class="bg-card/20">
+        <CardContent
+          class="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-6"
+        >
+          <div
+            class="flex shrink-0 items-center justify-center overflow-hidden rounded-md sm:w-32"
+          >
+            <NuxtImg
+              src="/img/partners/5stack-logo.png"
+              alt="5Stack"
+              width="160"
+              height="160"
+              class="h-16 w-auto object-contain sm:h-20"
+            />
+          </div>
+          <div class="flex max-w-3xl flex-col gap-3">
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.platform.intro") }}
+            </p>
+            <p class="text-sm leading-relaxed text-foreground/90">
+              {{ $t("pages.info.about.platform.body") }}
+            </p>
+            <div class="flex flex-wrap items-center gap-4">
+              <a
+                href="https://5stack.gg/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 font-semibold text-[hsl(var(--tac-amber))] hover:underline"
+              >
+                {{ $t("pages.info.about.platform.link_label") }}
+                <ExternalLink class="h-3 w-3" />
+              </a>
+              <a
+                href="https://docs.5stack.gg/"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-1 text-xs text-muted-foreground hover:underline"
+              >
+                {{ $t("pages.info.about.platform.docs_label") }}
+                <ExternalLink class="h-3 w-3" />
+              </a>
+            </div>
           </div>
         </CardContent>
       </Card>

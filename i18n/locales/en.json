@@ -3528,10 +3528,17 @@
           }
         },
         "partner": {
-          "title": "Media & Accessibility Partner: 8rary",
+          "title": "Media & Accessibility Partner: 8temporary",
           "intro": "{link} is DEAFCS's media and accessibility partner, supporting livestream production, highlights, social media, and accessible video content.",
           "body": "Their work helps present DEAFCS matches, events, and community content to viewers in a professional and accessible way.",
-          "link_label": "8rary"
+          "link_label": "8temporary"
+        },
+        "platform": {
+          "title": "Platform Technology: 5Stack",
+          "intro": "5Stack provides much of the underlying competitive platform used by DEAFCS, including matchmaking, match and server management, tournaments, leagues, statistics, replays, highlights, and other core match systems.",
+          "body": "DEAFCS builds on and customizes this foundation for the deaf Counter-Strike community, with its own design, rules, verification, ranking systems, accessibility work, and community features.",
+          "link_label": "5Stack",
+          "docs_label": "5Stack Documentation"
         }
       },
       "faq": {
