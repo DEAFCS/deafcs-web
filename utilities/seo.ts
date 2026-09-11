@@ -1,8 +1,7 @@
 export const SITE_ORIGIN = "https://deafcs.net";
 export const SITE_NAME = "DEAFCS";
 export const HOMEPAGE_URL = `${SITE_ORIGIN}/`;
-export const HOMEPAGE_TITLE =
-  "DEAFCS — Competitive Counter-Strike for the Deaf Community";
+export const HOMEPAGE_TITLE = "DEAFCS | Counter-Strike for the Deaf Community";
 export const HOMEPAGE_DESCRIPTION =
   "DEAFCS is the home of competitive Counter-Strike for the deaf community, featuring Quick Play, tournaments, cups, leagues, player statistics, rankings, and match results.";
 export const SITE_LOGO_URL = `${SITE_ORIGIN}/branding/deafcs-logo.png`;

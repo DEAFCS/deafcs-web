@@ -34,7 +34,7 @@ test("shared homepage SEO constants use the canonical DEAFCS identity", () => {
   assert.equal(HOMEPAGE_URL, "https://deafcs.net/");
   assert.equal(
     HOMEPAGE_TITLE,
-    "DEAFCS — Competitive Counter-Strike for the Deaf Community",
+    "DEAFCS | Counter-Strike for the Deaf Community",
   );
   assert.equal(
     HOMEPAGE_DESCRIPTION,
