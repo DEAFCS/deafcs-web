@@ -12,7 +12,7 @@ defineProps<{
 
 <template>
   <div
-    class="relative aspect-video w-full overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.35)] bg-[linear-gradient(160deg,hsl(var(--card)/0.9)_0%,hsl(var(--background))_65%,hsl(var(--tac-amber)/0.06)_100%)] shadow-[0_0_28px_-10px_hsl(var(--tac-amber)/0.3)]"
+    class="relative aspect-video w-full overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.4)] bg-[linear-gradient(160deg,hsl(var(--card)/0.9)_0%,hsl(var(--background))_65%,hsl(var(--tac-amber)/0.06)_100%)] shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.25),0_0_44px_-8px_hsl(var(--tac-amber)/0.4)]"
   >
     <span
       class="pointer-events-none absolute left-3 top-3 h-5 w-5 border-l-2 border-t-2 border-[hsl(var(--tac-amber)/0.6)]"

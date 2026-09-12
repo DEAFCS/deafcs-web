@@ -5,19 +5,25 @@ import {
   Award,
   ArrowRight,
   BarChart3,
+  Cast,
+  Clapperboard,
+  Cpu,
   Gamepad2,
+  HardDrive,
   History,
   Layers,
   ListOrdered,
-  Map,
   Medal,
   Radio,
   Scale,
-  Shuffle,
-  Star,
+  Server,
   Swords,
+  TrendingUp,
   Trophy,
+  Tv,
   UsersRound,
+  Zap,
+  VolumeX,
 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import HomeShowcaseMediaFrame from "~/components/home/HomeShowcaseMediaFrame.vue";
@@ -26,22 +32,20 @@ import {
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 
-// Config-driven so future slides (Draft & Veto, Live Streams, Highlights,
-// 2D/3D visualization, Leagues, Awards) can be appended without touching the
-// layout. mediaSrc/mediaPoster are left unset until approved assets land in
-// public/img/home/showcase/ -- until then every slide falls back to the
-// placeholder rendered by HomeShowcaseMediaFrame.
+// Config-driven so future slides (Draft & Veto, 2D/3D visualization, Leagues)
+// can be appended without touching the layout. mediaSrc/mediaPoster are left
+// unset until approved assets land in public/img/home/showcase/ -- until then
+// every slide falls back to the placeholder rendered by HomeShowcaseMediaFrame.
 const showcaseSlides = [
   {
     key: "matchmaking",
     title: "Matchmaking",
     description:
-      "Play competitive Counter-Strike with fair and balanced matchmaking.",
+      "Queue solo or with your party and get into balanced matches faster.",
     features: [
-      { icon: Gamepad2, label: "Competitive, Wingman and Duel" },
-      { icon: Scale, label: "Balanced teams and ELO" },
-      { icon: UsersRound, label: "Party support" },
-      { icon: Shuffle, label: "Draft and open matches" },
+      { icon: Gamepad2, label: "Competitive, Wingman, and Duel" },
+      { icon: Scale, label: "Party queue and auto-balanced teams" },
+      { icon: Zap, label: "Fast ready-to-play flow" },
     ],
     cta: { label: "Explore matchmaking", to: "/play" },
     mediaIcon: Swords,
@@ -52,13 +56,11 @@ const showcaseSlides = [
   {
     key: "player-stats",
     title: "Player stats",
-    description:
-      "Track your performance, discover insights, and see how you improve over time.",
+    description: "Track your progress, match history, and performance over time.",
     features: [
-      { icon: BarChart3, label: "Detailed statistics" },
-      { icon: History, label: "Recent match history" },
-      { icon: Activity, label: "Performance trends" },
-      { icon: Map, label: "Map performance" },
+      { icon: BarChart3, label: "Detailed performance stats" },
+      { icon: History, label: "Match history and trends" },
+      { icon: TrendingUp, label: "Compare results and improve" },
     ],
     cta: { label: "Explore stats", to: "/players" },
     mediaIcon: BarChart3,
@@ -67,15 +69,44 @@ const showcaseSlides = [
     mediaPoster: undefined,
   },
   {
+    key: "watch",
+    title: "Watch",
+    description: "Follow DEAFCS through live coverage, highlights, and live results.",
+    features: [
+      { icon: Cast, label: "Live streaming" },
+      { icon: Clapperboard, label: "Match highlights" },
+      { icon: Radio, label: "Live score coverage" },
+    ],
+    cta: { label: "Watch live", to: "/watch" },
+    mediaIcon: Tv,
+    mediaType: "placeholder" as const,
+    mediaSrc: undefined,
+    mediaPoster: undefined,
+  },
+  {
+    key: "servers",
+    title: "Servers",
+    description: "Play on a system built for fair, visual-first competitive matches.",
+    features: [
+      { icon: Cpu, label: "Automated match system" },
+      { icon: VolumeX, label: "Sound-neutral game setup" },
+      { icon: HardDrive, label: "Quality game servers" },
+    ],
+    cta: { label: "Explore servers", to: "/public-servers" },
+    mediaIcon: Server,
+    mediaType: "placeholder" as const,
+    mediaSrc: undefined,
+    mediaPoster: undefined,
+  },
+  {
     key: "tournaments",
     title: "Tournaments",
     description:
-      "Join cups and tournaments, compete through stages, and fight for prizes and recognition.",
+      "Join cups and events with structured brackets and competitive progression.",
     features: [
+      { icon: UsersRound, label: "Community tournaments" },
       { icon: Layers, label: "Brackets and stages" },
-      { icon: Award, label: "Prize distribution" },
-      { icon: Radio, label: "Live match pages" },
-      { icon: ListOrdered, label: "Results and standings" },
+      { icon: ListOrdered, label: "Organized competitive play" },
     ],
     cta: { label: "Explore tournaments", to: "/tournaments" },
     mediaIcon: Trophy,
@@ -86,12 +117,11 @@ const showcaseSlides = [
   {
     key: "leaderboard",
     title: "Leaderboard",
-    description: "See the top players, compare rankings, and follow ELO progress.",
+    description: "See who is rising, track ELO, and compete for the top spots.",
     features: [
       { icon: ListOrdered, label: "Season rankings" },
       { icon: Activity, label: "ELO ladder" },
-      { icon: Star, label: "Top performers" },
-      { icon: Award, label: "Awards and more" },
+      { icon: Award, label: "Awards and recognition" },
     ],
     cta: { label: "View leaderboard", to: "/leaderboard" },
     mediaIcon: Medal,
@@ -101,7 +131,7 @@ const showcaseSlides = [
   },
 ];
 
-const ROTATION_MS = 3000;
+const ROTATION_MS = 5000;
 
 const activeIndex = ref(0);
 const activeSlide = computed(() => showcaseSlides[activeIndex.value]);
@@ -151,7 +181,7 @@ onBeforeUnmount(() => {
 <template>
   <section
     aria-labelledby="explore-showcase-title"
-    class="relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-10 sm:px-8 sm:py-12 lg:px-10"
+    class="relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-10 shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.1),0_0_60px_-18px_hsl(var(--tac-amber)/0.35)] sm:px-8 sm:py-12 lg:px-10"
     @mouseenter="pauseRotation"
     @mouseleave="resumeRotation"
   >
@@ -235,7 +265,7 @@ onBeforeUnmount(() => {
     </div>
 
     <nav
-      class="mt-8 flex items-center justify-center gap-2 lg:justify-start"
+      class="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
       aria-label="Showcase slides"
     >
       <button

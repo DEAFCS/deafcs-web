@@ -18,6 +18,10 @@ const playerOverview = await readFile(
   new URL("../components/home/HomePlayerOverview.vue", import.meta.url),
   "utf8",
 );
+const authMiddleware = await readFile(
+  new URL("../middleware/auth.global.ts", import.meta.url),
+  "utf8",
+);
 
 // ---------------------------------------------------------------------------
 // Guest-only placement: pages/index.vue only, above Why DEAFCS, and never in
@@ -71,9 +75,16 @@ test("the existing guest hero (Welcome to DEAFCS / Sign in with Steam) is untouc
 // Config-driven slides
 // ---------------------------------------------------------------------------
 
-test("showcaseSlides is a config-driven array with all four initial slides in order", () => {
+test("showcaseSlides is a config-driven array with all six slides in order, including the new Watch and Servers slides", () => {
   assert.match(showcase, /const showcaseSlides = \[/);
-  const order = ["matchmaking", "player-stats", "tournaments", "leaderboard"];
+  const order = [
+    "matchmaking",
+    "player-stats",
+    "watch",
+    "servers",
+    "tournaments",
+    "leaderboard",
+  ];
   let lastIndex = -1;
   for (const key of order) {
     const index = showcase.indexOf(`key: "${key}"`);
@@ -82,13 +93,44 @@ test("showcaseSlides is a config-driven array with all four initial slides in or
   }
   assert.match(showcase, /title: "Matchmaking",/);
   assert.match(showcase, /title: "Player stats",/);
+  assert.match(showcase, /title: "Watch",/);
+  assert.match(showcase, /title: "Servers",/);
   assert.match(showcase, /title: "Tournaments",/);
   assert.match(showcase, /title: "Leaderboard",/);
 });
 
-test("every slide has exactly one CTA pointing at an existing public route", () => {
+test("every slide's description uses the simplified, plain-English copy", () => {
+  assert.match(
+    showcase,
+    /"Queue solo or with your party and get into balanced matches faster\."/,
+  );
+  assert.match(
+    showcase,
+    /"Track your progress, match history, and performance over time\."/,
+  );
+  assert.match(
+    showcase,
+    /"Follow DEAFCS through live coverage, highlights, and live results\."/,
+  );
+  assert.match(
+    showcase,
+    /"Play on a system built for fair, visual-first competitive matches\."/,
+  );
+  assert.match(
+    showcase,
+    /"Join cups and events with structured brackets and competitive progression\."/,
+  );
+  assert.match(
+    showcase,
+    /"See who is rising, track ELO, and compete for the top spots\."/,
+  );
+});
+
+test("every slide has exactly one CTA pointing at an existing public route (confirmed against middleware/auth.global.ts's isPublicRoute allowlist)", () => {
   assert.match(showcase, /cta: \{ label: "Explore matchmaking", to: "\/play" \}/);
   assert.match(showcase, /cta: \{ label: "Explore stats", to: "\/players" \}/);
+  assert.match(showcase, /cta: \{ label: "Watch live", to: "\/watch" \}/);
+  assert.match(showcase, /cta: \{ label: "Explore servers", to: "\/public-servers" \}/);
   assert.match(
     showcase,
     /cta: \{ label: "Explore tournaments", to: "\/tournaments" \}/,
@@ -96,22 +138,27 @@ test("every slide has exactly one CTA pointing at an existing public route", () 
   assert.match(showcase, /cta: \{ label: "View leaderboard", to: "\/leaderboard" \}/);
 });
 
-test("every slide defines 4 feature points with an icon and label", () => {
+test("the two new CTA routes (/watch and /public-servers) are genuinely guest-accessible per the global auth middleware's allowlist", () => {
+  assert.match(authMiddleware, /"\/watch",/);
+  assert.match(authMiddleware, /"\/public-servers",/);
+});
+
+test("every slide defines 3 feature points with an icon and label", () => {
   const blocks = showcase.match(/features: \[([\s\S]*?)\n {4}\],/g) || [];
-  assert.equal(blocks.length, 4, "expected one features array per slide");
+  assert.equal(blocks.length, 6, "expected one features array per slide");
   for (const block of blocks) {
-    assert.equal((block.match(/label:/g) || []).length, 4);
-    assert.equal((block.match(/icon:/g) || []).length, 4);
+    assert.equal((block.match(/label:/g) || []).length, 3);
+    assert.equal((block.match(/icon:/g) || []).length, 3);
   }
 });
 
 // ---------------------------------------------------------------------------
-// Auto rotation: 3s interval, manual select restarts it, hover pauses/resumes,
+// Auto rotation: 5s interval, manual select restarts it, hover pauses/resumes,
 // timers cleaned up on unmount.
 // ---------------------------------------------------------------------------
 
-test("auto rotation advances every 3 seconds via a single named constant", () => {
-  assert.match(showcase, /const ROTATION_MS = 3000;/);
+test("auto rotation advances every 5 seconds via a single named constant", () => {
+  assert.match(showcase, /const ROTATION_MS = 5000;/);
   assert.match(showcase, /}, ROTATION_MS\);/);
 });
 
@@ -189,8 +236,8 @@ test("HomeShowcaseMediaFrame supports image, video, and placeholder media types 
 
 test("every slide currently uses the placeholder media type with no mediaSrc, so no broken image/video path can render", () => {
   const mediaBlocks = showcase.match(/mediaType: "placeholder" as const,/g) || [];
-  assert.equal(mediaBlocks.length, 4);
-  assert.equal((showcase.match(/mediaSrc: undefined,/g) || []).length, 4);
+  assert.equal(mediaBlocks.length, 6);
+  assert.equal((showcase.match(/mediaSrc: undefined,/g) || []).length, 6);
   assert.doesNotMatch(showcase, /mediaSrc:\s*"\/img\//);
 });
 
@@ -211,4 +258,38 @@ test("the media frame is wrapped in its own keyed Transition, matching the text 
   assert.match(mediaColumn, /mode="out-in"/);
   assert.match(mediaColumn, /:key="activeSlide\.key"/);
   assert.match(mediaColumn, /duration-300 motion-reduce:!duration-0/);
+});
+
+// ---------------------------------------------------------------------------
+// Styling: subtle orange outer glow on the section container and a stronger,
+// still-clean glow/ring on the media frame, echoing (not copying) the
+// matchmaking search/queue amber box-shadow language.
+// ---------------------------------------------------------------------------
+
+test("the showcase section has a subtle orange outer glow (dual-layer box-shadow: hairline ring + soft blur), not just a flat neutral border", () => {
+  const sectionTagStart = showcase.indexOf("<section");
+  const sectionOpenTag = showcase.slice(
+    sectionTagStart,
+    showcase.indexOf(">", sectionTagStart) + 1,
+  );
+  assert.match(
+    sectionOpenTag,
+    /shadow-\[0_0_0_1px_hsl\(var\(--tac-amber\)\/0\.1\),0_0_60px_-18px_hsl\(var\(--tac-amber\)\/0\.35\)\]/,
+  );
+});
+
+test("the media frame's border/glow is stronger than a flat border: hairline amber ring + wider soft glow, matching the matchmaking-confirm dual-layer shadow pattern", () => {
+  assert.match(
+    mediaFrame,
+    /border border-\[hsl\(var\(--tac-amber\)\/0\.4\)\]/,
+  );
+  assert.match(
+    mediaFrame,
+    /shadow-\[0_0_0_1px_hsl\(var\(--tac-amber\)\/0\.25\),0_0_44px_-8px_hsl\(var\(--tac-amber\)\/0\.4\)\]/,
+  );
+});
+
+test("neither glow uses an oversized/unbounded blur radius (still 'clean', not an exaggerated neon halo)", () => {
+  assert.doesNotMatch(showcase, /blur-3xl/);
+  assert.doesNotMatch(mediaFrame, /blur-3xl/);
 });
