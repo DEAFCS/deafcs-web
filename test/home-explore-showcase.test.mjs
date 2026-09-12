@@ -126,21 +126,33 @@ test("every slide's description uses the simplified, plain-English copy", () => 
   );
 });
 
-test("every slide has exactly one CTA pointing at an existing public route (confirmed against middleware/auth.global.ts's isPublicRoute allowlist)", () => {
+test("every slide except Servers has a CTA pointing at an existing public route (confirmed against middleware/auth.global.ts's isPublicRoute allowlist)", () => {
   assert.match(showcase, /cta: \{ label: "Explore matchmaking", to: "\/play" \}/);
   assert.match(showcase, /cta: \{ label: "Explore stats", to: "\/players" \}/);
   assert.match(showcase, /cta: \{ label: "Watch live", to: "\/watch" \}/);
-  assert.match(showcase, /cta: \{ label: "Explore servers", to: "\/public-servers" \}/);
   assert.match(
     showcase,
     /cta: \{ label: "Explore tournaments", to: "\/tournaments" \}/,
   );
   assert.match(showcase, /cta: \{ label: "View leaderboard", to: "\/leaderboard" \}/);
+
+  // Servers has no approved public destination to advertise yet, so it must
+  // not render a CTA button at all.
+  assert.doesNotMatch(showcase, /"Explore servers"/);
+  assert.doesNotMatch(showcase, /\/public-servers/);
 });
 
-test("the two new CTA routes (/watch and /public-servers) are genuinely guest-accessible per the global auth middleware's allowlist", () => {
+test("the Servers slide's cta field is explicitly undefined (not omitted/truthy), so the v-if=\"activeSlide.cta\" button never renders for it", () => {
+  const serversBlock = showcase.slice(
+    showcase.indexOf('key: "servers"'),
+    showcase.indexOf('key: "tournaments"'),
+  );
+  assert.match(serversBlock, /cta: undefined,/);
+  assert.equal((serversBlock.match(/label: "[^"]+", to: "/g) || []).length, 0);
+});
+
+test("the /watch CTA route is genuinely guest-accessible per the global auth middleware's allowlist", () => {
   assert.match(authMiddleware, /"\/watch",/);
-  assert.match(authMiddleware, /"\/public-servers",/);
 });
 
 test("every slide defines 3 feature points with an icon and label", () => {
@@ -199,7 +211,7 @@ test("prefers-reduced-motion disables the auto-rotation timer and the crossfade 
 // ---------------------------------------------------------------------------
 
 test("indicators are accessible buttons rendered below the two-column showcase, with active/inactive styling and a visible focus state", () => {
-  const gridIndex = showcase.indexOf('class="mt-8 grid min-w-0');
+  const gridIndex = showcase.indexOf('class="mt-4 grid min-w-0');
   const navIndex = showcase.indexOf('aria-label="Showcase slides"');
   assert.ok(gridIndex > -1 && navIndex > gridIndex);
 
@@ -266,16 +278,15 @@ test("the media frame is wrapped in its own keyed Transition, matching the text 
 // matchmaking search/queue amber box-shadow language.
 // ---------------------------------------------------------------------------
 
-test("the showcase section has a subtle orange outer glow (dual-layer box-shadow: hairline ring + soft blur), not just a flat neutral border", () => {
+test("the outer showcase container uses a neutral gray border with no amber glow, matching the plain border/bg treatment used elsewhere on the guest homepage (e.g. the hero section)", () => {
   const sectionTagStart = showcase.indexOf("<section");
   const sectionOpenTag = showcase.slice(
     sectionTagStart,
     showcase.indexOf(">", sectionTagStart) + 1,
   );
-  assert.match(
-    sectionOpenTag,
-    /shadow-\[0_0_0_1px_hsl\(var\(--tac-amber\)\/0\.1\),0_0_60px_-18px_hsl\(var\(--tac-amber\)\/0\.35\)\]/,
-  );
+  assert.match(sectionOpenTag, /border border-border\/70 bg-card\/45/);
+  assert.doesNotMatch(sectionOpenTag, /shadow-\[/);
+  assert.doesNotMatch(sectionOpenTag, /tac-amber/);
 });
 
 test("the media frame's border/glow is stronger than a flat border: hairline amber ring + wider soft glow, matching the matchmaking-confirm dual-layer shadow pattern", () => {
@@ -292,4 +303,83 @@ test("the media frame's border/glow is stronger than a flat border: hairline amb
 test("neither glow uses an oversized/unbounded blur radius (still 'clean', not an exaggerated neon halo)", () => {
   assert.doesNotMatch(showcase, /blur-3xl/);
   assert.doesNotMatch(mediaFrame, /blur-3xl/);
+});
+
+// ---------------------------------------------------------------------------
+// Compact layout: the static "Explore DEAFCS" heading is gone, the active
+// slide's own title is promoted to be the section's main (h2) heading, and
+// vertical rhythm is tightened.
+// ---------------------------------------------------------------------------
+
+test("the static 'Explore DEAFCS' big title is gone; only the small eyebrow kicker remains above the two-column layout", () => {
+  assert.doesNotMatch(showcase, />Explore DEAFCS</);
+  assert.doesNotMatch(showcase, /text-2xl font-bold tracking-tight sm:text-3xl/);
+  assert.match(showcase, /Everything in one place/);
+  assert.match(showcase, /:class="tacticalSectionLabelClasses"/);
+});
+
+test("the active slide's title is now the section's h2 heading (id=explore-showcase-title lives on the dynamic title, not a static element)", () => {
+  assert.doesNotMatch(showcase, /<h3 class="text-xl font-bold/);
+  assert.match(showcase, /<h2\s*\n\s*id="explore-showcase-title"/);
+  // Exactly one heading element defines this id (no leftover static h2).
+  assert.equal((showcase.match(/id="explore-showcase-title"/g) || []).length, 1);
+});
+
+test("every slide has a titleParts[white, orange] pair driving a white+orange split heading, matching the given examples (MATCH+MAKING, PLAYER+STATS, LEADER+BOARD)", () => {
+  assert.match(showcase, /titleParts: \["MATCH", "MAKING"\],/);
+  assert.match(showcase, /titleParts: \["PLAYER", "STATS"\],/);
+  assert.match(showcase, /titleParts: \["WA", "TCH"\],/);
+  assert.match(showcase, /titleParts: \["SERV", "ERS"\],/);
+  assert.match(showcase, /titleParts: \["TOUR", "NAMENTS"\],/);
+  assert.match(showcase, /titleParts: \["LEADER", "BOARD"\],/);
+
+  // Rejoining each pair must reproduce the slide's uppercase title exactly,
+  // so the split never drops or duplicates a letter.
+  const pairs = [
+    ["MATCH", "MAKING", "MATCHMAKING"],
+    ["PLAYER", "STATS", "PLAYERSTATS"],
+    ["WA", "TCH", "WATCH"],
+    ["SERV", "ERS", "SERVERS"],
+    ["TOUR", "NAMENTS", "TOURNAMENTS"],
+    ["LEADER", "BOARD", "LEADERBOARD"],
+  ];
+  for (const [a, b, whole] of pairs) {
+    assert.equal(a + b, whole);
+  }
+});
+
+test("the split heading renders titleParts[0] in the foreground color and titleParts[1] in amber, large/bold/uppercase so it reads as the strongest element on the left column", () => {
+  const h2Start = showcase.search(/<h2\s*\n\s*id="explore-showcase-title"/);
+  assert.ok(h2Start > -1);
+  const headingBlock = showcase.slice(h2Start, showcase.indexOf("</h2>", h2Start));
+  assert.match(headingBlock, /font-black uppercase leading-\[0\.95\] tracking-tight/);
+  assert.match(headingBlock, /text-3xl[\s\S]*sm:text-4xl[\s\S]*lg:text-5xl/);
+  assert.match(
+    headingBlock,
+    /<span class="text-foreground">\{\{ activeSlide\.titleParts\[0\] \}\}<\/span/,
+  );
+  assert.match(
+    headingBlock,
+    /<span class="text-\[hsl\(var\(--tac-amber\)\)\]">\{\{[\s\S]*activeSlide\.titleParts\[1\][\s\S]*\}\}<\/span>/,
+  );
+});
+
+test("vertical rhythm is tightened: section padding, the grid's top margin, the reserved left-column height, and the indicator row's top margin are all reduced from the previous pass", () => {
+  const sectionTagStart = showcase.indexOf("<section");
+  const sectionOpenTag = showcase.slice(
+    sectionTagStart,
+    showcase.indexOf(">", sectionTagStart) + 1,
+  );
+  assert.match(sectionOpenTag, /px-5 py-6 sm:px-8 sm:py-7 lg:px-10/);
+  assert.doesNotMatch(sectionOpenTag, /py-10|py-12/);
+
+  assert.match(showcase, /class="mt-4 grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-5 lg:gap-10"/);
+  assert.match(showcase, /min-h-\[16rem\] min-w-0 lg:col-span-2/);
+  assert.doesNotMatch(showcase, /min-h-\[19rem\]/);
+  assert.match(showcase, /class="mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start"/);
+});
+
+test("the two-column grid uses items-start (not items-center), so the left column's content sits at the top instead of being vertically centered against the taller media frame", () => {
+  assert.doesNotMatch(showcase, /items-center gap-8 lg:grid-cols-5/);
+  assert.match(showcase, /items-start gap-6 lg:grid-cols-5/);
 });

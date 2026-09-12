@@ -40,6 +40,7 @@ const showcaseSlides = [
   {
     key: "matchmaking",
     title: "Matchmaking",
+    titleParts: ["MATCH", "MAKING"],
     description:
       "Queue solo or with your party and get into balanced matches faster.",
     features: [
@@ -56,6 +57,7 @@ const showcaseSlides = [
   {
     key: "player-stats",
     title: "Player stats",
+    titleParts: ["PLAYER", "STATS"],
     description: "Track your progress, match history, and performance over time.",
     features: [
       { icon: BarChart3, label: "Detailed performance stats" },
@@ -71,6 +73,7 @@ const showcaseSlides = [
   {
     key: "watch",
     title: "Watch",
+    titleParts: ["WA", "TCH"],
     description: "Follow DEAFCS through live coverage, highlights, and live results.",
     features: [
       { icon: Cast, label: "Live streaming" },
@@ -86,13 +89,16 @@ const showcaseSlides = [
   {
     key: "servers",
     title: "Servers",
+    titleParts: ["SERV", "ERS"],
     description: "Play on a system built for fair, visual-first competitive matches.",
     features: [
       { icon: Cpu, label: "Automated match system" },
       { icon: VolumeX, label: "Sound-neutral game setup" },
       { icon: HardDrive, label: "Quality game servers" },
     ],
-    cta: { label: "Explore servers", to: "/public-servers" },
+    // No public server-status/destination page exists yet, so this slide
+    // stays informational only -- no CTA button.
+    cta: undefined,
     mediaIcon: Server,
     mediaType: "placeholder" as const,
     mediaSrc: undefined,
@@ -101,6 +107,7 @@ const showcaseSlides = [
   {
     key: "tournaments",
     title: "Tournaments",
+    titleParts: ["TOUR", "NAMENTS"],
     description:
       "Join cups and events with structured brackets and competitive progression.",
     features: [
@@ -117,6 +124,7 @@ const showcaseSlides = [
   {
     key: "leaderboard",
     title: "Leaderboard",
+    titleParts: ["LEADER", "BOARD"],
     description: "See who is rising, track ELO, and compete for the top spots.",
     features: [
       { icon: ListOrdered, label: "Season rankings" },
@@ -181,7 +189,7 @@ onBeforeUnmount(() => {
 <template>
   <section
     aria-labelledby="explore-showcase-title"
-    class="relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-10 shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.1),0_0_60px_-18px_hsl(var(--tac-amber)/0.35)] sm:px-8 sm:py-12 lg:px-10"
+    class="relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-6 sm:px-8 sm:py-7 lg:px-10"
     @mouseenter="pauseRotation"
     @mouseleave="resumeRotation"
   >
@@ -189,15 +197,9 @@ onBeforeUnmount(() => {
       <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
       Everything in one place
     </div>
-    <h2
-      id="explore-showcase-title"
-      class="text-2xl font-bold tracking-tight sm:text-3xl"
-    >
-      Explore DEAFCS
-    </h2>
 
-    <div class="mt-8 grid min-w-0 grid-cols-1 items-center gap-8 lg:grid-cols-5 lg:gap-10">
-      <div class="min-h-[19rem] min-w-0 lg:col-span-2">
+    <div class="mt-4 grid min-w-0 grid-cols-1 items-start gap-6 lg:grid-cols-5 lg:gap-10">
+      <div class="min-h-[16rem] min-w-0 lg:col-span-2">
         <Transition
           name="showcase-fade"
           mode="out-in"
@@ -207,13 +209,19 @@ onBeforeUnmount(() => {
           leave-to-class="opacity-0 -translate-x-2 motion-reduce:!translate-x-0"
         >
           <div :key="activeSlide.key" class="min-w-0">
-            <h3 class="text-xl font-bold tracking-tight text-foreground sm:text-2xl">
-              {{ activeSlide.title }}
-            </h3>
+            <h2
+              id="explore-showcase-title"
+              class="text-3xl font-black uppercase leading-[0.95] tracking-tight sm:text-4xl lg:text-5xl"
+            >
+              <span class="text-foreground">{{ activeSlide.titleParts[0] }}</span
+              ><span class="text-[hsl(var(--tac-amber))]">{{
+                activeSlide.titleParts[1]
+              }}</span>
+            </h2>
             <p class="mt-3 text-sm leading-6 text-muted-foreground sm:text-base">
               {{ activeSlide.description }}
             </p>
-            <ul class="mt-5 space-y-2.5">
+            <ul class="mt-4 space-y-2.5">
               <li
                 v-for="point in activeSlide.features"
                 :key="point.label"
@@ -232,7 +240,7 @@ onBeforeUnmount(() => {
               as-child
               variant="tactical"
               size="lg"
-              class="mt-6 min-h-11 w-full sm:w-auto"
+              class="mt-5 min-h-11 w-full sm:w-auto"
             >
               <NuxtLink :to="activeSlide.cta.to">
                 {{ activeSlide.cta.label }}
@@ -265,7 +273,7 @@ onBeforeUnmount(() => {
     </div>
 
     <nav
-      class="mt-8 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
+      class="mt-5 flex flex-wrap items-center justify-center gap-2 lg:justify-start"
       aria-label="Showcase slides"
     >
       <button
