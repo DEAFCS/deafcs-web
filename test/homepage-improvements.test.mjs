@@ -516,7 +516,7 @@ test("Why DEAFCS is gone: no section, no whyDeafcsFeatures array, and How It Wor
   assert.match(homeIndex, /how-it-works-title/);
 });
 
-test("How It Works keeps its 5 steps and the step-number badge, with icon+title on the same row, and no longer uses the old odd-count grid centering hack", () => {
+test("How It Works keeps its 5 steps, and no longer uses the old odd-count grid centering hack", () => {
   const stepsBlock = homeIndex.match(
     /const howItWorksSteps = \[([\s\S]*?)\n\];/,
   )?.[1];
@@ -527,16 +527,6 @@ test("How It Works keeps its 5 steps and the step-number badge, with icon+title 
     /how-it-works-title[\s\S]*?<\/section>/,
   )?.[0];
   assert.ok(howItWorksSection);
-  assert.match(
-    howItWorksSection,
-    /String\(index \+ 1\)\.padStart\(2, "0"\)/,
-    "step number progression must remain",
-  );
-  assert.match(howItWorksSection, /<div class="flex items-center gap-3">/);
-  assert.doesNotMatch(
-    howItWorksSection,
-    /<h3 class="mt-5 font-semibold text-foreground">/,
-  );
 
   // The old 6-column grid + centering hack (built for Why DEAFCS's 6 cards
   // and reused for 5 steps via col-start shifts) is gone.
@@ -544,6 +534,38 @@ test("How It Works keeps its 5 steps and the step-number badge, with icon+title 
   assert.doesNotMatch(howItWorksSection, /lg:col-start-4/);
   assert.doesNotMatch(howItWorksSection, /lg:grid-cols-6/);
   assert.doesNotMatch(howItWorksSection, /lg:col-span-2/);
+});
+
+test("each How It Works card puts the step number badge and icon together on their own top row, with the title and description in their own rows below (not sharing a row with the icon)", () => {
+  const howItWorksSection = homeIndex.match(
+    /how-it-works-title[\s\S]*?<\/section>/,
+  )?.[0];
+  assert.ok(howItWorksSection);
+
+  assert.match(
+    howItWorksSection,
+    /String\(index \+ 1\)\.padStart\(2, "0"\)/,
+    "step number progression must remain",
+  );
+
+  // No more giant faded background number in the card's top-right corner.
+  assert.doesNotMatch(howItWorksSection, /absolute right-4 top-3/);
+  assert.doesNotMatch(howItWorksSection, /text-muted-foreground\/10/);
+
+  // Top row: a compact circular amber number badge, then the icon box,
+  // grouped together -- neither the title nor the description lives here.
+  const topRowMatch = howItWorksSection.match(
+    /<div class="flex items-center gap-2">\s*\n\s*<span\s*\n\s*class="([^"]*)"\s*\n\s*aria-hidden="true"\s*\n\s*>\s*\n\s*\{\{ String\(index \+ 1\)\.padStart\(2, "0"\) \}\}\s*\n\s*<\/span>\s*\n\s*<div\s*\n\s*class="([^"]*)"\s*\n\s*>\s*\n\s*<component :is="step\.icon"/,
+  );
+  assert.ok(topRowMatch, "expected the [number badge, icon] top row grouping");
+  assert.match(topRowMatch[1], /rounded-full/);
+  assert.match(topRowMatch[1], /text-\[hsl\(var\(--tac-amber\)\)\]/);
+  assert.match(topRowMatch[2], /rounded-md/);
+
+  // Title is its own row below the top row (not inline with the icon).
+  assert.match(howItWorksSection, /<h3 class="mt-3 font-semibold text-foreground">\{\{ step\.title \}\}<\/h3>/);
+  assert.doesNotMatch(howItWorksSection, /<h3 class="mt-5 font-semibold text-foreground">/);
+  assert.doesNotMatch(howItWorksSection, /<div class="flex items-center gap-3">/);
 });
 
 test("How It Works renders as a single horizontal row on desktop (flex, no wrap) while stacking/wrapping cleanly on mobile and tablet", () => {

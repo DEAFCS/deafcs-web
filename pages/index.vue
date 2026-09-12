@@ -218,20 +218,20 @@ const howItWorksSteps = [
           <Card
             class="relative min-w-0 overflow-hidden border-border/70 bg-card/45 p-5 shadow-none lg:flex-1 lg:p-4"
           >
-            <span
-              class="absolute right-4 top-3 font-mono text-3xl font-black tabular-nums text-muted-foreground/10"
-              aria-hidden="true"
-            >
-              {{ String(index + 1).padStart(2, "0") }}
-            </span>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2">
+              <span
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.1)] font-mono text-xs font-bold tabular-nums text-[hsl(var(--tac-amber))] shadow-[0_0_10px_-2px_hsl(var(--tac-amber)/0.5)]"
+                aria-hidden="true"
+              >
+                {{ String(index + 1).padStart(2, "0") }}
+              </span>
               <div
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))]"
               >
                 <component :is="step.icon" class="h-4 w-4" aria-hidden="true" />
               </div>
-              <h3 class="font-semibold text-foreground">{{ step.title }}</h3>
             </div>
+            <h3 class="mt-3 font-semibold text-foreground">{{ step.title }}</h3>
             <p class="mt-2 text-sm leading-6 text-muted-foreground">
               {{ step.description }}
             </p>
