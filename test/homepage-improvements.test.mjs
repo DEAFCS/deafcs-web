@@ -505,37 +505,18 @@ test("the authenticated hero no longer shows a MY STATS / profile button", () =>
 });
 
 // ---------------------------------------------------------------------------
-// Logged-out homepage (pages/index.vue) -- Why DEAFCS / How It Works layout
+// Logged-out homepage (pages/index.vue) -- Why DEAFCS removed, How It Works
+// is now a single horizontal row on desktop.
 // ---------------------------------------------------------------------------
 
-test("Why DEAFCS has 6 cards, and every card puts its icon and title on the same row (icon+title row, description underneath)", () => {
-  const featuresBlock = homeIndex.match(
-    /const whyDeafcsFeatures = \[([\s\S]*?)\n\];/,
-  )?.[1];
-  assert.ok(featuresBlock, "expected to find whyDeafcsFeatures array");
-  assert.equal((featuresBlock.match(/title:/g) || []).length, 6);
-  assert.match(homeIndex, /title: "Earn awards",/);
-  assert.match(homeIndex, /icon: Award,/);
-  assert.match(homeIndex, /^import \{\s*\n\s*Award,/m);
-
-  // The icon+title wrapper row exists ahead of the Why DEAFCS card's <h3>,
-  // and the old "icon above title" spacing (mt-4 on the title) is gone.
-  const whyDeafcsSection = homeIndex.match(
-    /why-deafcs-title[\s\S]*?<\/section>/,
-  )?.[0];
-  assert.ok(whyDeafcsSection);
-  assert.match(whyDeafcsSection, /<div class="flex items-center gap-3">/);
-  assert.doesNotMatch(
-    whyDeafcsSection,
-    /<h3 class="mt-4 font-semibold text-foreground">/,
-  );
-  // The 5-item centering hack (lg:col-start-2/4) is gone now that 6 items
-  // divide evenly into the lg:grid-cols-6 / lg:col-span-2 grid.
-  assert.doesNotMatch(whyDeafcsSection, /lg:col-start-2/);
-  assert.doesNotMatch(whyDeafcsSection, /lg:col-start-4/);
+test("Why DEAFCS is gone: no section, no whyDeafcsFeatures array, and How It Works is what now follows the showcase", () => {
+  assert.doesNotMatch(homeIndex, /why-deafcs-title/);
+  assert.doesNotMatch(homeIndex, /whyDeafcsFeatures/);
+  assert.doesNotMatch(homeIndex, /Why DEAFCS/);
+  assert.match(homeIndex, /how-it-works-title/);
 });
 
-test("How It Works keeps its 5 steps, the step-number badge position, and the odd-count centering hack, while also moving icon+title onto the same row", () => {
+test("How It Works keeps its 5 steps and the step-number badge, with icon+title on the same row, and no longer uses the old odd-count grid centering hack", () => {
   const stepsBlock = homeIndex.match(
     /const howItWorksSteps = \[([\s\S]*?)\n\];/,
   )?.[1];
@@ -551,13 +532,47 @@ test("How It Works keeps its 5 steps, the step-number badge position, and the od
     /String\(index \+ 1\)\.padStart\(2, "0"\)/,
     "step number progression must remain",
   );
-  assert.match(howItWorksSection, /'lg:col-start-2': index === 3,/);
-  assert.match(howItWorksSection, /'lg:col-start-4': index === 4,/);
   assert.match(howItWorksSection, /<div class="flex items-center gap-3">/);
   assert.doesNotMatch(
     howItWorksSection,
     /<h3 class="mt-5 font-semibold text-foreground">/,
   );
+
+  // The old 6-column grid + centering hack (built for Why DEAFCS's 6 cards
+  // and reused for 5 steps via col-start shifts) is gone.
+  assert.doesNotMatch(howItWorksSection, /lg:col-start-2/);
+  assert.doesNotMatch(howItWorksSection, /lg:col-start-4/);
+  assert.doesNotMatch(howItWorksSection, /lg:grid-cols-6/);
+  assert.doesNotMatch(howItWorksSection, /lg:col-span-2/);
+});
+
+test("How It Works renders as a single horizontal row on desktop (flex, no wrap) while stacking/wrapping cleanly on mobile and tablet", () => {
+  const howItWorksSection = homeIndex.match(
+    /how-it-works-title[\s\S]*?<\/section>/,
+  )?.[0];
+  assert.ok(howItWorksSection);
+
+  // Mobile: single-column stack. Tablet: 2-column wrap. Desktop: one flex row.
+  assert.match(
+    howItWorksSection,
+    /class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:flex lg:flex-row lg:items-stretch lg:gap-3"/,
+  );
+  // Cards flex to share the row evenly and use tighter desktop padding.
+  assert.match(howItWorksSection, /lg:flex-1 lg:p-4/);
+});
+
+test("How It Works separates each step with a ChevronRight arrow on desktop only (hidden on mobile/tablet), and never after the last step", () => {
+  assert.match(homeIndex, /import \{\s*\n(?:[^}]*\n)*\s*ChevronRight,/);
+  const howItWorksSection = homeIndex.match(
+    /how-it-works-title[\s\S]*?<\/section>/,
+  )?.[0];
+  assert.ok(howItWorksSection);
+  assert.match(
+    howItWorksSection,
+    /v-if="index < howItWorksSteps\.length - 1"/,
+  );
+  assert.match(howItWorksSection, /class="hidden shrink-0[^"]*lg:flex"/);
+  assert.match(howItWorksSection, /<ChevronRight class="h-5 w-5" \/>/);
 });
 
 test("the final 'Play and climb' step mentions playing matches, climbing the leaderboard, and tournaments/leagues", () => {

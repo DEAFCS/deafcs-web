@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import {
-  Award,
   ArrowRight,
   BadgeCheck,
+  ChevronRight,
   Gamepad2,
-  MessageSquareText,
   ShieldCheck,
-  Sparkles,
   Trophy,
   UserRoundCheck,
-  UsersRound,
-  VolumeX,
 } from "lucide-vue-next";
 import { useAuthStore } from "~/stores/AuthStore";
 import LoadingScreen from "~/components/LoadingScreen.vue";
@@ -122,42 +118,6 @@ const howItWorksSteps = [
     icon: Trophy,
   },
 ];
-
-const whyDeafcsFeatures = [
-  {
-    title: "Built for our community",
-    description: "Built for deaf and hard-of-hearing Counter-Strike players.",
-    icon: UsersRound,
-  },
-  {
-    title: "Sound-neutral game servers",
-    description:
-      "DEAFCS servers remove almost all in-game sounds so matches are focused on visual information and game awareness instead of headset-based audio advantages.",
-    icon: VolumeX,
-  },
-  {
-    title: "Accessible communication",
-    description:
-      "Tournament experiences designed around accessible communication.",
-    icon: MessageSquareText,
-  },
-  {
-    title: "Ways to compete",
-    description: "Matchmaking, cups, leagues, and community events.",
-    icon: Trophy,
-  },
-  {
-    title: "Your competitive home",
-    description: "Profiles, rankings, results, news, and highlights in one place.",
-    icon: Sparkles,
-  },
-  {
-    title: "Earn awards",
-    description:
-      "Compete in tournaments and leagues, build your record, and earn recognition and awards.",
-    icon: Award,
-  },
-];
 </script>
 
 <template>
@@ -240,38 +200,6 @@ const whyDeafcsFeatures = [
     >
       <HomeExploreShowcase />
 
-      <section aria-labelledby="why-deafcs-title">
-        <div :class="tacticalSectionLabelClasses">
-          <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
-          Built with purpose
-        </div>
-      <h2
-        id="why-deafcs-title"
-        class="text-2xl font-bold tracking-tight sm:text-3xl"
-      >
-        Why DEAFCS
-      </h2>
-      <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card
-          v-for="feature in whyDeafcsFeatures"
-          :key="feature.title"
-          class="min-w-0 border-border/60 bg-card/35 p-5 shadow-none lg:col-span-2"
-        >
-          <div class="flex items-center gap-3">
-            <component
-              :is="feature.icon"
-              class="h-5 w-5 shrink-0 text-[hsl(var(--tac-amber))]"
-              aria-hidden="true"
-            />
-            <h3 class="font-semibold text-foreground">{{ feature.title }}</h3>
-          </div>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            {{ feature.description }}
-          </p>
-        </Card>
-      </div>
-      </section>
-
       <section aria-labelledby="how-it-works-title">
         <div :class="tacticalSectionLabelClasses">
           <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
@@ -283,34 +211,39 @@ const whyDeafcsFeatures = [
       >
         How It Works
       </h2>
-      <div class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-6">
-        <Card
-          v-for="(step, index) in howItWorksSteps"
-          :key="step.title"
-          class="relative min-w-0 overflow-hidden border-border/70 bg-card/45 p-5 shadow-none lg:col-span-2"
-          :class="{
-            'lg:col-start-2': index === 3,
-            'lg:col-start-4': index === 4,
-          }"
-        >
-          <span
-            class="absolute right-4 top-3 font-mono text-3xl font-black tabular-nums text-muted-foreground/10"
+      <div
+        class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:flex lg:flex-row lg:items-stretch lg:gap-3"
+      >
+        <template v-for="(step, index) in howItWorksSteps" :key="step.title">
+          <Card
+            class="relative min-w-0 overflow-hidden border-border/70 bg-card/45 p-5 shadow-none lg:flex-1 lg:p-4"
+          >
+            <span
+              class="absolute right-4 top-3 font-mono text-3xl font-black tabular-nums text-muted-foreground/10"
+              aria-hidden="true"
+            >
+              {{ String(index + 1).padStart(2, "0") }}
+            </span>
+            <div class="flex items-center gap-3">
+              <div
+                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))]"
+              >
+                <component :is="step.icon" class="h-4 w-4" aria-hidden="true" />
+              </div>
+              <h3 class="font-semibold text-foreground">{{ step.title }}</h3>
+            </div>
+            <p class="mt-2 text-sm leading-6 text-muted-foreground">
+              {{ step.description }}
+            </p>
+          </Card>
+          <div
+            v-if="index < howItWorksSteps.length - 1"
+            class="hidden shrink-0 items-center justify-center text-muted-foreground/30 lg:flex"
             aria-hidden="true"
           >
-            {{ String(index + 1).padStart(2, "0") }}
-          </span>
-          <div class="flex items-center gap-3">
-            <div
-              class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))]"
-            >
-              <component :is="step.icon" class="h-4 w-4" aria-hidden="true" />
-            </div>
-            <h3 class="font-semibold text-foreground">{{ step.title }}</h3>
+            <ChevronRight class="h-5 w-5" />
           </div>
-          <p class="mt-2 text-sm leading-6 text-muted-foreground">
-            {{ step.description }}
-          </p>
-        </Card>
+        </template>
       </div>
       </section>
     </div>

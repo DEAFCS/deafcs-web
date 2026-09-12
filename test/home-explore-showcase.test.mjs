@@ -24,8 +24,9 @@ const authMiddleware = await readFile(
 );
 
 // ---------------------------------------------------------------------------
-// Guest-only placement: pages/index.vue only, above Why DEAFCS, and never in
-// the authenticated HomePlayerOverview branch.
+// Guest-only placement: pages/index.vue only, followed directly by How It
+// Works (Why DEAFCS is removed), and never in the authenticated
+// HomePlayerOverview branch.
 // ---------------------------------------------------------------------------
 
 test("HomeExploreShowcase is only wired into the logged-out branch of pages/index.vue, not the authenticated homepage", () => {
@@ -46,19 +47,40 @@ test("HomeExploreShowcase is only wired into the logged-out branch of pages/inde
   assert.doesNotMatch(playerOverview, /HomeExploreShowcase/);
 });
 
-test("the showcase renders immediately above the existing Why DEAFCS section, which is otherwise untouched", () => {
-  const showcaseUsage = homeIndex.indexOf("<HomeExploreShowcase />");
-  const whyDeafcsSection = homeIndex.indexOf('aria-labelledby="why-deafcs-title"');
-  assert.ok(showcaseUsage > -1 && whyDeafcsSection > showcaseUsage);
+test("Why DEAFCS is removed entirely (not just visually hidden): no section, no heading, no whyDeafcsFeatures array, no card content", () => {
+  assert.doesNotMatch(homeIndex, /why-deafcs-title/);
+  assert.doesNotMatch(homeIndex, /Built with purpose/);
+  assert.doesNotMatch(homeIndex, />Why DEAFCS</);
+  assert.doesNotMatch(homeIndex, /whyDeafcsFeatures/);
+  // The 6 removed cards' copy must not linger anywhere in the file.
+  for (const title of [
+    "Built for our community",
+    "Sound-neutral game servers",
+    "Accessible communication",
+    "Ways to compete",
+    "Your competitive home",
+    "Earn awards",
+  ]) {
+    assert.doesNotMatch(homeIndex, new RegExp(title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+  // Icons that were only used by whyDeafcsFeatures are dropped from imports.
+  for (const icon of ["MessageSquareText", "Sparkles"]) {
+    assert.doesNotMatch(homeIndex, new RegExp(`\\b${icon}\\b`));
+  }
+});
 
-  // Why DEAFCS content is unchanged: still 6 cards, same heading and kicker.
-  assert.match(homeIndex, /Built with purpose/);
-  assert.match(homeIndex, /Why DEAFCS/);
-  const featuresBlock = homeIndex.match(
-    /const whyDeafcsFeatures = \[([\s\S]*?)\n\];/,
-  )?.[1];
-  assert.ok(featuresBlock);
-  assert.equal((featuresBlock.match(/title:/g) || []).length, 6);
+test("How It Works now follows the showcase directly (Why DEAFCS no longer sits between them)", () => {
+  const showcaseUsage = homeIndex.indexOf("<HomeExploreShowcase />");
+  const howItWorksLabel = homeIndex.indexOf('aria-labelledby="how-it-works-title"');
+  const howItWorksSectionStart = homeIndex.lastIndexOf("<section", howItWorksLabel);
+  assert.ok(showcaseUsage > -1 && howItWorksSectionStart > showcaseUsage);
+
+  // Nothing else (like a leftover section) sits between the two.
+  const between = homeIndex.slice(
+    showcaseUsage + "<HomeExploreShowcase />".length,
+    howItWorksSectionStart,
+  );
+  assert.doesNotMatch(between, /<section/);
 });
 
 test("the existing guest hero (Welcome to DEAFCS / Sign in with Steam) is untouched", () => {
@@ -75,13 +97,13 @@ test("the existing guest hero (Welcome to DEAFCS / Sign in with Steam) is untouc
 // Config-driven slides
 // ---------------------------------------------------------------------------
 
-test("showcaseSlides is a config-driven array with all six slides in order, including the new Watch and Servers slides", () => {
+test("showcaseSlides is a config-driven array with all six slides in order, Watch renamed to Live coverage and Servers renamed to Game servers", () => {
   assert.match(showcase, /const showcaseSlides = \[/);
   const order = [
     "matchmaking",
     "player-stats",
-    "watch",
-    "servers",
+    "live-coverage",
+    "game-servers",
     "tournaments",
     "leaderboard",
   ];
@@ -93,28 +115,30 @@ test("showcaseSlides is a config-driven array with all six slides in order, incl
   }
   assert.match(showcase, /title: "Matchmaking",/);
   assert.match(showcase, /title: "Player stats",/);
-  assert.match(showcase, /title: "Watch",/);
-  assert.match(showcase, /title: "Servers",/);
+  assert.match(showcase, /title: "Live coverage",/);
+  assert.match(showcase, /title: "Game servers",/);
   assert.match(showcase, /title: "Tournaments",/);
   assert.match(showcase, /title: "Leaderboard",/);
+
+  // The old titles/keys are gone, not just renamed alongside leftovers.
+  assert.doesNotMatch(showcase, /key: "watch"/);
+  assert.doesNotMatch(showcase, /key: "servers"/);
+  assert.doesNotMatch(showcase, /title: "Watch",/);
+  assert.doesNotMatch(showcase, /title: "Servers",/);
 });
 
-test("every slide's description uses the simplified, plain-English copy", () => {
+test("every slide's description uses simple, plain English copy with no em dash or en dash", () => {
   assert.match(
     showcase,
-    /"Queue solo or with your party and get into balanced matches faster\."/,
+    /"Queue solo or with your party and jump into balanced competitive matches\."/,
   );
   assert.match(
     showcase,
-    /"Track your progress, match history, and performance over time\."/,
+    /"Track your performance, review recent matches, and see how you improve over time\."/,
   );
   assert.match(
     showcase,
-    /"Follow DEAFCS through live coverage, highlights, and live results\."/,
-  );
-  assert.match(
-    showcase,
-    /"Play on a system built for fair, visual-first competitive matches\."/,
+    /"Follow DEAFCS through live streaming, highlights, and live results\."/,
   );
   assert.match(
     showcase,
@@ -122,33 +146,34 @@ test("every slide's description uses the simplified, plain-English copy", () => 
   );
   assert.match(
     showcase,
-    /"See who is rising, track ELO, and compete for the top spots\."/,
+    /"Climb the rankings, compare players, and follow the season race\."/,
   );
+  assert.doesNotMatch(showcase, /[–—]/);
 });
 
-test("every slide except Servers has a CTA pointing at an existing public route (confirmed against middleware/auth.global.ts's isPublicRoute allowlist)", () => {
-  assert.match(showcase, /cta: \{ label: "Explore matchmaking", to: "\/play" \}/);
+test("every slide except Game servers has a CTA pointing at an existing public route (confirmed against middleware/auth.global.ts's isPublicRoute allowlist)", () => {
+  assert.match(showcase, /cta: \{ label: "Join queue", to: "\/play" \}/);
   assert.match(showcase, /cta: \{ label: "Explore stats", to: "\/players" \}/);
   assert.match(showcase, /cta: \{ label: "Watch live", to: "\/watch" \}/);
   assert.match(
     showcase,
-    /cta: \{ label: "Explore tournaments", to: "\/tournaments" \}/,
+    /cta: \{ label: "View tournaments", to: "\/tournaments" \}/,
   );
   assert.match(showcase, /cta: \{ label: "View leaderboard", to: "\/leaderboard" \}/);
-
-  // Servers has no approved public destination to advertise yet, so it must
-  // not render a CTA button at all.
-  assert.doesNotMatch(showcase, /"Explore servers"/);
-  assert.doesNotMatch(showcase, /\/public-servers/);
 });
 
-test("the Servers slide's cta field is explicitly undefined (not omitted/truthy), so the v-if=\"activeSlide.cta\" button never renders for it", () => {
-  const serversBlock = showcase.slice(
-    showcase.indexOf('key: "servers"'),
+test("the Game servers slide's cta field is explicitly undefined (not omitted/truthy), so the v-if=\"activeSlide.cta\" button never renders for it, and it ships the longer sound-neutral explanation", () => {
+  const gameServersBlock = showcase.slice(
+    showcase.indexOf('key: "game-servers"'),
     showcase.indexOf('key: "tournaments"'),
   );
-  assert.match(serversBlock, /cta: undefined,/);
-  assert.equal((serversBlock.match(/label: "[^"]+", to: "/g) || []).length, 0);
+  assert.match(gameServersBlock, /cta: undefined,/);
+  assert.equal((gameServersBlock.match(/label: "[^"]+", to: "/g) || []).length, 0);
+
+  assert.match(
+    gameServersBlock,
+    /"DEAFCS game servers are built for fair, visual-first competition\. Almost all in-game sounds are removed, so matches focus on visual information and game awareness instead of headset-based audio advantages\."/,
+  );
 });
 
 test("the /watch CTA route is genuinely guest-accessible per the global auth middleware's allowlist", () => {
@@ -325,11 +350,11 @@ test("the active slide's title is now the section's h2 heading (id=explore-showc
   assert.equal((showcase.match(/id="explore-showcase-title"/g) || []).length, 1);
 });
 
-test("every slide has a titleParts[white, orange] pair driving a white+orange split heading, matching the given examples (MATCH+MAKING, PLAYER+STATS, LEADER+BOARD)", () => {
+test("every slide has a titleParts[white, orange] pair driving a white+orange split heading; Live coverage and Game servers now split cleanly on the word boundary, Tournaments keeps its existing TOUR+NAMENTS split unchanged", () => {
   assert.match(showcase, /titleParts: \["MATCH", "MAKING"\],/);
   assert.match(showcase, /titleParts: \["PLAYER", "STATS"\],/);
-  assert.match(showcase, /titleParts: \["WA", "TCH"\],/);
-  assert.match(showcase, /titleParts: \["SERV", "ERS"\],/);
+  assert.match(showcase, /titleParts: \["LIVE", "COVERAGE"\],/);
+  assert.match(showcase, /titleParts: \["GAME", "SERVERS"\],/);
   assert.match(showcase, /titleParts: \["TOUR", "NAMENTS"\],/);
   assert.match(showcase, /titleParts: \["LEADER", "BOARD"\],/);
 
@@ -338,8 +363,8 @@ test("every slide has a titleParts[white, orange] pair driving a white+orange sp
   const pairs = [
     ["MATCH", "MAKING", "MATCHMAKING"],
     ["PLAYER", "STATS", "PLAYERSTATS"],
-    ["WA", "TCH", "WATCH"],
-    ["SERV", "ERS", "SERVERS"],
+    ["LIVE", "COVERAGE", "LIVECOVERAGE"],
+    ["GAME", "SERVERS", "GAMESERVERS"],
     ["TOUR", "NAMENTS", "TOURNAMENTS"],
     ["LEADER", "BOARD", "LEADERBOARD"],
   ];
