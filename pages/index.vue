@@ -20,6 +20,7 @@ import HomeLatestResultsPreview from "~/components/home/HomeLatestResultsPreview
 import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
 import HomeFeaturedTournament from "~/components/home/HomeFeaturedTournament.vue";
+import HomeExploreShowcase from "~/components/home/HomeExploreShowcase.vue";
 import HomePlayerOverview from "~/components/home/HomePlayerOverview.vue";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
@@ -237,6 +238,8 @@ const whyDeafcsFeatures = [
     <div
       class="homepage-entry homepage-entry--delay-100 space-y-16 sm:space-y-20"
     >
+      <HomeExploreShowcase />
+
       <section aria-labelledby="why-deafcs-title">
         <div :class="tacticalSectionLabelClasses">
           <span :class="tacticalSectionTickClasses" aria-hidden="true"></span>
