@@ -5,7 +5,6 @@ import {
   BadgeCheck,
   ChevronRight,
   Gamepad2,
-  ShieldCheck,
   Trophy,
   UserRoundCheck,
 } from "lucide-vue-next";
@@ -94,11 +93,6 @@ const howItWorksSteps = [
     title: "Sign in with Steam",
     description: "Connect the Steam account you use to play Counter-Strike.",
     icon: UserRoundCheck,
-  },
-  {
-    title: "Complete your player profile",
-    description: "Set up your DEAFCS identity and community profile.",
-    icon: ShieldCheck,
   },
   {
     title: "Get verified",
@@ -216,20 +210,20 @@ const howItWorksSteps = [
       >
         <template v-for="(step, index) in howItWorksSteps" :key="step.title">
           <Card
-            class="relative min-w-0 overflow-hidden border-border/70 bg-card/45 p-5 shadow-none lg:flex-1 lg:p-4"
+            class="relative min-w-0 overflow-hidden border-border/70 bg-card/45 p-5 shadow-none lg:flex-1 lg:p-5"
           >
-            <div class="flex items-center gap-2">
+            <div class="flex items-start justify-between gap-2">
               <span
                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.1)] font-mono text-xs font-bold tabular-nums text-[hsl(var(--tac-amber))] shadow-[0_0_10px_-2px_hsl(var(--tac-amber)/0.5)]"
                 aria-hidden="true"
               >
                 {{ String(index + 1).padStart(2, "0") }}
               </span>
-              <div
-                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.3)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))]"
-              >
-                <component :is="step.icon" class="h-4 w-4" aria-hidden="true" />
-              </div>
+              <component
+                :is="step.icon"
+                class="h-8 w-8 shrink-0 text-[hsl(var(--tac-amber)/0.7)]"
+                aria-hidden="true"
+              />
             </div>
             <h3 class="mt-3 font-semibold text-foreground">{{ step.title }}</h3>
             <p class="mt-2 text-sm leading-6 text-muted-foreground">

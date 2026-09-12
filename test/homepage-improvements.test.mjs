@@ -516,12 +516,28 @@ test("Why DEAFCS is gone: no section, no whyDeafcsFeatures array, and How It Wor
   assert.match(homeIndex, /how-it-works-title/);
 });
 
-test("How It Works keeps its 5 steps, and no longer uses the old odd-count grid centering hack", () => {
+test("How It Works has exactly 4 steps ('Complete your player profile' is removed) numbered 01-04, and no longer uses the old odd-count grid centering hack", () => {
   const stepsBlock = homeIndex.match(
     /const howItWorksSteps = \[([\s\S]*?)\n\];/,
   )?.[1];
   assert.ok(stepsBlock);
-  assert.equal((stepsBlock.match(/title:/g) || []).length, 5);
+  assert.equal((stepsBlock.match(/title:/g) || []).length, 4);
+  assert.doesNotMatch(stepsBlock, /Complete your player profile/);
+  assert.doesNotMatch(stepsBlock, /Set up your DEAFCS identity and community profile\./);
+  assert.doesNotMatch(homeIndex, /\bShieldCheck\b/);
+
+  const order = [
+    "Sign in with Steam",
+    "Get verified",
+    "Choose your mode",
+    "Play and climb",
+  ];
+  let lastIndex = -1;
+  for (const title of order) {
+    const index = stepsBlock.indexOf(`title: "${title}"`);
+    assert.ok(index > lastIndex, `expected step "${title}" after the previous one`);
+    lastIndex = index;
+  }
 
   const howItWorksSection = homeIndex.match(
     /how-it-works-title[\s\S]*?<\/section>/,
@@ -529,14 +545,14 @@ test("How It Works keeps its 5 steps, and no longer uses the old odd-count grid 
   assert.ok(howItWorksSection);
 
   // The old 6-column grid + centering hack (built for Why DEAFCS's 6 cards
-  // and reused for 5 steps via col-start shifts) is gone.
+  // and reused for step counts via col-start shifts) is gone.
   assert.doesNotMatch(howItWorksSection, /lg:col-start-2/);
   assert.doesNotMatch(howItWorksSection, /lg:col-start-4/);
   assert.doesNotMatch(howItWorksSection, /lg:grid-cols-6/);
   assert.doesNotMatch(howItWorksSection, /lg:col-span-2/);
 });
 
-test("each How It Works card puts the step number badge and icon together on their own top row, with the title and description in their own rows below (not sharing a row with the icon)", () => {
+test("each How It Works card puts the number badge top-left and an unboxed, larger amber icon top-right in the same row, with the title and description in their own rows below", () => {
   const howItWorksSection = homeIndex.match(
     /how-it-works-title[\s\S]*?<\/section>/,
   )?.[0];
@@ -552,23 +568,31 @@ test("each How It Works card puts the step number badge and icon together on the
   assert.doesNotMatch(howItWorksSection, /absolute right-4 top-3/);
   assert.doesNotMatch(howItWorksSection, /text-muted-foreground\/10/);
 
-  // Top row: a compact circular amber number badge, then the icon box,
-  // grouped together -- neither the title nor the description lives here.
+  // Top row: number badge on the left, icon pushed to the right via
+  // justify-between -- neither the title nor the description lives here.
   const topRowMatch = howItWorksSection.match(
-    /<div class="flex items-center gap-2">\s*\n\s*<span\s*\n\s*class="([^"]*)"\s*\n\s*aria-hidden="true"\s*\n\s*>\s*\n\s*\{\{ String\(index \+ 1\)\.padStart\(2, "0"\) \}\}\s*\n\s*<\/span>\s*\n\s*<div\s*\n\s*class="([^"]*)"\s*\n\s*>\s*\n\s*<component :is="step\.icon"/,
+    /<div class="flex items-start justify-between gap-2">\s*\n\s*<span\s*\n\s*class="([^"]*)"\s*\n\s*aria-hidden="true"\s*\n\s*>\s*\n\s*\{\{ String\(index \+ 1\)\.padStart\(2, "0"\) \}\}\s*\n\s*<\/span>\s*\n\s*<component\s*\n\s*:is="step\.icon"\s*\n\s*class="([^"]*)"\s*\n\s*aria-hidden="true"\s*\n\s*\/>/,
   );
-  assert.ok(topRowMatch, "expected the [number badge, icon] top row grouping");
+  assert.ok(topRowMatch, "expected the [number badge] ... [icon] top row with justify-between");
   assert.match(topRowMatch[1], /rounded-full/);
   assert.match(topRowMatch[1], /text-\[hsl\(var\(--tac-amber\)\)\]/);
-  assert.match(topRowMatch[2], /rounded-md/);
+
+  // Icon: no box, no border, no background container -- just a larger,
+  // softer-amber glyph sitting directly in the row.
+  assert.match(topRowMatch[2], /h-8 w-8/);
+  assert.match(topRowMatch[2], /text-\[hsl\(var\(--tac-amber\)\/0\.7\)\]/);
+  assert.doesNotMatch(topRowMatch[2], /rounded-md/);
+  assert.doesNotMatch(topRowMatch[2], /border/);
+  assert.doesNotMatch(topRowMatch[2], /bg-\[hsl/);
 
   // Title is its own row below the top row (not inline with the icon).
   assert.match(howItWorksSection, /<h3 class="mt-3 font-semibold text-foreground">\{\{ step\.title \}\}<\/h3>/);
   assert.doesNotMatch(howItWorksSection, /<h3 class="mt-5 font-semibold text-foreground">/);
   assert.doesNotMatch(howItWorksSection, /<div class="flex items-center gap-3">/);
+  assert.doesNotMatch(howItWorksSection, /<div class="flex items-center gap-2">/);
 });
 
-test("How It Works renders as a single horizontal row on desktop (flex, no wrap) while stacking/wrapping cleanly on mobile and tablet", () => {
+test("How It Works renders as a single horizontal row on desktop (flex, no wrap) while stacking/wrapping cleanly on mobile and tablet, with wider desktop card padding now that there are fewer cards", () => {
   const howItWorksSection = homeIndex.match(
     /how-it-works-title[\s\S]*?<\/section>/,
   )?.[0];
@@ -579,8 +603,10 @@ test("How It Works renders as a single horizontal row on desktop (flex, no wrap)
     howItWorksSection,
     /class="mt-6 grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 lg:flex lg:flex-row lg:items-stretch lg:gap-3"/,
   );
-  // Cards flex to share the row evenly and use tighter desktop padding.
-  assert.match(howItWorksSection, /lg:flex-1 lg:p-4/);
+  // Cards flex to share the row evenly; desktop padding matches the base
+  // (p-5) now that 4 wider cards have room to breathe.
+  assert.match(howItWorksSection, /lg:flex-1 lg:p-5/);
+  assert.doesNotMatch(howItWorksSection, /lg:p-4/);
 });
 
 test("How It Works separates each step with a ChevronRight arrow on desktop only (hidden on mobile/tablet), and never after the last step", () => {
