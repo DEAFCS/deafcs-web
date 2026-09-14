@@ -100,8 +100,8 @@ const showcaseSlides = [
     // stays informational only -- no CTA button.
     cta: undefined,
     mediaIcon: Server,
-    mediaType: "placeholder" as const,
-    mediaSrc: undefined,
+    mediaType: "image" as const,
+    mediaSrc: "/img/home/showcase/game-servers.png",
     mediaPoster: undefined,
   },
   {

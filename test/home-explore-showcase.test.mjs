@@ -271,11 +271,12 @@ test("HomeShowcaseMediaFrame supports image, video, and placeholder media types 
   assert.match(mediaFrame, /Preview coming soon/);
 });
 
-test("five completed slides use their showcase images while Game servers remains the only placeholder", () => {
+test("all six slides use their showcase images with no configured placeholders", () => {
   const expectedImages = [
     ["matchmaking", "/img/home/showcase/matchmaking.png"],
     ["player-stats", "/img/home/showcase/player-stats.png"],
     ["live-coverage", "/img/home/showcase/live-coverage.png"],
+    ["game-servers", "/img/home/showcase/game-servers.png"],
     ["tournaments", "/img/home/showcase/tournaments.png"],
     ["leaderboard", "/img/home/showcase/leaderboard.png"],
   ];
@@ -295,22 +296,17 @@ test("five completed slides use their showcase images while Game servers remains
     assert.doesNotMatch(block, /mediaType: "placeholder" as const,/);
   }
 
-  const gameServersBlock = showcase.slice(
-    showcase.indexOf('key: "game-servers"'),
-    showcase.indexOf('key: "tournaments"'),
-  );
-  assert.match(gameServersBlock, /mediaType: "placeholder" as const,/);
-  assert.match(gameServersBlock, /mediaSrc: undefined,/);
-  assert.equal((showcase.match(/mediaType: "image" as const,/g) || []).length, 5);
-  assert.equal((showcase.match(/mediaType: "placeholder" as const,/g) || []).length, 1);
+  assert.equal((showcase.match(/mediaType: "image" as const,/g) || []).length, 6);
+  assert.equal((showcase.match(/mediaType: "placeholder" as const,/g) || []).length, 0);
   assert.equal((showcase.match(/^    key: /gm) || []).length, 6);
 });
 
-test("all five showcase image assets exist and are exactly 683 by 384 PNGs", async () => {
+test("all six showcase image assets exist and are exactly 683 by 384 PNGs", async () => {
   for (const fileName of [
     "matchmaking.png",
     "player-stats.png",
     "live-coverage.png",
+    "game-servers.png",
     "tournaments.png",
     "leaderboard.png",
   ]) {
