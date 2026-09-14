@@ -271,11 +271,60 @@ test("HomeShowcaseMediaFrame supports image, video, and placeholder media types 
   assert.match(mediaFrame, /Preview coming soon/);
 });
 
-test("every slide currently uses the placeholder media type with no mediaSrc, so no broken image/video path can render", () => {
-  const mediaBlocks = showcase.match(/mediaType: "placeholder" as const,/g) || [];
-  assert.equal(mediaBlocks.length, 6);
-  assert.equal((showcase.match(/mediaSrc: undefined,/g) || []).length, 6);
-  assert.doesNotMatch(showcase, /mediaSrc:\s*"\/img\//);
+test("five completed slides use their showcase images while Game servers remains the only placeholder", () => {
+  const expectedImages = [
+    ["matchmaking", "/img/home/showcase/matchmaking.png"],
+    ["player-stats", "/img/home/showcase/player-stats.png"],
+    ["live-coverage", "/img/home/showcase/live-coverage.png"],
+    ["tournaments", "/img/home/showcase/tournaments.png"],
+    ["leaderboard", "/img/home/showcase/leaderboard.png"],
+  ];
+
+  for (const [key, mediaSrc] of expectedImages) {
+    const blockStart = showcase.indexOf(`key: "${key}"`);
+    const nextBlock = showcase.indexOf("\n  {", blockStart + 1);
+    const block = showcase.slice(
+      blockStart,
+      nextBlock === -1 ? showcase.indexOf("\n];", blockStart) : nextBlock,
+    );
+    assert.match(block, /mediaType: "image" as const,/);
+    assert.match(
+      block,
+      new RegExp(`mediaSrc: "${mediaSrc.replaceAll("/", "\\/")}",`),
+    );
+    assert.doesNotMatch(block, /mediaType: "placeholder" as const,/);
+  }
+
+  const gameServersBlock = showcase.slice(
+    showcase.indexOf('key: "game-servers"'),
+    showcase.indexOf('key: "tournaments"'),
+  );
+  assert.match(gameServersBlock, /mediaType: "placeholder" as const,/);
+  assert.match(gameServersBlock, /mediaSrc: undefined,/);
+  assert.equal((showcase.match(/mediaType: "image" as const,/g) || []).length, 5);
+  assert.equal((showcase.match(/mediaType: "placeholder" as const,/g) || []).length, 1);
+  assert.equal((showcase.match(/^    key: /gm) || []).length, 6);
+});
+
+test("all five showcase image assets exist and are exactly 683 by 384 PNGs", async () => {
+  for (const fileName of [
+    "matchmaking.png",
+    "player-stats.png",
+    "live-coverage.png",
+    "tournaments.png",
+    "leaderboard.png",
+  ]) {
+    const png = await readFile(
+      new URL(`../public/img/home/showcase/${fileName}`, import.meta.url),
+    );
+    assert.equal(
+      png.subarray(1, 4).toString("ascii"),
+      "PNG",
+      `${fileName} must be a PNG`,
+    );
+    assert.equal(png.readUInt32BE(16), 683, `${fileName} width`);
+    assert.equal(png.readUInt32BE(20), 384, `${fileName} height`);
+  }
 });
 
 test("HomeExploreShowcase passes the active slide's media fields through to the reusable frame component", () => {

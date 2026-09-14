@@ -32,9 +32,8 @@ import {
 } from "~/utilities/tacticalClasses";
 
 // Config-driven so future slides (Draft & Veto, 2D/3D visualization, Leagues)
-// can be appended without touching the layout. mediaSrc/mediaPoster are left
-// unset until approved assets land in public/img/home/showcase/ -- until then
-// every slide falls back to the placeholder rendered by HomeShowcaseMediaFrame.
+// can be appended without touching the layout. Slides without an approved
+// screenshot fall back to HomeShowcaseMediaFrame's placeholder.
 const showcaseSlides = [
   {
     key: "matchmaking",
@@ -49,8 +48,8 @@ const showcaseSlides = [
     ],
     cta: { label: "Join queue", to: "/play" },
     mediaIcon: Swords,
-    mediaType: "placeholder" as const,
-    mediaSrc: undefined,
+    mediaType: "image" as const,
+    mediaSrc: "/img/home/showcase/matchmaking.png",
     mediaPoster: undefined,
   },
   {
@@ -66,8 +65,8 @@ const showcaseSlides = [
     ],
     cta: { label: "Explore stats", to: "/players" },
     mediaIcon: BarChart3,
-    mediaType: "placeholder" as const,
-    mediaSrc: undefined,
+    mediaType: "image" as const,
+    mediaSrc: "/img/home/showcase/player-stats.png",
     mediaPoster: undefined,
   },
   {
@@ -82,8 +81,8 @@ const showcaseSlides = [
     ],
     cta: { label: "Watch live", to: "/watch" },
     mediaIcon: Tv,
-    mediaType: "placeholder" as const,
-    mediaSrc: undefined,
+    mediaType: "image" as const,
+    mediaSrc: "/img/home/showcase/live-coverage.png",
     mediaPoster: undefined,
   },
   {
@@ -118,8 +117,8 @@ const showcaseSlides = [
     ],
     cta: { label: "View tournaments", to: "/tournaments" },
     mediaIcon: Trophy,
-    mediaType: "placeholder" as const,
-    mediaSrc: undefined,
+    mediaType: "image" as const,
+    mediaSrc: "/img/home/showcase/tournaments.png",
     mediaPoster: undefined,
   },
   {
@@ -134,8 +133,8 @@ const showcaseSlides = [
     ],
     cta: { label: "View leaderboard", to: "/leaderboard" },
     mediaIcon: Medal,
-    mediaType: "placeholder" as const,
-    mediaSrc: undefined,
+    mediaType: "image" as const,
+    mediaSrc: "/img/home/showcase/leaderboard.png",
     mediaPoster: undefined,
   },
 ];
