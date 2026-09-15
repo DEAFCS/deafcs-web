@@ -8,6 +8,9 @@ export const teamVetoStatsQuery = generateQuery({
         match_lineup: {
           team_id: { _eq: $("teamId", "uuid!") },
         },
+        // Team stats are tournament matches only -- MM/scrim matches a
+        // lineup happened to get auto-tagged with don't count.
+        match: { is_tournament_match: { _eq: true } },
       },
       order_by: [{ created_at: order_by.asc_nulls_last }, { id: order_by.asc }],
     },
