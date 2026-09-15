@@ -489,18 +489,25 @@ export default {
         half: this.partySizeLimit(type),
       });
     },
+    // Counts players, not lobbies -- a trio queuing together is one lobby
+    // entry but should still show as 3 in queue, not 1. Dedupe by index
+    // first (the same lobby can appear in more than one preferred region).
     distinctInQueue(type: e_match_types_enum, regionValues: string[]): number {
-      const lobbyIndexes = new Set<number>();
+      const lobbySizes = new Map<number, number>();
       for (const regionValue of regionValues) {
-        const indexes = this.regionStats[regionValue]?.[type];
-        if (!indexes) {
+        const entries = this.regionStats[regionValue]?.[type];
+        if (!entries) {
           continue;
         }
-        for (const index of indexes) {
-          lobbyIndexes.add(index);
+        for (const entry of entries) {
+          lobbySizes.set(entry.index, entry.size);
         }
       }
-      return lobbyIndexes.size;
+      let total = 0;
+      for (const size of lobbySizes.values()) {
+        total += size;
+      }
+      return total;
     },
     getRegionlatencyResult(region: string):
       | {
