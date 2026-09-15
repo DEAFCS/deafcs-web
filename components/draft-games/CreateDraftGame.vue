@@ -101,8 +101,9 @@ const team2Id = ref<string | undefined>(source?.team_2_id);
 const innerSquad = ref<boolean>(source?.inner_squad ?? false);
 
 // Admin/match organizer/tournament organizer only — invisible to everyone
-// else (the API doesn't even expose the column to lower roles). Defaults on.
-const eloEnabled = ref<boolean>(source?.elo_enabled ?? true);
+// else (the API doesn't even expose the column to lower roles). Defaults
+// off -- a draft game shouldn't affect ELO unless the host opts in.
+const eloEnabled = ref<boolean>(source?.elo_enabled ?? false);
 
 const rosterAssignment = ref<
   Array<{ steam_id: string; lineup: number | null; side: number | null }>
@@ -363,7 +364,7 @@ const discardEdits = () => {
   team2Id.value = source?.team_2_id;
   innerSquad.value = source?.inner_squad ?? false;
   rankRange.value = [source?.min_elo ?? RANK_MIN, source?.max_elo ?? RANK_MAX];
-  eloEnabled.value = source?.elo_enabled ?? true;
+  eloEnabled.value = source?.elo_enabled ?? false;
   nextTick(() => {
     editBaseline.value = settingsSnapshot();
   });
