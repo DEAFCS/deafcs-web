@@ -251,11 +251,12 @@ export const useApplicationSettingsStore = defineStore(
       return matchMakingSetting ? matchMakingSetting.value === "true" : true;
     });
 
-    const matchmakingAllowed = computed(() => {
-      if (!matchmakingEnabled.value) {
-        return false;
-      }
-
+    // Role check only, independent of the panel on/off flag above. Lets a
+    // page tell "not verified" apart from "matchmaking is closed right
+    // now" instead of collapsing both into one false -- the verification
+    // prompt should still show even while the panel is closed, since
+    // getting verified is still worth doing before it reopens.
+    const matchmakingRoleAllowed = computed(() => {
       const matchmakingMinRole = settings.value.find(
         (setting) => setting.name === "public.matchmaking_min_role",
       );
@@ -265,6 +266,14 @@ export const useApplicationSettingsStore = defineStore(
       }
 
       return useAuthStore().isRoleAbove(matchmakingMinRole.value);
+    });
+
+    const matchmakingAllowed = computed(() => {
+      if (!matchmakingEnabled.value) {
+        return false;
+      }
+
+      return matchmakingRoleAllowed.value;
     });
 
     const supportsDiscordBot = computed(() => {
@@ -651,6 +660,7 @@ export const useApplicationSettingsStore = defineStore(
       canCreateCustomMatch,
       matchmakingAllowed,
       matchmakingEnabled,
+      matchmakingRoleAllowed,
       tournamentCreateRole,
       eventCreateRole,
       awardCreateRole,

@@ -106,7 +106,9 @@ const settingsOpen = ref(false);
                 {{
                   notVerifiedForMatchmaking
                     ? $t("pages.play.matchmaking.verification_required")
-                    : $t("pages.play.matchmaking.leader_required")
+                    : matchmakingClosed
+                      ? $t("pages.play.matchmaking.closed")
+                      : $t("pages.play.matchmaking.leader_required")
                 }}
               </span>
             </div>
@@ -275,12 +277,14 @@ export default {
       return useApplicationSettingsStore().matchmakingEnabled;
     },
     showMatchmaking() {
-      // The section (and the mode cards inside <Matchmaking>) stays visible
-      // to everyone whenever the panel is enabled -- guests see "fake" cards
+      // The section (and the mode cards inside <Matchmaking>) always stays
+      // visible, even while the panel is closed: guests see "fake" cards
       // that prompt login on click, unverified logged-in users see dimmed
-      // cards behind the verification-required overlay, so new players can
-      // always tell matchmaking exists.
-      return this.matchmakingEnabled;
+      // cards behind the verification-required overlay, and everyone sees
+      // a "closed" overlay when the panel itself is off. New players can
+      // always tell matchmaking exists instead of the section just
+      // disappearing.
+      return true;
     },
     currentLobby() {
       return useMatchmakingStore().currentLobby;
@@ -300,16 +304,35 @@ export default {
     },
     // A logged-in account whose role doesn't meet public.matchmaking_min_role.
     // Guests get the separate "fake card, click prompts login" treatment
-    // instead, not this overlay.
+    // instead, not this overlay. Deliberately independent of
+    // matchmakingEnabled: getting verified is still worth doing while the
+    // panel is closed, so this keeps showing even then instead of being
+    // masked by the "closed" message below.
     notVerifiedForMatchmaking() {
       return (
-        !this.isGuest && this.matchmakingEnabled && !this.matchmakingAllowed
+        !this.isGuest &&
+        !useApplicationSettingsStore().matchmakingRoleAllowed
+      );
+    },
+    // The panel is off entirely, for everyone -- shown only once the more
+    // specific reasons above don't already apply, so "you still need to
+    // verify" and "you're not the party leader" both keep taking
+    // precedence over the generic closed message.
+    matchmakingClosed() {
+      return (
+        !this.matchmakingEnabled &&
+        !this.notVerifiedForMatchmaking &&
+        !this.inLobbyNotLeader
       );
     },
     // Verification takes precedence: an unverified account can't queue
     // regardless of party leadership, so that message wins when both apply.
     matchmakingRestricted() {
-      return this.notVerifiedForMatchmaking || this.inLobbyNotLeader;
+      return (
+        this.notVerifiedForMatchmaking ||
+        this.inLobbyNotLeader ||
+        this.matchmakingClosed
+      );
     },
     verificationCtaLink() {
       return this.verificationApplicationStatus === "pending" ||
