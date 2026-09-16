@@ -42,6 +42,17 @@ useHead({
               {{ $t(`pages.verify.status.${application.status}`) }}
             </Badge>
             <Button
+              v-if="application.status === 'pending'"
+              variant="ghost"
+              size="icon"
+              class="h-7 w-7 text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
+              :title="$t('pages.verification_applications.call.start', 'Start webcam call')"
+              :disabled="calling"
+              @click="startVerificationCall"
+            >
+              <Video class="h-4 w-4" />
+            </Button>
+            <Button
               variant="ghost"
               size="icon"
               class="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -242,10 +253,11 @@ useHead({
 
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
-import { Trash2 } from "lucide-vue-next";
+import { Trash2, Video } from "lucide-vue-next";
 import { generateMutation } from "~/graphql/graphqlGen";
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
+import { ringVerificationApplicant } from "~/composables/useVerificationCallApi";
 
 // Raw GraphQL text, not the Zeus object-selector builder -- see
 // ALL_APPLICATIONS_QUERY in verification-applications/index.vue for why
@@ -299,6 +311,7 @@ export default {
       rejecting: false,
       deleting: false,
       sending: false,
+      calling: false,
       rejectDialogOpen: false,
       deleteDialogOpen: false,
       rejectReason: "",
@@ -408,6 +421,53 @@ export default {
         });
       } finally {
         this.rejecting = false;
+      }
+    },
+    // Admin-only (page middleware already gates this whole route to
+    // admins). Rings the applicant (site-wide "Admin is calling..."
+    // popup, see GlobalVerificationCallNotifier.vue) and opens the
+    // same call popup window the applicant will land in.
+    async startVerificationCall() {
+      if (this.calling) return;
+      this.calling = true;
+      try {
+        const result = await ringVerificationApplicant(this.$route.params.id as string);
+        if (result.error) {
+          toast({
+            variant: "destructive",
+            title: this.$t("common.error"),
+            description: result.error,
+          });
+          return;
+        }
+        const w = 960;
+        const h = 720;
+        const left = Math.max(0, (window.screen.width - w) / 2);
+        const top = Math.max(0, (window.screen.height - h) / 2);
+        const features = [
+          `width=${w}`,
+          `height=${h}`,
+          `left=${left}`,
+          `top=${top}`,
+          "scrollbars=yes",
+          "location=no",
+          "menubar=no",
+          "toolbar=no",
+          "status=no",
+        ].join(",");
+        window.open(
+          `/verification-applications/call/${this.$route.params.id}`,
+          "verification-call",
+          features,
+        );
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.calling = false;
       }
     },
     async deleteApplication() {

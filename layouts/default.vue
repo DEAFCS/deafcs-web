@@ -39,6 +39,9 @@ const OrphanedUploadsDialog = defineAsyncComponent(
 const GlobalLobbyCallNotifier = defineAsyncComponent(
   () => import("~/components/matchmaking-lobby/GlobalLobbyCallNotifier.vue"),
 );
+const GlobalVerificationCallNotifier = defineAsyncComponent(
+  () => import("~/components/verification/GlobalVerificationCallNotifier.vue"),
+);
 const EnableNotificationsPrompt = defineAsyncComponent(
   () => import("~/components/notification/EnableNotificationsPrompt.vue"),
 );
@@ -126,6 +129,7 @@ provide("containContent", containContent);
   <OrphanedUploadsDialog />
 
   <GlobalLobbyCallNotifier />
+  <GlobalVerificationCallNotifier />
 
   <EnableNotificationsPrompt />
 

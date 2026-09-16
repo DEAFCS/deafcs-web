@@ -97,6 +97,12 @@ function isPublicRoute(path: string): boolean {
     return true;
   }
 
+  // Token-gated join page for the verification-application webcam call
+  // -- same anonymous-phone-QR reasoning as /lobby-call above.
+  if (path.startsWith("/verification-call")) {
+    return true;
+  }
+
   if (path.startsWith("/embed/")) {
     return true;
   }

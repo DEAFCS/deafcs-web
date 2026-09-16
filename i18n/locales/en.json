@@ -2895,6 +2895,10 @@
         "country": "Country",
         "status": "Status",
         "submitted": "Submitted"
+      },
+      "call": {
+        "start": "Start webcam call",
+        "title": "Verification call"
       }
     },
     "terms_acceptances": {
@@ -4799,6 +4803,7 @@
     "done": "Done",
     "accept": "Accept",
     "decline": "Decline",
+    "leave": "Leave call",
     "previous": "Previous",
     "next": "Next",
     "back": "Back",
@@ -6975,6 +6980,11 @@
       "create": "Create Region"
     }
   },
+  "verification": {
+    "call": {
+      "incoming": "Calling about your verification"
+    }
+  },
   "matchmaking": {
     "match_types": {
       "competitive": {
@@ -7028,7 +7038,8 @@
       "in_call_label": "In call",
       "join": "Join call",
       "start": "Start webcam call",
-      "choose_device": "Connect with…"
+      "choose_device": "Connect with…",
+      "join_to_see": "Join the call to see everyone"
     },
     "open_lobbies": {
       "title": "Open Lobbies",
