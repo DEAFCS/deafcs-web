@@ -266,11 +266,33 @@ function stopParticipantsPolling() {
   participants.value = [];
 }
 
-// Fixed 2-party call: at most one other tile plus my own -- always a
-// single-column stack, no orientation-based multi-column grid needed.
-onMounted(() => {});
+// Grid layout -- identical to pages/lobby-call/[lobbyId]/[token].vue's
+// orientation-aware column logic, even though this call is always at
+// most 2 tiles: column count adapts to orientation (more columns fit
+// in landscape) so a phone held normally (portrait) stacks tiles
+// instead of cramming them side by side.
+const isPortrait = ref(true);
+function updateOrientation() {
+  isPortrait.value =
+    typeof window !== "undefined" &&
+    window.matchMedia("(orientation: portrait)").matches;
+}
+
+const totalTileCount = computed(() => otherParticipants.value.length + 1);
+const gridColumns = computed(() => {
+  if (totalTileCount.value <= 2) return isPortrait.value ? 1 : 2;
+  return isPortrait.value ? 2 : 3;
+});
+
+onMounted(() => {
+  updateOrientation();
+  window.addEventListener("resize", updateOrientation);
+  window.addEventListener("orientationchange", updateOrientation);
+});
 
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateOrientation);
+  window.removeEventListener("orientationchange", updateOrientation);
   teardownStream();
 });
 </script>
@@ -287,7 +309,7 @@ onBeforeUnmount(() => {
     <div
       v-if="phase === 'connected'"
       class="grid gap-2 auto-rows-fr overflow-y-auto flex-1 min-h-0"
-      :style="{ gridTemplateColumns: `repeat(${otherParticipants.length ? 2 : 1}, minmax(0, 1fr))` }"
+      :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
     >
       <div
         v-for="p in otherParticipants"

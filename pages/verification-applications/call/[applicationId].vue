@@ -75,9 +75,16 @@ async function refreshParticipants() {
   participants.value = await fetchVerificationCallParticipants(applicationId.value);
   // The QR/phone path took over: this desktop window's only job while
   // sitting on the "mobile" step was showing the QR code, and is just
-  // clutter once the phone that scanned it actually publishes.
-  if (step.value === "mobile" && participants.value.some((p) => p.steamId === myId.value)) {
-    window.close();
+  // clutter once the phone that scanned it actually publishes. Checked
+  // via the token's own status (self-referential: "is my path ready"),
+  // not the participants list above -- that list always excludes the
+  // caller's own steamId (it exists to render the OTHER party's tiles),
+  // so it can never answer "am I live yet" for either device.
+  if (step.value === "mobile" && joinToken.value) {
+    const { ready } = await fetchVerificationCallStatus(
+      verificationCallPlayerStatusUrl(joinToken.value),
+    );
+    if (ready) window.close();
   }
 }
 
@@ -307,8 +314,20 @@ const tileParticipants = computed(() =>
   ),
 );
 
-const isInCall = computed(() =>
-  participants.value.some((p) => p.steamId === myId.value),
+// participants (from the server) always excludes the caller's own
+// steamId -- it exists purely to render the OTHER party's tiles, same
+// as the reference's REST fetch. The reference derives its own
+// "am I in the call" from a room-wide socket echo that includes
+// yourself; there's no room here, so publishingLocally (true the
+// instant THIS window's own WHIP publish succeeds) is the only
+// self-authoritative signal.
+const isInCall = computed(() => publishingLocally.value);
+
+// Total participant count including self, for the header/messaging
+// text -- participants.value alone would always undercount by one
+// once you're the one publishing.
+const totalCount = computed(
+  () => participants.value.length + (publishingLocally.value ? 1 : 0),
 );
 
 // You should never see the other side's video before you've actually
@@ -329,9 +348,9 @@ const visibleTileCount = computed(() =>
       </h1>
       <span class="text-xs text-muted-foreground">
         {{
-          participants.length
+          totalCount
             ? $t("matchmaking.lobby_call.in_call", "{count} in call", {
-                count: participants.length,
+                count: totalCount,
               })
             : $t("matchmaking.lobby_call.no_call", "No active call")
         }}
