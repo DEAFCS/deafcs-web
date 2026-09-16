@@ -46,7 +46,11 @@ function isPublicRoute(path: string): boolean {
     return true;
   }
 
-  if (path.startsWith("/players")) {
+  // NOT /players/call/* -- that's the session-gated admin<->player
+  // call popup (only the admin who rang, or the target player
+  // themselves, should ever reach it), unlike every other /players/*
+  // page, which is guest-browsable by design.
+  if (path.startsWith("/players") && !path.startsWith("/players/call/")) {
     return true;
   }
 
@@ -100,6 +104,12 @@ function isPublicRoute(path: string): boolean {
   // Token-gated join page for the verification-application webcam call
   // -- same anonymous-phone-QR reasoning as /lobby-call above.
   if (path.startsWith("/verification-call")) {
+    return true;
+  }
+
+  // Token-gated join page for the general admin<->player webcam call
+  // -- same anonymous-phone-QR reasoning as /lobby-call above.
+  if (path.startsWith("/admin-call")) {
     return true;
   }
 

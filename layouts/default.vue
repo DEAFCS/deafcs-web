@@ -42,6 +42,9 @@ const GlobalLobbyCallNotifier = defineAsyncComponent(
 const GlobalVerificationCallNotifier = defineAsyncComponent(
   () => import("~/components/verification/GlobalVerificationCallNotifier.vue"),
 );
+const GlobalAdminCallNotifier = defineAsyncComponent(
+  () => import("~/components/admin-calls/GlobalAdminCallNotifier.vue"),
+);
 const EnableNotificationsPrompt = defineAsyncComponent(
   () => import("~/components/notification/EnableNotificationsPrompt.vue"),
 );
@@ -130,6 +133,7 @@ provide("containContent", containContent);
 
   <GlobalLobbyCallNotifier />
   <GlobalVerificationCallNotifier />
+  <GlobalAdminCallNotifier />
 
   <EnableNotificationsPrompt />
 

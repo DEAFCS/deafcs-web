@@ -57,6 +57,7 @@ import {
   Calendar as CalendarIcon,
   ChevronDown,
   MessageSquare,
+  Video,
 } from "lucide-vue-next";
 import { openDirectMessage } from "~/composables/useDirectMessage";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
@@ -1866,6 +1867,16 @@ const playerHeroTeamChipDotClasses =
                   >
                     <Pencil />
                   </button>
+                  <button
+                    v-if="isAdmin && !isSelfProfile"
+                    type="button"
+                    :disabled="callingPlayer"
+                    :class="playerHeroNameEditButtonClasses"
+                    :title="$t('pages.players.call.start', 'Start webcam call')"
+                    @click="startAdminCall"
+                  >
+                    <Video />
+                  </button>
                   <PlayerSanctions
                     v-if="playerId"
                     :playerId="playerId"
@@ -3054,6 +3065,8 @@ import { awardFields } from "~/graphql/awardFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { mapAwardRecipientToTrophy } from "~/utilities/awardOccurrenceResolution";
+import { ringAdminCallPlayer } from "~/composables/useAdminCallApi";
+import { toast } from "@/components/ui/toast";
 
 export default {
   apollo: {
@@ -3251,6 +3264,7 @@ export default {
       }>,
       editPlayerSheet: false,
       addFriendPending: false,
+      callingPlayer: false,
     };
   },
   computed: {
@@ -3488,6 +3502,53 @@ export default {
     handleImageError(event) {
       const img = event.target;
       img.style.display = "none";
+    },
+    // Admin-only (button itself is v-if="isAdmin"). Rings the player
+    // (site-wide "Admin is calling..." popup, see
+    // GlobalAdminCallNotifier.vue) and opens the same call popup
+    // window the player will land in.
+    async startAdminCall() {
+      if (!this.player?.steam_id || this.callingPlayer) return;
+      this.callingPlayer = true;
+      try {
+        const result = await ringAdminCallPlayer(String(this.player.steam_id));
+        if (result.error) {
+          toast({
+            variant: "destructive",
+            title: this.$t("common.error"),
+            description: result.error,
+          });
+          return;
+        }
+        const w = 960;
+        const h = 720;
+        const left = Math.max(0, (window.screen.width - w) / 2);
+        const top = Math.max(0, (window.screen.height - h) / 2);
+        const features = [
+          `width=${w}`,
+          `height=${h}`,
+          `left=${left}`,
+          `top=${top}`,
+          "scrollbars=yes",
+          "location=no",
+          "menubar=no",
+          "toolbar=no",
+          "status=no",
+        ].join(",");
+        window.open(
+          `/players/call/${this.player.steam_id}`,
+          "admin-call",
+          features,
+        );
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: (error as Error).message,
+        });
+      } finally {
+        this.callingPlayer = false;
+      }
     },
   },
 };

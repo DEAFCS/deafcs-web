@@ -2761,6 +2761,10 @@
           "worst_loss": "Worst Single Loss",
           "view_match": "View match"
         }
+      },
+      "call": {
+        "start": "Start webcam call",
+        "title": "Admin call"
       }
     },
     "play": {
@@ -6984,6 +6988,9 @@
     "call": {
       "incoming": "Calling about your verification"
     }
+  },
+  "admin_calls": {
+    "incoming": "Admin is calling"
   },
   "matchmaking": {
     "match_types": {
