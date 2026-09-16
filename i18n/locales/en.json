@@ -5049,6 +5049,7 @@
     "tournament": "Tournament chat",
     "organizers": "Organizers chat",
     "matchmaking": "Queue chat",
+    "announcement": "Announcements",
     "lobby_default": "Lobby",
     "organizers_default": "Organizers",
     "global_default": "Global Chat",

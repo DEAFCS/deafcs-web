@@ -143,6 +143,8 @@ function handleBackToHub() {
           :frameless="true"
           :is-global-context="true"
           :is-active-tab="true"
+          :can-send="canSend"
+          :readonly-hint="readonlyHint"
         />
       </div>
     </div>
