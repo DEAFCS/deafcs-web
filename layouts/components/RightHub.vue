@@ -6,6 +6,11 @@ import {
   SidebarMenuItem,
 } from "~/components/ui/sidebar";
 import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "~/components/ui/tooltip";
+import {
   Bell,
   Clock,
   Users,
@@ -14,6 +19,9 @@ import {
   Pin,
   X,
 } from "lucide-vue-next";
+import SteamIcon from "~/components/icons/SteamIcon.vue";
+import InstagramIcon from "~/components/icons/InstagramIcon.vue";
+import { socialLinks } from "~/utilities/socialLinks";
 import { useRightSidebar } from "@/composables/useRightSidebar";
 import { useHubState } from "@/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
@@ -237,6 +245,9 @@ function hubBtnClass(hub: string) {
       : "text-sidebar-foreground/50 hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-sidebar-foreground",
   ];
 }
+
+const socialLinkClasses =
+  "flex items-center justify-center w-10 h-10 rounded-md text-sidebar-foreground/50 transition-colors duration-200 hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-sidebar-foreground";
 
 // Mobile: swipe right to close
 const swipeStartX = ref(0);
@@ -465,6 +476,40 @@ function onHubTouchEnd(e: TouchEvent) {
         </button>
 
         <div class="flex-1" />
+
+        <!-- Social links -->
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <a
+              :href="socialLinks.steamGroup"
+              target="_blank"
+              rel="noopener noreferrer"
+              :aria-label="$t('layouts.app_nav.tooltips.steam_group')"
+              :class="socialLinkClasses"
+            >
+              <SteamIcon class="w-5 h-5 fill-current" />
+            </a>
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            {{ $t("layouts.app_nav.tooltips.steam_group") }}
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <a
+              :href="socialLinks.instagram"
+              target="_blank"
+              rel="noopener noreferrer"
+              :aria-label="$t('layouts.app_nav.tooltips.instagram')"
+              :class="socialLinkClasses"
+            >
+              <InstagramIcon class="w-5 h-5" />
+            </a>
+          </TooltipTrigger>
+          <TooltipContent side="left">
+            {{ $t("layouts.app_nav.tooltips.instagram") }}
+          </TooltipContent>
+        </Tooltip>
 
         <!-- Close/toggle at bottom (desktop only) -->
         <SidebarMenu v-if="!isMobile">
