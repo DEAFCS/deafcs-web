@@ -1,5 +1,30 @@
 <script setup lang="ts">
 import { CornerDownLeft } from "lucide-vue-next";
+import { Textarea } from "~/components/ui/textarea";
+
+// Enter sends (like every other input here); Shift+Enter inserts a
+// real line break instead -- native <textarea> already does that on
+// its own, so this only needs to intercept the plain-Enter case.
+// Only used when `multiline` is set (Announcements, see ChatLobby.vue),
+// so every other chat's single-line <Input> is untouched.
+function handleMultilineKeydown(event: KeyboardEvent, submit: () => void) {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    submit();
+  }
+}
+
+// Grows the textarea with its content (Steam-chat-style) instead of
+// staying a fixed one-row box that scrolls internally once someone
+// actually uses the multi-line room Shift+Enter now gives them.
+// Capped so a very long announcement doesn't push the send button
+// off-screen.
+const MULTILINE_MAX_HEIGHT_PX = 120;
+function autoResize(event: Event) {
+  const el = event.target as HTMLTextAreaElement;
+  el.style.height = "auto";
+  el.style.height = `${Math.min(el.scrollHeight, MULTILINE_MAX_HEIGHT_PX)}px`;
+}
 </script>
 
 <template>
@@ -12,7 +37,19 @@ import { CornerDownLeft } from "lucide-vue-next";
       <FormItem>
         <FormControl>
           <div class="flex gap-2">
+            <Textarea
+              v-if="multiline"
+              ref="inputRef"
+              rows="1"
+              :placeholder="placeholder || $t('chat.message_placeholder')"
+              autocomplete="off"
+              v-bind="componentField"
+              class="flex-1 min-h-0 resize-none transition-all duration-200"
+              @keydown="handleMultilineKeydown($event, sendMessage)"
+              @input="autoResize"
+            />
             <Input
+              v-else
               ref="inputRef"
               :placeholder="placeholder || $t('chat.message_placeholder')"
               autocomplete="off"
@@ -42,7 +79,19 @@ import { CornerDownLeft } from "lucide-vue-next";
       <FormItem>
         <FormControl>
           <div class="flex items-center gap-2 p-2">
+            <Textarea
+              v-if="multiline"
+              ref="inputRef"
+              rows="1"
+              :placeholder="placeholder || $t('chat.message_placeholder')"
+              autocomplete="off"
+              v-bind="componentField"
+              class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
+              @keydown="handleMultilineKeydown($event, sendMessage)"
+              @input="autoResize"
+            />
             <Input
+              v-else
               ref="inputRef"
               :placeholder="placeholder || $t('chat.message_placeholder')"
               autocomplete="off"
@@ -82,6 +131,12 @@ export default {
       type: String,
       required: false,
       default: undefined,
+    },
+    // Announcements-only (see ChatLobby.vue) -- every other chat type
+    // keeps the single-line input, where Enter has always sent.
+    multiline: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: ["sendMessage"],
@@ -127,6 +182,15 @@ export default {
       this.$emit("sendMessage", message);
       this.form.resetForm();
       this.flashSending();
+      // Collapse the multiline textarea back to its one-row default --
+      // resetForm clears the value but leaves the inline height style
+      // autoResize set, which would otherwise leave a tall empty box.
+      if (this.multiline) {
+        const el = (this.$refs.inputRef as any)?.$el as
+          | HTMLTextAreaElement
+          | undefined;
+        if (el) el.style.height = "auto";
+      }
     },
   },
 };
