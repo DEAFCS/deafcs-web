@@ -27,6 +27,7 @@ const PLAYER_QUERY = gql`
 const CHANNEL_LABELS: Record<string, string> = {
   global: "Global chat",
   organizers: "Organizer chat",
+  announcement: "Announcements",
 };
 
 const SIMPLE_LOBBY_TYPES: Array<ChatTab["type"]> = [
@@ -130,7 +131,7 @@ export function useChatNotificationNavigation() {
       return true;
     }
 
-    if (type === "global" || type === "organizers") {
+    if (type === "global" || type === "organizers" || type === "announcement") {
       openTab({
         id: type,
         label: CHANNEL_LABELS[type] || type,

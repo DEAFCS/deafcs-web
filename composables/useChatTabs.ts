@@ -7,7 +7,8 @@ type ChatType =
   | "organizers"
   | "tournament"
   | "global"
-  | "direct";
+  | "direct"
+  | "announcement";
 
 export interface ChatTab {
   id: string;

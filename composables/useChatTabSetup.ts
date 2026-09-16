@@ -138,6 +138,32 @@ export function useChatTabSetup() {
       closeTab(globalId);
     }
 
+    const announcementId = "announcement";
+    const existingAnnouncement = tabs.value.find(
+      (t) => t.id === announcementId,
+    );
+    // Narrower gate than Global Chat on purpose -- Announcements is
+    // readable by every logged-in player, including the base "user"
+    // role, not just verified_user+ (per explicit request), so this
+    // seeds for anyone with a session at all rather than reusing
+    // canUseGlobalChat.
+    if (Boolean(me)) {
+      if (!existingAnnouncement) {
+        openTab({
+          id: announcementId,
+          label: t("chat_tab_labels.announcement_default"),
+          instance: "announcement",
+          type: "announcement",
+          lobbyId: announcementId,
+          pinned: true,
+        });
+      } else if (!existingAnnouncement.pinned) {
+        setPinned(announcementId, true);
+      }
+    } else if (existingAnnouncement) {
+      closeTab(announcementId);
+    }
+
     const organizerId = "organizers";
     const existingOrganizer = tabs.value.find((t) => t.id === organizerId);
     if (isOrganizer.value) {

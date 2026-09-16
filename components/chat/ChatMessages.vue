@@ -22,7 +22,12 @@
         </span>
         <div class="flex-1 h-px bg-red-500/60"></div>
       </div>
-      <ChatMessage :message="message" :previous-message="messages[index - 1]" />
+      <ChatMessage
+        :message="message"
+        :previous-message="messages[index - 1]"
+        @edit-message="$emit('edit-message', $event)"
+        @delete-message="$emit('delete-message', $event)"
+      />
     </template>
   </div>
   <div
@@ -48,7 +53,12 @@
         </span>
         <div class="flex-1 h-px bg-red-500/60"></div>
       </div>
-      <ChatMessage :message="message" :previous-message="messages[index - 1]" />
+      <ChatMessage
+        :message="message"
+        :previous-message="messages[index - 1]"
+        @edit-message="$emit('edit-message', $event)"
+        @delete-message="$emit('delete-message', $event)"
+      />
     </template>
   </div>
 </template>
@@ -79,7 +89,7 @@ export default {
       default: 0,
     },
   },
-  emits: ["bottom-state-change"],
+  emits: ["bottom-state-change", "edit-message", "delete-message"],
   data() {
     return {
       isAtBottom: false,

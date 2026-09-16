@@ -13,6 +13,7 @@ import {
   Globe,
   X,
   Video,
+  BellRing,
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
@@ -24,6 +25,7 @@ import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
 import TooltipTrigger from "~/components/ui/tooltip/TooltipTrigger.vue";
 import TooltipContent from "~/components/ui/tooltip/TooltipContent.vue";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
+import { e_player_roles_enum } from "~/generated/zeus";
 
 const props = defineProps<{
   isSidebarOpen: boolean;
@@ -54,6 +56,25 @@ const {
 // mount tabs the user has actually looked at at least once.
 const mountedTabs = computed(() => tabs.value.filter((tab) => !tab.unopened));
 
+const isAdmin = computed(() =>
+  useAuthStore().isRoleAbove(e_player_roles_enum.administrator),
+);
+
+// Everyone can read Announcements (see joinMatchLobby's Announcement
+// case), but only admins can post -- every other channel type is
+// unrestricted here (ChatLobby's own `canSend` prop defaults to true).
+function canSendToTab(tab: ChatTab) {
+  if (tab.type === "announcement") return isAdmin.value;
+  return true;
+}
+
+function readonlyHintFor(tab: ChatTab) {
+  if (tab.type === "announcement") {
+    return t("chat.announcement_readonly", "Only admins can post here.");
+  }
+  return undefined;
+}
+
 const matchLobbyStore = useMatchLobbyStore();
 const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -75,15 +96,16 @@ watch(activeTabId, (id) => {
 });
 
 const orderedTabs = computed<ChatTab[]>(() => {
-  // Default (pre-drag) order: Global, Organizers (admin-only), Tournament,
-  // then everything else -- matchmaking lobby, per-match chat, DMs, etc.
-  // Anything a user has manually dragged still overrides this via
+  // Default (pre-drag) order: Announcements, Global, Organizers (admin-only),
+  // Tournament, then everything else -- matchmaking lobby, per-match chat,
+  // DMs, etc. Anything a user has manually dragged still overrides this via
   // manualOrder below; this is only the fallback for untouched tabs.
   const weight = (tab: ChatTab) => {
-    if (tab.type === "global") return 0;
-    if (tab.type === "organizers") return 1;
-    if (tab.type === "tournament") return 2;
-    return 3;
+    if (tab.type === "announcement") return 0;
+    if (tab.type === "global") return 1;
+    if (tab.type === "organizers") return 2;
+    if (tab.type === "tournament") return 3;
+    return 4;
   };
   const base = [...tabs.value].sort((a, b) => {
     const wa = weight(a);
@@ -408,6 +430,7 @@ function handleMessageReceived(payload: {
 }
 
 function getRoomIcon(tab: ChatTab) {
+  if (tab.type === "announcement") return BellRing;
   if (tab.type === "tournament") return Trophy;
   if (tab.type === "organizers") return Megaphone;
   if (tab.id.startsWith("matchmaking:")) return Merge;
@@ -418,6 +441,7 @@ function getRoomIcon(tab: ChatTab) {
 }
 
 function getRoomSubtitle(tab: ChatTab) {
+  if (tab.type === "announcement") return t("chat_room_subtitles.announcement");
   if (tab.type === "organizers") return t("chat_room_subtitles.organizers");
   if (tab.type === "tournament") return t("chat_room_subtitles.tournament");
   if (tab.id.startsWith("matchmaking:"))
@@ -814,6 +838,8 @@ function openLobbyCallWindow() {
             :is-active-tab="
               tab.id === activeChatId && isSidebarOpen && isTabActive
             "
+            :can-send="canSendToTab(tab)"
+            :readonly-hint="readonlyHintFor(tab)"
             @message-received="handleMessageReceived"
           />
         </div>

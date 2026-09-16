@@ -121,6 +121,8 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
             class="flex-1 overflow-y-auto max-h-96"
             :last-read-count="0"
             @bottom-state-change="handleBottomStateChange"
+            @edit-message="handleEditMessage"
+            @delete-message="handleDeleteMessage"
           />
           <Empty v-else class="flex-1 text-muted-foreground">
             <div class="space-y-1">
@@ -220,6 +222,8 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
         class="flex-1 min-h-0 overflow-y-auto"
         :last-read-count="0"
         @bottom-state-change="handleBottomStateChange"
+        @edit-message="handleEditMessage"
+        @delete-message="handleDeleteMessage"
       />
       <Empty v-else class="flex-1 text-muted-foreground">
         <div class="space-y-1">
@@ -295,6 +299,7 @@ export default {
           "match_team",
           "global",
           "direct",
+          "announcement",
         ].includes(value),
     },
     global: {
@@ -349,6 +354,8 @@ export default {
       messages: [] as any[],
       lobby: undefined as Lobby | undefined,
       lobbyListener: undefined as { stop: () => void } | undefined,
+      lobbyEditedListener: undefined as { stop: () => void } | undefined,
+      lobbyDeletedListener: undefined as { stop: () => void } | undefined,
       isMinimized: false,
       unreadCount: 0,
       lastReadMessageCount: 0,
@@ -538,12 +545,22 @@ export default {
         }
       });
     },
+    // Announcement-only -- ChatService re-checks the admin role itself
+    // regardless of what this sends, see editAnnouncement/deleteAnnouncement.
+    handleEditMessage({ id, message }: { id: string; message: string }) {
+      socket.editChat(id, message);
+    },
+    handleDeleteMessage({ id }: { id: string }) {
+      socket.deleteChat(id);
+    },
   },
   watch: {
     lobbyId: {
       immediate: true,
       handler() {
         this.lobbyListener?.stop();
+        this.lobbyEditedListener?.stop();
+        this.lobbyDeletedListener?.stop();
         this.lobby?.leave();
         this.lobby = socket.joinLobby(
           this.instance,
@@ -622,6 +639,25 @@ export default {
             });
           },
         );
+
+        // Announcement-only -- every other chat type has no persisted
+        // messages to edit/delete, so these events simply never fire
+        // for them (see ChatService.editAnnouncement/deleteAnnouncement).
+        // No callback body needed here beyond subscribing: both route
+        // through lobby.setMessages internally (see Socket.ts), which
+        // already re-invokes the "lobby:messages" handler registered
+        // above -- updateLobbyMessages there is what actually refreshes
+        // this.messages.
+        this.lobbyEditedListener = socket.listenChatEdited(
+          this.type,
+          this.lobbyId,
+          () => {},
+        );
+        this.lobbyDeletedListener = socket.listenChatDeleted(
+          this.type,
+          this.lobbyId,
+          () => {},
+        );
       },
     },
     messages: {
@@ -676,6 +712,8 @@ export default {
   beforeUnmount() {
     this.lobby?.leave();
     this.lobbyListener?.stop();
+    this.lobbyEditedListener?.stop();
+    this.lobbyDeletedListener?.stop();
   },
 };
 </script>
