@@ -3221,6 +3221,7 @@
       "no_results": "No leaderboard data available for the selected filters.",
       "categories": {
         "elo": "ELO",
+        "external_ranks": "FACEIT / PREMIER",
         "best_rating": "HLTV Rating",
         "best_adr": "ADR",
         "best_kpr": "KPR",
@@ -3266,6 +3267,8 @@
       },
       "col": {
         "elo": "ELO",
+        "faceit_elo": "FACEIT ELO",
+        "premier_rating": "PREMIER RATING",
         "peak_elo": "Peak ELO",
         "final_elo": "Final ELO",
         "elo_change": "ELO Change",

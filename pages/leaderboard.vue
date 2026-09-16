@@ -4,6 +4,7 @@ import { ref, computed, watch, onMounted, nextTick } from "vue";
 import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
+import ExternalRankLeaderboard from "~/components/leaderboard/ExternalRankLeaderboard.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import StatChevron from "~/components/StatChevron.vue";
@@ -306,9 +307,11 @@ useHead({
   title: () => t("pages.leaderboard.title"),
 });
 
+const EXTERNAL_RANK_CATEGORY = "external_ranks";
+
 const category = useRouteTab({
   defaultTab: "elo",
-  tabs: Object.keys(CATEGORY_CONFIG),
+  tabs: [...Object.keys(CATEGORY_CONFIG), EXTERNAL_RANK_CATEGORY],
 });
 
 const MATCH_TYPE_OPTIONS = ["all", "Competitive", "Wingman", "Duel"] as const;
@@ -392,8 +395,7 @@ const isPeakElo = computed(
 );
 const isRollingElo = computed(
   () =>
-    category.value === "elo" &&
-    (scope.value === "7" || scope.value === "30"),
+    category.value === "elo" && (scope.value === "7" || scope.value === "30"),
 );
 const derivedSeasonId = computed(() =>
   scope.value.startsWith("season:")
@@ -519,6 +521,7 @@ let fetchGeneration = 0;
 
 const categories = [
   { value: "elo" },
+  { value: EXTERNAL_RANK_CATEGORY },
   { value: "best_rating" },
   { value: "best_adr" },
   { value: "best_kpr" },
@@ -608,8 +611,7 @@ const defaultSortField = computed<SortField>(() =>
 );
 const effectiveSortField = computed<SortField | null>(
   () =>
-    sortBy.value ??
-    (category.value === "elo" ? defaultSortField.value : null),
+    sortBy.value ?? (category.value === "elo" ? defaultSortField.value : null),
 );
 const effectiveSortDir = computed<"asc" | "desc">(() =>
   sortBy.value ? sortDir.value : "desc",
@@ -753,6 +755,13 @@ async function alignPageToHighlightedPlayer(): Promise<boolean> {
 let pageAlignedForSteamId: string | null = null;
 
 async function fetchLeaderboard() {
+  if (category.value === EXTERNAL_RANK_CATEGORY) {
+    fetchGeneration++;
+    entries.value = [];
+    total.value = 0;
+    loading.value = false;
+    return;
+  }
   loading.value = true;
   const gen = ++fetchGeneration;
   try {
@@ -971,11 +980,7 @@ watch(
 watch(
   () => route.query.type,
   () => {
-    const routeType = readQueryParam(
-      "type",
-      MATCH_TYPE_OPTIONS,
-      "Competitive",
-    );
+    const routeType = readQueryParam("type", MATCH_TYPE_OPTIONS, "Competitive");
     if (routeType !== matchType.value) {
       matchType.value = routeType;
     }
@@ -1107,7 +1112,11 @@ onMounted(async () => {
   </PageTransition>
 
   <!-- Compact filter bar -->
-  <PageTransition :delay="100" class="mt-6">
+  <PageTransition
+    v-if="category !== EXTERNAL_RANK_CATEGORY"
+    :delay="100"
+    class="mt-6"
+  >
     <div
       class="rounded-md border border-border bg-card/40 px-3 py-2.5 [backdrop-filter:blur(6px)]"
     >
@@ -1185,7 +1194,9 @@ onMounted(async () => {
 
         <Select v-model="source">
           <SelectTrigger class="h-8 w-[160px]">
-            <SelectValue :placeholder="$t('pages.leaderboard.sources.overall')" />
+            <SelectValue
+              :placeholder="$t('pages.leaderboard.sources.overall')"
+            />
           </SelectTrigger>
           <SelectContent>
             <SelectItem v-for="opt of SOURCE_OPTIONS" :key="opt" :value="opt">
@@ -1395,7 +1406,11 @@ onMounted(async () => {
   </PageTransition>
 
   <!-- Results -->
-  <PageTransition :delay="300" class="mt-6">
+  <PageTransition
+    v-if="category !== EXTERNAL_RANK_CATEGORY"
+    :delay="300"
+    class="mt-6"
+  >
     <div>
       <div class="p-4 relative">
         <Transition v-bind="leaderboardFadeTransition" mode="out-in">
@@ -1540,7 +1555,9 @@ onMounted(async () => {
                       :label="columnLabels.tertiary_value ?? ''"
                       header
                     />
-                    <template v-else>{{ columnLabels.tertiary_value }}</template>
+                    <template v-else>{{
+                      columnLabels.tertiary_value
+                    }}</template>
                     <component
                       v-if="isSortable('tertiary_value')"
                       :is="sortIcon('tertiary_value')"
@@ -1650,9 +1667,7 @@ onMounted(async () => {
                         : {}
                     "
                   >
-                    <span
-                      class="inline-flex items-center justify-end gap-1"
-                    >
+                    <span class="inline-flex items-center justify-end gap-1">
                       {{ formatValue(entry.value) }}
                       <StatChevron
                         v-if="statTier('value')"
@@ -1671,9 +1686,7 @@ onMounted(async () => {
                         : {}
                     "
                   >
-                    <span
-                      class="inline-flex items-center justify-end gap-1"
-                    >
+                    <span class="inline-flex items-center justify-end gap-1">
                       {{ formatSecondary(entry.secondary_value) }}
                       <StatChevron
                         v-if="statTier('secondary_value')"
@@ -1734,6 +1747,7 @@ onMounted(async () => {
       />
     </div>
   </PageTransition>
+  <ExternalRankLeaderboard v-else />
 </template>
 
 <style scoped>
