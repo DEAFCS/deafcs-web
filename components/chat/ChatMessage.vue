@@ -80,7 +80,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
         </button>
       </div>
       <div v-else class="flex items-start gap-1.5">
-        <p class="text-[11px] leading-snug break-words">
+        <p class="text-[11px] leading-snug break-words whitespace-pre-wrap">
           {{ message.message }}
         </p>
         <div

@@ -145,6 +145,7 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
           ref="chatInputRef"
           variant="global"
           :placeholder="messagePlaceholder"
+          :multiline="type === 'announcement'"
           @send-message="handleSendMessage"
         />
         <div
@@ -245,6 +246,7 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
         ref="chatInputRef"
         variant="embedded"
         :placeholder="messagePlaceholder"
+        :multiline="type === 'announcement'"
         @send-message="handleSendMessage"
       />
       <div
