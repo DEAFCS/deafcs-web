@@ -4,6 +4,7 @@ import { useRoute, useRouter } from "#app";
 import { useI18n } from "vue-i18n";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
+import { e_player_roles_enum } from "~/generated/zeus";
 
 definePageMeta({
   layout: "chat",
@@ -40,7 +41,8 @@ const tabFromQuery = computed<ChatTab | null>(() => {
       | "team"
       | "matchmaking"
       | "organizers"
-      | "tournament",
+      | "tournament"
+      | "announcement",
     lobbyId,
     pinned: false,
   };
@@ -59,6 +61,25 @@ const windowTitle = computed(
 const tabTypeLabel = computed(() => {
   if (!currentTab.value) return "";
   return t(`chat_tab_labels.${currentTab.value.type}`);
+});
+
+// Same restriction as the sidebar (ChatPanel.vue's canSendToTab) --
+// missed here originally, so a regular user popping Announcements out
+// into its own window still saw a working-looking input box that
+// silently failed to send (ChatService.sendMessageToChat rejects it
+// server-side), which is confusing rather than just not showing it.
+const isAdmin = computed(() =>
+  useAuthStore().isRoleAbove(e_player_roles_enum.administrator),
+);
+const canSend = computed(() => {
+  if (currentTab.value?.type === "announcement") return isAdmin.value;
+  return true;
+});
+const readonlyHint = computed(() => {
+  if (currentTab.value?.type === "announcement") {
+    return t("chat.announcement_readonly");
+  }
+  return undefined;
 });
 
 useHead({

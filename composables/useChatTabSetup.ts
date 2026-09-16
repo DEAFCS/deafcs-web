@@ -142,7 +142,12 @@ export function useChatTabSetup() {
     const existingAnnouncement = tabs.value.find(
       (t) => t.id === announcementId,
     );
-    if (canUseGlobalChat.value) {
+    // Narrower gate than Global Chat on purpose -- Announcements is
+    // readable by every logged-in player, including the base "user"
+    // role, not just verified_user+ (per explicit request), so this
+    // seeds for anyone with a session at all rather than reusing
+    // canUseGlobalChat.
+    if (Boolean(me)) {
       if (!existingAnnouncement) {
         openTab({
           id: announcementId,
