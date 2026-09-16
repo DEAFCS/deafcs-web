@@ -2,12 +2,14 @@
 import TimeAgo from "~/components/TimeAgo.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
+import { Pencil, Trash2, Check, X as XIcon } from "lucide-vue-next";
+import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
 <template>
   <div
     :class="[
-      'relative pl-12 text-[11px] leading-snug',
+      'group relative pl-12 text-[11px] leading-snug',
       isSameSender && isCloseTogether ? 'mt-1' : 'mt-3',
     ]"
   >
@@ -52,9 +54,57 @@ import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
           <time-ago :date="message.timestamp" hide-icon></time-ago>
         </span>
       </div>
-      <p class="text-[11px] leading-snug break-words">
-        {{ message.message }}
-      </p>
+      <div v-if="isEditing" class="flex items-start gap-1.5">
+        <textarea
+          v-model="editDraft"
+          rows="2"
+          class="flex-1 resize-none rounded border border-border bg-background px-1.5 py-1 text-[11px] leading-snug"
+          @keydown.escape="cancelEdit"
+          @keydown.enter.exact.prevent="confirmEdit"
+        />
+        <button
+          type="button"
+          :title="$t('common.save', 'Save')"
+          class="text-emerald-500 hover:text-emerald-400"
+          @click="confirmEdit"
+        >
+          <Check class="h-3.5 w-3.5" />
+        </button>
+        <button
+          type="button"
+          :title="$t('common.cancel')"
+          class="text-muted-foreground hover:text-foreground"
+          @click="cancelEdit"
+        >
+          <XIcon class="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <div v-else class="flex items-start gap-1.5">
+        <p class="text-[11px] leading-snug break-words">
+          {{ message.message }}
+        </p>
+        <div
+          v-if="canModerate"
+          class="ml-auto hidden shrink-0 items-center gap-1 group-hover:flex"
+        >
+          <button
+            type="button"
+            :title="$t('common.edit')"
+            class="text-muted-foreground hover:text-foreground"
+            @click="startEdit"
+          >
+            <Pencil class="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            :title="$t('common.delete')"
+            class="text-muted-foreground hover:text-destructive"
+            @click="requestDelete"
+          >
+            <Trash2 class="h-3 w-3" />
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -93,6 +143,7 @@ export default {
       required: false,
     },
   },
+  emits: ["edit-message", "delete-message"],
   data() {
     return {
       // Chat messages embed a snapshot of the sender's avatar_url from
@@ -102,6 +153,8 @@ export default {
       // PlayerDisplay's normal player.avatar_url, so there's no flash
       // of a missing avatar while this is in flight.
       liveAvatarUrl: null as string | null,
+      isEditing: false,
+      editDraft: "",
     };
   },
   created() {
@@ -131,8 +184,40 @@ export default {
     roleBadge() {
       return ROLE_BADGE[this.message?.from?.role] ?? null;
     },
+    // Only announcement messages carry a persisted `id` (see
+    // ChatService.getAnnouncementMessages/sendMessageToChat) -- every
+    // other chat type has nothing to edit/delete, so this naturally
+    // stays false for them regardless of role.
+    canModerate() {
+      return (
+        Boolean(this.message?.id) &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+      );
+    },
   },
   methods: {
+    startEdit() {
+      this.editDraft = this.message.message;
+      this.isEditing = true;
+    },
+    cancelEdit() {
+      this.isEditing = false;
+    },
+    confirmEdit() {
+      const message = this.editDraft.trim();
+      if (!message || message === this.message.message) {
+        this.isEditing = false;
+        return;
+      }
+      this.$emit("edit-message", { id: this.message.id, message });
+      this.isEditing = false;
+    },
+    requestDelete() {
+      if (!window.confirm(this.$t("chat.confirm_delete_announcement", "Remove this announcement?"))) {
+        return;
+      }
+      this.$emit("delete-message", { id: this.message.id });
+    },
     async fetchLiveAvatar() {
       const steamId = this.message?.from?.steam_id;
       if (!steamId) return;

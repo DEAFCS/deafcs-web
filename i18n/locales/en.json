@@ -5047,7 +5047,8 @@
     "matchmaking": "Queue chat",
     "lobby_default": "Lobby",
     "organizers_default": "Organizers",
-    "global_default": "Global Chat"
+    "global_default": "Global Chat",
+    "announcement_default": "Announcements"
   },
   "chat_room_subtitles": {
     "organizers": "Global Lobby",
@@ -5056,7 +5057,8 @@
     "match": "Match Chat",
     "team": "Team Chat",
     "global": "All Verified Players",
-    "direct": "Direct Message"
+    "direct": "Direct Message",
+    "announcement": "Admin Announcements"
   },
   "latency_status": {
     "measuring": "Measuring...",
@@ -7244,6 +7246,8 @@
   },
   "chat": {
     "readonly": "Chat is read-only.",
+    "announcement_readonly": "Only admins can post here.",
+    "confirm_delete_announcement": "Remove this announcement?",
     "lobby_chat": "Lobby Chat",
     "global_chat": "Global Chat",
     "team_chat": "Team Chat",

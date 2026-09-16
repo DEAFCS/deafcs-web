@@ -28,7 +28,11 @@ export type ChatType =
   | "global"
   // 1:1 private message -- lobbyId is the two participants' steam_ids
   // sorted ascending, joined with ":". See openDirectMessage.
-  | "direct";
+  | "direct"
+  // Site-wide, admin-only-posting channel. Fixed lobbyId "announcement"
+  // (same string as the type itself, matching the global/organizers
+  // convention) -- there's only ever one.
+  | "announcement";
 
 class Socket extends EventEmitter {
   private listening = new Set();
@@ -246,6 +250,63 @@ class Socket extends EventEmitter {
       message,
       clientId: this.sessionId,
     });
+  }
+
+  // Announcement-only (see ChatService.editAnnouncement/deleteAnnouncement,
+  // which re-check the admin role themselves regardless of what a
+  // crafted client sends here).
+  public editChat(messageId: string, message: string) {
+    this.event(`lobby:chat:edit`, { id: messageId, message });
+  }
+
+  public deleteChat(messageId: string) {
+    this.event(`lobby:chat:delete`, { id: messageId });
+  }
+
+  // Mirrors listenChat's shared-cache sync, but for an in-place edit/
+  // removal of an already-delivered message instead of a new one.
+  public listenChatEdited(
+    type: string,
+    id: string,
+    callback: (data: { id: string; message: string }) => void,
+  ) {
+    return this.listen(
+      `lobby:${type}:${id}:edited`,
+      (data: { id: string; message: string }) => {
+        const lobby = this.lobbies.get(`${type}:${id}`);
+        if (lobby) {
+          // Routed through setMessages (rebuilding the array) rather than
+          // mutating the found message object in place, so every mounted
+          // ChatLobby instance for this same lobby (each holding its own
+          // shallow-cloned `messages` array, see updateLobbyMessages)
+          // picks up the edit via its "lobby:messages" callback, same as
+          // listenChatDeleted just below.
+          lobby.setMessages(
+            lobby.messages.map((m: any) =>
+              m.id === data.id ? { ...m, message: data.message } : m,
+            ),
+          );
+        }
+        callback(data);
+      },
+    );
+  }
+
+  public listenChatDeleted(
+    type: string,
+    id: string,
+    callback: (data: { id: string }) => void,
+  ) {
+    return this.listen(
+      `lobby:${type}:${id}:deleted`,
+      (data: { id: string }) => {
+        const lobby = this.lobbies.get(`${type}:${id}`);
+        if (lobby) {
+          lobby.setMessages(lobby.messages.filter((m: any) => m.id !== data.id));
+        }
+        callback(data);
+      },
+    );
   }
 
   public listenChat(type: string, id: string, callback: (data: any) => void) {

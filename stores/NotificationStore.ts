@@ -486,6 +486,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
                           "MatchChatMessage",
                           "GlobalChatMessage",
                           "OrganizerChatMessage",
+                          "AnnouncementChatMessage",
                         ],
                       },
                     },

@@ -138,6 +138,27 @@ export function useChatTabSetup() {
       closeTab(globalId);
     }
 
+    const announcementId = "announcement";
+    const existingAnnouncement = tabs.value.find(
+      (t) => t.id === announcementId,
+    );
+    if (canUseGlobalChat.value) {
+      if (!existingAnnouncement) {
+        openTab({
+          id: announcementId,
+          label: t("chat_tab_labels.announcement_default"),
+          instance: "announcement",
+          type: "announcement",
+          lobbyId: announcementId,
+          pinned: true,
+        });
+      } else if (!existingAnnouncement.pinned) {
+        setPinned(announcementId, true);
+      }
+    } else if (existingAnnouncement) {
+      closeTab(announcementId);
+    }
+
     const organizerId = "organizers";
     const existingOrganizer = tabs.value.find((t) => t.id === organizerId);
     if (isOrganizer.value) {
