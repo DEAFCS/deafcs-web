@@ -52,11 +52,6 @@ import InstagramIcon from "~/components/icons/InstagramIcon.vue";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import { loginLinks } from "~/utilities/loginLinks";
 import { socialLinks } from "~/utilities/socialLinks";
-import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "~/components/ui/tooltip";
 
 const { isMobile } = useSidebar();
 const { openLastOrDefaultHub } = useHubState();
@@ -123,7 +118,7 @@ const navBadgeDotClasses =
 const navContentClasses =
   "relative mt-0 min-w-[360px] max-w-[95vw] overflow-hidden border border-topnav-border bg-[linear-gradient(180deg,hsl(var(--topnav-background)/0.98)_0%,hsl(var(--topnav-background)/0.92)_100%)] p-0 shadow-[inset_0_1px_0_hsl(var(--tac-amber)/0.12),0_20px_40px_-12px_hsl(0_0%_0%/0.55)] [backdrop-filter:blur(8px)] [-webkit-backdrop-filter:blur(8px)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent,hsl(var(--tac-amber)/0.5),transparent)]";
 const playContentClasses = `${navContentClasses} min-w-[500px]`;
-const communityContentClasses = `${navContentClasses} min-w-[560px]`;
+const communityContentClasses = `${navContentClasses} w-[95vw] !min-w-0 md:w-auto md:!min-w-[560px]`;
 const infoContentClasses = `${navContentClasses} min-w-[720px]`;
 
 const navGroupLabelClasses =
@@ -160,8 +155,6 @@ const loginButtonClasses =
   "group relative inline-flex items-center gap-[0.45rem] rounded-md border border-[hsl(var(--tac-amber)/0.55)] bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.14)_0%,hsl(var(--tac-amber)/0.06)_100%)] px-[0.8rem] py-[0.45rem] font-sans text-[0.68rem] font-bold uppercase tracking-[0.16em] text-topnav-foreground transition-[background-color,color,transform] duration-150 hover:bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.28)_0%,hsl(var(--tac-amber)/0.14)_100%)] active:translate-y-px sm:px-3 sm:py-[0.35rem] sm:text-[0.65rem] sm:tracking-[0.18em]";
 const loginArrowClasses =
   "font-sans text-[hsl(var(--tac-amber))] transition-transform duration-150 group-hover:translate-x-[3px]";
-const socialLinkClasses =
-  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-topnav-foreground/70 transition-[background-color,border-color,color] duration-150 hover:border-[hsl(var(--tac-amber)/0.35)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))]";
 </script>
 
 <template>
@@ -593,6 +586,72 @@ const socialLinkClasses =
                                 </span>
                               </span>
                             </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <a
+                              :href="socialLinks.steamGroup"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              :aria-label="
+                                $t(
+                                  'layouts.top_nav.community.social.steam_group.title',
+                                )
+                              "
+                              :class="navItemClasses"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span
+                                :class="[
+                                  navItemLabelClasses,
+                                  navItemLabelIconClasses,
+                                ]"
+                              >
+                                {{
+                                  $t(
+                                    "layouts.top_nav.community.social.steam_group.title",
+                                  )
+                                }}
+                                <SteamIcon
+                                  class="h-3.5 w-3.5 shrink-0 fill-current"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </a>
+                          </NavigationMenuLink>
+                        </li>
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <a
+                              :href="socialLinks.instagram"
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              :aria-label="
+                                $t(
+                                  'layouts.top_nav.community.social.instagram.title',
+                                )
+                              "
+                              :class="navItemClasses"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span
+                                :class="[
+                                  navItemLabelClasses,
+                                  navItemLabelIconClasses,
+                                ]"
+                              >
+                                {{
+                                  $t(
+                                    "layouts.top_nav.community.social.instagram.title",
+                                  )
+                                }}
+                                <InstagramIcon
+                                  class="h-3.5 w-3.5 shrink-0"
+                                  aria-hidden="true"
+                                />
+                              </span>
+                            </a>
                           </NavigationMenuLink>
                         </li>
                       </ul>
@@ -1047,38 +1106,6 @@ const socialLinkClasses =
 
       <template v-else>
         <div :class="topNavRightClasses">
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <a
-                :href="socialLinks.steamGroup"
-                target="_blank"
-                rel="noopener noreferrer"
-                :aria-label="$t('layouts.app_nav.tooltips.steam_group')"
-                :class="socialLinkClasses"
-              >
-                <SteamIcon class="h-3.5 w-3.5 fill-current" />
-              </a>
-            </TooltipTrigger>
-            <TooltipContent>
-              {{ $t("layouts.app_nav.tooltips.steam_group") }}
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <a
-                :href="socialLinks.instagram"
-                target="_blank"
-                rel="noopener noreferrer"
-                :aria-label="$t('layouts.app_nav.tooltips.instagram')"
-                :class="socialLinkClasses"
-              >
-                <InstagramIcon class="h-3.5 w-3.5" />
-              </a>
-            </TooltipTrigger>
-            <TooltipContent>
-              {{ $t("layouts.app_nav.tooltips.instagram") }}
-            </TooltipContent>
-          </Tooltip>
           <button
             @click="signIn"
             :class="loginButtonClasses"

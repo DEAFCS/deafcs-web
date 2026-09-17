@@ -4604,8 +4604,6 @@
         "alerts": "Manage site-wide alert banners",
         "report_issue": "Report an Issue",
         "join_discord": "Join our Discord",
-        "steam_group": "Steam Group",
-        "instagram": "Instagram",
         "manage_matches": "Manage Matches",
         "verification_applications": "Review verification applications",
         "manage_tournaments": "Manage Tournaments",
@@ -4673,6 +4671,12 @@
           "forum": {
             "title": "Forum",
             "subtitle": "Discuss with the community"
+          },
+          "steam_group": {
+            "title": "Steam Group"
+          },
+          "instagram": {
+            "title": "Instagram"
           }
         },
         "roster": "ROSTER",
