@@ -31,9 +31,12 @@ function showIncomingCall(data: RingPayload) {
   incomingCall.value = data;
   if (incomingCallTimer) clearTimeout(incomingCallTimer);
   // Auto-decline rather than just auto-dismiss -- letting it silently
-  // vanish left the calling admin's own popup stuck on "Ringer…"
+  // vanish left the calling admin's own popup stuck on "Calling…"
   // forever with no way to know the applicant never even answered.
-  incomingCallTimer = setTimeout(() => decline(), 15_000);
+  // Matches VerificationCallService.RINGING_TTL_SECONDS on the backend
+  // (the ring itself expires at the same point, so there's no reason
+  // for this to outlast or fall short of that window).
+  incomingCallTimer = setTimeout(() => decline(), 60_000);
 }
 
 function closeOverlay() {
