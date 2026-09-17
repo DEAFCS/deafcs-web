@@ -54,12 +54,20 @@ import {
   Maximize2,
   UserPlus,
   UserCheck,
+  UserX,
+  Clock,
   Calendar as CalendarIcon,
   ChevronDown,
   MessageSquare,
   Video,
 } from "lucide-vue-next";
 import { openDirectMessage } from "~/composables/useDirectMessage";
+
+// Hover/focus toggle for the FRIEND -> "Remove friend?" hero button; the
+// friend relationship state itself is computed in the Options block below
+// via useFriendActions(), the same live my_friends-subscription source
+// FriendListItem reads from.
+const friendButtonHovered = ref(false);
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import RadialStat from "~/components/charts/RadialStat.vue";
@@ -1758,7 +1766,13 @@ const playerHeroNameEditButtonClasses =
 const playerHeroAddFriendClasses =
   "group/addfriend relative inline-flex items-center justify-center gap-[0.55rem] overflow-hidden rounded border border-[hsl(var(--tac-amber)_/_0.55)] bg-[hsl(var(--tac-amber)_/_0.12)] px-4 py-2.5 font-sans text-[0.8rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))] transition-[transform,border-color,background-color,box-shadow] duration-150 hover:-translate-y-px hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.2)] hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.45),0_8px_24px_-8px_hsl(var(--tac-amber)/0.5)] disabled:cursor-not-allowed disabled:opacity-60 max-md:w-full";
 const playerHeroFriendBadgeClasses =
-  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-emerald-400 max-md:w-full";
+  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-emerald-400 max-md:w-full transition-colors duration-150 cursor-default";
+const playerHeroRemoveFriendClasses =
+  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-destructive/50 bg-destructive/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-destructive max-md:w-full transition-colors duration-150 cursor-pointer";
+const playerHeroFriendPendingClasses =
+  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] max-md:w-full disabled:cursor-not-allowed";
+const playerHeroFriendIncomingClasses =
+  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] max-md:w-full";
 const playerHeroAvatarFrameClasses =
   "relative h-[156px] w-[156px] border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] p-1 max-md:h-24 max-md:w-24";
 const playerHeroAvatarClasses = "block h-full w-full object-cover";
@@ -2037,16 +2051,51 @@ const playerHeroTeamChipDotClasses =
                 v-else-if="canAddFriend"
                 type="button"
                 :class="playerHeroAddFriendClasses"
-                :disabled="addFriendPending"
+                :disabled="friendActionInFlight"
                 @click="addAsFriend"
               >
                 <UserPlus class="h-4 w-4" />
                 <span>{{ $t("player.status.add_friend") }}</span>
               </button>
-              <span v-else-if="isFriend" :class="playerHeroFriendBadgeClasses">
-                <UserCheck class="h-3.5 w-3.5" />
-                <span>{{ $t("pages.players.detail.friend") }}</span>
+              <span
+                v-else-if="isFriendIncoming"
+                :class="playerHeroFriendIncomingClasses"
+              >
+                <Clock class="h-3.5 w-3.5" />
+                <span>{{ $t("pages.players.detail.friend_incoming") }}</span>
               </span>
+              <button
+                v-else-if="isFriendPending"
+                type="button"
+                :class="playerHeroFriendPendingClasses"
+                disabled
+              >
+                <Clock class="h-3.5 w-3.5" />
+                <span>{{ $t("pages.players.detail.friend_pending") }}</span>
+              </button>
+              <button
+                v-else-if="isFriend"
+                type="button"
+                :class="
+                  friendButtonHovered
+                    ? playerHeroRemoveFriendClasses
+                    : playerHeroFriendBadgeClasses
+                "
+                :disabled="friendActionInFlight"
+                @mouseenter="friendButtonHovered = true"
+                @mouseleave="friendButtonHovered = false"
+                @focus="friendButtonHovered = true"
+                @blur="friendButtonHovered = false"
+                @click="removeFriendClick"
+              >
+                <UserX v-if="friendButtonHovered" class="h-3.5 w-3.5" />
+                <UserCheck v-else class="h-3.5 w-3.5" />
+                <span>{{
+                  friendButtonHovered
+                    ? $t("pages.players.detail.friend_remove_confirm")
+                    : $t("pages.players.detail.friend")
+                }}</span>
+              </button>
             </div>
           </div>
         </header>
@@ -3066,6 +3115,7 @@ import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLo
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { mapAwardRecipientToTrophy } from "~/utilities/awardOccurrenceResolution";
 import { ringAdminCallPlayer } from "~/composables/useAdminCallApi";
+import { useFriendActions } from "~/composables/useFriendActions";
 import { toast } from "@/components/ui/toast";
 
 export default {
@@ -3263,7 +3313,6 @@ export default {
         };
       }>,
       editPlayerSheet: false,
-      addFriendPending: false,
       callingPlayer: false,
     };
   },
@@ -3344,30 +3393,41 @@ export default {
         this.player.steam_id === this.me.steam_id
       );
     },
+    // Single source of truth for the hero friend button: derived from the
+    // live my_friends subscription via useFriendActions, the same place
+    // FriendListItem reads from -- so it reflects a just-sent/just-accepted
+    // request immediately, and stays correct after refresh/navigation with
+    // no local/optimistic boolean to fall out of sync.
+    friendRelationshipState() {
+      if (!this.player?.steam_id) return "none";
+      return useFriendActions().relationship(this.player.steam_id);
+    },
+    // "friend" only (not "outgoing"/"incoming") -- matches the previous
+    // status !== "Pending" behavior, which also feeds canMessagePlayer
+    // below (DMs stay restricted to accepted friends).
     isFriend() {
-      if (!this.player) {
-        return false;
-      }
-      // status !== "Pending" (not === "Accepted") to match
-      // MatchmakingStore's own onlineFriends/offlineFriends filter --
-      // Pending is the only other status. Without this, a friend
-      // *request* either way counted as already being friends (this fed
-      // canMessagePlayer below, effectively letting a pending, unaccepted
-      // request open a DM).
-      return !!useMatchmakingStore().friends.find((friend: any) => {
-        return (
-          friend.steam_id == this.player.steam_id &&
-          friend.status !== "Pending"
-        );
-      });
+      return this.friendRelationshipState === "friend";
+    },
+    isFriendPending() {
+      return this.friendRelationshipState === "outgoing";
+    },
+    isFriendIncoming() {
+      return this.friendRelationshipState === "incoming";
     },
     canAddFriend() {
       return !!(
         this.me &&
         this.player?.steam_id &&
         !this.isSelfProfile &&
-        !this.isFriend
+        this.friendRelationshipState === "none"
       );
+    },
+    // Drives the hero button's :disabled -- true while an add/remove
+    // mutation for this player is in flight (shared in-flight map in
+    // useFriendActions, keyed by steam_id).
+    friendActionInFlight() {
+      if (!this.player?.steam_id) return false;
+      return useFriendActions().isBusy(this.player.steam_id);
     },
     // DMs are restricted to accepted friends, no exceptions -- see
     // chat.service.ts's ChatLobbyType.Direct join check, which is the
@@ -3382,7 +3442,13 @@ export default {
       );
     },
     hasRightColumn() {
-      return this.isSelfProfile || this.canAddFriend || this.isFriend;
+      return (
+        this.isSelfProfile ||
+        this.canAddFriend ||
+        this.isFriend ||
+        this.isFriendPending ||
+        this.isFriendIncoming
+      );
     },
     isAdmin() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
@@ -3484,19 +3550,41 @@ export default {
       openDirectMessage(this.player);
     },
     async addAsFriend() {
-      if (!this.player?.steam_id || this.addFriendPending) return;
-      this.addFriendPending = true;
+      if (!this.player?.steam_id) return;
+      const { isBusy, addFriend } = useFriendActions();
+      // Belt-and-braces against the button's :disabled binding -- guards a
+      // synchronous double-click that lands before Vue re-renders.
+      if (isBusy(this.player.steam_id)) return;
       try {
-        await this.$apollo.mutate({
-          mutation: typedGql("mutation")({
-            insert_my_friends_one: [
-              { object: { steam_id: this.player.steam_id } },
-              { steam_id: true },
-            ],
-          }),
+        await addFriend(this.player.steam_id);
+      } catch (error) {
+        const message = (error as Error)?.message || "";
+        const isDuplicate =
+          message.includes("friends_pkey") ||
+          message.toLowerCase().includes("duplicate key");
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: isDuplicate
+            ? this.$t("pages.players.detail.friend_already_pending")
+            : message || this.$t("pages.players.detail.friend_add_error"),
         });
-      } finally {
-        this.addFriendPending = false;
+      }
+    },
+    async removeFriendClick() {
+      if (!this.player?.steam_id) return;
+      const { isBusy, removeFriend } = useFriendActions();
+      if (isBusy(this.player.steam_id)) return;
+      try {
+        await removeFriend(this.player.steam_id);
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description:
+            (error as Error)?.message ||
+            this.$t("pages.players.detail.friend_remove_error"),
+        });
       }
     },
     handleImageError(event) {
