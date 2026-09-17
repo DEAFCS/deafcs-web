@@ -2906,7 +2906,9 @@
       },
       "call": {
         "start": "Start webcam call",
-        "title": "Verification call"
+        "title": "Verification call",
+        "ringing": "Calling…",
+        "declined": "The applicant declined the call."
       }
     },
     "terms_acceptances": {

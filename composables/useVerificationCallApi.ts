@@ -62,6 +62,11 @@ export function verificationCallRingApiUrl(applicationId: string): string {
   return `https://${apiDomain}/verification-applications/call/${applicationId}/ring`;
 }
 
+export function verificationCallRespondApiUrl(applicationId: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/verification-applications/call/${applicationId}/respond`;
+}
+
 export function verificationCallJoinApiUrl(applicationId: string): string {
   const apiDomain = useRuntimeConfig().public.apiDomain;
   return `https://${apiDomain}/verification-applications/call/${applicationId}/join`;
@@ -98,6 +103,22 @@ export async function ringVerificationApplicant(
   const res = await fetch(verificationCallRingApiUrl(applicationId), {
     method: "POST",
     credentials: "include",
+  });
+  return (await res.json()) as { ok?: boolean; error?: string };
+}
+
+// Applicant-only: answers a ring (see GlobalVerificationCallNotifier.vue's
+// Accept/Decline) -- routed server-side back to whichever admin is
+// actually waiting on it.
+export async function respondToVerificationRing(
+  applicationId: string,
+  accepted: boolean,
+): Promise<{ ok?: boolean; error?: string }> {
+  const res = await fetch(verificationCallRespondApiUrl(applicationId), {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accepted }),
   });
   return (await res.json()) as { ok?: boolean; error?: string };
 }
