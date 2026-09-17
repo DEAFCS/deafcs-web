@@ -4,7 +4,7 @@ import ChatMessages from "~/components/chat/ChatMessages.vue";
 import ChatInput from "~/components/chat/ChatInput.vue";
 import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
-import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
+import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
 </script>
 
 <template>
@@ -79,32 +79,8 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
           </button>
         </div>
       </div>
-      <div
-        v-if="showParticipants"
-        class="absolute z-50 top-11 left-2 right-2 rounded-md border bg-popover text-popover-foreground shadow-md p-3 text-xs max-h-52 overflow-y-auto"
-      >
-        <div
-          v-if="participantsCount === 0"
-          class="text-muted-foreground text-[11px]"
-        >
-          {{ $t("chat.no_participants", "No one else is in this chat yet.") }}
-        </div>
-        <ul v-else class="space-y-1.5">
-          <li
-            v-for="user in participants"
-            :key="(user as any).steam_id"
-            class="flex items-center gap-2"
-          >
-            <LiveAvatarImg
-              :steam-id="(user as any).steam_id"
-              :fallback-url="(user as any).avatar_url"
-              img-class="h-5 w-5 rounded-full"
-            />
-            <span class="truncate text-[11px]">
-              {{ (user as any).name }}
-            </span>
-          </li>
-        </ul>
+      <div v-if="showParticipants" class="absolute z-50 top-11 left-2 right-2">
+        <ChatParticipantsList :participants="participants as any" />
       </div>
       <div
         v-if="!isMinimized"
@@ -187,32 +163,8 @@ import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
         {{ matchMetaText }}
       </NuxtLink>
     </div>
-    <div
-      v-if="showParticipants"
-      class="absolute z-20 top-10 right-4 left-4 rounded-md border bg-popover text-popover-foreground shadow-md p-3 text-xs max-h-52 overflow-y-auto"
-    >
-      <div
-        v-if="participantsCount === 0"
-        class="text-muted-foreground text-[11px]"
-      >
-        {{ $t("chat.no_participants", "No one else is in this chat yet.") }}
-      </div>
-      <ul v-else class="space-y-1.5">
-        <li
-          v-for="user in participants"
-          :key="(user as any).steam_id"
-          class="flex items-center gap-2"
-        >
-          <LiveAvatarImg
-            :steam-id="(user as any).steam_id"
-            :fallback-url="(user as any).avatar_url"
-            img-class="h-5 w-5 rounded-full"
-          />
-          <span class="truncate text-[11px]">
-            {{ (user as any).name }}
-          </span>
-        </li>
-      </ul>
+    <div v-if="showParticipants" class="absolute z-20 top-10 right-4 left-4">
+      <ChatParticipantsList :participants="participants as any" />
     </div>
     <div class="relative flex flex-1 min-h-0 flex-col gap-2">
       <ChatMessages

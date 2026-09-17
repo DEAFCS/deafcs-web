@@ -17,6 +17,7 @@ import {
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
+import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
@@ -707,25 +708,35 @@ function openLobbyCallWindow() {
                 <span>
                   {{ activeTab ? getRoomSubtitle(activeTab) : "" }}
                 </span>
-                <button
-                  type="button"
-                  class="text-[10px] text-zinc-400 underline-offset-2"
-                  :class="
-                    activeParticipantsCount
-                      ? 'hover:text-zinc-200 hover:underline cursor-pointer'
-                      : 'cursor-default opacity-60'
-                  "
-                  @click="
-                    activeParticipantsCount &&
-                    (isParticipantsOpen = !isParticipantsOpen)
-                  "
-                >
-                  {{
-                    $t("layouts.chat_panel.participants_in_chat", {
-                      count: activeParticipantsCount,
-                    })
-                  }}
-                </button>
+                <span class="inline-flex items-center gap-1">
+                  <span
+                    class="inline-flex h-1.5 w-1.5 rounded-full"
+                    :class="
+                      activeParticipantsCount > 0
+                        ? 'bg-emerald-400'
+                        : 'bg-zinc-500/60'
+                    "
+                  ></span>
+                  <button
+                    type="button"
+                    class="text-[10px] text-zinc-400 underline-offset-2"
+                    :class="
+                      activeParticipantsCount
+                        ? 'hover:text-zinc-200 hover:underline cursor-pointer'
+                        : 'cursor-default opacity-60'
+                    "
+                    @click="
+                      activeParticipantsCount &&
+                      (isParticipantsOpen = !isParticipantsOpen)
+                    "
+                  >
+                    {{
+                      $t("layouts.chat_panel.participants_in_chat", {
+                        count: activeParticipantsCount,
+                      })
+                    }}
+                  </button>
+                </span>
               </div>
             </div>
           </div>
@@ -803,23 +814,9 @@ function openLobbyCallWindow() {
 
         <div
           v-if="isParticipantsOpen && activeParticipants.length"
-          class="px-3 py-2 border-b border-zinc-800/60 bg-zinc-950/80 text-[11px] text-zinc-200 flex gap-2 overflow-x-auto"
+          class="px-3 py-2 border-b border-zinc-800/60 bg-zinc-950/80"
         >
-          <div
-            v-for="p in activeParticipants"
-            :key="p.steam_id"
-            class="flex items-center gap-1.5 bg-zinc-900/70 rounded-full px-2 py-0.5"
-          >
-            <img
-              v-if="p.avatar_url"
-              :src="p.avatar_url"
-              alt=""
-              class="w-4 h-4 rounded-full object-cover"
-            />
-            <span class="truncate max-w-[8rem]">
-              {{ p.name }}
-            </span>
-          </div>
+          <ChatParticipantsList :participants="activeParticipants" />
         </div>
 
         <div class="flex-1 min-h-0 flex flex-col">
