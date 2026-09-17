@@ -62,6 +62,10 @@ const step = ref<Step>("idle");
 const joinToken = ref<string | null>(null);
 const qrDataUrl = ref<string | null>(null);
 const joinError = ref<string | null>(null);
+// Distinguishes an explicit decline from the player never answering
+// within RINGING_TTL_SECONDS (see AdminCallService.timeoutRingIfUnanswered),
+// so the admin sees "no answer" rather than a decline that never happened.
+const ringTimedOut = ref(false);
 
 const joinUrl = computed(() =>
   joinToken.value
@@ -319,11 +323,12 @@ onMounted(async () => {
     step.value = "ringing";
     responseListener = socket.listen(
       "admin-call:response",
-      (data: { targetSteamId: string; accepted: boolean }) => {
+      (data: { targetSteamId: string; accepted: boolean; timedOut?: boolean }) => {
         if (data.targetSteamId !== targetSteamId.value) return;
         if (data.accepted) {
           openChoose();
         } else {
+          ringTimedOut.value = !!data.timedOut;
           step.value = "declined";
         }
       },
@@ -438,10 +443,15 @@ const visibleTileCount = computed(() =>
     >
       <p class="text-sm font-medium text-destructive">
         {{
-          $t(
-            "pages.players.call.declined",
-            "The player declined the call.",
-          )
+          ringTimedOut
+            ? $t(
+                "pages.players.call.no_answer",
+                "The player did not answer.",
+              )
+            : $t(
+                "pages.players.call.declined",
+                "The player declined the call.",
+              )
         }}
       </p>
     </div>

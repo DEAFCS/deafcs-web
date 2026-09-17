@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onBeforeUnmount, onMounted } from "vue";
 import { Button } from "~/components/ui/button";
-import { LucidePhoneIncoming } from "lucide-vue-next";
+import { Video } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
 import { respondToAdminCallRing } from "~/composables/useAdminCallApi";
 
@@ -93,7 +93,7 @@ onBeforeUnmount(() => {
         <div
           class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[hsl(var(--tac-amber))]/15 animate-pulse"
         >
-          <LucidePhoneIncoming class="h-7 w-7 text-[hsl(var(--tac-amber))]" />
+          <Video class="h-7 w-7 text-[hsl(var(--tac-amber))]" />
         </div>
         <div class="text-lg font-semibold">
           {{ incomingCall.adminName || "Admin" }}

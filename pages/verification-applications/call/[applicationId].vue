@@ -66,6 +66,10 @@ const step = ref<Step>("idle");
 const joinToken = ref<string | null>(null);
 const qrDataUrl = ref<string | null>(null);
 const joinError = ref<string | null>(null);
+// Distinguishes an explicit decline from the applicant never answering
+// within RINGING_TTL_SECONDS (see VerificationCallService.timeoutRingIfUnanswered),
+// so the admin sees "no answer" rather than a decline that never happened.
+const ringTimedOut = ref(false);
 
 const joinUrl = computed(() =>
   joinToken.value
@@ -323,11 +327,12 @@ onMounted(async () => {
     step.value = "ringing";
     responseListener = socket.listen(
       "verification-call:response",
-      (data: { applicationId: string; accepted: boolean }) => {
+      (data: { applicationId: string; accepted: boolean; timedOut?: boolean }) => {
         if (data.applicationId !== applicationId.value) return;
         if (data.accepted) {
           openChoose();
         } else {
+          ringTimedOut.value = !!data.timedOut;
           step.value = "declined";
         }
       },
@@ -445,10 +450,15 @@ const visibleTileCount = computed(() =>
     >
       <p class="text-sm font-medium text-destructive">
         {{
-          $t(
-            "pages.verification_applications.call.declined",
-            "The applicant declined the call.",
-          )
+          ringTimedOut
+            ? $t(
+                "pages.verification_applications.call.no_answer",
+                "The applicant did not answer.",
+              )
+            : $t(
+                "pages.verification_applications.call.declined",
+                "The applicant declined the call.",
+              )
         }}
       </p>
     </div>
