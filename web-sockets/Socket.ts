@@ -538,6 +538,7 @@ socket.listen(
       "direct",
       "global",
       "organizers",
+      "announcement",
       "matchmaking",
       "tournament",
       "match",
@@ -552,7 +553,7 @@ socket.listen(
     if (type === "direct") {
       lobbyId = id;
       tabId = `direct:${id}`;
-    } else if (type === "global" || type === "organizers") {
+    } else if (type === "global" || type === "organizers" || type === "announcement") {
       lobbyId = type;
       tabId = type;
     } else {
@@ -560,7 +561,7 @@ socket.listen(
       tabId = `${type}:${id}`;
     }
 
-    const { tabs, registerTabIfMissing, incrementUnread, activeTabId } =
+    const { registerTabIfMissing, incrementUnread, activeTabId } =
       useChatTabs();
 
     // Reported bug: unread count kept climbing (2, then 3-4...) for a
@@ -573,8 +574,20 @@ socket.listen(
     // ONLY to cover conversations that were never opened at all (no live
     // listener could exist yet to catch that first message) -- for any
     // tab that's already past that point, it's pure duplicate delivery.
-    const existing = tabs.value.find((t) => t.id === tabId);
-    if (existing && !existing.unopened) {
+    // Skip only if the per-lobby "chat" listener (listenChat, set up by
+    // an actually-mounted <ChatLobby>) is live for this exact room --
+    // that listener already handles the badge for it, so processing
+    // this ping too would double-count. Previously checked "tab exists
+    // and isn't marked unopened" instead, which assumed a tab only ever
+    // gets created (non-unopened) through user interaction that also
+    // opens the panel -- true for DMs/lobbies, but not for the fixed,
+    // auto-seeded default tabs (Global/Organizer/Announcement, see
+    // useChatTabSetup's ensureDefaultTabs), which exist and are never
+    // "unopened" from the moment a session starts, whether or not chat
+    // has ever actually been opened. That mismatch meant Announcements'
+    // unread badge silently never appeared for anyone who hadn't opened
+    // the chat hub yet this session.
+    if (this.listening.has(`lobby:${type}:${lobbyId}:chat`)) {
       return;
     }
 
@@ -586,6 +599,7 @@ socket.listen(
         | "direct"
         | "global"
         | "organizers"
+        | "announcement"
         | "matchmaking"
         | "tournament"
         | "match"

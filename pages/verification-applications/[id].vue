@@ -456,7 +456,7 @@ export default {
           "status=no",
         ].join(",");
         window.open(
-          `/verification-applications/call/${this.$route.params.id}`,
+          `/verification-applications/call/${this.$route.params.id}?ringing=1`,
           "verification-call",
           features,
         );

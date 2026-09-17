@@ -3536,7 +3536,7 @@ export default {
           "status=no",
         ].join(",");
         window.open(
-          `/players/call/${this.player.steam_id}`,
+          `/players/call/${this.player.steam_id}?ringing=1`,
           "admin-call",
           features,
         );

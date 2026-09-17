@@ -72,7 +72,11 @@ export default {
     },
     isValid() {
       const trimmed = (this.name || "").trim();
-      return trimmed.length >= 3 && trimmed.length <= 32;
+      return (
+        trimmed.length >= 3 &&
+        trimmed.length <= 32 &&
+        /^[A-Za-z0-9_-]+$/.test(trimmed)
+      );
     },
   },
   methods: {

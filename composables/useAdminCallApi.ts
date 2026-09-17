@@ -53,6 +53,11 @@ export function adminCallRingApiUrl(targetSteamId: string): string {
   return `https://${apiDomain}/admin-calls/${targetSteamId}/ring`;
 }
 
+export function adminCallRespondApiUrl(targetSteamId: string): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/admin-calls/${targetSteamId}/respond`;
+}
+
 export function adminCallJoinApiUrl(targetSteamId: string): string {
   const apiDomain = useRuntimeConfig().public.apiDomain;
   return `https://${apiDomain}/admin-calls/${targetSteamId}/join`;
@@ -89,6 +94,22 @@ export async function ringAdminCallPlayer(
   const res = await fetch(adminCallRingApiUrl(targetSteamId), {
     method: "POST",
     credentials: "include",
+  });
+  return (await res.json()) as { ok?: boolean; error?: string };
+}
+
+// Target-only: answers a ring (see GlobalAdminCallNotifier.vue's
+// Accept/Decline) -- routed server-side back to whichever admin is
+// actually waiting on it.
+export async function respondToAdminCallRing(
+  targetSteamId: string,
+  accepted: boolean,
+): Promise<{ ok?: boolean; error?: string }> {
+  const res = await fetch(adminCallRespondApiUrl(targetSteamId), {
+    method: "POST",
+    credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accepted }),
   });
   return (await res.json()) as { ok?: boolean; error?: string };
 }

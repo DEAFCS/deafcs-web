@@ -23,6 +23,7 @@ import {
   adminCallPlayerHangupUrl,
   type AdminCallParticipant,
 } from "~/composables/useAdminCallApi";
+import socket from "~/web-sockets/Socket";
 
 // Opened via window.open() -- either by the admin clicking the camera
 // icon on a player profile (pages/players/[id].vue), or by the player
@@ -38,14 +39,33 @@ const targetSteamId = computed(() => String(route.params.targetSteamId));
 const me = computed(() => useAuthStore().me);
 const myId = computed(() => String(me.value?.steam_id ?? ""));
 
+// Set by startAdminCall's window.open when THIS window is the admin's
+// own popup right after ringing -- distinguishes "I just rang, wait
+// for the player to actually answer" from "I'm the player accepting"
+// or "reopening an already-established call", both of which should
+// still jump straight to the device picker like before.
+const isRingingAdmin = computed(() => route.query.ringing === "1");
+
 const participants = ref<AdminCallParticipant[]>([]);
 
 // --- Join flow ---
-type Step = "idle" | "choose" | "mobile" | "preview" | "connecting" | "in-call";
+type Step =
+  | "idle"
+  | "ringing"
+  | "declined"
+  | "choose"
+  | "mobile"
+  | "preview"
+  | "connecting"
+  | "in-call";
 const step = ref<Step>("idle");
 const joinToken = ref<string | null>(null);
 const qrDataUrl = ref<string | null>(null);
 const joinError = ref<string | null>(null);
+// Distinguishes an explicit decline from the player never answering
+// within RINGING_TTL_SECONDS (see AdminCallService.timeoutRingIfUnanswered),
+// so the admin sees "no answer" rather than a decline that never happened.
+const ringTimedOut = ref(false);
 
 const joinUrl = computed(() =>
   joinToken.value
@@ -284,20 +304,45 @@ function pollParticipants() {
   }, 3000);
 }
 
+let responseListener: { stop: () => void } | null = null;
+
 onMounted(async () => {
   await refreshParticipants();
   pollParticipants();
 
-  // Whoever opened this window (admin ringing, or the player
-  // accepting) is here to join -- don't make them click again, unless
-  // this window was reopened after already being in the call.
-  if (!isInCall.value) {
-    openChoose();
+  if (isInCall.value) {
+    // Reopened after already being in the call -- nothing to wait on.
+    return;
   }
+
+  if (isRingingAdmin.value) {
+    // Wait for the player to actually answer (see
+    // GlobalAdminCallNotifier.vue's Accept/Decline) instead of jumping
+    // straight to the device picker with no idea whether anyone's even
+    // seen the ring yet.
+    step.value = "ringing";
+    responseListener = socket.listen(
+      "admin-call:response",
+      (data: { targetSteamId: string; accepted: boolean; timedOut?: boolean }) => {
+        if (data.targetSteamId !== targetSteamId.value) return;
+        if (data.accepted) {
+          openChoose();
+        } else {
+          ringTimedOut.value = !!data.timedOut;
+          step.value = "declined";
+        }
+      },
+    );
+    return;
+  }
+
+  // The player accepting -- here to join, don't make them click again.
+  openChoose();
 });
 
 onBeforeUnmount(() => {
   if (participantsPollTimer) clearTimeout(participantsPollTimer);
+  responseListener?.stop();
   if (step.value === "in-call") teardownStream();
   else if (step.value === "preview") camStream?.getTracks().forEach((t) => t.stop());
 });
@@ -380,6 +425,35 @@ const visibleTileCount = computed(() =>
           {{ $t("matchmaking.lobby_call.you", "You") }}
         </span>
       </div>
+    </div>
+    <div
+      v-else-if="step === 'ringing'"
+      class="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6"
+    >
+      <div
+        class="h-10 w-10 rounded-full border-2 border-transparent border-t-[hsl(var(--tac-amber))] animate-spin"
+      />
+      <p class="text-sm text-muted-foreground">
+        {{ $t("pages.players.call.ringing", "Calling…") }}
+      </p>
+    </div>
+    <div
+      v-else-if="step === 'declined'"
+      class="flex-1 flex flex-col items-center justify-center gap-2 text-center px-6"
+    >
+      <p class="text-sm font-medium text-destructive">
+        {{
+          ringTimedOut
+            ? $t(
+                "pages.players.call.no_answer",
+                "The player did not answer.",
+              )
+            : $t(
+                "pages.players.call.declined",
+                "The player declined the call.",
+              )
+        }}
+      </p>
     </div>
     <div
       v-else-if="!isInCall"

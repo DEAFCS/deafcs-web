@@ -2768,7 +2768,10 @@
       },
       "call": {
         "start": "Start webcam call",
-        "title": "Admin call"
+        "title": "Admin call",
+        "ringing": "Calling…",
+        "declined": "The player declined the call.",
+        "no_answer": "The player did not answer."
       }
     },
     "play": {
@@ -2906,7 +2909,10 @@
       },
       "call": {
         "start": "Start webcam call",
-        "title": "Verification call"
+        "title": "Verification call",
+        "ringing": "Calling…",
+        "declined": "The applicant declined the call.",
+        "no_answer": "The applicant did not answer."
       }
     },
     "terms_acceptances": {

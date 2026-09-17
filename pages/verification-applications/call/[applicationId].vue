@@ -23,6 +23,7 @@ import {
   verificationCallPlayerHangupUrl,
   type VerificationCallParticipant,
 } from "~/composables/useVerificationCallApi";
+import socket from "~/web-sockets/Socket";
 
 // Opened via window.open() -- either by the admin clicking the camera
 // icon on a verification application (pages/verification-applications/[id].vue),
@@ -42,14 +43,33 @@ const applicationId = computed(() => String(route.params.applicationId));
 const me = computed(() => useAuthStore().me);
 const myId = computed(() => String(me.value?.steam_id ?? ""));
 
+// Set by startVerificationCall's window.open when THIS window is the
+// admin's own popup right after ringing -- distinguishes "I just rang,
+// wait for the applicant to actually answer" from "I'm the applicant
+// accepting" or "reopening an already-established call", both of which
+// should still jump straight to the device picker like before.
+const isRingingAdmin = computed(() => route.query.ringing === "1");
+
 const participants = ref<VerificationCallParticipant[]>([]);
 
 // --- Join flow ---
-type Step = "idle" | "choose" | "mobile" | "preview" | "connecting" | "in-call";
+type Step =
+  | "idle"
+  | "ringing"
+  | "declined"
+  | "choose"
+  | "mobile"
+  | "preview"
+  | "connecting"
+  | "in-call";
 const step = ref<Step>("idle");
 const joinToken = ref<string | null>(null);
 const qrDataUrl = ref<string | null>(null);
 const joinError = ref<string | null>(null);
+// Distinguishes an explicit decline from the applicant never answering
+// within RINGING_TTL_SECONDS (see VerificationCallService.timeoutRingIfUnanswered),
+// so the admin sees "no answer" rather than a decline that never happened.
+const ringTimedOut = ref(false);
 
 const joinUrl = computed(() =>
   joinToken.value
@@ -288,20 +308,45 @@ function pollParticipants() {
   }, 3000);
 }
 
+let responseListener: { stop: () => void } | null = null;
+
 onMounted(async () => {
   await refreshParticipants();
   pollParticipants();
 
-  // Whoever opened this window (admin ringing, or the applicant
-  // accepting) is here to join -- don't make them click again, unless
-  // this window was reopened after already being in the call.
-  if (!isInCall.value) {
-    openChoose();
+  if (isInCall.value) {
+    // Reopened after already being in the call -- nothing to wait on.
+    return;
   }
+
+  if (isRingingAdmin.value) {
+    // Wait for the applicant to actually answer (see
+    // GlobalVerificationCallNotifier.vue's Accept/Decline) instead of
+    // jumping straight to the device picker with no idea whether
+    // anyone's even seen the ring yet.
+    step.value = "ringing";
+    responseListener = socket.listen(
+      "verification-call:response",
+      (data: { applicationId: string; accepted: boolean; timedOut?: boolean }) => {
+        if (data.applicationId !== applicationId.value) return;
+        if (data.accepted) {
+          openChoose();
+        } else {
+          ringTimedOut.value = !!data.timedOut;
+          step.value = "declined";
+        }
+      },
+    );
+    return;
+  }
+
+  // The applicant accepting -- here to join, don't make them click again.
+  openChoose();
 });
 
 onBeforeUnmount(() => {
   if (participantsPollTimer) clearTimeout(participantsPollTimer);
+  responseListener?.stop();
   if (step.value === "in-call") teardownStream();
   else if (step.value === "preview") camStream?.getTracks().forEach((t) => t.stop());
 });
@@ -387,6 +432,35 @@ const visibleTileCount = computed(() =>
           {{ $t("matchmaking.lobby_call.you", "You") }}
         </span>
       </div>
+    </div>
+    <div
+      v-else-if="step === 'ringing'"
+      class="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6"
+    >
+      <div
+        class="h-10 w-10 rounded-full border-2 border-transparent border-t-[hsl(var(--tac-amber))] animate-spin"
+      />
+      <p class="text-sm text-muted-foreground">
+        {{ $t("pages.verification_applications.call.ringing", "Calling…") }}
+      </p>
+    </div>
+    <div
+      v-else-if="step === 'declined'"
+      class="flex-1 flex flex-col items-center justify-center gap-2 text-center px-6"
+    >
+      <p class="text-sm font-medium text-destructive">
+        {{
+          ringTimedOut
+            ? $t(
+                "pages.verification_applications.call.no_answer",
+                "The applicant did not answer.",
+              )
+            : $t(
+                "pages.verification_applications.call.declined",
+                "The applicant declined the call.",
+              )
+        }}
+      </p>
     </div>
     <div
       v-else-if="!isInCall"
