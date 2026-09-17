@@ -39,6 +39,7 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
             <FormControl>
               <Input v-bind="componentField" />
             </FormControl>
+            <FormMessage />
           </FormItem>
         </FormField>
 
@@ -66,25 +67,18 @@ export default {
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
-            player_name: z.string().min(3).max(32),
+            player_name: z
+              .string()
+              .min(3)
+              .max(32)
+              .regex(
+                /^[A-Za-z0-9_-]+$/,
+                "Name can only contain letters, numbers, - and _",
+              ),
           }),
         ),
       }),
     };
-  },
-  watch: {
-    me: {
-      immediate: true,
-      handler() {
-        if (!this.me) {
-          return;
-        }
-
-        this.form.setValues({
-          player_name: this.me.name,
-        });
-      },
-    },
   },
   computed: {
     me() {
