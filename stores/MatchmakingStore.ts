@@ -71,6 +71,34 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     >
   >({});
 
+  const queueMatchTypes = [
+    e_match_types_enum.Competitive,
+    e_match_types_enum.Wingman,
+    e_match_types_enum.Duel,
+  ] as const;
+
+  // Count players rather than lobby rows. A party can appear in multiple
+  // regions, so dedupe each queue entry by match type and lobby index before
+  // adding its size. This is the same region-stats socket data used by the
+  // matchmaking cards and does not require another request or subscription.
+  const totalQueuedPlayers = computed(() => {
+    const lobbySizes = new Map<string, number>();
+
+    for (const statsByType of Object.values(regionStats.value)) {
+      for (const type of queueMatchTypes) {
+        for (const entry of statsByType?.[type] ?? []) {
+          lobbySizes.set(`${type}:${entry.index}`, entry.size);
+        }
+      }
+    }
+
+    let total = 0;
+    for (const size of lobbySizes.values()) {
+      total += size;
+    }
+    return total;
+  });
+
   const queryPlayers = async () => {
     const steamIds = onlinePlayerSteamIds.value;
     if (steamIds.length === 0) {
@@ -719,6 +747,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     lobbies,
     currentLobby,
     regionStats,
+    totalQueuedPlayers,
     playersOnline,
     onlinePlayerSteamIds,
     hasOnlinePlayerSnapshot,

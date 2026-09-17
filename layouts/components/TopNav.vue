@@ -1225,7 +1225,7 @@ export default {
       );
     },
     playTotalCount() {
-      return this.activeTournamentsCount;
+      return useMatchmakingStore().totalQueuedPlayers;
     },
   },
   methods: {

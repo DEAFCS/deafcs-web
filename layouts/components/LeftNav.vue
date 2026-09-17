@@ -1696,9 +1696,6 @@ export default {
       }
       return false;
     },
-    myMatches() {
-      return useMatchLobbyStore().myMatches;
-    },
     isMatchOrganizer() {
       return useAuthStore().isMatchOrganizer;
     },
@@ -1751,7 +1748,7 @@ export default {
       );
     },
     playTotalCount() {
-      return this.myMatches.length + this.activeTournamentsCount;
+      return useMatchmakingStore().totalQueuedPlayers;
     },
   },
   watch: {
