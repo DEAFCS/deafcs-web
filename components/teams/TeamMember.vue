@@ -147,7 +147,8 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                   v-for="role of roles"
                   :key="role.value"
                   class="flex flex-col items-start gap-0.5"
-                  @click="publishRole(role.value)"
+                  :disabled="isLastAdmin && role.value !== 'Admin'"
+                  @click="requestRoleChange(role.value)"
                 >
                   <div class="flex w-full items-center justify-between">
                     <span>{{ role.value }}</span>
@@ -161,6 +162,12 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
                     role.description
                   }}</span>
                 </DropdownMenuItem>
+                <p
+                  v-if="isLastAdmin"
+                  class="px-2 py-1.5 text-xs leading-relaxed text-muted-foreground"
+                >
+                  {{ $t("team.admin.last_admin") }}
+                </p>
               </DropdownMenuSubContent>
             </DropdownMenuSub>
 
@@ -324,12 +331,34 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
       </AlertDialogFooter>
     </AlertDialogContent>
   </AlertDialog>
+
+  <AlertDialog :open="roleChangeDialog">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>{{
+          $t("team.admin.change_role_title")
+        }}</AlertDialogTitle>
+        <AlertDialogDescription>
+          {{ $t("team.admin.demote_confirmation") }}
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel @click="cancelRoleChange">{{
+          $t("common.cancel")
+        }}</AlertDialogCancel>
+        <AlertDialogAction @click="confirmRoleChange">
+          {{ $t("common.confirm") }}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
 </template>
 
 <script lang="ts">
 import { generateMutation } from "~/graphql/graphqlGen";
 import { e_player_roles_enum } from "~/generated/zeus";
 import type { e_team_roles_enum } from "~/generated/zeus";
+import { toast } from "@/components/ui/toast";
 
 interface Role {
   value: string;
@@ -375,6 +404,11 @@ export default {
       required: false,
       default: false,
     },
+    isLastAdmin: {
+      type: Boolean,
+      required: false,
+      default: false,
+    },
     matchType: {
       type: String,
       required: false,
@@ -388,6 +422,8 @@ export default {
       settingCaptain: false,
       removingMember: false,
       removingInvite: false,
+      roleChangeDialog: false,
+      pendingRole: null as string | null,
     };
   },
   computed: {
@@ -401,7 +437,7 @@ export default {
       return this.member.player.steam_id === this.me?.steam_id;
     },
     canRemoveMember(): boolean {
-      return !!this.team.can_remove && !this.isSelf;
+      return !!this.team.can_remove && !this.isSelf && !this.isLastAdmin;
     },
     // Independent of team.can_change_role (which also gates role assignment,
     // remove-member, and set-captain for team owners/Admins) - roster images
@@ -499,6 +535,8 @@ export default {
             ],
           }),
         });
+      } catch (error) {
+        this.showTeamAdminError(error);
       } finally {
         this.removingMember = false;
       }
@@ -525,24 +563,76 @@ export default {
         this.removingInvite = false;
       }
     },
+    requestRoleChange(roleValue: string) {
+      if (roleValue === this.member.role) {
+        return;
+      }
+      if (this.isLastAdmin && roleValue !== "Admin") {
+        this.showLastAdminError();
+        return;
+      }
+      if (
+        this.isSelf &&
+        this.member.role === "Admin" &&
+        roleValue !== "Admin"
+      ) {
+        this.pendingRole = roleValue;
+        this.roleChangeDialog = true;
+        return;
+      }
+      void this.publishRole(roleValue);
+    },
+    cancelRoleChange() {
+      this.roleChangeDialog = false;
+      this.pendingRole = null;
+    },
+    async confirmRoleChange() {
+      const role = this.pendingRole;
+      this.cancelRoleChange();
+      if (role) {
+        await this.publishRole(role);
+      }
+    },
     async publishRole(roleValue: string) {
-      await (this as any).$apollo.mutate({
-        mutation: generateMutation({
-          update_team_roster_by_pk: [
-            {
-              _set: {
-                role: roleValue as unknown as e_team_roles_enum,
+      try {
+        await (this as any).$apollo.mutate({
+          mutation: generateMutation({
+            update_team_roster_by_pk: [
+              {
+                _set: {
+                  role: roleValue as unknown as e_team_roles_enum,
+                },
+                pk_columns: {
+                  team_id: this.member.team_id,
+                  player_steam_id: this.member.player.steam_id,
+                },
               },
-              pk_columns: {
-                team_id: this.member.team_id,
-                player_steam_id: this.member.player.steam_id,
+              {
+                __typename: true,
               },
-            },
-            {
-              __typename: true,
-            },
-          ],
-        }),
+            ],
+          }),
+        });
+      } catch (error) {
+        this.showTeamAdminError(error);
+      }
+    },
+    showLastAdminError() {
+      toast({
+        variant: "destructive",
+        title: this.$t("common.error"),
+        description: this.$t("team.admin.last_admin"),
+      });
+    },
+    showTeamAdminError(error: unknown) {
+      const message =
+        error instanceof Error ? error.message : JSON.stringify(error ?? "");
+      toast({
+        variant: "destructive",
+        title: this.$t("common.error"),
+        description: message.includes("last team Admin")
+          ? this.$t("team.admin.last_admin")
+          : this.$t("team.admin.operation_failed"),
       });
     },
     async toggleCoach() {

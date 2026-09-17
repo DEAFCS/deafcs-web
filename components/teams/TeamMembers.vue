@@ -113,6 +113,7 @@ const setEloSource = (key: string) => {
             :team="team"
             :member="member"
             :roles="roles"
+            :is-last-admin="member.role === 'Admin' && adminCount === 1"
             :is-captain="member.player.steam_id === team.captain_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
@@ -140,6 +141,7 @@ const setEloSource = (key: string) => {
             :team="team"
             :member="member"
             :roles="roles"
+            :is-last-admin="member.role === 'Admin' && adminCount === 1"
             :is-captain="member.player.steam_id === team.captain_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
@@ -167,6 +169,7 @@ const setEloSource = (key: string) => {
             :team="team"
             :member="member"
             :roles="roles"
+            :is-last-admin="member.role === 'Admin' && adminCount === 1"
             :is-captain="member.player.steam_id === team.captain_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
@@ -194,6 +197,7 @@ const setEloSource = (key: string) => {
             :team="team"
             :member="member"
             :roles="roles"
+            :is-last-admin="member.role === 'Admin' && adminCount === 1"
             :is-captain="member.player.steam_id === team.captain_steam_id"
             :is-invite="false"
             :match-type="rankMatchType"
@@ -327,13 +331,7 @@ export default {
     e_team_roles: {
       query: typedGql("query")({
         e_team_roles: [
-          {
-            where: {
-              value: {
-                _neq: e_team_roles_enum.Admin,
-              },
-            },
-          },
+          {},
           {
             value: true,
             description: true,
@@ -346,6 +344,11 @@ export default {
     },
   },
   computed: {
+    adminCount(): number {
+      return (this.team?.roster || []).filter(
+        (member: any) => member.role === e_team_roles_enum.Admin,
+      ).length;
+    },
     sortedRoster(): any[] {
       return (this.team?.roster || []).slice().sort((a: any, b: any) => {
         const roleOrder = { Admin: 1, Invite: 2, Member: 3 } as Record<

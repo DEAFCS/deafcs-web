@@ -5739,12 +5739,20 @@
     "roles": {
       "captain": "Captain"
     },
+    "admin": {
+      "last_admin": "You are the last team Admin. Assign another Admin before changing your role or leaving the team.",
+      "change_role_title": "Change your Admin role?",
+      "demote_confirmation": "You will lose team-management permissions when you change your role from Admin.",
+      "leave_confirmation": "You will lose team-management permissions when you leave this team.",
+      "operation_failed": "The team changed while you were making this update. Refresh and try again."
+    },
     "leave": "Leave Team",
     "management": {
       "edit": "Edit Team"
     },
     "confirm": {
       "leave": "Are you sure you want to leave this team?",
+      "leave_description": "You will be removed from this team's roster.",
       "delete": {
         "title": "Delete Team",
         "description": "Are you sure you want to delete this team? This action cannot be undone."

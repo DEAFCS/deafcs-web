@@ -189,7 +189,7 @@ const teamHeroActionsClasses =
                 <template v-if="isOnTeam">
                   <DropdownMenuItem
                     class="text-destructive focus:text-destructive"
-                    @click="leaveTeamAlertDialog = true"
+                    @click="requestLeaveTeam"
                   >
                     <LogOut />
                     {{ $t("team.leave") }}
@@ -403,6 +403,13 @@ const teamHeroActionsClasses =
     <AlertDialogContent>
       <AlertDialogHeader>
         <AlertDialogTitle>{{ $t("team.confirm.leave") }}</AlertDialogTitle>
+        <AlertDialogDescription>
+          {{
+            currentTeamMembership?.role === "Admin"
+              ? $t("team.admin.leave_confirmation")
+              : $t("team.confirm.leave_description")
+          }}
+        </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
         <AlertDialogCancel>{{ $t("common.cancel") }}</AlertDialogCancel>
@@ -426,6 +433,7 @@ import { awardFields } from "~/graphql/awardFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 import { mapAwardRecipientToTrophy } from "~/utilities/awardOccurrenceResolution";
+import { toast } from "@/components/ui/toast";
 
 const VALID_TABS = ["overview", "stats", "highlights", "scrim"];
 
@@ -510,6 +518,7 @@ export default {
               roster: [
                 {},
                 {
+                  role: true,
                   roster_image_url: true,
                   player: playerFields,
                 },
@@ -734,6 +743,20 @@ export default {
         return player.steam_id === this.me?.steam_id;
       });
     },
+    currentTeamMembership() {
+      return this.team?.roster.find(
+        ({ player }) => player.steam_id === this.me?.steam_id,
+      );
+    },
+    adminCount(): number {
+      return (this.team?.roster || []).filter(({ role }) => role === "Admin")
+        .length;
+    },
+    isLastAdmin(): boolean {
+      return (
+        this.currentTeamMembership?.role === "Admin" && this.adminCount === 1
+      );
+    },
     isAdmin() {
       return useAuthStore().isAdmin;
     },
@@ -755,22 +778,45 @@ export default {
 
       this.$router.push("/teams");
     },
+    requestLeaveTeam() {
+      if (this.isLastAdmin) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: this.$t("team.admin.last_admin"),
+        });
+        return;
+      }
+      this.leaveTeamAlertDialog = true;
+    },
     async leaveTeam() {
-      await this.$apollo.mutate({
-        mutation: generateMutation({
-          delete_team_roster_by_pk: [
-            {
-              team_id: this.$route.params.id,
-              player_steam_id: this.me.steam_id,
-            },
-            {
-              __typename: true,
-            },
-          ],
-        }),
-      });
+      try {
+        await this.$apollo.mutate({
+          mutation: generateMutation({
+            delete_team_roster_by_pk: [
+              {
+                team_id: this.$route.params.id,
+                player_steam_id: this.me.steam_id,
+              },
+              {
+                __typename: true,
+              },
+            ],
+          }),
+        });
 
-      this.$router.push("/teams");
+        this.$router.push("/teams");
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : JSON.stringify(error ?? "");
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: message.includes("last team Admin")
+            ? this.$t("team.admin.last_admin")
+            : this.$t("team.admin.operation_failed"),
+        });
+      }
     },
   },
 };
