@@ -33,7 +33,53 @@ export interface ChatTab {
   unopened?: boolean;
 }
 
-const tabsRef = ref<ChatTab[]>([]);
+const DM_TABS_STORAGE_KEY = "chat-open-dm-tabs";
+
+// Every other tab type (matchmaking lobby, current match, tournament,
+// global, organizers, announcement) reappears on its own after a page
+// reload because it's re-derived from server-side state (see
+// useChatTabSetup's ensureDefaultTabs). A DM tab has no such source --
+// it only ever exists because the user clicked "Message" on someone --
+// so without this it silently vanished on every refresh, and the user
+// had to go find that person again to reopen the conversation.
+function loadPersistedDmTabs(): ChatTab[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(DM_TABS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (t): t is ChatTab =>
+        t && typeof t === "object" && t.type === "direct" && typeof t.id === "string",
+    );
+  } catch {
+    return [];
+  }
+}
+
+function persistDmTabs(tabs: ChatTab[]) {
+  if (typeof window === "undefined") return;
+  try {
+    const dmTabs = tabs
+      .filter((t) => t.type === "direct")
+      .map((t) => ({
+        id: t.id,
+        label: t.label,
+        instance: t.instance,
+        type: t.type,
+        lobbyId: t.lobbyId,
+        pinned: false,
+        otherSteamId: t.otherSteamId,
+        avatarUrl: t.avatarUrl,
+      }));
+    window.localStorage.setItem(DM_TABS_STORAGE_KEY, JSON.stringify(dmTabs));
+  } catch {
+    // best-effort -- losing the persisted list just means DMs won't
+    // survive the next refresh, not a functional break right now.
+  }
+}
+
+const tabsRef = ref<ChatTab[]>(loadPersistedDmTabs());
 const unreadCountsRef = ref<Record<string, number>>({});
 const activeTabIdRef = ref<string | null>(null);
 
@@ -85,6 +131,7 @@ export function useChatTabs() {
 
     tabsRef.value.push(tab);
     activeTabIdRef.value = id;
+    persistDmTabs(tabsRef.value);
 
     return tab;
   }
@@ -120,6 +167,7 @@ export function useChatTabs() {
 
     const [removed] = tabsRef.value.splice(idx, 1);
     delete unreadCountsRef.value[removed.id];
+    persistDmTabs(tabsRef.value);
 
     if (activeTabIdRef.value === removed.id) {
       const next =
@@ -140,6 +188,10 @@ export function useChatTabs() {
     const idx = findTabIndex(id);
     if (idx !== -1 && tabsRef.value[idx].unopened) {
       tabsRef.value[idx] = { ...tabsRef.value[idx], unopened: false };
+      // A silently-registered DM (see registerTabIfMissing) only becomes
+      // a "genuinely open" conversation worth restoring after refresh
+      // once the user actually clicks into it here.
+      persistDmTabs(tabsRef.value);
     }
   }
 
