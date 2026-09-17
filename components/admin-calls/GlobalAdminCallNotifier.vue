@@ -3,11 +3,12 @@ import { ref, onBeforeUnmount, onMounted } from "vue";
 import { Button } from "~/components/ui/button";
 import { LucidePhoneIncoming } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
+import { respondToAdminCallRing } from "~/composables/useAdminCallApi";
 
-// Site-wide "Admin is calling…" popup for the general admin<->player
+// Full-screen "Admin is calling…" overlay for the general admin<->player
 // webcam call (camera icon on every player profile page) -- direct
-// copy of GlobalVerificationCallNotifier.vue, listening to the
-// direct-to-user "admin-call:ring" event instead (see
+// copy of GlobalVerificationCallNotifier.vue's full-screen treatment,
+// listening to the direct-to-user "admin-call:ring" event instead (see
 // AdminCallService.ring, published via send-message-to-steam-id --
 // already scoped server-side to just the player being rung).
 type RingPayload = {
@@ -22,20 +23,31 @@ let incomingCallTimer: ReturnType<typeof setTimeout> | null = null;
 function showIncomingCall(data: RingPayload) {
   incomingCall.value = data;
   if (incomingCallTimer) clearTimeout(incomingCallTimer);
-  incomingCallTimer = setTimeout(() => {
-    incomingCall.value = null;
-  }, 15_000);
+  // Auto-decline rather than just auto-dismiss -- letting it silently
+  // vanish left the calling admin's own popup stuck on "Calling…"
+  // forever with no way to know the player never even answered.
+  // Matches AdminCallService.RINGING_TTL_SECONDS on the backend.
+  incomingCallTimer = setTimeout(() => decline(), 60_000);
 }
 
-function dismiss() {
+function closeOverlay() {
   incomingCall.value = null;
   if (incomingCallTimer) clearTimeout(incomingCallTimer);
 }
 
+function decline() {
+  const targetSteamId = incomingCall.value?.targetSteamId;
+  closeOverlay();
+  if (!targetSteamId) return;
+  void respondToAdminCallRing(targetSteamId, false);
+}
+
 function accept() {
   const targetSteamId = incomingCall.value?.targetSteamId;
-  dismiss();
+  closeOverlay();
   if (!targetSteamId) return;
+  void respondToAdminCallRing(targetSteamId, true);
+
   const w = 960;
   const h = 720;
   const left = Math.max(0, (window.screen.width - w) / 2);
@@ -65,46 +77,55 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   unlisten?.();
-  dismiss();
+  closeOverlay();
 });
 </script>
 
 <template>
-  <Transition name="admin-call-item">
+  <Transition name="admin-call-overlay">
     <div
       v-if="incomingCall"
-      class="fixed z-[100] top-4 left-1/2 -translate-x-1/2 w-[min(92vw,380px)] rounded-lg border border-[hsl(var(--tac-amber))]/50 bg-zinc-900/95 backdrop-blur px-4 py-3 flex items-center gap-3 shadow-2xl"
+      class="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 backdrop-blur-md px-4"
     >
       <div
-        class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[hsl(var(--tac-amber))]/15 animate-pulse"
+        class="w-full max-w-sm rounded-2xl border border-[hsl(var(--tac-amber))]/40 bg-zinc-900 p-8 text-center shadow-2xl"
       >
-        <LucidePhoneIncoming class="h-4.5 w-4.5 text-[hsl(var(--tac-amber))]" />
-      </div>
-      <div class="min-w-0 flex-1">
-        <div class="text-sm font-semibold truncate">
+        <div
+          class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[hsl(var(--tac-amber))]/15 animate-pulse"
+        >
+          <LucidePhoneIncoming class="h-7 w-7 text-[hsl(var(--tac-amber))]" />
+        </div>
+        <div class="text-lg font-semibold">
           {{ incomingCall.adminName || "Admin" }}
         </div>
-        <div class="text-xs text-muted-foreground">
+        <div class="mt-1 text-sm text-muted-foreground">
           {{ $t("admin_calls.incoming", "Admin is calling") }}
         </div>
+        <div class="mt-6 flex gap-3">
+          <Button
+            size="lg"
+            variant="secondary"
+            class="flex-1"
+            @click="decline"
+          >
+            {{ $t("common.decline", "Decline") }}
+          </Button>
+          <Button size="lg" class="flex-1" @click="accept">
+            {{ $t("common.accept", "Accept") }}
+          </Button>
+        </div>
       </div>
-      <Button size="sm" variant="secondary" @click="dismiss">
-        {{ $t("common.decline", "Decline") }}
-      </Button>
-      <Button size="sm" @click="accept">
-        {{ $t("common.accept", "Accept") }}
-      </Button>
     </div>
   </Transition>
 </template>
 
 <style scoped>
-.admin-call-item-enter-active,
-.admin-call-item-leave-active {
+.admin-call-overlay-enter-active,
+.admin-call-overlay-leave-active {
   transition: opacity 0.2s ease;
 }
-.admin-call-item-enter-from,
-.admin-call-item-leave-to {
+.admin-call-overlay-enter-from,
+.admin-call-overlay-leave-to {
   opacity: 0;
 }
 </style>

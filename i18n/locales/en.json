@@ -2768,7 +2768,9 @@
       },
       "call": {
         "start": "Start webcam call",
-        "title": "Admin call"
+        "title": "Admin call",
+        "ringing": "Calling…",
+        "declined": "The player declined the call."
       }
     },
     "play": {
