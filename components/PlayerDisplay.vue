@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
-import { UserPlus } from "lucide-vue-next";
+import { UserPlus, Clock } from "lucide-vue-next";
 import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import PlayerElo from "~/components/PlayerElo.vue";
@@ -159,17 +159,38 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
             <slot name="name-postfix"></slot>
             <Tooltip
               v-if="
-                me && !isMe && showAddFriend && !isFriend && player?.steam_id
+                me &&
+                !isMe &&
+                showAddFriend &&
+                friendRelationshipState === 'none' &&
+                player?.steam_id
               "
             >
               <TooltipTrigger>
                 <UserPlus
                   class="w-4 h-4 cursor-pointer hover:text-primary"
+                  :class="{ 'pointer-events-none opacity-50': friendActionInFlight }"
                   @click.stop.prevent="addAsFriend"
                 />
               </TooltipTrigger>
               <TooltipContent>{{
                 $t("player.status.add_friend")
+              }}</TooltipContent>
+            </Tooltip>
+            <Tooltip
+              v-else-if="
+                me &&
+                !isMe &&
+                showAddFriend &&
+                isFriendPending &&
+                player?.steam_id
+              "
+            >
+              <TooltipTrigger>
+                <Clock class="w-4 h-4 text-muted-foreground" />
+              </TooltipTrigger>
+              <TooltipContent>{{
+                $t("matchmaking.friends.requested")
               }}</TooltipContent>
             </Tooltip>
           </div>
@@ -281,8 +302,9 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
 
 <script lang="ts">
 import { e_player_roles_enum } from "~/generated/zeus";
-import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
+import { useFriendActions } from "~/composables/useFriendActions";
+import { toast } from "~/components/ui/toast";
 
 export default {
   props: {
@@ -409,20 +431,26 @@ export default {
   },
   methods: {
     async addAsFriend() {
-      await this.$apollo.mutate({
-        mutation: typedGql("mutation")({
-          insert_my_friends_one: [
-            {
-              object: {
-                steam_id: this.player.steam_id,
-              },
-            },
-            {
-              steam_id: true,
-            },
-          ],
-        }),
-      });
+      if (!this.player?.steam_id) return;
+      const { isBusy, addFriend } = useFriendActions();
+      // Belt-and-braces against the icon's pointer-events-none binding --
+      // guards a synchronous double-click that lands before Vue re-renders.
+      if (isBusy(this.player.steam_id)) return;
+      try {
+        await addFriend(this.player.steam_id);
+      } catch (error) {
+        const message = (error as Error)?.message || "";
+        const isDuplicate =
+          message.includes("friends_pkey") ||
+          message.toLowerCase().includes("duplicate key");
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: isDuplicate
+            ? this.$t("pages.players.detail.friend_already_pending")
+            : message || this.$t("pages.players.detail.friend_add_error"),
+        });
+      }
     },
   },
   computed: {
@@ -488,14 +516,24 @@ export default {
         this.player.steam_id,
       );
     },
+    // Derived from the same live my_friends subscription (via
+    // useFriendActions) the player-profile hero button and FriendListItem
+    // read from -- one source of truth, no local/optimistic booleans.
+    friendRelationshipState() {
+      if (!this.player?.steam_id) return "none";
+      return useFriendActions().relationship(this.player.steam_id);
+    },
     isFriend() {
-      if (!this.player) {
-        return false;
-      }
-
-      return useMatchmakingStore().friends.find((friend) => {
-        return friend.steam_id == this.player.steam_id;
-      });
+      return this.friendRelationshipState === "friend";
+    },
+    isFriendPending() {
+      return this.friendRelationshipState === "outgoing";
+    },
+    // Drives the Add Friend icon's pointer-events-none while a mutation for
+    // this player is in flight (shared in-flight map in useFriendActions).
+    friendActionInFlight() {
+      if (!this.player?.steam_id) return false;
+      return useFriendActions().isBusy(this.player.steam_id);
     },
     activeSanctionType(): "ban" | "mute" | "gag" | "leaver" | null {
       // Severity order: ban > leaver > mute > (silence) > gag. is_banned is
