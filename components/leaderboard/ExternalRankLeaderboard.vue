@@ -3,7 +3,7 @@ import gql from "graphql-tag";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
-import { ArrowDown, ArrowUpDown } from "lucide-vue-next";
+import { ArrowDown, ArrowUpDown, Link } from "lucide-vue-next";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
@@ -184,6 +184,21 @@ onMounted(() => {
 <template>
   <PageTransition :delay="300" class="mt-6">
     <div>
+      <div
+        class="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 pt-3"
+      >
+        <NuxtLink
+          to="/settings/linked-accounts"
+          class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-xs text-muted-foreground underline decoration-dotted underline-offset-4 transition-colors hover:text-foreground"
+        >
+          {{ t("pages.settings.account.linked_accounts") }}
+          <Link class="h-3 w-3" />
+        </NuxtLink>
+        <span class="hidden text-xs text-muted-foreground/70 sm:inline">
+          {{ t("pages.leaderboard.external_ranks_linked_accounts_hint") }}
+        </span>
+      </div>
+
       <div class="relative p-4">
         <div v-if="loading" class="space-y-4">
           <div v-for="i in perPage" :key="i" class="flex items-center gap-4">

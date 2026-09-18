@@ -3231,6 +3231,7 @@
     "leaderboard": {
       "title": "Leaderboard",
       "no_results": "No leaderboard data available for the selected filters.",
+      "external_ranks_linked_accounts_hint": "Link your accounts for faster and more accurate leaderboard data.",
       "categories": {
         "elo": "ELO",
         "external_ranks": "FACEIT / PREMIER",
