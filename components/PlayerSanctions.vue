@@ -9,6 +9,7 @@ import {
   Ban,
   MicOff,
   MessageSquareOff,
+  MessageCircleOff,
   VolumeX,
   Clock,
   Infinity as InfinityIcon,
@@ -177,7 +178,9 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
                 v-for="sanction in sanctions"
                 :key="sanction.id"
                 class="relative overflow-hidden rounded-lg border border-border bg-card/40"
-                :class="{ 'opacity-70': isExpired(sanction) }"
+                :class="{
+                  'opacity-70': isExpired(sanction) || isRevoked(sanction),
+                }"
               >
                 <span
                   class="absolute inset-y-0 left-0 w-1"
@@ -201,6 +204,11 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
                         class="h-4 w-4 shrink-0"
                         :class="accentTextClass(sanction)"
                       />
+                      <MessageCircleOff
+                        v-else-if="sanction.type === 'website_chat_mute'"
+                        class="h-4 w-4 shrink-0"
+                        :class="accentTextClass(sanction)"
+                      />
                       <VolumeX
                         v-else
                         class="h-4 w-4 shrink-0"
@@ -211,16 +219,18 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
                           <span
                             class="text-sm font-semibold uppercase tracking-wider"
                           >
-                            {{ sanction.type }}
+                            {{ sanctionLabel(sanction) }}
                           </span>
                           <span
                             class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
                             :class="statusPillClass(sanction)"
                           >
                             {{
-                              isExpired(sanction)
-                                ? $t("player.sanctions.expired")
-                                : $t("player.sanctions.active")
+                              isRevoked(sanction)
+                                ? $t("player.sanctions.revoked")
+                                : isExpired(sanction)
+                                  ? $t("player.sanctions.expired")
+                                  : $t("player.sanctions.active")
                             }}
                           </span>
                         </div>
@@ -233,10 +243,18 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
                       </div>
                     </div>
                     <div
-                      v-if="canManageSanctions"
+                      v-if="
+                        canManageSpecificSanction(sanction) &&
+                        !isRevoked(sanction)
+                      "
                       class="flex gap-1 items-center shrink-0"
                     >
-                      <TooltipProvider v-if="!isExpired(sanction)">
+                      <TooltipProvider
+                        v-if="
+                          !isExpired(sanction) &&
+                          sanction.type !== 'website_chat_mute'
+                        "
+                      >
                         <Tooltip>
                           <TooltipTrigger as-child>
                             <Button
@@ -645,6 +663,7 @@ export default {
               reason: true,
               created_at: true,
               remove_sanction_date: true,
+              deleted_at: true,
             },
           ],
         }),
@@ -699,6 +718,9 @@ export default {
   computed: {
     activeSanctions() {
       return this.sanctions.filter((sanction) => {
+        if (sanction.deleted_at) {
+          return false;
+        }
         if (sanction.remove_sanction_date) {
           return new Date(sanction.remove_sanction_date) > new Date();
         }
@@ -723,6 +745,9 @@ export default {
     },
     canManageSanctions() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
+    },
+    isSiteAdministrator() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
     },
     steamProfileUrl() {
       return `https://steamcommunity.com/profiles/${this.playerId}`;
@@ -761,6 +786,23 @@ export default {
     },
   },
   methods: {
+    isRevoked(sanction: any) {
+      return Boolean(sanction.deleted_at);
+    },
+    sanctionLabel(sanction: any) {
+      if (sanction.type === "website_chat_mute") {
+        return this.$t(
+          "player.sanction.types.website_chat_mute",
+          "Website Chat Mute",
+        );
+      }
+      return sanction.type;
+    },
+    canManageSpecificSanction(sanction: any) {
+      return sanction.type === "website_chat_mute"
+        ? this.isSiteAdministrator
+        : this.canManageSanctions;
+    },
     isExpired(sanction: any) {
       return (
         !!sanction.remove_sanction_date &&
@@ -775,19 +817,23 @@ export default {
       );
     },
     accentBarClass(sanction: any) {
-      if (this.isExpired(sanction)) return "bg-muted-foreground/30";
+      if (this.isExpired(sanction) || this.isRevoked(sanction)) {
+        return "bg-muted-foreground/30";
+      }
       return sanction.type === "ban"
         ? "bg-destructive"
         : "bg-[hsl(var(--tac-amber))]";
     },
     accentTextClass(sanction: any) {
-      if (this.isExpired(sanction)) return "text-muted-foreground";
+      if (this.isExpired(sanction) || this.isRevoked(sanction)) {
+        return "text-muted-foreground";
+      }
       return sanction.type === "ban"
         ? "text-destructive"
         : "text-[hsl(var(--tac-amber))]";
     },
     statusPillClass(sanction: any) {
-      return this.isExpired(sanction)
+      return this.isExpired(sanction) || this.isRevoked(sanction)
         ? "border-border text-muted-foreground"
         : "border-destructive/40 bg-destructive/10 text-destructive";
     },

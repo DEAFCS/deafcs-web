@@ -2,7 +2,13 @@
 import TimeAgo from "~/components/TimeAgo.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
-import { Pencil, Trash2, Check, X as XIcon } from "lucide-vue-next";
+import {
+  Pencil,
+  Trash2,
+  Check,
+  X as XIcon,
+  MessageSquareOff,
+} from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
@@ -88,12 +94,21 @@ import { e_player_roles_enum } from "~/generated/zeus";
           class="ml-auto hidden shrink-0 items-center gap-1 group-hover:flex"
         >
           <button
+            v-if="canEdit"
             type="button"
             :title="$t('common.edit')"
             class="text-muted-foreground hover:text-foreground"
             @click="startEdit"
           >
             <Pencil class="h-3 w-3" />
+          </button>
+          <button
+            type="button"
+            :title="$t('chat.mute_player', 'Mute Player')"
+            class="text-muted-foreground hover:text-amber-500"
+            @click="requestMute"
+          >
+            <MessageSquareOff class="h-3 w-3" />
           </button>
           <button
             type="button"
@@ -142,8 +157,12 @@ export default {
       type: Object,
       required: false,
     },
+    chatType: {
+      type: String,
+      required: true,
+    },
   },
-  emits: ["edit-message", "delete-message"],
+  emits: ["edit-message", "delete-message", "mute-player"],
   data() {
     return {
       // Chat messages embed a snapshot of the sender's avatar_url from
@@ -184,15 +203,14 @@ export default {
     roleBadge() {
       return ROLE_BADGE[this.message?.from?.role] ?? null;
     },
-    // Only announcement messages carry a persisted `id` (see
-    // ChatService.getAnnouncementMessages/sendMessageToChat) -- every
-    // other chat type has nothing to edit/delete, so this naturally
-    // stays false for them regardless of role.
     canModerate() {
       return (
         Boolean(this.message?.id) &&
         useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
+    },
+    canEdit() {
+      return this.canModerate && this.chatType === "announcement";
     },
   },
   methods: {
@@ -213,10 +231,16 @@ export default {
       this.isEditing = false;
     },
     requestDelete() {
-      if (!window.confirm(this.$t("chat.confirm_delete_announcement", "Remove this announcement?"))) {
+      if (!window.confirm(this.$t("chat.confirm_delete_message", "Delete this chat message?"))) {
         return;
       }
       this.$emit("delete-message", { id: this.message.id });
+    },
+    requestMute() {
+      this.$emit("mute-player", {
+        player: this.message.from,
+        messageId: this.message.id,
+      });
     },
     async fetchLiveAvatar() {
       const steamId = this.message?.from?.steam_id;

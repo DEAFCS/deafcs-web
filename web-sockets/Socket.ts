@@ -35,6 +35,18 @@ export type ChatType =
   | "announcement";
 
 class Socket extends EventEmitter {
+  public websiteChatMuteStatus: {
+    known: boolean;
+    active: boolean;
+    expiresAt: string | null;
+    permanent: boolean;
+  } = {
+    known: false,
+    active: false,
+    expiresAt: null,
+    permanent: false,
+  };
+
   private listening = new Set();
   private connection?: WebSocket;
   private connected = false;
@@ -252,15 +264,14 @@ class Socket extends EventEmitter {
     });
   }
 
-  // Announcement-only (see ChatService.editAnnouncement/deleteAnnouncement,
-  // which re-check the admin role themselves regardless of what a
-  // crafted client sends here).
+  // Announcement editing remains announcement-only. Deletion is available
+  // for every persisted chat message and is authorized again by the API.
   public editChat(messageId: string, message: string) {
     this.event(`lobby:chat:edit`, { id: messageId, message });
   }
 
-  public deleteChat(messageId: string) {
-    this.event(`lobby:chat:delete`, { id: messageId });
+  public deleteChat(type: ChatType, roomId: string, messageId: string) {
+    this.event(`lobby:chat:delete`, { id: messageId, type, roomId });
   }
 
   // Mirrors listenChat's shared-cache sync, but for an in-place edit/
@@ -469,6 +480,17 @@ class Socket extends EventEmitter {
 }
 const socket = new Socket();
 
+socket.listen(
+  "chat:mute-status",
+  (status: {
+    active: boolean;
+    expiresAt: string | null;
+    permanent: boolean;
+  }) => {
+    socket.websiteChatMuteStatus = { known: true, ...status };
+  },
+);
+
 socket.listen("matchmaking:region-stats", (data) => {
   useMatchmakingStore().regionStats = data;
 });
@@ -480,6 +502,14 @@ socket.listen("players-online", (onlinePlayerSteamIds) => {
 });
 
 socket.listen("matchmaking:error", (data: { message: string }) => {
+  toast({
+    variant: "destructive",
+    title: useNuxtApp().$i18n.t("common.error"),
+    description: data.message,
+  });
+});
+
+socket.listen("chat:send:error", (data: { message: string }) => {
   toast({
     variant: "destructive",
     title: useNuxtApp().$i18n.t("common.error"),

@@ -4,7 +4,7 @@
     class="flex-1 overflow-y-auto p-3"
     ref="chatMessages"
   >
-    <template v-for="(message, index) in messages" :key="index">
+    <template v-for="(message, index) in messages" :key="message.id || index">
       <div
         v-if="
           lastReadCount > 0 &&
@@ -25,8 +25,10 @@
       <ChatMessage
         :message="message"
         :previous-message="messages[index - 1]"
+        :chat-type="chatType"
         @edit-message="$emit('edit-message', $event)"
         @delete-message="$emit('delete-message', $event)"
+        @mute-player="$emit('mute-player', $event)"
       />
     </template>
   </div>
@@ -35,7 +37,7 @@
     class="flex-1 overflow-y-auto max-h-screen"
     ref="chatMessages"
   >
-    <template v-for="(message, index) in messages" :key="index">
+    <template v-for="(message, index) in messages" :key="message.id || index">
       <div
         v-if="
           lastReadCount > 0 &&
@@ -56,8 +58,10 @@
       <ChatMessage
         :message="message"
         :previous-message="messages[index - 1]"
+        :chat-type="chatType"
         @edit-message="$emit('edit-message', $event)"
         @delete-message="$emit('delete-message', $event)"
+        @mute-player="$emit('mute-player', $event)"
       />
     </template>
   </div>
@@ -75,6 +79,10 @@ export default {
       type: Array as () => any[],
       required: true,
     },
+    chatType: {
+      type: String,
+      required: true,
+    },
     variant: {
       type: String,
       default: "embedded",
@@ -89,7 +97,12 @@ export default {
       default: 0,
     },
   },
-  emits: ["bottom-state-change", "edit-message", "delete-message"],
+  emits: [
+    "bottom-state-change",
+    "edit-message",
+    "delete-message",
+    "mute-player",
+  ],
   data() {
     return {
       isAtBottom: false,

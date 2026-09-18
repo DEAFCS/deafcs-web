@@ -21,10 +21,11 @@ import { z } from "zod";
 import { useForm } from "vee-validate";
 import gql from "graphql-tag";
 import SettingHeader from "~/components/match/SettingHeader.vue";
+import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
 <template>
-  <Popover>
+  <Popover v-if="showTrigger">
     <PopoverTrigger as-child>
       <button
         type="button"
@@ -47,7 +48,7 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
               >
                 <div class="flex items-center gap-2">
                   <component :is="sanction.icon" class="h-4 w-4" />
-                  <span class="font-medium capitalize">{{ type }}</span>
+                  <span class="font-medium">{{ sanction.label }}</span>
                 </div>
                 <p class="text-sm text-muted-foreground mt-1">
                   {{ sanction.description }}
@@ -65,7 +66,7 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
       <DrawerHeader>
         <div class="flex justify-between items-center">
           <DrawerTitle class="capitalize flex flex-col gap-4">
-            {{ sanctionType }}ing Player
+            {{ sanctions[sanctionType]?.actionLabel }}
             <PlayerDisplay :player="player" />
           </DrawerTitle>
           <DrawerClose>
@@ -167,6 +168,20 @@ export default {
       type: String,
       default: undefined,
     },
+    showTrigger: {
+      type: Boolean,
+      default: true,
+    },
+    initialType: {
+      type: String,
+      required: false,
+      default: undefined,
+    },
+    evidenceMessageId: {
+      type: String,
+      required: false,
+      default: undefined,
+    },
   },
   emits: ["sanctioned"],
   data() {
@@ -185,25 +200,63 @@ export default {
     };
   },
   computed: {
-    sanctions(): Record<string, { icon: any; description: string }> {
-      return {
+    isSiteAdministrator() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
+    },
+    sanctions(): Record<
+      string,
+      { icon: any; label: string; actionLabel: string; description: string }
+    > {
+      const sanctions: Record<
+        string,
+        { icon: any; label: string; actionLabel: string; description: string }
+      > = {
         ban: {
           icon: Ban,
+          label: this.$t("player.sanction.types.ban", "Ban"),
+          actionLabel: this.$t("player.sanction.actions.ban", "Ban Player"),
           description: this.$t("player.sanction.types.ban_description"),
         },
         mute: {
           icon: MicOff,
+          label: this.$t("player.sanction.types.mute", "CS2 Mute"),
+          actionLabel: this.$t("player.sanction.actions.mute", "Mute Player"),
           description: this.$t("player.sanction.types.mute_description"),
         },
         gag: {
           icon: MessageSquareOff,
+          label: this.$t("player.sanction.types.gag", "CS2 Gag"),
+          actionLabel: this.$t("player.sanction.actions.gag", "Gag Player"),
           description: this.$t("player.sanction.types.gag_description"),
         },
         silence: {
           icon: BellOff,
+          label: this.$t("player.sanction.types.silence", "CS2 Silence"),
+          actionLabel: this.$t(
+            "player.sanction.actions.silence",
+            "Silence Player",
+          ),
           description: this.$t("player.sanction.types.silence_description"),
         },
       };
+      if (this.isSiteAdministrator) {
+        sanctions.website_chat_mute = {
+          icon: MessageSquareOff,
+          label: this.$t(
+            "player.sanction.types.website_chat_mute",
+            "Website Chat Mute",
+          ),
+          actionLabel: this.$t(
+            "player.sanction.actions.website_chat_mute",
+            "Mute Player from Website Chat",
+          ),
+          description: this.$t(
+            "player.sanction.types.website_chat_mute_description",
+            "Player can read website chat but cannot send messages",
+          ),
+        };
+      }
+      return sanctions;
     },
     durations(): Array<{ label: string; duration: number }> {
       return [
@@ -236,6 +289,13 @@ export default {
     },
   },
   methods: {
+    openSanction(type = this.initialType) {
+      if (!type || !this.sanctions[type]) {
+        return;
+      }
+      this.sanctionType = type;
+      this.sanctioningPlayer = true;
+    },
     async sanctionPlayer() {
       if (this.submitting) {
         return;
@@ -255,6 +315,7 @@ export default {
               $type: String!
               $reason: String
               $duration: Float
+              $evidence_message_id: String
             ) {
               sanctionServerPlayer(
                 serverId: $serverId
@@ -262,6 +323,7 @@ export default {
                 type: $type
                 reason: $reason
                 duration: $duration
+                evidence_message_id: $evidence_message_id
               ) {
                 id
                 enforced
@@ -277,6 +339,7 @@ export default {
             duration: this.form.values.duration
               ? parseInt(this.form.values.duration)
               : 0,
+            evidence_message_id: this.evidenceMessageId ?? null,
           },
         });
 

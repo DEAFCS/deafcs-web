@@ -5,6 +5,7 @@ import ChatInput from "~/components/chat/ChatInput.vue";
 import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
 import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
+import SanctionPlayer from "~/components/SanctionPlayer.vue";
 </script>
 
 <template>
@@ -92,6 +93,7 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
             v-if="messages.length"
             ref="chatMessagesRef"
             :messages="messages"
+            :chat-type="type"
             variant="global"
             :is-minimized="isMinimized"
             class="flex-1 overflow-y-auto max-h-96"
@@ -99,6 +101,7 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
             @bottom-state-change="handleBottomStateChange"
             @edit-message="handleEditMessage"
             @delete-message="handleDeleteMessage"
+            @mute-player="handleMutePlayer"
           />
           <Empty v-else class="flex-1 text-muted-foreground">
             <div class="space-y-1">
@@ -117,7 +120,7 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
           </Empty>
         </div>
         <ChatInput
-          v-if="canSend"
+          v-if="effectiveCanSend"
           ref="chatInputRef"
           variant="global"
           :placeholder="messagePlaceholder"
@@ -128,7 +131,7 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
           v-else
           class="px-3 py-2 text-center text-xs text-muted-foreground"
         >
-          {{ readonlyHint || $t("chat.readonly") }}
+          {{ effectiveReadonlyHint }}
         </div>
       </div>
     </div>
@@ -171,12 +174,14 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
         v-if="messages.length"
         ref="chatMessagesRef"
         :messages="messages"
+        :chat-type="type"
         variant="embedded"
         class="flex-1 min-h-0 overflow-y-auto"
         :last-read-count="0"
         @bottom-state-change="handleBottomStateChange"
         @edit-message="handleEditMessage"
         @delete-message="handleDeleteMessage"
+        @mute-player="handleMutePlayer"
       />
       <Empty v-else class="flex-1 text-muted-foreground">
         <div class="space-y-1">
@@ -194,7 +199,7 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
         </div>
       </Empty>
       <ChatInput
-        v-if="canSend"
+        v-if="effectiveCanSend"
         ref="chatInputRef"
         variant="embedded"
         :placeholder="messagePlaceholder"
@@ -205,10 +210,19 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
         v-else
         class="px-3 py-2 text-center text-xs text-muted-foreground"
       >
-        {{ readonlyHint || $t("chat.readonly") }}
+        {{ effectiveReadonlyHint }}
       </div>
     </div>
   </div>
+  <SanctionPlayer
+    v-if="muteTarget"
+    ref="chatMuteSanctionRef"
+    :player="muteTarget"
+    :show-trigger="false"
+    initial-type="website_chat_mute"
+    :evidence-message-id="muteEvidenceMessageId"
+    @sanctioned="clearMuteTarget"
+  />
 </template>
 
 <script lang="ts">
@@ -310,6 +324,11 @@ export default {
       lobbyListener: undefined as { stop: () => void } | undefined,
       lobbyEditedListener: undefined as { stop: () => void } | undefined,
       lobbyDeletedListener: undefined as { stop: () => void } | undefined,
+      muteStatusListener: undefined as { stop: () => void } | undefined,
+      muteExpiryTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+      chatMuteStatus: { ...socket.websiteChatMuteStatus },
+      muteTarget: null as any,
+      muteEvidenceMessageId: null as string | null,
       isMinimized: false,
       unreadCount: 0,
       lastReadMessageCount: 0,
@@ -318,6 +337,36 @@ export default {
     };
   },
   computed: {
+    effectiveCanSend() {
+      return (
+        this.canSend &&
+        this.chatMuteStatus.known &&
+        !this.chatMuteStatus.active
+      );
+    },
+    effectiveReadonlyHint() {
+      if (!this.canSend) {
+        return this.readonlyHint || this.$t("chat.readonly");
+      }
+      if (!this.chatMuteStatus.known) {
+        return this.$t(
+          "chat.checking_permissions",
+          "Checking chat permissions…",
+        );
+      }
+      if (this.chatMuteStatus.active) {
+        if (this.chatMuteStatus.expiresAt) {
+          return this.$t("chat.muted_until", {
+            date: new Intl.DateTimeFormat(undefined, {
+              dateStyle: "medium",
+              timeStyle: "short",
+            }).format(new Date(this.chatMuteStatus.expiresAt)),
+          });
+        }
+        return this.$t("chat.muted", "You are muted from website chat.");
+      }
+      return this.readonlyHint || this.$t("chat.readonly");
+    },
     rightSidebarOffset() {
       const baseOffset = 96;
 
@@ -435,6 +484,35 @@ export default {
     },
   },
   methods: {
+    handleMuteStatus(status: {
+      active: boolean;
+      expiresAt: string | null;
+      permanent: boolean;
+    }) {
+      if (this.muteExpiryTimer) {
+        clearTimeout(this.muteExpiryTimer);
+        this.muteExpiryTimer = undefined;
+      }
+      this.chatMuteStatus = { known: true, ...status };
+      if (status.active && status.expiresAt) {
+        const delay = Math.max(
+          0,
+          new Date(status.expiresAt).getTime() - Date.now(),
+        );
+        this.muteExpiryTimer = setTimeout(() => {
+          if (Date.now() < new Date(status.expiresAt as string).getTime()) {
+            this.handleMuteStatus(status);
+            return;
+          }
+          this.chatMuteStatus = {
+            known: true,
+            active: false,
+            expiresAt: null,
+            permanent: false,
+          };
+        }, Math.min(delay, 2_147_483_647));
+      }
+    },
     updateLobbyMessages(newMessages: any) {
       // Clone rather than alias: `newMessages` is the shared array living on
       // the socket module's `lobby` object, reused by every ChatLobby
@@ -464,6 +542,9 @@ export default {
       });
     },
     handleSendMessage(message: string) {
+      if (!this.effectiveCanSend) {
+        return;
+      }
       socket.chat(
         this.type as ChatType,
         this.lobbyId,
@@ -505,8 +586,30 @@ export default {
       socket.editChat(id, message);
     },
     handleDeleteMessage({ id }: { id: string }) {
-      socket.deleteChat(id);
+      socket.deleteChat(this.type as ChatType, this.lobbyId, id);
     },
+    handleMutePlayer({ player, messageId }: { player: any; messageId: string }) {
+      this.muteTarget = player;
+      this.muteEvidenceMessageId = messageId;
+      this.$nextTick(() => {
+        (this.$refs.chatMuteSanctionRef as any)?.openSanction(
+          "website_chat_mute",
+        );
+      });
+    },
+    clearMuteTarget() {
+      this.muteTarget = null;
+      this.muteEvidenceMessageId = null;
+    },
+  },
+  created() {
+    this.muteStatusListener = socket.listen(
+      "chat:mute-status",
+      this.handleMuteStatus,
+    );
+    if (socket.websiteChatMuteStatus.known) {
+      this.handleMuteStatus(socket.websiteChatMuteStatus);
+    }
   },
   watch: {
     lobbyId: {
@@ -668,6 +771,10 @@ export default {
     this.lobbyListener?.stop();
     this.lobbyEditedListener?.stop();
     this.lobbyDeletedListener?.stop();
+    this.muteStatusListener?.stop();
+    if (this.muteExpiryTimer) {
+      clearTimeout(this.muteExpiryTimer);
+    }
   },
 };
 </script>
