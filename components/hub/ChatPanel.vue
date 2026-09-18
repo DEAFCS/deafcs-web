@@ -820,25 +820,38 @@ function openLobbyCallWindow() {
         </div>
 
         <div class="flex-1 min-h-0 flex flex-col">
-          <ChatLobby
+          <!-- ChatLobby's root template is a Teleport-or-div pair plus a
+               sibling SanctionPlayer node, so it has no single element
+               root -- Vue only special-cases v-show for a component
+               whose template resolves to one real element (or a root-level
+               v-if/v-else *pair* with nothing else), and warns "Runtime
+               directive used on component with non-element root node" for
+               anything wider, silently no-op'ing the display toggle. Each
+               room therefore gets its own real DOM wrapper to hide instead
+               of putting v-show on the ChatLobby component itself. -->
+          <div
             v-for="tab in mountedTabs"
             :key="tab.id"
             v-show="tab.id === activeChatId"
-            :instance="tab.instance"
-            :type="tab.type"
-            :lobby-id="tab.lobbyId"
-            :tab-id="tab.id"
-            :frameless="true"
-            :is-global-context="true"
-            :hide-participants-summary="true"
-            :disable-auto-focus-on-activate="isMobile"
-            :is-active-tab="
-              tab.id === activeChatId && isSidebarOpen && isTabActive
-            "
-            :can-send="canSendToTab(tab)"
-            :readonly-hint="readonlyHintFor(tab)"
-            @message-received="handleMessageReceived"
-          />
+            class="flex-1 min-h-0 flex flex-col"
+          >
+            <ChatLobby
+              :instance="tab.instance"
+              :type="tab.type"
+              :lobby-id="tab.lobbyId"
+              :tab-id="tab.id"
+              :frameless="true"
+              :is-global-context="true"
+              :hide-participants-summary="true"
+              :disable-auto-focus-on-activate="isMobile"
+              :is-active-tab="
+                tab.id === activeChatId && isSidebarOpen && isTabActive
+              "
+              :can-send="canSendToTab(tab)"
+              :readonly-hint="readonlyHintFor(tab)"
+              @message-received="handleMessageReceived"
+            />
+          </div>
         </div>
       </template>
       <div v-else class="flex-1 flex flex-col">
