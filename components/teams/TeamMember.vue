@@ -424,6 +424,7 @@ export default {
       removingInvite: false,
       roleChangeDialog: false,
       pendingRole: null as string | null,
+      updatingStatus: false,
     };
   },
   computed: {
@@ -496,24 +497,40 @@ export default {
   },
   methods: {
     async updateMemberStatus(value: e_team_roster_statuses_enum) {
-      await (this as any).$apollo.mutate({
-        mutation: generateMutation({
-          update_team_roster_by_pk: [
-            {
-              _set: {
-                status: value,
-              } as any,
-              pk_columns: {
-                team_id: this.member.team_id,
-                player_steam_id: this.member.player.steam_id,
+      if (this.updatingStatus) {
+        return;
+      }
+      this.updatingStatus = true;
+      try {
+        // Choosing Starter/Substitute/Benched from this menu is a move onto
+        // the playing roster, so it always clears `coach` in the same atomic
+        // update -- otherwise a former coach keeps showing under Coaches
+        // (which filters on `coach`, not `status`) and their stale status
+        // keeps consuming a Starter/Substitute slot (see tbiu_team_roster_status).
+        await (this as any).$apollo.mutate({
+          mutation: generateMutation({
+            update_team_roster_by_pk: [
+              {
+                _set: {
+                  status: value,
+                  coach: false,
+                } as any,
+                pk_columns: {
+                  team_id: this.member.team_id,
+                  player_steam_id: this.member.player.steam_id,
+                },
               },
-            },
-            {
-              __typename: true,
-            },
-          ],
-        }),
-      });
+              {
+                __typename: true,
+              },
+            ],
+          }),
+        });
+      } catch (error) {
+        this.showStatusChangeError(error);
+      } finally {
+        this.updatingStatus = false;
+      }
     },
     async removeMember() {
       if (this.removingMember) {
@@ -633,6 +650,25 @@ export default {
         description: message.includes("last team Admin")
           ? this.$t("team.admin.last_admin")
           : this.$t("team.admin.operation_failed"),
+      });
+    },
+    showStatusChangeError(error: unknown) {
+      const message =
+        error instanceof Error ? error.message : JSON.stringify(error ?? "");
+      const starterCap = message.match(/Only (\d+) starters are allowed/);
+      const substituteCap = message.match(
+        /Only (\d+) substitutes are allowed/,
+      );
+      toast({
+        variant: "destructive",
+        title: this.$t("common.error"),
+        description: starterCap
+          ? this.$t("team.admin.starter_cap_reached", { max: starterCap[1] })
+          : substituteCap
+            ? this.$t("team.admin.substitute_cap_reached", {
+                max: substituteCap[1],
+              })
+            : this.$t("team.admin.operation_failed"),
       });
     },
     async toggleCoach() {

@@ -5744,7 +5744,9 @@
       "change_role_title": "Change your Admin role?",
       "demote_confirmation": "You will lose team-management permissions when you change your role from Admin.",
       "leave_confirmation": "You will lose team-management permissions when you leave this team.",
-      "operation_failed": "The team changed while you were making this update. Refresh and try again."
+      "operation_failed": "The team changed while you were making this update. Refresh and try again.",
+      "starter_cap_reached": "Only {max} starters are allowed; bench a starter first.",
+      "substitute_cap_reached": "Only {max} substitutes are allowed; bench a substitute first."
     },
     "leave": "Leave Team",
     "management": {
