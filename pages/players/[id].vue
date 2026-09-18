@@ -55,6 +55,7 @@ import {
   UserPlus,
   UserCheck,
   UserX,
+  Ban,
   Clock,
   Calendar as CalendarIcon,
   ChevronDown,
@@ -62,12 +63,27 @@ import {
   Video,
 } from "lucide-vue-next";
 import { openDirectMessage } from "~/composables/useDirectMessage";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogCancel,
+} from "~/components/ui/alert-dialog";
 
 // Hover/focus toggle for the FRIEND -> "Remove friend?" hero button; the
 // friend relationship state itself is computed in the Options block below
 // via useFriendActions(), the same live my_friends-subscription source
 // FriendListItem reads from.
 const friendButtonHovered = ref(false);
+
+// Block-confirmation dialog open state -- the block relationship itself is
+// computed in the Options block below via useBlockActions(), the same live
+// my_blocks-subscription source (BlockStore) the Blocked Players settings
+// page reads from.
+const showBlockConfirm = ref(false);
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import RadialStat from "~/components/charts/RadialStat.vue";
@@ -1773,6 +1789,17 @@ const playerHeroFriendPendingClasses =
   "inline-flex items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] max-md:w-full disabled:cursor-not-allowed";
 const playerHeroFriendIncomingClasses =
   "inline-flex items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] max-md:w-full";
+const playerHeroBlockedBadgeClasses =
+  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-destructive/50 bg-destructive/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-destructive cursor-default";
+// 20% column, equal height with the 80% friend-button column via the
+// parent row's items-stretch (not items-center) -- see playerHeroActionsRowClasses.
+const playerHeroBlockButtonClasses =
+  "inline-flex w-full items-center justify-center rounded border border-destructive/40 bg-card/60 text-destructive/80 transition-colors duration-150 hover:border-destructive hover:bg-destructive/20 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
+const playerHeroBlockButtonActiveClasses =
+  "inline-flex w-full items-center justify-center rounded border border-destructive bg-destructive/25 text-destructive transition-colors duration-150 hover:bg-destructive/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
+const playerHeroActionsRowClasses = "flex items-stretch gap-2 w-full";
+const playerHeroActionsRowLeftClasses = "flex-[4] min-w-0";
+const playerHeroActionsRowRightClasses = "flex-1 min-w-[2.75rem]";
 const playerHeroAvatarFrameClasses =
   "relative h-[156px] w-[156px] border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] p-1 max-md:h-24 max-md:w-24";
 const playerHeroAvatarClasses = "block h-full w-full object-cover";
@@ -2047,59 +2074,139 @@ const playerHeroTeamChipDotClasses =
                   aria-hidden="true"
                 ></span>
               </NuxtLink>
-              <button
-                v-else-if="canAddFriend"
-                type="button"
-                :class="playerHeroAddFriendClasses"
-                :disabled="friendActionInFlight"
-                @click="addAsFriend"
-              >
-                <UserPlus class="h-4 w-4" />
-                <span>{{ $t("player.status.add_friend") }}</span>
-              </button>
-              <span
-                v-else-if="isFriendIncoming"
-                :class="playerHeroFriendIncomingClasses"
-              >
-                <Clock class="h-3.5 w-3.5" />
-                <span>{{ $t("pages.players.detail.friend_incoming") }}</span>
-              </span>
-              <button
-                v-else-if="isFriendPending"
-                type="button"
-                :class="playerHeroFriendPendingClasses"
-                disabled
-              >
-                <Clock class="h-3.5 w-3.5" />
-                <span>{{ $t("pages.players.detail.friend_pending") }}</span>
-              </button>
-              <button
-                v-else-if="isFriend"
-                type="button"
-                :class="
-                  friendButtonHovered
-                    ? playerHeroRemoveFriendClasses
-                    : playerHeroFriendBadgeClasses
-                "
-                :disabled="friendActionInFlight"
-                @mouseenter="friendButtonHovered = true"
-                @mouseleave="friendButtonHovered = false"
-                @focus="friendButtonHovered = true"
-                @blur="friendButtonHovered = false"
-                @click="removeFriendClick"
-              >
-                <UserX v-if="friendButtonHovered" class="h-3.5 w-3.5" />
-                <UserCheck v-else class="h-3.5 w-3.5" />
-                <span>{{
-                  friendButtonHovered
-                    ? $t("pages.players.detail.friend_remove_confirm")
-                    : $t("pages.players.detail.friend")
-                }}</span>
-              </button>
+              <div v-else :class="playerHeroActionsRowClasses">
+                <div :class="playerHeroActionsRowLeftClasses">
+                  <button
+                    v-if="isBlockedByMe"
+                    type="button"
+                    :class="playerHeroBlockedBadgeClasses"
+                    disabled
+                  >
+                    <Ban class="h-3.5 w-3.5" />
+                    <span>{{ $t("pages.players.detail.blocked", "Blocked") }}</span>
+                  </button>
+                  <button
+                    v-else-if="canAddFriend"
+                    type="button"
+                    :class="playerHeroAddFriendClasses"
+                    :disabled="friendActionInFlight"
+                    @click="addAsFriend"
+                  >
+                    <UserPlus class="h-4 w-4" />
+                    <span>{{ $t("player.status.add_friend") }}</span>
+                  </button>
+                  <span
+                    v-else-if="isFriendIncoming"
+                    :class="playerHeroFriendIncomingClasses"
+                  >
+                    <Clock class="h-3.5 w-3.5" />
+                    <span>{{ $t("pages.players.detail.friend_incoming") }}</span>
+                  </span>
+                  <button
+                    v-else-if="isFriendPending"
+                    type="button"
+                    :class="playerHeroFriendPendingClasses"
+                    disabled
+                  >
+                    <Clock class="h-3.5 w-3.5" />
+                    <span>{{ $t("pages.players.detail.friend_pending") }}</span>
+                  </button>
+                  <button
+                    v-else-if="isFriend"
+                    type="button"
+                    :class="
+                      friendButtonHovered
+                        ? playerHeroRemoveFriendClasses
+                        : playerHeroFriendBadgeClasses
+                    "
+                    :disabled="friendActionInFlight"
+                    @mouseenter="friendButtonHovered = true"
+                    @mouseleave="friendButtonHovered = false"
+                    @focus="friendButtonHovered = true"
+                    @blur="friendButtonHovered = false"
+                    @click="removeFriendClick"
+                  >
+                    <UserX v-if="friendButtonHovered" class="h-3.5 w-3.5" />
+                    <UserCheck v-else class="h-3.5 w-3.5" />
+                    <span>{{
+                      friendButtonHovered
+                        ? $t("pages.players.detail.friend_remove_confirm")
+                        : $t("pages.players.detail.friend")
+                    }}</span>
+                  </button>
+                </div>
+                <div
+                  v-if="canShowBlockAction"
+                  :class="playerHeroActionsRowRightClasses"
+                >
+                  <FiveStackToolTip side="bottom">
+                    <template #trigger>
+                      <button
+                        type="button"
+                        :class="[
+                          'h-full',
+                          isBlockedByMe
+                            ? playerHeroBlockButtonActiveClasses
+                            : playerHeroBlockButtonClasses,
+                        ]"
+                        :disabled="blockActionInFlight"
+                        :aria-label="
+                          isBlockedByMe
+                            ? $t('pages.players.detail.unblock_player', 'Unblock player')
+                            : $t('pages.players.detail.block_player', 'Block player')
+                        "
+                        @click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"
+                      >
+                        <Ban v-if="isBlockedByMe" class="h-4 w-4" />
+                        <UserX v-else class="h-4 w-4" />
+                      </button>
+                    </template>
+                    {{
+                      isBlockedByMe
+                        ? $t("pages.players.detail.unblock_player", "Unblock player")
+                        : $t("pages.players.detail.block_player", "Block player")
+                    }}
+                  </FiveStackToolTip>
+                </div>
+              </div>
             </div>
           </div>
         </header>
       </PageTransition>
+
+      <AlertDialog v-model:open="showBlockConfirm">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{{
+              $t("pages.players.detail.block_confirm_title", "Block this player?")
+            }}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {{
+                $t(
+                  "pages.players.detail.block_confirm_description",
+                  "This player will no longer be able to send you friend requests, direct messages or invitations. Their messages will also be hidden from your chat.",
+                )
+              }}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel :disabled="blockActionInFlight">{{
+              $t("common.cancel")
+            }}</AlertDialogCancel>
+            <!-- Plain button -- AlertDialogAction auto-closes before the
+                 async mutation can run (same reasoning as the unlink-account
+                 confirm dialog in settings/linked-accounts.vue). -->
+            <button
+              type="button"
+              :disabled="blockActionInFlight"
+              class="inline-flex h-10 items-center justify-center rounded-md bg-destructive px-4 text-sm font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50 disabled:pointer-events-none cursor-pointer"
+              @click="confirmBlockPlayer"
+            >
+              {{ $t("pages.players.detail.block_player", "Block Player") }}
+            </button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <PageTransition :delay="150">
         <AnimatedCard
@@ -3419,7 +3526,8 @@ export default {
         this.me &&
         this.player?.steam_id &&
         !this.isSelfProfile &&
-        this.friendRelationshipState === "none"
+        this.friendRelationshipState === "none" &&
+        !this.isBlockedByMe
       );
     },
     // Drives the hero button's :disabled -- true while an add/remove
@@ -3432,14 +3540,35 @@ export default {
     // DMs are restricted to accepted friends, no exceptions -- see
     // chat.service.ts's ChatLobbyType.Direct join check, which is the
     // actual enforcement; this only controls whether the button offers
-    // to open one.
+    // to open one. isBlockedByMe is redundant with !isFriend (blocking
+    // always removes the friendship, server-side -- see ti_v_my_blocks)
+    // but kept explicit so this stays correct even if that coupling ever
+    // changes.
     canMessagePlayer() {
       return !!(
         this.me &&
         this.player?.steam_id &&
         !this.isSelfProfile &&
-        this.isFriend
+        this.isFriend &&
+        !this.isBlockedByMe
       );
+    },
+    // Single source of truth for the block relationship: the live
+    // my_blocks subscription via useBlockActions/BlockStore, the same
+    // place the Blocked Players settings page reads from.
+    isBlockedByMe() {
+      if (!this.player?.steam_id) return false;
+      return useBlockActions().isBlocked(this.player.steam_id);
+    },
+    blockActionInFlight() {
+      if (!this.player?.steam_id) return false;
+      return useBlockActions().isBusy(this.player.steam_id);
+    },
+    // The Block icon column shows for any other logged-in-viewer's-eyes
+    // profile, regardless of friend state -- unlike hasRightColumn below,
+    // it doesn't require a friend-button state to also be showing.
+    canShowBlockAction() {
+      return !!(this.me && this.player?.steam_id && !this.isSelfProfile);
     },
     hasRightColumn() {
       return (
@@ -3447,7 +3576,9 @@ export default {
         this.canAddFriend ||
         this.isFriend ||
         this.isFriendPending ||
-        this.isFriendIncoming
+        this.isFriendIncoming ||
+        this.isBlockedByMe ||
+        this.canShowBlockAction
       );
     },
     isAdmin() {
@@ -3584,6 +3715,63 @@ export default {
           description:
             (error as Error)?.message ||
             this.$t("pages.players.detail.friend_remove_error"),
+        });
+      }
+    },
+    // Opens the confirmation dialog; the actual block mutation only runs
+    // once the user confirms there (confirmBlockPlayer below).
+    requestBlockPlayer() {
+      if (!this.player?.steam_id || this.isSelfProfile) return;
+      showBlockConfirm.value = true;
+    },
+    async confirmBlockPlayer() {
+      if (!this.player?.steam_id) return;
+      const { isBusy, blockPlayer } = useBlockActions();
+      if (isBusy(this.player.steam_id)) return;
+      try {
+        await blockPlayer(this.player.steam_id);
+        showBlockConfirm.value = false;
+        toast({
+          title: this.$t(
+            "pages.players.detail.block_success",
+            "Player blocked",
+          ),
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description:
+            (error as Error)?.message ||
+            this.$t(
+              "pages.players.detail.block_error",
+              "Could not block this player.",
+            ),
+        });
+      }
+    },
+    async unblockPlayerClick() {
+      if (!this.player?.steam_id) return;
+      const { isBusy, unblockPlayer } = useBlockActions();
+      if (isBusy(this.player.steam_id)) return;
+      try {
+        await unblockPlayer(this.player.steam_id);
+        toast({
+          title: this.$t(
+            "pages.players.detail.unblock_success",
+            "Player unblocked",
+          ),
+        });
+      } catch (error) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description:
+            (error as Error)?.message ||
+            this.$t(
+              "pages.players.detail.unblock_error",
+              "Could not unblock this player.",
+            ),
         });
       }
     },

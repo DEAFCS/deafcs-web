@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Label } from "~/components/ui/label";
@@ -11,8 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import { Button } from "~/components/ui/button";
+import { e_player_roles_enum } from "~/generated/zeus";
 
 useHead({ title: "New Support Request" });
+
+// Server-side enforcement is the real gate (Hasura insert_permissions on
+// support_requests is role: verified_user, see
+// hasura/metadata/databases/default/tables/public_support_requests.yaml) --
+// this only avoids showing an unverified player a form that would be
+// rejected on submit, exactly the existing isRoleAbove idiom used
+// throughout this app (see middleware/moderator.ts).
+const isVerified = computed(() =>
+  useAuthStore().isRoleAbove(e_player_roles_enum.verified_user),
+);
 </script>
 
 <template>
@@ -21,7 +34,28 @@ useHead({ title: "New Support Request" });
       ><template #title>New Support Request</template></TacticalPageHeader
     ></PageTransition
   >
-  <PageTransition :delay="50" class="mt-6">
+
+  <PageTransition v-if="!isVerified" :delay="50" class="mt-6">
+    <div
+      class="mx-auto flex max-w-3xl flex-col items-start gap-3 rounded-lg border border-border bg-card/50 p-6 text-sm"
+    >
+      <p class="text-foreground">
+        {{
+          $t(
+            "pages.support.new.must_be_verified",
+            "You must be verified to submit a support request.",
+          )
+        }}
+      </p>
+      <NuxtLink to="/verify">
+        <Button variant="tactical" size="sm">{{
+          $t("pages.support.new.apply_for_verification", "Apply for verification")
+        }}</Button>
+      </NuxtLink>
+    </div>
+  </PageTransition>
+
+  <PageTransition v-else :delay="50" class="mt-6">
     <form
       class="mx-auto flex max-w-3xl flex-col gap-6"
       @submit.prevent="submitRequest"
