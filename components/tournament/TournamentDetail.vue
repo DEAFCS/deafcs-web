@@ -245,6 +245,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                     isIndividualRegistration &&
                     tournament.status === e_tournament_status_enum.RegistrationOpen
                   "
+                  participation
                   size="sm"
                   :class="tournamentHeroJoinButtonClasses"
                   :disabled="individualActionBusy"
@@ -260,6 +261,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                       e_tournament_status_enum.RegistrationOpen &&
                     tournament.can_join
                   "
+                  participation
                   size="sm"
                   :class="tournamentHeroJoinButtonClasses"
                   @click="handleJoinTournament"

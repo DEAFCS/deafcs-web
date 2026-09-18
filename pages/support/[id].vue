@@ -177,6 +177,7 @@ useHead({ title: "Support Request" });
             placeholder="Write a reply"
           />
           <Button
+            participation
             type="submit"
             class="self-end"
             :loading="sending"

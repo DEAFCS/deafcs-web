@@ -6912,24 +6912,29 @@
       "reason_label": "Reason",
       "reason_placeholder": "Enter reason for sanction...",
       "reason_description": "Please provide a clear reason for this sanction",
+      "also_restrict_website": "Also restrict website access (Read-only)",
+      "also_restrict_website_description": "The player can view DEAFCS but cannot send messages, submit requests, add friends or participate while restricted.",
       "types": {
         "ban": "Ban",
         "mute": "CS2 Mute",
         "gag": "CS2 Gag",
         "silence": "CS2 Silence",
         "website_chat_mute": "Website Chat Mute",
+        "website_restriction": "Website Restriction",
         "ban_description": "Player is not able to participate in any activity",
         "mute_description": "Player cannot use voice chat in game",
         "gag_description": "Player cannot use text chat in game",
         "silence_description": "Player muted and gagged",
-        "website_chat_mute_description": "Player can read website chat but cannot send messages"
+        "website_chat_mute_description": "Player can read website chat but cannot send messages",
+        "website_restriction_description": "Player can view DEAFCS but cannot communicate, submit requests or participate"
       },
       "actions": {
         "ban": "Ban Player",
         "mute": "Mute Player",
         "gag": "Gag Player",
         "silence": "Silence Player",
-        "website_chat_mute": "Mute Player from Website Chat"
+        "website_chat_mute": "Mute Player from Website Chat",
+        "website_restriction": "Restrict Website Access"
       },
       "durations": {
         "15_minutes": "15 minutes",
@@ -7012,6 +7017,9 @@
       "importing": "Importing…"
     },
     "all_time_peak": "ALL-TIME PEAK"
+  },
+  "account_restriction": {
+    "short": "Your account is restricted."
   },
   "maps": {
     "label": "Maps",

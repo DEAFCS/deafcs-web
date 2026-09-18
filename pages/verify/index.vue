@@ -342,7 +342,7 @@ useHead({
           </CardContent>
         </Card>
 
-        <Button type="submit" variant="tactical" :loading="submitting" class="w-full">
+        <Button participation type="submit" variant="tactical" :loading="submitting" class="w-full">
           {{ $t("pages.verify.form.submit") }}
         </Button>
       </form>

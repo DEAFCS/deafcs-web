@@ -21,6 +21,7 @@ function sid(steam_id: string | number | bigint) {
 
 export function useFriendActions() {
   const matchmaking = useMatchmakingStore();
+  const restriction = useWebsiteRestrictionStore();
 
   function relationship(steam_id: string | number): FriendRelationship {
     const target = sid(steam_id);
@@ -39,7 +40,7 @@ export function useFriendActions() {
   }
 
   function isBusy(steam_id: string | number) {
-    return inFlight[sid(steam_id)] != null;
+    return restriction.isRestricted || inFlight[sid(steam_id)] != null;
   }
 
   async function run(
@@ -47,6 +48,9 @@ export function useFriendActions() {
     action: FriendAction,
     fn: () => Promise<unknown>,
   ) {
+    if (restriction.isRestricted) {
+      throw new Error("Your account is restricted.");
+    }
     const key = sid(steam_id);
     inFlight[key] = action;
     try {

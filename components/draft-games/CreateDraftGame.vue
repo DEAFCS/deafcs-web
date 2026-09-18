@@ -67,6 +67,9 @@ const emit = defineEmits<{
 const REHOST_KEY = "draft-games:rehost";
 
 const submitting = ref(false);
+const websiteRestricted = computed(
+  () => useWebsiteRestrictionStore().isRestricted,
+);
 
 const source = props.rehost || props.initial;
 
@@ -1072,7 +1075,8 @@ const submit = form.handleSubmit(async (values: any) => {
           tacticalCtaButtonClasses,
           'relative h-9 !py-0 disabled:cursor-default',
         ]"
-        :disabled="submitting"
+        :disabled="submitting || websiteRestricted"
+        :title="websiteRestricted ? 'Your account is restricted.' : undefined"
       >
         <span
           v-if="submitting"
@@ -1089,6 +1093,7 @@ const submit = form.handleSubmit(async (values: any) => {
 
     <SettingsSaveBar
       v-if="editing"
+      participation
       contained
       :dirty="isDirty"
       :submitting="submitting"

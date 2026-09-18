@@ -206,7 +206,7 @@ useHead({
             :placeholder="$t('pages.verify.status.reply_placeholder')"
             rows="3"
           />
-          <Button type="submit" :loading="sending" :disabled="!reply.trim()" class="self-end">
+          <Button participation type="submit" :loading="sending" :disabled="!reply.trim()" class="self-end">
             {{ $t("pages.verify.status.send_reply") }}
           </Button>
         </form>

@@ -115,9 +115,12 @@ const secondsRemainder = computed(() => secondsLeft.value % 60);
 
 const { client: apolloClient } = useApolloClient();
 const checkingIn = ref(false);
+const websiteRestricted = computed(
+  () => useWebsiteRestrictionStore().isRestricted,
+);
 
 async function checkIn() {
-  if (!current.value || checkingIn.value) return;
+  if (!current.value || checkingIn.value || websiteRestricted.value) return;
   checkingIn.value = true;
   try {
     await apolloClient.mutate({
@@ -197,7 +200,8 @@ async function checkIn() {
           <button
             type="button"
             class="relative isolate inline-flex w-full items-center justify-center gap-3 overflow-hidden rounded-md border border-input bg-background px-6 py-4 font-sans text-sm font-bold uppercase leading-none tracking-[0.22em] text-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50"
-            :disabled="checkingIn"
+            :disabled="checkingIn || websiteRestricted"
+            :title="websiteRestricted ? 'Your account is restricted.' : undefined"
             @click="checkIn"
           >
             <Loader2 v-if="checkingIn" class="h-4 w-4 animate-spin" />

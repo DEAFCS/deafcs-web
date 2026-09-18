@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -18,6 +18,9 @@ const uploadResult = ref<{
 const isDragging = ref(false);
 const apiDomain = useRuntimeConfig().public.apiDomain;
 const fileInput = ref<HTMLInputElement | null>(null);
+const websiteRestricted = computed(
+  () => useWebsiteRestrictionStore().isRestricted,
+);
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`;
@@ -26,7 +29,7 @@ function formatBytes(bytes: number) {
 }
 
 function triggerFileInput() {
-  if (uploadingDemo.value) return;
+  if (uploadingDemo.value || websiteRestricted.value) return;
   fileInput.value?.click();
 }
 
@@ -40,7 +43,7 @@ function handleFileSelect(event: Event) {
 function handleDrop(event: DragEvent) {
   event.preventDefault();
   isDragging.value = false;
-  if (uploadingDemo.value) return;
+  if (uploadingDemo.value || websiteRestricted.value) return;
   const file = event.dataTransfer?.files?.[0];
   if (!file) return;
   if (!file.name.toLowerCase().endsWith(".dem")) {
@@ -86,6 +89,7 @@ function putChunk(
 }
 
 async function uploadDemo(file: File) {
+  if (websiteRestricted.value) return;
   uploadingDemo.value = true;
   uploadProgress.value = 0;
   uploadedFile.value = { name: file.name, size: file.size };
@@ -196,10 +200,16 @@ async function uploadDemo(file: File) {
         isDragging
           ? 'border-primary bg-primary/5'
           : 'border-border hover:border-border/80 hover:bg-accent/30',
-        uploadingDemo ? 'cursor-progress opacity-80' : 'cursor-pointer',
+        uploadingDemo
+          ? 'cursor-progress opacity-80'
+          : websiteRestricted
+            ? 'cursor-not-allowed opacity-60'
+            : 'cursor-pointer',
       ]"
       role="button"
-      tabindex="0"
+      :tabindex="websiteRestricted ? -1 : 0"
+      :aria-disabled="websiteRestricted"
+      :title="websiteRestricted ? 'Your account is restricted.' : undefined"
       @click="triggerFileInput"
       @keydown.enter.prevent="triggerFileInput"
       @keydown.space.prevent="triggerFileInput"
@@ -229,7 +239,7 @@ async function uploadDemo(file: File) {
       ref="fileInput"
       type="file"
       accept=".dem"
-      :disabled="uploadingDemo"
+      :disabled="uploadingDemo || websiteRestricted"
       class="hidden"
       @change="handleFileSelect"
     />

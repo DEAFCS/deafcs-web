@@ -124,6 +124,7 @@ import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
     <Button
       v-if="!team"
+      participation
       type="submit"
       :disabled="Object.keys(form.errors).length > 0"
       :loading="submitting"
@@ -134,6 +135,7 @@ import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
     <SettingsSaveBar
       v-else
+      participation
       contained
       :dirty="isDirty"
       :submitting="submitting"

@@ -439,6 +439,7 @@ const openRoom = () => {
         <span class="h-8 w-px shrink-0 bg-border/60"></span>
         <Button
           v-if="canParty"
+          participation
           variant="outline"
           class="gap-1.5"
           :title="$t('draft_games.card.join_party_hint')"
@@ -456,6 +457,7 @@ const openRoom = () => {
         </Button>
         <Button
           v-else
+          participation
           type="button"
           :class="[
             tacticalCtaButtonClasses,

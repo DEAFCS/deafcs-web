@@ -709,7 +709,7 @@ test("TikTok is removed from the selectable found_via options, but its i18n key 
 test("submit button is full width, not left-aligned/self-start", () => {
   assert.match(
     pageSource,
-    /<Button type="submit" variant="tactical" :loading="submitting" class="w-full">/,
+    /<Button\s+participation\s+type="submit"\s+variant="tactical"\s+:loading="submitting"\s+class="w-full"\s*>/,
   );
   assert.doesNotMatch(pageSource, /variant="tactical" :loading="submitting" class="self-start"/);
 });

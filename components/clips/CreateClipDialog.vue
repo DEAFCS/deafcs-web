@@ -391,6 +391,7 @@ function close(v: boolean) {
           </Button>
           <Button
             variant="tactical"
+            participation
             type="submit"
             :disabled="!canSubmit || submitting"
           >

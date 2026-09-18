@@ -40,6 +40,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
         </span>
         <Button
           v-if="showIndividualCheckIn"
+          participation
           variant="tactical"
           type="button"
           :loading="checkingIn"
@@ -67,6 +68,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
     </template>
     <Button
       v-else
+      participation
       variant="tactical"
       type="button"
       :loading="submitting"
@@ -261,6 +263,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
     </template>
 
     <Button
+      participation
       variant="tactical"
       type="submit"
       :loading="submitting"

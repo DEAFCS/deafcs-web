@@ -19,6 +19,8 @@ interface Props extends PrimitiveProps {
   loading?: boolean
   disabled?: boolean
   minLoadingMs?: number
+  /** Marks a communication/participation write that read-only accounts cannot perform. */
+  participation?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -67,11 +69,23 @@ onBeforeUnmount(() => {
 
 const isBusy = computed(() => rawBusy.value || held.value)
 
-const isDisabled = computed(() => props.disabled || isBusy.value)
+const restrictionStore = useWebsiteRestrictionStore()
+const blockedByRestriction = computed(
+  () => !!props.participation && restrictionStore.isRestricted,
+)
+const isDisabled = computed(
+  () => props.disabled || isBusy.value || blockedByRestriction.value,
+)
 
 const forwardedAttrs = computed(() => {
   const { onClick, class: _class, ...rest } = attrs as Record<string, unknown>
-  return rest
+  return blockedByRestriction.value
+    ? {
+        ...rest,
+        title: "Your account is restricted.",
+        "aria-disabled": "true",
+      }
+    : rest
 })
 
 const isTriggerLike = computed(

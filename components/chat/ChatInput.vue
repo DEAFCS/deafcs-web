@@ -41,7 +41,8 @@ function autoResize(event: Event) {
               v-if="multiline"
               ref="inputRef"
               rows="1"
-              :placeholder="placeholder || $t('chat.message_placeholder')"
+              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none transition-all duration-200"
@@ -51,7 +52,8 @@ function autoResize(event: Event) {
             <Input
               v-else
               ref="inputRef"
-              :placeholder="placeholder || $t('chat.message_placeholder')"
+              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 transition-all duration-200 focus:scale-[1.02]"
@@ -61,6 +63,7 @@ function autoResize(event: Event) {
               size="sm"
               :loading="sending"
               :min-loading-ms="0"
+              :disabled="isWebsiteRestricted"
               class="transition-all duration-200 hover:scale-105"
             >
               <CornerDownLeft class="size-3.5" />
@@ -83,7 +86,8 @@ function autoResize(event: Event) {
               v-if="multiline"
               ref="inputRef"
               rows="1"
-              :placeholder="placeholder || $t('chat.message_placeholder')"
+              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
@@ -93,7 +97,8 @@ function autoResize(event: Event) {
             <Input
               v-else
               ref="inputRef"
-              :placeholder="placeholder || $t('chat.message_placeholder')"
+              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
@@ -103,6 +108,7 @@ function autoResize(event: Event) {
               size="sm"
               :loading="sending"
               :min-loading-ms="0"
+              :disabled="isWebsiteRestricted"
               class="shrink-0 gap-1.5"
             >
               <CornerDownLeft class="size-3.5" />
@@ -157,6 +163,11 @@ export default {
       clearTimeout(this.sendTimer);
     }
   },
+  computed: {
+    isWebsiteRestricted() {
+      return useWebsiteRestrictionStore().isRestricted;
+    },
+  },
   methods: {
     focus() {
       this.$nextTick(() => {
@@ -175,6 +186,9 @@ export default {
       }, 1000);
     },
     sendMessage() {
+      if (this.isWebsiteRestricted) {
+        return;
+      }
       const { message } = this.form.values;
       if (!message || message?.length === 0) {
         return;

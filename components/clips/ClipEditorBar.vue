@@ -673,6 +673,7 @@ function onRenderClose() {
           type="button"
           class="h-8 self-end"
           :disabled="!editor.isValid.value || submitting"
+          participation
           @click="submit"
         >
           <Spinner v-if="submitting" class="h-3.5 w-3.5 mr-1.5" />

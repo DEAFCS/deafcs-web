@@ -466,7 +466,7 @@ export default {
       return EXPECTED_PLAYERS[type] ?? 0;
     },
     canQueueType(type: e_match_types_enum): boolean {
-      return canPartyQueue(
+      return !useWebsiteRestrictionStore().isRestricted && canPartyQueue(
         type,
         this.partySize,
         useApplicationSettingsStore().maxCompetitivePartySize,
@@ -522,6 +522,13 @@ export default {
         navigateTo("/login?redirect=/play");
         return;
       }
+      if (useWebsiteRestrictionStore().isRestricted) {
+        toast({
+          title: this.$t("account_restriction.short") as string,
+          variant: "destructive",
+        });
+        return;
+      }
       if (!this.canQueueType(matchType)) {
         toast({
           title: this.partySizeRequirementText(matchType),
@@ -539,7 +546,10 @@ export default {
       this.joinMatchmaking(matchType);
     },
     joinMatchmaking(matchType: e_match_types_enum): void {
-      if (this.isQueuePreview) {
+      if (
+        this.isQueuePreview ||
+        useWebsiteRestrictionStore().isRestricted
+      ) {
         return;
       }
       socket.event("matchmaking:join-queue", {

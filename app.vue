@@ -24,6 +24,9 @@ const PlayerNameRegistration = defineAsyncComponent(
 const StreamGlobal = defineAsyncComponent(
   () => import("~/components/StreamGlobal.vue"),
 );
+const WebsiteRestrictionNotice = defineAsyncComponent(
+  () => import("~/components/WebsiteRestrictionNotice.vue"),
+);
 
 polyfillCountryFlagEmojis();
 
@@ -111,6 +114,7 @@ function pageKeyWithoutTabQuery(route: {
   <StreamGlobal v-if="hasGlobalStream" />
 
   <div v-if="me" style="display: contents">
+    <WebsiteRestrictionNotice />
     <PlayerNameRegistration />
     <MatchmakingConfirm />
     <MatchmakingSearchToast />

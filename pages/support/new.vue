@@ -222,7 +222,7 @@ const isVerified = computed(() =>
       <div class="flex justify-end gap-2">
         <Button as-child variant="outline"
           ><NuxtLink to="/support">Cancel</NuxtLink></Button
-        ><Button type="submit" variant="tactical" :loading="submitting"
+        ><Button participation type="submit" variant="tactical" :loading="submitting"
           >Submit Request</Button
         >
       </div>

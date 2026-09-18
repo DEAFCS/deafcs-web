@@ -796,10 +796,17 @@ export default {
           "Website Chat Mute",
         );
       }
+      if (sanction.type === "website_restriction") {
+        return this.$t(
+          "player.sanction.types.website_restriction",
+          "Website Restriction",
+        );
+      }
       return sanction.type;
     },
     canManageSpecificSanction(sanction: any) {
-      return sanction.type === "website_chat_mute"
+      return sanction.type === "website_chat_mute" ||
+        sanction.type === "website_restriction"
         ? this.isSiteAdministrator
         : this.canManageSanctions;
     },

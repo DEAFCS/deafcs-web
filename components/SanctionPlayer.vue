@@ -14,6 +14,7 @@ import {
   BellOff,
   Ban,
   TriangleAlert,
+  ShieldAlert,
 } from "lucide-vue-next";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
@@ -141,6 +142,25 @@ import { e_player_roles_enum } from "~/generated/zeus";
           </FormItem>
         </FormField>
 
+        <label
+          v-if="sanctionType === 'ban' && isSiteAdministrator"
+          class="col-span-2 flex cursor-pointer items-start gap-3 rounded-md border border-border bg-muted/30 p-3"
+        >
+          <Checkbox
+            :model-value="alsoRestrictWebsite"
+            @update:model-value="(value) => (alsoRestrictWebsite = !!value)"
+            class="mt-0.5"
+          />
+          <span class="space-y-1">
+            <span class="block font-medium">
+              {{ $t("player.sanction.also_restrict_website") }}
+            </span>
+            <span class="block text-sm text-muted-foreground">
+              {{ $t("player.sanction.also_restrict_website_description") }}
+            </span>
+          </span>
+        </label>
+
         <Button
           variant="tactical"
           class="col-span-2 capitalize"
@@ -197,6 +217,7 @@ export default {
       }),
       sanctionType: undefined as string | undefined,
       sanctioningPlayer: false,
+      alsoRestrictWebsite: false,
     };
   },
   computed: {
@@ -240,6 +261,21 @@ export default {
         },
       };
       if (this.isSiteAdministrator) {
+        sanctions.website_restriction = {
+          icon: ShieldAlert,
+          label: this.$t(
+            "player.sanction.types.website_restriction",
+            "Website Restriction",
+          ),
+          actionLabel: this.$t(
+            "player.sanction.actions.website_restriction",
+            "Restrict Website Access",
+          ),
+          description: this.$t(
+            "player.sanction.types.website_restriction_description",
+            "Player can view DEAFCS but cannot communicate or participate",
+          ),
+        };
         sanctions.website_chat_mute = {
           icon: MessageSquareOff,
           label: this.$t(
@@ -294,6 +330,7 @@ export default {
         return;
       }
       this.sanctionType = type;
+      this.alsoRestrictWebsite = false;
       this.sanctioningPlayer = true;
     },
     async sanctionPlayer() {
@@ -316,6 +353,7 @@ export default {
               $reason: String
               $duration: Float
               $evidence_message_id: String
+              $also_restrict_website: Boolean
             ) {
               sanctionServerPlayer(
                 serverId: $serverId
@@ -324,6 +362,7 @@ export default {
                 reason: $reason
                 duration: $duration
                 evidence_message_id: $evidence_message_id
+                also_restrict_website: $also_restrict_website
               ) {
                 id
                 enforced
@@ -340,6 +379,8 @@ export default {
               ? parseInt(this.form.values.duration)
               : 0,
             evidence_message_id: this.evidenceMessageId ?? null,
+            also_restrict_website:
+              this.sanctionType === "ban" && this.alsoRestrictWebsite,
           },
         });
 
@@ -348,6 +389,7 @@ export default {
         });
 
         this.sanctioningPlayer = false;
+        this.alsoRestrictWebsite = false;
         this.$emit("sanctioned");
       } finally {
         this.submitting = false;

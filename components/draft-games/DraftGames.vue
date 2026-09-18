@@ -326,6 +326,7 @@ const rehost = async () => {
         <template v-else>
           <Button
             v-if="hasRehostPreset && canHostDraftRoom"
+            participation
             variant="outline"
             :class="[
               draftActionButtonHeightClasses,
@@ -339,6 +340,7 @@ const rehost = async () => {
           </Button>
           <Button
             v-if="canHostDraftRoom"
+            participation
             type="button"
             :class="[
               tacticalCtaButtonClasses,

@@ -30,11 +30,13 @@ const props = defineProps<{
   description?: string;
   actionLabel?: string;
   hideDiscard?: boolean;
+  participation?: boolean;
 }>();
 
 const emit = defineEmits<{ (e: "save"): void; (e: "discard"): void }>();
 
 const settingsStore = useApplicationSettingsStore();
+const restrictionStore = useWebsiteRestrictionStore();
 
 const baseline = ref<string | null>(null);
 
@@ -73,6 +75,7 @@ const hasErrors = computed(() => {
 const visible = computed(() => props.forceVisible || dirty.value);
 
 const canSave = computed(() => {
+  if (props.participation && restrictionStore.isRestricted) return false;
   if (props.submitting) return false;
   if (hasErrors.value) return false;
   // In gate mode (forceVisible, e.g. a create flow) the action is enabled only
@@ -231,6 +234,7 @@ onBeforeUnmount(() => window.removeEventListener("keydown", onKeydown));
             {{ $t("common.discard") }}
           </Button>
           <Button
+            :participation="participation"
             type="button"
             size="sm"
             class="tac-amber-cta shrink-0"
