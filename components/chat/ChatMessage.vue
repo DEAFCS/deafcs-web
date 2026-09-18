@@ -2,13 +2,8 @@
 import TimeAgo from "~/components/TimeAgo.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
-import {
-  Pencil,
-  Trash2,
-  Check,
-  X as XIcon,
-  MessageSquareOff,
-} from "lucide-vue-next";
+import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
+import { Check, X as XIcon } from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
@@ -59,6 +54,18 @@ import { e_player_roles_enum } from "~/generated/zeus";
         <span class="text-[10px] whitespace-nowrap">
           <time-ago :date="message.timestamp" hide-icon></time-ago>
         </span>
+        <!-- Sits in the header row, after the timestamp, so it never shares
+             a flex row with the message body -- opening/hovering it can
+             never change where the message text wraps. -->
+        <ChatMessageActionsMenu
+          v-if="canModerate && !isEditing"
+          :can-edit="canEdit"
+          align="start"
+          trigger-class="ml-0.5"
+          @edit="startEdit"
+          @mute="requestMute"
+          @delete="requestDelete"
+        />
       </div>
       <div v-if="isEditing" class="flex items-start gap-1.5">
         <textarea
@@ -85,45 +92,30 @@ import { e_player_roles_enum } from "~/generated/zeus";
           <XIcon class="h-3.5 w-3.5" />
         </button>
       </div>
-      <div v-else class="flex items-start gap-1.5">
-        <p
-          class="text-[11px] leading-snug break-words whitespace-pre-wrap"
-          :class="{ 'italic text-muted-foreground': message.blocked }"
-        >
-          {{ message.message }}
-        </p>
-        <div
-          v-if="canModerate"
-          class="ml-auto hidden shrink-0 items-center gap-1 group-hover:flex"
-        >
-          <button
-            v-if="canEdit"
-            type="button"
-            :title="$t('common.edit')"
-            class="text-muted-foreground hover:text-foreground"
-            @click="startEdit"
-          >
-            <Pencil class="h-3 w-3" />
-          </button>
-          <button
-            type="button"
-            :title="$t('chat.mute_player', 'Mute Player')"
-            class="text-muted-foreground hover:text-amber-500"
-            @click="requestMute"
-          >
-            <MessageSquareOff class="h-3 w-3" />
-          </button>
-          <button
-            type="button"
-            :title="$t('common.delete')"
-            class="text-muted-foreground hover:text-destructive"
-            @click="requestDelete"
-          >
-            <Trash2 class="h-3 w-3" />
-          </button>
-        </div>
-      </div>
+      <p
+        v-else
+        class="text-[11px] leading-snug break-words whitespace-pre-wrap"
+        :class="{ 'italic text-muted-foreground': message.blocked }"
+      >
+        {{ message.message }}
+      </p>
     </div>
+
+    <!-- Grouped message with no visible header: the avatar column (pl-12,
+         avatar itself at left-2) sits empty for these rows since the
+         avatar only renders when showMeta is true. Reusing that same
+         left-2 slot for the trigger needs no text padding at all -- the
+         message <p> above never reserves space for it, so its width is
+         completely unaffected by hover or the menu opening. -->
+    <ChatMessageActionsMenu
+      v-if="needsOverlayMenu"
+      :can-edit="canEdit"
+      align="start"
+      trigger-class="absolute left-2 top-0 z-10"
+      @edit="startEdit"
+      @mute="requestMute"
+      @delete="requestDelete"
+    />
   </div>
 </template>
 
@@ -214,6 +206,12 @@ export default {
     },
     canEdit() {
       return this.canModerate && this.chatType === "announcement";
+    },
+    // Grouped messages (isSameSender + isCloseTogether) have no header row
+    // to hang the actions menu on, so they get their own corner-overlay
+    // trigger instead -- every message keeps a reachable Delete action.
+    needsOverlayMenu() {
+      return this.canModerate && !this.showMeta && !this.isEditing;
     },
   },
   methods: {

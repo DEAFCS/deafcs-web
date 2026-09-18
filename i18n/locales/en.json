@@ -7305,6 +7305,7 @@
     "confirm_delete_announcement": "Remove this announcement?",
     "confirm_delete_message": "Delete this chat message?",
     "mute_player": "Mute Player",
+    "message_actions": "Message actions",
     "checking_permissions": "Checking chat permissions…",
     "muted": "You are muted from website chat.",
     "muted_until": "You are muted from website chat. Your chat mute expires on {date}.",
