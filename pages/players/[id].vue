@@ -1780,15 +1780,15 @@ const playerHeroInlineRoleWrapClasses =
 const playerHeroNameEditButtonClasses =
   "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-border bg-card/60 text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)_/_0.6)] hover:bg-[hsl(var(--tac-amber)_/_0.1)] hover:text-[hsl(var(--tac-amber))] [&_svg]:h-4 [&_svg]:w-4";
 const playerHeroAddFriendClasses =
-  "group/addfriend relative inline-flex items-center justify-center gap-[0.55rem] overflow-hidden rounded border border-[hsl(var(--tac-amber)_/_0.55)] bg-[hsl(var(--tac-amber)_/_0.12)] px-4 py-2.5 font-sans text-[0.8rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))] transition-[transform,border-color,background-color,box-shadow] duration-150 hover:-translate-y-px hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.2)] hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.45),0_8px_24px_-8px_hsl(var(--tac-amber)/0.5)] disabled:cursor-not-allowed disabled:opacity-60 max-md:w-full";
+  "group/addfriend relative inline-flex w-full items-center justify-center gap-[0.55rem] overflow-hidden rounded border border-[hsl(var(--tac-amber)_/_0.55)] bg-[hsl(var(--tac-amber)_/_0.12)] px-4 py-2.5 font-sans text-[0.8rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))] transition-[transform,border-color,background-color,box-shadow] duration-150 hover:-translate-y-px hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.2)] hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.45),0_8px_24px_-8px_hsl(var(--tac-amber)/0.5)] disabled:cursor-not-allowed disabled:opacity-60";
 const playerHeroFriendBadgeClasses =
-  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-emerald-400 max-md:w-full transition-colors duration-150 cursor-default";
+  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-emerald-400 transition-colors duration-150 cursor-default";
 const playerHeroRemoveFriendClasses =
-  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-destructive/50 bg-destructive/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-destructive max-md:w-full transition-colors duration-150 cursor-pointer";
+  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-destructive/50 bg-destructive/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-destructive transition-colors duration-150 cursor-pointer";
 const playerHeroFriendPendingClasses =
-  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] max-md:w-full disabled:cursor-not-allowed";
+  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] disabled:cursor-not-allowed";
 const playerHeroFriendIncomingClasses =
-  "inline-flex items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] max-md:w-full";
+  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))]";
 const playerHeroBlockedBadgeClasses =
   "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-destructive/50 bg-destructive/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-destructive cursor-default";
 // 20% column, equal height with the 80% friend-button column via the
@@ -1797,7 +1797,8 @@ const playerHeroBlockButtonClasses =
   "inline-flex w-full items-center justify-center rounded border border-destructive/40 bg-card/60 text-destructive/80 transition-colors duration-150 hover:border-destructive hover:bg-destructive/20 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
 const playerHeroBlockButtonActiveClasses =
   "inline-flex w-full items-center justify-center rounded border border-destructive bg-destructive/25 text-destructive transition-colors duration-150 hover:bg-destructive/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
-const playerHeroActionsRowClasses = "flex items-stretch gap-2 w-full";
+const playerHeroActionsRowClasses =
+  "flex w-full max-w-[15rem] items-stretch gap-2 sm:max-w-[16rem]";
 const playerHeroActionsRowLeftClasses = "flex-[4] min-w-0";
 const playerHeroActionsRowRightClasses = "flex-1 min-w-[2.75rem]";
 const playerHeroAvatarFrameClasses =
@@ -1900,7 +1901,7 @@ const playerHeroTeamChipDotClasses =
                     <MessageSquare />
                   </button>
                   <button
-                    v-if="canEditPlayer"
+                    v-if="canEditPlayer && isSelfProfile"
                     type="button"
                     :class="playerHeroNameEditButtonClasses"
                     :title="$t('pages.players.detail.edit_player')"
@@ -2139,34 +2140,30 @@ const playerHeroTeamChipDotClasses =
                   v-if="canShowBlockAction"
                   :class="playerHeroActionsRowRightClasses"
                 >
-                  <FiveStackToolTip side="bottom" as-child>
-                    <template #trigger>
-                      <button
-                        type="button"
-                        :class="[
-                          'h-full',
-                          isBlockedByMe
-                            ? playerHeroBlockButtonActiveClasses
-                            : playerHeroBlockButtonClasses,
-                        ]"
-                        :disabled="blockActionInFlight"
-                        :aria-label="
-                          isBlockedByMe
-                            ? $t('pages.players.detail.unblock_player', 'Unblock player')
-                            : $t('pages.players.detail.block_player', 'Block player')
-                        "
-                        @click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"
-                      >
-                        <UserCheck v-if="isBlockedByMe" class="h-4 w-4" />
-                        <Ban v-else class="h-4 w-4" />
-                      </button>
-                    </template>
-                    {{
+                  <button
+                    type="button"
+                    :class="[
+                      'h-full',
                       isBlockedByMe
-                        ? $t("pages.players.detail.unblock_player", "Unblock player")
-                        : $t("pages.players.detail.block_player", "Block player")
-                    }}
-                  </FiveStackToolTip>
+                        ? playerHeroBlockButtonActiveClasses
+                        : playerHeroBlockButtonClasses,
+                    ]"
+                    :disabled="blockActionInFlight"
+                    :title="
+                      isBlockedByMe
+                        ? $t('pages.players.detail.unblock_player', 'Unblock player')
+                        : $t('pages.players.detail.block_player', 'Block player')
+                    "
+                    :aria-label="
+                      isBlockedByMe
+                        ? $t('pages.players.detail.unblock_player', 'Unblock player')
+                        : $t('pages.players.detail.block_player', 'Block player')
+                    "
+                    @click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"
+                  >
+                    <UserCheck v-if="isBlockedByMe" class="h-4 w-4" />
+                    <Ban v-else class="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -3134,7 +3131,7 @@ const playerHeroTeamChipDotClasses =
 
   <Sheet
     v-if="player"
-    :open="editPlayerSheet"
+    :open="editPlayerSheet && isSelfProfile"
     @update:open="(open) => (editPlayerSheet = open)"
   >
     <SheetContent>

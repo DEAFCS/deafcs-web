@@ -143,10 +143,27 @@ describe("players/[id].vue source: Block Player implementation", () => {
     );
   });
 
-  it("uses items-stretch so both columns share equal height", () => {
-    expect(source).toContain(
-      'const playerHeroActionsRowClasses = "flex items-stretch gap-2 w-full";',
+  it("uses items-stretch so both columns share equal height, and caps the row to a compact group instead of spanning the full card", () => {
+    expect(source).toMatch(
+      /const playerHeroActionsRowClasses =\s*\n\s*"flex w-full max-w-\[[^\]]+\] items-stretch gap-2[^"]*";/,
     );
+  });
+
+  it("gives the friend-state buttons an unconditional w-full so they actually fill the flex-[4] column on desktop (not just max-md:w-full)", () => {
+    for (const name of [
+      "playerHeroAddFriendClasses",
+      "playerHeroFriendBadgeClasses",
+      "playerHeroRemoveFriendClasses",
+      "playerHeroFriendPendingClasses",
+      "playerHeroFriendIncomingClasses",
+    ]) {
+      const declStart = source.indexOf(`const ${name} =`);
+      expect(declStart).toBeGreaterThan(-1);
+      const declEnd = source.indexOf(";", declStart);
+      const decl = source.slice(declStart, declEnd);
+      expect(decl).toMatch(/inline-flex w-full items-center/);
+      expect(decl).not.toContain("max-md:w-full");
+    }
   });
 
   it("uses the Lucide Ban icon for the (not yet blocked) Block action", () => {
