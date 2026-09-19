@@ -52,6 +52,13 @@ export const useBlockStore = defineStore("blocks", () => {
         next: ({ data }: any) => {
           blocked.value = data?.my_blocks ?? [];
         },
+        // Without this, a schema/permission problem on my_blocks (e.g. Hasura
+        // metadata for v_my_blocks not applied) fails completely silently:
+        // `blocked` just never updates and every Block/Unblock click looks
+        // like it does nothing, with no signal anywhere for anyone to debug.
+        error: (error: unknown) => {
+          console.error("my_blocks subscription failed", error);
+        },
       }),
     );
   };

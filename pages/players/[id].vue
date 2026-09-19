@@ -1797,8 +1797,7 @@ const playerHeroBlockButtonClasses =
   "inline-flex w-full items-center justify-center rounded border border-destructive/40 bg-card/60 text-destructive/80 transition-colors duration-150 hover:border-destructive hover:bg-destructive/20 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
 const playerHeroBlockButtonActiveClasses =
   "inline-flex w-full items-center justify-center rounded border border-destructive bg-destructive/25 text-destructive transition-colors duration-150 hover:bg-destructive/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
-const playerHeroActionsRowClasses =
-  "flex w-full max-w-[15rem] items-stretch gap-2 sm:max-w-[16rem]";
+const playerHeroActionsRowClasses = "flex w-full items-stretch gap-2";
 const playerHeroActionsRowLeftClasses = "flex-[4] min-w-0";
 const playerHeroActionsRowRightClasses = "flex-1 min-w-[2.75rem]";
 const playerHeroAvatarFrameClasses =

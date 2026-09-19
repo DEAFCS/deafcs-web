@@ -143,10 +143,11 @@ describe("players/[id].vue source: Block Player implementation", () => {
     );
   });
 
-  it("uses items-stretch so both columns share equal height, and caps the row to a compact group instead of spanning the full card", () => {
-    expect(source).toMatch(
-      /const playerHeroActionsRowClasses =\s*\n\s*"flex w-full max-w-\[[^\]]+\] items-stretch gap-2[^"]*";/,
+  it("uses items-stretch so both columns share equal height, and the row fills the full available width (issue #97: a max-w cap left visible dead space)", () => {
+    expect(source).toContain(
+      'const playerHeroActionsRowClasses = "flex w-full items-stretch gap-2";',
     );
+    expect(source).not.toMatch(/playerHeroActionsRowClasses[\s\S]{0,80}max-w-\[/);
   });
 
   it("gives the friend-state buttons an unconditional w-full so they actually fill the flex-[4] column on desktop (not just max-md:w-full)", () => {
