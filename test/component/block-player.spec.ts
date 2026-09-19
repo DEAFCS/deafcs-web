@@ -149,11 +149,11 @@ describe("players/[id].vue source: Block Player implementation", () => {
     );
   });
 
-  it("uses the Lucide UserX icon for the (not yet blocked) Block action", () => {
+  it("uses the Lucide Ban icon for the (not yet blocked) Block action", () => {
     expect(source).toContain(
       '@click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"',
     );
-    expect(source).toContain('<UserX v-else class="h-4 w-4" />');
+    expect(source).toContain('<Ban v-else class="h-4 w-4" />');
   });
 
   it("does not show the block action on your own profile (canShowBlockAction requires !isSelfProfile)", () => {

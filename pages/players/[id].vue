@@ -2157,8 +2157,8 @@ const playerHeroTeamChipDotClasses =
                         "
                         @click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"
                       >
-                        <Ban v-if="isBlockedByMe" class="h-4 w-4" />
-                        <UserX v-else class="h-4 w-4" />
+                        <UserCheck v-if="isBlockedByMe" class="h-4 w-4" />
+                        <Ban v-else class="h-4 w-4" />
                       </button>
                     </template>
                     {{
