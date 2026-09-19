@@ -3637,11 +3637,21 @@ export default {
         useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer)
       );
     },
+    // Must mirror PlayerRoleForm.vue's own canChangeRole gate exactly (a
+    // fixed match_organizer+ floor, not the viewed player's role) -- both
+    // used to compare the viewer's role against the VIEWED player's role,
+    // which let an intermediate-role viewer (above the viewed player, but
+    // below match_organizer) satisfy this gate here, mount
+    // <PlayerRoleForm>, and have it render nothing (its own canChangeRole
+    // is false) -- silently hiding the role's text while the divider on
+    // each side of it still rendered, i.e. a doubled/stray separator with
+    // nothing visibly between. PlayerRoleForm's gate was already fixed to
+    // the correct fixed floor; this one hadn't been.
     canEditRole() {
       if (!this.me || !this.player || this.isSelfProfile) {
         return false;
       }
-      return useAuthStore().isRoleAbove(this.player.role);
+      return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
     },
     canEditPlayer() {
       return (
