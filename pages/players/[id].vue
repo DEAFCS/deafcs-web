@@ -57,6 +57,7 @@ import {
   UserX,
   Ban,
   Clock,
+  X,
   Calendar as CalendarIcon,
   ChevronDown,
   MessageSquare,
@@ -78,6 +79,14 @@ import {
 // via useFriendActions(), the same live my_friends-subscription source
 // FriendListItem reads from.
 const friendButtonHovered = ref(false);
+
+// Same hover/focus toggle, for the PENDING (outgoing request) -> "Cancel
+// Request" hero button. A separate ref from friendButtonHovered above --
+// only one of the two buttons ever renders at a time (mutually exclusive
+// v-else-if branches on relationship state), but sharing one ref would let
+// a stale hover flag from one bleed into the other if the relationship
+// changes while the pointer is still over the button.
+const pendingButtonHovered = ref(false);
 
 // Block-confirmation dialog open state lives in the Options `data()` below
 // (as `showBlockConfirm`), not here -- requestBlockPlayer/confirmBlockPlayer
@@ -2109,11 +2118,25 @@ const playerHeroTeamChipDotClasses =
                   <button
                     v-else-if="isFriendPending"
                     type="button"
-                    :class="playerHeroFriendPendingClasses"
-                    disabled
+                    :class="
+                      pendingButtonHovered
+                        ? playerHeroRemoveFriendClasses
+                        : playerHeroFriendPendingClasses
+                    "
+                    :disabled="friendActionInFlight"
+                    @mouseenter="pendingButtonHovered = true"
+                    @mouseleave="pendingButtonHovered = false"
+                    @focus="pendingButtonHovered = true"
+                    @blur="pendingButtonHovered = false"
+                    @click="cancelRequestClick"
                   >
-                    <Clock class="h-3.5 w-3.5" />
-                    <span>{{ $t("pages.players.detail.friend_pending") }}</span>
+                    <X v-if="pendingButtonHovered" class="h-3.5 w-3.5" />
+                    <Clock v-else class="h-3.5 w-3.5" />
+                    <span>{{
+                      pendingButtonHovered
+                        ? $t("pages.players.detail.friend_cancel_request")
+                        : $t("pages.players.detail.friend_pending")
+                    }}</span>
                   </button>
                   <button
                     v-else-if="isFriend"
@@ -3740,6 +3763,29 @@ export default {
           description:
             (error as Error)?.message ||
             this.$t("pages.players.detail.friend_remove_error"),
+        });
+      }
+    },
+    // Cancels MY OWN outgoing (pending) friend request -- reuses the same
+    // cancelRequest() mutation useFriendActions already exposes for the
+    // lobby friend list (FriendListItem.vue); no new mutation. On success
+    // the live my_friends subscription flips isFriendPending back to
+    // canAddFriend automatically, same as every other friend-state
+    // transition on this page. On failure the button stays Pending (no
+    // optimistic switch) and the real error goes to console.error only --
+    // never a raw message in the toast.
+    async cancelRequestClick() {
+      if (!this.player?.steam_id) return;
+      const { isBusy, cancelRequest } = useFriendActions();
+      if (isBusy(this.player.steam_id)) return;
+      try {
+        await cancelRequest(this.player.steam_id);
+      } catch (error) {
+        console.error("cancelRequest failed", error);
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: this.$t("pages.players.detail.friend_cancel_error"),
         });
       }
     },
