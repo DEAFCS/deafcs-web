@@ -1,10 +1,14 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import {
   ArrowRight,
   BadgeCheck,
   ChevronRight,
   Gamepad2,
+  Maximize,
+  Minimize,
+  Pause,
+  Play,
   Trophy,
   UserRoundCheck,
 } from "lucide-vue-next";
@@ -88,6 +92,122 @@ const showLoggedInHome = computed(
   () => isLoggedIn.value || previewHomeState.value === "logged-in",
 );
 
+const heroVideoRef = ref<HTMLVideoElement | null>(null);
+const heroFrameRef = ref<HTMLElement | null>(null);
+const isHeroVideoPlaying = ref(false);
+const isHeroVideoFullscreen = ref(false);
+
+type IosVideoEl = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void;
+  webkitExitFullscreen?: () => void;
+  webkitDisplayingFullscreen?: boolean;
+};
+
+function toggleHeroVideoPlayback() {
+  const video = heroVideoRef.value;
+  if (!video) return;
+  if (video.paused) {
+    video.play().catch(() => {});
+  } else {
+    video.pause();
+  }
+}
+
+// iOS Safari has no element-level Fullscreen API -- this is the fallback
+// used when the frame's own requestFullscreen isn't available.
+function toggleNativeHeroVideoFullscreen() {
+  const video = heroVideoRef.value as IosVideoEl | null;
+  if (!video) return;
+  if (video.webkitDisplayingFullscreen) {
+    video.webkitExitFullscreen?.();
+    return;
+  }
+  video.webkitEnterFullscreen?.();
+}
+
+async function toggleHeroVideoFullscreen() {
+  const frame = heroFrameRef.value;
+  if (!frame) return;
+  const doc = document as Document & {
+    webkitFullscreenElement?: Element | null;
+    webkitExitFullscreen?: () => Promise<void> | void;
+    fullscreenEnabled?: boolean;
+    webkitFullscreenEnabled?: boolean;
+  };
+  const el = frame as HTMLElement & {
+    webkitRequestFullscreen?: () => Promise<void> | void;
+  };
+
+  const docFsSupported = !!(
+    doc.fullscreenEnabled ?? doc.webkitFullscreenEnabled
+  );
+  if (!docFsSupported || !el.requestFullscreen) {
+    toggleNativeHeroVideoFullscreen();
+    return;
+  }
+
+  const fsElement = doc.fullscreenElement ?? doc.webkitFullscreenElement;
+  try {
+    if (fsElement) {
+      const exit =
+        doc.exitFullscreen?.bind(doc) ?? doc.webkitExitFullscreen?.bind(doc);
+      await Promise.resolve(exit?.());
+    } else {
+      const request =
+        el.requestFullscreen?.bind(el) ?? el.webkitRequestFullscreen?.bind(el);
+      await Promise.resolve(request?.());
+    }
+  } catch {
+    // no active user gesture, or the browser refused -- nothing to recover
+  }
+}
+
+function onHeroVideoFullscreenChange() {
+  const doc = document as Document & {
+    webkitFullscreenElement?: Element | null;
+  };
+  const fsElement = doc.fullscreenElement ?? doc.webkitFullscreenElement;
+  isHeroVideoFullscreen.value = fsElement === heroFrameRef.value;
+}
+
+onMounted(() => {
+  const video = heroVideoRef.value;
+  if (!video) return;
+
+  video.addEventListener("play", () => {
+    isHeroVideoPlaying.value = true;
+  });
+  video.addEventListener("pause", () => {
+    isHeroVideoPlaying.value = false;
+  });
+
+  document.addEventListener("fullscreenchange", onHeroVideoFullscreenChange);
+  document.addEventListener(
+    "webkitfullscreenchange",
+    onHeroVideoFullscreenChange,
+  );
+
+  // Reduced-motion visitors get the static poster and must start playback
+  // themselves via the Play button -- never restarted for them automatically.
+  const prefersReducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)",
+  ).matches;
+  if (prefersReducedMotion) return;
+  video.muted = true;
+  video.play().catch(() => {});
+});
+
+onBeforeUnmount(() => {
+  document.removeEventListener(
+    "fullscreenchange",
+    onHeroVideoFullscreenChange,
+  );
+  document.removeEventListener(
+    "webkitfullscreenchange",
+    onHeroVideoFullscreenChange,
+  );
+});
+
 const howItWorksSteps = [
   {
     title: "Sign in with Steam",
@@ -132,7 +252,7 @@ const howItWorksSteps = [
   <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
     <section
       aria-labelledby="home-hero-title"
-      class="homepage-entry relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-14 sm:px-10 sm:py-20 lg:px-16"
+      class="homepage-entry relative isolate overflow-hidden rounded-xl border border-border/70 bg-card/45 px-5 py-8 sm:px-10 sm:py-12 lg:px-16 lg:py-14"
     >
       <div
         class="pointer-events-none absolute inset-0 -z-10 opacity-60 [background-image:repeating-linear-gradient(135deg,transparent_0,transparent_14px,hsl(var(--muted-foreground)/0.025)_14px,hsl(var(--muted-foreground)/0.025)_15px)]"
@@ -151,40 +271,103 @@ const howItWorksSteps = [
         aria-hidden="true"
       ></span>
 
-      <div class="max-w-3xl">
+      <div
+        class="flex flex-col gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-12"
+      >
+        <div class="max-w-xl lg:flex-1">
+          <div
+            class="mb-5 inline-flex items-center gap-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--tac-amber))]"
+          >
+            <span
+              class="inline-block h-[2px] w-3 bg-[hsl(var(--tac-amber))]"
+              aria-hidden="true"
+            ></span>
+            Competitive Counter-Strike community
+          </div>
+          <h1
+            id="home-hero-title"
+            class="text-4xl font-black tracking-tight text-foreground sm:text-5xl lg:text-6xl"
+          >
+            Welcome to DEAFCS
+          </h1>
+          <p
+            class="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8"
+          >
+            DEAFCS is the home of competitive Counter-Strike for the deaf and
+            hard-of-hearing community.
+          </p>
+          <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Button
+              as-child
+              variant="tactical"
+              size="lg"
+              class="min-h-11 w-full sm:w-auto"
+            >
+              <a
+                :href="loginLinks.steam"
+                aria-label="Sign in to DEAFCS with Steam"
+              >
+                Sign in with Steam
+                <ArrowRight aria-hidden="true" />
+              </a>
+            </Button>
+          </div>
+        </div>
+
         <div
-          class="mb-5 inline-flex items-center gap-2 font-mono text-[0.65rem] font-semibold uppercase tracking-[0.24em] text-[hsl(var(--tac-amber))]"
+          ref="heroFrameRef"
+          :class="[
+            'group relative mx-auto w-full max-w-xs shrink-0 overflow-hidden rounded-xl border border-[hsl(var(--tac-amber)/0.3)] bg-black sm:max-w-sm lg:mx-0 lg:w-[30rem] lg:max-w-none',
+            isHeroVideoFullscreen
+              ? ''
+              : 'aspect-[480/340] shadow-[0_0_40px_-14px_hsl(var(--tac-amber)/0.4)]',
+          ]"
         >
           <span
-            class="inline-block h-[2px] w-3 bg-[hsl(var(--tac-amber))]"
+            class="pointer-events-none absolute left-2 top-2 z-10 h-4 w-4 border-l-2 border-t-2 border-[hsl(var(--tac-amber)/0.8)]"
             aria-hidden="true"
           ></span>
-          Competitive Counter-Strike community
-        </div>
-        <h1
-          id="home-hero-title"
-          class="text-4xl font-black tracking-tight text-foreground sm:text-5xl lg:text-6xl"
-        >
-          Welcome to DEAFCS
-        </h1>
-        <p
-          class="mt-5 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg sm:leading-8"
-        >
-          DEAFCS is the home of competitive Counter-Strike for the deaf and
-          hard-of-hearing community.
-        </p>
-        <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Button
-            as-child
-            variant="tactical"
-            size="lg"
-            class="min-h-11 w-full sm:w-auto"
+          <span
+            class="pointer-events-none absolute bottom-2 right-2 z-10 h-4 w-4 border-b-2 border-r-2 border-[hsl(var(--tac-amber)/0.8)]"
+            aria-hidden="true"
+          ></span>
+          <video
+            ref="heroVideoRef"
+            class="h-full w-full object-contain"
+            poster="/img/home/deafcs-hero-poster.jpg"
+            muted
+            loop
+            playsinline
+            preload="metadata"
+            aria-hidden="true"
           >
-            <a :href="loginLinks.steam" aria-label="Sign in to DEAFCS with Steam">
-              Sign in with Steam
-              <ArrowRight aria-hidden="true" />
-            </a>
-          </Button>
+            <source src="/videos/home/deafcs-hero.mp4" type="video/mp4" />
+          </video>
+
+          <div
+            class="absolute bottom-2 right-2 z-20 flex items-center gap-1.5 opacity-100 transition-opacity duration-150 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 [@media(hover:hover)]:group-focus-within:opacity-100"
+          >
+            <button
+              type="button"
+              class="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/55 text-white/85 backdrop-blur-sm transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:bg-[hsl(var(--tac-amber)/0.18)] hover:text-[hsl(var(--tac-amber))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))] focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+              :aria-label="isHeroVideoPlaying ? 'Pause video' : 'Play video'"
+              :aria-pressed="isHeroVideoPlaying"
+              @click="toggleHeroVideoPlayback"
+            >
+              <Pause v-if="isHeroVideoPlaying" class="h-4 w-4" aria-hidden="true" />
+              <Play v-else class="h-4 w-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              class="flex h-9 w-9 items-center justify-center rounded-md border border-white/10 bg-black/55 text-white/85 backdrop-blur-sm transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:bg-[hsl(var(--tac-amber)/0.18)] hover:text-[hsl(var(--tac-amber))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))] focus-visible:ring-offset-1 focus-visible:ring-offset-background"
+              :aria-label="isHeroVideoFullscreen ? 'Exit fullscreen' : 'View fullscreen'"
+              :aria-pressed="isHeroVideoFullscreen"
+              @click="toggleHeroVideoFullscreen"
+            >
+              <Minimize v-if="isHeroVideoFullscreen" class="h-4 w-4" aria-hidden="true" />
+              <Maximize v-else class="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
         </div>
       </div>
     </section>
