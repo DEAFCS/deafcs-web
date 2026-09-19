@@ -27,6 +27,14 @@ const english = JSON.parse(
 // tested for real in test/component/friend-request-error-classification.spec.ts)
 // and showing a fixed, generic message for the "blocked" case in both of
 // addAsFriend()'s call sites.
+//
+// A second pass found the SAME class of leak still present one level down:
+// the generic ("unknown") fallback also did `description: message || ...`,
+// so any OTHER rejection (not blocked, not a duplicate key -- a network
+// error, a different constraint violation, a GraphQL validation error)
+// still put the raw error text in the user-visible toast. Fixed by always
+// using the translated friend_add_error string there too; the real error
+// now only ever reaches console.error.
 
 test("classifyFriendRequestError is exported and used by both addAsFriend() call sites", () => {
   assert.match(
@@ -90,8 +98,27 @@ for (const [name, source] of [
     assert.match(body, /title: this\.\$t\("common\.error"\)/);
     assert.match(
       body,
-      /kind === "duplicate"\s*\n\s*\? this\.\$t\("pages\.players\.detail\.friend_already_pending"\)\s*\n\s*: message \|\| this\.\$t\("pages\.players\.detail\.friend_add_error"\)/,
+      /kind === "duplicate"\s*\n\s*\? this\.\$t\("pages\.players\.detail\.friend_already_pending"\)\s*\n\s*: this\.\$t\("pages\.players\.detail\.friend_add_error"\)/,
     );
+  });
+
+  test(`${name}: the raw error message is NEVER interpolated into a toast description -- only into console.error`, () => {
+    const addAsFriendStart = source.indexOf("async addAsFriend()");
+    const addAsFriendEnd = source.indexOf("\n    },", addAsFriendStart);
+    const body = source.slice(addAsFriendStart, addAsFriendEnd);
+
+    // Two toast({...}) calls exist (blocked, and duplicate/generic); both
+    // must use only fixed, translated strings for `description`.
+    assert.equal((body.match(/toast\(\{/g) || []).length, 2);
+    assert.doesNotMatch(body, /description:\s*message/);
+    assert.doesNotMatch(body, /description:[\s\S]*?error\.message/);
+    assert.doesNotMatch(body, /description:[\s\S]*?\(error as Error\)/);
+
+    // The raw error is no longer extracted into a `message` variable at
+    // all -- console.error(error) takes the whole error object directly,
+    // so there's nothing left for a toast to accidentally pick up.
+    assert.doesNotMatch(body, /const message = \(error as Error\)/);
+    assert.match(body, /console\.error\("addFriend failed", error\);/);
   });
 }
 

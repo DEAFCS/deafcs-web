@@ -456,14 +456,19 @@ export default {
           });
           return;
         }
-        const message = (error as Error)?.message || "";
+        // Never put the raw error message in the toast -- only a fixed,
+        // translated string. The real error still goes to console.error for
+        // developer diagnostics.
+        if (kind !== "duplicate") {
+          console.error("addFriend failed", error);
+        }
         toast({
           variant: "destructive",
           title: this.$t("common.error"),
           description:
             kind === "duplicate"
               ? this.$t("pages.players.detail.friend_already_pending")
-              : message || this.$t("pages.players.detail.friend_add_error"),
+              : this.$t("pages.players.detail.friend_add_error"),
         });
       }
     },
