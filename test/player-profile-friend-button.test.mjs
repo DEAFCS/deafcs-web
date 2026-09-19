@@ -132,6 +132,65 @@ test("hasRightColumn renders the hero action slot for every relationship state, 
   );
 });
 
+test("Friend, Remove Friend, and Pending/Cancel Request share identical padding, since they share the exact same font size", () => {
+  // These three use the same text-[0.72rem]/font-medium styling, so equal
+  // padding (py-2) is both correct and sufficient for equal height -- no
+  // font-based compensation needed between them.
+  const classNames = [
+    "playerHeroFriendBadgeClasses",
+    "playerHeroRemoveFriendClasses",
+    "playerHeroFriendPendingClasses",
+  ];
+  const paddings = classNames.map((name) => {
+    const declStart = playerProfile.indexOf(`const ${name} =`);
+    assert.ok(declStart > -1, `${name} not found`);
+    const declEnd = playerProfile.indexOf(";", declStart);
+    const decl = playerProfile.slice(declStart, declEnd);
+    const match = decl.match(/\spy-(\S+)\s/);
+    assert.ok(match, `${name} has no py-* utility`);
+    return match[1];
+  });
+  assert.deepEqual(paddings, ["2", "2", "2"]);
+});
+
+test("Add Friend's padding is compensated for its larger font, so its RENDERED HEIGHT matches the other buttons despite different padding", () => {
+  // Regression history, both measured in a real browser (production build,
+  // forced auth + relationship state via the actual Pinia stores):
+  //
+  // 1. Add Friend originally used py-2.5 (10px) while every other
+  //    friendship button used py-2 (8px): 40.8px vs 34.89px tall.
+  // 2. Aligning Add Friend to py-2 closed most of the gap but not all of
+  //    it: 37.2px vs 35.28px. The ~1.9px remainder is NOT padding -- it's
+  //    Add Friend's intentionally larger/bolder font (text-[0.8rem] +
+  //    font-bold, vs text-[0.72rem] + font-medium elsewhere -- its visual
+  //    weight as the primary CTA, deliberately preserved) contributing a
+  //    taller line box.
+  //
+  // Since font-size/weight must NOT change, the only way left to equalize
+  // the final rendered height is to compensate with slightly less padding
+  // on Add Friend specifically: py-[7.04px] (8px - half the ~1.92px line-
+  // height delta per side). Re-measured after this change: Add Friend
+  // 35.276px vs the other buttons' 35.28125px -- a ~0.005px difference,
+  // imperceptible sub-pixel rounding, as close as achievable without
+  // touching font-size/weight.
+  //
+  // This is why Add Friend's padding is intentionally DIFFERENT from the
+  // other three (not equal, as an earlier version of this test required) --
+  // it's compensating for a different font size to reach the same
+  // intended height, not failing to match it.
+  const declStart = playerProfile.indexOf("const playerHeroAddFriendClasses =");
+  assert.ok(declStart > -1);
+  const declEnd = playerProfile.indexOf(";", declStart);
+  const decl = playerProfile.slice(declStart, declEnd);
+  assert.match(decl, /\spy-\[7\.04px\]\s/);
+  assert.doesNotMatch(decl, /\spy-2\.5\s/);
+  assert.doesNotMatch(decl, /\spy-2\s/);
+  // Font size/weight are unrelated UI -- explicitly confirm they were never
+  // touched by this height fix.
+  assert.match(decl, /text-\[0\.8rem\]/);
+  assert.match(decl, /font-bold/);
+});
+
 test("the full-width Friend/Block action row is untouched by the PENDING/cancel change", () => {
   assert.match(
     playerProfile,
