@@ -2139,7 +2139,7 @@ const playerHeroTeamChipDotClasses =
                   v-if="canShowBlockAction"
                   :class="playerHeroActionsRowRightClasses"
                 >
-                  <FiveStackToolTip side="bottom">
+                  <FiveStackToolTip side="bottom" as-child>
                     <template #trigger>
                       <button
                         type="button"
