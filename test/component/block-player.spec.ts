@@ -182,7 +182,11 @@ describe("players/[id].vue source: Block Player implementation", () => {
 
   it("block requires a confirmation dialog before calling blockPlayer", () => {
     expect(source).toContain("requestBlockPlayer()");
-    expect(source).toContain("showBlockConfirm.value = true");
+    // Options data property (`this.showBlockConfirm`), not a bare
+    // `<script setup>` ref access -- see
+    // test/player-profile-block-dialog-scope.test.mjs for why the bare/`.value`
+    // form is specifically wrong here (it threw a real ReferenceError).
+    expect(source).toContain("this.showBlockConfirm = true");
     expect(source).toContain("async confirmBlockPlayer()");
     // The icon click never calls blockPlayer directly -- only through the
     // confirm dialog's own button.

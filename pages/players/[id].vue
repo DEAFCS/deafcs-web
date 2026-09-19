@@ -79,11 +79,15 @@ import {
 // FriendListItem reads from.
 const friendButtonHovered = ref(false);
 
-// Block-confirmation dialog open state -- the block relationship itself is
-// computed in the Options block below via useBlockActions(), the same live
-// my_blocks-subscription source (BlockStore) the Blocked Players settings
-// page reads from.
-const showBlockConfirm = ref(false);
+// Block-confirmation dialog open state lives in the Options `data()` below
+// (as `showBlockConfirm`), not here -- requestBlockPlayer/confirmBlockPlayer
+// (Options methods) need to read/write it via `this`, and a `<script setup>`
+// ref is NOT bridged onto `this` for the separate Options `methods` block in
+// this SFC (confirmed: it throws ReferenceError on bare access, and reads
+// back `undefined` via `this.`). editPlayerSheet below is the working
+// precedent for this exact "toggled from an Options method" case; showDemoUpload
+// above is the OTHER precedent -- a real `<script setup>` ref, but touched only
+// from template expressions, never from an Options method. See #97 postmortem.
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import RadialStat from "~/components/charts/RadialStat.vue";
@@ -3417,6 +3421,11 @@ export default {
       }>,
       editPlayerSheet: false,
       callingPlayer: false,
+      // Options data (not a <script setup> ref) -- requestBlockPlayer/
+      // confirmBlockPlayer/unblockPlayerClick below are Options methods and
+      // need to read/write this via `this.showBlockConfirm`, same as
+      // editPlayerSheet just above.
+      showBlockConfirm: false,
     };
   },
   computed: {
@@ -3718,7 +3727,7 @@ export default {
     // once the user confirms there (confirmBlockPlayer below).
     requestBlockPlayer() {
       if (!this.player?.steam_id || this.isSelfProfile) return;
-      showBlockConfirm.value = true;
+      this.showBlockConfirm = true;
     },
     async confirmBlockPlayer() {
       if (!this.player?.steam_id) return;
@@ -3726,7 +3735,7 @@ export default {
       if (isBusy(this.player.steam_id)) return;
       try {
         await blockPlayer(this.player.steam_id);
-        showBlockConfirm.value = false;
+        this.showBlockConfirm = false;
         toast({
           title: this.$t(
             "pages.players.detail.block_success",

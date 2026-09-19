@@ -21,6 +21,20 @@ afterEach(() => {
   mounted = null;
 });
 
+// IMPORTANT LIMITATION, discovered the hard way: this fixture reimplements
+// requestBlockPlayer/confirmBlockPlayer/unblockPlayerClick inside a SINGLE
+// <script setup> block, which is NOT how the real pages/players/[id].vue
+// is structured (it splits declaration/`<script setup>` from
+// mutation/Options `methods` across two separate <script> tags). That split
+// caused a real ReferenceError in production-equivalent builds that this
+// fixture's tests could never have caught, because the fixture doesn't
+// reproduce the split at all. See test/player-profile-block-dialog-scope.test.mjs
+// for the regression coverage of that specific scoping bug, and this
+// file's suite for a real-browser-verified account of the fix. This
+// fixture is still useful for the interaction *contract* (dialog open/
+// close, toast on success/failure) once the real wiring is known-correct,
+// but it is not a substitute for testing the actual component.
+//
 // Exercises the REAL <AlertDialog> component (reka-ui, portalled to
 // document.body) driven by the real requestBlockPlayer/confirmBlockPlayer
 // click sequence from pages/players/[id].vue -- unlike the older
