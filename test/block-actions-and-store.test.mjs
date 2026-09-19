@@ -55,6 +55,22 @@ test("the my_blocks subscription has an error handler -- a schema/permission fai
   );
 });
 
+test("a subscription failure is also shown to the user via toast, not just logged to the browser console (issue #97 item 7)", () => {
+  assert.match(blockStore, /import \{ toast \} from "~\/components\/ui\/toast";/);
+  const errorHandlerStart = blockStore.indexOf('error: (error: unknown) => {');
+  assert.ok(errorHandlerStart > -1);
+  const errorHandlerBody = blockStore.slice(errorHandlerStart, errorHandlerStart + 300);
+  assert.match(errorHandlerBody, /console\.error\("my_blocks subscription failed", error\);/);
+  assert.match(errorHandlerBody, /toast\(\{/);
+  assert.match(errorHandlerBody, /variant: "destructive"/);
+});
+
+test("the toast call does not use useI18n()'s t() -- calling it from a Pinia store action outside setup context has already crashed SSR elsewhere in this codebase (MatchmakingStore.ts)", () => {
+  const errorHandlerStart = blockStore.indexOf('error: (error: unknown) => {');
+  const errorHandlerBody = blockStore.slice(errorHandlerStart, errorHandlerStart + 300);
+  assert.doesNotMatch(errorHandlerBody, /useI18n|\$t\(|[^\w]t\(/);
+});
+
 test("isBlocked compares steam_id as strings, so a bigint vs string/number mismatch between the store and the caller can never desync the UI", () => {
   assert.match(
     blockStore,

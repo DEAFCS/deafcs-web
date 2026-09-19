@@ -18,6 +18,7 @@ import {
   AlertDialogTitle,
   AlertDialogCancel,
 } from "~/components/ui/alert-dialog";
+import { toast } from "~/components/ui/toast";
 import { Ban, UserCheck } from "lucide-vue-next";
 
 const props = defineProps<{
@@ -36,13 +37,37 @@ function requestBlockPlayer() {
   showBlockConfirm.value = true;
 }
 
+// Mirrors the real confirmBlockPlayer/unblockPlayerClick in
+// pages/players/[id].vue exactly: on success the dialog closes and a
+// success toast fires; on a rejected mutation the dialog stays OPEN (the
+// user can retry or cancel) and an error toast fires -- errors are never
+// silent, and success is never confused with failure.
 async function confirmBlockPlayer() {
-  await props.blockPlayer(playerSteamId);
-  showBlockConfirm.value = false;
+  try {
+    await props.blockPlayer(playerSteamId);
+    showBlockConfirm.value = false;
+    toast({ title: "Player blocked" });
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description: (error as Error)?.message || "Could not block this player.",
+    });
+  }
 }
 
 async function unblockPlayerClick() {
-  await props.unblockPlayer(playerSteamId);
+  try {
+    await props.unblockPlayer(playerSteamId);
+    toast({ title: "Player unblocked" });
+  } catch (error) {
+    toast({
+      variant: "destructive",
+      title: "Error",
+      description:
+        (error as Error)?.message || "Could not unblock this player.",
+    });
+  }
 }
 
 const playerHeroBlockButtonClasses = "block-btn-idle";

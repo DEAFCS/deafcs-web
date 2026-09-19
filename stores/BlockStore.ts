@@ -3,6 +3,7 @@ import { defineStore, acceptHMRUpdate } from "pinia";
 import { gql } from "@apollo/client/core";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
+import { toast } from "~/components/ui/toast";
 
 export type BlockedPlayer = {
   steam_id: string;
@@ -14,10 +15,12 @@ export type BlockedPlayer = {
 };
 
 // Raw gql, not the generated Zeus typed builder -- my_blocks comes from a
-// Hasura view this codebase's committed codegen output hasn't seen yet
-// (regenerating it requires introspecting a live Hasura instance with this
-// change's metadata applied). Same approach linked-accounts.vue already
-// uses for its own subscriptions.
+// Hasura view. The live metadata (select/insert/delete permissions for role
+// "user") is confirmed applied and matches
+// hasura/metadata/databases/default/tables/public_v_my_blocks.yaml exactly
+// (verified 2026-09-19 against production's hdb_catalog.hdb_metadata); the
+// committed Zeus codegen output just hasn't been regenerated against it yet.
+// Same approach linked-accounts.vue already uses for its own subscriptions.
 const MY_BLOCKS_SUBSCRIPTION = gql`
   subscription MyBlocks {
     my_blocks {
@@ -52,12 +55,23 @@ export const useBlockStore = defineStore("blocks", () => {
         next: ({ data }: any) => {
           blocked.value = data?.my_blocks ?? [];
         },
-        // Without this, a schema/permission problem on my_blocks (e.g. Hasura
-        // metadata for v_my_blocks not applied) fails completely silently:
-        // `blocked` just never updates and every Block/Unblock click looks
-        // like it does nothing, with no signal anywhere for anyone to debug.
+        // Without this, any failure on my_blocks (network drop, a future
+        // schema change, etc.) fails completely silently: `blocked` just
+        // never updates and every Block/Unblock click looks like it does
+        // nothing, with no signal anywhere for the user OR anyone debugging
+        // it. Hardcoded string (not useI18n()'s t()) deliberately -- this
+        // callback can fire from a Pinia store action outside any
+        // component's setup context, and calling that composable there has
+        // already crashed SSR outright elsewhere in this codebase (see
+        // MatchmakingStore.ts's joinLobby()/createLobby() for the same fix).
         error: (error: unknown) => {
           console.error("my_blocks subscription failed", error);
+          toast({
+            variant: "destructive",
+            title: "Error",
+            description:
+              "Could not load your blocked players. Try refreshing the page.",
+          });
         },
       }),
     );

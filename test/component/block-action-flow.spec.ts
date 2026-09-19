@@ -1,6 +1,12 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { mount, type VueWrapper } from "@vue/test-utils";
 import BlockActionFlow from "./fixtures/BlockActionFlow.vue";
+import { useToast } from "~/components/ui/toast";
+
+const { toasts } = useToast();
+function lastToast() {
+  return toasts.value[0];
+}
 
 // AlertDialogContent is portalled straight to document.body, which persists
 // across tests in the same file -- unmount after each so a dialog left open
@@ -84,6 +90,86 @@ describe("Block action flow: real AlertDialog wiring", () => {
 
     expect(unblockPlayer).toHaveBeenCalledTimes(1);
     expect(document.body.textContent).not.toContain("Block this player?");
+  });
+
+  // Issue #97 item 5: distinguish "the confirmation dialog fails to open"
+  // (already proven not to happen, above) from "the mutation fails after
+  // confirmation" -- these must be visibly different outcomes, not both
+  // silently doing nothing.
+  it("on a successful mutation: dialog closes AND a success toast appears", async () => {
+    const blockPlayer = vi.fn().mockResolvedValue(undefined);
+    const unblockPlayer = vi.fn().mockResolvedValue(undefined);
+    const wrapper = mountFlow({
+      isSelfProfile: false,
+      isBlockedByMe: false,
+      blockActionInFlight: false,
+      blockPlayer,
+      unblockPlayer,
+    });
+
+    await wrapper.find('[data-testid="block-toggle"]').trigger("click");
+    await new Promise((r) => setTimeout(r, 0));
+    (
+      document.body.querySelector(
+        '[data-testid="confirm-block"]',
+      ) as HTMLElement
+    ).click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(document.body.textContent).not.toContain("Block this player?");
+    expect(lastToast()?.variant).not.toBe("destructive");
+    expect(lastToast()?.title).toBe("Player blocked");
+  });
+
+  it("on a REJECTED mutation: the dialog stays open (not silently closed) and an error toast appears -- confirming does not silently fail", async () => {
+    const blockPlayer = vi
+      .fn()
+      .mockRejectedValue(
+        new Error("field 'insert_my_blocks_one' not found in type: 'mutation_root'"),
+      );
+    const unblockPlayer = vi.fn().mockResolvedValue(undefined);
+    const wrapper = mountFlow({
+      isSelfProfile: false,
+      isBlockedByMe: false,
+      blockActionInFlight: false,
+      blockPlayer,
+      unblockPlayer,
+    });
+
+    await wrapper.find('[data-testid="block-toggle"]').trigger("click");
+    await new Promise((r) => setTimeout(r, 0));
+    (
+      document.body.querySelector(
+        '[data-testid="confirm-block"]',
+      ) as HTMLElement
+    ).click();
+    await new Promise((r) => setTimeout(r, 0));
+
+    // Still open -- an error must never look identical to success (silence).
+    expect(document.body.textContent).toContain("Block this player?");
+    expect(lastToast()?.variant).toBe("destructive");
+    expect(lastToast()?.description).toContain("insert_my_blocks_one");
+  });
+
+  it("on a REJECTED unblock mutation, an error toast appears with the real error message", async () => {
+    const blockPlayer = vi.fn().mockResolvedValue(undefined);
+    const unblockPlayer = vi
+      .fn()
+      .mockRejectedValue(new Error("permission denied"));
+    const wrapper = mountFlow({
+      isSelfProfile: false,
+      isBlockedByMe: true,
+      blockActionInFlight: false,
+      blockPlayer,
+      unblockPlayer,
+    });
+
+    await wrapper.find('[data-testid="block-toggle"]').trigger("click");
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(unblockPlayer).toHaveBeenCalledTimes(1);
+    expect(lastToast()?.variant).toBe("destructive");
+    expect(lastToast()?.description).toBe("permission denied");
   });
 
   it("the block button is disabled while an action is in flight, so a stray double-click cannot fire twice", async () => {
