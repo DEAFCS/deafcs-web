@@ -3222,7 +3222,10 @@ import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLo
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { mapAwardRecipientToTrophy } from "~/utilities/awardOccurrenceResolution";
 import { ringAdminCallPlayer } from "~/composables/useAdminCallApi";
-import { useFriendActions } from "~/composables/useFriendActions";
+import {
+  useFriendActions,
+  classifyFriendRequestError,
+} from "~/composables/useFriendActions";
 import { toast } from "@/components/ui/toast";
 
 export default {
@@ -3694,16 +3697,28 @@ export default {
       try {
         await addFriend(this.player.steam_id);
       } catch (error) {
+        const kind = classifyFriendRequestError(error);
+        if (kind === "blocked") {
+          // Never surface the raw constraint error, or who blocked whom --
+          // just that the request can't go through.
+          console.error("addFriend rejected by a block relationship", error);
+          toast({
+            variant: "destructive",
+            title: this.$t(
+              "pages.players.detail.friend_request_unavailable_title",
+            ),
+            description: this.$t("pages.players.detail.friend_blocked_error"),
+          });
+          return;
+        }
         const message = (error as Error)?.message || "";
-        const isDuplicate =
-          message.includes("friends_pkey") ||
-          message.toLowerCase().includes("duplicate key");
         toast({
           variant: "destructive",
           title: this.$t("common.error"),
-          description: isDuplicate
-            ? this.$t("pages.players.detail.friend_already_pending")
-            : message || this.$t("pages.players.detail.friend_add_error"),
+          description:
+            kind === "duplicate"
+              ? this.$t("pages.players.detail.friend_already_pending")
+              : message || this.$t("pages.players.detail.friend_add_error"),
         });
       }
     },

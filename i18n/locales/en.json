@@ -2620,6 +2620,8 @@
         "friend_remove_confirm": "Remove friend?",
         "friend_add_error": "Couldn't send friend request. Please try again.",
         "friend_already_pending": "Friend request already sent.",
+        "friend_request_unavailable_title": "Friend request unavailable",
+        "friend_blocked_error": "You cannot send a friend request to this player.",
         "friend_remove_error": "Couldn't remove friend. Please try again.",
         "name": "Name",
         "role": "Role",

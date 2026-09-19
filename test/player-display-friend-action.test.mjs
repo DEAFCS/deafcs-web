@@ -69,9 +69,13 @@ test("addAsFriend guards against an already in-flight request and surfaces failu
     playerDisplay,
     /async addAsFriend\(\)\s*\{[\s\S]*?const \{ isBusy, addFriend \} = useFriendActions\(\);[\s\S]*?if \(isBusy\(this\.player\.steam_id\)\) return;[\s\S]*?await addFriend\(this\.player\.steam_id\);/,
   );
+  // Duplicate-key detection now lives in classifyFriendRequestError()
+  // (composables/useFriendActions.ts), shared with pages/players/[id].vue's
+  // own addAsFriend() -- see test/friend-request-blocked-error.test.mjs and
+  // test/component/friend-request-error-classification.spec.ts.
   assert.match(
     playerDisplay,
-    /const isDuplicate =\s*\n\s*message\.includes\("friends_pkey"\)/,
+    /const kind = classifyFriendRequestError\(error\);/,
   );
 });
 

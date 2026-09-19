@@ -19,6 +19,33 @@ function sid(steam_id: string | number | bigint) {
   return String(steam_id);
 }
 
+export type FriendRequestErrorKind = "blocked" | "duplicate" | "unknown";
+
+// Classifies an addFriend() rejection so callers can show a user-friendly
+// toast instead of the raw error -- used by pages/players/[id].vue and
+// PlayerDisplay.vue's addAsFriend(). "blocked" is api-deafcs's
+// guard_friends_not_blocked trigger (hasura/migrations/default/
+// 1878000012000_player_blocks/up.sql), which rejects the insert with
+// `cannot create a friend relationship where a block exists` -- deliberately
+// generic so it never reveals to the caller which of the two players placed
+// the block. "duplicate" is the friends table's own primary key, hit when a
+// request already exists in either direction.
+export function classifyFriendRequestError(
+  error: unknown,
+): FriendRequestErrorKind {
+  const message = (error as Error)?.message || "";
+  if (message.toLowerCase().includes("block exists")) {
+    return "blocked";
+  }
+  if (
+    message.includes("friends_pkey") ||
+    message.toLowerCase().includes("duplicate key")
+  ) {
+    return "duplicate";
+  }
+  return "unknown";
+}
+
 export function useFriendActions() {
   const matchmaking = useMatchmakingStore();
   const restriction = useWebsiteRestrictionStore();
