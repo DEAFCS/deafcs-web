@@ -15,6 +15,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InstallAppQrDialog from "~/components/InstallAppQrDialog.vue";
 import {
   Settings,
@@ -31,6 +32,7 @@ import {
   FileText,
   MessagesSquare,
   LifeBuoy,
+  Menu,
 } from "lucide-vue-next";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
@@ -59,6 +61,7 @@ import {
 } from "~/components/ui/tooltip";
 
 const { isMobile } = useSidebar();
+const mobileNavOpen = ref(false);
 const { openLastOrDefaultHub } = useHubState();
 const { brandName, logoUrl } = useBranding();
 const matchmakingStore = useMatchmakingStore();
@@ -216,7 +219,7 @@ const socialLinkClasses =
 
         <SystemStatus v-if="!isMobile" />
 
-        <NavigationMenu :class="navMenuClasses">
+        <NavigationMenu v-if="!isMobile" :class="navMenuClasses">
           <NavigationMenuList class="flex items-center gap-0 sm:gap-1">
             <template v-for="item in orderedTopBarItems" :key="item.key">
               <NavigationMenuItem
@@ -919,6 +922,408 @@ const socialLinkClasses =
             </template>
           </NavigationMenuList>
         </NavigationMenu>
+
+        <Sheet v-else v-model:open="mobileNavOpen">
+          <SheetTrigger as-child>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="h-8 w-8 shrink-0 text-topnav-foreground"
+            >
+              <Menu class="h-5 w-5" />
+              <span class="sr-only">{{ $t("layouts.top_nav.menu") }}</span>
+            </Button>
+          </SheetTrigger>
+          <SheetContent
+            side="left"
+            class="w-[300px] overflow-y-auto border-topnav-border bg-topnav p-0 text-topnav-foreground"
+          >
+            <nav class="flex flex-col gap-1 p-4 pt-10">
+              <template v-for="item in orderedTopBarItems" :key="item.key">
+                <NuxtLink
+                  v-if="item.type === 'plugin'"
+                  :to="`/apps/${item.plugin?.slug}`"
+                  :class="[navItemClasses, navItemStackedClasses]"
+                  @click="mobileNavOpen = false"
+                >
+                  <span :class="navItemChevronClasses">◢</span>
+                  <span :class="navItemContentClasses">
+                    <span :class="navItemLabelClasses">{{
+                      item.plugin?.title
+                    }}</span>
+                  </span>
+                </NuxtLink>
+
+                <NuxtLink
+                  v-else-if="item.type === 'watch'"
+                  to="/watch"
+                  :class="[navItemClasses, navItemStackedClasses]"
+                  @click="mobileNavOpen = false"
+                >
+                  <span :class="navItemChevronClasses">◢</span>
+                  <span :class="navItemContentClasses">
+                    <span :class="navItemLabelClasses">
+                      {{ $t("layouts.top_nav.watch_menu") }}
+                      <span
+                        v-if="liveMatchesCount > 0"
+                        :class="[
+                          navBadgeClasses,
+                          navBadgeInlineClasses,
+                          navBadgeLiveClasses,
+                        ]"
+                      >
+                        <span :class="navBadgeDotClasses"></span>
+                        {{ liveMatchesCount }}
+                      </span>
+                    </span>
+                  </span>
+                </NuxtLink>
+
+                <div v-else-if="item.type === 'play'" class="flex flex-col gap-1">
+                  <div :class="[navGroupLabelClasses, 'mt-3']">
+                    <span :class="navGroupLabelTickClasses"></span>
+                    {{ $t("layouts.top_nav.play_menu") }}
+                  </div>
+                  <NuxtLink
+                    to="/play"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.play.find_match") }}
+                        <span
+                          v-if="playTotalCount > 0"
+                          :class="[navBadgeClasses, navBadgeInlineClasses]"
+                        >
+                          {{ playTotalCount }}
+                        </span>
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/tournaments"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.play.tournaments") }}
+                        <span
+                          v-if="activeTournamentsCount > 0"
+                          :class="[navBadgeClasses, navBadgeInlineClasses]"
+                        >
+                          {{ activeTournamentsCount }}
+                        </span>
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    v-if="leaguesEnabled && hasLeagueSeason"
+                    :to="currentLeagueSeasonTo"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.play.leagues") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    v-if="scrimFinderEnabled"
+                    to="/scrims"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.play.scrim_finder") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    v-if="showPublicServersLink"
+                    to="/public-servers"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.play.public_servers") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                </div>
+
+                <div
+                  v-else-if="item.type === 'community'"
+                  class="flex flex-col gap-1"
+                >
+                  <div :class="[navGroupLabelClasses, 'mt-3']">
+                    <span :class="navGroupLabelTickClasses"></span>
+                    {{ $t("layouts.top_nav.community_menu") }}
+                  </div>
+                  <NuxtLink
+                    to="/players"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.players.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{ $t("layouts.top_nav.community.players.subtitle") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/teams"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.teams.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{ $t("layouts.top_nav.community.teams.subtitle") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/leaderboard"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.leaderboard.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{
+                          $t("layouts.top_nav.community.leaderboard.subtitle")
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/awards"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.awards.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{ $t("layouts.top_nav.community.awards.subtitle") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    v-if="newsEnabled"
+                    to="/news"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          newsLabel || $t("layouts.top_nav.community.news.title")
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/highlights"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.highlights.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{
+                          $t("layouts.top_nav.community.highlights.subtitle")
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/forum"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          $t("layouts.top_nav.community.social.forum.title")
+                        }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{
+                          $t("layouts.top_nav.community.social.forum.subtitle")
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                </div>
+
+                <div v-else-if="item.type === 'info'" class="flex flex-col gap-1">
+                  <div :class="[navGroupLabelClasses, 'mt-3']">
+                    <span :class="navGroupLabelTickClasses"></span>
+                    {{ $t("layouts.top_nav.info_menu") }}
+                  </div>
+                  <NuxtLink
+                    to="/about"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.info.deafcs.about.title") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/faq"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.info.deafcs.faq.title") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/contact"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.info.deafcs.contact.title") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/general-rules"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          $t("layouts.top_nav.info.rules.general_rules.title")
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/matchmaking-rules"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          $t(
+                            "layouts.top_nav.info.rules.matchmaking_rules.title",
+                          )
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/tournament-rules"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          $t(
+                            "layouts.top_nav.info.rules.tournament_rules.title",
+                          )
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/account-data"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          $t(
+                            "layouts.top_nav.info.account_legal.account_data.title",
+                          )
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/privacy-policy"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          $t(
+                            "layouts.top_nav.info.account_legal.privacy_policy.title",
+                          )
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/terms-of-service"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{
+                          $t(
+                            "layouts.top_nav.info.account_legal.terms_of_service.title",
+                          )
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                </div>
+              </template>
+            </nav>
+          </SheetContent>
+        </Sheet>
       </div>
 
       <div :class="topNavRightClasses">

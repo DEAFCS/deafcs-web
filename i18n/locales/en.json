@@ -4641,6 +4641,7 @@
       "community_menu": "Community",
       "watch_menu": "Watch",
       "info_menu": "Info",
+      "menu": "Menu",
       "login": "Login to Play",
       "login_aria": "Sign in through Steam",
       "authorize": "AUTHORIZE",
