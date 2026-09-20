@@ -367,13 +367,13 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                     <DropdownMenuSeparator
                       v-if="
                         tournament.can_cancel &&
-                        tournament.is_organizer &&
+                        canDeleteTournament &&
                         tournament.status !== e_tournament_status_enum.Live
                       "
                     />
                     <DropdownMenuItem
                       v-if="
-                        tournament.is_organizer &&
+                        canDeleteTournament &&
                         tournament.status !== e_tournament_status_enum.Live &&
                         !leagueSeasonId
                       "
@@ -940,6 +940,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
 
     <!-- Delete Tournament Dialog -->
     <AlertDialog
+      v-if="canDeleteTournament"
       :open="deleteDialogOpen"
       @update:open="(open) => (deleteDialogOpen = open)"
     >
@@ -1111,6 +1112,7 @@ export default {
               longitude: true,
               min_role: true,
               trophies_enabled: true,
+              organizer_steam_id: true,
               is_organizer: true,
               can_join: true,
               can_start: true,
@@ -1580,6 +1582,13 @@ export default {
     },
     me() {
       return useAuthStore().me;
+    },
+    canDeleteTournament() {
+      if (!this.tournament || !this.me) return false;
+      return (
+        useAuthStore().isAdmin ||
+        String(this.tournament.organizer_steam_id) === String(this.me.steam_id)
+      );
     },
     tournamentTypeDescription() {
       if (!this.tournament?.options?.type || !this.e_match_types) {

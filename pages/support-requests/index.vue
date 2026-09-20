@@ -11,7 +11,7 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 
-definePageMeta({ middleware: "admin" });
+definePageMeta({ middleware: "moderator" });
 useHead({ title: "Support Requests" });
 </script>
 

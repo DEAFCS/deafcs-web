@@ -79,11 +79,10 @@ export default {
     // own (or another verified_user's) profile satisfied "role >= role"
     // and saw an editable dropdown they had no actual permission to use,
     // failing with a raw Hasura error on submit. The real permission
-    // floor is match_organizer (see hasura/metadata's players
-    // update_permissions + inherited_roles) -- gate on that fixed role,
-    // not on whoever's profile happens to be open.
+    // Platform roles are administrator-managed. Country moderation remains a
+    // separate, narrower permission on the player profile.
     canChangeRole() {
-      return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
+      return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
     },
     roles() {
       return [
@@ -98,6 +97,10 @@ export default {
         {
           value: e_player_roles_enum.streamer,
           display: this.$t("player_roles.streamer"),
+        },
+        {
+          value: e_player_roles_enum.moderator,
+          display: this.$t("player_roles.moderator"),
         },
         {
           value: e_player_roles_enum.match_organizer,

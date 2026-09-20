@@ -7,7 +7,7 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 
 definePageMeta({
-  middleware: "admin",
+  middleware: "moderator",
 });
 
 const { t } = useI18n();
@@ -95,6 +95,7 @@ useHead({
           </TableCell>
           <TableCell>
             <Button
+              v-if="isAdmin"
               variant="ghost"
               size="icon"
               class="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -108,7 +109,7 @@ useHead({
       </TableBody>
     </Table>
 
-    <Dialog :open="!!deleteTarget" @update:open="(open) => !open && (deleteTarget = null)">
+    <Dialog v-if="isAdmin" :open="!!deleteTarget" @update:open="(open) => !open && (deleteTarget = null)">
       <DialogContent>
         <DialogTitle>{{ $t("pages.verification_applications.delete_confirm_title") }}</DialogTitle>
         <p class="text-sm text-muted-foreground">
@@ -184,6 +185,9 @@ export default {
     await this.fetchApplications();
   },
   computed: {
+    isAdmin() {
+      return useAuthStore().isAdmin;
+    },
     applications() {
       return this.allApplications.filter(
         (application) => application.status === this.statusFilter,

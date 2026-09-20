@@ -7,7 +7,7 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 
 definePageMeta({
-  middleware: "admin",
+  middleware: "moderator",
 });
 
 const { t } = useI18n();
@@ -53,6 +53,7 @@ useHead({
               <Video class="h-4 w-4" />
             </Button>
             <Button
+              v-if="isAdmin"
               variant="ghost"
               size="icon"
               class="h-7 w-7 text-muted-foreground hover:text-destructive"
@@ -261,7 +262,7 @@ useHead({
       </DialogContent>
     </Dialog>
 
-    <Dialog v-model:open="deleteDialogOpen">
+    <Dialog v-if="isAdmin" v-model:open="deleteDialogOpen">
       <DialogContent>
         <DialogTitle>{{ $t("pages.verification_applications.delete_confirm_title") }}</DialogTitle>
         <p class="text-sm text-muted-foreground">
@@ -371,6 +372,9 @@ export default {
     await this.fetchApplication();
   },
   computed: {
+    isAdmin() {
+      return useAuthStore().isAdmin;
+    },
     statusVariant() {
       if (this.application?.status === "approved") return "default";
       if (this.application?.status === "rejected") return "destructive";
