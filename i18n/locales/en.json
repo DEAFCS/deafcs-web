@@ -4940,6 +4940,11 @@
     "coaches": "Coaches",
     "map_veto": "Map Veto",
     "round": "Round {number}",
+    "time": {
+      "local_time": "your local time",
+      "local_notice": "Shown in your local timezone ({timezone})",
+      "copenhagen": "Copenhagen"
+    },
     "stats": {
       "wins": "Wins",
       "losses": "Losses",
