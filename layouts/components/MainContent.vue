@@ -80,7 +80,7 @@ const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
           <SystemAlertBanner />
           <div
             ref="scrollFloorRootEl"
-            class="mx-auto p-1 sm:p-4 w-full self-center"
+            class="mx-auto p-2 sm:p-4 w-full self-center"
             :class="{
               'lg:max-w-7xl': containContentValue,
               'lg:max-w-[calc(1600px+2rem)]': isMatchDetailRoute,
