@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed } from "vue";
 import { useSubscription, useApolloClient } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
@@ -8,40 +8,48 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
 import { individualCheckInOpen } from "~/composables/useCheckInOverlayPriority";
 
-// Tournament attendance prompt for the individual sign-up check-in window: a
-// player who is Registered but has not checked in yet gets prompted wherever
-// they are on the site, same "reach them regardless of page" reasoning as
-// GlobalLobbyCallNotifier.
+// Team-tournament counterpart to TournamentCheckInOverlay.vue (the Solo
+// Random individual check-in popup) -- same shared attendance window
+// (tournaments.individual_check_in_ends_at), same "reach them regardless of
+// page" subscription-driven popup, but for a normal team tournament (1v1,
+// 2v2, 5v5, etc.), where the *captain* confirms attendance on behalf of the
+// whole roster (tournament_teams.checked_in_at), not each player
+// individually. This is exactly why regular tournaments never got the popup
+// before: TournamentCheckInOverlay.vue only ever subscribed to
+// tournament_individual_signups, which a team-tournament roster member never
+// has a row in.
 //
-// Visual shell is deliberately identical to MatchActiveAlert (the match ready
-// popup): same framed panel, amber hairline + glow, corner accents, scanlines,
-// and top-right X. That component is approved and in production, so it is left
-// completely untouched and the shell is mirrored here rather than extracted --
-// a shared component would have meant editing MatchActiveAlert's markup, and
-// nothing about this change is worth risking a regression in the match popup.
-// solo-random-attendance-polish.test.mjs asserts the two shells stay identical
-// so they cannot silently drift.
+// Visual shell is mirrored byte-for-byte from TournamentCheckInOverlay.vue
+// (see that file's own comment for why it is mirrored rather than shared/
+// extracted) -- tournament-team-check-in-overlay.test.mjs asserts the two
+// stay identical.
 //
-// Two deliberate differences from the match popup, both required:
-//   * No "disable this popup" footer. Attendance is not a preference-driven
-//     nag; missing it costs the player their slot.
-//   * The action button stays white (the default variant), not the amber CTA.
-//     White reads as "confirm, right here"; amber is reserved for navigating
-//     somewhere, which is what GO TO MATCH does.
+// Deliberately shown only to the team's captain (tournament_teams.
+// captain_steam_id), not to every "can_manage" team admin -- an ordinary
+// roster member, a non-captain team admin, and even the original owner (if
+// no longer captain) must not see an actionable team-wide check-in control
+// here. This is enforced server-side too, not merely by hiding a button
+// client-side: checkInTournamentTeam authorizes only the row's own
+// captain_steam_id, plus an explicit tournament organizer/administrator
+// emergency override -- deliberately narrower than the general-purpose
+// can_manage_tournament_team function (see tournaments.controller.ts).
 const me = computed(() => useAuthStore().me);
 const steamId = computed(() => me.value?.steam_id ?? null);
 
-const PENDING_CHECK_INS_SUBSCRIPTION = gql`
-  subscription MyPendingTournamentCheckIns($steamId: bigint!) {
-    tournament_individual_signups(
+const PENDING_TEAM_CHECK_INS_SUBSCRIPTION = gql`
+  subscription MyPendingTournamentTeamCheckIns($steamId: bigint!) {
+    tournament_teams(
       where: {
-        player_steam_id: { _eq: $steamId }
-        status: { _eq: Registered }
+        captain_steam_id: { _eq: $steamId }
         checked_in_at: { _is_null: true }
-        tournament: { individual_check_in_ends_at: { _is_null: false } }
+        tournament: {
+          status: { _eq: RegistrationOpen }
+          individual_check_in_ends_at: { _is_null: false }
+        }
       }
     ) {
       id
+      name
       tournament_id
       tournament {
         id
@@ -53,7 +61,7 @@ const PENDING_CHECK_INS_SUBSCRIPTION = gql`
 `;
 
 const { result } = useSubscription(
-  PENDING_CHECK_INS_SUBSCRIPTION,
+  PENDING_TEAM_CHECK_INS_SUBSCRIPTION,
   () => ({ steamId: steamId.value }),
   () => ({ enabled: !!steamId.value }),
 );
@@ -67,21 +75,20 @@ setInterval(() => {
 }, 1000);
 
 const pending = computed(() => {
-  const rows = result.value?.tournament_individual_signups ?? [];
+  const rows = result.value?.tournament_teams ?? [];
   return rows.filter((row: any) => {
     const endsAt = row.tournament?.individual_check_in_ends_at;
     return !!endsAt && new Date(endsAt).getTime() > now.value;
   });
 });
 
-// Only ever show one at a time -- vanishingly unlikely a player has two
-// simultaneous individual-sign-up check-ins, but if it happens, resolve
-// them one at a time rather than stacking overlays.
+// Only ever show one at a time -- a captain of two simultaneously-open
+// tournament team check-ins is vanishingly unlikely, but if it happens,
+// resolve them one at a time rather than stacking overlays.
 const current = computed(() => pending.value[0] ?? null);
 
-// Dismissed windows, keyed by signup id + window end so a genuinely new
-// window (the scheduler re-opens one after promoting from the waitlist)
-// prompts again rather than staying silent.
+// Dismissed windows, keyed by team id + window end so a genuinely new
+// window prompts again rather than staying silent.
 const dismissedKeys = ref<Set<string>>(new Set());
 const currentKey = computed(() =>
   current.value
@@ -89,21 +96,23 @@ const currentKey = computed(() =>
     : null,
 );
 
+// Strictly lower priority than the individual overlay: a player can be
+// simultaneously registered for one tournament individually and captain of
+// a team in a different tournament, with both check-in windows open. Two
+// independently-mounted AlertDialogs must never both be visible at once
+// (stacked backdrops, competing focus traps), so this stays closed for as
+// long as the individual overlay is actually showing -- see
+// composables/useCheckInOverlayPriority.ts.
 const open = computed(
-  () => !!current.value && !dismissedKeys.value.has(currentKey.value as string),
+  () =>
+    !!current.value &&
+    !dismissedKeys.value.has(currentKey.value as string) &&
+    !individualCheckInOpen.value,
 );
 
-// Reports this overlay's own visible state to the shared singleton so the
-// team-captain overlay (which has strictly lower priority) knows to stay
-// closed while this one is actually shown -- see
-// composables/useCheckInOverlayPriority.ts for why this exists.
-watch(open, (value) => {
-  individualCheckInOpen.value = value;
-}, { immediate: true });
-
-// Dismiss only closes the prompt. It never checks the player in and never
-// leaves the tournament -- they can still check in from the tournament's
-// Players page for as long as the window is open.
+// Dismiss only closes the prompt. It never checks the team in -- the
+// captain can still check in from the tournament page for as long as the
+// window is open.
 function dismiss() {
   if (!currentKey.value) return;
   const next = new Set(dismissedKeys.value);
@@ -132,10 +141,12 @@ async function checkIn() {
   if (!current.value || checkingIn.value || websiteRestricted.value) return;
   checkingIn.value = true;
   try {
+    // Same action the existing on-page "Check in for tournament" button
+    // uses (TournamentTeam.vue's checkInTeam) -- not a new mutation.
     await apolloClient.mutate({
       mutation: generateMutation({
-        checkIntoTournament: [
-          { tournament_id: current.value.tournament_id },
+        checkInTournamentTeam: [
+          { tournament_team_id: current.value.id },
           { success: true },
         ],
       }),
@@ -185,7 +196,7 @@ async function checkIn() {
               <span
                 class="inline-block h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]"
               ></span>
-              {{ $t("tournament.players.check_in.overlay_title") }}
+              {{ $t("tournament.players.check_in.team_overlay_title") }}
               <span
                 class="h-1 w-1 rounded-full animate-soft-pulse bg-[hsl(var(--tac-amber))]"
               ></span>
@@ -214,7 +225,7 @@ async function checkIn() {
             @click="checkIn"
           >
             <Loader2 v-if="checkingIn" class="h-4 w-4 animate-spin" />
-            {{ $t("tournament.players.check_in.check_in_now") }}
+            {{ $t("tournament.players.check_in.team_check_in_now") }}
           </button>
         </div>
 

@@ -51,6 +51,9 @@ const EnableNotificationsPrompt = defineAsyncComponent(
 const TournamentCheckInOverlay = defineAsyncComponent(
   () => import("~/components/tournament/TournamentCheckInOverlay.vue"),
 );
+const TournamentTeamCheckInOverlay = defineAsyncComponent(
+  () => import("~/components/tournament/TournamentTeamCheckInOverlay.vue"),
+);
 import { useClipModal } from "~/composables/useClipModal";
 
 const { activeClipId } = useClipModal();
@@ -138,6 +141,8 @@ provide("containContent", containContent);
   <EnableNotificationsPrompt />
 
   <TournamentCheckInOverlay />
+
+  <TournamentTeamCheckInOverlay />
 
   <ActionToasts />
 </template>
