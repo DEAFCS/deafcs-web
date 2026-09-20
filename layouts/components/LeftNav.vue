@@ -838,14 +838,14 @@ function onLeftNavTouchEnd(e: TouchEvent) {
         <Separator
           v-if="
             showSeparators &&
-            (isAdmin || isMatchOrganizer || isTournamentOrganizer || isStreamer)
+            (isAdmin || isMatchOrganizer || isTournamentOrganizer || isStreamer || canModerate)
           "
           class="mx-4 w-auto"
         />
 
         <SidebarGroup
           v-if="
-            isAdmin || isMatchOrganizer || isTournamentOrganizer || isStreamer
+            isAdmin || isMatchOrganizer || isTournamentOrganizer || isStreamer || canModerate
           "
         >
           <SidebarGroupLabel>{{
@@ -876,7 +876,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem
-              v-if="isAdmin"
+              v-if="canModerate"
               :tooltip="
                 $t('layouts.app_nav.tooltips.verification_applications')
               "
@@ -905,7 +905,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem v-if="isAdmin" tooltip="Review support requests">
+            <SidebarMenuItem v-if="canModerate" tooltip="Review support requests">
               <SidebarMenuButton as-child tooltip="Review support requests">
                 <NuxtLink
                   :to="{ name: 'support-requests' }"
@@ -1707,6 +1707,9 @@ export default {
     },
     isAdmin() {
       return useAuthStore().isAdmin;
+    },
+    canModerate() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
     },
     isInfoRouteActive() {
       const infoPaths = [

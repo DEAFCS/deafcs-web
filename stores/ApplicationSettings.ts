@@ -183,15 +183,15 @@ export const useApplicationSettingsStore = defineStore(
     });
 
     const tournamentCreateRole = computed(() => {
-      if (!settings.value) {
-        return false;
-      }
-
       const create_tournaments_role = settings.value.find(
         (setting) => setting.name === "public.create_tournaments_role",
       );
 
-      return create_tournaments_role?.value || e_player_roles_enum.user;
+      // Fail closed: a missing, invalid, or legacy low value must never make
+      // tournament creation available below Tournament Organizer.
+      return create_tournaments_role?.value === e_player_roles_enum.administrator
+        ? e_player_roles_enum.administrator
+        : e_player_roles_enum.tournament_organizer;
     });
 
     const eventCreateRole = computed(() => {

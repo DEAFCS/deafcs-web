@@ -15,7 +15,7 @@ useHead({ title: "Support Request" });
       <template #title>Support Request</template>
       <template #actions>
         <Button as-child variant="outline"
-          ><NuxtLink :to="isAdmin ? '/support-requests' : '/support'"
+          ><NuxtLink :to="isStaff ? '/support-requests' : '/support'"
             ><ArrowLeft />Back</NuxtLink
           ></Button
         >
@@ -49,7 +49,7 @@ useHead({ title: "Support Request" });
           >
         </div>
         <div
-          v-if="isAdmin"
+          v-if="isStaff"
           class="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-border/60 pt-5"
         >
           <PlayerDisplay :player="request.player" :show-elo="false" linkable />
@@ -130,7 +130,7 @@ useHead({ title: "Support Request" });
           <div class="mr-8 rounded-lg border border-border/60 bg-card/40 p-3">
             <div class="mb-1 flex items-center justify-between gap-2">
               <span class="text-xs font-medium">{{
-                isAdmin ? request.player.name : "You"
+                isStaff ? request.player.name : "You"
               }}</span
               ><TimeAgo
                 :date="request.created_at"
@@ -150,8 +150,8 @@ useHead({ title: "Support Request" });
             <div class="mb-1 flex items-center justify-between gap-2">
               <span class="text-xs font-medium">{{
                 message.is_admin
-                  ? "DEAFCS Admin"
-                  : isAdmin
+                  ? "DEAFCS Staff"
+                  : isStaff
                     ? request.player.name
                     : "You"
               }}</span
@@ -200,6 +200,7 @@ useHead({ title: "Support Request" });
 <script lang="ts">
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
+import { e_player_roles_enum } from "~/generated/zeus";
 
 const REQUEST_DETAIL = gql`
   query SupportRequestDetail($id: uuid!) {
@@ -270,8 +271,8 @@ export default {
     reply: "",
   }),
   computed: {
-    isAdmin() {
-      return useAuthStore().isAdmin;
+    isStaff() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
     },
   },
   mounted() {

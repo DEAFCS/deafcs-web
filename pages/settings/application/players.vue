@@ -184,7 +184,7 @@ async function doScanSteamBans() {
                       <SelectGroup>
                         <SelectItem
                           :value="role.value"
-                          v-for="role in roles"
+                          v-for="role in tournamentCreationRoles"
                           :key="role.value"
                         >
                           <span class="capitalize">{{ role.display }}</span>
@@ -653,7 +653,7 @@ export default {
               create_matches_role: z.string().default(e_player_roles_enum.user),
               create_tournaments_role: z
                 .string()
-                .default(e_player_roles_enum.user),
+                .default(e_player_roles_enum.tournament_organizer),
             }),
           }),
         ),
@@ -679,6 +679,11 @@ export default {
       return typeof value === "string" && value.length > 0
         ? value
         : e_player_roles_enum.user;
+    },
+    tournamentRoleOrDefault(value: unknown): string {
+      return value === e_player_roles_enum.administrator
+        ? e_player_roles_enum.administrator
+        : e_player_roles_enum.tournament_organizer;
     },
     async togglePlayerNameRegistration() {
       await (this as any).$apollo.mutate({
@@ -725,7 +730,7 @@ export default {
                   },
                   {
                     name: "public.create_tournaments_role",
-                    value: this.roleOrDefault(
+                    value: this.tournamentRoleOrDefault(
                       values.public?.create_tournaments_role,
                     ),
                   },
@@ -769,6 +774,10 @@ export default {
           display: this.$t("roles.streamer"),
         },
         {
+          value: e_player_roles_enum.moderator,
+          display: this.$t("roles.moderator"),
+        },
+        {
           value: e_player_roles_enum.match_organizer,
           display: this.$t("roles.match_organizer"),
         },
@@ -781,6 +790,14 @@ export default {
           display: this.$t("roles.administrator"),
         },
       ];
+    },
+    tournamentCreationRoles() {
+      return this.roles.filter((role) =>
+        [
+          e_player_roles_enum.tournament_organizer,
+          e_player_roles_enum.administrator,
+        ].includes(role.value),
+      );
     },
     settings() {
       return useApplicationSettingsStore().settings;
