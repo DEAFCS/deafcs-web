@@ -2,6 +2,8 @@
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { MapPin } from "lucide-vue-next";
+import TournamentTime from "~/components/tournament/TournamentTime.vue";
+import { localTimeZoneName } from "~/utilities/tournamentTime";
 
 const props = defineProps<{
   prizePool?: string | null;
@@ -21,8 +23,13 @@ const startLabel = computed(() => {
   if (isNaN(date.getTime())) {
     return null;
   }
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  return date;
 });
+
+const localZone = localTimeZoneName();
+const localNotice = computed(() =>
+  t("common.time.local_notice", { timezone: localZone }),
+);
 
 // Only render cells that actually have a value; the grid sizes itself to the
 // number of live cells so it never leaves an empty slot.
@@ -30,9 +37,9 @@ const cells = computed(() => {
   const list: Array<{
     key: string;
     label: string;
-    value: string;
+    value: string | Date;
     accent?: boolean;
-    kind?: "stat" | "location";
+    kind?: "stat" | "location" | "start";
   }> = [];
   if (props.prizePool) {
     list.push({
@@ -61,6 +68,7 @@ const cells = computed(() => {
       key: "starts",
       label: t("tournament.stats.starts"),
       value: startLabel.value,
+      kind: "start",
     });
   }
   if (props.location) {
@@ -97,17 +105,26 @@ const cells = computed(() => {
       <div
         v-if="cell.kind === 'location'"
         class="mt-1 flex items-start gap-1.5 text-sm font-semibold leading-snug text-foreground"
-        :title="cell.value"
+        :title="String(cell.value)"
       >
         <MapPin class="mt-0.5 h-3.5 w-3.5 shrink-0 text-[hsl(var(--tac-amber))]" />
         <span class="line-clamp-2">{{ cell.value }}</span>
+      </div>
+
+      <div v-else-if="cell.kind === 'start'" class="mt-1">
+        <div class="font-sans text-xl font-bold leading-tight text-foreground">
+          <TournamentTime :value="cell.value" display="date-time" />
+        </div>
+        <div class="mt-1 text-[0.65rem] text-muted-foreground">
+          {{ localNotice }}
+        </div>
       </div>
 
       <div
         v-else
         class="mt-1 truncate font-sans text-xl font-bold leading-tight tabular-nums"
         :class="cell.accent ? 'text-[hsl(var(--tac-amber))]' : 'text-foreground'"
-        :title="cell.value"
+        :title="String(cell.value)"
       >
         {{ cell.value }}
       </div>
