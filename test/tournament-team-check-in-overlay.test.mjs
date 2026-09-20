@@ -260,17 +260,20 @@ test("checkInTournamentTeam does NOT authorize on the general can_manage flag --
   // captain) check the team in.
   const action = checkInTournamentTeamAction();
   assert.doesNotMatch(action, /can_manage/);
-  assert.match(action, /isTournamentOrganizer/);
-  assert.match(action, /!isCaptain && !isTournamentOrganizer/);
+  assert.match(action, /hasEmergencyOverride/);
+  assert.match(action, /!isCaptain && !hasEmergencyOverride/);
 });
 
-test("the organizer/administrator override reuses tournament.is_organizer, the same computed field used everywhere else for that concept", () => {
+test("the organizer/administrator override is tournament-scoped and parameterized", () => {
   const action = checkInTournamentTeamAction();
-  assert.match(action, /is_organizer: true/);
-  assert.match(
-    action,
-    /isTournamentOrganizer = !!team\.tournament\?\.is_organizer/,
-  );
+  assert.doesNotMatch(action, /is_organizer/);
+  assert.match(action, /tournament\.id = \$1/);
+  assert.match(action, /tournament\.organizer_steam_id = \$2/);
+  assert.match(action, /assigned_organizer\.tournament_id = tournament\.id/);
+  assert.match(action, /assigned_organizer\.steam_id = \$2/);
+  assert.match(action, /player\.steam_id = \$2/);
+  assert.match(action, /player\.role = 'administrator'/);
+  assert.match(action, /\[team\.tournament_id, data\.user\.steam_id\]/);
 });
 
 // The captain carve-out is deliberately kept local to checkInTournamentTeam
