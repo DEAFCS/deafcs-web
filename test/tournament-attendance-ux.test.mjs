@@ -135,16 +135,24 @@ test("Solo Random players list shows public attendance state, waitlist included"
 // --- Public tournament check-in information ---------------------------------
 
 test("the check-in explainer renders real clock times, not the raw offsets", () => {
+  assert.match(checkInInfoSource, /from "~\/utilities\/tournamentAttendance"/);
   assert.match(
     checkInInfoSource,
-    /from "~\/utilities\/tournamentAttendance"/,
+    /attendanceWindow\(props\.tournament as any\)/,
   );
-  assert.match(checkInInfoSource, /attendanceWindow\(props\.tournament as any\)/);
-  assert.match(checkInInfoSource, /formatClockTime\(window\.value\.opensAt\)/);
-  assert.match(checkInInfoSource, /formatClockTime\(window\.value\.closesAt\)/);
-  assert.match(checkInInfoSource, /\{\{ opensAt \}\}–\{\{ closesAt \}\}/);
+  assert.match(
+    checkInInfoSource,
+    /<TournamentTime\s+:value="attendanceTimes\?\.opensAt"\s+display="time"/,
+  );
+  assert.match(
+    checkInInfoSource,
+    /<TournamentTime[\s\S]{0,100}:value="attendanceTimes\?\.closesAt"/,
+  );
   // No "60"/"15" style raw configuration is surfaced here.
-  assert.doesNotMatch(checkInInfoSource, /attendance_check_in_open_before_minutes/);
+  assert.doesNotMatch(
+    checkInInfoSource,
+    /attendance_check_in_open_before_minutes/,
+  );
 });
 
 test("the explainer only runs while attendance is still relevant", () => {
