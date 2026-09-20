@@ -154,18 +154,23 @@ export default {
         const minutes = Math.floor((diffInSeconds % 3600) / 60);
         const seconds = diffInSeconds % 60;
 
-        let timeText = "";
+        // Seconds must always be shown once there's a minutes/hours prefix --
+        // the old `seconds > 0 || timeText === ""` guard dropped them
+        // whenever seconds happened to land on exactly :00 (e.g. crossing
+        // from 0:59 to 1:00 showed "1:" with nothing after it, then jumped
+        // straight to "1:01" the next tick, skipping "1:00" entirely).
+        let timeText: string;
         if (hours > 0) {
-          timeText += `${hours}:`;
-        }
-        if (minutes > 0) {
-          timeText += `${minutes}:`;
-        }
-        if (seconds > 0 || timeText === "") {
-          timeText += `${seconds.toString().padStart(2, "0")}`;
+          timeText = `${hours}:${minutes.toString().padStart(2, "0")}:${seconds
+            .toString()
+            .padStart(2, "0")}`;
+        } else if (minutes > 0) {
+          timeText = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+        } else {
+          timeText = seconds.toString().padStart(2, "0");
         }
 
-        this.text = timeText.trim();
+        this.text = timeText;
       } else {
         this.text = timeAgo.format(time);
       }
