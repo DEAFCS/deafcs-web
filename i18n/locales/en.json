@@ -5566,7 +5566,9 @@
         "requires_closed_registration": "Close registration first.",
         "overlay_title": "Confirm you're still in",
         "overlay_description": "You're registered for {name}. Check in now or you'll be replaced by the next player on the waitlist.",
-        "check_in_now": "Check In Now"
+        "check_in_now": "Check In Now",
+        "team_overlay_title": "Check in your team",
+        "team_check_in_now": "Check In Team"
       },
       "add_player": "Add Player",
       "add_player_added": "Player added to the tournament",
