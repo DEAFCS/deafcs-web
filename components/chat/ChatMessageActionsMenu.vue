@@ -10,9 +10,8 @@ import {
 
 defineProps<{
   canEdit: boolean;
-  // Extra classes for the trigger button, so the header-row placement and
-  // the corner-overlay placement (grouped messages with no visible header)
-  // can each position it differently without duplicating the menu itself.
+  // Extra classes let each message position its own trigger while this
+  // component remains the single implementation of the action menu.
   triggerClass?: string;
   align?: "start" | "end";
 }>();
@@ -38,7 +37,7 @@ const open = ref(false);
           'inline-flex h-4 w-4 shrink-0 items-center justify-center rounded text-muted-foreground transition-opacity hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
           open
             ? 'opacity-100'
-            : 'opacity-100 sm:opacity-0 sm:group-hover:opacity-100 sm:group-focus-within:opacity-100',
+            : 'opacity-0 group-hover/chat-message:opacity-100 group-focus-within/chat-message:opacity-100 [@media(hover:none)]:opacity-100',
           triggerClass,
         ]"
       >

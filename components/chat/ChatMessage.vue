@@ -10,7 +10,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
 <template>
   <div
     :class="[
-      'group relative pl-12 text-[11px] leading-snug',
+      'group/chat-message relative pl-12 pr-6 text-[11px] leading-snug',
       isSameSender && isCloseTogether ? 'mt-1' : 'mt-3',
     ]"
   >
@@ -54,18 +54,6 @@ import { e_player_roles_enum } from "~/generated/zeus";
         <span class="text-[10px] whitespace-nowrap">
           <time-ago :date="message.timestamp" hide-icon></time-ago>
         </span>
-        <!-- Sits in the header row, after the timestamp, so it never shares
-             a flex row with the message body -- opening/hovering it can
-             never change where the message text wraps. -->
-        <ChatMessageActionsMenu
-          v-if="canModerate && !isEditing"
-          :can-edit="canEdit"
-          align="start"
-          trigger-class="ml-0.5"
-          @edit="startEdit"
-          @mute="requestMute"
-          @delete="requestDelete"
-        />
       </div>
       <div v-if="isEditing" class="flex items-start gap-1.5">
         <textarea
@@ -101,17 +89,11 @@ import { e_player_roles_enum } from "~/generated/zeus";
       </p>
     </div>
 
-    <!-- Grouped message with no visible header: the avatar column (pl-12,
-         avatar itself at left-2) sits empty for these rows since the
-         avatar only renders when showMeta is true. Reusing that same
-         left-2 slot for the trigger needs no text padding at all -- the
-         message <p> above never reserves space for it, so its width is
-         completely unaffected by hover or the menu opening. -->
     <ChatMessageActionsMenu
-      v-if="needsOverlayMenu"
+      v-if="canModerate && !isEditing"
       :can-edit="canEdit"
-      align="start"
-      trigger-class="absolute left-2 top-0 z-10"
+      align="end"
+      trigger-class="absolute right-1 top-0 z-10"
       @edit="startEdit"
       @mute="requestMute"
       @delete="requestDelete"
@@ -206,12 +188,6 @@ export default {
     },
     canEdit() {
       return this.canModerate && this.chatType === "announcement";
-    },
-    // Grouped messages (isSameSender + isCloseTogether) have no header row
-    // to hang the actions menu on, so they get their own corner-overlay
-    // trigger instead -- every message keeps a reachable Delete action.
-    needsOverlayMenu() {
-      return this.canModerate && !this.showMeta && !this.isEditing;
     },
   },
   methods: {
