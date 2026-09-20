@@ -23,7 +23,7 @@ import FriendListItem from "~/components/matchmaking-lobby/FriendListItem.vue";
           class="pl-8"
         />
       </div>
-      <Tooltip v-if="friendsOnly">
+      <Tooltip v-if="friendsOnly" :delay-duration="0">
         <TooltipTrigger as-child>
           <Button
             variant="outline"

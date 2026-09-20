@@ -17,9 +17,22 @@ test("Steam Sync button is the tooltip trigger without a separate info control",
   );
   assert.match(
     playersList,
-    /<Tooltip v-if="friendsOnly">\s*<TooltipTrigger as-child>\s*<Button[\s\S]*?<\/Button>\s*<\/TooltipTrigger>\s*<TooltipContent side="bottom">\s*\{\{ \$t\("matchmaking\.friends\.sync_info"\) \}\}/,
+    /<Tooltip v-if="friendsOnly"[^>]*>\s*<TooltipTrigger as-child>\s*<Button[\s\S]*?<\/Button>\s*<\/TooltipTrigger>\s*<TooltipContent side="bottom">\s*\{\{ \$t\("matchmaking\.friends\.sync_info"\) \}\}/,
   );
   assert.doesNotMatch(playersList, /FiveStackToolTip|<Info\b/);
+});
+
+// Task 6: the shared Tooltip component defaults to a 500ms hover delay,
+// which made the Steam Sync explanation feel sluggish. This is the only
+// tooltip in the matchmaking lobby that needs an instant reveal -- every
+// other tooltip in the app keeps the shared default.
+test("Steam Sync tooltip has no hover delay, and is the only tooltip changed", () => {
+  assert.match(
+    playersList,
+    /<Tooltip v-if="friendsOnly" :delay-duration="0">/,
+  );
+  const tooltipOpenTags = playersList.match(/<Tooltip\b[^>]*>/g) ?? [];
+  assert.equal(tooltipOpenTags.length, 1);
 });
 
 test("Steam Sync button preserves its action and syncing presentation", () => {
