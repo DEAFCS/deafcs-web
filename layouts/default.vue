@@ -65,8 +65,14 @@ useIncomingDirectMessages();
 const route = useRoute();
 const authStore = useAuthStore();
 
+// Floor is moderator, not match_organizer: moderator now has real sidebar
+// destinations (Support Requests, Verification Applications, both gated
+// individually inside LeftNav.vue's own canModerate checks), so it must
+// mount at all for a moderator session. isRoleAbove is a minimum-rank
+// check, so this still covers match_organizer/tournament_organizer/admin
+// unchanged -- only streamer and below still fall back to TopNav.
 const showLeftNav = computed(() => {
-  return authStore.isRoleAbove(e_player_roles_enum.match_organizer);
+  return authStore.isRoleAbove(e_player_roles_enum.moderator);
 });
 
 const containContent = computed(() => {
