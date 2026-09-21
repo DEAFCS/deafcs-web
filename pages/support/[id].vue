@@ -139,6 +139,7 @@ useHead({ title: "Support Request" });
                 size="xs"
                 compact
                 dense
+                dense-align-top
                 linkable
               />
               <TimeAgo
@@ -165,6 +166,7 @@ useHead({ title: "Support Request" });
                   size="xs"
                   compact
                   dense
+                  dense-align-top
                   linkable
                 />
                 <span v-else class="text-xs font-medium text-muted-foreground">

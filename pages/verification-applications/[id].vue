@@ -213,6 +213,7 @@ useHead({
                   size="xs"
                   compact
                   dense
+                  dense-align-top
                   linkable
                 />
                 <span v-else class="text-xs font-medium text-muted-foreground">

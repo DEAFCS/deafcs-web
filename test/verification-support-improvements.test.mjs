@@ -205,3 +205,44 @@ test("all six identity locations opt into the dense layout", () => {
     assert.match(source, pattern);
   }
 });
+
+// --- Task 7.2: badge spacing + reply-only top alignment ---------------------
+
+test("the role-badge row's min-height is 20px, and the old 26px value is gone (sole usage site)", () => {
+  assert.match(playerDisplay, /'min-h-\[20px\]'/);
+  assert.doesNotMatch(playerDisplay, /26px/);
+});
+
+test("denseAlignTop is a new opt-in prop, defaulting to false, only meaningful alongside dense", () => {
+  assert.match(
+    playerDisplay,
+    /denseAlignTop:\s*\{\s*type:\s*Boolean,\s*default:\s*false,?\s*\}/,
+  );
+  assert.match(playerDisplay, /'items-center':\s*dense\s*&&\s*!denseAlignTop/);
+  assert.match(playerDisplay, /'items-start':\s*dense\s*&&\s*denseAlignTop/);
+});
+
+test("only the four conversation-reply/initial-message identities use dense-align-top", () => {
+  const withTopAlign = [
+    [requestDetail, /request\.player"[\s\S]{0,200}dense-align-top/],
+    [requestDetail, /message\.sender"[\s\S]{0,200}dense-align-top/],
+    [applicationDetail, /message\.sender"[\s\S]{0,200}dense-align-top/],
+  ];
+  for (const [source, pattern] of withTopAlign) {
+    assert.match(source, pattern);
+  }
+});
+
+test("lists and Approved-by identities keep the centered (default) dense layout, not top-aligned", () => {
+  const stayCentered = [
+    [applicationsList, /application\.player"[^>]*linkable compact dense/],
+    [applicationsList, /application\.reviewed_by"[\s\S]{0,200}dense\s*\n/],
+    [applicationDetail, /application\.reviewed_by"[\s\S]{0,200}dense\s*\n/],
+    [requestsList, /request\.player"[^>]*linkable compact dense/],
+  ];
+  for (const [source, pattern] of stayCentered) {
+    const match = source.match(pattern);
+    assert.ok(match, `expected to find the dense identity block`);
+    assert.doesNotMatch(match[0], /dense-align-top/);
+  }
+});

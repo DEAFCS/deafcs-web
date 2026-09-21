@@ -32,7 +32,8 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
     class="grid"
     :class="{
       'min-h-12': !dense,
-      'items-center': dense,
+      'items-center': dense && !denseAlignTop,
+      'items-start': dense && denseAlignTop,
       'cursor-pointer group/playerlink': linkable,
       'gap-2': !compact,
       'gap-1.5': compact,
@@ -199,7 +200,7 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
           </div>
           <div
             class="flex items-center gap-2"
-            :class="{ 'min-h-[26px]': size !== 'xs' && !compact }"
+            :class="{ 'min-h-[20px]': size !== 'xs' && !compact }"
             v-if="player.steam_id"
           >
             <FiveStackToolTip v-if="showRole && tooltip">
@@ -389,6 +390,17 @@ export default {
     // row and adds a small gap between the name and role-badge rows instead
     // of them sitting flush against each other.
     dense: {
+      type: Boolean,
+      default: false,
+    },
+    // Only meaningful when dense is true. Centered vertical alignment
+    // (dense's default) reads well in a single table row or a short
+    // "Approved by" line, but in a conversation reply header the avatar
+    // sits noticeably taller than a one-line name -- centering the row
+    // pushes the name down and looks off. denseAlignTop keeps every other
+    // dense benefit (no min-h-12, the tight name/role-row gap) but aligns
+    // the row to the top instead, matching the avatar's own top edge.
+    denseAlignTop: {
       type: Boolean,
       default: false,
     },
