@@ -68,7 +68,7 @@ useHead({ title: "Support Requests" });
           @click="$router.push(`/support/${request.id}`)"
         >
           <TableCell
-            ><PlayerDisplay :player="request.player" :show-elo="false"
+            ><PlayerDisplay :player="request.player" :show-elo="false" linkable compact
           /></TableCell>
           <TableCell>{{ categoryLabel(request.category) }}</TableCell>
           <TableCell class="font-medium">{{ request.subject }}</TableCell>
@@ -109,6 +109,7 @@ const ALL_REQUESTS = gql`
         avatar_url
         custom_avatar_url
         country
+        role
       }
     }
   }

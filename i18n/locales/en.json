@@ -2911,10 +2911,14 @@
       "community_references": "Community References",
       "no_community_references": "No community references provided.",
       "legacy_reference": "Legacy reference",
+      "approved_by": "Approved by",
+      "approver_unknown": "Unknown",
+      "unknown_author": "Unknown author",
       "columns": {
         "player": "Player",
         "country": "Country",
         "status": "Status",
+        "approved_by": "Approved by",
         "submitted": "Submitted"
       },
       "call": {

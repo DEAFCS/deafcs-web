@@ -52,6 +52,7 @@ useHead({
           <TableHead>{{ $t("pages.verification_applications.columns.player") }}</TableHead>
           <TableHead>{{ $t("pages.verification_applications.columns.country") }}</TableHead>
           <TableHead>{{ $t("pages.verification_applications.columns.status") }}</TableHead>
+          <TableHead>{{ $t("pages.verification_applications.columns.approved_by") }}</TableHead>
           <TableHead>{{ $t("pages.verification_applications.columns.submitted") }}</TableHead>
           <TableHead></TableHead>
         </TableRow>
@@ -64,7 +65,7 @@ useHead({
           @click="$router.push({ name: 'verification-applications-id', params: { id: application.id } })"
         >
           <TableCell>
-            <PlayerDisplay :player="application.player" :show-elo="false" />
+            <PlayerDisplay :player="application.player" :show-elo="false" linkable compact />
           </TableCell>
           <TableCell class="flex items-center gap-2">
             <TimezoneFlag :country="application.country" />
@@ -74,6 +75,19 @@ useHead({
             <Badge :variant="statusVariant(application.status)">
               {{ $t(`pages.verify.status.${application.status}`) }}
             </Badge>
+          </TableCell>
+          <TableCell>
+            <PlayerDisplay
+              v-if="application.status === 'approved' && application.reviewed_by"
+              :player="application.reviewed_by"
+              :show-elo="false"
+              linkable
+              compact
+            />
+            <span v-else-if="application.status === 'approved'" class="text-sm text-muted-foreground">
+              {{ $t("pages.verification_applications.approver_unknown") }}
+            </span>
+            <span v-else class="text-sm text-muted-foreground">-</span>
           </TableCell>
           <TableCell>
             <TimeAgo :date="application.created_at" />
@@ -139,6 +153,15 @@ const ALL_APPLICATIONS_QUERY = gql`
         avatar_url
         custom_avatar_url
         country
+        role
+      }
+      reviewed_by {
+        steam_id
+        name
+        avatar_url
+        custom_avatar_url
+        country
+        role
       }
     }
   }

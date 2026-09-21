@@ -163,6 +163,22 @@ useHead({
 
           <dt class="text-muted-foreground">{{ $t("pages.verification_applications.columns.submitted") }}</dt>
           <dd><TimeAgo :date="application.created_at" /></dd>
+
+          <template v-if="application.status === 'approved'">
+            <dt class="text-muted-foreground">{{ $t("pages.verification_applications.approved_by") }}</dt>
+            <dd>
+              <PlayerDisplay
+                v-if="application.reviewed_by"
+                :player="application.reviewed_by"
+                :show-elo="false"
+                linkable
+                compact
+              />
+              <span v-else class="text-muted-foreground">
+                {{ $t("pages.verification_applications.approver_unknown") }}
+              </span>
+            </dd>
+          </template>
         </dl>
 
         <div class="flex gap-2 mt-6" v-if="application.status === 'pending'">
@@ -185,12 +201,23 @@ useHead({
             v-for="message in application.messages"
             :key="message.id"
             class="flex flex-col gap-1 rounded-lg border border-border/60 bg-card/40 p-3"
-            :class="{ 'mr-8': !message.is_admin, 'ml-8': message.is_admin }"
+            :class="{ 'mr-8': !message.is_admin, 'ml-8 border-l-2 border-l-[hsl(var(--tac-amber))]': message.is_admin }"
           >
             <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-medium text-foreground">
-                {{ message.is_admin ? $t("pages.verify.status.admin") : application.player.name }}
-              </span>
+              <div class="flex items-center gap-2">
+                <PlayerDisplay
+                  v-if="message.sender"
+                  :player="message.sender"
+                  :show-elo="false"
+                  size="xs"
+                  compact
+                  linkable
+                />
+                <span v-else class="text-xs font-medium text-muted-foreground">
+                  {{ $t("pages.verification_applications.unknown_author") }}
+                </span>
+                <Badge v-if="message.is_admin" size="sm" variant="outline">Staff reply</Badge>
+              </div>
               <TimeAgo :date="message.created_at" class="text-xs text-muted-foreground" />
             </div>
             <p class="text-sm text-foreground/90 whitespace-pre-wrap">{{ message.message }}</p>
@@ -286,18 +313,36 @@ const APPLICATION_DETAIL_QUERY = gql`
       additional_info
       account_declaration_accepted_at
       created_at
+      reviewed_at
       player {
         steam_id
         name
         avatar_url
         custom_avatar_url
         country
+        role
+      }
+      reviewed_by {
+        steam_id
+        name
+        avatar_url
+        custom_avatar_url
+        country
+        role
       }
       messages(order_by: { created_at: asc }) {
         id
         is_admin
         message
         created_at
+        sender {
+          steam_id
+          name
+          avatar_url
+          custom_avatar_url
+          country
+          role
+        }
       }
     }
   }

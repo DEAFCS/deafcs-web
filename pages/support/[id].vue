@@ -91,14 +91,18 @@ useHead({ title: "Support Request" });
               ><template v-else>-</template>
             </dd>
             <dt class="text-muted-foreground">Related match</dt>
-            <dd>{{ request.related_match_reference || "-" }}</dd>
+            <dd>
+              <LinkifyText v-if="request.related_match_reference" :text="request.related_match_reference" />
+              <template v-else>-</template>
+            </dd>
             <dt class="text-muted-foreground">Reason</dt>
             <dd>{{ request.report_reason }}</dd>
             <dt class="text-muted-foreground">Details</dt>
             <dd class="whitespace-pre-wrap">{{ request.report_details }}</dd>
             <dt class="text-muted-foreground">Evidence</dt>
-            <dd class="whitespace-pre-wrap">
-              {{ request.report_evidence || "-" }}
+            <dd>
+              <LinkifyText v-if="request.report_evidence" :text="request.report_evidence" />
+              <template v-else>-</template>
             </dd>
           </template>
           <template v-if="request.category === 'organizer_application'">
@@ -129,10 +133,14 @@ useHead({ title: "Support Request" });
         <div class="mt-4 flex flex-col gap-3">
           <div class="mr-8 rounded-lg border border-border/60 bg-card/40 p-3">
             <div class="mb-1 flex items-center justify-between gap-2">
-              <span class="text-xs font-medium">{{
-                isAdmin ? request.player.name : "You"
-              }}</span
-              ><TimeAgo
+              <PlayerDisplay
+                :player="request.player"
+                :show-elo="false"
+                size="xs"
+                compact
+                linkable
+              />
+              <TimeAgo
                 :date="request.created_at"
                 class="text-xs text-muted-foreground"
               />
@@ -145,17 +153,24 @@ useHead({ title: "Support Request" });
             v-for="message in request.messages"
             :key="message.id"
             class="rounded-lg border border-border/60 bg-card/40 p-3"
-            :class="message.is_admin ? 'ml-8' : 'mr-8'"
+            :class="message.is_admin ? 'ml-8 border-l-2 border-l-[hsl(var(--tac-amber))]' : 'mr-8'"
           >
             <div class="mb-1 flex items-center justify-between gap-2">
-              <span class="text-xs font-medium">{{
-                message.is_admin
-                  ? "DEAFCS Admin"
-                  : isAdmin
-                    ? request.player.name
-                    : "You"
-              }}</span
-              ><TimeAgo
+              <div class="flex items-center gap-2">
+                <PlayerDisplay
+                  v-if="message.sender"
+                  :player="message.sender"
+                  :show-elo="false"
+                  size="xs"
+                  compact
+                  linkable
+                />
+                <span v-else class="text-xs font-medium text-muted-foreground">
+                  Unknown author
+                </span>
+                <Badge v-if="message.is_admin" size="sm" variant="outline">Staff reply</Badge>
+              </div>
+              <TimeAgo
                 :date="message.created_at"
                 class="text-xs text-muted-foreground"
               />
@@ -228,12 +243,21 @@ const REQUEST_DETAIL = gql`
         avatar_url
         custom_avatar_url
         country
+        role
       }
       messages(order_by: { created_at: asc }) {
         id
         is_admin
         message
         created_at
+        sender {
+          steam_id
+          name
+          avatar_url
+          custom_avatar_url
+          country
+          role
+        }
       }
     }
   }
