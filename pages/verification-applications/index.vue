@@ -65,7 +65,7 @@ useHead({
           @click="$router.push({ name: 'verification-applications-id', params: { id: application.id } })"
         >
           <TableCell>
-            <PlayerDisplay :player="application.player" :show-elo="false" linkable compact />
+            <PlayerDisplay :player="application.player" :show-elo="false" linkable compact dense />
           </TableCell>
           <TableCell class="flex items-center gap-2">
             <TimezoneFlag :country="application.country" />
@@ -83,6 +83,7 @@ useHead({
               :show-elo="false"
               linkable
               compact
+              dense
             />
             <span v-else-if="application.status === 'approved'" class="text-sm text-muted-foreground">
               {{ $t("pages.verification_applications.approver_unknown") }}

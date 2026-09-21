@@ -68,7 +68,7 @@ useHead({ title: "Support Requests" });
           @click="$router.push(`/support/${request.id}`)"
         >
           <TableCell
-            ><PlayerDisplay :player="request.player" :show-elo="false" linkable compact
+            ><PlayerDisplay :player="request.player" :show-elo="false" linkable compact dense
           /></TableCell>
           <TableCell>{{ categoryLabel(request.category) }}</TableCell>
           <TableCell class="font-medium">{{ request.subject }}</TableCell>

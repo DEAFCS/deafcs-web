@@ -17,6 +17,7 @@ const applicationDetail = await read(
 const requestsList = await read("../pages/support-requests/index.vue");
 const requestDetail = await read("../pages/support/[id].vue");
 const linkify = await read("../components/LinkifyText.vue");
+const playerDisplay = await read("../components/PlayerDisplay.vue");
 
 // --- 1. Approver attribution --------------------------------------------
 
@@ -88,16 +89,18 @@ test("a missing sender falls back to a neutral 'Unknown author' label, never a s
   assert.match(requestDetail, /Unknown author/);
 });
 
-test("a reply is only ever marked as staff when the stored is_admin flag confirms it, never by role alone", () => {
+test("Task 7.1: the separate 'Staff reply' label is removed -- the real role badge is enough", () => {
   for (const source of [applicationDetail, requestDetail]) {
-    assert.match(source, /Staff reply<\/Badge>/);
-    // The Badge must sit behind a v-if on message.is_admin specifically --
-    // not on the sender's current role, which could differ from what they
-    // held when the message was actually sent.
-    const badgeLine = source
-      .split("\n")
-      .find((line) => line.includes("Staff reply"));
-    assert.match(badgeLine, /v-if="message\.is_admin"/);
+    assert.doesNotMatch(source, /Staff reply/);
+  }
+});
+
+test("message.is_admin is still read (styling/permissions), even with the visible label gone", () => {
+  // Task 7.1 explicitly requires the stored is_admin value to keep driving
+  // internal behavior (here: the amber left-border/indent that visually
+  // groups official replies) -- only the separate text label was removed.
+  for (const source of [applicationDetail, requestDetail]) {
+    assert.match(source, /message\.is_admin/);
   }
 });
 
@@ -172,4 +175,33 @@ test("an unsafe scheme (javascript:) never becomes a link", () => {
 test("plain, non-URL text is never linked", () => {
   const segment = toSegment("not a url at all", "deafcs.net");
   assert.equal(segment.type, "text");
+});
+
+// --- Task 7.1: compact/aligned identity layout ------------------------------
+
+test("dense is a new opt-in PlayerDisplay prop, defaulting to false so unrelated pages are unaffected", () => {
+  assert.match(playerDisplay, /dense:\s*\{\s*type:\s*Boolean,\s*default:\s*false,?\s*\}/);
+});
+
+test("dense centers the identity row against the avatar instead of changing the default grid for every consumer", () => {
+  // items-center is applied only via the dense class binding, not as a
+  // static class on the root grid -- every other PlayerDisplay usage keeps
+  // its current (unaligned) default behavior untouched.
+  assert.doesNotMatch(playerDisplay, /class="grid[^"]*items-center/);
+  assert.match(playerDisplay, /'items-center':\s*dense/);
+});
+
+test("all six identity locations opt into the dense layout", () => {
+  const sites = [
+    [applicationsList, /application\.player"[^>]*linkable compact dense/],
+    [applicationsList, /application\.reviewed_by"[\s\S]{0,200}dense/],
+    [applicationDetail, /application\.reviewed_by"[\s\S]{0,200}dense/],
+    [applicationDetail, /message\.sender"[\s\S]{0,200}dense/],
+    [requestsList, /request\.player"[^>]*linkable compact dense/],
+    [requestDetail, /request\.player"[\s\S]{0,200}dense/],
+    [requestDetail, /message\.sender"[\s\S]{0,200}dense/],
+  ];
+  for (const [source, pattern] of sites) {
+    assert.match(source, pattern);
+  }
 });

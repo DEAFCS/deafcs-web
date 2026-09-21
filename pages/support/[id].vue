@@ -138,6 +138,7 @@ useHead({ title: "Support Request" });
                 :show-elo="false"
                 size="xs"
                 compact
+                dense
                 linkable
               />
               <TimeAgo
@@ -163,12 +164,12 @@ useHead({ title: "Support Request" });
                   :show-elo="false"
                   size="xs"
                   compact
+                  dense
                   linkable
                 />
                 <span v-else class="text-xs font-medium text-muted-foreground">
                   Unknown author
                 </span>
-                <Badge v-if="message.is_admin" size="sm" variant="outline">Staff reply</Badge>
               </div>
               <TimeAgo
                 :date="message.created_at"

@@ -29,8 +29,10 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
     "
     active-class="player-display-active"
     exact-active-class="player-display-active"
-    class="grid min-h-12"
+    class="grid"
     :class="{
+      'min-h-12': !dense,
+      'items-center': dense,
       'cursor-pointer group/playerlink': linkable,
       'gap-2': !compact,
       'gap-1.5': compact,
@@ -119,6 +121,7 @@ const { eloForPlayer } = usePlayerActiveSeasonElo();
             'text-lg': size === 'lg' && !compact,
             'text-xl': size === 'xl' && !compact,
             'min-w-0': truncateName,
+            'flex flex-col justify-center gap-0.5': dense,
           }"
         >
           <div
@@ -374,6 +377,18 @@ export default {
       default: true,
     },
     compact: {
+      type: Boolean,
+      default: false,
+    },
+    // Opt-in only -- default false leaves every existing PlayerDisplay
+    // consumer untouched. Fixes two layout issues in narrow admin table
+    // cells/conversation rows: (1) the root grid has no align-items, so the
+    // name/role text block (shorter than the avatar) sits at the top of the
+    // row instead of centering against it, and (2) the fixed min-h-12 forces
+    // unnecessary row height in compact contexts. `dense` centers the grid
+    // row and adds a small gap between the name and role-badge rows instead
+    // of them sitting flush against each other.
+    dense: {
       type: Boolean,
       default: false,
     },

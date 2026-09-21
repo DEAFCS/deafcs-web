@@ -173,6 +173,7 @@ useHead({
                 :show-elo="false"
                 linkable
                 compact
+                dense
               />
               <span v-else class="text-muted-foreground">
                 {{ $t("pages.verification_applications.approver_unknown") }}
@@ -211,12 +212,12 @@ useHead({
                   :show-elo="false"
                   size="xs"
                   compact
+                  dense
                   linkable
                 />
                 <span v-else class="text-xs font-medium text-muted-foreground">
                   {{ $t("pages.verification_applications.unknown_author") }}
                 </span>
-                <Badge v-if="message.is_admin" size="sm" variant="outline">Staff reply</Badge>
               </div>
               <TimeAgo :date="message.created_at" class="text-xs text-muted-foreground" />
             </div>
