@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import ToastCard from "~/components/notification/ToastCard.vue";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
@@ -149,7 +149,53 @@ const items = computed<ToastItem[]>(() => {
   return list;
 });
 
+// Dismissing a toast only hides the reminder, it doesn't decline the
+// underlying request -- so this has to survive a refresh (persisted to
+// localStorage) rather than reset every time the component remounts.
+const DISMISSED_STORAGE_KEY = "deafcs:dismissed-action-toasts";
+
 const dismissed = ref<Set<string>>(new Set());
+
+const persistDismissed = () => {
+  try {
+    localStorage.setItem(
+      DISMISSED_STORAGE_KEY,
+      JSON.stringify([...dismissed.value]),
+    );
+  } catch {
+    // Private browsing / storage disabled: dismissal just won't survive a
+    // refresh, same as before this change.
+  }
+};
+
+onMounted(() => {
+  try {
+    const raw = localStorage.getItem(DISMISSED_STORAGE_KEY);
+    if (raw) {
+      dismissed.value = new Set(JSON.parse(raw));
+    }
+  } catch {
+    // Malformed or unavailable storage: start with nothing dismissed.
+  }
+});
+
+// Once a request is no longer pending (accepted/declined/expired
+// elsewhere), drop its id from the dismissed set -- otherwise a genuinely
+// new request from the same person later would reuse the same id (e.g.
+// `friend:${steam_id}`) and get silently suppressed forever.
+watch(items, (current) => {
+  const currentIds = new Set(current.map((item) => item.id));
+  let changed = false;
+  for (const id of dismissed.value) {
+    if (!currentIds.has(id)) {
+      dismissed.value.delete(id);
+      changed = true;
+    }
+  }
+  if (changed) {
+    persistDismissed();
+  }
+});
 
 const hoveredGroup = ref<string | null>(null);
 
@@ -201,10 +247,12 @@ const run = async (item: ToastItem, accept: boolean) => {
 
 const dismissGroup = (group: ToastItem[]) => {
   group.forEach((item) => dismissed.value.add(item.id));
+  persistDismissed();
 };
 
 const dismissItem = (item: ToastItem) => {
   dismissed.value.add(item.id);
+  persistDismissed();
 };
 </script>
 
