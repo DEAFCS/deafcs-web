@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ middleware: "admin" });
+
 import ServiceLogs from "~/components/ServiceLogs.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Switch } from "~/components/ui/switch";

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ middleware: "admin" });
+
 import { generateQuery } from "~/graphql/graphqlGen";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import CpuChart from "~/components/charts/CpuChart.vue";

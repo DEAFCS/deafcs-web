@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ middleware: "admin" });
+
 import { generateQuery } from "~/graphql/graphqlGen";
 import CpuChart from "~/components/charts/CpuChart.vue";
 import MemoryChart from "~/components/charts/MemoryChart.vue";
