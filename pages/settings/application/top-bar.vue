@@ -135,6 +135,11 @@ export default {
           order: order.play ?? 2 + pluginCount,
         },
         {
+          key: "tournament",
+          label: this.$t("layouts.top_nav.tournament_menu") as string,
+          order: order.tournament ?? 2.5 + pluginCount,
+        },
+        {
           key: "community",
           label: this.$t("layouts.top_nav.community_menu") as string,
           order: order.community ?? 3 + pluginCount,

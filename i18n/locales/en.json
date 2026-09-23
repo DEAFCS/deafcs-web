@@ -4642,6 +4642,7 @@
     },
     "top_nav": {
       "play_menu": "Play",
+      "tournament_menu": "Tournament",
       "community_menu": "Community",
       "watch_menu": "Watch",
       "info_menu": "Info",
@@ -4650,19 +4651,6 @@
       "login_aria": "Sign in through Steam",
       "authorize": "AUTHORIZE",
       "secure_access": "/ SECURE ACCESS",
-      "play": {
-        "find_match": "Find a Match",
-        "tournaments": "Tournaments",
-        "leagues": "League",
-        "scrim_finder": "Scrim Finder",
-        "public_servers": "Public Servers",
-        "hero": {
-          "title": "Play & Compete",
-          "subtitle": "Join matches, tournaments.",
-          "primary": "PRIMARY"
-        },
-        "operations": "OPERATIONS"
-      },
       "community": {
         "watch": {
           "title": "Watch",

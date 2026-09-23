@@ -78,11 +78,6 @@ const route = useRoute();
 const authStore = useAuthStore();
 
 const { pendingImports: pendingMatchImports } = usePendingImports();
-const {
-  currentSeasonTo: currentLeagueSeasonTo,
-  currentSeason: currentLeagueSeason,
-} = useCurrentLeagueSeason();
-const hasLeagueSeason = computed(() => !!currentLeagueSeason.value);
 const homePath = computed(() => {
   const override = useApplicationSettingsStore().topBarLogoLink;
   if (override) {
@@ -125,7 +120,6 @@ const navBadgeDotClasses =
 
 const navContentClasses =
   "relative mt-0 min-w-[360px] max-w-[95vw] overflow-hidden border border-topnav-border bg-[linear-gradient(180deg,hsl(var(--topnav-background)/0.98)_0%,hsl(var(--topnav-background)/0.92)_100%)] p-0 shadow-[inset_0_1px_0_hsl(var(--tac-amber)/0.12),0_20px_40px_-12px_hsl(0_0%_0%/0.55)] [backdrop-filter:blur(8px)] [-webkit-backdrop-filter:blur(8px)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent,hsl(var(--tac-amber)/0.5),transparent)]";
-const playContentClasses = `${navContentClasses} min-w-[500px]`;
 const communityContentClasses = `${navContentClasses} min-w-[560px]`;
 const infoContentClasses = `${navContentClasses} min-w-[720px]`;
 
@@ -144,17 +138,6 @@ const navItemLabelIconClasses = "gap-2";
 const navItemContentClasses = "flex min-w-0 flex-1 flex-col gap-1";
 const navItemSubClasses =
   "text-[0.64rem] font-medium normal-case tracking-[0.08em] text-[hsl(var(--topnav-foreground)/0.5)] [font-family:system-ui,sans-serif]";
-
-const heroClasses =
-  "relative flex min-w-[160px] max-w-[210px] flex-col items-start justify-center gap-[0.35rem] overflow-hidden border-l border-l-[hsl(var(--tac-amber)/0.3)] bg-[linear-gradient(135deg,hsl(var(--tac-amber)/0.18)_0%,hsl(var(--tac-amber)/0.04)_100%),hsl(var(--topnav-primary)/0.9)] px-[1.1rem] py-5";
-const heroGridClasses =
-  "pointer-events-none absolute inset-0 bg-[linear-gradient(hsl(var(--tac-amber)/0.08)_1px,transparent_1px),linear-gradient(90deg,hsl(var(--tac-amber)/0.08)_1px,transparent_1px)] [background-size:16px_16px] [mask-image:radial-gradient(ellipse_at_30%_30%,black_0%,transparent_75%)]";
-const heroLabelClasses =
-  "relative inline-flex items-center gap-[0.35rem] font-sans text-[0.58rem] font-semibold uppercase tracking-[0.28em] text-[hsl(var(--tac-amber))]";
-const heroTitleClasses =
-  "relative font-sans text-[1.15rem] font-bold uppercase leading-[1.05] tracking-[0.03em] text-topnav-primary-foreground [font-stretch:82%]";
-const heroSubtitleClasses =
-  "relative text-[0.72rem] leading-[1.35] text-[hsl(var(--topnav-primary-foreground)/0.65)]";
 
 const topNavRightClasses = "flex shrink-0 items-center gap-1 sm:gap-2";
 const profileButtonClasses =
@@ -254,105 +237,30 @@ const socialLinkClasses =
               </NavigationMenuItem>
 
               <NavigationMenuItem v-else-if="item.type === 'play'">
-                <NavigationMenuTrigger :class="navTriggerClasses">
-                  <span :class="navTickClasses"></span>
-                  {{ $t("layouts.top_nav.play_menu") }}
-                  <span v-if="playTotalCount > 0" :class="navBadgeClasses">
-                    {{ playTotalCount }}
-                  </span>
-                </NavigationMenuTrigger>
+                <NavigationMenuLink as-child>
+                  <NuxtLink to="/play" :class="navLinkClasses">
+                    <span :class="navTickClasses"></span>
+                    {{ $t("layouts.top_nav.play_menu") }}
+                    <span v-if="playTotalCount > 0" :class="navBadgeClasses">
+                      {{ playTotalCount }}
+                    </span>
+                  </NuxtLink>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
 
-                <NavigationMenuContent :class="playContentClasses">
-                  <div class="flex w-full p-5">
-                    <div class="min-w-[160px] flex-1">
-                      <div :class="navGroupLabelClasses">
-                        <span :class="navGroupLabelTickClasses"></span>
-                        {{ $t("layouts.top_nav.play.operations") }}
-                      </div>
-                      <ul class="flex flex-col gap-1">
-                        <li>
-                          <NavigationMenuLink as-child>
-                            <NuxtLink to="/play" :class="navItemClasses">
-                              <span :class="navItemChevronClasses">◢</span>
-                              <span :class="navItemLabelClasses">
-                                {{ $t("layouts.top_nav.play.find_match") }}
-                              </span>
-                            </NuxtLink>
-                          </NavigationMenuLink>
-                        </li>
-                        <li>
-                          <NavigationMenuLink as-child>
-                            <NuxtLink to="/tournaments" :class="navItemClasses">
-                              <span :class="navItemChevronClasses">◢</span>
-                              <span :class="navItemLabelClasses">
-                                {{ $t("layouts.top_nav.play.tournaments") }}
-                              </span>
-                              <span
-                                v-if="activeTournamentsCount > 0"
-                                :class="[navBadgeClasses, navBadgeInlineClasses]"
-                              >
-                                {{ activeTournamentsCount }}
-                              </span>
-                            </NuxtLink>
-                          </NavigationMenuLink>
-                        </li>
-                        <li v-if="leaguesEnabled && hasLeagueSeason">
-                          <NavigationMenuLink as-child>
-                            <NuxtLink
-                              :to="currentLeagueSeasonTo"
-                              :class="navItemClasses"
-                            >
-                              <span :class="navItemChevronClasses">◢</span>
-                              <span :class="navItemLabelClasses">
-                                {{ $t("layouts.top_nav.play.leagues") }}
-                              </span>
-                            </NuxtLink>
-                          </NavigationMenuLink>
-                        </li>
-                        <li v-if="scrimFinderEnabled">
-                          <NavigationMenuLink as-child>
-                            <NuxtLink to="/scrims" :class="navItemClasses">
-                              <span :class="navItemChevronClasses">◢</span>
-                              <span :class="navItemLabelClasses">
-                                {{ $t("layouts.top_nav.play.scrim_finder") }}
-                              </span>
-                            </NuxtLink>
-                          </NavigationMenuLink>
-                        </li>
-                        <li v-if="showPublicServersLink">
-                          <NavigationMenuLink as-child>
-                            <NuxtLink
-                              to="/public-servers"
-                              :class="navItemClasses"
-                            >
-                              <span :class="navItemChevronClasses">◢</span>
-                              <span :class="navItemLabelClasses">
-                                {{ $t("layouts.top_nav.play.public_servers") }}
-                              </span>
-                            </NuxtLink>
-                          </NavigationMenuLink>
-                        </li>
-                      </ul>
-                    </div>
-
-                    <div :class="[heroClasses, '-my-5 -mr-5 ml-5']">
-                      <div :class="heroGridClasses" aria-hidden="true"></div>
-                      <div :class="heroLabelClasses">
-                        <span
-                          class="text-[0.55rem] text-[hsl(var(--tac-amber))]"
-                          >◢</span
-                        >
-                        {{ $t("layouts.top_nav.play.hero.primary") }}
-                      </div>
-                      <div :class="heroTitleClasses">
-                        {{ $t("layouts.top_nav.play.hero.title") }}
-                      </div>
-                      <div :class="heroSubtitleClasses">
-                        {{ $t("layouts.top_nav.play.hero.subtitle") }}
-                      </div>
-                    </div>
-                  </div>
-                </NavigationMenuContent>
+              <NavigationMenuItem v-else-if="item.type === 'tournament'">
+                <NavigationMenuLink as-child>
+                  <NuxtLink to="/tournaments" :class="navLinkClasses">
+                    <span :class="navTickClasses"></span>
+                    {{ $t("layouts.top_nav.tournament_menu") }}
+                    <span
+                      v-if="activeTournamentsCount > 0"
+                      :class="navBadgeClasses"
+                    >
+                      {{ activeTournamentsCount }}
+                    </span>
+                  </NuxtLink>
+                </NavigationMenuLink>
               </NavigationMenuItem>
 
               <NavigationMenuItem v-else-if="item.type === 'community'">
@@ -979,87 +887,45 @@ const socialLinkClasses =
                   </span>
                 </NuxtLink>
 
-                <div v-else-if="item.type === 'play'" class="flex flex-col gap-1">
-                  <div :class="[navGroupLabelClasses, 'mt-3']">
-                    <span :class="navGroupLabelTickClasses"></span>
-                    {{ $t("layouts.top_nav.play_menu") }}
-                  </div>
-                  <NuxtLink
-                    to="/play"
-                    :class="[navItemClasses, navItemStackedClasses]"
-                    @click="mobileNavOpen = false"
-                  >
-                    <span :class="navItemChevronClasses">◢</span>
-                    <span :class="navItemContentClasses">
-                      <span :class="navItemLabelClasses">
-                        {{ $t("layouts.top_nav.play.find_match") }}
-                        <span
-                          v-if="playTotalCount > 0"
-                          :class="[navBadgeClasses, navBadgeInlineClasses]"
-                        >
-                          {{ playTotalCount }}
-                        </span>
+                <NuxtLink
+                  v-else-if="item.type === 'play'"
+                  to="/play"
+                  :class="[navItemClasses, navItemStackedClasses]"
+                  @click="mobileNavOpen = false"
+                >
+                  <span :class="navItemChevronClasses">◢</span>
+                  <span :class="navItemContentClasses">
+                    <span :class="navItemLabelClasses">
+                      {{ $t("layouts.top_nav.play_menu") }}
+                      <span
+                        v-if="playTotalCount > 0"
+                        :class="[navBadgeClasses, navBadgeInlineClasses]"
+                      >
+                        {{ playTotalCount }}
                       </span>
                     </span>
-                  </NuxtLink>
-                  <NuxtLink
-                    to="/tournaments"
-                    :class="[navItemClasses, navItemStackedClasses]"
-                    @click="mobileNavOpen = false"
-                  >
-                    <span :class="navItemChevronClasses">◢</span>
-                    <span :class="navItemContentClasses">
-                      <span :class="navItemLabelClasses">
-                        {{ $t("layouts.top_nav.play.tournaments") }}
-                        <span
-                          v-if="activeTournamentsCount > 0"
-                          :class="[navBadgeClasses, navBadgeInlineClasses]"
-                        >
-                          {{ activeTournamentsCount }}
-                        </span>
+                  </span>
+                </NuxtLink>
+
+                <NuxtLink
+                  v-else-if="item.type === 'tournament'"
+                  to="/tournaments"
+                  :class="[navItemClasses, navItemStackedClasses]"
+                  @click="mobileNavOpen = false"
+                >
+                  <span :class="navItemChevronClasses">◢</span>
+                  <span :class="navItemContentClasses">
+                    <span :class="navItemLabelClasses">
+                      {{ $t("layouts.top_nav.tournament_menu") }}
+                      <span
+                        v-if="activeTournamentsCount > 0"
+                        :class="[navBadgeClasses, navBadgeInlineClasses]"
+                      >
+                        {{ activeTournamentsCount }}
                       </span>
                     </span>
-                  </NuxtLink>
-                  <NuxtLink
-                    v-if="leaguesEnabled && hasLeagueSeason"
-                    :to="currentLeagueSeasonTo"
-                    :class="[navItemClasses, navItemStackedClasses]"
-                    @click="mobileNavOpen = false"
-                  >
-                    <span :class="navItemChevronClasses">◢</span>
-                    <span :class="navItemContentClasses">
-                      <span :class="navItemLabelClasses">
-                        {{ $t("layouts.top_nav.play.leagues") }}
-                      </span>
-                    </span>
-                  </NuxtLink>
-                  <NuxtLink
-                    v-if="scrimFinderEnabled"
-                    to="/scrims"
-                    :class="[navItemClasses, navItemStackedClasses]"
-                    @click="mobileNavOpen = false"
-                  >
-                    <span :class="navItemChevronClasses">◢</span>
-                    <span :class="navItemContentClasses">
-                      <span :class="navItemLabelClasses">
-                        {{ $t("layouts.top_nav.play.scrim_finder") }}
-                      </span>
-                    </span>
-                  </NuxtLink>
-                  <NuxtLink
-                    v-if="showPublicServersLink"
-                    to="/public-servers"
-                    :class="[navItemClasses, navItemStackedClasses]"
-                    @click="mobileNavOpen = false"
-                  >
-                    <span :class="navItemChevronClasses">◢</span>
-                    <span :class="navItemContentClasses">
-                      <span :class="navItemLabelClasses">
-                        {{ $t("layouts.top_nav.play.public_servers") }}
-                      </span>
-                    </span>
-                  </NuxtLink>
-                </div>
+                  </span>
+                </NuxtLink>
 
                 <div
                   v-else-if="item.type === 'community'"
@@ -1514,8 +1380,6 @@ const socialLinkClasses =
 </template>
 
 <script lang="ts">
-import { generateSubscription } from "~/graphql/graphqlGen";
-import { $, e_server_types_enum, e_player_roles_enum } from "~/generated/zeus";
 import type { Plugin } from "~/stores/Plugins";
 
 export default {
@@ -1523,52 +1387,9 @@ export default {
     return {
       showLogoutModal: false,
       profileMenuOpen: false,
-      publicServers: undefined as any[] | undefined,
     };
   },
-  apollo: {
-    $subscribe: {
-      publicServers: {
-        query: generateSubscription({
-          servers: [
-            {
-              where: {
-                _and: [
-                  {
-                    _or: [
-                      {
-                        type: { _neq: $("rankedType", "e_server_types_enum!") },
-                      },
-                      { connection_string: { _is_null: false } },
-                    ],
-                  },
-                  { enabled: { _eq: true } },
-                  { connected: { _eq: true } },
-                ],
-              },
-            },
-            { id: true },
-          ],
-        }),
-        variables: function () {
-          return { rankedType: e_server_types_enum.Ranked };
-        },
-        result: function (this: any, { data }: { data: any }) {
-          this.publicServers = data.servers;
-        },
-      },
-    },
-  },
   computed: {
-    canManageServers() {
-      return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
-    },
-    hasPublicServers() {
-      return (this.publicServers?.length ?? 0) > 0;
-    },
-    showPublicServersLink() {
-      return this.hasPublicServers || this.canManageServers;
-    },
     newsEnabled() {
       return useApplicationSettingsStore().newsEnabled;
     },
@@ -1578,7 +1399,7 @@ export default {
     orderedTopBarItems() {
       const order = useApplicationSettingsStore().topBarOrder;
       const items: Array<{
-        type: "watch" | "play" | "community" | "info" | "plugin";
+        type: "watch" | "play" | "tournament" | "community" | "info" | "plugin";
         key: string;
         order: number;
         plugin?: Plugin;
@@ -1590,10 +1411,22 @@ export default {
           plugin,
           order: order[`plugin:${plugin.slug}`] ?? 2 + index,
         })),
+        // Play is only meaningful once signed in (queueing/matchmaking
+        // requires an account), so it's left out entirely for logged-out
+        // visitors rather than shown as a dead end.
+        ...(this.me
+          ? [
+              {
+                type: "play" as const,
+                key: "play",
+                order: order.play ?? 2 + this.plugins.length,
+              },
+            ]
+          : []),
         {
-          type: "play",
-          key: "play",
-          order: order.play ?? 2 + this.plugins.length,
+          type: "tournament",
+          key: "tournament",
+          order: order.tournament ?? 2.5 + this.plugins.length,
         },
         {
           type: "community",
@@ -1610,12 +1443,6 @@ export default {
     },
     newsLabel() {
       return useApplicationSettingsStore().newsLabel;
-    },
-    scrimFinderEnabled() {
-      return useApplicationSettingsStore().scrimFinderEnabled;
-    },
-    leaguesEnabled() {
-      return useApplicationSettingsStore().leaguesEnabled;
     },
     me() {
       return useAuthStore().me;
