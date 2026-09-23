@@ -89,7 +89,7 @@ export default defineEventHandler(async (event) => {
     sortField === "elo"
       ? `${eloField}(missing_values: last):${sortDirection},name:asc`
       : sortField === "role"
-        ? `role:${sortDirection},name:asc`
+        ? `role_rank:${sortDirection},name:asc`
       : `${sortField}:${sortDirection}`;
 
   if (body.registeredOnly || sortField === "last_sign_in_at") {

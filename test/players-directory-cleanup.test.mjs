@@ -91,8 +91,32 @@ test("Privilege is public and sortable through the paginated server search", () 
   assert.match(source, /sort_by: this\.getSortBy\(\)/);
   assert.match(
     searchSource,
-    /sortField === "role"\s*\? `role:\$\{sortDirection\},name:asc`/,
+    /sortField === "role"\s*\? `role_rank:\$\{sortDirection\},name:asc`/,
   );
+  const roleRanks = {
+    user: 0,
+    verified_user: 1,
+    streamer: 2,
+    moderator: 3,
+    match_organizer: 4,
+    tournament_organizer: 5,
+    administrator: 6,
+  };
+  assert.deepEqual(
+    Object.entries(roleRanks)
+      .sort(([, left], [, right]) => right - left)
+      .map(([role]) => role),
+    [
+      "administrator",
+      "tournament_organizer",
+      "match_organizer",
+      "moderator",
+      "streamer",
+      "verified_user",
+      "user",
+    ],
+  );
+  assert.match(searchSource, /role_rank:\$\{sortDirection\},name:asc/);
 });
 
 test("Privilege is read-only for non-admins and keeps PlayerRoleForm for administrators", () => {
