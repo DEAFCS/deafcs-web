@@ -47,7 +47,9 @@ import SystemStatus from "./SystemStatus.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import { NuxtImg } from "#components";
 import { Button } from "@/components/ui/button";
-import { Grid } from "lucide-vue-next";
+import { MessageSquare } from "lucide-vue-next";
+import AnimatedStat from "~/components/AnimatedStat.vue";
+import { useChatTabs } from "~/composables/useChatTabs";
 import { useHubState } from "@/composables/useHubState";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import InstagramIcon from "~/components/icons/InstagramIcon.vue";
@@ -66,6 +68,13 @@ const { openLastOrDefaultHub } = useHubState();
 const { brandName, logoUrl } = useBranding();
 const matchmakingStore = useMatchmakingStore();
 const { openMatchReadyModal } = useMatchReadyModal();
+const { unreadCounts } = useChatTabs();
+const totalUnreadMessages = computed(() =>
+  Object.values(unreadCounts.value).reduce((sum, n) => sum + (n || 0), 0),
+);
+const chatBadgeLabel = computed(() =>
+  totalUnreadMessages.value > 100 ? "100+" : String(totalUnreadMessages.value),
+);
 // Genuine matchmaking ready-check only. Active matches (Veto/Live/etc.) are
 // already surfaced by the lineup pills in <MatchLobbies>, so we don't duplicate
 // them as a top-nav check-in banner.
@@ -1259,7 +1268,15 @@ const socialLinkClasses =
             class="relative h-7 w-7 md:hidden"
             @click="openLastOrDefaultHub()"
           >
-            <Grid class="h-4 w-4" />
+            <span class="relative inline-flex">
+              <MessageSquare class="h-4 w-4" />
+              <span
+                v-if="totalUnreadMessages > 0"
+                class="absolute -top-1.5 -right-2 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[0.55rem] font-bold leading-none text-white shadow-sm ring-1 ring-background"
+              >
+                <AnimatedStat :value="chatBadgeLabel" />
+              </span>
+            </span>
             <span class="sr-only">{{
               $t("ui.tooltips.toggle_right_sidebar")
             }}</span>
