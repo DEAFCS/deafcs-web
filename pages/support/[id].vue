@@ -102,15 +102,6 @@ useHead({ title: "Support Request" });
               />
               <template v-else>-</template>
             </dd>
-            <dt class="text-muted-foreground">Reason</dt>
-            <dd>{{ request.report_reason }}</dd>
-            <dt class="text-muted-foreground">Details</dt>
-            <dd class="whitespace-pre-wrap">{{ request.report_details }}</dd>
-            <dt class="text-muted-foreground">Evidence</dt>
-            <dd>
-              <LinkifyText v-if="request.report_evidence" :text="request.report_evidence" />
-              <template v-else>-</template>
-            </dd>
           </template>
           <template v-if="request.category === 'organizer_application'">
             <dt class="text-muted-foreground">Motivation</dt>
