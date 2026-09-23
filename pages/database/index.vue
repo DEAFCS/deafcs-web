@@ -103,6 +103,20 @@
 
 <script setup lang="ts">
 definePageMeta({ middleware: "admin" });
+
+const activeTab = useRouteTab({
+  defaultTab: "queries",
+  tabs: [
+    "queries",
+    "connections",
+    "locks",
+    "io",
+    "index-usage",
+    "storage",
+    "timescale",
+    "backups",
+  ],
+});
 </script>
 
 <script lang="ts">
@@ -174,23 +188,6 @@ export default {
     PauseIcon,
     RefreshCwIcon,
     DatabaseIcon,
-  },
-  setup() {
-    const activeTab = useRouteTab({
-      defaultTab: "queries",
-      tabs: [
-        "queries",
-        "connections",
-        "locks",
-        "io",
-        "index-usage",
-        "storage",
-        "timescale",
-        "backups",
-      ],
-    });
-
-    return { activeTab };
   },
   data() {
     return {
