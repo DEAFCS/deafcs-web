@@ -19,6 +19,8 @@ import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import { useChatTabs } from "~/composables/useChatTabs";
 import { directChatId } from "~/composables/useDirectMessage";
 import { useAuthStore } from "~/stores/AuthStore";
+import { useRightSidebar } from "~/composables/useRightSidebar";
+import { useHubState } from "~/composables/useHubState";
 
 const seenNotificationIds = new Set<string>();
 
@@ -59,7 +61,10 @@ export async function markDirectMessagesRead(lobbyId: string) {
 export function useIncomingDirectMessages() {
   const authStore = useAuthStore();
   const { subscribe } = useSubscriptionManager();
-  const { tabs, openTab, incrementUnread, activeTabId } = useChatTabs();
+  const { tabs, registerTabIfMissing, incrementUnread, activeTabId } =
+    useChatTabs();
+  const { rightSidebarOpen } = useRightSidebar();
+  const { activeHub } = useHubState();
 
   function handleRow(row: {
     id: string;
@@ -83,7 +88,14 @@ export function useIncomingDirectMessages() {
 
     const existing = tabs.value.find((t) => t.id === tabId);
     if (!existing) {
-      openTab({
+      // registerTabIfMissing (not openTab) -- a background arrival must
+      // not steal focus/mark itself active, same reasoning as the
+      // chat:new-message handler in web-sockets/Socket.ts. openTab used
+      // to be called here, which made a brand-new conversation's very
+      // first message active immediately (openTab sets activeTabIdRef),
+      // so the isVisible check right below always saw it as "already
+      // being looked at" and skipped incrementUnread for it.
+      registerTabIfMissing({
         id: tabId,
         label: row.title || "Player",
         instance: "direct",
@@ -94,7 +106,21 @@ export function useIncomingDirectMessages() {
       });
     }
 
-    if (activeTabId.value !== tabId) {
+    // Reported bug: the unread badge never appeared for a DM that arrived
+    // while the sidebar was closed, if that same conversation happened to
+    // be the last one open before closing it. Root cause -- activeTabId
+    // alone doesn't mean "currently visible": closing the sidebar (see
+    // useHubState.ts) doesn't clear it, it only stops rendering the
+    // panel, so a stale activeTabId match wrongly looked like "user is
+    // looking at this right now" and skipped the increment. Mirrors the
+    // isVisible check already used by Socket.ts's chat:new-message
+    // handler and ChatPanel.vue's own per-message handler.
+    const isVisible =
+      rightSidebarOpen.value &&
+      activeHub.value === "chat" &&
+      activeTabId.value === tabId;
+
+    if (!isVisible) {
       incrementUnread(tabId);
     }
   }
