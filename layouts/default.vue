@@ -123,6 +123,7 @@ provide("containContent", containContent);
       <AppHeader class="px-6" v-if="showLeftNav" />
 
       <MainContent class="flex-1">
+        <slot name="website-restriction-notice"></slot>
         <ApplicationSettingsShell v-if="isApplicationSettings">
           <slot></slot>
         </ApplicationSettingsShell>

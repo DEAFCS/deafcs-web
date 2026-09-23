@@ -114,7 +114,6 @@ function pageKeyWithoutTabQuery(route: {
   <StreamGlobal v-if="hasGlobalStream" />
 
   <div v-if="me" style="display: contents">
-    <WebsiteRestrictionNotice />
     <PlayerNameRegistration />
     <MatchmakingConfirm />
     <MatchmakingSearchToast />
@@ -123,6 +122,9 @@ function pageKeyWithoutTabQuery(route: {
   </div>
 
   <NuxtLayout>
+    <template #website-restriction-notice>
+      <WebsiteRestrictionNotice v-if="me" />
+    </template>
     <NuxtPage :page-key="pageKeyWithoutTabQuery" />
   </NuxtLayout>
   <Toaster />

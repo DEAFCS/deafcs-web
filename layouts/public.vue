@@ -11,6 +11,7 @@ useGtm();
   <TopoBackground />
   <div class="relative z-10">
     <SystemAlertBanner />
+    <slot name="website-restriction-notice"></slot>
     <slot></slot>
     <public-footer />
   </div>
