@@ -2365,9 +2365,13 @@ const playerHeroTeamChipDotClasses =
                   <span
                     class="font-mono text-[0.65rem] tracking-[0.22em] text-muted-foreground"
                   >
-                    {{ $t("pages.players.detail.no_elo_history") }}
+                    {{
+                      isSelfProfile
+                        ? $t("pages.players.detail.no_elo_history")
+                        : $t("pages.players.detail.no_elo_history_other")
+                    }}
                   </span>
-                  <NuxtLink v-if="me" to="/play" class="mt-2">
+                  <NuxtLink v-if="isSelfProfile" to="/play" class="mt-2">
                     <Button
                       variant="outline"
                       size="sm"
