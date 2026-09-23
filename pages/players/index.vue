@@ -206,7 +206,7 @@ useHead({
                   </Popover>
                 </div>
 
-                <!-- Privilege/Role multi-select (admin only) -->
+                <!-- Privilege/Role multi-select (staff only) -->
                 <div v-if="canViewAdditionalDetails" class="space-y-2">
                   <Label for="roles-filter">{{
                     $t("pages.players.filter_by_privilege")
@@ -421,9 +421,19 @@ useHead({
                 />
               </div>
             </TableHead>
-            <TableHead v-if="canViewAdditionalDetails">{{
-              $t("pages.players.table.privilege")
-            }}</TableHead>
+            <TableHead class="cursor-pointer" @click="toggleSort('role')">
+              <div class="flex items-center gap-1">
+                {{ $t("pages.players.table.privilege") }}
+                <ArrowUpIcon
+                  v-if="sortField === 'role' && sortDirection === 'desc'"
+                  class="w-4 h-4"
+                />
+                <ArrowDownIcon
+                  v-else-if="sortField === 'role' && sortDirection === 'asc'"
+                  class="w-4 h-4"
+                />
+              </div>
+            </TableHead>
             <TableHead
               v-if="canViewAdditionalDetails"
               class="cursor-pointer"
@@ -521,11 +531,15 @@ useHead({
                 ></PlayerElo>
               </TableCell>
             </NuxtLink>
-            <TableCell v-if="canViewAdditionalDetails">
+            <TableCell>
               <PlayerRoleForm
+                v-if="canEditPlayerRoles"
                 :player="player"
                 @updated="updatePlayerRole(player.steam_id, $event)"
               />
+              <span v-else>{{
+                getRoleDisplay(player.role || e_player_roles_enum.user)
+              }}</span>
             </TableCell>
             <TableCell v-if="canViewAdditionalDetails">
               <TimeAgo
@@ -644,6 +658,10 @@ export default {
           display: this.$t("roles.streamer"),
         },
         {
+          value: e_player_roles_enum.moderator,
+          display: this.$t("roles.moderator"),
+        },
+        {
           value: e_player_roles_enum.match_organizer,
           display: this.$t("roles.match_organizer"),
         },
@@ -659,6 +677,9 @@ export default {
     },
     canViewAdditionalDetails() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
+    },
+    canEditPlayerRoles() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
     },
     eloRange() {
       return [
@@ -966,7 +987,7 @@ export default {
       this.saveFiltersToStorage();
       this.queueSearch();
     },
-    toggleSort(field: "name" | "elo" | "last_sign_in_at") {
+    toggleSort(field: "name" | "elo" | "role" | "last_sign_in_at") {
       if (this.sortField === field) {
         // If clicking the same column, toggle direction
         this.sortDirection = this.sortDirection === "asc" ? "desc" : "asc";

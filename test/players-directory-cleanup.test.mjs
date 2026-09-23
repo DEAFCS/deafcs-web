@@ -2,13 +2,17 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-// /players is now a directory: Player | Team | Competitive ELO for everyone,
-// plus Privilege | Last Sign In for staff. Wins/Losses/KDR moved out (they
+// /players is now a directory: Player | Team | Competitive ELO | Privilege
+// for everyone, plus Last Sign In for staff. Wins/Losses/KDR moved out (they
 // belong on the leaderboard/player profile). Regression coverage for the
 // exact column set and the new Team column's data source.
 
 const source = await readFile(
   new URL("../pages/players/index.vue", import.meta.url),
+  "utf8",
+);
+const searchSource = await readFile(
+  new URL("../server/api/players-search.post.ts", import.meta.url),
   "utf8",
 );
 
@@ -72,13 +76,46 @@ test("Competitive ELO cell is untouched -- still sourced via the shared usePlaye
   );
 });
 
-test("admin-only Privilege and Last Sign In columns are unchanged -- still gated by canViewAdditionalDetails", () => {
+test("Privilege is public and sortable through the paginated server search", () => {
+  const privilegeHeader = source.match(
+    /<TableHead class="cursor-pointer" @click="toggleSort\('role'\)">[\s\S]*?<\/TableHead>/,
+  );
+  assert.ok(privilegeHeader, "Privilege header must always render and sort by role");
+  assert.doesNotMatch(privilegeHeader[0], /canViewAdditionalDetails/);
+  assert.match(privilegeHeader[0], /sortField === 'role' && sortDirection === 'desc'/);
+  assert.match(privilegeHeader[0], /sortField === 'role' && sortDirection === 'asc'/);
+  assert.match(
+    source,
+    /toggleSort\(field: "name" \| "elo" \| "role" \| "last_sign_in_at"\)/,
+  );
+  assert.match(source, /sort_by: this\.getSortBy\(\)/);
+  assert.match(
+    searchSource,
+    /sortField === "role"\s*\? `role:\$\{sortDirection\},name:asc`/,
+  );
+});
+
+test("Privilege is read-only for non-admins and keeps PlayerRoleForm for administrators", () => {
+  assert.match(
+    source,
+    /canEditPlayerRoles\(\)\s*\{\s*\n\s*return useAuthStore\(\)\.isRoleAbove\(e_player_roles_enum\.administrator\);/,
+  );
+  assert.match(source, /<PlayerRoleForm\s*\n\s*v-if="canEditPlayerRoles"/);
+  assert.match(
+    source,
+    /<span v-else>\{\{\s*getRoleDisplay\(player\.role \|\| e_player_roles_enum\.user\)\s*\}\}<\/span>/,
+  );
+  assert.match(source, /value: e_player_roles_enum\.moderator/);
+});
+
+test("Last Sign In and the Privilege filter remain staff-only", () => {
   assert.match(source, /canViewAdditionalDetails\(\)\s*\{\s*\n\s*return useAuthStore\(\)\.isRoleAbove\(e_player_roles_enum\.match_organizer\);/);
-  const privilegeCol = source.match(/v-if="canViewAdditionalDetails"[^]*?pages\.players\.table\.privilege/);
   const lastSignInCol = source.match(/v-if="canViewAdditionalDetails"[\s\S]*?toggleSort\('last_sign_in_at'\)/);
-  assert.ok(privilegeCol, "Privilege header must still be gated behind canViewAdditionalDetails");
   assert.ok(lastSignInCol, "Last Sign In header must still be gated behind canViewAdditionalDetails");
-  assert.match(source, /<PlayerRoleForm/);
+  assert.match(
+    source,
+    /<!-- Privilege\/Role multi-select \(staff only\) -->\s*<div v-if="canViewAdditionalDetails"/,
+  );
   assert.match(source, /<TimeAgo/);
 });
 
