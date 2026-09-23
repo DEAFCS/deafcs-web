@@ -61,6 +61,65 @@ class Socket extends EventEmitter {
   private static readonly BASE_DELAY_MS = 1000;
   private static readonly MAX_DELAY_MS = 30000;
 
+  // Tracks the last time the server actually answered a "ping" with a
+  // "pong" -- see the heartbeat below. Without this, a connection can go
+  // silently dead (laptop sleep, network switch, an idle NAT/proxy
+  // timeout) while readyState still reports OPEN and no close/error event
+  // ever fires, freezing chat until the user manually refreshes.
+  private lastPongAt = Date.now();
+  private static readonly PONG_TIMEOUT_MS = 40 * 1000;
+
+  constructor() {
+    super();
+
+    this.on("pong", () => {
+      this.lastPongAt = Date.now();
+    });
+
+    if (typeof document !== "undefined" && typeof window !== "undefined") {
+      // Regaining tab focus or network access is exactly when a zombie
+      // connection is most likely to have gone unnoticed (the tab wasn't
+      // being interacted with while it happened) -- check and recover
+      // immediately instead of waiting for the next heartbeat tick, or
+      // relying on the backoff loop if MAX_RETRIES was already exhausted.
+      document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") {
+          this.ensureAlive();
+        }
+      });
+      window.addEventListener("online", () => {
+        this.ensureAlive();
+      });
+    }
+  }
+
+  private ensureAlive() {
+    if (!this.connection) {
+      return;
+    }
+
+    if (!this.connected) {
+      // Either mid-backoff or already gave up after MAX_RETRIES -- a
+      // deliberate "the user is back" signal is a good reason to retry
+      // right away rather than wait out the delay or stay dead forever.
+      this.retryCount = 0;
+      this.connect();
+      return;
+    }
+
+    if (Date.now() - this.lastPongAt > Socket.PONG_TIMEOUT_MS) {
+      console.warn(
+        "[ws] connection looked alive but is stale, forcing reconnect",
+      );
+      this.retryCount = 0;
+      try {
+        this.connection.close();
+      } catch {
+        // onclose's own retry loop takes over regardless.
+      }
+    }
+  }
+
   // Distinguishes "this exact browser/app session sent it" from "my
   // account sent it, possibly from a different device" -- steam_id alone
   // can't tell those apart, which was the actual bug behind unread
@@ -112,6 +171,7 @@ class Socket extends EventEmitter {
       this.emit("online");
       this.connected = true;
       this.retryCount = 0;
+      this.lastPongAt = Date.now();
 
       clearInterval(this.heartBeat);
 
@@ -126,6 +186,21 @@ class Socket extends EventEmitter {
       );
 
       this.heartBeat = setInterval(() => {
+        // No pong for this long means the connection is a zombie -- still
+        // reporting readyState OPEN, but nothing is actually getting
+        // through. Force-close so onclose's reconnect logic takes over,
+        // instead of continuing to ping into the void.
+        if (Date.now() - this.lastPongAt > Socket.PONG_TIMEOUT_MS) {
+          console.warn("[ws] no pong received in time, forcing reconnect");
+          this.retryCount = 0;
+          try {
+            this.connection?.close();
+          } catch {
+            // onclose's own retry loop takes over regardless.
+          }
+          return;
+        }
+
         this.connection?.send(
           JSON.stringify({
             event: "ping",
