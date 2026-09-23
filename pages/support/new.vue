@@ -96,8 +96,11 @@ const isVerified = computed(() =>
               required
             />
             <p class="text-xs text-muted-foreground">
-              Include the details an administrator needs to understand the
-              request.
+              {{
+                form.category === "player_report"
+                  ? "Include the details an administrator needs to understand the report, such as links, timestamps, or other evidence."
+                  : "Include the details an administrator needs to understand the request."
+              }}
             </p>
           </div>
         </div>
@@ -129,17 +132,12 @@ const isVerified = computed(() =>
               id="related-match"
               v-model="form.related_match_reference"
               maxlength="500"
+              placeholder="https://deafcs.net/matches/<id>"
             />
-          </div>
-          <div class="grid gap-2">
-            <Label for="report-evidence">Evidence</Label
-            ><Textarea
-              id="report-evidence"
-              v-model="form.report_evidence"
-              rows="3"
-              maxlength="5000"
-              placeholder="Optional links, timestamps, or other evidence"
-            />
+            <p class="text-xs text-muted-foreground">
+              Optional. Open the match page and paste its URL, or just the
+              match ID.
+            </p>
           </div>
         </div>
       </Card>
@@ -231,7 +229,6 @@ const emptyForm = () => ({
   initial_message: "",
   reported_player_profile_url: "",
   related_match_reference: "",
-  report_evidence: "",
   organizer_motivation: "",
   organizer_experience: "",
   organizer_languages: "",
@@ -265,6 +262,39 @@ function parseDeafcsProfileSteamId(rawUrl: string): string | null {
 
   const match = url.pathname.match(/^\/players\/(\d{15,20})\/?$/);
   return match ? match[1] : null;
+}
+
+const MATCH_ID_PATTERN =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
+
+// Related match accepts either a full DEAFCS match URL or a bare match ID
+// (the label says so), but nothing stopped a submitter from typing
+// arbitrary unrelated text instead. Since support/[id].vue only ever links
+// it when it recognizes one of those two exact shapes, unrecognized text
+// silently became a dead, non-clickable value -- reject it here instead so
+// the submitter finds out immediately.
+function isValidMatchReference(raw: string): boolean {
+  if (MATCH_ID_PATTERN.test(raw)) return true;
+
+  const webDomain = useRuntimeConfig().public.webDomain as
+    | string
+    | undefined;
+  if (!webDomain) return false;
+
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return false;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return false;
+
+  const isOwnDomain =
+    url.hostname === webDomain || url.hostname === `www.${webDomain}`;
+  if (!isOwnDomain) return false;
+
+  const match = url.pathname.match(/^\/matches\/([0-9a-fA-F-]+)\/?$/);
+  return !!match && MATCH_ID_PATTERN.test(match[1]);
 }
 
 export default {
@@ -312,6 +342,16 @@ export default {
           });
           return;
         }
+        const relatedMatch = this.form.related_match_reference.trim();
+        if (relatedMatch && !isValidMatchReference(relatedMatch)) {
+          toast({
+            variant: "destructive",
+            title: "Check the related match link",
+            description:
+              "Use a DEAFCS match URL, e.g. https://deafcs.net/matches/<id>, or just the match ID.",
+          });
+          return;
+        }
       }
       if (
         this.form.category === "organizer_application" &&
@@ -339,7 +379,6 @@ export default {
           this.form.related_match_reference.trim() || null;
         object.report_reason = subject;
         object.report_details = message;
-        object.report_evidence = this.form.report_evidence.trim() || null;
       } else if (this.form.category === "organizer_application") {
         for (const field of [
           "organizer_motivation",
