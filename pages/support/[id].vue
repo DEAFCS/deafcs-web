@@ -4,6 +4,7 @@ import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
+import LinkifyText from "~/components/LinkifyText.vue";
 import { Textarea } from "~/components/ui/textarea";
 
 useHead({ title: "Support Request" });
