@@ -25,6 +25,8 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: "admin" });
+
 import { useRoute, useRouter } from "vue-router";
 import { Card } from "@/components/ui/card";
 import PageHeading from "~/components/PageHeading.vue";

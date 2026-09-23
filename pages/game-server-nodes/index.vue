@@ -1,4 +1,6 @@
 <script setup lang="ts">
+definePageMeta({ middleware: "admin" });
+
 import GameServerNodeRow from "~/components/game-server-nodes/GameServerNodeRow.vue";
 import SetupDialog from "~/components/game-server-nodes/SetupDialog.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";

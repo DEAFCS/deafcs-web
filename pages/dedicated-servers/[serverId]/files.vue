@@ -32,6 +32,8 @@
 </template>
 
 <script setup lang="ts">
+definePageMeta({ middleware: "admin" });
+
 import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Card } from "@/components/ui/card";
