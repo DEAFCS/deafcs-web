@@ -523,9 +523,33 @@ export default {
       // and in the lobbyId watcher's listenChat callback) landed in that one
       // shared array once per mounted instance -- every message rendered
       // duplicated as many times as there were concurrent widgets for it.
-      this.messages = [...newMessages].sort((a: any, b: any) => {
-        return a.timestamp - b.timestamp;
-      });
+      const incoming = [...newMessages] as any[];
+
+      // Reported bug: a message sent right around the time a tab mounted
+      // showed up on mobile but silently never appeared on a PC session
+      // open at the same time. Root cause -- this method also runs for the
+      // async "lobby:messages" history catch-up (see the lobbyId watcher
+      // below), which can lose a race against a message that already
+      // arrived live via listenChat's push: if the server's history query
+      // for that catch-up started before the live message was committed,
+      // the snapshot it returns doesn't include it, and wholesale-replacing
+      // `this.messages` with that snapshot silently dropped it from view
+      // even though it's already in the DB. Keep any locally-held message
+      // strictly newer than the latest timestamp this snapshot knows about
+      // -- the snapshot query couldn't possibly have seen it yet. Anything
+      // at or before that point is trusted fully from `newMessages`, so
+      // deletes/edits (which flow through this same handler via
+      // listenChatDeleted/listenChatEdited) still apply correctly.
+      const latestIncomingTimestamp = incoming.length
+        ? Math.max(...incoming.map((m: any) => m.timestamp))
+        : 0;
+      const racedAheadLocalMessages = (this.messages as any[]).filter(
+        (m: any) => m.timestamp > latestIncomingTimestamp,
+      );
+
+      this.messages = [...incoming, ...racedAheadLocalMessages].sort(
+        (a: any, b: any) => a.timestamp - b.timestamp,
+      );
     },
     toggleMinimize() {
       this.isMinimized = !this.isMinimized;
