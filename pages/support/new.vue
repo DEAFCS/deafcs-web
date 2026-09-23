@@ -281,12 +281,19 @@ export default {
       if (this.submitting) return;
       const subject = this.form.subject.trim();
       const message = this.form.initial_message.trim();
-      if (subject.length < 3 || message.length < 10) {
+      const shortSubject = subject.length < 3;
+      const shortMessage = message.length < 10;
+      if (shortSubject || shortMessage) {
+        const description =
+          shortSubject && shortMessage
+            ? "Subject needs at least 3 characters, and Message needs at least 10."
+            : shortSubject
+              ? "Subject needs at least 3 characters."
+              : "Message needs at least 10 characters.";
         toast({
           variant: "destructive",
           title: "More detail needed",
-          description:
-            "Use at least 3 characters for the subject and 10 for the message.",
+          description,
         });
         return;
       }
