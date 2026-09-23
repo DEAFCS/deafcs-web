@@ -79,20 +79,26 @@ useHead({ title: "Support Request" });
             </dd>
             <dt class="text-muted-foreground">Reported SteamID</dt>
             <dd>{{ request.reported_player_steam_id || "-" }}</dd>
-            <dt class="text-muted-foreground">Steam profile</dt>
+            <dt class="text-muted-foreground">Reported player profile</dt>
             <dd>
-              <a
+              <LinkifyText
                 v-if="request.reported_player_profile_url"
-                :href="request.reported_player_profile_url"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-[hsl(var(--tac-amber))] hover:underline"
-                >{{ request.reported_player_profile_url }}</a
-              ><template v-else>-</template>
+                :text="request.reported_player_profile_url"
+              />
+              <template v-else>-</template>
             </dd>
             <dt class="text-muted-foreground">Related match</dt>
             <dd>
-              <LinkifyText v-if="request.related_match_reference" :text="request.related_match_reference" />
+              <NuxtLink
+                v-if="relatedMatchId"
+                :to="{ name: 'matches-id', params: { id: relatedMatchId } }"
+                class="text-[hsl(var(--tac-amber))] hover:underline break-all"
+                >{{ request.related_match_reference }}</NuxtLink
+              >
+              <LinkifyText
+                v-else-if="request.related_match_reference"
+                :text="request.related_match_reference"
+              />
               <template v-else>-</template>
             </dd>
             <dt class="text-muted-foreground">Reason</dt>
@@ -300,6 +306,19 @@ export default {
   computed: {
     isStaff() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
+    },
+    // related_match_reference accepts either a full match URL (handled by
+    // LinkifyText below) or a bare match ID -- a bare ID never matches
+    // LinkifyText's http(s) URL pattern, so it rendered as inert text
+    // instead of the clickable link the report form promises. Recognize
+    // that case here and link it directly.
+    relatedMatchId() {
+      const reference = (this.request?.related_match_reference || "").trim();
+      return /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(
+        reference,
+      )
+        ? reference
+        : null;
     },
   },
   mounted() {

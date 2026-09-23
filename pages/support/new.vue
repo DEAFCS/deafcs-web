@@ -108,27 +108,22 @@ const isVerified = computed(() =>
         <p class="mb-5 text-sm text-muted-foreground">
           This report is visible only to you and DEAFCS administrators.
         </p>
-        <div class="grid gap-5 sm:grid-cols-2">
+        <div class="grid gap-5">
           <div class="grid gap-2">
-            <Label for="reported-steam-id">Reported player SteamID</Label
-            ><Input
-              id="reported-steam-id"
-              v-model="form.reported_player_steam_id"
-              inputmode="numeric"
-              placeholder="Optional if profile URL is supplied"
-            />
-          </div>
-          <div class="grid gap-2">
-            <Label for="reported-profile">Steam profile URL</Label
+            <Label for="reported-profile">Reported player's DEAFCS profile URL</Label
             ><Input
               id="reported-profile"
               v-model="form.reported_player_profile_url"
               type="url"
               maxlength="500"
-              placeholder="Optional if SteamID is supplied"
+              placeholder="https://deafcs.net/players/76561198000000000"
+              required
             />
+            <p class="text-xs text-muted-foreground">
+              Open the player's DEAFCS profile page and paste its URL.
+            </p>
           </div>
-          <div class="grid gap-2 sm:col-span-2">
+          <div class="grid gap-2">
             <Label for="related-match">Related match URL or match ID</Label
             ><Input
               id="related-match"
@@ -136,26 +131,7 @@ const isVerified = computed(() =>
               maxlength="500"
             />
           </div>
-          <div class="grid gap-2 sm:col-span-2">
-            <Label for="report-reason">Reason</Label
-            ><Input
-              id="report-reason"
-              v-model="form.report_reason"
-              maxlength="160"
-              required
-            />
-          </div>
-          <div class="grid gap-2 sm:col-span-2">
-            <Label for="report-details">Details</Label
-            ><Textarea
-              id="report-details"
-              v-model="form.report_details"
-              rows="5"
-              maxlength="5000"
-              required
-            />
-          </div>
-          <div class="grid gap-2 sm:col-span-2">
+          <div class="grid gap-2">
             <Label for="report-evidence">Evidence</Label
             ><Textarea
               id="report-evidence"
@@ -253,17 +229,43 @@ const emptyForm = () => ({
   category: "general_support",
   subject: "",
   initial_message: "",
-  reported_player_steam_id: "",
   reported_player_profile_url: "",
   related_match_reference: "",
-  report_reason: "",
-  report_details: "",
   report_evidence: "",
   organizer_motivation: "",
   organizer_experience: "",
   organizer_languages: "",
   organizer_additional_info: "",
 });
+
+// The report form asks for a DEAFCS profile link rather than a raw
+// SteamID (much easier to find: copy the page URL instead of looking up a
+// number), but the backend column this feeds is still a SteamID64 --
+// support_requests_player_report_fields (a DB check constraint) requires
+// reported_player_steam_id or reported_player_profile_url to be set, so
+// this has to parse the id out client-side rather than sending the link
+// alone.
+function parseDeafcsProfileSteamId(rawUrl: string): string | null {
+  const webDomain = useRuntimeConfig().public.webDomain as
+    | string
+    | undefined;
+  if (!webDomain) return null;
+
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+
+  const isOwnDomain =
+    url.hostname === webDomain || url.hostname === `www.${webDomain}`;
+  if (!isOwnDomain) return null;
+
+  const match = url.pathname.match(/^\/players\/(\d{15,20})\/?$/);
+  return match ? match[1] : null;
+}
 
 export default {
   data: () => ({ categories, form: emptyForm(), submitting: false }),
@@ -288,26 +290,18 @@ export default {
         });
         return;
       }
+      let reportedPlayerSteamId: string | null = null;
       if (this.form.category === "player_report") {
-        const steamId = this.form.reported_player_steam_id.trim();
-        if (
-          (!steamId && !this.form.reported_player_profile_url.trim()) ||
-          !this.form.report_reason.trim() ||
-          !this.form.report_details.trim()
-        ) {
+        const profileUrl = this.form.reported_player_profile_url.trim();
+        reportedPlayerSteamId = profileUrl
+          ? parseDeafcsProfileSteamId(profileUrl)
+          : null;
+        if (!profileUrl || !reportedPlayerSteamId) {
           toast({
             variant: "destructive",
-            title: "Complete the player report",
-            description: "Add the player, a reason, and report details.",
-          });
-          return;
-        }
-        if (steamId && !/^\d{15,20}$/.test(steamId)) {
-          toast({
-            variant: "destructive",
-            title: "Check the SteamID",
+            title: "Check the profile URL",
             description:
-              "Use a numeric SteamID or leave it blank and provide a Steam profile URL.",
+              "Paste the reported player's DEAFCS profile page URL, e.g. https://deafcs.net/players/<id>.",
           });
           return;
         }
@@ -325,26 +319,29 @@ export default {
         subject,
         initial_message: message,
       };
-      const fields =
-        this.form.category === "player_report"
-          ? [
-              "reported_player_steam_id",
-              "reported_player_profile_url",
-              "related_match_reference",
-              "report_reason",
-              "report_details",
-              "report_evidence",
-            ]
-          : this.form.category === "organizer_application"
-            ? [
-                "organizer_motivation",
-                "organizer_experience",
-                "organizer_languages",
-                "organizer_additional_info",
-              ]
-            : [];
-      for (const field of fields)
-        object[field] = (this.form as any)[field].trim() || null;
+      if (this.form.category === "player_report") {
+        // Subject/Message already capture what Reason/Detail used to ask
+        // for separately -- the DB still requires report_reason and
+        // report_details to be non-empty for a player_report row
+        // (support_requests_player_report_fields), so they're derived here
+        // instead of asking for them twice in the form.
+        object.reported_player_steam_id = reportedPlayerSteamId;
+        object.reported_player_profile_url =
+          this.form.reported_player_profile_url.trim() || null;
+        object.related_match_reference =
+          this.form.related_match_reference.trim() || null;
+        object.report_reason = subject;
+        object.report_details = message;
+        object.report_evidence = this.form.report_evidence.trim() || null;
+      } else if (this.form.category === "organizer_application") {
+        for (const field of [
+          "organizer_motivation",
+          "organizer_experience",
+          "organizer_languages",
+          "organizer_additional_info",
+        ])
+          object[field] = (this.form as any)[field].trim() || null;
+      }
 
       this.submitting = true;
       try {
