@@ -108,6 +108,19 @@ export default defineNuxtPlugin((nuxtApp) => {
     connectionParams: {
       credentials: "include",
     },
+    // Without this, the socket can go zombie (mobile backgrounding, a
+    // laptop sleep, a network switch) while graphql-ws still thinks it's
+    // connected -- no close/error event ever fires, so any live
+    // subscription (e.g. useIncomingDirectMessages' unread-DM feed) just
+    // stops receiving updates silently until the page is reloaded.
+    // Reported as: a DM notification arrives while the app is
+    // backgrounded, and the sender never appears in the chat sidebar
+    // until manually opening that conversation another way. keepAlive
+    // makes graphql-ws ping the server on this interval and tear down/
+    // reconnect the socket if it doesn't get a pong back in time --
+    // mirrors the same heartbeat already used for the app's own chat
+    // WebSocket in web-sockets/Socket.ts.
+    keepAlive: 15_000,
   });
 
   nuxtApp.provide("wsClient", wsClient);
