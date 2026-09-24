@@ -433,6 +433,22 @@ class Socket extends EventEmitter {
     };
   }
 
+  // Exists because `listening` is a private field, unreachable from the
+  // module-level `socket.listen(...)` callbacks registered below (those
+  // are plain arrow functions defined outside the class body, so `this`
+  // inside them is undefined, not the socket instance -- direct
+  // `this.listening` access there threw "Cannot read properties of
+  // undefined (reading 'listening')" every single time, silently
+  // aborting the whole chat:new-message handler before it ever reached
+  // registerTabIfMissing/incrementUnread. Reported: unread badges never
+  // appeared for Global/Organizer/Tournament/Announcement chat, for
+  // every message, always -- only DMs looked unaffected, because their
+  // badge is driven by a separate GraphQL subscription
+  // (useIncomingDirectMessages.ts) that never touches this handler.
+  public isListening(event: string): boolean {
+    return this.listening.has(event);
+  }
+
   public joinLobby(instance: string, type: ChatType, _id: string): Lobby {
     const lobbyId = `${type}:${_id}`;
     let lobby = this.lobbies.get(lobbyId);
@@ -692,7 +708,12 @@ socket.listen(
     // has ever actually been opened. That mismatch meant Announcements'
     // unread badge silently never appeared for anyone who hadn't opened
     // the chat hub yet this session.
-    if (this.listening.has(`lobby:${type}:${lobbyId}:chat`)) {
+    // This callback is a module-level arrow function, not a class method
+    // -- `this` here is undefined, not the socket instance, so it must
+    // go through the public isListening() accessor rather than touching
+    // the private `listening` field directly (see that method's comment
+    // for the crash this used to cause).
+    if (socket.isListening(`lobby:${type}:${lobbyId}:chat`)) {
       return;
     }
 
