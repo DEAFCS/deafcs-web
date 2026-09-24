@@ -55,6 +55,33 @@ describe("Short Video API routing and local recording startup", () => {
     expect(uploadVideo).toContain("await createSession()");
   });
 
+  it("requests video without audio from PC and phone cameras", () => {
+    const pcCameraFlip = between(
+      composer,
+      "async function flipCamera()",
+      "function preferredMime()",
+    );
+    const phoneCamera = between(
+      phonePage,
+      "async function openCamera()",
+      "async function flipCamera()",
+    );
+
+    expect(startCameraForTest()).toMatch(/audio:\s*false/);
+    expect(pcCameraFlip).toMatch(/audio:\s*false/);
+    expect(phoneCamera).toMatch(/audio:\s*false/);
+    expect(`${composer}\n${phonePage}`).not.toMatch(/audio:\s*true/);
+  });
+
+  it("keeps text rendering intact and uses the custom player only for video media", () => {
+    expect(chatMessage).toContain('v-if="message.message"');
+    expect(chatMessage).toContain("{{ message.message }}");
+    expect(chatMessage).toContain(
+      '<ChatVideoPlayer\n        v-if="message.media?.type === \'video\' && !message.blocked"',
+    );
+    expect(chatMessage).not.toMatch(/<video[\s\S]*?controls/);
+  });
+
   it("creates a phone session only from Use phone and shows its loading state", () => {
     const choosePhone = between(
       composer,
@@ -74,3 +101,11 @@ describe("Short Video API routing and local recording startup", () => {
     expect(phonePage).not.toContain("getMe(");
   });
 });
+
+function startCameraForTest() {
+  return between(
+    composer,
+    "async function startCamera()",
+    "async function flipCamera()",
+  );
+}

@@ -166,8 +166,38 @@ describe("Short Video anonymous phone recorder", () => {
 
 describe("Short Video PC camera flow", () => {
   it.each([
-    ["NotAllowedError", "Camera access was denied"],
-    ["NotFoundError", "No camera is available on this device"],
+    [
+      "NotAllowedError",
+      "Camera access was blocked. Allow camera permission in your browser and try again.",
+    ],
+    [
+      "SecurityError",
+      "Camera access was blocked. Allow camera permission in your browser and try again.",
+    ],
+    [
+      "NotReadableError",
+      "Camera is unavailable or being used by another app. Close the other app and try again, or use your phone.",
+    ],
+    [
+      "TrackStartError",
+      "Camera is unavailable or being used by another app. Close the other app and try again, or use your phone.",
+    ],
+    [
+      "AbortError",
+      "Camera is unavailable or being used by another app. Close the other app and try again, or use your phone.",
+    ],
+    [
+      "NotFoundError",
+      "No webcam was found on this device. You can use your phone instead.",
+    ],
+    [
+      "DevicesNotFoundError",
+      "No webcam was found on this device. You can use your phone instead.",
+    ],
+    [
+      "UnknownError",
+      "Could not start your camera. Try again or use your phone.",
+    ],
   ])("does not switch to phone mode after a %s", async (name, message) => {
     const failure = Object.assign(new Error("camera unavailable"), { name });
     const getUserMedia = vi.fn().mockRejectedValue(failure);

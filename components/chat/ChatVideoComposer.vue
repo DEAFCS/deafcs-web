@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import QRCode from "qrcode";
 import { Camera, RefreshCw, Smartphone, Video, X } from "lucide-vue-next";
+import ChatVideoPlayer from "~/components/chat/ChatVideoPlayer.vue";
 
 type VideoDraft = {
   sessionId: string;
@@ -144,12 +145,19 @@ async function startCamera() {
     const name = cause?.name;
     if (name === "NotAllowedError" || name === "SecurityError") {
       error.value =
-        "Camera access was denied. Allow camera access or choose Use phone.";
+        "Camera access was blocked. Allow camera permission in your browser and try again.";
+    } else if (
+      name === "NotReadableError" ||
+      name === "TrackStartError" ||
+      name === "AbortError"
+    ) {
+      error.value =
+        "Camera is unavailable or being used by another app. Close the other app and try again, or use your phone.";
     } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
       error.value =
-        "No camera is available on this device. You can use your phone instead.";
+        "No webcam was found on this device. You can use your phone instead.";
     } else {
-      error.value = "Could not open the camera. Allow access or choose Use phone.";
+      error.value = "Could not start your camera. Try again or use your phone.";
     }
   } finally {
     busy.value = false;
@@ -371,12 +379,10 @@ watch(
         {{ error }}
       </p>
       <div v-if="modelValue" class="space-y-3">
-        <video
+        <ChatVideoPlayer
           :src="mediaUrl"
-          controls
-          playsinline
-          preload="metadata"
-          class="max-h-[55vh] w-full rounded bg-black object-contain"
+          label="Video ready preview"
+          class="max-h-[55vh] w-full rounded bg-black"
         />
         <div class="flex justify-between">
           <span class="text-sm text-emerald-600">Video ready in composer</span
