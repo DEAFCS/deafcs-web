@@ -25,6 +25,7 @@ const countdown = ref(0);
 const recording = ref(false);
 const secondsLeft = ref(60);
 const busy = ref(false);
+const startingPhone = ref(false);
 const qrDataUrl = ref("");
 const phoneSessionId = ref("");
 let chunks: BlobPart[] = [];
@@ -35,7 +36,7 @@ let startedAt = 0;
 let recordedDurationMs = 0;
 let phoneToken = "";
 let facingMode: "user" | "environment" = "user";
-const api = `https://${config.public.apiDomain}/chat-video`;
+const api = `https://${config.public.apiDomain}/matches/chat-video`;
 const mediaUrl = computed(() =>
   props.modelValue ? `${api}/media/${props.modelValue.media.id}` : "",
 );
@@ -78,6 +79,7 @@ async function createSession() {
 async function choosePhone() {
   error.value = "";
   busy.value = true;
+  startingPhone.value = true;
   try {
     if (!phoneSessionId.value || !phoneToken) {
       const session = await createSession();
@@ -115,6 +117,7 @@ async function choosePhone() {
   } catch (cause: any) {
     error.value = cause?.message || "Could not start phone recording.";
   } finally {
+    startingPhone.value = false;
     busy.value = false;
   }
 }
@@ -122,11 +125,6 @@ async function startCamera() {
   error.value = "";
   busy.value = true;
   try {
-    if (!phoneSessionId.value || !phoneToken) {
-      const session = await createSession();
-      phoneSessionId.value = session.id;
-      phoneToken = session.token;
-    }
     stream.value = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
@@ -245,17 +243,23 @@ function stopRecording() {
   if (recorder.value?.state === "recording") recorder.value.stop();
 }
 async function uploadVideo() {
-  if (!blob.value || !phoneSessionId.value) return;
+  const videoBlob = blob.value;
+  if (!videoBlob) return;
   busy.value = true;
   error.value = "";
-  const body = new FormData();
-  body.append(
-    "file",
-    blob.value,
-    blob.value.type.includes("mp4") ? "message.mp4" : "message.webm",
-  );
-  body.append("durationMs", String(recordedDurationMs));
   try {
+    if (!phoneSessionId.value || !phoneToken) {
+      const session = await createSession();
+      phoneSessionId.value = session.id;
+      phoneToken = session.token;
+    }
+    const body = new FormData();
+    body.append(
+      "file",
+      videoBlob,
+      videoBlob.type.includes("mp4") ? "message.mp4" : "message.webm",
+    );
+    body.append("durationMs", String(recordedDurationMs));
     const response = await fetch(
       `${api}/sessions/${phoneSessionId.value}/upload`,
       { method: "POST", credentials: "include", body },
@@ -406,6 +410,14 @@ watch(
             ><small>Scan a temporary QR code</small></span
           >
         </button>
+        <p
+          v-if="startingPhone"
+          class="col-span-full text-center text-sm text-muted-foreground"
+          role="status"
+          aria-live="polite"
+        >
+          Preparing your temporary phone session…
+        </p>
       </div>
       <div v-else-if="step === 'camera'" class="space-y-3">
         <div class="relative overflow-hidden rounded bg-black">

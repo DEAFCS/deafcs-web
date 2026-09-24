@@ -202,7 +202,7 @@ export default {
   },
   methods: {
     videoUrl(id: string) {
-      return `https://${useRuntimeConfig().public.apiDomain}/chat-video/media/${encodeURIComponent(id)}`;
+      return `https://${useRuntimeConfig().public.apiDomain}/matches/chat-video/media/${encodeURIComponent(id)}`;
     },
     startEdit() {
       this.editDraft = this.message.message;

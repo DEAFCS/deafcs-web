@@ -3,7 +3,7 @@ import { Camera, RefreshCw, Smartphone, X } from "lucide-vue-next";
 definePageMeta({ layout: false });
 
 const config = useRuntimeConfig();
-const api = `https://${config.public.apiDomain}/chat-video`;
+const api = `https://${config.public.apiDomain}/matches/chat-video`;
 const token = ref("");
 const state = ref<
   | "loading"
