@@ -455,6 +455,18 @@ class Socket extends EventEmitter {
 
     if (lobby) {
       lobby.instances.add(instance);
+      // Re-send lobby:join even though this lobby's cache already exists
+      // (e.g. syncPersistentChatJoins joined it at session bootstrap,
+      // long before any <ChatLobby> ever mounted) -- the server replies
+      // to every lobby:join with a fresh full history snapshot (see
+      // chat.service.ts's joinMatchLobby), and the `:messages` listener
+      // below is already registered on this lobby object, so this just
+      // backfills anything that arrived while nothing was listening for
+      // the live per-message "chat" event (which only starts once
+      // <ChatLobby> mounts and calls listenChat). Without this, opening
+      // chat for the first time this session showed the unread badge
+      // but not the actual message, fixable only with a full refresh.
+      this.join(`lobby`, { id: _id, type });
       return this.createLobbyHandle(lobbyId, lobby, instance, type, _id);
     }
 
