@@ -294,6 +294,67 @@ const mmCardBase =
             </div>
           </button>
         </div>
+
+        <!-- Compact mobile equivalent -- the full cards (icon, description
+             paragraph, hover states) don't fit small screens, and this used
+             to just render nothing at all on mobile, so match type selection
+             was entirely missing there. Short "5v5/2v2/1v1" labels instead
+             of the mode names, per explicit request: mobile doesn't need
+             the same descriptive treatment as desktop. -->
+        <div v-else class="flex flex-col gap-2">
+          <button
+            v-for="type in allowedMatchTypes"
+            :key="type.value"
+            type="button"
+            :disabled="!canQueueType(type.value)"
+            :style="matchTypeColorStyle(type.value)"
+            class="flex items-center justify-between gap-3 rounded-lg border border-[rgb(var(--mode-rgb)/0.3)] px-4 py-3 text-left text-foreground [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_100%)] disabled:cursor-not-allowed disabled:opacity-45 disabled:grayscale"
+            @click="handleMatchTypeClick(type.value)"
+          >
+            <span class="flex items-center gap-2.5">
+              <svg
+                v-if="type.value === 'Competitive'"
+                class="size-4 shrink-0 text-[rgb(var(--mode-rgb))]"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <use href="/img/icons/competitive-team.svg#competitive-team" />
+              </svg>
+              <component
+                v-else
+                :is="matchTypeIcon(type.value)"
+                class="size-4 shrink-0 text-[rgb(var(--mode-rgb))]"
+                aria-hidden="true"
+              />
+              <span
+                class="font-mono text-xs font-bold uppercase tracking-[0.16em]"
+              >
+                {{ mobileMatchTypeLabel(type.value) }}
+              </span>
+            </span>
+            <span class="flex shrink-0 items-center gap-2">
+              <Badge
+                variant="secondary"
+                class="px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.1em]"
+                v-if="
+                  distinctInQueue(
+                    type.value,
+                    preferredRegions.map((region) => region.value),
+                  ) > 0
+                "
+              >
+                {{
+                  distinctInQueue(
+                    type.value,
+                    preferredRegions.map((region) => region.value),
+                  )
+                }}
+                {{ $t("matchmaking.in_queue") }}
+              </Badge>
+              <ArrowRight class="size-3.5 text-muted-foreground" aria-hidden="true" />
+            </span>
+          </button>
+        </div>
       </div>
     </template>
     <template v-else-if="match">
@@ -459,6 +520,16 @@ export default {
     };
   },
   methods: {
+    // Short player-count labels for the compact mobile list -- simpler than
+    // the desktop cards' mode names, per explicit request.
+    mobileMatchTypeLabel(type: e_match_types_enum): string {
+      const labels: Partial<Record<e_match_types_enum, string>> = {
+        [e_match_types_enum.Competitive]: "5v5",
+        [e_match_types_enum.Wingman]: "2v2",
+        [e_match_types_enum.Duel]: "1v1",
+      };
+      return labels[type] ?? type;
+    },
     isMatchmakingTypeEnabled(matchType: string): boolean {
       return useApplicationSettingsStore().isMatchmakingTypeEnabled(matchType);
     },

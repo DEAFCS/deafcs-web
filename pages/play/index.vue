@@ -74,7 +74,7 @@ const settingsOpen = ref(false);
   </PageTransition>
 
   <PageTransition v-if="showMatchmaking" :delay="50" class="mt-6">
-    <div class="hidden md:block">
+    <div>
       <div :class="tacticalSectionLabelClasses">
         <span :class="tacticalSectionTickClasses"></span>
         MATCHMAKING
