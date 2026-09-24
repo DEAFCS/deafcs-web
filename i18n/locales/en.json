@@ -1492,12 +1492,12 @@
         "title": "Sound Settings",
         "description": "Preview and adjust the alert sounds DEAFCS plays for chat, matches, and more.",
         "enabled": {
-          "title": "Notification sounds",
-          "description": "Master switch for all sound alerts, including chat. Turn it off to mute everything, or leave it on and use the chat toggle below to control chat sounds separately."
+          "title": "Match found sound",
+          "description": "Play a sound when a match is found."
         },
         "chat_enabled": {
           "title": "Chat message sound",
-          "description": "Play a sound for new chat messages. Turning this off doesn't affect the match found sound."
+          "description": "Play a sound for new chat messages."
         },
         "test": "Test",
         "volume": {

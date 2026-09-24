@@ -110,11 +110,12 @@ export const useSound = () => {
 
   const playNotificationSound = () => {
     // Reported bug: turning off "chat sound" in Settings did nothing --
-    // every other sound (playMatchFoundSound/playTickSound/
-    // playCountdownSound) checks isEnabled before playing, but this one
-    // never did, so the master mute switch silently had no effect on chat
-    // notifications specifically.
-    if (!import.meta.client || !isEnabled.value || !isChatSoundEnabled.value) {
+    // this never checked any enabled flag at all. Deliberately independent
+    // of isEnabled (which now only gates match-found/tick/countdown) so
+    // the two toggles read as two separate things, not a master/sub-switch
+    // pair -- explicit request after the first version's wording (and
+    // isEnabled also gating chat) confused people.
+    if (!import.meta.client || !isChatSoundEnabled.value) {
       return;
     }
     if (isInGame()) {

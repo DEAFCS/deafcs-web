@@ -71,7 +71,8 @@ const sounds = computed(() => {
         {{ $t("pages.settings.notifications.description") }}
       </p>
 
-      <!-- Master toggle -->
+      <!-- Match found sound (also gates the admin-only tick/countdown
+           preview sounds below, but reads to players as "match found") -->
       <div
         class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
       >
@@ -99,34 +100,35 @@ const sounds = computed(() => {
         />
       </div>
 
-      <template v-if="isEnabled">
-        <!-- Chat message sound (independent of match-found/tick/countdown) -->
-        <div
-          class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
-        >
-          <div class="flex items-start gap-3">
-            <div
-              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--tac-amber))]/10 ring-1 ring-inset ring-[hsl(var(--tac-amber))]/20"
-            >
-              <MessageSquare class="h-5 w-5 text-[hsl(var(--tac-amber))]" />
-            </div>
-            <div class="space-y-0.5">
-              <h4 class="font-medium">
-                {{ $t("pages.settings.notifications.chat_enabled.title") }}
-              </h4>
-              <p class="text-sm text-muted-foreground">
-                {{
-                  $t("pages.settings.notifications.chat_enabled.description")
-                }}
-              </p>
-            </div>
+      <!-- Chat message sound -- deliberately its own row at the same level
+           as the match-found toggle above, not nested under it, so the two
+           read as separate, independent switches rather than a
+           master/sub-switch pair. -->
+      <div
+        class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
+      >
+        <div class="flex items-start gap-3">
+          <div
+            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--tac-amber))]/10 ring-1 ring-inset ring-[hsl(var(--tac-amber))]/20"
+          >
+            <MessageSquare class="h-5 w-5 text-[hsl(var(--tac-amber))]" />
           </div>
-          <Switch
-            :model-value="isChatSoundEnabled"
-            @update:model-value="handleChatSoundToggle"
-          />
+          <div class="space-y-0.5">
+            <h4 class="font-medium">
+              {{ $t("pages.settings.notifications.chat_enabled.title") }}
+            </h4>
+            <p class="text-sm text-muted-foreground">
+              {{ $t("pages.settings.notifications.chat_enabled.description") }}
+            </p>
+          </div>
         </div>
+        <Switch
+          :model-value="isChatSoundEnabled"
+          @update:model-value="handleChatSoundToggle"
+        />
+      </div>
 
+      <template v-if="isEnabled">
         <!-- Volume -->
         <div class="rounded-lg border border-border/60 bg-card/40 p-4">
           <div class="mb-3 flex items-center justify-between">
