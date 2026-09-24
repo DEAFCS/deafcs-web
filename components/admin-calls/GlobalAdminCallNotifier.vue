@@ -67,16 +67,33 @@ function accept() {
 }
 
 let unlisten: (() => void) | null = null;
+let unlistenResolved: (() => void) | null = null;
 
 onMounted(() => {
   const listener = socket.listen("admin-call:ring", (data: RingPayload) => {
     showIncomingCall(data);
   });
   unlisten = () => listener?.stop();
+
+  // The same ring goes to every connected device/session for this
+  // steamId (see AdminCallService.ring), so if the player answers on
+  // another device, this device's overlay needs to be told to close
+  // itself rather than sitting there until its own auto-decline timer
+  // fires or the page is refreshed.
+  const resolvedListener = socket.listen(
+    "admin-call:ring-resolved",
+    (data: { targetSteamId: string }) => {
+      if (incomingCall.value?.targetSteamId === data.targetSteamId) {
+        closeOverlay();
+      }
+    },
+  );
+  unlistenResolved = () => resolvedListener?.stop();
 });
 
 onBeforeUnmount(() => {
   unlisten?.();
+  unlistenResolved?.();
   closeOverlay();
 });
 </script>
