@@ -323,6 +323,10 @@ function pollParticipants() {
 let responseListener: { stop: () => void } | null = null;
 
 onMounted(async () => {
+  updateOrientation();
+  window.addEventListener("resize", updateOrientation);
+  window.addEventListener("orientationchange", updateOrientation);
+
   await refreshParticipants();
   pollParticipants();
 
@@ -357,6 +361,8 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
+  window.removeEventListener("resize", updateOrientation);
+  window.removeEventListener("orientationchange", updateOrientation);
   if (participantsPollTimer) clearTimeout(participantsPollTimer);
   responseListener?.stop();
   if (step.value === "in-call") teardownStream();
@@ -391,6 +397,23 @@ const visibleTileCount = computed(() =>
     ? tileParticipants.value.length + (publishingLocally.value ? 1 : 0)
     : 0,
 );
+
+// Orientation-aware column count -- mirrors
+// pages/admin-call/[targetSteamId]/[token].vue's grid (the page opened by
+// scanning the QR code), which this popup lacked entirely: a fixed
+// grid-cols-2 forced two tiles side by side even in portrait, producing
+// the tall, narrow, squashed tiles reported when accepting a call from
+// inside the DEAFCS mobile app instead of via the QR/browser path.
+const isPortrait = ref(true);
+function updateOrientation() {
+  isPortrait.value =
+    typeof window !== "undefined" &&
+    window.matchMedia("(orientation: portrait)").matches;
+}
+const gridColumns = computed(() => {
+  if (visibleTileCount.value <= 2) return isPortrait.value ? 1 : 2;
+  return isPortrait.value ? 2 : 3;
+});
 </script>
 
 <template>
@@ -414,7 +437,8 @@ const visibleTileCount = computed(() =>
     <div
       v-if="visibleTileCount > 0"
       class="grid gap-3 flex-1 min-h-0 auto-rows-fr overflow-y-auto"
-      :class="visibleTileCount === 1 ? 'grid-cols-1 max-w-2xl mx-auto w-full' : 'grid-cols-2'"
+      :class="visibleTileCount === 1 ? 'max-w-2xl mx-auto w-full' : ''"
+      :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
     >
       <div
         v-for="p in tileParticipants"
