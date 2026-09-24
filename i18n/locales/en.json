@@ -1495,6 +1495,10 @@
           "title": "Notification sounds",
           "description": "Play a sound for chat messages, match events, and other alerts."
         },
+        "chat_enabled": {
+          "title": "Chat message sound",
+          "description": "Play a sound for new chat messages. Turning this off doesn't affect the match found sound."
+        },
         "test": "Test",
         "volume": {
           "title": "Volume"

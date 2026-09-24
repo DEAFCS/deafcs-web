@@ -2,6 +2,13 @@ import { computed, readonly, ref } from "vue";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 
 const isEnabled = ref(true);
+// Separate from the master `isEnabled` switch so a player can mute chat
+// message pings specifically while keeping match-found/ready-up/countdown
+// sounds on -- reported: turning off "chat sound" left the match-accept
+// sound untouched, which is the desired split, but there was no way to keep
+// chat muted independently once the master switch fix (below) made the
+// master switch actually mute chat too.
+const isChatSoundEnabled = ref(true);
 const volume = ref(0.7);
 let settingsLoaded = false;
 
@@ -28,10 +35,16 @@ export const useSound = () => {
     }
 
     const savedEnabled = localStorage.getItem("chat-sound-enabled");
+    const savedChatEnabled = localStorage.getItem(
+      "chat-message-sound-enabled",
+    );
     const savedVolume = localStorage.getItem("chat-sound-volume");
 
     if (savedEnabled !== null) {
       isEnabled.value = savedEnabled === "true";
+    }
+    if (savedChatEnabled !== null) {
+      isChatSoundEnabled.value = savedChatEnabled === "true";
     }
     if (savedVolume !== null) {
       volume.value = parseFloat(savedVolume);
@@ -44,6 +57,10 @@ export const useSound = () => {
     }
 
     localStorage.setItem("chat-sound-enabled", isEnabled.value.toString());
+    localStorage.setItem(
+      "chat-message-sound-enabled",
+      isChatSoundEnabled.value.toString(),
+    );
     localStorage.setItem("chat-sound-volume", volume.value.toString());
   };
 
@@ -92,6 +109,14 @@ export const useSound = () => {
   };
 
   const playNotificationSound = () => {
+    // Reported bug: turning off "chat sound" in Settings did nothing --
+    // every other sound (playMatchFoundSound/playTickSound/
+    // playCountdownSound) checks isEnabled before playing, but this one
+    // never did, so the master mute switch silently had no effect on chat
+    // notifications specifically.
+    if (!import.meta.client || !isEnabled.value || !isChatSoundEnabled.value) {
+      return;
+    }
     if (isInGame()) {
       return;
     }
@@ -451,17 +476,24 @@ export const useSound = () => {
     saveSettings();
   };
 
+  const updateChatSoundSetting = (enabled: boolean) => {
+    isChatSoundEnabled.value = enabled;
+    saveSettings();
+  };
+
   if (import.meta.client) {
     loadSettings();
   }
 
   return {
     updateSettings,
+    updateChatSoundSetting,
     playNotificationSound,
     playMatchFoundSound,
     playTickSound,
     playCountdownSound,
     volume: readonly(volume),
     isEnabled: readonly(isEnabled),
+    isChatSoundEnabled: readonly(isChatSoundEnabled),
   };
 };

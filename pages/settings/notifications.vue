@@ -14,8 +14,10 @@ import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 
 const {
   isEnabled,
+  isChatSoundEnabled,
   volume,
   updateSettings,
+  updateChatSoundSetting,
   playNotificationSound,
   playMatchFoundSound,
   playTickSound,
@@ -24,6 +26,10 @@ const {
 
 const handleSoundToggle = (enabled: boolean) => {
   updateSettings(enabled);
+};
+
+const handleChatSoundToggle = (enabled: boolean) => {
+  updateChatSoundSetting(enabled);
 };
 
 const handleVolumeChange = (event: Event) => {
@@ -94,6 +100,33 @@ const sounds = computed(() => {
       </div>
 
       <template v-if="isEnabled">
+        <!-- Chat message sound (independent of match-found/tick/countdown) -->
+        <div
+          class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
+        >
+          <div class="flex items-start gap-3">
+            <div
+              class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--tac-amber))]/10 ring-1 ring-inset ring-[hsl(var(--tac-amber))]/20"
+            >
+              <MessageSquare class="h-5 w-5 text-[hsl(var(--tac-amber))]" />
+            </div>
+            <div class="space-y-0.5">
+              <h4 class="font-medium">
+                {{ $t("pages.settings.notifications.chat_enabled.title") }}
+              </h4>
+              <p class="text-sm text-muted-foreground">
+                {{
+                  $t("pages.settings.notifications.chat_enabled.description")
+                }}
+              </p>
+            </div>
+          </div>
+          <Switch
+            :model-value="isChatSoundEnabled"
+            @update:model-value="handleChatSoundToggle"
+          />
+        </div>
+
         <!-- Volume -->
         <div class="rounded-lg border border-border/60 bg-card/40 p-4">
           <div class="mb-3 flex items-center justify-between">
