@@ -1493,7 +1493,7 @@
         "description": "Preview and adjust the alert sounds DEAFCS plays for chat, matches, and more.",
         "enabled": {
           "title": "Notification sounds",
-          "description": "Play a sound for chat messages, match events, and other alerts."
+          "description": "Master switch for all sound alerts, including chat. Turn it off to mute everything, or leave it on and use the chat toggle below to control chat sounds separately."
         },
         "chat_enabled": {
           "title": "Chat message sound",
