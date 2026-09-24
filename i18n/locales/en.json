@@ -1582,6 +1582,10 @@
               "title": "Account",
               "description": "Name change requests and team suggestions"
             },
+            "calls": {
+              "title": "Incoming calls",
+              "description": "An admin is calling you on webcam"
+            },
             "system": {
               "title": "System (admin)",
               "description": "Server and infrastructure status updates"

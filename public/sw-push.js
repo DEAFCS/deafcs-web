@@ -22,6 +22,19 @@ self.addEventListener("push", (event) => {
     data: { type: data.type, entity_id: data.entity_id },
   };
 
+  // An incoming call ring (see PushNotificationsService.sendCallRing) is
+  // only actionable for the ~60s the ring is actually live, so it needs
+  // to cut through in a way an ordinary "you have a new message"
+  // notification doesn't: vibrate the device, keep the notification on
+  // screen until dismissed instead of auto-hiding, and replace any
+  // earlier ring rather than stacking a second one.
+  if (data.callRing) {
+    options.vibrate = [300, 150, 300, 150, 300];
+    options.requireInteraction = true;
+    options.tag = "admin-call-ring";
+    options.renotify = true;
+  }
+
   event.waitUntil(self.registration.showNotification(title, options));
 });
 
