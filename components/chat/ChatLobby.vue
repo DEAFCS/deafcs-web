@@ -125,12 +125,12 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
           variant="global"
           :placeholder="messagePlaceholder"
           :multiline="type === 'announcement'"
+          :video-enabled="type !== 'announcement' && effectiveCanSend"
+          :chat-type="type"
+          :room-id="lobbyId"
           @send-message="handleSendMessage"
         />
-        <div
-          v-else
-          class="px-3 py-2 text-center text-xs text-muted-foreground"
-        >
+        <div v-else class="px-3 py-2 text-center text-xs text-muted-foreground">
           {{ effectiveReadonlyHint }}
         </div>
       </div>
@@ -204,12 +204,12 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         variant="embedded"
         :placeholder="messagePlaceholder"
         :multiline="type === 'announcement'"
+        :video-enabled="type !== 'announcement' && effectiveCanSend"
+        :chat-type="type"
+        :room-id="lobbyId"
         @send-message="handleSendMessage"
       />
-      <div
-        v-else
-        class="px-3 py-2 text-center text-xs text-muted-foreground"
-      >
+      <div v-else class="px-3 py-2 text-center text-xs text-muted-foreground">
         {{ effectiveReadonlyHint }}
       </div>
     </div>
@@ -339,9 +339,7 @@ export default {
   computed: {
     effectiveCanSend() {
       return (
-        this.canSend &&
-        this.chatMuteStatus.known &&
-        !this.chatMuteStatus.active
+        this.canSend && this.chatMuteStatus.known && !this.chatMuteStatus.active
       );
     },
     effectiveReadonlyHint() {
@@ -499,18 +497,21 @@ export default {
           0,
           new Date(status.expiresAt).getTime() - Date.now(),
         );
-        this.muteExpiryTimer = setTimeout(() => {
-          if (Date.now() < new Date(status.expiresAt as string).getTime()) {
-            this.handleMuteStatus(status);
-            return;
-          }
-          this.chatMuteStatus = {
-            known: true,
-            active: false,
-            expiresAt: null,
-            permanent: false,
-          };
-        }, Math.min(delay, 2_147_483_647));
+        this.muteExpiryTimer = setTimeout(
+          () => {
+            if (Date.now() < new Date(status.expiresAt as string).getTime()) {
+              this.handleMuteStatus(status);
+              return;
+            }
+            this.chatMuteStatus = {
+              known: true,
+              active: false,
+              expiresAt: null,
+              permanent: false,
+            };
+          },
+          Math.min(delay, 2_147_483_647),
+        );
       }
     },
     updateLobbyMessages(newMessages: any) {
@@ -565,14 +566,15 @@ export default {
         }
       });
     },
-    handleSendMessage(message: string) {
+    handleSendMessage(payload: { message: string; videoDraftId?: string }) {
       if (!this.effectiveCanSend) {
         return;
       }
       socket.chat(
         this.type as ChatType,
         this.lobbyId,
-        message,
+        payload.message,
+        payload.videoDraftId,
       );
       // Snap to latest after sending.
       this.safeScrollToBottom(true);
@@ -580,7 +582,7 @@ export default {
       this.lastReadMessageCount = this.messages.length + 1;
       this.$emit("message-received", {
         tabId: this.tabId,
-        message,
+        message: payload.message || "Video message",
         direction: "outbound",
       });
     },
@@ -612,7 +614,13 @@ export default {
     handleDeleteMessage({ id }: { id: string }) {
       socket.deleteChat(this.type as ChatType, this.lobbyId, id);
     },
-    handleMutePlayer({ player, messageId }: { player: any; messageId: string }) {
+    handleMutePlayer({
+      player,
+      messageId,
+    }: {
+      player: any;
+      messageId: string;
+    }) {
       this.muteTarget = player;
       this.muteEvidenceMessageId = messageId;
       this.$nextTick(() => {

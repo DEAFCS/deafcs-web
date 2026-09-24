@@ -41,7 +41,11 @@ function autoResize(event: Event) {
               v-if="multiline"
               ref="inputRef"
               rows="1"
-              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :placeholder="
+                isWebsiteRestricted
+                  ? $t('account_restriction.short')
+                  : placeholder || $t('chat.message_placeholder')
+              "
               :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
@@ -52,11 +56,21 @@ function autoResize(event: Event) {
             <Input
               v-else
               ref="inputRef"
-              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :placeholder="
+                isWebsiteRestricted
+                  ? $t('account_restriction.short')
+                  : placeholder || $t('chat.message_placeholder')
+              "
               :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 transition-all duration-200 focus:scale-[1.02]"
+            />
+            <ChatVideoComposer
+              v-if="videoEnabled && !isWebsiteRestricted"
+              v-model="videoDraft"
+              :type="chatType"
+              :room-id="roomId"
             />
             <Button
               type="submit"
@@ -86,7 +100,11 @@ function autoResize(event: Event) {
               v-if="multiline"
               ref="inputRef"
               rows="1"
-              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :placeholder="
+                isWebsiteRestricted
+                  ? $t('account_restriction.short')
+                  : placeholder || $t('chat.message_placeholder')
+              "
               :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
@@ -97,11 +115,21 @@ function autoResize(event: Event) {
             <Input
               v-else
               ref="inputRef"
-              :placeholder="isWebsiteRestricted ? $t('account_restriction.short') : placeholder || $t('chat.message_placeholder')"
+              :placeholder="
+                isWebsiteRestricted
+                  ? $t('account_restriction.short')
+                  : placeholder || $t('chat.message_placeholder')
+              "
               :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
+            />
+            <ChatVideoComposer
+              v-if="videoEnabled && !isWebsiteRestricted"
+              v-model="videoDraft"
+              :type="chatType"
+              :room-id="roomId"
             />
             <Button
               type="submit"
@@ -122,11 +150,13 @@ function autoResize(event: Event) {
 
 <script lang="ts">
 import { FormControl, FormField, FormItem } from "~/components/ui/form";
+import ChatVideoComposer from "~/components/chat/ChatVideoComposer.vue";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 
 export default {
+  components: { ChatVideoComposer },
   props: {
     variant: {
       type: String,
@@ -144,15 +174,27 @@ export default {
       type: Boolean,
       default: false,
     },
+    videoEnabled: { type: Boolean, default: false },
+    chatType: { type: String, default: "global" },
+    roomId: { type: String, default: "" },
   },
   emits: ["sendMessage"],
   data() {
     return {
       sending: false,
+      videoDraft: null as {
+        sessionId: string;
+        media: {
+          id: string;
+          mimeType: string;
+          durationMs: number;
+          size: number;
+        };
+      } | null,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
-            message: z.string().min(1),
+            message: z.string(),
           }),
         ),
       }),
@@ -190,10 +232,15 @@ export default {
         return;
       }
       const { message } = this.form.values;
-      if (!message || message?.length === 0) {
+      const normalizedMessage = (message || "").trim();
+      if (!normalizedMessage && !this.videoDraft) {
         return;
       }
-      this.$emit("sendMessage", message);
+      this.$emit("sendMessage", {
+        message: normalizedMessage,
+        videoDraftId: this.videoDraft?.sessionId,
+      });
+      this.videoDraft = null;
       this.form.resetForm();
       this.flashSending();
       // Collapse the multiline textarea back to its one-row default --

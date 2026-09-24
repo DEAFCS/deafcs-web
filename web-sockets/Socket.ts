@@ -330,11 +330,17 @@ class Socket extends EventEmitter {
     }
   }
 
-  public chat(type: ChatType, id: string, message: string) {
+  public chat(
+    type: ChatType,
+    id: string,
+    message: string,
+    videoDraftId?: string,
+  ) {
     this.event(`lobby:chat`, {
       id,
       type,
       message,
+      videoDraftId,
       clientId: this.sessionId,
     });
   }
@@ -686,7 +692,11 @@ socket.listen(
     if (type === "direct") {
       lobbyId = id;
       tabId = `direct:${id}`;
-    } else if (type === "global" || type === "organizers" || type === "announcement") {
+    } else if (
+      type === "global" ||
+      type === "organizers" ||
+      type === "announcement"
+    ) {
       lobbyId = type;
       tabId = type;
     } else {

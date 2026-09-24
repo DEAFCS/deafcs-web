@@ -81,12 +81,22 @@ import { e_player_roles_enum } from "~/generated/zeus";
         </button>
       </div>
       <p
-        v-else
+        v-if="message.message"
         class="text-[11px] leading-snug break-words whitespace-pre-wrap"
         :class="{ 'italic text-muted-foreground': message.blocked }"
       >
         {{ message.message }}
       </p>
+      <video
+        v-if="message.media?.type === 'video' && !message.blocked"
+        :src="videoUrl(message.media.id)"
+        controls
+        playsinline
+        preload="metadata"
+        class="mt-2 max-h-80 w-full max-w-full rounded-md bg-black object-contain"
+      >
+        Your browser does not support video playback.
+      </video>
     </div>
 
     <ChatMessageActionsMenu
@@ -191,6 +201,9 @@ export default {
     },
   },
   methods: {
+    videoUrl(id: string) {
+      return `https://${useRuntimeConfig().public.apiDomain}/chat-video/media/${encodeURIComponent(id)}`;
+    },
     startEdit() {
       this.editDraft = this.message.message;
       this.isEditing = true;
