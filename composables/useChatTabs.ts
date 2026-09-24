@@ -160,16 +160,36 @@ export function useChatTabs() {
     return tabsRef.value.findIndex((t) => t.id === id);
   }
 
-  function openTab(payload: Omit<ChatTab, "pinned"> & { pinned?: boolean }) {
+  function openTab(
+    payload: Omit<ChatTab, "pinned"> & { pinned?: boolean },
+    options?: { setActive?: boolean },
+  ) {
     const id = payload.id;
     const existingIndex = findTabIndex(id);
+    // Session bootstrap (useChatTabSetup's ensureDefaultTabs) calls this
+    // on every page load to (re)seed Global/Announcement/Organizer/
+    // matchmaking/match tabs, none of which are a real user action --
+    // defaulting to true here (and every genuine user-initiated open,
+    // e.g. clicking "Message" on a profile) keeps stealing focus, but
+    // bootstrap explicitly opts out via setActive: false. Without this,
+    // every fresh page load silently made activeTabId point at whatever
+    // tab bootstrap opened last, which made Socket.ts's chat:new-message
+    // isVisible check (rightSidebarOpen && activeHub==='chat' &&
+    // activeTabId===tabId) one condition away from true before the user
+    // had looked at anything -- reported: the first Global chat message
+    // after a refresh never got a badge, even with the sidebar closed
+    // and chat never opened, because activeHub had also been persisted
+    // as "chat" from an earlier session.
+    const setActive = options?.setActive ?? true;
 
     if (existingIndex !== -1) {
-      // Explicitly opening a tab that only existed as a silent
-      // background registration (see registerTabIfMissing) promotes it
-      // to a real, live-joined tab -- clear the flag via setActiveTab
-      // below rather than duplicating that logic here.
-      setActiveTab(id);
+      if (setActive) {
+        // Explicitly opening a tab that only existed as a silent
+        // background registration (see registerTabIfMissing) promotes it
+        // to a real, live-joined tab -- clear the flag via setActiveTab
+        // below rather than duplicating that logic here.
+        setActiveTab(id);
+      }
       return tabsRef.value[existingIndex];
     }
 
@@ -179,7 +199,9 @@ export function useChatTabs() {
     };
 
     tabsRef.value.push(tab);
-    activeTabIdRef.value = id;
+    if (setActive) {
+      activeTabIdRef.value = id;
+    }
     persistDmTabs(tabsRef.value);
 
     return tab;

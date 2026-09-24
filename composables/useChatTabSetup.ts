@@ -58,14 +58,17 @@ export function useChatTabSetup() {
       const tabId = `tournament:${t.id}`;
       const existing = tabs.value.find((tab) => tab.id === tabId);
       if (!existing) {
-        openTab({
-          id: tabId,
-          label: t.name,
-          instance: "tournament",
-          type: "tournament",
-          lobbyId: t.id, // pass tournament ID as lobby id
-          pinned: true,
-        });
+        openTab(
+          {
+            id: tabId,
+            label: t.name,
+            instance: "tournament",
+            type: "tournament",
+            lobbyId: t.id, // pass tournament ID as lobby id
+            pinned: true,
+          },
+          { setActive: false },
+        );
       } else if (!existing.pinned) {
         setPinned(tabId, true);
       }
@@ -90,14 +93,17 @@ export function useChatTabSetup() {
       const lobbyTabId = `matchmaking:${me.current_lobby_id}`;
       const existingLobby = tabs.value.find((t) => t.id === lobbyTabId);
       if (!existingLobby) {
-        openTab({
-          id: lobbyTabId,
-          label: t("chat_tab_labels.lobby_default"),
-          instance: "matchmaking",
-          type: "matchmaking",
-          lobbyId: me.current_lobby_id,
-          pinned: true,
-        });
+        openTab(
+          {
+            id: lobbyTabId,
+            label: t("chat_tab_labels.lobby_default"),
+            instance: "matchmaking",
+            type: "matchmaking",
+            lobbyId: me.current_lobby_id,
+            pinned: true,
+          },
+          { setActive: false },
+        );
       }
     }
 
@@ -106,16 +112,19 @@ export function useChatTabSetup() {
       const matchTabId = `match:${currentMatch.id}`;
       const existingMatch = tabs.value.find((t) => t.id === matchTabId);
       if (!existingMatch) {
-        openTab({
-          id: matchTabId,
-          label:
-            currentMatch.label ||
-            `${currentMatch.lineup_1?.name ?? t("common.tbd")} vs ${currentMatch.lineup_2?.name ?? t("common.tbd")}`,
-          instance: "match",
-          type: "match",
-          lobbyId: currentMatch.id,
-          pinned: true,
-        });
+        openTab(
+          {
+            id: matchTabId,
+            label:
+              currentMatch.label ||
+              `${currentMatch.lineup_1?.name ?? t("common.tbd")} vs ${currentMatch.lineup_2?.name ?? t("common.tbd")}`,
+            instance: "match",
+            type: "match",
+            lobbyId: currentMatch.id,
+            pinned: true,
+          },
+          { setActive: false },
+        );
       }
     }
 
@@ -123,14 +132,17 @@ export function useChatTabSetup() {
     const existingGlobal = tabs.value.find((t) => t.id === globalId);
     if (canUseGlobalChat.value) {
       if (!existingGlobal) {
-        openTab({
-          id: globalId,
-          label: t("chat_tab_labels.global_default"),
-          instance: "global",
-          type: "global",
-          lobbyId: globalId,
-          pinned: true,
-        });
+        openTab(
+          {
+            id: globalId,
+            label: t("chat_tab_labels.global_default"),
+            instance: "global",
+            type: "global",
+            lobbyId: globalId,
+            pinned: true,
+          },
+          { setActive: false },
+        );
       } else if (!existingGlobal.pinned) {
         setPinned(globalId, true);
       }
@@ -149,14 +161,17 @@ export function useChatTabSetup() {
     // canUseGlobalChat.
     if (Boolean(me)) {
       if (!existingAnnouncement) {
-        openTab({
-          id: announcementId,
-          label: t("chat_tab_labels.announcement_default"),
-          instance: "announcement",
-          type: "announcement",
-          lobbyId: announcementId,
-          pinned: true,
-        });
+        openTab(
+          {
+            id: announcementId,
+            label: t("chat_tab_labels.announcement_default"),
+            instance: "announcement",
+            type: "announcement",
+            lobbyId: announcementId,
+            pinned: true,
+          },
+          { setActive: false },
+        );
       } else if (!existingAnnouncement.pinned) {
         setPinned(announcementId, true);
       }
@@ -169,14 +184,17 @@ export function useChatTabSetup() {
     if (isOrganizer.value) {
       const existing = existingOrganizer;
       if (!existing) {
-        openTab({
-          id: organizerId,
-          label: t("chat_tab_labels.organizers_default"),
-          instance: "organizers",
-          type: "organizers",
-          lobbyId: organizerId,
-          pinned: true,
-        });
+        openTab(
+          {
+            id: organizerId,
+            label: t("chat_tab_labels.organizers_default"),
+            instance: "organizers",
+            type: "organizers",
+            lobbyId: organizerId,
+            pinned: true,
+          },
+          { setActive: false },
+        );
       } else if (!existing.pinned) {
         setPinned(organizerId, true);
       }
@@ -225,15 +243,18 @@ export function useChatTabSetup() {
       const id = `match:${match.id}`;
       const existing = tabs.value.find((t) => t.id === id);
       if (!existing) {
-        openTab({
-          id,
-          label:
-            match.label ||
-            `${match.lineup_1?.name ?? t("common.tbd")} vs ${match.lineup_2?.name ?? t("common.tbd")}`,
-          instance: "match",
-          type: "match",
-          lobbyId: match.id,
-        });
+        openTab(
+          {
+            id,
+            label:
+              match.label ||
+              `${match.lineup_1?.name ?? t("common.tbd")} vs ${match.lineup_2?.name ?? t("common.tbd")}`,
+            instance: "match",
+            type: "match",
+            lobbyId: match.id,
+          },
+          { setActive: false },
+        );
       }
     },
   );
