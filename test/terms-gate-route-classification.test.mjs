@@ -220,6 +220,40 @@ test("legal/public routes remain reachable for an unaccepted authenticated playe
   }
 });
 
+test("the temporary phone recorder is reachable without login or Terms acceptance, while normal chat remains protected", async () => {
+  assert.equal(isPublicRoute("/chat-video"), true);
+  assert.equal(isTermsExemptRoute("/chat-video"), true);
+  assert.equal(isPublicRoute("/chat"), false);
+  assert.equal(isTermsExemptRoute("/chat"), false);
+  assert.equal(isPublicRoute("/chat-video/extra"), false);
+  assert.equal(isTermsExemptRoute("/chat-video/extra"), false);
+
+  assert.deepEqual(
+    await decide({
+      path: "/chat-video",
+      resolvesTo: false,
+      hasAcceptedCurrentTerms: false,
+    }),
+    { action: "allow" },
+  );
+  assert.deepEqual(
+    await decide({
+      path: "/chat-video",
+      resolvesTo: true,
+      hasAcceptedCurrentTerms: false,
+    }),
+    { action: "allow" },
+  );
+  assert.deepEqual(
+    await decide({
+      path: "/chat",
+      resolvesTo: false,
+      hasAcceptedCurrentTerms: false,
+    }),
+    { action: "redirect", target: "/login" },
+  );
+});
+
 test("logout then login as an unaccepted user still redirects to /terms-acceptance on the next protected navigation", async () => {
   // Simulates the reported repro exactly: log out (fresh unauthenticated
   // decide), log back in (fresh authenticated decide against the same

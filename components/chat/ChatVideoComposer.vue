@@ -141,12 +141,15 @@ async function startCamera() {
       await preview.value.play().catch(() => {});
     }
   } catch (cause: any) {
-    error.value =
-      cause?.name === "NotAllowedError"
-        ? "Camera access was denied. You can allow camera access or use your phone instead."
-        : "No camera is available on this device. Use your phone to record instead.";
-    if (cause?.name !== "NotAllowedError" && cause?.name !== "SecurityError") {
-      void choosePhone();
+    const name = cause?.name;
+    if (name === "NotAllowedError" || name === "SecurityError") {
+      error.value =
+        "Camera access was denied. Allow camera access or choose Use phone.";
+    } else if (name === "NotFoundError" || name === "DevicesNotFoundError") {
+      error.value =
+        "No camera is available on this device. You can use your phone instead.";
+    } else {
+      error.value = "Could not open the camera. Allow access or choose Use phone.";
     }
   } finally {
     busy.value = false;
@@ -231,8 +234,7 @@ function beginCountdown() {
           if (!secondsLeft.value) stopRecording();
         }, 250) as any;
       } catch {
-        error.value =
-          "Could not start recording. You can use your phone instead.";
+        error.value = "Could not start recording. Try again or choose Use phone.";
       }
     }
   }, 1000);

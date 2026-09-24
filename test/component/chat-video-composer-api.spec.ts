@@ -32,6 +32,8 @@ describe("Short Video API routing and local recording startup", () => {
       "const api = `https://${config.public.apiDomain}/matches/chat-video`;",
     );
     expect(chatMessage).toContain("/matches/chat-video/media/");
+    expect(phonePage).toContain("`${api}/phone/upload`");
+    expect(phonePage).toContain("`${api}/phone/cancel`");
   });
 
   it("starts the local camera without creating a server draft first", () => {
@@ -43,6 +45,7 @@ describe("Short Video API routing and local recording startup", () => {
     expect(startCamera).toContain("navigator.mediaDevices.getUserMedia");
     expect(startCamera).not.toContain("createSession");
     expect(startCamera).not.toContain("fetch(");
+    expect(startCamera).not.toContain("choosePhone");
 
     const uploadVideo = between(
       composer,
@@ -60,5 +63,14 @@ describe("Short Video API routing and local recording startup", () => {
     );
     expect(choosePhone).toContain("await createSession()");
     expect(composer).toContain("Preparing your temporary phone session…");
+    expect(composer).toContain("`${window.location.origin}/chat-video#${phoneToken}`");
+  });
+
+  it("keeps phone access capability-gated by the URL fragment and API validation", () => {
+    expect(phonePage).toContain("token.value = window.location.hash.slice(1)");
+    expect(phonePage).toContain("headers: { Authorization: `Bearer ${token.value}` }");
+    expect(phonePage).toContain('state.value = "expired"');
+    expect(phonePage).not.toContain("useAuthStore");
+    expect(phonePage).not.toContain("getMe(");
   });
 });
