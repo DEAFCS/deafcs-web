@@ -39,6 +39,18 @@ const targetSteamId = computed(() => String(route.params.targetSteamId));
 const me = computed(() => useAuthStore().me);
 const myId = computed(() => String(me.value?.steam_id ?? ""));
 
+// Whether THIS window is running on a phone -- if so, the "Mobile"
+// option in the device picker is meaningless (it just shows a QR code
+// to scan with a phone, and this session already is one), so the
+// picker gets skipped entirely in favor of using this device's own
+// camera. Reported: accepting a call on mobile still showed the
+// picker, and picking "Mobile" there did nothing useful.
+const isMobileDevice = computed(
+  () =>
+    typeof navigator !== "undefined" &&
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent),
+);
+
 // Set by startAdminCall's window.open when THIS window is the admin's
 // own popup right after ringing -- distinguishes "I just rang, wait
 // for the player to actually answer" from "I'm the player accepting"
@@ -120,6 +132,10 @@ async function ensureToken(): Promise<string | null> {
 async function openChoose() {
   const token = await ensureToken();
   if (!token) return;
+  if (isMobileDevice.value) {
+    await chooseThisComputer();
+    return;
+  }
   step.value = "choose";
 }
 

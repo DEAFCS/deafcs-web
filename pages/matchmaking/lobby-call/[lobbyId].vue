@@ -38,6 +38,18 @@ const lobbyId = computed(() => String(route.params.lobbyId));
 const me = computed(() => useAuthStore().me);
 const myId = computed(() => String(me.value?.steam_id ?? ""));
 
+// Whether THIS window is running on a phone -- if so, the "Mobile"
+// option in the device picker is meaningless (it just shows a QR code
+// to scan with a phone, and this session already is one), so the
+// picker gets skipped entirely in favor of using this device's own
+// camera. Reported: accepting a call on mobile still showed the
+// picker, and picking "Mobile" there did nothing useful.
+const isMobileDevice = computed(
+  () =>
+    typeof navigator !== "undefined" &&
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent),
+);
+
 const participants = ref<LobbyCallParticipant[]>([]);
 
 // People who've started joining (token minted) but whose camera isn't
@@ -107,6 +119,10 @@ async function ensureToken(): Promise<string | null> {
 async function openChoose() {
   const token = await ensureToken();
   if (!token) return;
+  if (isMobileDevice.value) {
+    await chooseThisComputer();
+    return;
+  }
   step.value = "choose";
 }
 
