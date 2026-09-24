@@ -45,6 +45,7 @@ import MatchLobbies from "./MatchLobbies.vue";
 import DraftRoomNav from "./DraftRoomNav.vue";
 import SystemStatus from "./SystemStatus.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
+import { useMediaQuery } from "@vueuse/core";
 import { NuxtImg } from "#components";
 import { Button } from "@/components/ui/button";
 import { MessageSquare } from "lucide-vue-next";
@@ -63,6 +64,14 @@ import {
 } from "~/components/ui/tooltip";
 
 const { isMobile } = useSidebar();
+// The nav links (Watch/Play/Tournament/Community/Info) need more room than
+// the shared sidebar `isMobile` breakpoint (768px) gives them -- between
+// ~769px and 1280px they had nowhere to go but overflow/overlap the
+// right-side icons, since the burger menu below only ever appeared at true
+// mobile widths. This is deliberately separate from `isMobile` (which still
+// governs the logo variant, SystemStatus, and the rest of the app's own
+// sidebar collapse behavior) so only the nav-links-vs-burger choice widens.
+const isNavCompact = useMediaQuery("(max-width: 1280px)");
 const mobileNavOpen = ref(false);
 const { openLastOrDefaultHub } = useHubState();
 const { brandName, logoUrl } = useBranding();
@@ -224,7 +233,7 @@ const socialLinkClasses =
 
         <SystemStatus v-if="!isMobile" />
 
-        <NavigationMenu v-if="!isMobile" :class="navMenuClasses">
+        <NavigationMenu v-if="!isNavCompact" :class="navMenuClasses">
           <NavigationMenuList class="flex items-center gap-0 sm:gap-1">
             <template v-for="item in orderedTopBarItems" :key="item.key">
               <NavigationMenuItem
