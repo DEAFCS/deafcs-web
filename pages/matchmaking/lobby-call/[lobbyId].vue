@@ -310,6 +310,16 @@ async function leaveCall() {
       // best-effort
     }
   }
+
+  // This page has no header/nav of its own (definePageMeta({ layout:
+  // false })) since it's meant to live in the small popup window
+  // opened for a desktop admin call. On mobile there is no separate
+  // popup window (window.open just navigates in place), so leaving the
+  // call here otherwise stranded the player on this dead-end screen
+  // with no way back into DEAFCS short of force-closing the app.
+  if (isMobileDevice.value) {
+    await navigateTo("/me");
+  }
 }
 
 function backToChoose() {
