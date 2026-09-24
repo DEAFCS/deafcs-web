@@ -79,8 +79,57 @@ function persistDmTabs(tabs: ChatTab[]) {
   }
 }
 
+const UNREAD_COUNTS_STORAGE_KEY = "chat-unread-counts";
+
+// DMs already have a durable, more accurate source of truth (see
+// useIncomingDirectMessages' notifications.is_read query, re-derived fresh
+// on every load) -- persisting those here too would double-count on the
+// next load when that subscription re-increments on top of a stale cached
+// value. Every other chat type (Global, Announcement, Organizer,
+// matchmaking, match, team, tournament) has no database-backed read state
+// at all, so without this, their badge was pure in-memory state that a
+// plain page refresh silently wiped to zero, however many messages had
+// actually arrived unread (reported: Global chat's red badge disappears
+// on F5 even though nothing was ever read).
+function loadPersistedUnreadCounts(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(UNREAD_COUNTS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    if (!parsed || typeof parsed !== "object") return {};
+    const result: Record<string, number> = {};
+    for (const [id, count] of Object.entries(parsed)) {
+      if (id.startsWith("direct:")) continue;
+      if (typeof count === "number" && count > 0) result[id] = count;
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+function persistUnreadCounts(counts: Record<string, number>) {
+  if (typeof window === "undefined") return;
+  try {
+    const toPersist: Record<string, number> = {};
+    for (const [id, count] of Object.entries(counts)) {
+      if (id.startsWith("direct:")) continue;
+      if (count > 0) toPersist[id] = count;
+    }
+    window.localStorage.setItem(
+      UNREAD_COUNTS_STORAGE_KEY,
+      JSON.stringify(toPersist),
+    );
+  } catch {
+    // best-effort -- worst case the badge just goes back to resetting on
+    // refresh, same as before this fix.
+  }
+}
+
 const tabsRef = ref<ChatTab[]>(loadPersistedDmTabs());
-const unreadCountsRef = ref<Record<string, number>>({});
+const unreadCountsRef = ref<Record<string, number>>(
+  loadPersistedUnreadCounts(),
+);
 const activeTabIdRef = ref<string | null>(null);
 
 const TAB_ORDER_STORAGE_KEY = "chat-tab-manual-order";
@@ -208,22 +257,32 @@ export function useChatTabs() {
 
   function incrementUnread(id: string) {
     unreadCountsRef.value[id] = (unreadCountsRef.value[id] || 0) + 1;
+    persistUnreadCounts(unreadCountsRef.value);
   }
 
   function resetUnread(id: string) {
     if (unreadCountsRef.value[id]) {
       unreadCountsRef.value[id] = 0;
+      persistUnreadCounts(unreadCountsRef.value);
     }
   }
 
   function setUnread(id: string, value: number) {
     unreadCountsRef.value[id] = value;
+    persistUnreadCounts(unreadCountsRef.value);
   }
 
   function clearAll() {
     tabsRef.value = [];
     unreadCountsRef.value = {};
     activeTabIdRef.value = null;
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.removeItem(UNREAD_COUNTS_STORAGE_KEY);
+      } catch {
+        // best-effort
+      }
+    }
   }
 
   const manualOrder = computed(() => manualOrderRef.value);
