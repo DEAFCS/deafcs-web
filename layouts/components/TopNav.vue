@@ -202,6 +202,19 @@ const socialLinkClasses =
             </span>
           </span>
         </NuxtLink>
+        <NuxtLink
+          v-else
+          :to="homePath"
+          class="inline-flex shrink-0 select-none items-center text-inherit no-underline"
+          :aria-label="brandName || $t('layouts.app_nav.brand')"
+          :aria-current="isHome ? 'page' : undefined"
+        >
+          <NuxtImg
+            class="h-7 w-7 shrink-0 object-contain"
+            :src="logoUrl || '/favicon/64.png'"
+            :alt="brandName || 'brand'"
+          />
+        </NuxtLink>
 
         <span
           v-if="!isMobile"
