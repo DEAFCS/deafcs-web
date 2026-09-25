@@ -278,8 +278,30 @@ function updateAppBadge(): void {
   }
 }
 
+// Whether the player has switched away from the tab at least once
+// since it loaded. Until that happens, they've been looking at DEAFCS
+// continuously since boot/F5 -- reported bug: a count that already
+// existed at load time (e.g. unread from before) still blinked on the
+// very first switch-away, because acknowledgment only ever fired on an
+// explicit hidden->visible *return*, and there had been no earlier
+// "leave" to return from yet. While this stays false, keep re-baselining
+// acknowledgedCount to whatever the count settles at, so the first
+// actual switch-away doesn't blink for something that was already
+// sitting there the whole time the player was present.
+let hasEverLeftTab = false;
+
+function maybeAcknowledgeInitialLoad(): void {
+  if (hasEverLeftTab) return;
+  if (shouldFlash()) {
+    hasEverLeftTab = true;
+    return;
+  }
+  acknowledgedCount = totalBadgeCount();
+}
+
 function syncFlashState(): void {
   updateAppBadge();
+  maybeAcknowledgeInitialLoad();
 
   if (callLabel !== null || matchLabel !== null) {
     // A call ring or match found has no "calm, already-seen" state --
