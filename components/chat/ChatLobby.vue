@@ -94,6 +94,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
             ref="chatMessagesRef"
             :messages="visibleMessages"
             :chat-type="type"
+            :absolute-timestamps="absoluteTimestamps"
             variant="global"
             :is-minimized="isMinimized"
             class="flex-1 overflow-y-auto max-h-96"
@@ -175,6 +176,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         ref="chatMessagesRef"
         :messages="visibleMessages"
         :chat-type="type"
+        :absolute-timestamps="absoluteTimestamps"
         variant="embedded"
         class="flex-1 min-h-0 overflow-y-auto"
         :last-read-count="0"
@@ -324,6 +326,12 @@ export default {
       type: Object as PropType<{ start: string; end: string | null } | null>,
       required: false,
       default: null,
+    },
+    // See ChatMessage.vue -- plain local clock time instead of "X
+    // minutes ago", for the post-match chat log page.
+    absoluteTimestamps: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {

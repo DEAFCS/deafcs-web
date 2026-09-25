@@ -64,6 +64,7 @@ definePageMeta({
               :readonly-hint="readonlyHint"
               :history-range="selectedRange"
               :play-notification-sound="false"
+              absolute-timestamps
               hide-participants-summary
             />
           </div>
@@ -80,6 +81,7 @@ definePageMeta({
               :readonly-hint="readonlyHint"
               :history-range="selectedRange"
               :play-notification-sound="false"
+              absolute-timestamps
               hide-participants-summary
             />
           </div>
@@ -96,6 +98,7 @@ definePageMeta({
               :readonly-hint="readonlyHint"
               :history-range="selectedRange"
               :play-notification-sound="false"
+              absolute-timestamps
               hide-participants-summary
             />
           </div>

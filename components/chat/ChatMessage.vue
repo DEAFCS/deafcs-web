@@ -59,7 +59,8 @@ import { e_player_roles_enum } from "~/generated/zeus";
           {{ $t("chat.source_website", "DEAFCS") }}
         </span>
         <span class="text-[10px] whitespace-nowrap">
-          <time-ago :date="message.timestamp" hide-icon></time-ago>
+          <template v-if="absoluteTimestamps">{{ formattedTimestamp }}</template>
+          <time-ago v-else :date="message.timestamp" hide-icon></time-ago>
         </span>
       </div>
       <div v-if="isEditing" class="flex items-start gap-1.5">
@@ -151,6 +152,15 @@ export default {
       type: String,
       required: true,
     },
+    // Relative "X minutes ago" reads fine for live chat, but is useless
+    // for reviewing a match's chat log days later -- reported: wanted a
+    // plain local clock time there instead. Only the post-match chat
+    // log page (matches/[id]/chat-log.vue) passes this; live chat is
+    // unaffected.
+    absoluteTimestamps: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: ["edit-message", "delete-message", "mute-player"],
   data() {
@@ -211,6 +221,15 @@ export default {
     // rather than mislabeling them.
     showSourceTag() {
       return this.chatType === "match" && this.message?.source === "website";
+    },
+    formattedTimestamp() {
+      if (!this.message?.timestamp) return "";
+      // Intl with no explicit locale/timeZone follows the viewer's own
+      // browser settings, matching the "based on your local time" ask.
+      return new Intl.DateTimeFormat(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+      }).format(new Date(this.message.timestamp));
     },
   },
   methods: {
