@@ -151,25 +151,52 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
   };
 
   const subscribeToChatTournaments = async () => {
+    // A finished tournament's chat stays reachable for a 24h grace
+    // period afterward (see TournamentsController.tournament_events,
+    // which stamps finished_at the moment status becomes Finished)
+    // instead of disappearing the instant the tournament ends, so
+    // players can still wrap up conversation there. This cutoff is
+    // fixed at subscribe time, not continuously recomputed, so on a
+    // browser session left open past 24h a just-expired tournament may
+    // linger until the next reload -- an acceptable rounding for a
+    // "roughly a day" grace window.
+    const chatGracePeriodCutoff = new Date(
+      Date.now() - 24 * 60 * 60 * 1000,
+    ).toISOString();
+
     const subscription = getGraphqlClient().subscribe({
       query: generateSubscription({
         tournaments: [
           {
             where: {
-              status: {
-                _in: [
-                  e_tournament_status_enum.Setup,
-                  e_tournament_status_enum.RegistrationOpen,
-                  e_tournament_status_enum.RegistrationClosed,
-                  e_tournament_status_enum.Live,
-                  e_tournament_status_enum.Paused,
-                ],
-              },
               _or: [
-                { joined_tournament: { _eq: true } },
-                { is_organizer: { _eq: true } },
+                {
+                  status: {
+                    _in: [
+                      e_tournament_status_enum.Setup,
+                      e_tournament_status_enum.RegistrationOpen,
+                      e_tournament_status_enum.RegistrationClosed,
+                      e_tournament_status_enum.Live,
+                      e_tournament_status_enum.Paused,
+                    ],
+                  },
+                },
+                {
+                  _and: [
+                    { status: { _eq: e_tournament_status_enum.Finished } },
+                    { finished_at: { _gte: chatGracePeriodCutoff } },
+                  ],
+                },
               ],
-              _and: [NOT_LEAGUE_TOURNAMENT],
+              _and: [
+                NOT_LEAGUE_TOURNAMENT,
+                {
+                  _or: [
+                    { joined_tournament: { _eq: true } },
+                    { is_organizer: { _eq: true } },
+                  ],
+                },
+              ],
             },
           },
           {
