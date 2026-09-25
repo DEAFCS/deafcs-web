@@ -1,30 +1,44 @@
 // Facebook/FACEIT-style "you're missing something" attention-getter:
-// while the DEAFCS tab is in the background (not visible, or visible
-// but not the focused window), alternates the browser tab's title and
-// favicon between an alert state and the normal one, so it's
-// noticeable from the tab strip without needing sound.
+// while the DEAFCS tab is switched away from (not the active tab, or
+// the window is minimized), alternates the browser tab's title and
+// favicon between an alert state and the normal one. While the tab IS
+// the active one, it stops blinking but keeps a steady "(N) <title>"
+// count visible instead of clearing outright, live-updating as
+// messages actually get read -- see setChatFlashCount.
+//
+// Deliberately keyed off document.hidden alone, not window focus.
+// Reported bug: the blink fired just from another *application* having
+// OS focus while Chrome sat in the background with the DEAFCS tab
+// still selected/visible -- from the player's point of view they were
+// still "on" the tab, just not looking at the Chrome window at that
+// exact moment, so this must not count as "switched away".
 //
 // Two independent sources feed this: MatchmakingConfirm.vue calls
 // startTabFlash/stopTabFlash directly (a match found is a single event
-// with its own explicit resolution -- accepted, declined, or expired),
-// and setChatFlashCount is kept continuously in sync with the real
-// total unread count (see plugins/chatTabFlash.client.ts) rather than
-// being bumped once per message and forgotten. That distinction is the
-// fix for a reported bug: switching back to the tab used to fully
-// reset the unread count to zero even though nothing had actually been
-// read yet, so switching away again showed nothing until a brand new
-// message arrived. Now, looking at the tab only clears the *visual*
-// blink -- the underlying count keeps tracking the real unread total,
-// decreasing only as messages actually get read, and the blink resumes
-// on its own next time the tab loses focus while that total is still
-// above zero. A match-found alert always wins over a chat count if
-// both are live, since only one of them has an actual accept deadline.
+// with its own explicit resolution -- accepted, declined, or expired,
+// and its own full-screen popup covers the "still visible" case, so it
+// only ever blinks, never shows a static badge). setChatFlashCount is
+// kept continuously in sync with the real total unread count (see
+// plugins/chatTabFlash.client.ts) rather than being bumped once per
+// message and forgotten -- switching to the tab only clears the visual
+// blink, the underlying count keeps tracking the true unread total.
+// A match-found alert always wins over a chat count if both are live,
+// since only one of them has an actual accept deadline.
 
+type VisualState = "blink" | "static" | "clear";
+
+let currentVisualState: VisualState = "clear";
 let flashInterval: ReturnType<typeof setInterval> | null = null;
 let flashOn = false;
 let matchLabel: string | null = null;
 let chatCount = 0;
-let originalTitle: string | null = null;
+
+// The "real" title/icons underneath our own override -- re-adopted
+// automatically whenever the page's own title changes out from under
+// us (e.g. a route navigation), detected by comparing against the last
+// value we ourselves set.
+let baseTitle: string | null = null;
+let lastSetTitle: string | null = null;
 let originalIconHrefs: Array<{ el: HTMLLinkElement; href: string }> | null =
   null;
 let alertIconDataUrl: string | null = null;
@@ -33,13 +47,33 @@ let listenersRegistered = false;
 
 function shouldFlash(): boolean {
   if (typeof document === "undefined") return false;
-  return document.hidden || !document.hasFocus();
+  return document.hidden;
 }
 
-function currentFlashText(): string | null {
+function currentAlertText(): string | null {
   if (matchLabel !== null) return matchLabel;
   if (chatCount > 0) return `(${chatCount}) New Message`;
   return null;
+}
+
+function captureBaseTitleIfNeeded(): void {
+  if (typeof document === "undefined") return;
+  if (lastSetTitle === null || document.title !== lastSetTitle) {
+    baseTitle = document.title;
+  }
+}
+
+function setTitle(text: string): void {
+  if (typeof document === "undefined") return;
+  document.title = text;
+  lastSetTitle = text;
+}
+
+function staticTitleText(): string | null {
+  if (matchLabel !== null) return null; // match found only ever blinks
+  if (chatCount <= 0) return null;
+  captureBaseTitleIfNeeded();
+  return `(${chatCount}) ${baseTitle ?? ""}`.trim();
 }
 
 // Draws the existing 64px favicon plus a green alert dot onto a canvas
@@ -102,68 +136,85 @@ function getIconLinks(): HTMLLinkElement[] {
   );
 }
 
-function stopVisual(): void {
+function captureIconsIfNeeded(): void {
+  if (originalIconHrefs || typeof document === "undefined") return;
+  originalIconHrefs = getIconLinks().map((el) => ({ el, href: el.href }));
+}
+
+function setIconsAlert(useAlert: boolean, alertIcon: string | null): void {
+  if (!originalIconHrefs) return;
+  for (const { el, href } of originalIconHrefs) {
+    el.href = useAlert && alertIcon ? alertIcon : href;
+  }
+}
+
+function clearAll(): void {
   if (flashInterval) {
     clearInterval(flashInterval);
     flashInterval = null;
   }
-  if (typeof document === "undefined") return;
-  if (originalTitle !== null) {
-    document.title = originalTitle;
-    originalTitle = null;
-  }
-  if (originalIconHrefs) {
-    for (const { el, href } of originalIconHrefs) {
-      el.href = href;
+  if (typeof document !== "undefined") {
+    captureBaseTitleIfNeeded();
+    if (baseTitle !== null) setTitle(baseTitle);
+    if (originalIconHrefs) {
+      for (const { el, href } of originalIconHrefs) {
+        el.href = href;
+      }
+      originalIconHrefs = null;
     }
-    originalIconHrefs = null;
   }
   flashOn = false;
+  currentVisualState = "clear";
 }
 
-async function maybeStartVisual(): Promise<void> {
-  if (typeof document === "undefined" || flashInterval) return;
-  if (currentFlashText() === null || !shouldFlash()) return;
-
-  originalTitle = document.title;
-  const iconLinks = getIconLinks();
-  originalIconHrefs = iconLinks.map((el) => ({ el, href: el.href }));
-
+async function applyBlink(): Promise<void> {
+  if (typeof document === "undefined") return;
+  captureBaseTitleIfNeeded();
+  captureIconsIfNeeded();
   const alertIcon = await getAlertIconDataUrl();
-  // Bail if focus was regained, or there's nothing left to show, while
-  // the icon was being generated.
-  if (!shouldFlash() || currentFlashText() === null) {
-    originalIconHrefs = null;
-    originalTitle = null;
-    return;
-  }
 
+  // Re-check nothing changed while the icon was being generated.
+  if (!shouldFlash() || currentAlertText() === null) return;
+  if (currentVisualState === "blink") return;
+
+  if (flashInterval) clearInterval(flashInterval);
+  currentVisualState = "blink";
   flashOn = false;
   flashInterval = setInterval(() => {
-    flashOn = !flashOn;
-    const text = currentFlashText();
-    if (text === null) {
-      // Read (or resolved) while mid-blink -- clear immediately rather
-      // than waiting for the next focus/blur event.
-      stopVisual();
+    const text = currentAlertText();
+    if (text === null || !shouldFlash()) {
+      syncFlashState();
       return;
     }
-    document.title = flashOn ? text : (originalTitle ?? document.title);
-    if (alertIcon && originalIconHrefs) {
-      for (const { el, href } of originalIconHrefs) {
-        el.href = flashOn ? alertIcon : href;
-      }
-    }
+    flashOn = !flashOn;
+    setTitle(flashOn ? text : (baseTitle ?? text));
+    setIconsAlert(flashOn, alertIcon);
   }, 1000);
 }
 
+function applyStatic(): void {
+  if (typeof document === "undefined") return;
+  const text = staticTitleText();
+  if (text === null) {
+    clearAll();
+    return;
+  }
+  if (flashInterval) {
+    clearInterval(flashInterval);
+    flashInterval = null;
+  }
+  captureIconsIfNeeded();
+  setTitle(text);
+  getAlertIconDataUrl().then((icon) => setIconsAlert(true, icon));
+  currentVisualState = "static";
+}
+
 // The Badging API puts a numeric badge directly on the taskbar/dock
-// icon for an installed PWA window -- unlike the title/favicon blink
-// above, this isn't tied to tab focus/visibility at all (that's the
-// whole point of it), so it's the one piece of this that actually
-// reaches the PC taskbar icon itself rather than just the in-browser
-// tab strip. Unsupported in a plain (non-installed) browser tab, where
-// it's a silent no-op.
+// icon for an installed PWA window -- unlike the title/favicon above,
+// this isn't tied to tab visibility at all (that's the whole point of
+// it), so it's the one piece of this that actually reaches the PC
+// taskbar icon itself rather than just the in-browser tab. Unsupported
+// in a plain (non-installed) browser tab, where it's a silent no-op.
 function updateAppBadge(): void {
   const nav = navigator as Navigator & {
     setAppBadge?: (count?: number) => Promise<void>;
@@ -186,31 +237,22 @@ function updateAppBadge(): void {
 function syncFlashState(): void {
   updateAppBadge();
 
-  if (currentFlashText() === null) {
-    stopVisual();
+  if (currentAlertText() === null) {
+    clearAll();
     return;
   }
+
   if (shouldFlash()) {
-    void maybeStartVisual();
+    void applyBlink();
+  } else {
+    applyStatic();
   }
-  // Otherwise the tab is currently focused: leave the title/favicon
-  // alone (already clear, or will be shown next time focus is lost --
-  // see the blur/visibilitychange listeners below).
 }
 
 function registerListeners(): void {
-  if (listenersRegistered || typeof window === "undefined") return;
+  if (listenersRegistered || typeof document === "undefined") return;
   listenersRegistered = true;
-  const handlePossibleFocusChange = () => {
-    if (shouldFlash()) {
-      void maybeStartVisual();
-    } else {
-      stopVisual();
-    }
-  };
-  window.addEventListener("blur", handlePossibleFocusChange);
-  window.addEventListener("focus", handlePossibleFocusChange);
-  document.addEventListener("visibilitychange", handlePossibleFocusChange);
+  document.addEventListener("visibilitychange", syncFlashState);
 }
 
 // Match found -- fixed text, cleared only by an explicit stopTabFlash()
