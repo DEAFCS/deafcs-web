@@ -221,10 +221,6 @@ async function applyBlink(): Promise<void> {
 
 function applyStatic(): void {
   if (typeof document === "undefined") return;
-  // Whatever's visible right now is, by definition, seen -- freezes the
-  // threshold the next blink (if any) has to climb past. Runs even when
-  // there's nothing to show (total 0), which just re-syncs it to 0.
-  acknowledgedCount = totalBadgeCount();
 
   const text = staticTitleText();
   if (text === null) {
@@ -285,10 +281,34 @@ function syncFlashState(): void {
   }
 }
 
+// Seeded (not treated as a transition) the first time registerListeners
+// runs, then tracks the actual hidden/visible state across real
+// visibilitychange events so a hidden->visible flip can be told apart
+// from "the count just changed while already visible".
+let previouslyHidden: boolean | null = null;
+
 function registerListeners(): void {
-  if (listenersRegistered || typeof document === "undefined") return;
+  if (typeof document === "undefined") return;
+  if (previouslyHidden === null) previouslyHidden = shouldFlash();
+  if (listenersRegistered) return;
   listenersRegistered = true;
-  document.addEventListener("visibilitychange", syncFlashState);
+  document.addEventListener("visibilitychange", () => {
+    const hiddenNow = shouldFlash();
+    if (previouslyHidden === true && hiddenNow === false) {
+      // Reported bug: a bell alert or chat message that arrived while
+      // the tab was already visible got marked "seen" the instant it
+      // arrived (acknowledgedCount used to be re-synced on every static
+      // render, not just on an actual hidden->visible transition), so
+      // it silently never blinked on the next switch-away at all.
+      // Acknowledging only happens here now -- an explicit "the player
+      // just looked back at a tab that was hidden" moment -- so a
+      // count that only ever changed while the tab stayed visible the
+      // whole time still correctly alerts once they do leave.
+      acknowledgedCount = totalBadgeCount();
+    }
+    previouslyHidden = hiddenNow;
+    syncFlashState();
+  });
 }
 
 // Incoming call ring -- fixed text, cleared only by an explicit
