@@ -23,6 +23,11 @@ const originalSrcObject = Object.getOwnPropertyDescriptor(
   HTMLMediaElement.prototype,
   "srcObject",
 );
+const originalNavigatorDeviceProperties = [
+  "userAgent",
+  "platform",
+  "maxTouchPoints",
+].map((name) => [name, Object.getOwnPropertyDescriptor(navigator, name)] as const);
 
 function mountComposer() {
   const wrapper = mount(ChatVideoComposer, {
@@ -61,6 +66,51 @@ function stubRecorder() {
     }
   }
   vi.stubGlobal("MediaRecorder", FakeMediaRecorder);
+}
+
+function setNavigatorDevice(
+  userAgent: string,
+  platform: string,
+  maxTouchPoints = 0,
+) {
+  Object.defineProperty(navigator, "userAgent", {
+    configurable: true,
+    value: userAgent,
+  });
+  Object.defineProperty(navigator, "platform", {
+    configurable: true,
+    value: platform,
+  });
+  Object.defineProperty(navigator, "maxTouchPoints", {
+    configurable: true,
+    value: maxTouchPoints,
+  });
+}
+
+function mockDecodedFrame(video: HTMLVideoElement) {
+  let currentTime = 0;
+  Object.defineProperty(video, "readyState", {
+    configurable: true,
+    value: HTMLMediaElement.HAVE_CURRENT_DATA,
+  });
+  Object.defineProperty(video, "duration", {
+    configurable: true,
+    value: 1,
+  });
+  Object.defineProperty(video, "currentTime", {
+    configurable: true,
+    get: () => currentTime,
+    set: (time: number) => {
+      currentTime = time;
+      video.dispatchEvent(new Event("seeked"));
+    },
+  });
+  const pause = vi.fn();
+  Object.defineProperty(video, "pause", {
+    configurable: true,
+    value: pause,
+  });
+  return { pause, getCurrentTime: () => currentTime };
 }
 
 async function clickButton(wrapper: ReturnType<typeof mount>, label: string) {
@@ -133,6 +183,10 @@ afterEach(() => {
   if (originalSrcObject)
     Object.defineProperty(HTMLMediaElement.prototype, "srcObject", originalSrcObject);
   else delete (HTMLMediaElement.prototype as any).srcObject;
+  for (const [name, descriptor] of originalNavigatorDeviceProperties) {
+    if (descriptor) Object.defineProperty(navigator, name, descriptor);
+    else Reflect.deleteProperty(navigator, name);
+  }
 });
 
 describe("Short Video anonymous phone recorder", () => {
@@ -203,6 +257,52 @@ describe("Short Video anonymous phone recorder", () => {
     expect(wrapper.text()).toContain("Open camera");
     expect(wrapper.text()).not.toContain("DEAFCS account");
   });
+});
+
+describe("Short Video device chooser", () => {
+  it("offers phone QR on desktop", async () => {
+    setNavigatorDevice("Mozilla/5.0 (Windows NT 10.0; Win64; x64)", "Win32");
+
+    const wrapper = mountComposer();
+    await wrapper
+      .find('[title="Record a sign-language video message"]')
+      .trigger("click");
+    await flushPromises();
+
+    expect(wrapper.text()).toContain("This device");
+    expect(wrapper.text()).toContain("Use phone");
+  });
+
+  it.each([
+    [
+      "iPhone browser and PWA",
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
+      "iPhone",
+      0,
+    ],
+    ["Android phone", "Mozilla/5.0 (Linux; Android 15)", "Linux armv8l", 0],
+    [
+      "iPadOS desktop user agent",
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15)",
+      "MacIntel",
+      5,
+    ],
+  ])(
+    "hides phone QR on %s",
+    async (_name, userAgent, platform, maxTouchPoints) => {
+      setNavigatorDevice(userAgent, platform, maxTouchPoints);
+
+      const wrapper = mountComposer();
+      await wrapper
+        .find('[title="Record a sign-language video message"]')
+        .trigger("click");
+      await flushPromises();
+
+      expect(wrapper.text()).toContain("This device");
+      expect(wrapper.text()).not.toContain("Use phone");
+      expect(vi.mocked(fetch)).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("Short Video PC camera flow", () => {
@@ -360,10 +460,17 @@ describe("Short Video PC camera flow", () => {
       .trigger("click");
     await clickButton(wrapper, "This device");
     await clickButton(wrapper, "Start recording");
+    const countdownButton = wrapper
+      .findAll("button")
+      .find((button) => button.text().includes("Start recording"));
+    expect(countdownButton?.attributes("disabled")).toBeDefined();
     expect(wrapper.text()).toContain("3");
     await vi.advanceTimersByTimeAsync(3_000);
     expect(wrapper.text()).toContain("60 seconds left");
-    expect(wrapper.text()).toContain("Stop");
+    expect(wrapper.text()).toContain("Stop recording · 60s");
+    expect(
+      wrapper.findAll("button").filter((button) => /stop/i.test(button.text())),
+    ).toHaveLength(1);
     await vi.advanceTimersByTimeAsync(60_000);
     await flushPromises();
     expect(wrapper.text()).toContain("Preview your video before sending");
@@ -418,6 +525,15 @@ describe("Short Video phone send flow", () => {
     await clickButton(wrapper, "Stop");
     expect(wrapper.text()).toContain("Preview your video");
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    const preview = wrapper.find("video");
+    const frame = mockDecodedFrame(preview.element as HTMLVideoElement);
+    expect(preview.attributes("preload")).toBe("auto");
+    expect(preview.attributes("muted")).toBeDefined();
+    expect(preview.attributes("playsinline")).toBeDefined();
+    expect(preview.attributes("src")).toBe("blob:chat-video-preview#t=0.001");
+    await preview.trigger("loadeddata");
+    expect(frame.getCurrentTime()).toBe(0.1);
+    expect(frame.pause).toHaveBeenCalled();
 
     await clickButton(wrapper, "Send Video");
     expect(fetchMock).toHaveBeenCalledTimes(2);

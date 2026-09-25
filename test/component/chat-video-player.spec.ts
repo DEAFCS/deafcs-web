@@ -12,6 +12,32 @@ function mountPlayer() {
   return wrapper;
 }
 
+function mockDecodedFrame(video: HTMLVideoElement) {
+  let currentTime = 0;
+  Object.defineProperty(video, "readyState", {
+    configurable: true,
+    value: HTMLMediaElement.HAVE_CURRENT_DATA,
+  });
+  Object.defineProperty(video, "duration", {
+    configurable: true,
+    value: 1,
+  });
+  Object.defineProperty(video, "currentTime", {
+    configurable: true,
+    get: () => currentTime,
+    set: (time: number) => {
+      currentTime = time;
+      video.dispatchEvent(new Event("seeked"));
+    },
+  });
+  const pause = vi.fn();
+  Object.defineProperty(video, "pause", {
+    configurable: true,
+    value: pause,
+  });
+  return { pause, getCurrentTime: () => currentTime };
+}
+
 afterEach(() => {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount();
   vi.restoreAllMocks();
@@ -34,6 +60,13 @@ describe("Short Video chat player", () => {
     expect(video.attributes()).toHaveProperty("disablepictureinpicture");
     expect(video.attributes()).toHaveProperty("disableremoteplayback");
     expect(video.attributes()).not.toHaveProperty("autoplay");
+    expect(video.attributes()).toHaveProperty("preload", "auto");
+    expect(video.attributes("src")).toBe(
+      "https://api.deafcs.net/matches/chat-video/media/media-1#t=0.001",
+    );
+    expect(video.attributes("src")?.split("#")[0]).toBe(
+      "https://api.deafcs.net/matches/chat-video/media/media-1",
+    );
     expect((video.element as HTMLVideoElement).muted).toBe(true);
     expect((video.element as HTMLVideoElement).defaultMuted).toBe(true);
     expect((video.element as HTMLVideoElement).controls).toBe(false);
@@ -45,6 +78,20 @@ describe("Short Video chat player", () => {
     expect(labels).toEqual(["Play video", "Enter fullscreen"]);
     expect(wrapper.text()).not.toMatch(/volume|mute|download|picture.in.picture/i);
     expect(wrapper.text()).not.toMatch(/speed|three.dot/i);
+  });
+
+  it("seeks to and pauses on a real initial frame without starting playback", async () => {
+    const wrapper = mountPlayer();
+    const video = wrapper.find("video").element as HTMLVideoElement;
+    const frame = mockDecodedFrame(video);
+
+    await wrapper.find("video").trigger("loadeddata");
+
+    expect(frame.getCurrentTime()).toBe(0.1);
+    expect(frame.pause).toHaveBeenCalled();
+    expect(wrapper.find('button[aria-label="Play video"]').exists()).toBe(true);
+    expect(wrapper.find('button[aria-label="Pause video"]').exists()).toBe(false);
+    expect(video.muted).toBe(true);
   });
 
   it("shows its only two controls on pointer interaction", async () => {

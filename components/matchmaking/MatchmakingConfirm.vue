@@ -175,7 +175,20 @@ export default {
       return useMatchmakingStore().joinedMatchmakingQueues?.confirmation;
     },
     shouldShow(): boolean {
-      return !!this.confirmation && !this.confirmation.matchId;
+      const confirmation = this.confirmation;
+      const players = confirmation?.players;
+      const everyoneConfirmed =
+        confirmation !== undefined &&
+        typeof players === "number" &&
+        players > 0 &&
+        confirmation.confirmed >= players;
+
+      return Boolean(
+        confirmation &&
+          !confirmation.matchId &&
+          !confirmation.isReady &&
+          !everyoneConfirmed,
+      );
     },
     formattedCountdown(): string {
       const total = Math.max(0, this.remainingSeconds);
@@ -194,12 +207,19 @@ export default {
       immediate: true,
       handler(confirmation, oldConfirmation) {
         if (!confirmation) {
+          if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = undefined;
+          }
+          this.remainingSeconds = 0;
           useMatchReadyModal().closeMatchReadyModal();
           stopTabFlash();
           return;
         }
 
-        if (!oldConfirmation) {
+        if (
+          confirmation.confirmationId !== oldConfirmation?.confirmationId
+        ) {
           if (this.countdownInterval) {
             clearInterval(this.countdownInterval);
           }
@@ -211,11 +231,11 @@ export default {
           this.countdownInterval = setInterval(this.updateCountdown, 1000);
         }
 
-        if (this.confirmation?.isReady) {
+        if (this.confirmation?.isReady && !oldConfirmation?.isReady) {
           this.playTickSound();
         }
 
-        if (!oldConfirmation?.matchId && this.confirmation?.matchId) {
+        if (this.confirmation?.matchId) {
           stopTabFlash();
           if (this.routedConfirmedId !== this.confirmation.matchId) {
             this.routedConfirmedId = this.confirmation.matchId;

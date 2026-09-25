@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Camera, RefreshCw, Smartphone, X } from "lucide-vue-next";
+import { computed } from "vue";
+import { primeVideoFrame, videoPreviewSource } from "~/utils/videoPreview";
 definePageMeta({ layout: false });
 
 const config = useRuntimeConfig();
@@ -23,6 +25,7 @@ const stream = shallowRef<MediaStream | null>(null);
 const preview = ref<HTMLVideoElement>();
 const blob = shallowRef<Blob | null>(null);
 const blobUrl = ref("");
+const previewSrc = computed(() => videoPreviewSource(blobUrl.value));
 const countdown = ref(0);
 const secondsLeft = ref(60);
 const uploadProgress = ref(0);
@@ -49,6 +52,11 @@ function stopTimers() {
 function stopSendStatusPolling() {
   if (sendStatusTimer) clearInterval(sendStatusTimer);
   sendStatusTimer = undefined;
+}
+function primeRecordedPreviewFrame() {
+  if (preview.value && previewSrc.value) {
+    primeVideoFrame(preview.value, previewSrc.value);
+  }
 }
 function chooseMime() {
   return (
@@ -467,11 +475,16 @@ onBeforeUnmount(() => {
       </section>
       <section v-else-if="state === 'preview'" class="space-y-3">
         <video
-          :src="blobUrl"
+          ref="preview"
+          :src="previewSrc"
           controls
+          muted
           playsinline
-          preload="metadata"
+          preload="auto"
           class="max-h-[65vh] w-full rounded-lg bg-black object-contain"
+          @loadedmetadata="primeRecordedPreviewFrame"
+          @loadeddata="primeRecordedPreviewFrame"
+          @canplay="primeRecordedPreviewFrame"
         />
         <p class="text-sm text-zinc-400">
           Preview your video. You can retake it before sending.

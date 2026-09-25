@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import QRCode from "qrcode";
 import { Camera, RefreshCw, Smartphone, Video, X } from "lucide-vue-next";
+import { onMounted, ref, shallowRef } from "vue";
 
 const props = defineProps<{
   type: string;
@@ -8,6 +9,7 @@ const props = defineProps<{
 }>();
 const config = useRuntimeConfig();
 const open = ref(false);
+const isMobileOS = ref(false);
 const step = ref<"choice" | "camera" | "recorded" | "phone">("choice");
 const error = ref("");
 const stream = shallowRef<MediaStream | null>(null);
@@ -32,6 +34,15 @@ let recordedDurationMs = 0;
 let phoneToken = "";
 let facingMode: "user" | "environment" = "user";
 const api = `https://${config.public.apiDomain}/matches/chat-video`;
+
+onMounted(() => {
+  const userAgent = navigator.userAgent || "";
+  const usesIPadDesktopUserAgent =
+    navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;
+  isMobileOS.value =
+    /android|iphone|ipad|ipod/i.test(userAgent) ||
+    usesIPadDesktopUserAgent;
+});
 
 function stopCamera() {
   stream.value?.getTracks().forEach((track) => track.stop());
@@ -196,6 +207,7 @@ function preferredMime() {
   return candidates.find((mime) => MediaRecorder.isTypeSupported(mime)) || "";
 }
 function beginCountdown() {
+  if (countdown.value > 0 || recording.value || busy.value) return;
   const mimeType = preferredMime();
   if (!mimeType) {
     error.value = "This browser cannot record a supported video format.";
@@ -471,6 +483,7 @@ onBeforeUnmount(() => {
           >
         </button>
         <button
+          v-if="!isMobileOS"
           class="flex min-h-24 items-center gap-3 rounded border p-4 text-left hover:bg-muted disabled:opacity-50"
           type="button"
           :disabled="busy"
@@ -515,8 +528,19 @@ onBeforeUnmount(() => {
           >
             Flip camera</button
           ><button
-            class="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground"
+            v-if="recording"
+            class="rounded bg-destructive px-4 py-1.5 text-sm text-destructive-foreground"
             type="button"
+            :disabled="busy"
+            @click="stopRecording"
+          >
+            Stop recording · {{ secondsLeft }}s
+          </button>
+          <button
+            v-else
+            class="rounded bg-primary px-4 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
+            type="button"
+            :disabled="busy || countdown > 0"
             @click="beginCountdown"
           >
             Start recording
@@ -576,9 +600,6 @@ onBeforeUnmount(() => {
       </div>
       <p v-if="recording" class="mt-3 text-center text-sm text-red-500">
         Recording… {{ secondsLeft }} seconds left
-        <button type="button" class="ml-2 underline" @click="stopRecording">
-          Stop
-        </button>
       </p>
     </div>
   </div>

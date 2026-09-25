@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { Maximize2, Minimize2, Pause, Play } from "lucide-vue-next";
-import { onBeforeUnmount, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
+import { primeVideoFrame, videoPreviewSource } from "~/utils/videoPreview";
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     src: string;
     label?: string;
@@ -10,6 +11,7 @@ withDefaults(
   { label: "Video message" },
 );
 
+const previewSrc = computed(() => videoPreviewSource(props.src));
 const player = ref<HTMLDivElement>();
 const video = ref<HTMLVideoElement>();
 const isPlaying = ref(false);
@@ -67,6 +69,10 @@ function syncPlaybackState() {
   isPlaying.value = !video.value.paused && !video.value.ended;
 }
 
+function primePreviewFrame() {
+  if (video.value) primeVideoFrame(video.value, previewSrc.value);
+}
+
 async function toggleFullscreen() {
   if (!player.value) return;
   revealControls();
@@ -110,10 +116,10 @@ onBeforeUnmount(() => {
   >
     <video
       ref="video"
-      :src="src"
+      :src="previewSrc"
       muted
       playsinline
-      preload="metadata"
+      preload="auto"
       controlslist="nodownload noplaybackrate noremoteplayback"
       disablepictureinpicture
       disableremoteplayback
@@ -127,6 +133,9 @@ onBeforeUnmount(() => {
       @pause="syncPlaybackState"
       @ended="syncPlaybackState"
       @volumechange="keepVideoMuted"
+      @loadedmetadata="primePreviewFrame"
+      @loadeddata="primePreviewFrame"
+      @canplay="primePreviewFrame"
     >
       Your browser does not support video playback.
     </video>
