@@ -52,6 +52,12 @@ import { e_player_roles_enum } from "~/generated/zeus";
         <h4 class="font-semibold truncate max-w-[140px]">
           {{ message.from.name }}
         </h4>
+        <span
+          v-if="showSourceTag"
+          class="rounded bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground"
+        >
+          {{ $t("chat.source_website", "DEAFCS") }}
+        </span>
         <span class="text-[10px] whitespace-nowrap">
           <time-ago :date="message.timestamp" hide-icon></time-ago>
         </span>
@@ -195,6 +201,16 @@ export default {
     },
     canEdit() {
       return this.canModerate && this.chatType === "announcement";
+    },
+    // Match-type chat mixes messages relayed in from the live CS2/CSS
+    // server with ones typed directly on the DEAFCS site itself (see
+    // ChatMessageEvent.ts / chat.service.ts's sendMessageToChat source
+    // param) -- every other chat type is website-only already, so the
+    // tag would just be noise there. Older messages sent before this
+    // field existed have no `source` at all; treat those as in-game
+    // rather than mislabeling them.
+    showSourceTag() {
+      return this.chatType === "match" && this.message?.source === "website";
     },
   },
   methods: {

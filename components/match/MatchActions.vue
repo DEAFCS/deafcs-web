@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   LifeBuoy,
+  MessageSquare,
   MoreVertical,
   Pause,
   Play,
@@ -261,6 +262,11 @@ import {
           <span>{{ $t("match.actions.watch_camera") }}</span>
         </DropdownMenuItem>
 
+        <DropdownMenuItem v-if="canViewChatLog" @click="openChatLog">
+          <MessageSquare class="text-muted-foreground" />
+          <span>{{ $t("match.actions.chat_log", "Chat Log") }}</span>
+        </DropdownMenuItem>
+
         <DropdownMenuItem v-if="canReparseDemos" @click="reparseAllDemos">
           <RefreshCw />
           {{ $t("match.actions.reparse_demos") }}
@@ -416,6 +422,9 @@ export default {
         "camera-admin-grid",
         "width=760,height=780",
       );
+    },
+    openChatLog() {
+      this.$router.push(`/matches/${this.match.id}/chat-log`);
     },
     async cancelMatch() {
       if (this.cancellingMatch) {
@@ -998,6 +1007,24 @@ export default {
     canWatchCamera() {
       return (
         this.match.is_organizer ||
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+      );
+    },
+    matchHasEnded() {
+      return [
+        e_match_status_enum.Finished,
+        e_match_status_enum.Forfeit,
+        e_match_status_enum.Surrendered,
+        e_match_status_enum.Tie,
+        e_match_status_enum.Canceled,
+      ].includes(this.match.status);
+    },
+    // Site-admin only, and only once the match is actually over -- see
+    // chat.service.ts's joinMatchLobby for the matching server-side gate
+    // that lets an admin open either team's private chat post-match.
+    canViewChatLog() {
+      return (
+        this.matchHasEnded &&
         useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },
