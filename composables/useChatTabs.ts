@@ -1,6 +1,4 @@
 import { ref, computed } from "vue";
-import { bumpChatTabFlashBadge } from "~/composables/useTabFlash";
-import { useTabFlashSettings } from "~/composables/useTabFlashSettings";
 
 type ChatType =
   | "match"
@@ -290,9 +288,6 @@ export function useChatTabs() {
   function incrementUnread(id: string) {
     unreadCountsRef.value[id] = (unreadCountsRef.value[id] || 0) + 1;
     persistUnreadCounts(unreadCountsRef.value);
-    if (useTabFlashSettings().isChatFlashEnabled.value) {
-      bumpChatTabFlashBadge();
-    }
   }
 
   function resetUnread(id: string) {

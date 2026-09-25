@@ -205,7 +205,7 @@ export default {
           }
           this.playMatchFoundSound();
           if (useTabFlashSettings().isMatchFoundFlashEnabled.value) {
-            void startTabFlash(this.$t("matchmaking.match_found_flash_title"));
+            startTabFlash(this.$t("matchmaking.match_found_flash_title"));
           }
           this.updateCountdown();
           this.countdownInterval = setInterval(this.updateCountdown, 1000);
