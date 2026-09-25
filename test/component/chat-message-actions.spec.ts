@@ -2,10 +2,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import ChatMessage from "../../components/chat/ChatMessage.vue";
 import ChatMessageActionsMenu from "../../components/chat/ChatMessageActionsMenu.vue";
+import ChatInput from "../../components/chat/ChatInput.vue";
 import {
+  CHAT_MESSAGE_MAX_LENGTH,
   CHAT_MESSAGE_SELF_SERVICE_WINDOW_MS,
   getChatMessageActionPermissions,
 } from "../../utils/chatMessageActions";
+
+const toastMock = vi.hoisted(() => vi.fn());
+vi.mock("@/components/ui/toast", () => ({ toast: toastMock }));
 
 const NOW = Date.parse("2026-09-26T12:00:00.000Z");
 const MINUTE = 60 * 1000;
@@ -243,13 +248,88 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
     wrapper.findComponent(ChatMessageActionsMenu).vm.$emit("edit");
     await wrapper.vm.$nextTick();
     const textarea = wrapper.get("textarea");
-    expect(textarea.attributes("maxlength")).toBe("2000");
+    // No maxlength: the browser would silently cut pasted text.
+    expect(textarea.attributes("maxlength")).toBeUndefined();
     await textarea.setValue("fixed");
     await textarea.trigger("keydown", { key: "Enter" });
     expect(wrapper.emitted("edit-message")?.[0]?.[0]).toEqual({
       id: messageId,
       message: "fixed",
     });
+  });
+
+  it("edit: exactly 2,000 characters is sent, 2,001 is refused and kept open untruncated", async () => {
+    const wrapper = mountMessage({ message: own() });
+    const edit = async (text: string) => {
+      wrapper.findComponent(ChatMessageActionsMenu).vm.$emit("edit");
+      await wrapper.vm.$nextTick();
+      const textarea = wrapper.get("textarea");
+      await textarea.setValue(text);
+      await textarea.trigger("keydown", { key: "Enter" });
+      return textarea;
+    };
+
+    const tooLong = "y".repeat(CHAT_MESSAGE_MAX_LENGTH + 1);
+    const textarea = await edit(tooLong);
+    expect(wrapper.emitted("edit-message")).toBeUndefined();
+    expect((textarea.element as HTMLTextAreaElement).value).toBe(tooLong);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: "Message can be up to 2,000 characters.",
+      }),
+    );
+
+    const exact = "x".repeat(CHAT_MESSAGE_MAX_LENGTH);
+    await wrapper.get("textarea").setValue(exact);
+    await wrapper.get("textarea").trigger("keydown", { key: "Enter" });
+    expect(wrapper.emitted("edit-message")?.[0]?.[0]).toEqual({
+      id: messageId,
+      message: exact,
+    });
+  });
+});
+
+describe("ChatInput 2,000 character limit", () => {
+  beforeEach(() => {
+    toastMock.mockClear();
+    vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function mountInput() {
+    return mount(ChatInput, {
+      global: {
+        mocks: { $t: (key: string, fallback?: string) => fallback ?? key },
+        stubs: { ChatVideoComposer: true },
+      },
+    });
+  }
+
+  it("sends exactly 2,000 characters", async () => {
+    const wrapper = mountInput();
+    const text = "a".repeat(CHAT_MESSAGE_MAX_LENGTH);
+    await wrapper.get("input").setValue(text);
+    await wrapper.get("form").trigger("submit");
+    expect(wrapper.emitted("sendMessage")?.[0]?.[0]).toEqual({ message: text });
+    expect(toastMock).not.toHaveBeenCalled();
+  });
+
+  it("refuses 2,001 characters, keeps the text and explains why", async () => {
+    const wrapper = mountInput();
+    const text = "a".repeat(CHAT_MESSAGE_MAX_LENGTH + 1);
+    const input = wrapper.get("input");
+    await input.setValue(text);
+    await wrapper.get("form").trigger("submit");
+    expect(wrapper.emitted("sendMessage")).toBeUndefined();
+    expect((input.element as HTMLInputElement).value).toBe(text);
+    expect(toastMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: "Message can be up to 2,000 characters.",
+      }),
+    );
   });
 });
 

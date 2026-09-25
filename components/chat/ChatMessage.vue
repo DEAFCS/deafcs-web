@@ -67,7 +67,6 @@ import { e_player_roles_enum } from "~/generated/zeus";
         <textarea
           v-model="editDraft"
           rows="2"
-          :maxlength="editMaxLength"
           class="flex-1 resize-none rounded border border-border bg-background px-1.5 py-1 text-[11px] leading-snug"
           @keydown.escape="cancelEdit"
           @keydown.enter.exact.prevent="confirmEdit"
@@ -156,9 +155,10 @@ import {
   type ChatReaction,
 } from "~/utils/chatReactions";
 import {
-  CHAT_MESSAGE_EDIT_MAX_LENGTH,
   getChatMessageActionPermissions,
+  isChatMessageTooLong,
   selfServiceTimeLeft,
+  showChatMessageTooLong,
 } from "~/utils/chatMessageActions";
 
 // Elevated roles only -- regular (verified_)user and streamer get no
@@ -225,7 +225,6 @@ export default {
       liveAvatarUrl: null as string | null,
       isEditing: false,
       editDraft: "",
-      editMaxLength: CHAT_MESSAGE_EDIT_MAX_LENGTH,
       // Own-message Edit/Delete depend on the message's age, which a
       // computed can't observe on its own -- refreshed when the menu opens
       // and once more right as the 10-minute window closes.
@@ -368,6 +367,11 @@ export default {
       const message = this.editDraft.trim();
       if (!message || message === this.message.message) {
         this.isEditing = false;
+        return;
+      }
+      // Keep the draft open so nothing is lost or silently cut.
+      if (isChatMessageTooLong(message)) {
+        showChatMessageTooLong();
         return;
       }
       this.$emit("edit-message", { id: this.message.id, message });

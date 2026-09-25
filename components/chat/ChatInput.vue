@@ -152,6 +152,10 @@ import ChatVideoComposer from "~/components/chat/ChatVideoComposer.vue";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
+import {
+  isChatMessageTooLong,
+  showChatMessageTooLong,
+} from "~/utils/chatMessageActions";
 
 export default {
   components: { ChatVideoComposer },
@@ -223,6 +227,12 @@ export default {
       const { message } = this.form.values;
       const normalizedMessage = (message || "").trim();
       if (!normalizedMessage) return;
+      // Refused (text kept) rather than truncated; the API enforces the
+      // same limit.
+      if (isChatMessageTooLong(normalizedMessage)) {
+        showChatMessageTooLong();
+        return;
+      }
       this.$emit("sendMessage", {
         message: normalizedMessage,
       });

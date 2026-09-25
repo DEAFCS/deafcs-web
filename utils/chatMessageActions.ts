@@ -1,7 +1,25 @@
+import { toast } from "@/components/ui/toast";
+
 // Mirrors api-deafcs chat.service.ts. The API is authoritative: these
 // rules only decide which "..." actions to show, never what is allowed.
 export const CHAT_MESSAGE_SELF_SERVICE_WINDOW_MS = 10 * 60 * 1000;
-export const CHAT_MESSAGE_EDIT_MAX_LENGTH = 2000;
+
+// One product limit for website chat text (send and edit), same value
+// and wording as the API. Over-length text is refused, never truncated.
+export const CHAT_MESSAGE_MAX_LENGTH = 2000;
+export const CHAT_MESSAGE_TOO_LONG_ERROR =
+  "Message can be up to 2,000 characters.";
+
+export function isChatMessageTooLong(message: string) {
+  return message.length > CHAT_MESSAGE_MAX_LENGTH;
+}
+
+export function showChatMessageTooLong() {
+  toast({
+    variant: "destructive",
+    description: CHAT_MESSAGE_TOO_LONG_ERROR,
+  });
+}
 
 export type ChatMessageActionPermissions = {
   canEdit: boolean;

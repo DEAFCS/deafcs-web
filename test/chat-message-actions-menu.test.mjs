@@ -69,7 +69,8 @@ test("each message instance targets only its own id and sender -- Delete and Mut
 test("Edit comes from the ownership helper and reuses the existing confirm/cancel flow", () => {
   assert.match(message, /canEdit\(\)\s*\{\s*\n\s*return this\.actionPermissions\.canEdit;/);
   assert.match(message, /:can-edit="canEdit"/);
-  assert.match(message, /:maxlength="editMaxLength"/);
+  assert.doesNotMatch(message, /maxlength/);
+  assert.match(message, /isChatMessageTooLong\(message\)/);
   // One shared placement is wired to the existing handlers.
   const editWiring = message.match(/@edit="startEdit"/g) ?? [];
   const muteWiring = message.match(/@mute="requestMute"/g) ?? [];
