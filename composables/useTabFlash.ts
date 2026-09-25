@@ -72,6 +72,25 @@ function hasNewCountSinceAcknowledged(): boolean {
   return totalBadgeCount() > acknowledgedCount;
 }
 
+// Whether there's anything at all to display while the tab is visible
+// (the steady, non-blinking count) -- deliberately NOT gated on
+// acknowledgment. A call ring or match found always counts; so does
+// any unread chat/alert total, seen or not, since the whole point of
+// the visible static badge is to keep reflecting the true live count.
+function hasAnythingToShow(): boolean {
+  return callLabel !== null || matchLabel !== null || totalBadgeCount() > 0;
+}
+
+// Whether the tab should actually be alerting (blinking) right now --
+// this IS gated on acknowledgment for the chat/alert count, but not
+// for a call ring or match found, which only ever clear on their own
+// explicit resolution.
+function hasSomethingUrgent(): boolean {
+  return (
+    callLabel !== null || matchLabel !== null || hasNewCountSinceAcknowledged()
+  );
+}
+
 function countAlertText(): string | null {
   if (!hasNewCountSinceAcknowledged()) return null;
   const total = totalBadgeCount();
@@ -269,14 +288,24 @@ function updateAppBadge(): void {
 function syncFlashState(): void {
   updateAppBadge();
 
-  if (currentAlertText() === null) {
-    clearAll();
-    return;
-  }
-
   if (shouldFlash()) {
+    // Hidden: only actually alert (blink) if there's something new/
+    // urgent -- an already-acknowledged count stays silent.
+    if (!hasSomethingUrgent()) {
+      clearAll();
+      return;
+    }
     void applyBlink();
   } else {
+    // Visible: always show the true live count/state, acknowledged or
+    // not -- reported bug: switching back to the tab right after a
+    // count arrived cleared the title to nothing instead of showing
+    // the steady "(N)" badge, because this used to share the same
+    // acknowledgment-gated check as the blink decision above.
+    if (!hasAnythingToShow()) {
+      clearAll();
+      return;
+    }
     applyStatic();
   }
 }
