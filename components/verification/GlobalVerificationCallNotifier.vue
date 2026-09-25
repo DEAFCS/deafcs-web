@@ -4,6 +4,7 @@ import { Button } from "~/components/ui/button";
 import { Video } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
 import { respondToVerificationRing } from "~/composables/useVerificationCallApi";
+import { startCallFlash, stopCallFlash } from "~/composables/useTabFlash";
 
 // Full-screen "Admin is calling…" overlay for the verification-application
 // webcam call -- deliberately not a small corner popup like the other
@@ -37,11 +38,15 @@ function showIncomingCall(data: RingPayload) {
   // (the ring itself expires at the same point, so there's no reason
   // for this to outlast or fall short of that window).
   incomingCallTimer = setTimeout(() => decline(), 60_000);
+  startCallFlash(
+    data.adminName ? `${data.adminName} is calling` : "Admin is calling",
+  );
 }
 
 function closeOverlay() {
   incomingCall.value = null;
   if (incomingCallTimer) clearTimeout(incomingCallTimer);
+  stopCallFlash();
 }
 
 function decline() {

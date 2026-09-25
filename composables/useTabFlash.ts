@@ -13,28 +13,39 @@
 // still "on" the tab, just not looking at the Chrome window at that
 // exact moment, so this must not count as "switched away".
 //
-// Three independent sources feed this: MatchmakingConfirm.vue calls
-// startTabFlash/stopTabFlash directly (a match found is a single event
-// with its own explicit resolution -- accepted, declined, or expired,
-// and its own full-screen popup covers the "still visible" case, so it
-// only ever blinks, never shows a static badge). setChatFlashCount and
-// setAlertFlashCount are each kept continuously in sync with their own
-// real unread total (see plugins/chatTabFlash.client.ts for chat, and
-// the alert bell's unreadNotificationCount for setAlertFlashCount)
-// rather than being bumped once per event and forgotten -- switching
-// to the tab only clears the visual blink, the underlying counts keep
-// tracking the true unread totals. A match-found alert always wins
-// over a chat/alert count if both are live, since only one of them has
-// an actual accept deadline.
+// Four independent sources feed this, in priority order:
+//   1. startCallFlash/stopCallFlash -- an incoming webcam call ring
+//      (GlobalAdminCallNotifier.vue / GlobalVerificationCallNotifier.vue).
+//      Cleared only by an explicit accept/decline/timeout, never by
+//      just glancing at the tab.
+//   2. startTabFlash/stopTabFlash -- a match found (MatchmakingConfirm.vue).
+//      Same "explicit resolution only" contract as calls.
+//   3/4. setChatFlashCount / setAlertFlashCount -- kept continuously in
+//      sync with their own real unread total (see
+//      plugins/chatTabFlash.client.ts) rather than bumped once per
+//      event and forgotten.
+// A call or match-found alert always wins over a chat/alert count if
+// several are live at once, since those are the ones with an actual
+// response deadline.
+//
+// Chat/alert counts additionally remember how much the player has
+// already been shown while the tab was visible (acknowledgedCount) --
+// reported: glancing at the tab without actually reading anything
+// still made the blink come right back the next time it lost focus.
+// Looking at the tab now silences the blink for whatever total was
+// visible at that moment; it only resumes if the total climbs past
+// that point, i.e. a genuinely new message or alert arrives.
 
 type VisualState = "blink" | "static" | "clear";
 
 let currentVisualState: VisualState = "clear";
 let flashInterval: ReturnType<typeof setInterval> | null = null;
 let flashOn = false;
+let callLabel: string | null = null;
 let matchLabel: string | null = null;
 let chatCount = 0;
 let alertCount = 0;
+let acknowledgedCount = 0;
 
 // The "real" title/icons underneath our own override -- re-adopted
 // automatically whenever the page's own title changes out from under
@@ -57,11 +68,23 @@ function totalBadgeCount(): number {
   return chatCount + alertCount;
 }
 
-function currentAlertText(): string | null {
-  if (matchLabel !== null) return matchLabel;
+function hasNewCountSinceAcknowledged(): boolean {
+  return totalBadgeCount() > acknowledgedCount;
+}
+
+function countAlertText(): string | null {
+  if (!hasNewCountSinceAcknowledged()) return null;
   const total = totalBadgeCount();
-  if (total > 0) return `(${total}) New Alert`;
-  return null;
+  // A message and a bell alert read differently enough (chat vs.
+  // account/admin/system events) that lumping them under one generic
+  // word was reported as confusing -- prefer "New Message" whenever
+  // any of the total is actually a chat message, since that's the more
+  // frequent/urgent of the two; a bell-only total says "New Alert".
+  return chatCount > 0 ? `(${total}) New Message` : `(${total}) New Alert`;
+}
+
+function currentAlertText(): string | null {
+  return callLabel ?? matchLabel ?? countAlertText();
 }
 
 function captureBaseTitleIfNeeded(): void {
@@ -78,7 +101,7 @@ function setTitle(text: string): void {
 }
 
 function staticTitleText(): string | null {
-  if (matchLabel !== null) return null; // match found only ever blinks
+  if (callLabel !== null || matchLabel !== null) return null; // these only ever blink
   const total = totalBadgeCount();
   if (total <= 0) return null;
   captureBaseTitleIfNeeded();
@@ -203,6 +226,11 @@ async function applyBlink(): Promise<void> {
 
 function applyStatic(): void {
   if (typeof document === "undefined") return;
+  // Whatever's visible right now is, by definition, seen -- freezes the
+  // threshold the next blink (if any) has to climb past. Runs even when
+  // there's nothing to show (total 0), which just re-syncs it to 0.
+  acknowledgedCount = totalBadgeCount();
+
   const text = staticTitleText();
   if (text === null) {
     clearAll();
@@ -220,10 +248,11 @@ function applyStatic(): void {
 
 // The Badging API puts a numeric badge directly on the taskbar/dock
 // icon for an installed PWA window -- unlike the title/favicon above,
-// this isn't tied to tab visibility at all (that's the whole point of
-// it), so it's the one piece of this that actually reaches the PC
-// taskbar icon itself rather than just the in-browser tab. Unsupported
-// in a plain (non-installed) browser tab, where it's a silent no-op.
+// this isn't tied to tab visibility (or acknowledgment) at all (that's
+// the whole point of it), so it's the one piece of this that actually
+// reaches the PC taskbar icon itself rather than just the in-browser
+// tab. Unsupported in a plain (non-installed) browser tab, where it's
+// a silent no-op.
 function updateAppBadge(): void {
   const nav = navigator as Navigator & {
     setAppBadge?: (count?: number) => Promise<void>;
@@ -231,7 +260,10 @@ function updateAppBadge(): void {
   };
   if (typeof nav.setAppBadge !== "function") return;
 
-  const badgeCount = (matchLabel !== null ? 1 : 0) + totalBadgeCount();
+  const badgeCount =
+    (callLabel !== null ? 1 : 0) +
+    (matchLabel !== null ? 1 : 0) +
+    totalBadgeCount();
   try {
     if (badgeCount > 0) {
       nav.setAppBadge(badgeCount).catch(() => {});
@@ -262,6 +294,21 @@ function registerListeners(): void {
   if (listenersRegistered || typeof document === "undefined") return;
   listenersRegistered = true;
   document.addEventListener("visibilitychange", syncFlashState);
+}
+
+// Incoming call ring -- fixed text, cleared only by an explicit
+// stopCallFlash() call (accepted, declined, or timed out), never just
+// by looking at the tab.
+export function startCallFlash(label: string): void {
+  if (typeof document === "undefined") return;
+  registerListeners();
+  callLabel = label;
+  syncFlashState();
+}
+
+export function stopCallFlash(): void {
+  callLabel = null;
+  syncFlashState();
 }
 
 // Match found -- fixed text, cleared only by an explicit stopTabFlash()

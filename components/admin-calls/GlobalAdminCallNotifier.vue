@@ -7,6 +7,7 @@ import {
   respondToAdminCallRing,
   fetchActiveAdminCallRing,
 } from "~/composables/useAdminCallApi";
+import { startCallFlash, stopCallFlash } from "~/composables/useTabFlash";
 
 // Full-screen "Admin is calling…" overlay for the general admin<->player
 // webcam call (camera icon on every player profile page) -- direct
@@ -33,11 +34,15 @@ function showIncomingCall(data: RingPayload, autoDeclineMs = 60_000) {
   // whatever's actually left of it when catching up on an already
   // in-flight ring (see the active-ring check in onMounted below).
   incomingCallTimer = setTimeout(() => decline(), autoDeclineMs);
+  startCallFlash(
+    data.adminName ? `${data.adminName} is calling` : "Admin is calling",
+  );
 }
 
 function closeOverlay() {
   incomingCall.value = null;
   if (incomingCallTimer) clearTimeout(incomingCallTimer);
+  stopCallFlash();
 }
 
 function decline() {
