@@ -163,6 +163,7 @@ export default {
   data() {
     return {
       remainingSeconds: 0,
+      countdownNow: 0,
       routedConfirmedId: undefined as string | undefined,
       countdownInterval: undefined as NodeJS.Timeout | undefined,
       playCountdownSound: useSound().playCountdownSound,
@@ -173,6 +174,18 @@ export default {
   computed: {
     confirmation() {
       return useMatchmakingStore().joinedMatchmakingQueues?.confirmation;
+    },
+    timerExpired(): boolean {
+      const expiresAt = this.confirmation?.expiresAt
+        ? new Date(this.confirmation.expiresAt).getTime()
+        : undefined;
+
+      return Boolean(
+        expiresAt !== undefined &&
+          Number.isFinite(expiresAt) &&
+          this.remainingSeconds <= 0 &&
+          this.countdownNow >= expiresAt,
+      );
     },
     shouldShow(): boolean {
       const confirmation = this.confirmation;
@@ -186,8 +199,8 @@ export default {
       return Boolean(
         confirmation &&
           !confirmation.matchId &&
-          !confirmation.isReady &&
-          !everyoneConfirmed,
+          !everyoneConfirmed &&
+          !this.timerExpired,
       );
     },
     formattedCountdown(): string {
@@ -228,7 +241,9 @@ export default {
             startTabFlash(this.$t("matchmaking.match_found_flash_title"));
           }
           this.updateCountdown();
-          this.countdownInterval = setInterval(this.updateCountdown, 1000);
+          if (this.shouldShow) {
+            this.countdownInterval = setInterval(this.updateCountdown, 1000);
+          }
         }
 
         if (this.confirmation?.isReady && !oldConfirmation?.isReady) {
@@ -247,7 +262,7 @@ export default {
   },
   methods: {
     ready() {
-      if (!this.confirmation) {
+      if (!this.confirmation || this.confirmation.isReady) {
         return;
       }
       socket.event("matchmaking:confirm", {
@@ -260,11 +275,24 @@ export default {
         this.confirmation.confirmed !== this.confirmation.players
       ) {
         const expiresAt = new Date(this.confirmation.expiresAt).getTime();
-        const now = new Date().getTime();
+        if (!Number.isFinite(expiresAt)) {
+          return;
+        }
+
+        const now = Date.now();
         const difference = Math.max(0, Math.floor((expiresAt - now) / 1000));
 
         this.playCountdownSound();
+        this.countdownNow = now;
         this.remainingSeconds = difference;
+
+        if (now >= expiresAt) {
+          if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = undefined;
+          }
+          stopTabFlash();
+        }
       }
     },
   },

@@ -156,13 +156,33 @@ describe("Match Found confirmation modal", () => {
     expect(isDialogOpen(wrapper)).toBe("true");
   });
 
-  it("stops blocking the app once this player is ready", async () => {
+  it("keeps the ready-check visible after this player is ready", async () => {
+    const wrapper = mountConfirm();
+
+    await wrapper.find("button").trigger("click");
+    expect(mocks.socketEvent).toHaveBeenCalledOnce();
+
+    setConfirmation(makeConfirmation({ isReady: true, confirmed: 4 }));
+    await flushPromises();
+
+    expect(isDialogOpen(wrapper)).toBe("true");
+    expect(wrapper.text()).toContain("matchmaking.waiting_on_others");
+    expect(wrapper.text()).toContain("matchmaking.locked_in");
+    expect(wrapper.text()).toContain("4");
+    expect(wrapper.text()).toContain("10");
+    expect(wrapper.findAll("button")).toHaveLength(0);
+    expect(mocks.playTickSound).toHaveBeenCalledOnce();
+  });
+
+  it("does not submit Ready again after this player is ready", async () => {
     const wrapper = mountConfirm();
     setConfirmation(makeConfirmation({ isReady: true, confirmed: 4 }));
     await flushPromises();
 
-    expect(isDialogOpen(wrapper)).toBe("false");
-    expect(mocks.playTickSound).toHaveBeenCalledOnce();
+    (wrapper.vm as unknown as { ready: () => void }).ready();
+
+    expect(mocks.socketEvent).not.toHaveBeenCalled();
+    expect(isDialogOpen(wrapper)).toBe("true");
   });
 
   it("hides the blocking overlay when every player has confirmed", async () => {
@@ -171,6 +191,35 @@ describe("Match Found confirmation modal", () => {
     );
 
     expect(isDialogOpen(wrapper)).toBe("false");
+  });
+
+  it("continues the countdown and closes only after the expiry timestamp", async () => {
+    vi.useFakeTimers();
+    const startTime = new Date("2026-09-25T12:00:00.000Z");
+    vi.setSystemTime(startTime);
+    const expiresAt = new Date(startTime.getTime() + 2_500).toISOString();
+    const clearIntervalSpy = vi.spyOn(globalThis, "clearInterval");
+    const wrapper = mountConfirm(makeConfirmation({ expiresAt }));
+
+    // remainingSeconds begins at zero, but the future timestamp keeps the
+    // dialog open during its initial render.
+    expect(isDialogOpen(wrapper)).toBe("true");
+    expect(wrapper.text()).toContain("00:02");
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    await flushPromises();
+    expect(wrapper.text()).toContain("00:01");
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    await flushPromises();
+    expect(wrapper.text()).toContain("00:00");
+    expect(isDialogOpen(wrapper)).toBe("true");
+
+    await vi.advanceTimersByTimeAsync(1_000);
+    await flushPromises();
+    expect(isDialogOpen(wrapper)).toBe("false");
+    expect(clearIntervalSpy).toHaveBeenCalled();
+    expect(mocks.stopTabFlash).toHaveBeenCalled();
   });
 
   it("still routes automatically when matchId arrives after the overlay closes", async () => {
