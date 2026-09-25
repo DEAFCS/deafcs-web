@@ -8,8 +8,16 @@ import socket, { type ChatType, type Lobby } from "~/web-sockets/Socket";
 
 export function useChatTabSetup() {
   const { t } = useI18n();
-  const { tabs, activeTabId, openTab, closeTab, setActiveTab, setPinned } =
-    useChatTabs();
+  const {
+    tabs,
+    activeTabId,
+    openTab,
+    closeTab,
+    setActiveTab,
+    setPinned,
+    unreadCounts,
+    clearUnread,
+  } = useChatTabs();
 
   const matchLobbyStore = useMatchLobbyStore();
   const authStore = useAuthStore();
@@ -81,6 +89,24 @@ export function useChatTabSetup() {
     for (const tab of [...tabs.value]) {
       if (tab.type === "tournament" && !activeIds.has(tab.id)) {
         closeTab(tab.id);
+      }
+    }
+
+    // Reported bug: a tournament chat's unread badge (sometimes 100+)
+    // stayed forever after the tournament finished and its chat
+    // disappeared. closeTab above only cleans up a tab that's still
+    // open THIS session -- if the tournament finished while the player
+    // was offline, no tab for it was ever (re)created here to begin
+    // with, so its old unread count from before it finished was never
+    // touched and just sat in localStorage, permanently inflating the
+    // total unread badge. Only runs once the subscription has actually
+    // reported back at least once (see chatTournamentsLoaded) so this
+    // doesn't wipe legitimate counts against the empty initial value.
+    if (matchLobbyStore.chatTournamentsLoaded) {
+      for (const id of Object.keys(unreadCounts.value)) {
+        if (id.startsWith("tournament:") && !activeIds.has(id)) {
+          clearUnread(id);
+        }
       }
     }
   }

@@ -25,6 +25,15 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
   const openRegistrationTournamentsCount = ref(0);
   // Tournaments that should expose chat (for this user)
   const chatTournaments = ref<any[]>([]);
+  // False until the subscription's first payload actually lands --
+  // chatTournaments itself starts as [] before that, which is
+  // indistinguishable from "confirmed: no eligible tournaments" to a
+  // consumer that wants to prune stale state based on this list (see
+  // useChatTabSetup's tournament chat unread cleanup). Without this
+  // flag, that cleanup ran once immediately on page load against the
+  // empty initial value and wiped out legitimate unread badges for
+  // tournaments the subscription just hadn't reported back yet.
+  const chatTournamentsLoaded = ref(false);
 
   const subscribeToLiveMatches = async () => {
     const subscription = getGraphqlClient().subscribe({
@@ -180,6 +189,7 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
       subscription.subscribe({
         next: ({ data }) => {
           chatTournaments.value = data?.tournaments || [];
+          chatTournamentsLoaded.value = true;
         },
         error: (error) => {
           console.error("Error in chat tournaments subscription:", error);
@@ -445,6 +455,7 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
     liveTournamentsCount,
     openRegistrationTournamentsCount,
     chatTournaments,
+    chatTournamentsLoaded,
     currentMatch: computed(() => {
       return myMatches.value.at(0);
     }),

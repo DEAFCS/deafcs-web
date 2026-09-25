@@ -237,7 +237,15 @@ export function useChatTabs() {
     }
 
     const [removed] = tabsRef.value.splice(idx, 1);
-    delete unreadCountsRef.value[removed.id];
+    // Reported bug: this deleted the in-memory count but never persisted
+    // the change, so localStorage kept the stale value under this tab's
+    // id -- on the next page load, loadPersistedUnreadCounts() read it
+    // straight back in, resurrecting a badge for a chat that no longer
+    // has a tab at all (e.g. a finished tournament's chat).
+    if (removed.id in unreadCountsRef.value) {
+      delete unreadCountsRef.value[removed.id];
+      persistUnreadCounts(unreadCountsRef.value);
+    }
     persistDmTabs(tabsRef.value);
 
     if (activeTabIdRef.value === removed.id) {
@@ -292,6 +300,20 @@ export function useChatTabs() {
   function setUnread(id: string, value: number) {
     unreadCountsRef.value[id] = value;
     persistUnreadCounts(unreadCountsRef.value);
+  }
+
+  // Clears a stale unread count that has no corresponding tab at all --
+  // closeTab can't help here since it requires the tab to still exist in
+  // tabsRef. This is for ids that were never reopened this session (e.g.
+  // a tournament chat that finished while the player was offline, so
+  // ensureTournamentChatTabs's own tab list never included it to begin
+  // with, yet a leftover unread count from before it finished was still
+  // sitting in localStorage).
+  function clearUnread(id: string) {
+    if (id in unreadCountsRef.value) {
+      delete unreadCountsRef.value[id];
+      persistUnreadCounts(unreadCountsRef.value);
+    }
   }
 
   function clearAll() {
@@ -354,6 +376,7 @@ export function useChatTabs() {
     incrementUnread,
     resetUnread,
     setUnread,
+    clearUnread,
     clearAll,
     reorderTab,
   };
