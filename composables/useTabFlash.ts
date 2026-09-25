@@ -75,12 +75,7 @@ function hasNewCountSinceAcknowledged(): boolean {
 function countAlertText(): string | null {
   if (!hasNewCountSinceAcknowledged()) return null;
   const total = totalBadgeCount();
-  // A message and a bell alert read differently enough (chat vs.
-  // account/admin/system events) that lumping them under one generic
-  // word was reported as confusing -- prefer "New Message" whenever
-  // any of the total is actually a chat message, since that's the more
-  // frequent/urgent of the two; a bell-only total says "New Alert".
-  return chatCount > 0 ? `(${total}) New Message` : `(${total}) New Alert`;
+  return `(${total}) New Message`;
 }
 
 function currentAlertText(): string | null {
