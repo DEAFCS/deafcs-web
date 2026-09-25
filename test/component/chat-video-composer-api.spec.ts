@@ -54,12 +54,15 @@ describe("Short Video API routing and local recording startup", () => {
     const startCamera = between(
       composer,
       "async function startCamera()",
-      "async function flipCamera()",
+      "function preferredMime()",
     );
     expect(startCamera).toContain("navigator.mediaDevices.getUserMedia");
     expect(startCamera).not.toContain("createSession");
     expect(startCamera).not.toContain("fetch(");
     expect(startCamera).not.toContain("choosePhone");
+    expect(startCamera).toContain('facingMode: { ideal: "user" }');
+    expect(composer).not.toContain("Flip camera");
+    expect(phonePage).toContain("Flip camera");
 
     const sendVideo = between(
       composer,
@@ -88,11 +91,6 @@ describe("Short Video API routing and local recording startup", () => {
   });
 
   it("requests video without audio from PC and phone cameras", () => {
-    const pcCameraFlip = between(
-      composer,
-      "async function flipCamera()",
-      "function preferredMime()",
-    );
     const phoneCamera = between(
       phonePage,
       "async function openCamera()",
@@ -100,8 +98,8 @@ describe("Short Video API routing and local recording startup", () => {
     );
 
     expect(startCameraForTest()).toMatch(/audio:\s*false/);
-    expect(pcCameraFlip).toMatch(/audio:\s*false/);
     expect(phoneCamera).toMatch(/audio:\s*false/);
+    expect(phonePage).toContain("async function flipCamera()");
     expect(`${composer}\n${phonePage}`).not.toMatch(/audio:\s*true/);
   });
 
@@ -138,6 +136,6 @@ function startCameraForTest() {
   return between(
     composer,
     "async function startCamera()",
-    "async function flipCamera()",
+    "function preferredMime()",
   );
 }

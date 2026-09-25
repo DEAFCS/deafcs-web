@@ -361,8 +361,12 @@ describe("Short Video PC camera flow", () => {
     expect(vi.mocked(fetch)).not.toHaveBeenCalled();
   });
 
-  it("keeps an upload failure on the recorded PC preview and retakes with the PC camera", async () => {
+  it("primes the mobile composer preview and retakes with the device camera", async () => {
     vi.useFakeTimers();
+    setNavigatorDevice(
+      "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
+      "iPhone",
+    );
     const track = { stop: vi.fn() };
     const stream = { getTracks: () => [track] };
     const getUserMedia = vi.fn().mockResolvedValue(stream);
@@ -399,12 +403,39 @@ describe("Short Video PC camera flow", () => {
       .trigger("click");
     await clickButton(wrapper, "This device");
     expect(fetchMock).not.toHaveBeenCalled();
+    expect(wrapper.text()).not.toContain("Use phone");
+    expect(wrapper.text()).not.toContain("Flip camera");
 
     await clickButton(wrapper, "Start recording");
     await vi.advanceTimersByTimeAsync(3_000);
     await vi.advanceTimersByTimeAsync(10_000);
     await clickButton(wrapper, "Stop");
     expect(wrapper.text()).toContain("Preview your video before sending");
+
+    const recordedPreview = wrapper.find("video");
+    const recordedVideo = recordedPreview.element as HTMLVideoElement;
+    const frame = mockDecodedFrame(recordedVideo);
+    Object.defineProperty(recordedVideo, "paused", {
+      configurable: true,
+      value: true,
+    });
+    const play = vi.fn();
+    Object.defineProperty(recordedVideo, "play", {
+      configurable: true,
+      value: play,
+    });
+    expect(recordedPreview.attributes("src")).toBe(
+      "blob:chat-video-preview#t=0.001",
+    );
+    expect(recordedPreview.attributes("preload")).toBe("auto");
+    expect(recordedPreview.attributes("muted")).toBeDefined();
+    expect(recordedPreview.attributes("playsinline")).toBeDefined();
+    expect(recordedPreview.attributes("autoplay")).toBeUndefined();
+    await recordedPreview.trigger("loadeddata");
+    expect(frame.getCurrentTime()).toBe(0.1);
+    expect(frame.pause).toHaveBeenCalled();
+    expect(recordedVideo.paused).toBe(true);
+    expect(play).not.toHaveBeenCalled();
 
     await clickButton(wrapper, "Send Video");
     expect(fetchMock).toHaveBeenCalledTimes(4);
@@ -425,6 +456,9 @@ describe("Short Video PC camera flow", () => {
       "https://api.deafcs.net/matches/chat-video/sessions/pc-draft/retake",
     );
     expect(getUserMedia).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(URL.revokeObjectURL)).toHaveBeenCalledWith(
+      "blob:chat-video-preview",
+    );
     expect(wrapper.text()).toContain("Start recording");
     expect(
       wrapper.find('img[alt="Temporary phone recording QR code"]').exists(),
@@ -459,6 +493,7 @@ describe("Short Video PC camera flow", () => {
       .find('[title="Record a sign-language video message"]')
       .trigger("click");
     await clickButton(wrapper, "This device");
+    expect(wrapper.text()).not.toContain("Flip camera");
     await clickButton(wrapper, "Start recording");
     const countdownButton = wrapper
       .findAll("button")
@@ -466,8 +501,8 @@ describe("Short Video PC camera flow", () => {
     expect(countdownButton?.attributes("disabled")).toBeDefined();
     expect(wrapper.text()).toContain("3");
     await vi.advanceTimersByTimeAsync(3_000);
-    expect(wrapper.text()).toContain("60 seconds left");
     expect(wrapper.text()).toContain("Stop recording · 60s");
+    expect(wrapper.text()).not.toContain("seconds left");
     expect(
       wrapper.findAll("button").filter((button) => /stop/i.test(button.text())),
     ).toHaveLength(1);
@@ -519,6 +554,7 @@ describe("Short Video phone send flow", () => {
     const wrapper = mountPhonePage();
     await flushPromises();
     await clickButton(wrapper, "Open camera");
+    expect(wrapper.text()).toContain("Flip camera");
     await clickButton(wrapper, "Start recording");
     await vi.advanceTimersByTimeAsync(3_000);
     expect(wrapper.text()).toContain("Stop · 60s");

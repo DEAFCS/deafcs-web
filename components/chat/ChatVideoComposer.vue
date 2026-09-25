@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import QRCode from "qrcode";
 import { Camera, RefreshCw, Smartphone, Video, X } from "lucide-vue-next";
-import { onMounted, ref, shallowRef } from "vue";
+import { computed, onMounted, ref, shallowRef } from "vue";
+import { primeVideoFrame, videoPreviewSource } from "~/utils/videoPreview";
 
 const props = defineProps<{
   type: string;
@@ -16,6 +17,7 @@ const stream = shallowRef<MediaStream | null>(null);
 const recorder = shallowRef<MediaRecorder | null>(null);
 const preview = ref<HTMLVideoElement>();
 const blobUrl = ref("");
+const previewSrc = computed(() => videoPreviewSource(blobUrl.value));
 const blob = shallowRef<Blob | null>(null);
 const countdown = ref(0);
 const recording = ref(false);
@@ -32,7 +34,6 @@ let pollTimer: ReturnType<typeof setInterval> | undefined;
 let startedAt = 0;
 let recordedDurationMs = 0;
 let phoneToken = "";
-let facingMode: "user" | "environment" = "user";
 const api = `https://${config.public.apiDomain}/matches/chat-video`;
 
 onMounted(() => {
@@ -47,6 +48,11 @@ onMounted(() => {
 function stopCamera() {
   stream.value?.getTracks().forEach((track) => track.stop());
   stream.value = null;
+}
+function primeRecordedPreviewFrame() {
+  if (preview.value && previewSrc.value) {
+    primeVideoFrame(preview.value, previewSrc.value);
+  }
 }
 function clearTimers() {
   if (countTimer) clearInterval(countTimer);
@@ -139,7 +145,7 @@ async function startCamera() {
     stream.value = await navigator.mediaDevices.getUserMedia({
       audio: false,
       video: {
-        facingMode: { ideal: facingMode },
+        facingMode: { ideal: "user" },
         width: { ideal: 1280 },
         height: { ideal: 720 },
         frameRate: { ideal: 24, max: 25 },
@@ -171,29 +177,6 @@ async function startCamera() {
     }
   } finally {
     busy.value = false;
-  }
-}
-async function flipCamera() {
-  facingMode = facingMode === "user" ? "environment" : "user";
-  stopCamera();
-  try {
-    stream.value = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        facingMode: { ideal: facingMode },
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
-        frameRate: { ideal: 24, max: 25 },
-      },
-    });
-    await nextTick();
-    if (preview.value) {
-      preview.value.srcObject = stream.value;
-      await preview.value.play().catch(() => {});
-    }
-  } catch {
-    error.value =
-      "Could not switch camera. Keep using the current camera or use your phone.";
   }
 }
 function preferredMime() {
@@ -519,15 +502,8 @@ onBeforeUnmount(() => {
             {{ countdown }}
           </div>
         </div>
-        <div class="flex justify-between">
+        <div class="flex justify-end">
           <button
-            v-if="!countdown"
-            class="rounded border px-3 py-1.5 text-sm"
-            type="button"
-            @click="flipCamera"
-          >
-            Flip camera</button
-          ><button
             v-if="recording"
             class="rounded bg-destructive px-4 py-1.5 text-sm text-destructive-foreground"
             type="button"
@@ -549,11 +525,16 @@ onBeforeUnmount(() => {
       </div>
       <div v-else-if="step === 'recorded'" class="space-y-3">
         <video
-          :src="blobUrl"
+          ref="preview"
+          :src="previewSrc"
           controls
+          muted
           playsinline
-          preload="metadata"
+          preload="auto"
           class="max-h-[55vh] w-full rounded bg-black object-contain"
+          @loadedmetadata="primeRecordedPreviewFrame"
+          @loadeddata="primeRecordedPreviewFrame"
+          @canplay="primeRecordedPreviewFrame"
         />
         <p class="text-sm text-muted-foreground">
           Preview your video before sending. Maximum 60 seconds.
@@ -598,9 +579,6 @@ onBeforeUnmount(() => {
           Cancel
         </button>
       </div>
-      <p v-if="recording" class="mt-3 text-center text-sm text-red-500">
-        Recording… {{ secondsLeft }} seconds left
-      </p>
     </div>
   </div>
 </template>
