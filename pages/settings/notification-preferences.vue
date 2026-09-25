@@ -169,8 +169,10 @@ const handleInAppToggle = async (type: string, enabled: boolean) => {
 const {
   isChatFlashEnabled,
   isMatchFoundFlashEnabled,
+  isAlertFlashEnabled,
   updateChatFlashSetting,
   updateMatchFoundFlashSetting,
+  updateAlertFlashSetting,
 } = useTabFlashSettings();
 
 const handleChatFlashToggle = (enabled: boolean) => {
@@ -179,6 +181,10 @@ const handleChatFlashToggle = (enabled: boolean) => {
 
 const handleMatchFoundFlashToggle = (enabled: boolean) => {
   updateMatchFoundFlashSetting(enabled);
+};
+
+const handleAlertFlashToggle = (enabled: boolean) => {
+  updateAlertFlashSetting(enabled);
 };
 
 onMounted(async () => {
@@ -331,6 +337,26 @@ onMounted(async () => {
             <Switch
               :model-value="isChatFlashEnabled"
               @update:model-value="handleChatFlashToggle"
+            />
+          </div>
+
+          <div
+            class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
+          >
+            <div class="flex items-start gap-3 min-w-0">
+              <AppWindow class="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div class="min-w-0">
+                <div class="text-sm font-medium">
+                  {{ $t("pages.settings.notifications.tab_flash_alert.title") }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                  {{ $t("pages.settings.notifications.tab_flash_alert.description") }}
+                </div>
+              </div>
+            </div>
+            <Switch
+              :model-value="isAlertFlashEnabled"
+              @update:model-value="handleAlertFlashToggle"
             />
           </div>
         </div>

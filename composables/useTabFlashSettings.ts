@@ -6,6 +6,7 @@ import { readonly, ref } from "vue";
 // other instead of an all-or-nothing switch.
 const isChatFlashEnabled = ref(true);
 const isMatchFoundFlashEnabled = ref(true);
+const isAlertFlashEnabled = ref(true);
 let settingsLoaded = false;
 
 export const useTabFlashSettings = () => {
@@ -17,12 +18,16 @@ export const useTabFlashSettings = () => {
     const savedMatchFound = localStorage.getItem(
       "tab-flash-match-found-enabled",
     );
+    const savedAlert = localStorage.getItem("tab-flash-alert-enabled");
 
     if (savedChat !== null) {
       isChatFlashEnabled.value = savedChat === "true";
     }
     if (savedMatchFound !== null) {
       isMatchFoundFlashEnabled.value = savedMatchFound === "true";
+    }
+    if (savedAlert !== null) {
+      isAlertFlashEnabled.value = savedAlert === "true";
     }
   };
 
@@ -43,6 +48,13 @@ export const useTabFlashSettings = () => {
     }
   };
 
+  const updateAlertFlashSetting = (enabled: boolean) => {
+    isAlertFlashEnabled.value = enabled;
+    if (import.meta.client) {
+      localStorage.setItem("tab-flash-alert-enabled", enabled.toString());
+    }
+  };
+
   if (import.meta.client) {
     loadSettings();
   }
@@ -50,7 +62,9 @@ export const useTabFlashSettings = () => {
   return {
     isChatFlashEnabled: readonly(isChatFlashEnabled),
     isMatchFoundFlashEnabled: readonly(isMatchFoundFlashEnabled),
+    isAlertFlashEnabled: readonly(isAlertFlashEnabled),
     updateChatFlashSetting,
     updateMatchFoundFlashSetting,
+    updateAlertFlashSetting,
   };
 };

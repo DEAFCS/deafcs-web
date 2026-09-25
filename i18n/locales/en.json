@@ -1607,6 +1607,10 @@
           "title": "Chat notification",
           "description": "Flash the browser tab title and icon when a new chat message arrives"
         },
+        "tab_flash_alert": {
+          "title": "Alert notification",
+          "description": "Flash the browser tab title and icon for alert bell notifications (news, invites, sanctions, and more)"
+        },
         "in_app": {
           "title": "Alert bell",
           "description": "Choose which alerts show up in the notification bell.",

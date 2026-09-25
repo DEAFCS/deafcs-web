@@ -13,17 +13,19 @@
 // still "on" the tab, just not looking at the Chrome window at that
 // exact moment, so this must not count as "switched away".
 //
-// Two independent sources feed this: MatchmakingConfirm.vue calls
+// Three independent sources feed this: MatchmakingConfirm.vue calls
 // startTabFlash/stopTabFlash directly (a match found is a single event
 // with its own explicit resolution -- accepted, declined, or expired,
 // and its own full-screen popup covers the "still visible" case, so it
-// only ever blinks, never shows a static badge). setChatFlashCount is
-// kept continuously in sync with the real total unread count (see
-// plugins/chatTabFlash.client.ts) rather than being bumped once per
-// message and forgotten -- switching to the tab only clears the visual
-// blink, the underlying count keeps tracking the true unread total.
-// A match-found alert always wins over a chat count if both are live,
-// since only one of them has an actual accept deadline.
+// only ever blinks, never shows a static badge). setChatFlashCount and
+// setAlertFlashCount are each kept continuously in sync with their own
+// real unread total (see plugins/chatTabFlash.client.ts for chat, and
+// the alert bell's unreadNotificationCount for setAlertFlashCount)
+// rather than being bumped once per event and forgotten -- switching
+// to the tab only clears the visual blink, the underlying counts keep
+// tracking the true unread totals. A match-found alert always wins
+// over a chat/alert count if both are live, since only one of them has
+// an actual accept deadline.
 
 type VisualState = "blink" | "static" | "clear";
 
@@ -32,6 +34,7 @@ let flashInterval: ReturnType<typeof setInterval> | null = null;
 let flashOn = false;
 let matchLabel: string | null = null;
 let chatCount = 0;
+let alertCount = 0;
 
 // The "real" title/icons underneath our own override -- re-adopted
 // automatically whenever the page's own title changes out from under
@@ -50,9 +53,14 @@ function shouldFlash(): boolean {
   return document.hidden;
 }
 
+function totalBadgeCount(): number {
+  return chatCount + alertCount;
+}
+
 function currentAlertText(): string | null {
   if (matchLabel !== null) return matchLabel;
-  if (chatCount > 0) return `(${chatCount}) New Message`;
+  const total = totalBadgeCount();
+  if (total > 0) return `(${total}) New Alert`;
   return null;
 }
 
@@ -71,9 +79,10 @@ function setTitle(text: string): void {
 
 function staticTitleText(): string | null {
   if (matchLabel !== null) return null; // match found only ever blinks
-  if (chatCount <= 0) return null;
+  const total = totalBadgeCount();
+  if (total <= 0) return null;
   captureBaseTitleIfNeeded();
-  return `(${chatCount}) ${baseTitle ?? ""}`.trim();
+  return `(${total}) ${baseTitle ?? ""}`.trim();
 }
 
 // Draws the existing 64px favicon plus a green alert dot onto a canvas
@@ -222,7 +231,7 @@ function updateAppBadge(): void {
   };
   if (typeof nav.setAppBadge !== "function") return;
 
-  const badgeCount = (matchLabel !== null ? 1 : 0) + chatCount;
+  const badgeCount = (matchLabel !== null ? 1 : 0) + totalBadgeCount();
   try {
     if (badgeCount > 0) {
       nav.setAppBadge(badgeCount).catch(() => {});
@@ -276,5 +285,15 @@ export function setChatFlashCount(count: number): void {
   if (typeof document === "undefined") return;
   registerListeners();
   chatCount = Math.max(0, count);
+  syncFlashState();
+}
+
+// Alert-bell total (news, invites, sanctions, admin alerts, …) -- same
+// live-count contract as setChatFlashCount, just fed from the bell's
+// own unreadNotificationCount instead of chat's unreadCounts.
+export function setAlertFlashCount(count: number): void {
+  if (typeof document === "undefined") return;
+  registerListeners();
+  alertCount = Math.max(0, count);
   syncFlashState();
 }
