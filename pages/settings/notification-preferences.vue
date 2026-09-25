@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bell, BellOff } from "lucide-vue-next";
+import { Bell, BellOff, AppWindow } from "lucide-vue-next";
 import { Switch } from "@/components/ui/switch";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { toast } from "@/components/ui/toast";
@@ -14,6 +14,7 @@ import {
   fetchPushPreferences,
   setPushPreference,
 } from "~/composables/usePushNotifications";
+import { useTabFlashSettings } from "~/composables/useTabFlashSettings";
 import {
   fetchInAppNotificationTypes,
   fetchInAppNotificationPreferences,
@@ -161,6 +162,25 @@ const handleInAppToggle = async (type: string, enabled: boolean) => {
   }
 };
 
+// Browser tab alert (Facebook/FACEIT-style flashing title + favicon
+// while the tab is in the background) -- desktop's counterpart to the
+// mobile-only push toggle above, not phone-gated since it's shown only
+// alongside it (see !isMobileOS below).
+const {
+  isChatFlashEnabled,
+  isMatchFoundFlashEnabled,
+  updateChatFlashSetting,
+  updateMatchFoundFlashSetting,
+} = useTabFlashSettings();
+
+const handleChatFlashToggle = (enabled: boolean) => {
+  updateChatFlashSetting(enabled);
+};
+
+const handleMatchFoundFlashToggle = (enabled: boolean) => {
+  updateMatchFoundFlashSetting(enabled);
+};
+
 onMounted(async () => {
   isMobileOS.value = /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   pushSupported.value = isPushSupported();
@@ -256,6 +276,62 @@ onMounted(async () => {
                 @update:model-value="(value: boolean) => handleCategoryToggle(category, value)"
               />
             </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Browser tab alert -- desktop's counterpart to the push toggle
+           above (flashing tab title + favicon instead of an OS push). -->
+      <div class="space-y-2">
+        <label
+          class="font-mono text-[0.7rem] font-medium uppercase tracking-[0.18em] text-muted-foreground"
+        >
+          {{ $t("pages.settings.notifications.tab_flash.title") }}
+        </label>
+
+        <div class="space-y-2 pt-1">
+          <div
+            class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
+          >
+            <div class="flex items-start gap-3 min-w-0">
+              <AppWindow class="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div class="min-w-0">
+                <div class="text-sm font-medium">
+                  {{ $t("pages.settings.notifications.tab_flash_match_found.title") }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                  {{
+                    $t(
+                      "pages.settings.notifications.tab_flash_match_found.description",
+                    )
+                  }}
+                </div>
+              </div>
+            </div>
+            <Switch
+              :model-value="isMatchFoundFlashEnabled"
+              @update:model-value="handleMatchFoundFlashToggle"
+            />
+          </div>
+
+          <div
+            class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-3"
+          >
+            <div class="flex items-start gap-3 min-w-0">
+              <AppWindow class="h-5 w-5 shrink-0 text-muted-foreground" />
+              <div class="min-w-0">
+                <div class="text-sm font-medium">
+                  {{ $t("pages.settings.notifications.tab_flash_chat.title") }}
+                </div>
+                <div class="text-xs text-muted-foreground">
+                  {{ $t("pages.settings.notifications.tab_flash_chat.description") }}
+                </div>
+              </div>
+            </div>
+            <Switch
+              :model-value="isChatFlashEnabled"
+              @update:model-value="handleChatFlashToggle"
+            />
           </div>
         </div>
       </div>

@@ -1596,6 +1596,17 @@
             }
           }
         },
+        "tab_flash": {
+          "title": "Browser tab alert"
+        },
+        "tab_flash_match_found": {
+          "title": "Match found notification",
+          "description": "Flash the browser tab title and icon when a match is found and needs you to accept"
+        },
+        "tab_flash_chat": {
+          "title": "Chat notification",
+          "description": "Flash the browser tab title and icon when a new chat message arrives"
+        },
         "in_app": {
           "title": "Alert bell",
           "description": "Choose which alerts show up in the notification bell.",
@@ -7088,6 +7099,7 @@
       "minutes_seconds": "{minutes}m {seconds}s"
     },
     "match_found": "Match Found",
+    "match_found_flash_title": "Match Found, Accept!",
     "waiting_for_players": "Waiting for Players",
     "waiting_on_others": "Waiting on Others",
     "confirmed": "Confirmed",
