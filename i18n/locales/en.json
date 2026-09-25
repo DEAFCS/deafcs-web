@@ -1586,6 +1586,10 @@
               "title": "Incoming calls",
               "description": "An admin is calling you on webcam"
             },
+            "match_found": {
+              "title": "Match found",
+              "description": "A match was found and needs you to accept"
+            },
             "system": {
               "title": "System (admin)",
               "description": "Server and infrastructure status updates"
