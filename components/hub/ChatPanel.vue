@@ -852,6 +852,7 @@ function openLobbyCallWindow() {
               :tab-id="tab.id"
               :frameless="true"
               :is-global-context="true"
+              :reactions-enabled="true"
               :hide-participants-summary="true"
               :disable-auto-focus-on-activate="isMobile"
               :is-active-tab="

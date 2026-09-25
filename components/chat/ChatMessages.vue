@@ -26,10 +26,12 @@
         :message="message"
         :previous-message="messages[index - 1]"
         :chat-type="chatType"
+        :reactions-enabled="reactionsEnabled"
         :absolute-timestamps="absoluteTimestamps"
         @edit-message="$emit('edit-message', $event)"
         @delete-message="$emit('delete-message', $event)"
         @mute-player="$emit('mute-player', $event)"
+        @toggle-reaction="$emit('toggle-reaction', $event)"
       />
     </template>
   </div>
@@ -60,10 +62,12 @@
         :message="message"
         :previous-message="messages[index - 1]"
         :chat-type="chatType"
+        :reactions-enabled="reactionsEnabled"
         :absolute-timestamps="absoluteTimestamps"
         @edit-message="$emit('edit-message', $event)"
         @delete-message="$emit('delete-message', $event)"
         @mute-player="$emit('mute-player', $event)"
+        @toggle-reaction="$emit('toggle-reaction', $event)"
       />
     </template>
   </div>
@@ -102,12 +106,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    reactionsEnabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   emits: [
     "bottom-state-change",
     "edit-message",
     "delete-message",
     "mute-player",
+    "toggle-reaction",
   ],
   data() {
     return {

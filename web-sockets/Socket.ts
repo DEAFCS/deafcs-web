@@ -1,15 +1,39 @@
 import EventEmitter from "eventemitter3";
 import type { e_match_types_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
+import { CHAT_REACTIONS, type ChatReaction } from "~/utils/chatReactions";
+
+type ChatReactionUpdate = {
+  messageId: string;
+  reaction: ChatReaction;
+  count: number;
+  active: boolean;
+  actorSteamId: string;
+  revision: number;
+};
 
 export interface Lobby {
   messages: any[];
   instances: Set<string>;
-  callbacks: Record<string, (data: any) => void>;
+  callbacks: Record<
+    string,
+    (data: any, isHistorySnapshot?: boolean) => void
+  >;
   listeners: ReturnType<typeof Socket.prototype.listen>[];
-  on: (event: string, callback: (data: any) => void) => void;
+  on: (event: string, callback: (data: any, isHistorySnapshot?: boolean) => void) => void;
   leave: () => void;
-  setMessages: (data: any[]) => void;
+  setMessages: (
+    data: any[],
+    historyRequestId?: number,
+    isHistorySnapshot?: boolean,
+  ) => void;
+}
+
+interface LobbyState extends Lobby {
+  reactionRevision: number;
+  reactionUpdates: Map<string, ChatReactionUpdate[]>;
+  pendingHistoryRevisions: Map<number, number>;
+  nextHistoryRequestId: number;
 }
 
 export type ChatType =
@@ -134,7 +158,7 @@ class Socket extends EventEmitter {
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
-  private lobbies: Map<string, Lobby> = new Map();
+  private lobbies: Map<string, LobbyState> = new Map();
   private rooms: Map<
     string,
     {
@@ -273,7 +297,19 @@ class Socket extends EventEmitter {
       return;
     }
 
-    this.event(`${room}:join`, data);
+    let joinData = data;
+    if (room === "lobby" && data.type && data.id) {
+      const lobby = this.lobbies.get(`${data.type}:${data.id}`);
+      if (lobby) {
+        const historyRequestId = ++lobby.nextHistoryRequestId;
+        lobby.pendingHistoryRevisions.set(
+          historyRequestId,
+          lobby.reactionRevision,
+        );
+        joinData = { ...data, historyRequestId };
+      }
+    }
+    this.event(`${room}:join`, joinData);
 
     // Our lobbies expire server-side after 24 hours, so we need to
     // periodically re-join to ensure we stay in the room for long-lived sessions.
@@ -351,6 +387,99 @@ class Socket extends EventEmitter {
 
   public deleteChat(type: ChatType, roomId: string, messageId: string) {
     this.event(`lobby:chat:delete`, { id: messageId, type, roomId });
+  }
+
+  public reactToChatMessage(
+    type: ChatType,
+    roomId: string,
+    messageId: string,
+    reaction: ChatReaction,
+  ) {
+    this.event("lobby:chat:reaction", {
+      type,
+      id: roomId,
+      messageId,
+      reaction,
+    });
+  }
+
+  public listenChatReaction(
+    type: string,
+    id: string,
+    callback: (data: Omit<ChatReactionUpdate, "revision">) => void,
+  ) {
+    return this.listen(
+      `lobby:${type}:${id}:reaction`,
+      (data: Omit<ChatReactionUpdate, "revision">) => {
+        const lobby = this.lobbies.get(`${type}:${id}`);
+        if (
+          !lobby ||
+          !data?.messageId ||
+          !Number.isInteger(data.count) ||
+          data.count < 0 ||
+          !CHAT_REACTIONS.some((choice) => choice.id === data.reaction)
+        ) {
+          callback(data);
+          return;
+        }
+
+        const update: ChatReactionUpdate = {
+          ...data,
+          revision: ++lobby.reactionRevision,
+        };
+        const updateKey = `${update.messageId}:${update.reaction}`;
+        const updates = lobby.reactionUpdates.get(updateKey) ?? [];
+        updates.push(update);
+        lobby.reactionUpdates.set(updateKey, updates);
+        lobby.setMessages(
+          lobby.messages.map((message) =>
+            this.applyReactionUpdate(message, update),
+          ),
+        );
+        callback(data);
+      },
+    );
+  }
+
+  private applyReactionUpdate(message: any, update: ChatReactionUpdate) {
+    if (
+      !message?.id ||
+      String(message.id) !== String(update.messageId) ||
+      message.blocked
+    ) {
+      return message;
+    }
+
+    const reactions = Array.isArray(message.reactions)
+      ? [...message.reactions]
+      : [];
+    const index = reactions.findIndex(
+      (item: any) => item.reaction === update.reaction,
+    );
+    const currentSteamId = useAuthStore().me?.steam_id;
+    const reacted =
+      currentSteamId != null &&
+      String(currentSteamId) === String(update.actorSteamId)
+        ? update.active
+        : Boolean(index >= 0 && reactions[index].reacted);
+
+    if (update.count === 0) {
+      if (index >= 0) reactions.splice(index, 1);
+    } else if (index >= 0) {
+      reactions[index] = {
+        ...reactions[index],
+        count: update.count,
+        reacted,
+      };
+    } else {
+      reactions.push({
+        reaction: update.reaction,
+        count: update.count,
+        reacted,
+      });
+    }
+
+    return { ...message, reactions };
   }
 
   // Mirrors listenChat's shared-cache sync, but for an in-place edit/
@@ -479,15 +608,65 @@ class Socket extends EventEmitter {
       messages: [],
       callbacks: {},
       listeners: [],
-      on: function (event: string, callback: (data: any) => void) {
+      reactionRevision: 0,
+      reactionUpdates: new Map(),
+      pendingHistoryRevisions: new Map(),
+      nextHistoryRequestId: 0,
+      on: function (
+        event: string,
+        callback: (data: any, isHistorySnapshot?: boolean) => void,
+      ) {
         this.callbacks[event] = callback;
       },
       leave: () => {},
-      setMessages: function (data: any[]) {
-        this.messages = data;
+      setMessages: function (
+        data: any[],
+        historyRequestId?: number,
+        isHistorySnapshot = false,
+      ) {
+        let nextMessages = data;
+        let baseline: number | undefined;
+        if (historyRequestId != null) {
+          baseline = this.pendingHistoryRevisions.get(historyRequestId);
+          this.pendingHistoryRevisions.delete(historyRequestId);
+          if (baseline != null) {
+            nextMessages = data.map((message) => {
+              const racedReactionUpdates = Array.from(
+                this.reactionUpdates.values(),
+              )
+                .flat()
+                .filter(
+                  (update) =>
+                    update.messageId === String(message?.id) &&
+                    update.revision > baseline!,
+                )
+                .sort((a, b) => a.revision - b.revision);
+              return racedReactionUpdates.reduce(
+                (current, update) =>
+                  socket.applyReactionUpdate(current, update),
+                message,
+              );
+            });
+          }
+        }
+
+        this.messages = nextMessages;
+        const hasOlderPendingSnapshot = (revision: number) =>
+          Array.from(this.pendingHistoryRevisions.values()).some(
+            (pendingRevision) => pendingRevision < revision,
+          );
+        for (const [key, update] of this.reactionUpdates) {
+          const latestUpdate = update[update.length - 1];
+          if (
+            !latestUpdate ||
+            !hasOlderPendingSnapshot(latestUpdate.revision)
+          ) {
+            this.reactionUpdates.delete(key);
+          }
+        }
         for (const [key, callback] of Object.entries(this.callbacks)) {
           if (key === "lobby:messages" || key.endsWith(":lobby:messages")) {
-            callback(data);
+            callback(nextMessages, isHistorySnapshot);
           }
         }
       },
@@ -515,7 +694,7 @@ class Socket extends EventEmitter {
 
     lobby.listeners.push(
       socket.listen(`lobby:${lobbyId}:messages`, (data) => {
-        lobby.setMessages(data.messages);
+        lobby.setMessages(data.messages, data.historyRequestId, true);
       }),
     );
 
@@ -529,7 +708,7 @@ class Socket extends EventEmitter {
 
   private createLobbyHandle(
     lobbyId: string,
-    lobby: Lobby,
+    lobby: LobbyState,
     instance: string,
     type: ChatType,
     id: string,
@@ -549,8 +728,12 @@ class Socket extends EventEmitter {
       leave: () => {
         this.leaveLobbyInstance(lobbyId, instance, type, id);
       },
-      setMessages: (data: any[]) => {
-        lobby.setMessages(data);
+      setMessages: (
+        data: any[],
+        historyRequestId?: number,
+        isHistorySnapshot?: boolean,
+      ) => {
+        lobby.setMessages(data, historyRequestId, isHistorySnapshot);
       },
     };
   }

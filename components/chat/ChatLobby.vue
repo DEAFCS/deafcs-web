@@ -94,6 +94,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
             ref="chatMessagesRef"
             :messages="visibleMessages"
             :chat-type="type"
+            :reactions-enabled="reactionsEnabled"
             :absolute-timestamps="absoluteTimestamps"
             variant="global"
             :is-minimized="isMinimized"
@@ -103,6 +104,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
             @edit-message="handleEditMessage"
             @delete-message="handleDeleteMessage"
             @mute-player="handleMutePlayer"
+            @toggle-reaction="handleToggleReaction"
           />
           <Empty v-else class="flex-1 text-muted-foreground">
             <div class="space-y-1">
@@ -126,7 +128,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
           variant="global"
           :placeholder="messagePlaceholder"
           :multiline="type === 'announcement'"
-          :video-enabled="type !== 'announcement' && effectiveCanSend"
+          :video-enabled="allowVideoMessages && type !== 'announcement' && effectiveCanSend"
           :chat-type="type"
           :room-id="lobbyId"
           @send-message="handleSendMessage"
@@ -176,6 +178,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         ref="chatMessagesRef"
         :messages="visibleMessages"
         :chat-type="type"
+        :reactions-enabled="reactionsEnabled"
         :absolute-timestamps="absoluteTimestamps"
         variant="embedded"
         class="flex-1 min-h-0 overflow-y-auto"
@@ -184,6 +187,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         @edit-message="handleEditMessage"
         @delete-message="handleDeleteMessage"
         @mute-player="handleMutePlayer"
+        @toggle-reaction="handleToggleReaction"
       />
       <Empty v-else class="flex-1 text-muted-foreground">
         <div class="space-y-1">
@@ -206,7 +210,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         variant="embedded"
         :placeholder="messagePlaceholder"
         :multiline="type === 'announcement'"
-        :video-enabled="type !== 'announcement' && effectiveCanSend"
+        :video-enabled="allowVideoMessages && type !== 'announcement' && effectiveCanSend"
         :chat-type="type"
         :room-id="lobbyId"
         @send-message="handleSendMessage"
@@ -231,6 +235,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
 import type { PropType } from "vue";
 import socket from "~/web-sockets/Socket";
 import type { Lobby, ChatType } from "~/web-sockets/Socket";
+import type { ChatReaction } from "~/utils/chatReactions";
 
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { useSound } from "~/composables/useSound";
@@ -333,6 +338,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    allowVideoMessages: {
+      type: Boolean,
+      default: true,
+    },
+    reactionsEnabled: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -341,6 +354,7 @@ export default {
       lobbyListener: undefined as { stop: () => void } | undefined,
       lobbyEditedListener: undefined as { stop: () => void } | undefined,
       lobbyDeletedListener: undefined as { stop: () => void } | undefined,
+      lobbyReactionListener: undefined as { stop: () => void } | undefined,
       muteStatusListener: undefined as { stop: () => void } | undefined,
       muteExpiryTimer: undefined as ReturnType<typeof setTimeout> | undefined,
       chatMuteStatus: { ...socket.websiteChatMuteStatus },
@@ -643,6 +657,21 @@ export default {
     handleDeleteMessage({ id }: { id: string }) {
       socket.deleteChat(this.type as ChatType, this.lobbyId, id);
     },
+    handleToggleReaction({
+      messageId,
+      reaction,
+    }: {
+      messageId: string;
+      reaction: ChatReaction;
+    }) {
+      if (!this.reactionsEnabled || !messageId) return;
+      socket.reactToChatMessage(
+        this.type as ChatType,
+        this.lobbyId,
+        messageId,
+        reaction,
+      );
+    },
     handleMutePlayer({
       player,
       messageId,
@@ -679,7 +708,13 @@ export default {
         this.lobbyListener?.stop();
         this.lobbyEditedListener?.stop();
         this.lobbyDeletedListener?.stop();
+        this.lobbyReactionListener?.stop();
         this.lobby?.leave();
+        this.lobbyReactionListener = socket.listenChatReaction(
+          this.type,
+          this.lobbyId,
+          () => {},
+        );
         this.lobby = socket.joinLobby(
           this.instance,
           this.type as ChatType,
@@ -690,22 +725,18 @@ export default {
         if (this.lastReadMessageCount === 0) {
           this.lastReadMessageCount = this.messages.length;
         }
-        this.lobby.on("lobby:messages", (newMessages: any) => {
-          this.updateLobbyMessages(newMessages);
-          // Reported bug: reopening a sidebar you'd already read showed a
-          // "New" divider on messages that were minutes/seconds old. Root
-          // cause -- this "lobby:messages" event is the join-time history
-          // catch-up (server round-trip, arrives *after* mount), distinct
-          // from the per-message "chat" event below which is genuine
-          // realtime delivery. lastReadMessageCount above was captured
-          // synchronously at mount time from whatever partial/stale
-          // snapshot this.lobby.messages already had cached -- when this
-          // event later replaced it with the true, longer history, that
-          // count was never resynced, so the gap wrongly rendered as
-          // "New". Every full history catch-up means "caught up", so
-          // always resync here.
-          this.lastReadMessageCount = this.messages.length;
-        });
+        this.lobby.on(
+          "lobby:messages",
+          (newMessages: any, isHistorySnapshot = false) => {
+            this.updateLobbyMessages(newMessages);
+            // A reaction updates the shared cache without changing read
+            // state. Only a server history snapshot resyncs the last-read
+            // divider after a catch-up.
+            if (isHistorySnapshot) {
+              this.lastReadMessageCount = this.messages.length;
+            }
+          },
+        );
         this.lobbyListener = socket.listenChat(
           this.type,
           this.lobbyId,
@@ -832,6 +863,7 @@ export default {
     this.lobbyListener?.stop();
     this.lobbyEditedListener?.stop();
     this.lobbyDeletedListener?.stop();
+    this.lobbyReactionListener?.stop();
     this.muteStatusListener?.stop();
     if (this.muteExpiryTimer) {
       clearTimeout(this.muteExpiryTimer);

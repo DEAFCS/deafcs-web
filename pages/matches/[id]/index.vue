@@ -478,6 +478,7 @@ const vsBaseClasses =
               instance="matches/id"
               type="match"
               :lobby-id="match.id"
+              :allow-video-messages="false"
               :play-notification-sound="match.status !== e_match_status_enum.Live"
             />
           </div>
@@ -492,6 +493,7 @@ const vsBaseClasses =
               instance="matches/id"
               type="match_team"
               :lobby-id="myLineupChatId"
+              :allow-video-messages="false"
               :play-notification-sound="match.status !== e_match_status_enum.Live"
             />
           </div>

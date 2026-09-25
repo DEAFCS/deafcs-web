@@ -142,6 +142,7 @@ function handleBackToHub() {
           :tab-id="currentTab!.id"
           :frameless="true"
           :is-global-context="true"
+          :reactions-enabled="true"
           :is-active-tab="true"
           :can-send="canSend"
           :readonly-hint="readonlyHint"

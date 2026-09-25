@@ -4,7 +4,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
 import ChatVideoPlayer from "~/components/chat/ChatVideoPlayer.vue";
-import { Check, X as XIcon } from "lucide-vue-next";
+import { Check, SmilePlus, X as XIcon } from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
@@ -101,6 +101,58 @@ import { e_player_roles_enum } from "~/generated/zeus";
         label="Short video message"
         class="mt-2 max-h-80 w-full max-w-full rounded-md bg-black"
       />
+      <div
+        v-if="showReactionControls"
+        class="mt-2 flex flex-wrap items-center gap-1"
+        @click.stop
+      >
+        <button
+          v-for="reaction in visibleReactions"
+          :key="reaction.reaction"
+          type="button"
+          class="inline-flex min-h-7 items-center gap-1 rounded-full border px-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          :class="
+            reaction.reacted
+              ? 'border-primary/70 bg-primary/15 text-primary'
+              : 'border-border/70 bg-muted/50 text-muted-foreground hover:bg-muted'
+          "
+          :aria-label="`${reaction.emoji} ${reaction.count}`"
+          :aria-pressed="Boolean(reaction.reacted)"
+          @click.stop="toggleReaction(reaction.reaction)"
+        >
+          <span>{{ reaction.emoji }}</span>
+          <span>{{ reaction.count }}</span>
+        </button>
+        <div class="relative">
+          <button
+            type="button"
+            class="reaction-add inline-flex size-7 items-center justify-center rounded-full border border-border/70 bg-muted/50 text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            :aria-label="$t('chat.add_reaction', 'Add reaction')"
+            :title="$t('chat.add_reaction', 'Add reaction')"
+            :aria-expanded="isReactionPickerOpen"
+            @click.stop="isReactionPickerOpen = !isReactionPickerOpen"
+          >
+            <SmilePlus class="size-3.5" />
+          </button>
+          <div
+            v-if="isReactionPickerOpen"
+            class="absolute bottom-full left-0 z-30 mb-1 flex items-center gap-1 rounded-lg border border-border bg-background p-1.5 shadow-lg"
+            role="group"
+            :aria-label="$t('chat.choose_reaction', 'Choose a reaction')"
+          >
+            <button
+              v-for="choice in reactionChoices"
+              :key="choice.id"
+              type="button"
+              class="inline-flex size-8 items-center justify-center rounded hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              :aria-label="`React with ${choice.emoji}`"
+              @click.stop="toggleReaction(choice.id)"
+            >
+              {{ choice.emoji }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <ChatMessageActionsMenu
@@ -118,6 +170,11 @@ import { e_player_roles_enum } from "~/generated/zeus";
 <script lang="ts">
 import { Crown, Shield, ShieldHalf } from "lucide-vue-next";
 import gql from "graphql-tag";
+import {
+  CHAT_REACTIONS,
+  isStableChatMessageId,
+  type ChatReaction,
+} from "~/utils/chatReactions";
 
 // Elevated roles only -- regular (verified_)user and streamer get no
 // badge at all next to their name, just the avatar.
@@ -161,8 +218,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    reactionsEnabled: {
+      type: Boolean,
+      default: false,
+    },
   },
-  emits: ["edit-message", "delete-message", "mute-player"],
+  emits: [
+    "edit-message",
+    "delete-message",
+    "mute-player",
+    "toggle-reaction",
+  ],
   data() {
     return {
       // Chat messages embed a snapshot of the sender's avatar_url from
@@ -174,6 +240,7 @@ export default {
       liveAvatarUrl: null as string | null,
       isEditing: false,
       editDraft: "",
+      isReactionPickerOpen: false,
     };
   },
   created() {
@@ -231,6 +298,33 @@ export default {
         minute: "2-digit",
       }).format(new Date(this.message.timestamp));
     },
+    showReactionControls() {
+      return (
+        this.reactionsEnabled &&
+        isStableChatMessageId(this.message?.id) &&
+        !this.message?.blocked
+      );
+    },
+    reactionChoices() {
+      return CHAT_REACTIONS;
+    },
+    visibleReactions() {
+      if (!this.showReactionControls || !Array.isArray(this.message?.reactions)) {
+        return [];
+      }
+      const allowed = new Map(CHAT_REACTIONS.map((choice) => [choice.id, choice.emoji]));
+      return this.message.reactions
+        .filter(
+          (item: any) =>
+            allowed.has(item?.reaction) &&
+            Number.isInteger(item?.count) &&
+            item.count > 0,
+        )
+        .map((item: any) => ({
+          ...item,
+          emoji: allowed.get(item.reaction),
+        }));
+    },
   },
   methods: {
     videoUrl(id: string) {
@@ -264,6 +358,14 @@ export default {
         messageId: this.message.id,
       });
     },
+    toggleReaction(reaction: ChatReaction) {
+      if (!this.showReactionControls) return;
+      this.$emit("toggle-reaction", {
+        messageId: String(this.message.id),
+        reaction,
+      });
+      this.isReactionPickerOpen = false;
+    },
     async fetchLiveAvatar() {
       const steamId = this.message?.from?.steam_id;
       if (!steamId) return;
@@ -286,3 +388,20 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.reaction-add {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .reaction-add {
+    opacity: 0;
+  }
+
+  .group\/chat-message:hover .reaction-add,
+  .group\/chat-message:focus-within .reaction-add {
+    opacity: 1;
+  }
+}
+</style>
