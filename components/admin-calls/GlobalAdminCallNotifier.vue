@@ -3,7 +3,10 @@ import { ref, onBeforeUnmount, onMounted } from "vue";
 import { Button } from "~/components/ui/button";
 import { Video } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
-import { respondToAdminCallRing } from "~/composables/useAdminCallApi";
+import {
+  respondToAdminCallRing,
+  fetchActiveAdminCallRing,
+} from "~/composables/useAdminCallApi";
 
 // Full-screen "Admin is calling…" overlay for the general admin<->player
 // webcam call (camera icon on every player profile page) -- direct
@@ -20,14 +23,16 @@ type RingPayload = {
 const incomingCall = ref<RingPayload | null>(null);
 let incomingCallTimer: ReturnType<typeof setTimeout> | null = null;
 
-function showIncomingCall(data: RingPayload) {
+function showIncomingCall(data: RingPayload, autoDeclineMs = 60_000) {
   incomingCall.value = data;
   if (incomingCallTimer) clearTimeout(incomingCallTimer);
   // Auto-decline rather than just auto-dismiss -- letting it silently
   // vanish left the calling admin's own popup stuck on "Calling…"
   // forever with no way to know the player never even answered.
-  // Matches AdminCallService.RINGING_TTL_SECONDS on the backend.
-  incomingCallTimer = setTimeout(() => decline(), 60_000);
+  // Matches AdminCallService.RINGING_TTL_SECONDS on the backend, or
+  // whatever's actually left of it when catching up on an already
+  // in-flight ring (see the active-ring check in onMounted below).
+  incomingCallTimer = setTimeout(() => decline(), autoDeclineMs);
 }
 
 function closeOverlay() {
@@ -89,6 +94,26 @@ onMounted(() => {
     },
   );
   unlistenResolved = () => resolvedListener?.stop();
+
+  // Catches a ring that fired before this page connected its socket at
+  // all -- e.g. the OS had fully evicted the app from memory when the
+  // ring went out (reported: worked fine from a locked lock screen,
+  // where the page just stayed suspended in the background and had
+  // already received the live event, but not after tapping the push
+  // notification from a cold start triggered by actively using
+  // something else on the phone). See AdminCallService.getActiveRing.
+  fetchActiveAdminCallRing().then((ring) => {
+    if (ring && !incomingCall.value) {
+      showIncomingCall(
+        {
+          targetSteamId: ring.targetSteamId,
+          adminName: ring.adminName,
+          adminAvatarUrl: ring.adminAvatarUrl,
+        },
+        ring.remainingMs,
+      );
+    }
+  });
 });
 
 onBeforeUnmount(() => {

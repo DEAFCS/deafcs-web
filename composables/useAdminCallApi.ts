@@ -48,6 +48,11 @@ export function adminCallPlayerPeerWhepUrl(
   return `https://${apiDomain}/admin-calls/player/${token}/whep/${steamId}`;
 }
 
+export function adminCallActiveRingApiUrl(): string {
+  const apiDomain = useRuntimeConfig().public.apiDomain;
+  return `https://${apiDomain}/admin-calls/ringing/active`;
+}
+
 export function adminCallRingApiUrl(targetSteamId: string): string {
   const apiDomain = useRuntimeConfig().public.apiDomain;
   return `https://${apiDomain}/admin-calls/${targetSteamId}/ring`;
@@ -96,6 +101,29 @@ export async function ringAdminCallPlayer(
     credentials: "include",
   });
   return (await res.json()) as { ok?: boolean; error?: string };
+}
+
+export type ActiveAdminCallRing = {
+  targetSteamId: string;
+  adminName: string | null;
+  adminAvatarUrl: string | null;
+  remainingMs: number;
+};
+
+// Checked once on mount by GlobalAdminCallNotifier.vue to catch a ring
+// that fired before this client connection existed -- see
+// AdminCallService.getActiveRing for why this is needed at all.
+export async function fetchActiveAdminCallRing(): Promise<ActiveAdminCallRing | null> {
+  try {
+    const res = await fetch(adminCallActiveRingApiUrl(), {
+      credentials: "include",
+    });
+    if (!res.ok) return null;
+    const { ring } = (await res.json()) as { ring: ActiveAdminCallRing | null };
+    return ring ?? null;
+  } catch {
+    return null;
+  }
 }
 
 // Target-only: answers a ring (see GlobalAdminCallNotifier.vue's
