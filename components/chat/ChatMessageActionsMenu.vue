@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import {
   Ellipsis,
   Pencil,
@@ -19,10 +19,11 @@ import {
 import { CHAT_REACTIONS, type ChatReaction } from "~/utils/chatReactions";
 
 defineProps<{
+  // Each flag is decided by ChatMessage (see utils/chatMessageActions.ts);
+  // the API re-checks every action, this only controls what is shown.
   canEdit: boolean;
-  // Mute/Delete stay administrator-only; React is offered to everyone
-  // wherever the host chat has reactions enabled.
-  canModerate: boolean;
+  canDelete: boolean;
+  canMute: boolean;
   canReact?: boolean;
   // Extra classes let each message position its own trigger while this
   // component remains the single implementation of the action menu.
@@ -34,12 +35,16 @@ const emit = defineEmits<{
   (e: "mute"): void;
   (e: "delete"): void;
   (e: "react", reaction: ChatReaction): void;
+  (e: "opened"): void;
 }>();
 
 // Tracked so the trigger stays visible (not just hover-revealed) for as
 // long as the menu itself is open, even if the pointer moves away from the
 // trigger and this row's hover state is lost.
 const open = ref(false);
+watch(open, (isOpen) => {
+  if (isOpen) emit("opened");
+});
 </script>
 
 <template>
@@ -84,19 +89,18 @@ const open = ref(false);
         <Pencil class="mr-2 h-3.5 w-3.5" />
         {{ $t("common.edit") }}
       </DropdownMenuItem>
-      <template v-if="canModerate">
-        <DropdownMenuItem @click="emit('mute')">
-          <MessageSquareOff class="mr-2 h-3.5 w-3.5" />
-          {{ $t("chat.mute_player", "Mute Player") }}
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          class="text-destructive focus:text-destructive"
-          @click="emit('delete')"
-        >
-          <Trash2 class="mr-2 h-3.5 w-3.5" />
-          {{ $t("common.delete") }}
-        </DropdownMenuItem>
-      </template>
+      <DropdownMenuItem v-if="canMute" @click="emit('mute')">
+        <MessageSquareOff class="mr-2 h-3.5 w-3.5" />
+        {{ $t("chat.mute_player", "Mute Player") }}
+      </DropdownMenuItem>
+      <DropdownMenuItem
+        v-if="canDelete"
+        class="text-destructive focus:text-destructive"
+        @click="emit('delete')"
+      >
+        <Trash2 class="mr-2 h-3.5 w-3.5" />
+        {{ $t("common.delete") }}
+      </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>
 </template>

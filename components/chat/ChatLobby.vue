@@ -652,7 +652,7 @@ export default {
     // Announcement-only -- ChatService re-checks the admin role itself
     // regardless of what this sends, see editAnnouncement/deleteAnnouncement.
     handleEditMessage({ id, message }: { id: string; message: string }) {
-      socket.editChat(id, message);
+      socket.editChat(this.type as ChatType, this.lobbyId, id, message);
     },
     handleDeleteMessage({ id }: { id: string }) {
       socket.deleteChat(this.type as ChatType, this.lobbyId, id);

@@ -379,10 +379,15 @@ class Socket extends EventEmitter {
     });
   }
 
-  // Announcement editing remains announcement-only. Deletion is available
-  // for every persisted chat message and is authorized again by the API.
-  public editChat(messageId: string, message: string) {
-    this.event(`lobby:chat:edit`, { id: messageId, message });
+  // Edit (author-only, within 10 minutes) and delete (author within 10
+  // minutes, or an administrator) are both re-authorized by the API.
+  public editChat(
+    type: ChatType,
+    roomId: string,
+    messageId: string,
+    message: string,
+  ) {
+    this.event(`lobby:chat:edit`, { id: messageId, message, type, roomId });
   }
 
   public deleteChat(type: ChatType, roomId: string, messageId: string) {

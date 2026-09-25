@@ -21,19 +21,22 @@ test("one shared menu instance is rendered for every moderatable or reactable me
   assert.match(message, /v-if="hasMessageActions && !isEditing"/);
   assert.match(
     message,
-    /hasMessageActions\(\)\s*\{\s*\n\s*return this\.canModerate \|\| this\.showReactionControls;/,
+    /hasMessageActions\(\)\s*\{\s*\n\s*return \(\s*\n\s*this\.showReactionControls \|\|\s*\n\s*this\.canEdit \|\|\s*\n\s*this\.canDelete \|\|\s*\n\s*this\.canMute\s*\n\s*\);/,
   );
 });
 
-test("Mute and Delete stay administrator-only; React is gated by the chat's reaction setting", () => {
-  assert.match(message, /:can-moderate="canModerate"/);
+test("each action is gated separately by the shared permission helper; React by the chat's reaction setting", () => {
+  assert.match(message, /:can-edit="canEdit"/);
+  assert.match(message, /:can-delete="canDelete"/);
+  assert.match(message, /:can-mute="canMute"/);
   assert.match(message, /:can-react="showReactionControls"/);
   assert.match(message, /@react="toggleReaction"/);
-  assert.match(
-    menu,
-    /<template v-if="canModerate">[\s\S]*emit\('mute'\)[\s\S]*emit\('delete'\)[\s\S]*<\/template>/,
-  );
+  assert.match(message, /getChatMessageActionPermissions\(\{/);
+  assert.match(menu, /<DropdownMenuItem v-if="canEdit" @click="emit\('edit'\)">/);
+  assert.match(menu, /<DropdownMenuItem v-if="canMute" @click="emit\('mute'\)">/);
+  assert.match(menu, /v-if="canDelete"[\s\S]*?@click="emit\('delete'\)"/);
   assert.match(menu, /<DropdownMenuSub v-if="canReact">/);
+  assert.doesNotMatch(menu, /canModerate/);
 });
 
 test("the menu is always anchored to the right for grouped and ungrouped messages", () => {
@@ -63,9 +66,10 @@ test("each message instance targets only its own id and sender -- Delete and Mut
   assert.match(message, /this\.\$emit\("delete-message",\s*\{\s*id:\s*this\.message\.id\s*\}\)/);
 });
 
-test("Edit is still announcement-only and reuses the existing confirm/cancel flow", () => {
-  assert.match(message, /canEdit\(\)\s*\{\s*\n\s*return this\.canModerate && this\.chatType === "announcement";/);
+test("Edit comes from the ownership helper and reuses the existing confirm/cancel flow", () => {
+  assert.match(message, /canEdit\(\)\s*\{\s*\n\s*return this\.actionPermissions\.canEdit;/);
   assert.match(message, /:can-edit="canEdit"/);
+  assert.match(message, /:maxlength="editMaxLength"/);
   // One shared placement is wired to the existing handlers.
   const editWiring = message.match(/@edit="startEdit"/g) ?? [];
   const muteWiring = message.match(/@mute="requestMute"/g) ?? [];
@@ -73,6 +77,19 @@ test("Edit is still announcement-only and reuses the existing confirm/cancel flo
   assert.equal(editWiring.length, 1);
   assert.equal(muteWiring.length, 1);
   assert.equal(deleteWiring.length, 1);
+});
+
+test("edits carry the room so the API can authorize ordinary chat edits, not just announcements", () => {
+  const lobby = read("components/chat/ChatLobby.vue");
+  const socket = read("web-sockets/Socket.ts");
+  assert.match(
+    lobby,
+    /socket\.editChat\(this\.type as ChatType, this\.lobbyId, id, message\)/,
+  );
+  assert.match(
+    socket,
+    /this\.event\(`lobby:chat:edit`, \{ id: messageId, message, type, roomId \}\)/,
+  );
 });
 
 test("no moderation API, audit, or notification logic changed -- only presentation", () => {

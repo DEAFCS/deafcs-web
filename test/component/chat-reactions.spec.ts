@@ -108,7 +108,8 @@ describe("Chat Hub message reactions", () => {
     const menu = actionsMenu(wrapper);
     expect(menu.exists()).toBe(true);
     expect(menu.props("canReact")).toBe(true);
-    expect(menu.props("canModerate")).toBe(false);
+    expect(menu.props("canMute")).toBe(false);
+    expect(menu.props("canDelete")).toBe(false);
     expect(menu.props("canEdit")).toBe(false);
 
     menu.vm.$emit("react", "fire");
@@ -119,18 +120,20 @@ describe("Chat Hub message reactions", () => {
     wrapper.unmount();
   });
 
-  it("keeps administrator Mute/Delete and adds React only where reactions are enabled", () => {
+  it("keeps administrator Mute/Delete (no Edit) and adds React only where reactions are enabled", () => {
     vi.stubGlobal("useAuthStore", () => ({
       me: { steam_id: "76561190000000123" },
       isRoleAbove: () => true,
     }));
     const hub = mountMessage({ reactionsEnabled: true });
-    expect(actionsMenu(hub).props("canModerate")).toBe(true);
+    expect(actionsMenu(hub).props("canMute")).toBe(true);
+    expect(actionsMenu(hub).props("canDelete")).toBe(true);
+    expect(actionsMenu(hub).props("canEdit")).toBe(false);
     expect(actionsMenu(hub).props("canReact")).toBe(true);
     hub.unmount();
 
     const matchPage = mountMessage({ chatType: "match" });
-    expect(actionsMenu(matchPage).props("canModerate")).toBe(true);
+    expect(actionsMenu(matchPage).props("canDelete")).toBe(true);
     expect(actionsMenu(matchPage).props("canReact")).toBe(false);
     matchPage.unmount();
   });
@@ -138,7 +141,12 @@ describe("Chat Hub message reactions", () => {
   it("the menu's React submenu offers exactly the four reactions and emits the stable ID", async () => {
     const passthrough = { template: "<div><slot /></div>" };
     const menu = mount(ChatMessageActionsMenu, {
-      props: { canEdit: false, canModerate: false, canReact: true },
+      props: {
+        canEdit: false,
+        canDelete: false,
+        canMute: false,
+        canReact: true,
+      },
       global: {
         mocks: { $t: (key: string, fallback?: string) => fallback ?? key },
         stubs: {

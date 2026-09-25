@@ -67,6 +67,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
         <textarea
           v-model="editDraft"
           rows="2"
+          :maxlength="editMaxLength"
           class="flex-1 resize-none rounded border border-border bg-background px-1.5 py-1 text-[11px] leading-snug"
           @keydown.escape="cancelEdit"
           @keydown.enter.exact.prevent="confirmEdit"
@@ -132,7 +133,8 @@ import { e_player_roles_enum } from "~/generated/zeus";
     <ChatMessageActionsMenu
       v-if="hasMessageActions && !isEditing"
       :can-edit="canEdit"
-      :can-moderate="canModerate"
+      :can-delete="canDelete"
+      :can-mute="canMute"
       :can-react="showReactionControls"
       align="end"
       trigger-class="absolute right-1 top-0 z-10"
@@ -140,6 +142,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
       @mute="requestMute"
       @delete="requestDelete"
       @react="toggleReaction"
+      @opened="refreshNow"
     />
   </div>
 </template>
@@ -152,6 +155,11 @@ import {
   isStableChatMessageId,
   type ChatReaction,
 } from "~/utils/chatReactions";
+import {
+  CHAT_MESSAGE_EDIT_MAX_LENGTH,
+  getChatMessageActionPermissions,
+  selfServiceTimeLeft,
+} from "~/utils/chatMessageActions";
 
 // Elevated roles only -- regular (verified_)user and streamer get no
 // badge at all next to their name, just the avatar.
@@ -217,10 +225,20 @@ export default {
       liveAvatarUrl: null as string | null,
       isEditing: false,
       editDraft: "",
+      editMaxLength: CHAT_MESSAGE_EDIT_MAX_LENGTH,
+      // Own-message Edit/Delete depend on the message's age, which a
+      // computed can't observe on its own -- refreshed when the menu opens
+      // and once more right as the 10-minute window closes.
+      nowMs: Date.now(),
+      selfServiceTimer: undefined as ReturnType<typeof setTimeout> | undefined,
     };
   },
   created() {
     this.fetchLiveAvatar();
+    this.scheduleSelfServiceExpiry();
+  },
+  beforeUnmount() {
+    clearTimeout(this.selfServiceTimer);
   },
   computed: {
     isSameSender() {
@@ -246,17 +264,40 @@ export default {
     roleBadge() {
       return ROLE_BADGE[this.message?.from?.role] ?? null;
     },
-    canModerate() {
+    isOwnMessage() {
+      const me = useAuthStore().me?.steam_id;
       return (
-        Boolean(this.message?.id) &&
-        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+        Boolean(this.message?.from?.steam_id) &&
+        me != null &&
+        String(this.message.from.steam_id) === String(me)
       );
     },
+    actionPermissions() {
+      const auth = useAuthStore();
+      return getChatMessageActionPermissions({
+        message: this.message,
+        chatType: this.chatType,
+        viewerSteamId: auth.me?.steam_id,
+        isAdministrator: auth.isRoleAbove(e_player_roles_enum.administrator),
+        now: this.nowMs,
+      });
+    },
     canEdit() {
-      return this.canModerate && this.chatType === "announcement";
+      return this.actionPermissions.canEdit;
+    },
+    canDelete() {
+      return this.actionPermissions.canDelete;
+    },
+    canMute() {
+      return this.actionPermissions.canMute;
     },
     hasMessageActions() {
-      return this.canModerate || this.showReactionControls;
+      return (
+        this.showReactionControls ||
+        this.canEdit ||
+        this.canDelete ||
+        this.canMute
+      );
     },
     // Match-type chat mixes messages relayed in from the live CS2/CSS
     // server with ones typed directly on the DEAFCS site itself (see
@@ -303,6 +344,16 @@ export default {
     },
   },
   methods: {
+    refreshNow() {
+      this.nowMs = Date.now();
+    },
+    scheduleSelfServiceExpiry() {
+      clearTimeout(this.selfServiceTimer);
+      if (!this.isOwnMessage) return;
+      const left = selfServiceTimeLeft(this.message?.timestamp);
+      if (left === null) return;
+      this.selfServiceTimer = setTimeout(() => this.refreshNow(), left + 50);
+    },
     videoUrl(id: string) {
       return `https://${useRuntimeConfig().public.apiDomain}/matches/chat-video/media/${encodeURIComponent(id)}`;
     },
