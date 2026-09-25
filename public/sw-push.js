@@ -22,16 +22,18 @@ self.addEventListener("push", (event) => {
     data: { type: data.type, entity_id: data.entity_id },
   };
 
-  // An incoming call ring (see PushNotificationsService.sendCallRing) is
-  // only actionable for the ~60s the ring is actually live, so it needs
-  // to cut through in a way an ordinary "you have a new message"
-  // notification doesn't: vibrate the device, keep the notification on
-  // screen until dismissed instead of auto-hiding, and replace any
-  // earlier ring rather than stacking a second one.
-  if (data.callRing) {
+  // A time-boxed event needing an immediate response (an incoming call
+  // ring, or a matchmaking ready-check -- see PushNotificationsService's
+  // sendCallRing/sendMatchFound) is only actionable for a short window,
+  // so it needs to cut through in a way an ordinary "you have a new
+  // message" notification doesn't: vibrate the device, keep the
+  // notification on screen until dismissed instead of auto-hiding, and
+  // replace any earlier one of the same kind (via its own tag) rather
+  // than stacking duplicates.
+  if (data.urgent) {
     options.vibrate = [300, 150, 300, 150, 300];
     options.requireInteraction = true;
-    options.tag = "admin-call-ring";
+    options.tag = data.tag || "urgent";
     options.renotify = true;
   }
 

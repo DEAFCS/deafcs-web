@@ -9,7 +9,7 @@ const chatParticipantsList = await readFile(
 const chatLobby = await readFile(
   new URL("../components/chat/ChatLobby.vue", import.meta.url),
   "utf8",
-);
+).then((source) => source.replace(/\r\n/g, "\n"));
 const chatPanel = await readFile(
   new URL("../components/hub/ChatPanel.vue", import.meta.url),
   "utf8",
@@ -109,8 +109,8 @@ test("no new websocket/presence subscription was introduced -- ChatParticipantsL
   assert.match(chatPanel, /matchLobbyStore\.lobbyChat/);
 });
 
-test("chat messages still render via ChatMessages, unchanged by this refactor", () => {
-  assert.match(chatLobby, /<ChatMessages\s*\n\s*v-if="messages\.length"/g);
+test("chat messages render the history-filtered list via ChatMessages", () => {
+  assert.match(chatLobby, /<ChatMessages\s*\n\s*v-if="visibleMessages\.length"/g);
   const messagesBlocks = (chatLobby.match(/<ChatMessages/g) || []).length;
   assert.equal(messagesBlocks, 2, "expected both the global and embedded ChatMessages usages intact");
 });

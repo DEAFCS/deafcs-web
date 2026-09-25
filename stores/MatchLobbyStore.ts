@@ -25,6 +25,15 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
   const openRegistrationTournamentsCount = ref(0);
   // Tournaments that should expose chat (for this user)
   const chatTournaments = ref<any[]>([]);
+  // False until the subscription's first payload actually lands --
+  // chatTournaments itself starts as [] before that, which is
+  // indistinguishable from "confirmed: no eligible tournaments" to a
+  // consumer that wants to prune stale state based on this list (see
+  // useChatTabSetup's tournament chat unread cleanup). Without this
+  // flag, that cleanup ran once immediately on page load against the
+  // empty initial value and wiped out legitimate unread badges for
+  // tournaments the subscription just hadn't reported back yet.
+  const chatTournamentsLoaded = ref(false);
 
   const subscribeToLiveMatches = async () => {
     const subscription = getGraphqlClient().subscribe({
@@ -142,25 +151,52 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
   };
 
   const subscribeToChatTournaments = async () => {
+    // A finished tournament's chat stays reachable for a 24h grace
+    // period afterward (see TournamentsController.tournament_events,
+    // which stamps finished_at the moment status becomes Finished)
+    // instead of disappearing the instant the tournament ends, so
+    // players can still wrap up conversation there. This cutoff is
+    // fixed at subscribe time, not continuously recomputed, so on a
+    // browser session left open past 24h a just-expired tournament may
+    // linger until the next reload -- an acceptable rounding for a
+    // "roughly a day" grace window.
+    const chatGracePeriodCutoff = new Date(
+      Date.now() - 24 * 60 * 60 * 1000,
+    ).toISOString();
+
     const subscription = getGraphqlClient().subscribe({
       query: generateSubscription({
         tournaments: [
           {
             where: {
-              status: {
-                _in: [
-                  e_tournament_status_enum.Setup,
-                  e_tournament_status_enum.RegistrationOpen,
-                  e_tournament_status_enum.RegistrationClosed,
-                  e_tournament_status_enum.Live,
-                  e_tournament_status_enum.Paused,
-                ],
-              },
               _or: [
-                { joined_tournament: { _eq: true } },
-                { is_organizer: { _eq: true } },
+                {
+                  status: {
+                    _in: [
+                      e_tournament_status_enum.Setup,
+                      e_tournament_status_enum.RegistrationOpen,
+                      e_tournament_status_enum.RegistrationClosed,
+                      e_tournament_status_enum.Live,
+                      e_tournament_status_enum.Paused,
+                    ],
+                  },
+                },
+                {
+                  _and: [
+                    { status: { _eq: e_tournament_status_enum.Finished } },
+                    { finished_at: { _gte: chatGracePeriodCutoff } },
+                  ],
+                },
               ],
-              _and: [NOT_LEAGUE_TOURNAMENT],
+              _and: [
+                NOT_LEAGUE_TOURNAMENT,
+                {
+                  _or: [
+                    { joined_tournament: { _eq: true } },
+                    { is_organizer: { _eq: true } },
+                  ],
+                },
+              ],
             },
           },
           {
@@ -180,6 +216,7 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
       subscription.subscribe({
         next: ({ data }) => {
           chatTournaments.value = data?.tournaments || [];
+          chatTournamentsLoaded.value = true;
         },
         error: (error) => {
           console.error("Error in chat tournaments subscription:", error);
@@ -445,6 +482,7 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
     liveTournamentsCount,
     openRegistrationTournamentsCount,
     chatTournaments,
+    chatTournamentsLoaded,
     currentMatch: computed(() => {
       return myMatches.value.at(0);
     }),

@@ -663,7 +663,20 @@ socket.listen(
     senderAvatarUrl?: string;
     message: string;
   }) => {
-    const { type, id, senderSteamId, senderName, senderAvatarUrl } = data;
+    const { type, id } = data;
+
+    // Direct messages are fully owned by useIncomingDirectMessages.ts
+    // instead -- it subscribes to the same ChatMessage notification row
+    // chat.service.ts inserts for every DM recipient (see notifyPlayers
+    // in sendMessageToChat), which also persists read state server-side
+    // (is_read) so a page reload doesn't resurrect a read badge. That
+    // insert and this socket ping both fire for the exact same message,
+    // so handling "direct" here too double-counted every DM's unread
+    // badge (reported: sending one message gave the recipient two
+    // alerts for it).
+    if (type === "direct") {
+      return;
+    }
 
     // registerTabIfMissing's tab type is narrower than the full ChatType
     // above (no "draft"/"match_team" -- those aren't opened as regular
@@ -672,7 +685,6 @@ socket.listen(
     // the type mismatch. Those two chats simply don't get a live unread
     // ping yet; unaffected otherwise.
     const registrableTypes = [
-      "direct",
       "global",
       "organizers",
       "announcement",
@@ -687,14 +699,7 @@ socket.listen(
 
     let tabId: string;
     let lobbyId: string;
-    if (type === "direct") {
-      lobbyId = id;
-      tabId = `direct:${id}`;
-    } else if (
-      type === "global" ||
-      type === "organizers" ||
-      type === "announcement"
-    ) {
+    if (type === "global" || type === "organizers" || type === "announcement") {
       lobbyId = type;
       tabId = type;
     } else {
@@ -739,10 +744,9 @@ socket.listen(
 
     registerTabIfMissing({
       id: tabId,
-      label: type === "direct" ? senderName || "Player" : type,
+      label: type,
       instance: type,
       type: type as
-        | "direct"
         | "global"
         | "organizers"
         | "announcement"
@@ -751,8 +755,6 @@ socket.listen(
         | "match"
         | "team",
       lobbyId,
-      otherSteamId: type === "direct" ? senderSteamId : undefined,
-      avatarUrl: type === "direct" ? senderAvatarUrl : undefined,
     });
 
     const { rightSidebarOpen } = useRightSidebar();

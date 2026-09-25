@@ -90,10 +90,11 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
       >
         <div class="relative flex flex-1 min-h-0 flex-col">
           <ChatMessages
-            v-if="messages.length"
+            v-if="visibleMessages.length"
             ref="chatMessagesRef"
-            :messages="messages"
+            :messages="visibleMessages"
             :chat-type="type"
+            :absolute-timestamps="absoluteTimestamps"
             variant="global"
             :is-minimized="isMinimized"
             class="flex-1 overflow-y-auto max-h-96"
@@ -171,10 +172,11 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
     </div>
     <div class="relative flex flex-1 min-h-0 flex-col gap-2">
       <ChatMessages
-        v-if="messages.length"
+        v-if="visibleMessages.length"
         ref="chatMessagesRef"
-        :messages="messages"
+        :messages="visibleMessages"
         :chat-type="type"
+        :absolute-timestamps="absoluteTimestamps"
         variant="embedded"
         class="flex-1 min-h-0 overflow-y-auto"
         :last-read-count="0"
@@ -316,6 +318,21 @@ export default {
       type: String,
       required: false,
     },
+    // Restricts the rendered history to one map's time window within a
+    // BO2+ series' otherwise-flat per-match chat log (there's no
+    // per-map chat lobby -- see MatchChatLog.vue) -- both are ISO
+    // timestamp strings. null/undefined shows the full history.
+    historyRange: {
+      type: Object as PropType<{ start: string; end: string | null } | null>,
+      required: false,
+      default: null,
+    },
+    // See ChatMessage.vue -- plain local clock time instead of "X
+    // minutes ago", for the post-match chat log page.
+    absoluteTimestamps: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -337,6 +354,19 @@ export default {
     };
   },
   computed: {
+    visibleMessages() {
+      if (!this.historyRange) {
+        return this.messages;
+      }
+      const start = new Date(this.historyRange.start).getTime();
+      const end = this.historyRange.end
+        ? new Date(this.historyRange.end).getTime()
+        : Infinity;
+      return (this.messages as any[]).filter((message) => {
+        const t = new Date(message.timestamp).getTime();
+        return t >= start && t <= end;
+      });
+    },
     effectiveCanSend() {
       return (
         this.canSend && this.chatMuteStatus.known && !this.chatMuteStatus.active

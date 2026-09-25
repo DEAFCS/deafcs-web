@@ -26,6 +26,7 @@
         :message="message"
         :previous-message="messages[index - 1]"
         :chat-type="chatType"
+        :absolute-timestamps="absoluteTimestamps"
         @edit-message="$emit('edit-message', $event)"
         @delete-message="$emit('delete-message', $event)"
         @mute-player="$emit('mute-player', $event)"
@@ -59,6 +60,7 @@
         :message="message"
         :previous-message="messages[index - 1]"
         :chat-type="chatType"
+        :absolute-timestamps="absoluteTimestamps"
         @edit-message="$emit('edit-message', $event)"
         @delete-message="$emit('delete-message', $event)"
         @mute-player="$emit('mute-player', $event)"
@@ -95,6 +97,10 @@ export default {
     lastReadCount: {
       type: Number,
       default: 0,
+    },
+    absoluteTimestamps: {
+      type: Boolean,
+      default: false,
     },
   },
   emits: [

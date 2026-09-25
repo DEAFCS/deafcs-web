@@ -1586,11 +1586,30 @@
               "title": "Incoming calls",
               "description": "An admin is calling you on webcam"
             },
+            "match_found": {
+              "title": "Match found",
+              "description": "A match was found and needs you to accept"
+            },
             "system": {
               "title": "System (admin)",
               "description": "Server and infrastructure status updates"
             }
           }
+        },
+        "tab_flash": {
+          "title": "Browser tab alert"
+        },
+        "tab_flash_match_found": {
+          "title": "Match found notification",
+          "description": "Flash the browser tab title and icon when a match is found and needs you to accept"
+        },
+        "tab_flash_chat": {
+          "title": "Chat notification",
+          "description": "Flash the browser tab title and icon when a new chat message arrives"
+        },
+        "tab_flash_alert": {
+          "title": "Alert notification",
+          "description": "Flash the browser tab title and icon for alert bell notifications (news, invites, sanctions, and more)"
         },
         "in_app": {
           "title": "Alert bell",
@@ -5864,6 +5883,15 @@
       "flashes_on_them": "Flashes on them",
       "flashes_on_you": "Flashes on you"
     },
+    "chat_log": {
+      "back_to_match": "Back to match",
+      "title": "Chat Log",
+      "description": "Read-only. Retained for 7 days after the match ends.",
+      "not_ended": "The chat log becomes available once this match has finished.",
+      "readonly_hint": "This match has ended. Chat is read-only.",
+      "full_match": "Full Match",
+      "map_label": "Map {number}: {name}"
+    },
     "team_stats_heading": "{name} Stats",
     "all_maps": "All Maps",
     "stream": {
@@ -6363,7 +6391,8 @@
       "clips_started": "Player highlight renders queued",
       "reparse_demos": "Reparse Match Demos",
       "reparse_demos_started": "Reparsing all demos for this match",
-      "watch_camera": "Watch Camera"
+      "watch_camera": "Watch Camera",
+      "chat_log": "Chat Log"
     },
     "delete_confirm": {
       "title": "Delete Match",
@@ -7084,6 +7113,7 @@
       "minutes_seconds": "{minutes}m {seconds}s"
     },
     "match_found": "Match Found",
+    "match_found_flash_title": "Match Found, Accept!",
     "waiting_for_players": "Waiting for Players",
     "waiting_on_others": "Waiting on Others",
     "confirmed": "Confirmed",
@@ -7325,6 +7355,7 @@
     "lobby_chat": "Lobby Chat",
     "global_chat": "Global Chat",
     "team_chat": "Team Chat",
+    "source_website": "DEAFCS",
     "message_placeholder": "Type a message...",
     "message_placeholder_global": "Message everyone...",
     "message_placeholder_team": "Message your team...",

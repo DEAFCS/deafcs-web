@@ -415,8 +415,19 @@ function handleMessageReceived(payload: {
   if (!tabId) return;
   const isCurrentRoom = tabId === activeChatId.value;
   const isVisible = props.isSidebarOpen && props.isTabActive && isCurrentRoom;
+  const tab = tabs.value.find((t) => t.id === tabId);
   if (!isVisible) {
-    incrementUnread(tabId);
+    // Direct messages are fully owned by useIncomingDirectMessages.ts
+    // instead -- it independently subscribes to the same ChatMessage
+    // notification row chat.service.ts inserts for every DM recipient,
+    // and already bumps unread from it. Once a DM's tab exists (e.g.
+    // persisted from an earlier session) its lobby room stays joined
+    // and live "chat" events like this one keep arriving too, so
+    // incrementing here as well double-counted every DM's unread badge
+    // (reported: sending one message gave the recipient two alerts).
+    if (tab?.type !== "direct") {
+      incrementUnread(tabId);
+    }
     return;
   }
   resetUnread(tabId);
@@ -426,7 +437,6 @@ function handleMessageReceived(payload: {
   // that arrived while the tab was already open would clear the client
   // badge but leave its DB row unread, so it would still resurface on
   // the next reload just like the F5 bug above.
-  const tab = tabs.value.find((t) => t.id === tabId);
   if (tab?.type === "direct") markDirectMessagesRead(tab.lobbyId);
 }
 

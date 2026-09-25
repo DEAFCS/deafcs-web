@@ -8,8 +8,16 @@ import socket, { type ChatType, type Lobby } from "~/web-sockets/Socket";
 
 export function useChatTabSetup() {
   const { t } = useI18n();
-  const { tabs, activeTabId, openTab, closeTab, setActiveTab, setPinned } =
-    useChatTabs();
+  const {
+    tabs,
+    activeTabId,
+    openTab,
+    closeTab,
+    setActiveTab,
+    setPinned,
+    unreadCounts,
+    clearUnread,
+  } = useChatTabs();
 
   const matchLobbyStore = useMatchLobbyStore();
   const authStore = useAuthStore();
@@ -81,6 +89,24 @@ export function useChatTabSetup() {
     for (const tab of [...tabs.value]) {
       if (tab.type === "tournament" && !activeIds.has(tab.id)) {
         closeTab(tab.id);
+      }
+    }
+
+    // Reported bug: a tournament chat's unread badge (sometimes 100+)
+    // stayed forever after the tournament finished and its chat
+    // disappeared. closeTab above only cleans up a tab that's still
+    // open THIS session -- if the tournament finished while the player
+    // was offline, no tab for it was ever (re)created here to begin
+    // with, so its old unread count from before it finished was never
+    // touched and just sat in localStorage, permanently inflating the
+    // total unread badge. Only runs once the subscription has actually
+    // reported back at least once (see chatTournamentsLoaded) so this
+    // doesn't wipe legitimate counts against the empty initial value.
+    if (matchLobbyStore.chatTournamentsLoaded) {
+      for (const id of Object.keys(unreadCounts.value)) {
+        if (id.startsWith("tournament:") && !activeIds.has(id)) {
+          clearUnread(id);
+        }
       }
     }
   }
@@ -221,6 +247,29 @@ export function useChatTabSetup() {
           closeTab(tab.id);
         }
       }
+
+      // Same orphaned-unread-count sweep as tournaments (see
+      // ensureTournamentChatTabs) -- a matchmaking lobby's tab only gets
+      // closed above if it still exists this session. A lobby that
+      // dissolved while the player was offline never got a tab
+      // (re)created here to trigger that at all, so its leftover unread
+      // count sat in localStorage forever. Reported: an admin who
+      // organizes/plays a lot of matches accumulated a large, permanently
+      // stuck total unread count that never matched what any single
+      // device actually had open. authStore.me being loaded at all is
+      // guard enough here (unlike tournaments' chatTournaments, there's
+      // no separate "still loading" state to worry about).
+      if (me) {
+        for (const id of Object.keys(unreadCounts.value)) {
+          if (
+            id.startsWith("matchmaking:") &&
+            id !== `matchmaking:${activeLobbyId}`
+          ) {
+            clearUnread(id);
+          }
+        }
+      }
+
       ensureDefaultTabs();
     },
     { immediate: true },
@@ -268,6 +317,19 @@ export function useChatTabSetup() {
       for (const tab of [...tabs.value]) {
         if (tab.type === "match" && !activeMatchTabIds.has(tab.id)) {
           closeTab(tab.id);
+        }
+      }
+
+      // Same orphaned-unread-count sweep as tournaments/matchmaking above
+      // -- a finished match's chat that the player never reopened this
+      // session left its unread count stuck in localStorage forever,
+      // since closeTab only cleans up a tab that still exists. Not
+      // gated on an extra "loaded" flag: this watcher (no immediate:
+      // true) only ever runs after myMatches has actually changed from
+      // its initial empty value, i.e. once real data has arrived.
+      for (const id of Object.keys(unreadCounts.value)) {
+        if (id.startsWith("match:") && !activeMatchTabIds.has(id)) {
+          clearUnread(id);
         }
       }
     },

@@ -156,6 +156,8 @@ import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { useMatchReadyModal } from "~/composables/useMatchReadyModal";
 import socket from "~/web-sockets/Socket";
 import { useSound } from "~/composables/useSound";
+import { startTabFlash, stopTabFlash } from "~/composables/useTabFlash";
+import { useTabFlashSettings } from "~/composables/useTabFlashSettings";
 
 export default {
   data() {
@@ -193,6 +195,7 @@ export default {
       handler(confirmation, oldConfirmation) {
         if (!confirmation) {
           useMatchReadyModal().closeMatchReadyModal();
+          stopTabFlash();
           return;
         }
 
@@ -201,6 +204,9 @@ export default {
             clearInterval(this.countdownInterval);
           }
           this.playMatchFoundSound();
+          if (useTabFlashSettings().isMatchFoundFlashEnabled.value) {
+            startTabFlash(this.$t("matchmaking.match_found_flash_title"));
+          }
           this.updateCountdown();
           this.countdownInterval = setInterval(this.updateCountdown, 1000);
         }
@@ -210,6 +216,7 @@ export default {
         }
 
         if (!oldConfirmation?.matchId && this.confirmation?.matchId) {
+          stopTabFlash();
           if (this.routedConfirmedId !== this.confirmation.matchId) {
             this.routedConfirmedId = this.confirmation.matchId;
             this.$router.push(`/matches/${this.confirmation.matchId}`);
@@ -245,6 +252,7 @@ export default {
     if (this.countdownInterval) {
       clearInterval(this.countdownInterval);
     }
+    stopTabFlash();
   },
 };
 </script>

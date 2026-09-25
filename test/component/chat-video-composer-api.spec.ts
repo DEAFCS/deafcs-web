@@ -13,7 +13,7 @@ const phonePage = fs.readFileSync(
 const chatMessage = fs.readFileSync(
   path.resolve(__dirname, "../../components/chat/ChatMessage.vue"),
   "utf8",
-);
+).replace(/\r\n/g, "\n");
 const chatInput = fs.readFileSync(
   path.resolve(__dirname, "../../components/chat/ChatInput.vue"),
   "utf8",

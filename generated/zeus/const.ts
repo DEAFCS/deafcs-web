@@ -220,6 +220,68 @@ export const AllTypesProps: Record<string,any> = {
 	abandoned_matches_variance_order_by:{
 		steam_id:"order_by"
 	},
+	admin_call_tokens_aggregate_fields:{
+		count:{
+			columns:"admin_call_tokens_select_column"
+		}
+	},
+	admin_call_tokens_bool_exp:{
+		_and:"admin_call_tokens_bool_exp",
+		_not:"admin_call_tokens_bool_exp",
+		_or:"admin_call_tokens_bool_exp",
+		created_at:"timestamptz_comparison_exp",
+		steam_id:"bigint_comparison_exp",
+		target_steam_id:"bigint_comparison_exp",
+		token:"uuid_comparison_exp"
+	},
+	admin_call_tokens_constraint: "enum" as const,
+	admin_call_tokens_inc_input:{
+		steam_id:"bigint",
+		target_steam_id:"bigint"
+	},
+	admin_call_tokens_insert_input:{
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		target_steam_id:"bigint",
+		token:"uuid"
+	},
+	admin_call_tokens_on_conflict:{
+		constraint:"admin_call_tokens_constraint",
+		update_columns:"admin_call_tokens_update_column",
+		where:"admin_call_tokens_bool_exp"
+	},
+	admin_call_tokens_order_by:{
+		created_at:"order_by",
+		steam_id:"order_by",
+		target_steam_id:"order_by",
+		token:"order_by"
+	},
+	admin_call_tokens_pk_columns_input:{
+		token:"uuid"
+	},
+	admin_call_tokens_select_column: "enum" as const,
+	admin_call_tokens_set_input:{
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		target_steam_id:"bigint",
+		token:"uuid"
+	},
+	admin_call_tokens_stream_cursor_input:{
+		initial_value:"admin_call_tokens_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	admin_call_tokens_stream_cursor_value_input:{
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		target_steam_id:"bigint",
+		token:"uuid"
+	},
+	admin_call_tokens_update_column: "enum" as const,
+	admin_call_tokens_updates:{
+		_inc:"admin_call_tokens_inc_input",
+		_set:"admin_call_tokens_set_input",
+		where:"admin_call_tokens_bool_exp"
+	},
 	api_keys_aggregate_fields:{
 		count:{
 			columns:"api_keys_select_column"
@@ -905,6 +967,81 @@ export const AllTypesProps: Record<string,any> = {
 		_lte:"bytea",
 		_neq:"bytea",
 		_nin:"bytea"
+	},
+	chat_message_deletions_aggregate_fields:{
+		count:{
+			columns:"chat_message_deletions_select_column"
+		}
+	},
+	chat_message_deletions_bool_exp:{
+		_and:"chat_message_deletions_bool_exp",
+		_not:"chat_message_deletions_bool_exp",
+		_or:"chat_message_deletions_bool_exp",
+		author_steam_id:"bigint_comparison_exp",
+		deleted_at:"timestamptz_comparison_exp",
+		deleted_by_steam_id:"bigint_comparison_exp",
+		id:"uuid_comparison_exp",
+		message:"String_comparison_exp",
+		message_created_at:"timestamptz_comparison_exp",
+		message_id:"String_comparison_exp",
+		room_id:"String_comparison_exp",
+		room_type:"String_comparison_exp"
+	},
+	chat_message_deletions_constraint: "enum" as const,
+	chat_message_deletions_inc_input:{
+		author_steam_id:"bigint",
+		deleted_by_steam_id:"bigint"
+	},
+	chat_message_deletions_insert_input:{
+		author_steam_id:"bigint",
+		deleted_at:"timestamptz",
+		deleted_by_steam_id:"bigint",
+		id:"uuid",
+		message_created_at:"timestamptz"
+	},
+	chat_message_deletions_on_conflict:{
+		constraint:"chat_message_deletions_constraint",
+		update_columns:"chat_message_deletions_update_column",
+		where:"chat_message_deletions_bool_exp"
+	},
+	chat_message_deletions_order_by:{
+		author_steam_id:"order_by",
+		deleted_at:"order_by",
+		deleted_by_steam_id:"order_by",
+		id:"order_by",
+		message:"order_by",
+		message_created_at:"order_by",
+		message_id:"order_by",
+		room_id:"order_by",
+		room_type:"order_by"
+	},
+	chat_message_deletions_pk_columns_input:{
+		id:"uuid"
+	},
+	chat_message_deletions_select_column: "enum" as const,
+	chat_message_deletions_set_input:{
+		author_steam_id:"bigint",
+		deleted_at:"timestamptz",
+		deleted_by_steam_id:"bigint",
+		id:"uuid",
+		message_created_at:"timestamptz"
+	},
+	chat_message_deletions_stream_cursor_input:{
+		initial_value:"chat_message_deletions_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	chat_message_deletions_stream_cursor_value_input:{
+		author_steam_id:"bigint",
+		deleted_at:"timestamptz",
+		deleted_by_steam_id:"bigint",
+		id:"uuid",
+		message_created_at:"timestamptz"
+	},
+	chat_message_deletions_update_column: "enum" as const,
+	chat_message_deletions_updates:{
+		_inc:"chat_message_deletions_inc_input",
+		_set:"chat_message_deletions_set_input",
+		where:"chat_message_deletions_bool_exp"
 	},
 	clip_render_jobs:{
 		spec:{
@@ -4059,6 +4196,108 @@ export const AllTypesProps: Record<string,any> = {
 		_set:"e_sides_set_input",
 		where:"e_sides_bool_exp"
 	},
+	e_support_request_categories_aggregate_fields:{
+		count:{
+			columns:"e_support_request_categories_select_column"
+		}
+	},
+	e_support_request_categories_bool_exp:{
+		_and:"e_support_request_categories_bool_exp",
+		_not:"e_support_request_categories_bool_exp",
+		_or:"e_support_request_categories_bool_exp",
+		description:"String_comparison_exp",
+		value:"String_comparison_exp"
+	},
+	e_support_request_categories_constraint: "enum" as const,
+	e_support_request_categories_enum: "enum" as const,
+	e_support_request_categories_enum_comparison_exp:{
+		_eq:"e_support_request_categories_enum",
+		_in:"e_support_request_categories_enum",
+		_neq:"e_support_request_categories_enum",
+		_nin:"e_support_request_categories_enum"
+	},
+	e_support_request_categories_insert_input:{
+
+	},
+	e_support_request_categories_on_conflict:{
+		constraint:"e_support_request_categories_constraint",
+		update_columns:"e_support_request_categories_update_column",
+		where:"e_support_request_categories_bool_exp"
+	},
+	e_support_request_categories_order_by:{
+		description:"order_by",
+		value:"order_by"
+	},
+	e_support_request_categories_pk_columns_input:{
+
+	},
+	e_support_request_categories_select_column: "enum" as const,
+	e_support_request_categories_set_input:{
+
+	},
+	e_support_request_categories_stream_cursor_input:{
+		initial_value:"e_support_request_categories_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	e_support_request_categories_stream_cursor_value_input:{
+
+	},
+	e_support_request_categories_update_column: "enum" as const,
+	e_support_request_categories_updates:{
+		_set:"e_support_request_categories_set_input",
+		where:"e_support_request_categories_bool_exp"
+	},
+	e_support_request_statuses_aggregate_fields:{
+		count:{
+			columns:"e_support_request_statuses_select_column"
+		}
+	},
+	e_support_request_statuses_bool_exp:{
+		_and:"e_support_request_statuses_bool_exp",
+		_not:"e_support_request_statuses_bool_exp",
+		_or:"e_support_request_statuses_bool_exp",
+		description:"String_comparison_exp",
+		value:"String_comparison_exp"
+	},
+	e_support_request_statuses_constraint: "enum" as const,
+	e_support_request_statuses_enum: "enum" as const,
+	e_support_request_statuses_enum_comparison_exp:{
+		_eq:"e_support_request_statuses_enum",
+		_in:"e_support_request_statuses_enum",
+		_neq:"e_support_request_statuses_enum",
+		_nin:"e_support_request_statuses_enum"
+	},
+	e_support_request_statuses_insert_input:{
+
+	},
+	e_support_request_statuses_on_conflict:{
+		constraint:"e_support_request_statuses_constraint",
+		update_columns:"e_support_request_statuses_update_column",
+		where:"e_support_request_statuses_bool_exp"
+	},
+	e_support_request_statuses_order_by:{
+		description:"order_by",
+		value:"order_by"
+	},
+	e_support_request_statuses_pk_columns_input:{
+
+	},
+	e_support_request_statuses_select_column: "enum" as const,
+	e_support_request_statuses_set_input:{
+
+	},
+	e_support_request_statuses_stream_cursor_input:{
+		initial_value:"e_support_request_statuses_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	e_support_request_statuses_stream_cursor_value_input:{
+
+	},
+	e_support_request_statuses_update_column: "enum" as const,
+	e_support_request_statuses_updates:{
+		_set:"e_support_request_statuses_set_input",
+		where:"e_support_request_statuses_bool_exp"
+	},
 	e_system_alert_types_aggregate_fields:{
 		count:{
 			columns:"e_system_alert_types_select_column"
@@ -5710,6 +5949,52 @@ export const AllTypesProps: Record<string,any> = {
 		_set:"events_set_input",
 		where:"events_bool_exp"
 	},
+	external_rank_leaderboard_aggregate_fields:{
+		count:{
+			columns:"external_rank_leaderboard_select_column"
+		}
+	},
+	external_rank_leaderboard_bool_exp:{
+		_and:"external_rank_leaderboard_bool_exp",
+		_not:"external_rank_leaderboard_bool_exp",
+		_or:"external_rank_leaderboard_bool_exp",
+		faceit_elo:"Int_comparison_exp",
+		faceit_last_match_at:"timestamptz_comparison_exp",
+		faceit_nickname:"String_comparison_exp",
+		faceit_skill_level:"Int_comparison_exp",
+		faceit_url:"String_comparison_exp",
+		player_avatar_url:"String_comparison_exp",
+		player_country:"String_comparison_exp",
+		player_custom_avatar_url:"String_comparison_exp",
+		player_name:"String_comparison_exp",
+		player_steam_id:"bigint_comparison_exp",
+		premier_last_match_at:"timestamptz_comparison_exp",
+		premier_rank:"Int_comparison_exp"
+	},
+	external_rank_leaderboard_order_by:{
+		faceit_elo:"order_by",
+		faceit_last_match_at:"order_by",
+		faceit_nickname:"order_by",
+		faceit_skill_level:"order_by",
+		faceit_url:"order_by",
+		player_avatar_url:"order_by",
+		player_country:"order_by",
+		player_custom_avatar_url:"order_by",
+		player_name:"order_by",
+		player_steam_id:"order_by",
+		premier_last_match_at:"order_by",
+		premier_rank:"order_by"
+	},
+	external_rank_leaderboard_select_column: "enum" as const,
+	external_rank_leaderboard_stream_cursor_input:{
+		initial_value:"external_rank_leaderboard_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	external_rank_leaderboard_stream_cursor_value_input:{
+		faceit_last_match_at:"timestamptz",
+		player_steam_id:"bigint",
+		premier_last_match_at:"timestamptz"
+	},
 	float8: `scalar.float8` as const,
 	float8_comparison_exp:{
 		_eq:"float8",
@@ -6415,6 +6700,9 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	get_player_leaderboard_rank_args:{
 		_season_id:"uuid"
+	},
+	get_tournament_leaderboard_args:{
+		_tournament_id:"uuid"
 	},
 	inet: `scalar.inet` as const,
 	inet_comparison_exp:{
@@ -11504,6 +11792,7 @@ export const AllTypesProps: Record<string,any> = {
 		elo_changes_aggregate:"v_player_elo_aggregate_bool_exp",
 		ended_at:"timestamptz_comparison_exp",
 		external_id:"String_comparison_exp",
+		external_timestamp_source:"String_comparison_exp",
 		id:"uuid_comparison_exp",
 		invite_code:"String_comparison_exp",
 		is_captain:"Boolean_comparison_exp",
@@ -11626,6 +11915,7 @@ export const AllTypesProps: Record<string,any> = {
 		effective_at:"order_by",
 		ended_at:"order_by",
 		external_id:"order_by",
+		external_timestamp_source:"order_by",
 		id:"order_by",
 		label:"order_by",
 		lineup_1_id:"order_by",
@@ -11648,6 +11938,7 @@ export const AllTypesProps: Record<string,any> = {
 		effective_at:"order_by",
 		ended_at:"order_by",
 		external_id:"order_by",
+		external_timestamp_source:"order_by",
 		id:"order_by",
 		label:"order_by",
 		lineup_1_id:"order_by",
@@ -11697,6 +11988,7 @@ export const AllTypesProps: Record<string,any> = {
 		elo_changes_aggregate:"v_player_elo_aggregate_order_by",
 		ended_at:"order_by",
 		external_id:"order_by",
+		external_timestamp_source:"order_by",
 		id:"order_by",
 		invite_code:"order_by",
 		is_captain:"order_by",
@@ -12011,6 +12303,12 @@ export const AllTypesProps: Record<string,any> = {
 		delete_abandoned_matches_by_pk:{
 			id:"uuid"
 		},
+		delete_admin_call_tokens:{
+			where:"admin_call_tokens_bool_exp"
+		},
+		delete_admin_call_tokens_by_pk:{
+			token:"uuid"
+		},
 		delete_api_keys:{
 			where:"api_keys_bool_exp"
 		},
@@ -12033,6 +12331,12 @@ export const AllTypesProps: Record<string,any> = {
 			where:"awards_bool_exp"
 		},
 		delete_awards_by_pk:{
+			id:"uuid"
+		},
+		delete_chat_message_deletions:{
+			where:"chat_message_deletions_bool_exp"
+		},
+		delete_chat_message_deletions_by_pk:{
 			id:"uuid"
 		},
 		delete_clip_render_jobs:{
@@ -12280,6 +12584,18 @@ export const AllTypesProps: Record<string,any> = {
 			where:"e_sides_bool_exp"
 		},
 		delete_e_sides_by_pk:{
+
+		},
+		delete_e_support_request_categories:{
+			where:"e_support_request_categories_bool_exp"
+		},
+		delete_e_support_request_categories_by_pk:{
+
+		},
+		delete_e_support_request_statuses:{
+			where:"e_support_request_statuses_bool_exp"
+		},
+		delete_e_support_request_statuses_by_pk:{
 
 		},
 		delete_e_system_alert_types:{
@@ -12612,6 +12928,9 @@ export const AllTypesProps: Record<string,any> = {
 		delete_migration_hashes_hashes_by_pk:{
 
 		},
+		delete_my_blocks:{
+			where:"my_blocks_bool_exp"
+		},
 		delete_my_friends:{
 			where:"my_friends_bool_exp"
 		},
@@ -12662,6 +12981,13 @@ export const AllTypesProps: Record<string,any> = {
 			attacker_steam_id:"bigint",
 			match_map_id:"uuid",
 			time:"timestamptz"
+		},
+		delete_player_blocks:{
+			where:"player_blocks_bool_exp"
+		},
+		delete_player_blocks_by_pk:{
+			blocked_steam_id:"bigint",
+			blocker_steam_id:"bigint"
 		},
 		delete_player_damages:{
 			where:"player_damages_bool_exp"
@@ -12765,6 +13091,12 @@ export const AllTypesProps: Record<string,any> = {
 		delete_player_steam_match_auth_by_pk:{
 			steam_id:"bigint"
 		},
+		delete_player_terms_acceptances:{
+			where:"player_terms_acceptances_bool_exp"
+		},
+		delete_player_terms_acceptances_by_pk:{
+			player_steam_id:"bigint"
+		},
 		delete_player_unused_utility:{
 			where:"player_unused_utility_bool_exp"
 		},
@@ -12840,10 +13172,28 @@ export const AllTypesProps: Record<string,any> = {
 		delete_steam_accounts_by_pk:{
 			id:"uuid"
 		},
+		delete_support_request_messages:{
+			where:"support_request_messages_bool_exp"
+		},
+		delete_support_request_messages_by_pk:{
+			id:"uuid"
+		},
+		delete_support_requests:{
+			where:"support_requests_bool_exp"
+		},
+		delete_support_requests_by_pk:{
+			id:"uuid"
+		},
 		delete_system_alerts:{
 			where:"system_alerts_bool_exp"
 		},
 		delete_system_alerts_by_pk:{
+			id:"uuid"
+		},
+		delete_team_admin_audit:{
+			where:"team_admin_audit_bool_exp"
+		},
+		delete_team_admin_audit_by_pk:{
 			id:"uuid"
 		},
 		delete_team_invites:{
@@ -12925,6 +13275,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		delete_tournament_individual_signups_by_pk:{
 			id:"uuid"
+		},
+		delete_tournament_leaderboard_entries:{
+			where:"tournament_leaderboard_entries_bool_exp"
 		},
 		delete_tournament_organizer_teams:{
 			where:"tournament_organizer_teams_bool_exp"
@@ -13008,6 +13361,12 @@ export const AllTypesProps: Record<string,any> = {
 			tournament_stage_id:"uuid",
 			tournament_team_id:"uuid"
 		},
+		delete_verification_application_known_players:{
+			where:"verification_application_known_players_bool_exp"
+		},
+		delete_verification_application_known_players_by_pk:{
+			id:"uuid"
+		},
 		delete_verification_application_messages:{
 			where:"verification_application_messages_bool_exp"
 		},
@@ -13019,6 +13378,12 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		delete_verification_applications_by_pk:{
 			id:"uuid"
+		},
+		delete_verification_call_tokens:{
+			where:"verification_call_tokens_bool_exp"
+		},
+		delete_verification_call_tokens_by_pk:{
+			token:"uuid"
 		},
 		denyInvite:{
 			invite_id:"uuid"
@@ -13060,6 +13425,14 @@ export const AllTypesProps: Record<string,any> = {
 			object:"abandoned_matches_insert_input",
 			on_conflict:"abandoned_matches_on_conflict"
 		},
+		insert_admin_call_tokens:{
+			objects:"admin_call_tokens_insert_input",
+			on_conflict:"admin_call_tokens_on_conflict"
+		},
+		insert_admin_call_tokens_one:{
+			object:"admin_call_tokens_insert_input",
+			on_conflict:"admin_call_tokens_on_conflict"
+		},
 		insert_api_keys:{
 			objects:"api_keys_insert_input",
 			on_conflict:"api_keys_on_conflict"
@@ -13091,6 +13464,14 @@ export const AllTypesProps: Record<string,any> = {
 		insert_awards_one:{
 			object:"awards_insert_input",
 			on_conflict:"awards_on_conflict"
+		},
+		insert_chat_message_deletions:{
+			objects:"chat_message_deletions_insert_input",
+			on_conflict:"chat_message_deletions_on_conflict"
+		},
+		insert_chat_message_deletions_one:{
+			object:"chat_message_deletions_insert_input",
+			on_conflict:"chat_message_deletions_on_conflict"
 		},
 		insert_clip_render_jobs:{
 			objects:"clip_render_jobs_insert_input",
@@ -13419,6 +13800,22 @@ export const AllTypesProps: Record<string,any> = {
 		insert_e_sides_one:{
 			object:"e_sides_insert_input",
 			on_conflict:"e_sides_on_conflict"
+		},
+		insert_e_support_request_categories:{
+			objects:"e_support_request_categories_insert_input",
+			on_conflict:"e_support_request_categories_on_conflict"
+		},
+		insert_e_support_request_categories_one:{
+			object:"e_support_request_categories_insert_input",
+			on_conflict:"e_support_request_categories_on_conflict"
+		},
+		insert_e_support_request_statuses:{
+			objects:"e_support_request_statuses_insert_input",
+			on_conflict:"e_support_request_statuses_on_conflict"
+		},
+		insert_e_support_request_statuses_one:{
+			object:"e_support_request_statuses_insert_input",
+			on_conflict:"e_support_request_statuses_on_conflict"
 		},
 		insert_e_system_alert_types:{
 			objects:"e_system_alert_types_insert_input",
@@ -13850,6 +14247,12 @@ export const AllTypesProps: Record<string,any> = {
 			object:"migration_hashes_hashes_insert_input",
 			on_conflict:"migration_hashes_hashes_on_conflict"
 		},
+		insert_my_blocks:{
+			objects:"my_blocks_insert_input"
+		},
+		insert_my_blocks_one:{
+			object:"my_blocks_insert_input"
+		},
 		insert_my_friends:{
 			objects:"my_friends_insert_input"
 		},
@@ -13911,6 +14314,14 @@ export const AllTypesProps: Record<string,any> = {
 		insert_player_assists_one:{
 			object:"player_assists_insert_input",
 			on_conflict:"player_assists_on_conflict"
+		},
+		insert_player_blocks:{
+			objects:"player_blocks_insert_input",
+			on_conflict:"player_blocks_on_conflict"
+		},
+		insert_player_blocks_one:{
+			object:"player_blocks_insert_input",
+			on_conflict:"player_blocks_on_conflict"
 		},
 		insert_player_damages:{
 			objects:"player_damages_insert_input",
@@ -14030,6 +14441,14 @@ export const AllTypesProps: Record<string,any> = {
 			object:"player_steam_match_auth_insert_input",
 			on_conflict:"player_steam_match_auth_on_conflict"
 		},
+		insert_player_terms_acceptances:{
+			objects:"player_terms_acceptances_insert_input",
+			on_conflict:"player_terms_acceptances_on_conflict"
+		},
+		insert_player_terms_acceptances_one:{
+			object:"player_terms_acceptances_insert_input",
+			on_conflict:"player_terms_acceptances_on_conflict"
+		},
 		insert_player_unused_utility:{
 			objects:"player_unused_utility_insert_input",
 			on_conflict:"player_unused_utility_on_conflict"
@@ -14126,6 +14545,22 @@ export const AllTypesProps: Record<string,any> = {
 			object:"steam_accounts_insert_input",
 			on_conflict:"steam_accounts_on_conflict"
 		},
+		insert_support_request_messages:{
+			objects:"support_request_messages_insert_input",
+			on_conflict:"support_request_messages_on_conflict"
+		},
+		insert_support_request_messages_one:{
+			object:"support_request_messages_insert_input",
+			on_conflict:"support_request_messages_on_conflict"
+		},
+		insert_support_requests:{
+			objects:"support_requests_insert_input",
+			on_conflict:"support_requests_on_conflict"
+		},
+		insert_support_requests_one:{
+			object:"support_requests_insert_input",
+			on_conflict:"support_requests_on_conflict"
+		},
 		insert_system_alerts:{
 			objects:"system_alerts_insert_input",
 			on_conflict:"system_alerts_on_conflict"
@@ -14133,6 +14568,14 @@ export const AllTypesProps: Record<string,any> = {
 		insert_system_alerts_one:{
 			object:"system_alerts_insert_input",
 			on_conflict:"system_alerts_on_conflict"
+		},
+		insert_team_admin_audit:{
+			objects:"team_admin_audit_insert_input",
+			on_conflict:"team_admin_audit_on_conflict"
+		},
+		insert_team_admin_audit_one:{
+			object:"team_admin_audit_insert_input",
+			on_conflict:"team_admin_audit_on_conflict"
 		},
 		insert_team_invites:{
 			objects:"team_invites_insert_input",
@@ -14237,6 +14680,12 @@ export const AllTypesProps: Record<string,any> = {
 		insert_tournament_individual_signups_one:{
 			object:"tournament_individual_signups_insert_input",
 			on_conflict:"tournament_individual_signups_on_conflict"
+		},
+		insert_tournament_leaderboard_entries:{
+			objects:"tournament_leaderboard_entries_insert_input"
+		},
+		insert_tournament_leaderboard_entries_one:{
+			object:"tournament_leaderboard_entries_insert_input"
 		},
 		insert_tournament_organizer_teams:{
 			objects:"tournament_organizer_teams_insert_input",
@@ -14354,6 +14803,14 @@ export const AllTypesProps: Record<string,any> = {
 			object:"v_team_stage_results_insert_input",
 			on_conflict:"v_team_stage_results_on_conflict"
 		},
+		insert_verification_application_known_players:{
+			objects:"verification_application_known_players_insert_input",
+			on_conflict:"verification_application_known_players_on_conflict"
+		},
+		insert_verification_application_known_players_one:{
+			object:"verification_application_known_players_insert_input",
+			on_conflict:"verification_application_known_players_on_conflict"
+		},
 		insert_verification_application_messages:{
 			objects:"verification_application_messages_insert_input",
 			on_conflict:"verification_application_messages_on_conflict"
@@ -14369,6 +14826,14 @@ export const AllTypesProps: Record<string,any> = {
 		insert_verification_applications_one:{
 			object:"verification_applications_insert_input",
 			on_conflict:"verification_applications_on_conflict"
+		},
+		insert_verification_call_tokens:{
+			objects:"verification_call_tokens_insert_input",
+			on_conflict:"verification_call_tokens_on_conflict"
+		},
+		insert_verification_call_tokens_one:{
+			object:"verification_call_tokens_insert_input",
+			on_conflict:"verification_call_tokens_on_conflict"
 		},
 		joinDraftGame:{
 			draftGameId:"uuid"
@@ -14423,6 +14888,12 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		reconnectLive:{
 			match_id:"uuid"
+		},
+		recover_team_admin:{
+			args:"recover_team_admin_args",
+			distinct_on:"team_roster_select_column",
+			order_by:"team_roster_order_by",
+			where:"team_roster_bool_exp"
 		},
 		refreshFaceitRank:{
 
@@ -14645,6 +15116,19 @@ export const AllTypesProps: Record<string,any> = {
 		update_abandoned_matches_many:{
 			updates:"abandoned_matches_updates"
 		},
+		update_admin_call_tokens:{
+			_inc:"admin_call_tokens_inc_input",
+			_set:"admin_call_tokens_set_input",
+			where:"admin_call_tokens_bool_exp"
+		},
+		update_admin_call_tokens_by_pk:{
+			_inc:"admin_call_tokens_inc_input",
+			_set:"admin_call_tokens_set_input",
+			pk_columns:"admin_call_tokens_pk_columns_input"
+		},
+		update_admin_call_tokens_many:{
+			updates:"admin_call_tokens_updates"
+		},
 		update_api_keys:{
 			_inc:"api_keys_inc_input",
 			_set:"api_keys_set_input",
@@ -14696,6 +15180,19 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_awards_many:{
 			updates:"awards_updates"
+		},
+		update_chat_message_deletions:{
+			_inc:"chat_message_deletions_inc_input",
+			_set:"chat_message_deletions_set_input",
+			where:"chat_message_deletions_bool_exp"
+		},
+		update_chat_message_deletions_by_pk:{
+			_inc:"chat_message_deletions_inc_input",
+			_set:"chat_message_deletions_set_input",
+			pk_columns:"chat_message_deletions_pk_columns_input"
+		},
+		update_chat_message_deletions_many:{
+			updates:"chat_message_deletions_updates"
 		},
 		update_clip_render_jobs:{
 			_append:"clip_render_jobs_append_input",
@@ -15179,6 +15676,28 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_e_sides_many:{
 			updates:"e_sides_updates"
+		},
+		update_e_support_request_categories:{
+			_set:"e_support_request_categories_set_input",
+			where:"e_support_request_categories_bool_exp"
+		},
+		update_e_support_request_categories_by_pk:{
+			_set:"e_support_request_categories_set_input",
+			pk_columns:"e_support_request_categories_pk_columns_input"
+		},
+		update_e_support_request_categories_many:{
+			updates:"e_support_request_categories_updates"
+		},
+		update_e_support_request_statuses:{
+			_set:"e_support_request_statuses_set_input",
+			where:"e_support_request_statuses_bool_exp"
+		},
+		update_e_support_request_statuses_by_pk:{
+			_set:"e_support_request_statuses_set_input",
+			pk_columns:"e_support_request_statuses_pk_columns_input"
+		},
+		update_e_support_request_statuses_many:{
+			updates:"e_support_request_statuses_updates"
 		},
 		update_e_system_alert_types:{
 			_set:"e_system_alert_types_set_input",
@@ -16015,6 +16534,19 @@ export const AllTypesProps: Record<string,any> = {
 		update_player_assists_many:{
 			updates:"player_assists_updates"
 		},
+		update_player_blocks:{
+			_inc:"player_blocks_inc_input",
+			_set:"player_blocks_set_input",
+			where:"player_blocks_bool_exp"
+		},
+		update_player_blocks_by_pk:{
+			_inc:"player_blocks_inc_input",
+			_set:"player_blocks_set_input",
+			pk_columns:"player_blocks_pk_columns_input"
+		},
+		update_player_blocks_many:{
+			updates:"player_blocks_updates"
+		},
 		update_player_damages:{
 			_inc:"player_damages_inc_input",
 			_set:"player_damages_set_input",
@@ -16215,6 +16747,19 @@ export const AllTypesProps: Record<string,any> = {
 		update_player_steam_match_auth_many:{
 			updates:"player_steam_match_auth_updates"
 		},
+		update_player_terms_acceptances:{
+			_inc:"player_terms_acceptances_inc_input",
+			_set:"player_terms_acceptances_set_input",
+			where:"player_terms_acceptances_bool_exp"
+		},
+		update_player_terms_acceptances_by_pk:{
+			_inc:"player_terms_acceptances_inc_input",
+			_set:"player_terms_acceptances_set_input",
+			pk_columns:"player_terms_acceptances_pk_columns_input"
+		},
+		update_player_terms_acceptances_many:{
+			updates:"player_terms_acceptances_updates"
+		},
 		update_player_unused_utility:{
 			_inc:"player_unused_utility_inc_input",
 			_set:"player_unused_utility_set_input",
@@ -16365,6 +16910,32 @@ export const AllTypesProps: Record<string,any> = {
 		update_steam_accounts_many:{
 			updates:"steam_accounts_updates"
 		},
+		update_support_request_messages:{
+			_inc:"support_request_messages_inc_input",
+			_set:"support_request_messages_set_input",
+			where:"support_request_messages_bool_exp"
+		},
+		update_support_request_messages_by_pk:{
+			_inc:"support_request_messages_inc_input",
+			_set:"support_request_messages_set_input",
+			pk_columns:"support_request_messages_pk_columns_input"
+		},
+		update_support_request_messages_many:{
+			updates:"support_request_messages_updates"
+		},
+		update_support_requests:{
+			_inc:"support_requests_inc_input",
+			_set:"support_requests_set_input",
+			where:"support_requests_bool_exp"
+		},
+		update_support_requests_by_pk:{
+			_inc:"support_requests_inc_input",
+			_set:"support_requests_set_input",
+			pk_columns:"support_requests_pk_columns_input"
+		},
+		update_support_requests_many:{
+			updates:"support_requests_updates"
+		},
 		update_system_alerts:{
 			_inc:"system_alerts_inc_input",
 			_set:"system_alerts_set_input",
@@ -16377,6 +16948,19 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_system_alerts_many:{
 			updates:"system_alerts_updates"
+		},
+		update_team_admin_audit:{
+			_inc:"team_admin_audit_inc_input",
+			_set:"team_admin_audit_set_input",
+			where:"team_admin_audit_bool_exp"
+		},
+		update_team_admin_audit_by_pk:{
+			_inc:"team_admin_audit_inc_input",
+			_set:"team_admin_audit_set_input",
+			pk_columns:"team_admin_audit_pk_columns_input"
+		},
+		update_team_admin_audit_many:{
+			updates:"team_admin_audit_updates"
 		},
 		update_team_invites:{
 			_inc:"team_invites_inc_input",
@@ -16542,6 +17126,14 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_tournament_individual_signups_many:{
 			updates:"tournament_individual_signups_updates"
+		},
+		update_tournament_leaderboard_entries:{
+			_inc:"tournament_leaderboard_entries_inc_input",
+			_set:"tournament_leaderboard_entries_set_input",
+			where:"tournament_leaderboard_entries_bool_exp"
+		},
+		update_tournament_leaderboard_entries_many:{
+			updates:"tournament_leaderboard_entries_updates"
 		},
 		update_tournament_organizer_teams:{
 			_set:"tournament_organizer_teams_set_input",
@@ -16720,6 +17312,19 @@ export const AllTypesProps: Record<string,any> = {
 		update_v_team_stage_results_many:{
 			updates:"v_team_stage_results_updates"
 		},
+		update_verification_application_known_players:{
+			_inc:"verification_application_known_players_inc_input",
+			_set:"verification_application_known_players_set_input",
+			where:"verification_application_known_players_bool_exp"
+		},
+		update_verification_application_known_players_by_pk:{
+			_inc:"verification_application_known_players_inc_input",
+			_set:"verification_application_known_players_set_input",
+			pk_columns:"verification_application_known_players_pk_columns_input"
+		},
+		update_verification_application_known_players_many:{
+			updates:"verification_application_known_players_updates"
+		},
 		update_verification_application_messages:{
 			_inc:"verification_application_messages_inc_input",
 			_set:"verification_application_messages_set_input",
@@ -16746,6 +17351,19 @@ export const AllTypesProps: Record<string,any> = {
 		update_verification_applications_many:{
 			updates:"verification_applications_updates"
 		},
+		update_verification_call_tokens:{
+			_inc:"verification_call_tokens_inc_input",
+			_set:"verification_call_tokens_set_input",
+			where:"verification_call_tokens_bool_exp"
+		},
+		update_verification_call_tokens_by_pk:{
+			_inc:"verification_call_tokens_inc_input",
+			_set:"verification_call_tokens_set_input",
+			pk_columns:"verification_call_tokens_pk_columns_input"
+		},
+		update_verification_call_tokens_many:{
+			updates:"verification_call_tokens_updates"
+		},
 		validateGamedata:{
 			game_server_node_id:"uuid"
 		},
@@ -16756,6 +17374,54 @@ export const AllTypesProps: Record<string,any> = {
 		writeServerFile:{
 
 		}
+	},
+	my_blocks_aggregate_fields:{
+		count:{
+			columns:"my_blocks_select_column"
+		}
+	},
+	my_blocks_bool_exp:{
+		_and:"my_blocks_bool_exp",
+		_not:"my_blocks_bool_exp",
+		_or:"my_blocks_bool_exp",
+		avatar_url:"String_comparison_exp",
+		blocked_steam_id:"bigint_comparison_exp",
+		blocker_steam_id:"bigint_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		custom_avatar_url:"String_comparison_exp",
+		name:"String_comparison_exp",
+		player:"players_bool_exp",
+		profile_url:"String_comparison_exp",
+		steam_id:"bigint_comparison_exp"
+	},
+	my_blocks_insert_input:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz",
+		player:"players_obj_rel_insert_input",
+		steam_id:"bigint"
+	},
+	my_blocks_order_by:{
+		avatar_url:"order_by",
+		blocked_steam_id:"order_by",
+		blocker_steam_id:"order_by",
+		created_at:"order_by",
+		custom_avatar_url:"order_by",
+		name:"order_by",
+		player:"players_order_by",
+		profile_url:"order_by",
+		steam_id:"order_by"
+	},
+	my_blocks_select_column: "enum" as const,
+	my_blocks_stream_cursor_input:{
+		initial_value:"my_blocks_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	my_blocks_stream_cursor_value_input:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz",
+		steam_id:"bigint"
 	},
 	my_friends:{
 		elo:{
@@ -17608,6 +18274,7 @@ export const AllTypesProps: Record<string,any> = {
 		error:"String_comparison_exp",
 		map_name:"String_comparison_exp",
 		match_start_time:"timestamptz_comparison_exp",
+		match_timestamp_source:"String_comparison_exp",
 		players:"pending_match_import_players_bool_exp",
 		players_aggregate:"pending_match_import_players_aggregate_bool_exp",
 		share_code:"String_comparison_exp",
@@ -17641,6 +18308,7 @@ export const AllTypesProps: Record<string,any> = {
 		error:"order_by",
 		map_name:"order_by",
 		match_start_time:"order_by",
+		match_timestamp_source:"order_by",
 		players_aggregate:"pending_match_import_players_aggregate_order_by",
 		share_code:"order_by",
 		status:"order_by",
@@ -18179,6 +18847,64 @@ export const AllTypesProps: Record<string,any> = {
 		attacked_steam_id:"order_by",
 		attacker_steam_id:"order_by",
 		round:"order_by"
+	},
+	player_blocks_aggregate_fields:{
+		count:{
+			columns:"player_blocks_select_column"
+		}
+	},
+	player_blocks_bool_exp:{
+		_and:"player_blocks_bool_exp",
+		_not:"player_blocks_bool_exp",
+		_or:"player_blocks_bool_exp",
+		blocked_steam_id:"bigint_comparison_exp",
+		blocker_steam_id:"bigint_comparison_exp",
+		created_at:"timestamptz_comparison_exp"
+	},
+	player_blocks_constraint: "enum" as const,
+	player_blocks_inc_input:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint"
+	},
+	player_blocks_insert_input:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz"
+	},
+	player_blocks_on_conflict:{
+		constraint:"player_blocks_constraint",
+		update_columns:"player_blocks_update_column",
+		where:"player_blocks_bool_exp"
+	},
+	player_blocks_order_by:{
+		blocked_steam_id:"order_by",
+		blocker_steam_id:"order_by",
+		created_at:"order_by"
+	},
+	player_blocks_pk_columns_input:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint"
+	},
+	player_blocks_select_column: "enum" as const,
+	player_blocks_set_input:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz"
+	},
+	player_blocks_stream_cursor_input:{
+		initial_value:"player_blocks_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	player_blocks_stream_cursor_value_input:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz"
+	},
+	player_blocks_update_column: "enum" as const,
+	player_blocks_updates:{
+		_inc:"player_blocks_inc_input",
+		_set:"player_blocks_set_input",
+		where:"player_blocks_bool_exp"
 	},
 	player_career_stats_v_aggregate_fields:{
 		count:{
@@ -21806,6 +22532,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	player_sanctions_avg_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_bool_exp:{
@@ -21815,11 +22542,14 @@ export const AllTypesProps: Record<string,any> = {
 		created_at:"timestamptz_comparison_exp",
 		deleted_at:"timestamptz_comparison_exp",
 		e_sanction_type:"e_sanction_types_bool_exp",
+		evidence_message_id:"String_comparison_exp",
 		id:"uuid_comparison_exp",
 		player:"players_bool_exp",
 		player_steam_id:"bigint_comparison_exp",
 		reason:"String_comparison_exp",
 		remove_sanction_date:"timestamptz_comparison_exp",
+		revoked_by:"players_bool_exp",
+		revoked_by_steam_id:"bigint_comparison_exp",
 		sanctioned_by:"players_bool_exp",
 		sanctioned_by_steam_id:"bigint_comparison_exp",
 		type:"e_sanction_types_enum_comparison_exp"
@@ -21827,6 +22557,7 @@ export const AllTypesProps: Record<string,any> = {
 	player_sanctions_constraint: "enum" as const,
 	player_sanctions_inc_input:{
 		player_steam_id:"bigint",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by_steam_id:"bigint"
 	},
 	player_sanctions_insert_input:{
@@ -21837,6 +22568,8 @@ export const AllTypesProps: Record<string,any> = {
 		player:"players_obj_rel_insert_input",
 		player_steam_id:"bigint",
 		remove_sanction_date:"timestamptz",
+		revoked_by:"players_obj_rel_insert_input",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by:"players_obj_rel_insert_input",
 		sanctioned_by_steam_id:"bigint",
 		type:"e_sanction_types_enum"
@@ -21844,19 +22577,23 @@ export const AllTypesProps: Record<string,any> = {
 	player_sanctions_max_order_by:{
 		created_at:"order_by",
 		deleted_at:"order_by",
+		evidence_message_id:"order_by",
 		id:"order_by",
 		player_steam_id:"order_by",
 		reason:"order_by",
 		remove_sanction_date:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_min_order_by:{
 		created_at:"order_by",
 		deleted_at:"order_by",
+		evidence_message_id:"order_by",
 		id:"order_by",
 		player_steam_id:"order_by",
 		reason:"order_by",
 		remove_sanction_date:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_on_conflict:{
@@ -21868,11 +22605,14 @@ export const AllTypesProps: Record<string,any> = {
 		created_at:"order_by",
 		deleted_at:"order_by",
 		e_sanction_type:"e_sanction_types_order_by",
+		evidence_message_id:"order_by",
 		id:"order_by",
 		player:"players_order_by",
 		player_steam_id:"order_by",
 		reason:"order_by",
 		remove_sanction_date:"order_by",
+		revoked_by:"players_order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by:"players_order_by",
 		sanctioned_by_steam_id:"order_by",
 		type:"order_by"
@@ -21888,19 +22628,23 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid",
 		player_steam_id:"bigint",
 		remove_sanction_date:"timestamptz",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by_steam_id:"bigint",
 		type:"e_sanction_types_enum"
 	},
 	player_sanctions_stddev_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_stddev_pop_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_stddev_samp_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_stream_cursor_input:{
@@ -21913,11 +22657,13 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid",
 		player_steam_id:"bigint",
 		remove_sanction_date:"timestamptz",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by_steam_id:"bigint",
 		type:"e_sanction_types_enum"
 	},
 	player_sanctions_sum_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_update_column: "enum" as const,
@@ -21928,14 +22674,17 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	player_sanctions_var_pop_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_var_samp_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_sanctions_variance_order_by:{
 		player_steam_id:"order_by",
+		revoked_by_steam_id:"order_by",
 		sanctioned_by_steam_id:"order_by"
 	},
 	player_season_stats_aggregate_bool_exp:{
@@ -22456,6 +23205,62 @@ export const AllTypesProps: Record<string,any> = {
 		_inc:"player_steam_match_auth_inc_input",
 		_set:"player_steam_match_auth_set_input",
 		where:"player_steam_match_auth_bool_exp"
+	},
+	player_terms_acceptances_aggregate_fields:{
+		count:{
+			columns:"player_terms_acceptances_select_column"
+		}
+	},
+	player_terms_acceptances_bool_exp:{
+		_and:"player_terms_acceptances_bool_exp",
+		_not:"player_terms_acceptances_bool_exp",
+		_or:"player_terms_acceptances_bool_exp",
+		accepted_at:"timestamptz_comparison_exp",
+		player:"players_bool_exp",
+		player_steam_id:"bigint_comparison_exp",
+		terms_version:"String_comparison_exp"
+	},
+	player_terms_acceptances_constraint: "enum" as const,
+	player_terms_acceptances_inc_input:{
+		player_steam_id:"bigint"
+	},
+	player_terms_acceptances_insert_input:{
+		accepted_at:"timestamptz",
+		player:"players_obj_rel_insert_input",
+		player_steam_id:"bigint"
+	},
+	player_terms_acceptances_on_conflict:{
+		constraint:"player_terms_acceptances_constraint",
+		update_columns:"player_terms_acceptances_update_column",
+		where:"player_terms_acceptances_bool_exp"
+	},
+	player_terms_acceptances_order_by:{
+		accepted_at:"order_by",
+		player:"players_order_by",
+		player_steam_id:"order_by",
+		terms_version:"order_by"
+	},
+	player_terms_acceptances_pk_columns_input:{
+		player_steam_id:"bigint"
+	},
+	player_terms_acceptances_select_column: "enum" as const,
+	player_terms_acceptances_set_input:{
+		accepted_at:"timestamptz",
+		player_steam_id:"bigint"
+	},
+	player_terms_acceptances_stream_cursor_input:{
+		initial_value:"player_terms_acceptances_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	player_terms_acceptances_stream_cursor_value_input:{
+		accepted_at:"timestamptz",
+		player_steam_id:"bigint"
+	},
+	player_terms_acceptances_update_column: "enum" as const,
+	player_terms_acceptances_updates:{
+		_inc:"player_terms_acceptances_inc_input",
+		_set:"player_terms_acceptances_set_input",
+		where:"player_terms_acceptances_bool_exp"
 	},
 	player_unused_utility_aggregate_bool_exp:{
 		count:"player_unused_utility_aggregate_bool_exp_count"
@@ -23385,10 +24190,12 @@ export const AllTypesProps: Record<string,any> = {
 		elo_history:"v_player_elo_bool_exp",
 		elo_history_aggregate:"v_player_elo_aggregate_bool_exp",
 		faceit_elo:"Int_comparison_exp",
+		faceit_last_match_at:"timestamptz_comparison_exp",
 		faceit_nickname:"String_comparison_exp",
 		faceit_player_id:"String_comparison_exp",
 		faceit_rank_history:"player_faceit_rank_history_bool_exp",
 		faceit_rank_history_aggregate:"player_faceit_rank_history_aggregate_bool_exp",
+		faceit_refresh_attempted_at:"timestamptz_comparison_exp",
 		faceit_skill_level:"Int_comparison_exp",
 		faceit_synced_at:"timestamptz_comparison_exp",
 		faceit_updated_at:"timestamptz_comparison_exp",
@@ -23400,6 +24207,7 @@ export const AllTypesProps: Record<string,any> = {
 		friends:"my_friends_bool_exp",
 		friends_aggregate:"my_friends_aggregate_bool_exp",
 		game_ban_count:"Int_comparison_exp",
+		has_accepted_current_terms:"Boolean_comparison_exp",
 		invited_players:"team_invites_bool_exp",
 		invited_players_aggregate:"team_invites_aggregate_bool_exp",
 		is_admin_sanctioned:"Boolean_comparison_exp",
@@ -23505,7 +24313,9 @@ export const AllTypesProps: Record<string,any> = {
 		deaths:"player_kills_arr_rel_insert_input",
 		draft_game_players:"draft_game_players_arr_rel_insert_input",
 		elo_history:"v_player_elo_arr_rel_insert_input",
+		faceit_last_match_at:"timestamptz",
 		faceit_rank_history:"player_faceit_rank_history_arr_rel_insert_input",
+		faceit_refresh_attempted_at:"timestamptz",
 		faceit_synced_at:"timestamptz",
 		faceit_updated_at:"timestamptz",
 		flashed_by_players:"player_flashes_arr_rel_insert_input",
@@ -23575,9 +24385,11 @@ export const AllTypesProps: Record<string,any> = {
 		elo:"order_by",
 		elo_history_aggregate:"v_player_elo_aggregate_order_by",
 		faceit_elo:"order_by",
+		faceit_last_match_at:"order_by",
 		faceit_nickname:"order_by",
 		faceit_player_id:"order_by",
 		faceit_rank_history_aggregate:"player_faceit_rank_history_aggregate_order_by",
+		faceit_refresh_attempted_at:"order_by",
 		faceit_skill_level:"order_by",
 		faceit_synced_at:"order_by",
 		faceit_updated_at:"order_by",
@@ -23586,6 +24398,7 @@ export const AllTypesProps: Record<string,any> = {
 		flashed_players_aggregate:"player_flashes_aggregate_order_by",
 		friends_aggregate:"my_friends_aggregate_order_by",
 		game_ban_count:"order_by",
+		has_accepted_current_terms:"order_by",
 		invited_players_aggregate:"team_invites_aggregate_order_by",
 		is_admin_sanctioned:"order_by",
 		is_banned:"order_by",
@@ -23656,6 +24469,8 @@ export const AllTypesProps: Record<string,any> = {
 	players_select_column: "enum" as const,
 	players_set_input:{
 		created_at:"timestamptz",
+		faceit_last_match_at:"timestamptz",
+		faceit_refresh_attempted_at:"timestamptz",
 		faceit_synced_at:"timestamptz",
 		faceit_updated_at:"timestamptz",
 		last_read_news_at:"timestamptz",
@@ -23672,6 +24487,8 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	players_stream_cursor_value_input:{
 		created_at:"timestamptz",
+		faceit_last_match_at:"timestamptz",
+		faceit_refresh_attempted_at:"timestamptz",
 		faceit_synced_at:"timestamptz",
 		faceit_updated_at:"timestamptz",
 		last_read_news_at:"timestamptz",
@@ -23895,6 +24712,19 @@ export const AllTypesProps: Record<string,any> = {
 		abandoned_matches_by_pk:{
 			id:"uuid"
 		},
+		admin_call_tokens:{
+			distinct_on:"admin_call_tokens_select_column",
+			order_by:"admin_call_tokens_order_by",
+			where:"admin_call_tokens_bool_exp"
+		},
+		admin_call_tokens_aggregate:{
+			distinct_on:"admin_call_tokens_select_column",
+			order_by:"admin_call_tokens_order_by",
+			where:"admin_call_tokens_bool_exp"
+		},
+		admin_call_tokens_by_pk:{
+			token:"uuid"
+		},
 		api_keys:{
 			distinct_on:"api_keys_select_column",
 			order_by:"api_keys_order_by",
@@ -23945,6 +24775,19 @@ export const AllTypesProps: Record<string,any> = {
 			where:"awards_bool_exp"
 		},
 		awards_by_pk:{
+			id:"uuid"
+		},
+		chat_message_deletions:{
+			distinct_on:"chat_message_deletions_select_column",
+			order_by:"chat_message_deletions_order_by",
+			where:"chat_message_deletions_bool_exp"
+		},
+		chat_message_deletions_aggregate:{
+			distinct_on:"chat_message_deletions_select_column",
+			order_by:"chat_message_deletions_order_by",
+			where:"chat_message_deletions_bool_exp"
+		},
+		chat_message_deletions_by_pk:{
 			id:"uuid"
 		},
 		clip_render_jobs:{
@@ -24481,6 +25324,32 @@ export const AllTypesProps: Record<string,any> = {
 		e_sides_by_pk:{
 
 		},
+		e_support_request_categories:{
+			distinct_on:"e_support_request_categories_select_column",
+			order_by:"e_support_request_categories_order_by",
+			where:"e_support_request_categories_bool_exp"
+		},
+		e_support_request_categories_aggregate:{
+			distinct_on:"e_support_request_categories_select_column",
+			order_by:"e_support_request_categories_order_by",
+			where:"e_support_request_categories_bool_exp"
+		},
+		e_support_request_categories_by_pk:{
+
+		},
+		e_support_request_statuses:{
+			distinct_on:"e_support_request_statuses_select_column",
+			order_by:"e_support_request_statuses_order_by",
+			where:"e_support_request_statuses_bool_exp"
+		},
+		e_support_request_statuses_aggregate:{
+			distinct_on:"e_support_request_statuses_select_column",
+			order_by:"e_support_request_statuses_order_by",
+			where:"e_support_request_statuses_bool_exp"
+		},
+		e_support_request_statuses_by_pk:{
+
+		},
 		e_system_alert_types:{
 			distinct_on:"e_system_alert_types_select_column",
 			order_by:"e_system_alert_types_order_by",
@@ -24734,6 +25603,16 @@ export const AllTypesProps: Record<string,any> = {
 		events_by_pk:{
 			id:"uuid"
 		},
+		external_rank_leaderboard:{
+			distinct_on:"external_rank_leaderboard_select_column",
+			order_by:"external_rank_leaderboard_order_by",
+			where:"external_rank_leaderboard_bool_exp"
+		},
+		external_rank_leaderboard_aggregate:{
+			distinct_on:"external_rank_leaderboard_select_column",
+			order_by:"external_rank_leaderboard_order_by",
+			where:"external_rank_leaderboard_bool_exp"
+		},
 		friends:{
 			distinct_on:"friends_select_column",
 			order_by:"friends_order_by",
@@ -24861,6 +25740,18 @@ export const AllTypesProps: Record<string,any> = {
 			distinct_on:"player_leaderboard_rank_select_column",
 			order_by:"player_leaderboard_rank_order_by",
 			where:"player_leaderboard_rank_bool_exp"
+		},
+		get_tournament_leaderboard:{
+			args:"get_tournament_leaderboard_args",
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
+		},
+		get_tournament_leaderboard_aggregate:{
+			args:"get_tournament_leaderboard_args",
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
 		},
 		leaderboard_entries:{
 			distinct_on:"leaderboard_entries_select_column",
@@ -25267,6 +26158,16 @@ export const AllTypesProps: Record<string,any> = {
 		migration_hashes_hashes_by_pk:{
 
 		},
+		my_blocks:{
+			distinct_on:"my_blocks_select_column",
+			order_by:"my_blocks_order_by",
+			where:"my_blocks_bool_exp"
+		},
+		my_blocks_aggregate:{
+			distinct_on:"my_blocks_select_column",
+			order_by:"my_blocks_order_by",
+			where:"my_blocks_bool_exp"
+		},
 		my_friends:{
 			distinct_on:"my_friends_select_column",
 			order_by:"my_friends_order_by",
@@ -25376,6 +26277,20 @@ export const AllTypesProps: Record<string,any> = {
 			attacker_steam_id:"bigint",
 			match_map_id:"uuid",
 			time:"timestamptz"
+		},
+		player_blocks:{
+			distinct_on:"player_blocks_select_column",
+			order_by:"player_blocks_order_by",
+			where:"player_blocks_bool_exp"
+		},
+		player_blocks_aggregate:{
+			distinct_on:"player_blocks_select_column",
+			order_by:"player_blocks_order_by",
+			where:"player_blocks_bool_exp"
+		},
+		player_blocks_by_pk:{
+			blocked_steam_id:"bigint",
+			blocker_steam_id:"bigint"
 		},
 		player_career_stats_v:{
 			distinct_on:"player_career_stats_v_select_column",
@@ -25624,6 +26539,19 @@ export const AllTypesProps: Record<string,any> = {
 		player_steam_match_auth_by_pk:{
 			steam_id:"bigint"
 		},
+		player_terms_acceptances:{
+			distinct_on:"player_terms_acceptances_select_column",
+			order_by:"player_terms_acceptances_order_by",
+			where:"player_terms_acceptances_bool_exp"
+		},
+		player_terms_acceptances_aggregate:{
+			distinct_on:"player_terms_acceptances_select_column",
+			order_by:"player_terms_acceptances_order_by",
+			where:"player_terms_acceptances_bool_exp"
+		},
+		player_terms_acceptances_by_pk:{
+			player_steam_id:"bigint"
+		},
 		player_unused_utility:{
 			distinct_on:"player_unused_utility_select_column",
 			order_by:"player_unused_utility_order_by",
@@ -25796,6 +26724,32 @@ export const AllTypesProps: Record<string,any> = {
 		steam_accounts_by_pk:{
 			id:"uuid"
 		},
+		support_request_messages:{
+			distinct_on:"support_request_messages_select_column",
+			order_by:"support_request_messages_order_by",
+			where:"support_request_messages_bool_exp"
+		},
+		support_request_messages_aggregate:{
+			distinct_on:"support_request_messages_select_column",
+			order_by:"support_request_messages_order_by",
+			where:"support_request_messages_bool_exp"
+		},
+		support_request_messages_by_pk:{
+			id:"uuid"
+		},
+		support_requests:{
+			distinct_on:"support_requests_select_column",
+			order_by:"support_requests_order_by",
+			where:"support_requests_bool_exp"
+		},
+		support_requests_aggregate:{
+			distinct_on:"support_requests_select_column",
+			order_by:"support_requests_order_by",
+			where:"support_requests_bool_exp"
+		},
+		support_requests_by_pk:{
+			id:"uuid"
+		},
 		system_alerts:{
 			distinct_on:"system_alerts_select_column",
 			order_by:"system_alerts_order_by",
@@ -25811,6 +26765,19 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		teamCalendarUrl:{
 			team_id:"uuid"
+		},
+		team_admin_audit:{
+			distinct_on:"team_admin_audit_select_column",
+			order_by:"team_admin_audit_order_by",
+			where:"team_admin_audit_bool_exp"
+		},
+		team_admin_audit_aggregate:{
+			distinct_on:"team_admin_audit_select_column",
+			order_by:"team_admin_audit_order_by",
+			where:"team_admin_audit_bool_exp"
+		},
+		team_admin_audit_by_pk:{
+			id:"uuid"
 		},
 		team_invites:{
 			distinct_on:"team_invites_select_column",
@@ -25982,6 +26949,16 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		tournament_individual_signups_by_pk:{
 			id:"uuid"
+		},
+		tournament_leaderboard_entries:{
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
+		},
+		tournament_leaderboard_entries_aggregate:{
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
 		},
 		tournament_organizer_teams:{
 			distinct_on:"tournament_organizer_teams_select_column",
@@ -26447,6 +27424,19 @@ export const AllTypesProps: Record<string,any> = {
 			order_by:"v_tournament_player_stats_order_by",
 			where:"v_tournament_player_stats_bool_exp"
 		},
+		verification_application_known_players:{
+			distinct_on:"verification_application_known_players_select_column",
+			order_by:"verification_application_known_players_order_by",
+			where:"verification_application_known_players_bool_exp"
+		},
+		verification_application_known_players_aggregate:{
+			distinct_on:"verification_application_known_players_select_column",
+			order_by:"verification_application_known_players_order_by",
+			where:"verification_application_known_players_bool_exp"
+		},
+		verification_application_known_players_by_pk:{
+			id:"uuid"
+		},
 		verification_application_messages:{
 			distinct_on:"verification_application_messages_select_column",
 			order_by:"verification_application_messages_order_by",
@@ -26472,6 +27462,19 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		verification_applications_by_pk:{
 			id:"uuid"
+		},
+		verification_call_tokens:{
+			distinct_on:"verification_call_tokens_select_column",
+			order_by:"verification_call_tokens_order_by",
+			where:"verification_call_tokens_bool_exp"
+		},
+		verification_call_tokens_aggregate:{
+			distinct_on:"verification_call_tokens_select_column",
+			order_by:"verification_call_tokens_order_by",
+			where:"verification_call_tokens_bool_exp"
+		},
+		verification_call_tokens_by_pk:{
+			token:"uuid"
 		}
 	},
 	recalculate_tournament_awards_args:{
@@ -26479,6 +27482,10 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	recalculate_tournament_trophies_args:{
 		_tournament_id:"uuid"
+	},
+	recover_team_admin_args:{
+		_player_steam_id:"bigint",
+		_team_id:"uuid"
 	},
 	remove_league_team_from_season_args:{
 		_league_team_season_id:"uuid"
@@ -27202,6 +28209,23 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"abandoned_matches_stream_cursor_input",
 			where:"abandoned_matches_bool_exp"
 		},
+		admin_call_tokens:{
+			distinct_on:"admin_call_tokens_select_column",
+			order_by:"admin_call_tokens_order_by",
+			where:"admin_call_tokens_bool_exp"
+		},
+		admin_call_tokens_aggregate:{
+			distinct_on:"admin_call_tokens_select_column",
+			order_by:"admin_call_tokens_order_by",
+			where:"admin_call_tokens_bool_exp"
+		},
+		admin_call_tokens_by_pk:{
+			token:"uuid"
+		},
+		admin_call_tokens_stream:{
+			cursor:"admin_call_tokens_stream_cursor_input",
+			where:"admin_call_tokens_bool_exp"
+		},
 		api_keys:{
 			distinct_on:"api_keys_select_column",
 			order_by:"api_keys_order_by",
@@ -27269,6 +28293,23 @@ export const AllTypesProps: Record<string,any> = {
 		awards_stream:{
 			cursor:"awards_stream_cursor_input",
 			where:"awards_bool_exp"
+		},
+		chat_message_deletions:{
+			distinct_on:"chat_message_deletions_select_column",
+			order_by:"chat_message_deletions_order_by",
+			where:"chat_message_deletions_bool_exp"
+		},
+		chat_message_deletions_aggregate:{
+			distinct_on:"chat_message_deletions_select_column",
+			order_by:"chat_message_deletions_order_by",
+			where:"chat_message_deletions_bool_exp"
+		},
+		chat_message_deletions_by_pk:{
+			id:"uuid"
+		},
+		chat_message_deletions_stream:{
+			cursor:"chat_message_deletions_stream_cursor_input",
+			where:"chat_message_deletions_bool_exp"
 		},
 		clip_render_jobs:{
 			distinct_on:"clip_render_jobs_select_column",
@@ -27968,6 +29009,40 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"e_sides_stream_cursor_input",
 			where:"e_sides_bool_exp"
 		},
+		e_support_request_categories:{
+			distinct_on:"e_support_request_categories_select_column",
+			order_by:"e_support_request_categories_order_by",
+			where:"e_support_request_categories_bool_exp"
+		},
+		e_support_request_categories_aggregate:{
+			distinct_on:"e_support_request_categories_select_column",
+			order_by:"e_support_request_categories_order_by",
+			where:"e_support_request_categories_bool_exp"
+		},
+		e_support_request_categories_by_pk:{
+
+		},
+		e_support_request_categories_stream:{
+			cursor:"e_support_request_categories_stream_cursor_input",
+			where:"e_support_request_categories_bool_exp"
+		},
+		e_support_request_statuses:{
+			distinct_on:"e_support_request_statuses_select_column",
+			order_by:"e_support_request_statuses_order_by",
+			where:"e_support_request_statuses_bool_exp"
+		},
+		e_support_request_statuses_aggregate:{
+			distinct_on:"e_support_request_statuses_select_column",
+			order_by:"e_support_request_statuses_order_by",
+			where:"e_support_request_statuses_bool_exp"
+		},
+		e_support_request_statuses_by_pk:{
+
+		},
+		e_support_request_statuses_stream:{
+			cursor:"e_support_request_statuses_stream_cursor_input",
+			where:"e_support_request_statuses_bool_exp"
+		},
 		e_system_alert_types:{
 			distinct_on:"e_system_alert_types_select_column",
 			order_by:"e_system_alert_types_order_by",
@@ -28297,6 +29372,20 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"events_stream_cursor_input",
 			where:"events_bool_exp"
 		},
+		external_rank_leaderboard:{
+			distinct_on:"external_rank_leaderboard_select_column",
+			order_by:"external_rank_leaderboard_order_by",
+			where:"external_rank_leaderboard_bool_exp"
+		},
+		external_rank_leaderboard_aggregate:{
+			distinct_on:"external_rank_leaderboard_select_column",
+			order_by:"external_rank_leaderboard_order_by",
+			where:"external_rank_leaderboard_bool_exp"
+		},
+		external_rank_leaderboard_stream:{
+			cursor:"external_rank_leaderboard_stream_cursor_input",
+			where:"external_rank_leaderboard_bool_exp"
+		},
 		friends:{
 			distinct_on:"friends_select_column",
 			order_by:"friends_order_by",
@@ -28413,6 +29502,18 @@ export const AllTypesProps: Record<string,any> = {
 			distinct_on:"player_leaderboard_rank_select_column",
 			order_by:"player_leaderboard_rank_order_by",
 			where:"player_leaderboard_rank_bool_exp"
+		},
+		get_tournament_leaderboard:{
+			args:"get_tournament_leaderboard_args",
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
+		},
+		get_tournament_leaderboard_aggregate:{
+			args:"get_tournament_leaderboard_args",
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
 		},
 		leaderboard_entries:{
 			distinct_on:"leaderboard_entries_select_column",
@@ -28940,6 +30041,20 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"migration_hashes_hashes_stream_cursor_input",
 			where:"migration_hashes_hashes_bool_exp"
 		},
+		my_blocks:{
+			distinct_on:"my_blocks_select_column",
+			order_by:"my_blocks_order_by",
+			where:"my_blocks_bool_exp"
+		},
+		my_blocks_aggregate:{
+			distinct_on:"my_blocks_select_column",
+			order_by:"my_blocks_order_by",
+			where:"my_blocks_bool_exp"
+		},
+		my_blocks_stream:{
+			cursor:"my_blocks_stream_cursor_input",
+			where:"my_blocks_bool_exp"
+		},
 		my_friends:{
 			distinct_on:"my_friends_select_column",
 			order_by:"my_friends_order_by",
@@ -29078,6 +30193,24 @@ export const AllTypesProps: Record<string,any> = {
 		player_assists_stream:{
 			cursor:"player_assists_stream_cursor_input",
 			where:"player_assists_bool_exp"
+		},
+		player_blocks:{
+			distinct_on:"player_blocks_select_column",
+			order_by:"player_blocks_order_by",
+			where:"player_blocks_bool_exp"
+		},
+		player_blocks_aggregate:{
+			distinct_on:"player_blocks_select_column",
+			order_by:"player_blocks_order_by",
+			where:"player_blocks_bool_exp"
+		},
+		player_blocks_by_pk:{
+			blocked_steam_id:"bigint",
+			blocker_steam_id:"bigint"
+		},
+		player_blocks_stream:{
+			cursor:"player_blocks_stream_cursor_input",
+			where:"player_blocks_bool_exp"
 		},
 		player_career_stats_v:{
 			distinct_on:"player_career_stats_v_select_column",
@@ -29402,6 +30535,23 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"player_steam_match_auth_stream_cursor_input",
 			where:"player_steam_match_auth_bool_exp"
 		},
+		player_terms_acceptances:{
+			distinct_on:"player_terms_acceptances_select_column",
+			order_by:"player_terms_acceptances_order_by",
+			where:"player_terms_acceptances_bool_exp"
+		},
+		player_terms_acceptances_aggregate:{
+			distinct_on:"player_terms_acceptances_select_column",
+			order_by:"player_terms_acceptances_order_by",
+			where:"player_terms_acceptances_bool_exp"
+		},
+		player_terms_acceptances_by_pk:{
+			player_steam_id:"bigint"
+		},
+		player_terms_acceptances_stream:{
+			cursor:"player_terms_acceptances_stream_cursor_input",
+			where:"player_terms_acceptances_bool_exp"
+		},
 		player_unused_utility:{
 			distinct_on:"player_unused_utility_select_column",
 			order_by:"player_unused_utility_order_by",
@@ -29623,6 +30773,40 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"steam_accounts_stream_cursor_input",
 			where:"steam_accounts_bool_exp"
 		},
+		support_request_messages:{
+			distinct_on:"support_request_messages_select_column",
+			order_by:"support_request_messages_order_by",
+			where:"support_request_messages_bool_exp"
+		},
+		support_request_messages_aggregate:{
+			distinct_on:"support_request_messages_select_column",
+			order_by:"support_request_messages_order_by",
+			where:"support_request_messages_bool_exp"
+		},
+		support_request_messages_by_pk:{
+			id:"uuid"
+		},
+		support_request_messages_stream:{
+			cursor:"support_request_messages_stream_cursor_input",
+			where:"support_request_messages_bool_exp"
+		},
+		support_requests:{
+			distinct_on:"support_requests_select_column",
+			order_by:"support_requests_order_by",
+			where:"support_requests_bool_exp"
+		},
+		support_requests_aggregate:{
+			distinct_on:"support_requests_select_column",
+			order_by:"support_requests_order_by",
+			where:"support_requests_bool_exp"
+		},
+		support_requests_by_pk:{
+			id:"uuid"
+		},
+		support_requests_stream:{
+			cursor:"support_requests_stream_cursor_input",
+			where:"support_requests_bool_exp"
+		},
 		system_alerts:{
 			distinct_on:"system_alerts_select_column",
 			order_by:"system_alerts_order_by",
@@ -29639,6 +30823,23 @@ export const AllTypesProps: Record<string,any> = {
 		system_alerts_stream:{
 			cursor:"system_alerts_stream_cursor_input",
 			where:"system_alerts_bool_exp"
+		},
+		team_admin_audit:{
+			distinct_on:"team_admin_audit_select_column",
+			order_by:"team_admin_audit_order_by",
+			where:"team_admin_audit_bool_exp"
+		},
+		team_admin_audit_aggregate:{
+			distinct_on:"team_admin_audit_select_column",
+			order_by:"team_admin_audit_order_by",
+			where:"team_admin_audit_bool_exp"
+		},
+		team_admin_audit_by_pk:{
+			id:"uuid"
+		},
+		team_admin_audit_stream:{
+			cursor:"team_admin_audit_stream_cursor_input",
+			where:"team_admin_audit_bool_exp"
 		},
 		team_invites:{
 			distinct_on:"team_invites_select_column",
@@ -29862,6 +31063,20 @@ export const AllTypesProps: Record<string,any> = {
 		tournament_individual_signups_stream:{
 			cursor:"tournament_individual_signups_stream_cursor_input",
 			where:"tournament_individual_signups_bool_exp"
+		},
+		tournament_leaderboard_entries:{
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
+		},
+		tournament_leaderboard_entries_aggregate:{
+			distinct_on:"tournament_leaderboard_entries_select_column",
+			order_by:"tournament_leaderboard_entries_order_by",
+			where:"tournament_leaderboard_entries_bool_exp"
+		},
+		tournament_leaderboard_entries_stream:{
+			cursor:"tournament_leaderboard_entries_stream_cursor_input",
+			where:"tournament_leaderboard_entries_bool_exp"
 		},
 		tournament_organizer_teams:{
 			distinct_on:"tournament_organizer_teams_select_column",
@@ -30499,6 +31714,23 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"v_tournament_player_stats_stream_cursor_input",
 			where:"v_tournament_player_stats_bool_exp"
 		},
+		verification_application_known_players:{
+			distinct_on:"verification_application_known_players_select_column",
+			order_by:"verification_application_known_players_order_by",
+			where:"verification_application_known_players_bool_exp"
+		},
+		verification_application_known_players_aggregate:{
+			distinct_on:"verification_application_known_players_select_column",
+			order_by:"verification_application_known_players_order_by",
+			where:"verification_application_known_players_bool_exp"
+		},
+		verification_application_known_players_by_pk:{
+			id:"uuid"
+		},
+		verification_application_known_players_stream:{
+			cursor:"verification_application_known_players_stream_cursor_input",
+			where:"verification_application_known_players_bool_exp"
+		},
 		verification_application_messages:{
 			distinct_on:"verification_application_messages_select_column",
 			order_by:"verification_application_messages_order_by",
@@ -30532,7 +31764,308 @@ export const AllTypesProps: Record<string,any> = {
 		verification_applications_stream:{
 			cursor:"verification_applications_stream_cursor_input",
 			where:"verification_applications_bool_exp"
+		},
+		verification_call_tokens:{
+			distinct_on:"verification_call_tokens_select_column",
+			order_by:"verification_call_tokens_order_by",
+			where:"verification_call_tokens_bool_exp"
+		},
+		verification_call_tokens_aggregate:{
+			distinct_on:"verification_call_tokens_select_column",
+			order_by:"verification_call_tokens_order_by",
+			where:"verification_call_tokens_bool_exp"
+		},
+		verification_call_tokens_by_pk:{
+			token:"uuid"
+		},
+		verification_call_tokens_stream:{
+			cursor:"verification_call_tokens_stream_cursor_input",
+			where:"verification_call_tokens_bool_exp"
 		}
+	},
+	support_request_messages_aggregate_bool_exp:{
+		bool_and:"support_request_messages_aggregate_bool_exp_bool_and",
+		bool_or:"support_request_messages_aggregate_bool_exp_bool_or",
+		count:"support_request_messages_aggregate_bool_exp_count"
+	},
+	support_request_messages_aggregate_bool_exp_bool_and:{
+		arguments:"support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_and_arguments_columns",
+		filter:"support_request_messages_bool_exp",
+		predicate:"Boolean_comparison_exp"
+	},
+	support_request_messages_aggregate_bool_exp_bool_or:{
+		arguments:"support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns",
+		filter:"support_request_messages_bool_exp",
+		predicate:"Boolean_comparison_exp"
+	},
+	support_request_messages_aggregate_bool_exp_count:{
+		arguments:"support_request_messages_select_column",
+		filter:"support_request_messages_bool_exp",
+		predicate:"Int_comparison_exp"
+	},
+	support_request_messages_aggregate_fields:{
+		count:{
+			columns:"support_request_messages_select_column"
+		}
+	},
+	support_request_messages_aggregate_order_by:{
+		avg:"support_request_messages_avg_order_by",
+		count:"order_by",
+		max:"support_request_messages_max_order_by",
+		min:"support_request_messages_min_order_by",
+		stddev:"support_request_messages_stddev_order_by",
+		stddev_pop:"support_request_messages_stddev_pop_order_by",
+		stddev_samp:"support_request_messages_stddev_samp_order_by",
+		sum:"support_request_messages_sum_order_by",
+		var_pop:"support_request_messages_var_pop_order_by",
+		var_samp:"support_request_messages_var_samp_order_by",
+		variance:"support_request_messages_variance_order_by"
+	},
+	support_request_messages_arr_rel_insert_input:{
+		data:"support_request_messages_insert_input",
+		on_conflict:"support_request_messages_on_conflict"
+	},
+	support_request_messages_avg_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_bool_exp:{
+		_and:"support_request_messages_bool_exp",
+		_not:"support_request_messages_bool_exp",
+		_or:"support_request_messages_bool_exp",
+		created_at:"timestamptz_comparison_exp",
+		id:"uuid_comparison_exp",
+		is_admin:"Boolean_comparison_exp",
+		message:"String_comparison_exp",
+		request:"support_requests_bool_exp",
+		request_id:"uuid_comparison_exp",
+		sender:"players_bool_exp",
+		sender_steam_id:"bigint_comparison_exp"
+	},
+	support_request_messages_constraint: "enum" as const,
+	support_request_messages_inc_input:{
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_insert_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		request:"support_requests_obj_rel_insert_input",
+		request_id:"uuid",
+		sender:"players_obj_rel_insert_input",
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_max_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		message:"order_by",
+		request_id:"order_by",
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_min_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		message:"order_by",
+		request_id:"order_by",
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_on_conflict:{
+		constraint:"support_request_messages_constraint",
+		update_columns:"support_request_messages_update_column",
+		where:"support_request_messages_bool_exp"
+	},
+	support_request_messages_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		is_admin:"order_by",
+		message:"order_by",
+		request:"support_requests_order_by",
+		request_id:"order_by",
+		sender:"players_order_by",
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_pk_columns_input:{
+		id:"uuid"
+	},
+	support_request_messages_select_column: "enum" as const,
+	support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_and_arguments_columns: "enum" as const,
+	support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns: "enum" as const,
+	support_request_messages_set_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		request_id:"uuid",
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_stddev_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_stddev_pop_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_stddev_samp_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_stream_cursor_input:{
+		initial_value:"support_request_messages_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	support_request_messages_stream_cursor_value_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		request_id:"uuid",
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_sum_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_update_column: "enum" as const,
+	support_request_messages_updates:{
+		_inc:"support_request_messages_inc_input",
+		_set:"support_request_messages_set_input",
+		where:"support_request_messages_bool_exp"
+	},
+	support_request_messages_var_pop_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_var_samp_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_request_messages_variance_order_by:{
+		sender_steam_id:"order_by"
+	},
+	support_requests:{
+		messages:{
+			distinct_on:"support_request_messages_select_column",
+			order_by:"support_request_messages_order_by",
+			where:"support_request_messages_bool_exp"
+		},
+		messages_aggregate:{
+			distinct_on:"support_request_messages_select_column",
+			order_by:"support_request_messages_order_by",
+			where:"support_request_messages_bool_exp"
+		}
+	},
+	support_requests_aggregate_fields:{
+		count:{
+			columns:"support_requests_select_column"
+		}
+	},
+	support_requests_bool_exp:{
+		_and:"support_requests_bool_exp",
+		_not:"support_requests_bool_exp",
+		_or:"support_requests_bool_exp",
+		category:"e_support_request_categories_enum_comparison_exp",
+		closed_at:"timestamptz_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		handled_by:"players_bool_exp",
+		handled_by_steam_id:"bigint_comparison_exp",
+		id:"uuid_comparison_exp",
+		initial_message:"String_comparison_exp",
+		messages:"support_request_messages_bool_exp",
+		messages_aggregate:"support_request_messages_aggregate_bool_exp",
+		organizer_additional_info:"String_comparison_exp",
+		organizer_experience:"String_comparison_exp",
+		organizer_languages:"String_comparison_exp",
+		organizer_motivation:"String_comparison_exp",
+		player:"players_bool_exp",
+		player_steam_id:"bigint_comparison_exp",
+		related_match_reference:"String_comparison_exp",
+		report_details:"String_comparison_exp",
+		report_evidence:"String_comparison_exp",
+		report_reason:"String_comparison_exp",
+		reported_player_profile_url:"String_comparison_exp",
+		reported_player_steam_id:"bigint_comparison_exp",
+		status:"e_support_request_statuses_enum_comparison_exp",
+		subject:"String_comparison_exp",
+		updated_at:"timestamptz_comparison_exp"
+	},
+	support_requests_constraint: "enum" as const,
+	support_requests_inc_input:{
+		handled_by_steam_id:"bigint",
+		player_steam_id:"bigint",
+		reported_player_steam_id:"bigint"
+	},
+	support_requests_insert_input:{
+		category:"e_support_request_categories_enum",
+		closed_at:"timestamptz",
+		created_at:"timestamptz",
+		handled_by:"players_obj_rel_insert_input",
+		handled_by_steam_id:"bigint",
+		id:"uuid",
+		messages:"support_request_messages_arr_rel_insert_input",
+		player:"players_obj_rel_insert_input",
+		player_steam_id:"bigint",
+		reported_player_steam_id:"bigint",
+		status:"e_support_request_statuses_enum",
+		updated_at:"timestamptz"
+	},
+	support_requests_obj_rel_insert_input:{
+		data:"support_requests_insert_input",
+		on_conflict:"support_requests_on_conflict"
+	},
+	support_requests_on_conflict:{
+		constraint:"support_requests_constraint",
+		update_columns:"support_requests_update_column",
+		where:"support_requests_bool_exp"
+	},
+	support_requests_order_by:{
+		category:"order_by",
+		closed_at:"order_by",
+		created_at:"order_by",
+		handled_by:"players_order_by",
+		handled_by_steam_id:"order_by",
+		id:"order_by",
+		initial_message:"order_by",
+		messages_aggregate:"support_request_messages_aggregate_order_by",
+		organizer_additional_info:"order_by",
+		organizer_experience:"order_by",
+		organizer_languages:"order_by",
+		organizer_motivation:"order_by",
+		player:"players_order_by",
+		player_steam_id:"order_by",
+		related_match_reference:"order_by",
+		report_details:"order_by",
+		report_evidence:"order_by",
+		report_reason:"order_by",
+		reported_player_profile_url:"order_by",
+		reported_player_steam_id:"order_by",
+		status:"order_by",
+		subject:"order_by",
+		updated_at:"order_by"
+	},
+	support_requests_pk_columns_input:{
+		id:"uuid"
+	},
+	support_requests_select_column: "enum" as const,
+	support_requests_set_input:{
+		category:"e_support_request_categories_enum",
+		closed_at:"timestamptz",
+		created_at:"timestamptz",
+		handled_by_steam_id:"bigint",
+		id:"uuid",
+		player_steam_id:"bigint",
+		reported_player_steam_id:"bigint",
+		status:"e_support_request_statuses_enum",
+		updated_at:"timestamptz"
+	},
+	support_requests_stream_cursor_input:{
+		initial_value:"support_requests_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	support_requests_stream_cursor_value_input:{
+		category:"e_support_request_categories_enum",
+		closed_at:"timestamptz",
+		created_at:"timestamptz",
+		handled_by_steam_id:"bigint",
+		id:"uuid",
+		player_steam_id:"bigint",
+		reported_player_steam_id:"bigint",
+		status:"e_support_request_statuses_enum",
+		updated_at:"timestamptz"
+	},
+	support_requests_update_column: "enum" as const,
+	support_requests_updates:{
+		_inc:"support_requests_inc_input",
+		_set:"support_requests_set_input",
+		where:"support_requests_bool_exp"
 	},
 	system_alerts_aggregate_fields:{
 		count:{
@@ -30612,6 +32145,83 @@ export const AllTypesProps: Record<string,any> = {
 		_inc:"system_alerts_inc_input",
 		_set:"system_alerts_set_input",
 		where:"system_alerts_bool_exp"
+	},
+	team_admin_audit_aggregate_fields:{
+		count:{
+			columns:"team_admin_audit_select_column"
+		}
+	},
+	team_admin_audit_bool_exp:{
+		_and:"team_admin_audit_bool_exp",
+		_not:"team_admin_audit_bool_exp",
+		_or:"team_admin_audit_bool_exp",
+		action:"String_comparison_exp",
+		actor_role:"String_comparison_exp",
+		actor_steam_id:"bigint_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		id:"uuid_comparison_exp",
+		new_role:"String_comparison_exp",
+		player_steam_id:"bigint_comparison_exp",
+		previous_role:"String_comparison_exp",
+		reason:"String_comparison_exp",
+		team_id:"uuid_comparison_exp"
+	},
+	team_admin_audit_constraint: "enum" as const,
+	team_admin_audit_inc_input:{
+		actor_steam_id:"bigint",
+		player_steam_id:"bigint"
+	},
+	team_admin_audit_insert_input:{
+		actor_steam_id:"bigint",
+		created_at:"timestamptz",
+		id:"uuid",
+		player_steam_id:"bigint",
+		team_id:"uuid"
+	},
+	team_admin_audit_on_conflict:{
+		constraint:"team_admin_audit_constraint",
+		update_columns:"team_admin_audit_update_column",
+		where:"team_admin_audit_bool_exp"
+	},
+	team_admin_audit_order_by:{
+		action:"order_by",
+		actor_role:"order_by",
+		actor_steam_id:"order_by",
+		created_at:"order_by",
+		id:"order_by",
+		new_role:"order_by",
+		player_steam_id:"order_by",
+		previous_role:"order_by",
+		reason:"order_by",
+		team_id:"order_by"
+	},
+	team_admin_audit_pk_columns_input:{
+		id:"uuid"
+	},
+	team_admin_audit_select_column: "enum" as const,
+	team_admin_audit_set_input:{
+		actor_steam_id:"bigint",
+		created_at:"timestamptz",
+		id:"uuid",
+		player_steam_id:"bigint",
+		team_id:"uuid"
+	},
+	team_admin_audit_stream_cursor_input:{
+		initial_value:"team_admin_audit_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	team_admin_audit_stream_cursor_value_input:{
+		actor_steam_id:"bigint",
+		created_at:"timestamptz",
+		id:"uuid",
+		player_steam_id:"bigint",
+		team_id:"uuid"
+	},
+	team_admin_audit_update_column: "enum" as const,
+	team_admin_audit_updates:{
+		_inc:"team_admin_audit_inc_input",
+		_set:"team_admin_audit_set_input",
+		where:"team_admin_audit_bool_exp"
 	},
 	team_invites_aggregate_bool_exp:{
 		count:"team_invites_aggregate_bool_exp_count"
@@ -32583,6 +34193,92 @@ export const AllTypesProps: Record<string,any> = {
 	tournament_individual_signups_variance_order_by:{
 		player_steam_id:"order_by"
 	},
+	tournament_leaderboard_entries_aggregate_fields:{
+		count:{
+			columns:"tournament_leaderboard_entries_select_column"
+		}
+	},
+	tournament_leaderboard_entries_bool_exp:{
+		_and:"tournament_leaderboard_entries_bool_exp",
+		_not:"tournament_leaderboard_entries_bool_exp",
+		_or:"tournament_leaderboard_entries_bool_exp",
+		adr:"float8_comparison_exp",
+		assists:"Int_comparison_exp",
+		deaths:"Int_comparison_exp",
+		headshot_percentage:"float8_comparison_exp",
+		kdr:"float8_comparison_exp",
+		kills:"Int_comparison_exp",
+		matches_played:"Int_comparison_exp",
+		player_avatar_url:"String_comparison_exp",
+		player_country:"String_comparison_exp",
+		player_custom_avatar_url:"String_comparison_exp",
+		player_name:"String_comparison_exp",
+		player_steam_id:"String_comparison_exp",
+		rating:"float8_comparison_exp",
+		rounds_played:"Int_comparison_exp",
+		team_id:"uuid_comparison_exp",
+		team_name:"String_comparison_exp",
+		tournament_team_id:"uuid_comparison_exp"
+	},
+	tournament_leaderboard_entries_inc_input:{
+		adr:"float8",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		rating:"float8"
+	},
+	tournament_leaderboard_entries_insert_input:{
+		adr:"float8",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		rating:"float8",
+		team_id:"uuid",
+		tournament_team_id:"uuid"
+	},
+	tournament_leaderboard_entries_order_by:{
+		adr:"order_by",
+		assists:"order_by",
+		deaths:"order_by",
+		headshot_percentage:"order_by",
+		kdr:"order_by",
+		kills:"order_by",
+		matches_played:"order_by",
+		player_avatar_url:"order_by",
+		player_country:"order_by",
+		player_custom_avatar_url:"order_by",
+		player_name:"order_by",
+		player_steam_id:"order_by",
+		rating:"order_by",
+		rounds_played:"order_by",
+		team_id:"order_by",
+		team_name:"order_by",
+		tournament_team_id:"order_by"
+	},
+	tournament_leaderboard_entries_select_column: "enum" as const,
+	tournament_leaderboard_entries_set_input:{
+		adr:"float8",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		rating:"float8",
+		team_id:"uuid",
+		tournament_team_id:"uuid"
+	},
+	tournament_leaderboard_entries_stream_cursor_input:{
+		initial_value:"tournament_leaderboard_entries_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	tournament_leaderboard_entries_stream_cursor_value_input:{
+		adr:"float8",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		rating:"float8",
+		team_id:"uuid",
+		tournament_team_id:"uuid"
+	},
+	tournament_leaderboard_entries_updates:{
+		_inc:"tournament_leaderboard_entries_inc_input",
+		_set:"tournament_leaderboard_entries_set_input",
+		where:"tournament_leaderboard_entries_bool_exp"
+	},
 	tournament_organizer_teams_aggregate_bool_exp:{
 		count:"tournament_organizer_teams_aggregate_bool_exp_count"
 	},
@@ -34487,6 +36183,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_voice_enabled:"Boolean_comparison_exp",
 		discord_webhook:"String_comparison_exp",
 		e_tournament_status:"e_tournament_status_bool_exp",
+		finished_at:"timestamptz_comparison_exp",
 		has_min_teams:"Boolean_comparison_exp",
 		homepage:"String_comparison_exp",
 		id:"uuid_comparison_exp",
@@ -34545,6 +36242,7 @@ export const AllTypesProps: Record<string,any> = {
 		categories:"tournament_categories_arr_rel_insert_input",
 		created_at:"timestamptz",
 		e_tournament_status:"e_tournament_status_obj_rel_insert_input",
+		finished_at:"timestamptz",
 		id:"uuid",
 		individual_check_in_ends_at:"timestamptz",
 		individual_signups:"tournament_individual_signups_arr_rel_insert_input",
@@ -34577,6 +36275,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_guild_id:"order_by",
 		discord_role_id:"order_by",
 		discord_webhook:"order_by",
+		finished_at:"order_by",
 		homepage:"order_by",
 		id:"order_by",
 		individual_check_in_duration_minutes:"order_by",
@@ -34600,6 +36299,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_guild_id:"order_by",
 		discord_role_id:"order_by",
 		discord_webhook:"order_by",
+		finished_at:"order_by",
 		homepage:"order_by",
 		id:"order_by",
 		individual_check_in_duration_minutes:"order_by",
@@ -34659,6 +36359,7 @@ export const AllTypesProps: Record<string,any> = {
 		discord_voice_enabled:"order_by",
 		discord_webhook:"order_by",
 		e_tournament_status:"e_tournament_status_order_by",
+		finished_at:"order_by",
 		has_min_teams:"order_by",
 		homepage:"order_by",
 		id:"order_by",
@@ -34711,6 +36412,7 @@ export const AllTypesProps: Record<string,any> = {
 	tournaments_select_column_tournaments_aggregate_bool_exp_var_samp_arguments_columns: "enum" as const,
 	tournaments_set_input:{
 		created_at:"timestamptz",
+		finished_at:"timestamptz",
 		id:"uuid",
 		individual_check_in_ends_at:"timestamptz",
 		latitude:"float8",
@@ -34751,6 +36453,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	tournaments_stream_cursor_value_input:{
 		created_at:"timestamptz",
+		finished_at:"timestamptz",
 		id:"uuid",
 		individual_check_in_ends_at:"timestamptz",
 		latitude:"float8",
@@ -38594,6 +40297,136 @@ export const AllTypesProps: Record<string,any> = {
 		matches_played:"order_by",
 		player_steam_id:"order_by"
 	},
+	verification_application_known_players_aggregate_bool_exp:{
+		count:"verification_application_known_players_aggregate_bool_exp_count"
+	},
+	verification_application_known_players_aggregate_bool_exp_count:{
+		arguments:"verification_application_known_players_select_column",
+		filter:"verification_application_known_players_bool_exp",
+		predicate:"Int_comparison_exp"
+	},
+	verification_application_known_players_aggregate_fields:{
+		count:{
+			columns:"verification_application_known_players_select_column"
+		}
+	},
+	verification_application_known_players_aggregate_order_by:{
+		avg:"verification_application_known_players_avg_order_by",
+		count:"order_by",
+		max:"verification_application_known_players_max_order_by",
+		min:"verification_application_known_players_min_order_by",
+		stddev:"verification_application_known_players_stddev_order_by",
+		stddev_pop:"verification_application_known_players_stddev_pop_order_by",
+		stddev_samp:"verification_application_known_players_stddev_samp_order_by",
+		sum:"verification_application_known_players_sum_order_by",
+		var_pop:"verification_application_known_players_var_pop_order_by",
+		var_samp:"verification_application_known_players_var_samp_order_by",
+		variance:"verification_application_known_players_variance_order_by"
+	},
+	verification_application_known_players_arr_rel_insert_input:{
+		data:"verification_application_known_players_insert_input",
+		on_conflict:"verification_application_known_players_on_conflict"
+	},
+	verification_application_known_players_avg_order_by:{
+		sort_order:"order_by"
+	},
+	verification_application_known_players_bool_exp:{
+		_and:"verification_application_known_players_bool_exp",
+		_not:"verification_application_known_players_bool_exp",
+		_or:"verification_application_known_players_bool_exp",
+		application:"verification_applications_bool_exp",
+		created_at:"timestamptz_comparison_exp",
+		id:"uuid_comparison_exp",
+		nickname:"String_comparison_exp",
+		sort_order:"Int_comparison_exp",
+		steam_profile_url:"String_comparison_exp",
+		verification_application_id:"uuid_comparison_exp"
+	},
+	verification_application_known_players_constraint: "enum" as const,
+	verification_application_known_players_inc_input:{
+
+	},
+	verification_application_known_players_insert_input:{
+		application:"verification_applications_obj_rel_insert_input",
+		created_at:"timestamptz",
+		id:"uuid",
+		verification_application_id:"uuid"
+	},
+	verification_application_known_players_max_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		nickname:"order_by",
+		sort_order:"order_by",
+		steam_profile_url:"order_by",
+		verification_application_id:"order_by"
+	},
+	verification_application_known_players_min_order_by:{
+		created_at:"order_by",
+		id:"order_by",
+		nickname:"order_by",
+		sort_order:"order_by",
+		steam_profile_url:"order_by",
+		verification_application_id:"order_by"
+	},
+	verification_application_known_players_on_conflict:{
+		constraint:"verification_application_known_players_constraint",
+		update_columns:"verification_application_known_players_update_column",
+		where:"verification_application_known_players_bool_exp"
+	},
+	verification_application_known_players_order_by:{
+		application:"verification_applications_order_by",
+		created_at:"order_by",
+		id:"order_by",
+		nickname:"order_by",
+		sort_order:"order_by",
+		steam_profile_url:"order_by",
+		verification_application_id:"order_by"
+	},
+	verification_application_known_players_pk_columns_input:{
+		id:"uuid"
+	},
+	verification_application_known_players_select_column: "enum" as const,
+	verification_application_known_players_set_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		verification_application_id:"uuid"
+	},
+	verification_application_known_players_stddev_order_by:{
+		sort_order:"order_by"
+	},
+	verification_application_known_players_stddev_pop_order_by:{
+		sort_order:"order_by"
+	},
+	verification_application_known_players_stddev_samp_order_by:{
+		sort_order:"order_by"
+	},
+	verification_application_known_players_stream_cursor_input:{
+		initial_value:"verification_application_known_players_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	verification_application_known_players_stream_cursor_value_input:{
+		created_at:"timestamptz",
+		id:"uuid",
+		verification_application_id:"uuid"
+	},
+	verification_application_known_players_sum_order_by:{
+		sort_order:"order_by"
+	},
+	verification_application_known_players_update_column: "enum" as const,
+	verification_application_known_players_updates:{
+		_inc:"verification_application_known_players_inc_input",
+		_set:"verification_application_known_players_set_input",
+		where:"verification_application_known_players_bool_exp"
+	},
+	verification_application_known_players_var_pop_order_by:{
+		sort_order:"order_by"
+	},
+	verification_application_known_players_var_samp_order_by:{
+		sort_order:"order_by"
+	},
+	verification_application_known_players_variance_order_by:{
+		sort_order:"order_by"
+	},
 	verification_application_messages_aggregate_bool_exp:{
 		bool_and:"verification_application_messages_aggregate_bool_exp_bool_and",
 		bool_or:"verification_application_messages_aggregate_bool_exp_bool_or",
@@ -38743,6 +40576,16 @@ export const AllTypesProps: Record<string,any> = {
 		sender_steam_id:"order_by"
 	},
 	verification_applications:{
+		known_players:{
+			distinct_on:"verification_application_known_players_select_column",
+			order_by:"verification_application_known_players_order_by",
+			where:"verification_application_known_players_bool_exp"
+		},
+		known_players_aggregate:{
+			distinct_on:"verification_application_known_players_select_column",
+			order_by:"verification_application_known_players_order_by",
+			where:"verification_application_known_players_bool_exp"
+		},
 		messages:{
 			distinct_on:"verification_application_messages_select_column",
 			order_by:"verification_application_messages_order_by",
@@ -38763,13 +40606,17 @@ export const AllTypesProps: Record<string,any> = {
 		_and:"verification_applications_bool_exp",
 		_not:"verification_applications_bool_exp",
 		_or:"verification_applications_bool_exp",
+		account_declaration_accepted_at:"timestamptz_comparison_exp",
 		additional_info:"String_comparison_exp",
 		country:"String_comparison_exp",
 		created_at:"timestamptz_comparison_exp",
+		deaf_player_nickname:"String_comparison_exp",
 		deaf_player_steam_url:"String_comparison_exp",
 		found_via:"String_comparison_exp",
 		id:"uuid_comparison_exp",
 		is_deaf:"String_comparison_exp",
+		known_players:"verification_application_known_players_bool_exp",
+		known_players_aggregate:"verification_application_known_players_aggregate_bool_exp",
 		knows_deaf_player:"Boolean_comparison_exp",
 		messages:"verification_application_messages_bool_exp",
 		messages_aggregate:"verification_application_messages_aggregate_bool_exp",
@@ -38778,6 +40625,9 @@ export const AllTypesProps: Record<string,any> = {
 		reviewed_at:"timestamptz_comparison_exp",
 		reviewed_by:"players_bool_exp",
 		reviewed_by_steam_id:"bigint_comparison_exp",
+		social_facebook_url:"String_comparison_exp",
+		social_instagram_url:"String_comparison_exp",
+		social_vk_url:"String_comparison_exp",
 		status:"String_comparison_exp",
 		updated_at:"timestamptz_comparison_exp"
 	},
@@ -38787,8 +40637,10 @@ export const AllTypesProps: Record<string,any> = {
 		reviewed_by_steam_id:"bigint"
 	},
 	verification_applications_insert_input:{
+		account_declaration_accepted_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
+		known_players:"verification_application_known_players_arr_rel_insert_input",
 		messages:"verification_application_messages_arr_rel_insert_input",
 		player:"players_obj_rel_insert_input",
 		player_steam_id:"bigint",
@@ -38807,13 +40659,16 @@ export const AllTypesProps: Record<string,any> = {
 		where:"verification_applications_bool_exp"
 	},
 	verification_applications_order_by:{
+		account_declaration_accepted_at:"order_by",
 		additional_info:"order_by",
 		country:"order_by",
 		created_at:"order_by",
+		deaf_player_nickname:"order_by",
 		deaf_player_steam_url:"order_by",
 		found_via:"order_by",
 		id:"order_by",
 		is_deaf:"order_by",
+		known_players_aggregate:"verification_application_known_players_aggregate_order_by",
 		knows_deaf_player:"order_by",
 		messages_aggregate:"verification_application_messages_aggregate_order_by",
 		player:"players_order_by",
@@ -38821,6 +40676,9 @@ export const AllTypesProps: Record<string,any> = {
 		reviewed_at:"order_by",
 		reviewed_by:"players_order_by",
 		reviewed_by_steam_id:"order_by",
+		social_facebook_url:"order_by",
+		social_instagram_url:"order_by",
+		social_vk_url:"order_by",
 		status:"order_by",
 		updated_at:"order_by"
 	},
@@ -38829,6 +40687,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	verification_applications_select_column: "enum" as const,
 	verification_applications_set_input:{
+		account_declaration_accepted_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player_steam_id:"bigint",
@@ -38841,6 +40700,7 @@ export const AllTypesProps: Record<string,any> = {
 		ordering:"cursor_ordering"
 	},
 	verification_applications_stream_cursor_value_input:{
+		account_declaration_accepted_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		player_steam_id:"bigint",
@@ -38853,6 +40713,67 @@ export const AllTypesProps: Record<string,any> = {
 		_inc:"verification_applications_inc_input",
 		_set:"verification_applications_set_input",
 		where:"verification_applications_bool_exp"
+	},
+	verification_call_tokens_aggregate_fields:{
+		count:{
+			columns:"verification_call_tokens_select_column"
+		}
+	},
+	verification_call_tokens_bool_exp:{
+		_and:"verification_call_tokens_bool_exp",
+		_not:"verification_call_tokens_bool_exp",
+		_or:"verification_call_tokens_bool_exp",
+		application_id:"uuid_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		steam_id:"bigint_comparison_exp",
+		token:"uuid_comparison_exp"
+	},
+	verification_call_tokens_constraint: "enum" as const,
+	verification_call_tokens_inc_input:{
+		steam_id:"bigint"
+	},
+	verification_call_tokens_insert_input:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	verification_call_tokens_on_conflict:{
+		constraint:"verification_call_tokens_constraint",
+		update_columns:"verification_call_tokens_update_column",
+		where:"verification_call_tokens_bool_exp"
+	},
+	verification_call_tokens_order_by:{
+		application_id:"order_by",
+		created_at:"order_by",
+		steam_id:"order_by",
+		token:"order_by"
+	},
+	verification_call_tokens_pk_columns_input:{
+		token:"uuid"
+	},
+	verification_call_tokens_select_column: "enum" as const,
+	verification_call_tokens_set_input:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	verification_call_tokens_stream_cursor_input:{
+		initial_value:"verification_call_tokens_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	verification_call_tokens_stream_cursor_value_input:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	verification_call_tokens_update_column: "enum" as const,
+	verification_call_tokens_updates:{
+		_inc:"verification_call_tokens_inc_input",
+		_set:"verification_call_tokens_set_input",
+		where:"verification_call_tokens_bool_exp"
 	},
 	ID: `scalar.ID` as const
 }
@@ -39465,6 +41386,12 @@ export const ReturnTypes: Record<string,any> = {
 		stream_url:"String",
 		success:"Boolean"
 	},
+	WebsiteRestrictionStatus:{
+		active:"Boolean",
+		expiresAt:"String",
+		permanent:"Boolean",
+		reason:"String"
+	},
 	_map_pool:{
 		map_id:"uuid",
 		map_pool_id:"uuid"
@@ -39559,6 +41486,77 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	abandoned_matches_variance_fields:{
 		steam_id:"Float"
+	},
+	admin_call_tokens:{
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		target_steam_id:"bigint",
+		token:"uuid"
+	},
+	admin_call_tokens_aggregate:{
+		aggregate:"admin_call_tokens_aggregate_fields",
+		nodes:"admin_call_tokens"
+	},
+	admin_call_tokens_aggregate_fields:{
+		avg:"admin_call_tokens_avg_fields",
+		count:"Int",
+		max:"admin_call_tokens_max_fields",
+		min:"admin_call_tokens_min_fields",
+		stddev:"admin_call_tokens_stddev_fields",
+		stddev_pop:"admin_call_tokens_stddev_pop_fields",
+		stddev_samp:"admin_call_tokens_stddev_samp_fields",
+		sum:"admin_call_tokens_sum_fields",
+		var_pop:"admin_call_tokens_var_pop_fields",
+		var_samp:"admin_call_tokens_var_samp_fields",
+		variance:"admin_call_tokens_variance_fields"
+	},
+	admin_call_tokens_avg_fields:{
+		steam_id:"Float",
+		target_steam_id:"Float"
+	},
+	admin_call_tokens_max_fields:{
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		target_steam_id:"bigint",
+		token:"uuid"
+	},
+	admin_call_tokens_min_fields:{
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		target_steam_id:"bigint",
+		token:"uuid"
+	},
+	admin_call_tokens_mutation_response:{
+		affected_rows:"Int",
+		returning:"admin_call_tokens"
+	},
+	admin_call_tokens_stddev_fields:{
+		steam_id:"Float",
+		target_steam_id:"Float"
+	},
+	admin_call_tokens_stddev_pop_fields:{
+		steam_id:"Float",
+		target_steam_id:"Float"
+	},
+	admin_call_tokens_stddev_samp_fields:{
+		steam_id:"Float",
+		target_steam_id:"Float"
+	},
+	admin_call_tokens_sum_fields:{
+		steam_id:"bigint",
+		target_steam_id:"bigint"
+	},
+	admin_call_tokens_var_pop_fields:{
+		steam_id:"Float",
+		target_steam_id:"Float"
+	},
+	admin_call_tokens_var_samp_fields:{
+		steam_id:"Float",
+		target_steam_id:"Float"
+	},
+	admin_call_tokens_variance_fields:{
+		steam_id:"Float",
+		target_steam_id:"Float"
 	},
 	api_keys:{
 		created_at:"timestamptz",
@@ -39961,6 +41959,92 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	bigint: `scalar.bigint` as const,
 	bytea: `scalar.bytea` as const,
+	chat_message_deletions:{
+		author_steam_id:"bigint",
+		deleted_at:"timestamptz",
+		deleted_by_steam_id:"bigint",
+		id:"uuid",
+		message:"String",
+		message_created_at:"timestamptz",
+		message_id:"String",
+		room_id:"String",
+		room_type:"String"
+	},
+	chat_message_deletions_aggregate:{
+		aggregate:"chat_message_deletions_aggregate_fields",
+		nodes:"chat_message_deletions"
+	},
+	chat_message_deletions_aggregate_fields:{
+		avg:"chat_message_deletions_avg_fields",
+		count:"Int",
+		max:"chat_message_deletions_max_fields",
+		min:"chat_message_deletions_min_fields",
+		stddev:"chat_message_deletions_stddev_fields",
+		stddev_pop:"chat_message_deletions_stddev_pop_fields",
+		stddev_samp:"chat_message_deletions_stddev_samp_fields",
+		sum:"chat_message_deletions_sum_fields",
+		var_pop:"chat_message_deletions_var_pop_fields",
+		var_samp:"chat_message_deletions_var_samp_fields",
+		variance:"chat_message_deletions_variance_fields"
+	},
+	chat_message_deletions_avg_fields:{
+		author_steam_id:"Float",
+		deleted_by_steam_id:"Float"
+	},
+	chat_message_deletions_max_fields:{
+		author_steam_id:"bigint",
+		deleted_at:"timestamptz",
+		deleted_by_steam_id:"bigint",
+		id:"uuid",
+		message:"String",
+		message_created_at:"timestamptz",
+		message_id:"String",
+		room_id:"String",
+		room_type:"String"
+	},
+	chat_message_deletions_min_fields:{
+		author_steam_id:"bigint",
+		deleted_at:"timestamptz",
+		deleted_by_steam_id:"bigint",
+		id:"uuid",
+		message:"String",
+		message_created_at:"timestamptz",
+		message_id:"String",
+		room_id:"String",
+		room_type:"String"
+	},
+	chat_message_deletions_mutation_response:{
+		affected_rows:"Int",
+		returning:"chat_message_deletions"
+	},
+	chat_message_deletions_stddev_fields:{
+		author_steam_id:"Float",
+		deleted_by_steam_id:"Float"
+	},
+	chat_message_deletions_stddev_pop_fields:{
+		author_steam_id:"Float",
+		deleted_by_steam_id:"Float"
+	},
+	chat_message_deletions_stddev_samp_fields:{
+		author_steam_id:"Float",
+		deleted_by_steam_id:"Float"
+	},
+	chat_message_deletions_sum_fields:{
+		author_steam_id:"bigint",
+		deleted_by_steam_id:"bigint"
+	},
+	chat_message_deletions_var_pop_fields:{
+		author_steam_id:"Float",
+		deleted_by_steam_id:"Float"
+	},
+	chat_message_deletions_var_samp_fields:{
+		author_steam_id:"Float",
+		deleted_by_steam_id:"Float"
+	},
+	chat_message_deletions_variance_fields:{
+		author_steam_id:"Float",
+		deleted_by_steam_id:"Float"
+	},
 	clip_render_jobs:{
 		clip:"match_clips",
 		clip_id:"uuid",
@@ -41479,6 +43563,56 @@ export const ReturnTypes: Record<string,any> = {
 		affected_rows:"Int",
 		returning:"e_sides"
 	},
+	e_support_request_categories:{
+		description:"String",
+		value:"String"
+	},
+	e_support_request_categories_aggregate:{
+		aggregate:"e_support_request_categories_aggregate_fields",
+		nodes:"e_support_request_categories"
+	},
+	e_support_request_categories_aggregate_fields:{
+		count:"Int",
+		max:"e_support_request_categories_max_fields",
+		min:"e_support_request_categories_min_fields"
+	},
+	e_support_request_categories_max_fields:{
+		description:"String",
+		value:"String"
+	},
+	e_support_request_categories_min_fields:{
+		description:"String",
+		value:"String"
+	},
+	e_support_request_categories_mutation_response:{
+		affected_rows:"Int",
+		returning:"e_support_request_categories"
+	},
+	e_support_request_statuses:{
+		description:"String",
+		value:"String"
+	},
+	e_support_request_statuses_aggregate:{
+		aggregate:"e_support_request_statuses_aggregate_fields",
+		nodes:"e_support_request_statuses"
+	},
+	e_support_request_statuses_aggregate_fields:{
+		count:"Int",
+		max:"e_support_request_statuses_max_fields",
+		min:"e_support_request_statuses_min_fields"
+	},
+	e_support_request_statuses_max_fields:{
+		description:"String",
+		value:"String"
+	},
+	e_support_request_statuses_min_fields:{
+		description:"String",
+		value:"String"
+	},
+	e_support_request_statuses_mutation_response:{
+		affected_rows:"Int",
+		returning:"e_support_request_statuses"
+	},
 	e_system_alert_types:{
 		description:"String",
 		value:"String"
@@ -42231,6 +44365,113 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	events_variance_fields:{
 		organizer_steam_id:"Float"
+	},
+	external_rank_leaderboard:{
+		faceit_elo:"Int",
+		faceit_last_match_at:"timestamptz",
+		faceit_nickname:"String",
+		faceit_skill_level:"Int",
+		faceit_url:"String",
+		player_avatar_url:"String",
+		player_country:"String",
+		player_custom_avatar_url:"String",
+		player_name:"String",
+		player_steam_id:"bigint",
+		premier_last_match_at:"timestamptz",
+		premier_rank:"Int"
+	},
+	external_rank_leaderboard_aggregate:{
+		aggregate:"external_rank_leaderboard_aggregate_fields",
+		nodes:"external_rank_leaderboard"
+	},
+	external_rank_leaderboard_aggregate_fields:{
+		avg:"external_rank_leaderboard_avg_fields",
+		count:"Int",
+		max:"external_rank_leaderboard_max_fields",
+		min:"external_rank_leaderboard_min_fields",
+		stddev:"external_rank_leaderboard_stddev_fields",
+		stddev_pop:"external_rank_leaderboard_stddev_pop_fields",
+		stddev_samp:"external_rank_leaderboard_stddev_samp_fields",
+		sum:"external_rank_leaderboard_sum_fields",
+		var_pop:"external_rank_leaderboard_var_pop_fields",
+		var_samp:"external_rank_leaderboard_var_samp_fields",
+		variance:"external_rank_leaderboard_variance_fields"
+	},
+	external_rank_leaderboard_avg_fields:{
+		faceit_elo:"Float",
+		faceit_skill_level:"Float",
+		player_steam_id:"Float",
+		premier_rank:"Float"
+	},
+	external_rank_leaderboard_max_fields:{
+		faceit_elo:"Int",
+		faceit_last_match_at:"timestamptz",
+		faceit_nickname:"String",
+		faceit_skill_level:"Int",
+		faceit_url:"String",
+		player_avatar_url:"String",
+		player_country:"String",
+		player_custom_avatar_url:"String",
+		player_name:"String",
+		player_steam_id:"bigint",
+		premier_last_match_at:"timestamptz",
+		premier_rank:"Int"
+	},
+	external_rank_leaderboard_min_fields:{
+		faceit_elo:"Int",
+		faceit_last_match_at:"timestamptz",
+		faceit_nickname:"String",
+		faceit_skill_level:"Int",
+		faceit_url:"String",
+		player_avatar_url:"String",
+		player_country:"String",
+		player_custom_avatar_url:"String",
+		player_name:"String",
+		player_steam_id:"bigint",
+		premier_last_match_at:"timestamptz",
+		premier_rank:"Int"
+	},
+	external_rank_leaderboard_stddev_fields:{
+		faceit_elo:"Float",
+		faceit_skill_level:"Float",
+		player_steam_id:"Float",
+		premier_rank:"Float"
+	},
+	external_rank_leaderboard_stddev_pop_fields:{
+		faceit_elo:"Float",
+		faceit_skill_level:"Float",
+		player_steam_id:"Float",
+		premier_rank:"Float"
+	},
+	external_rank_leaderboard_stddev_samp_fields:{
+		faceit_elo:"Float",
+		faceit_skill_level:"Float",
+		player_steam_id:"Float",
+		premier_rank:"Float"
+	},
+	external_rank_leaderboard_sum_fields:{
+		faceit_elo:"Int",
+		faceit_skill_level:"Int",
+		player_steam_id:"bigint",
+		premier_rank:"Int"
+	},
+	external_rank_leaderboard_var_pop_fields:{
+		faceit_elo:"Float",
+		faceit_skill_level:"Float",
+		player_steam_id:"Float",
+		premier_rank:"Float"
+	},
+	external_rank_leaderboard_var_samp_fields:{
+		faceit_elo:"Float",
+		faceit_skill_level:"Float",
+		player_steam_id:"Float",
+		premier_rank:"Float"
+	},
+	external_rank_leaderboard_variance_fields:{
+		faceit_elo:"Float",
+		faceit_skill_level:"Float",
+		player_steam_id:"Float",
+		premier_rank:"Float"
 	},
 	float8: `scalar.float8` as const,
 	friends:{
@@ -45285,6 +47526,7 @@ export const ReturnTypes: Record<string,any> = {
 		elo_changes_aggregate:"v_player_elo_aggregate",
 		ended_at:"timestamptz",
 		external_id:"String",
+		external_timestamp_source:"String",
 		id:"uuid",
 		invite_code:"String",
 		is_captain:"Boolean",
@@ -45386,6 +47628,7 @@ export const ReturnTypes: Record<string,any> = {
 		effective_at:"timestamptz",
 		ended_at:"timestamptz",
 		external_id:"String",
+		external_timestamp_source:"String",
 		id:"uuid",
 		invite_code:"String",
 		label:"String",
@@ -45421,6 +47664,7 @@ export const ReturnTypes: Record<string,any> = {
 		effective_at:"timestamptz",
 		ended_at:"timestamptz",
 		external_id:"String",
+		external_timestamp_source:"String",
 		id:"uuid",
 		invite_code:"String",
 		label:"String",
@@ -45515,6 +47759,7 @@ export const ReturnTypes: Record<string,any> = {
 		PreviewTournamentMatchReset:"PreviewTournamentMatchResetOutput",
 		ResetTournamentMatch:"SuccessOutput",
 		acceptInvite:"SuccessOutput",
+		acceptTerms:"SuccessOutput",
 		addDraftPlayer:"SuccessOutput",
 		addSteamPresenceBotAccount:"SuccessOutput",
 		addTournamentIndividualPlayer:"AddTournamentIndividualPlayerOutput",
@@ -45564,6 +47809,8 @@ export const ReturnTypes: Record<string,any> = {
 		delete__map_pool_by_pk:"_map_pool",
 		delete_abandoned_matches:"abandoned_matches_mutation_response",
 		delete_abandoned_matches_by_pk:"abandoned_matches",
+		delete_admin_call_tokens:"admin_call_tokens_mutation_response",
+		delete_admin_call_tokens_by_pk:"admin_call_tokens",
 		delete_api_keys:"api_keys_mutation_response",
 		delete_api_keys_by_pk:"api_keys",
 		delete_award_occurrences:"award_occurrences_mutation_response",
@@ -45572,6 +47819,8 @@ export const ReturnTypes: Record<string,any> = {
 		delete_award_recipients_by_pk:"award_recipients",
 		delete_awards:"awards_mutation_response",
 		delete_awards_by_pk:"awards",
+		delete_chat_message_deletions:"chat_message_deletions_mutation_response",
+		delete_chat_message_deletions_by_pk:"chat_message_deletions",
 		delete_clip_render_jobs:"clip_render_jobs_mutation_response",
 		delete_clip_render_jobs_by_pk:"clip_render_jobs",
 		delete_custom_pages:"custom_pages_mutation_response",
@@ -45654,6 +47903,10 @@ export const ReturnTypes: Record<string,any> = {
 		delete_e_server_types_by_pk:"e_server_types",
 		delete_e_sides:"e_sides_mutation_response",
 		delete_e_sides_by_pk:"e_sides",
+		delete_e_support_request_categories:"e_support_request_categories_mutation_response",
+		delete_e_support_request_categories_by_pk:"e_support_request_categories",
+		delete_e_support_request_statuses:"e_support_request_statuses_mutation_response",
+		delete_e_support_request_statuses_by_pk:"e_support_request_statuses",
 		delete_e_system_alert_types:"e_system_alert_types_mutation_response",
 		delete_e_system_alert_types_by_pk:"e_system_alert_types",
 		delete_e_team_roles:"e_team_roles_mutation_response",
@@ -45761,6 +48014,7 @@ export const ReturnTypes: Record<string,any> = {
 		delete_matches_by_pk:"matches",
 		delete_migration_hashes_hashes:"migration_hashes_hashes_mutation_response",
 		delete_migration_hashes_hashes_by_pk:"migration_hashes_hashes",
+		delete_my_blocks:"my_blocks_mutation_response",
 		delete_my_friends:"my_friends_mutation_response",
 		delete_news_articles:"news_articles_mutation_response",
 		delete_news_articles_by_pk:"news_articles",
@@ -45776,6 +48030,8 @@ export const ReturnTypes: Record<string,any> = {
 		delete_player_aim_weapon_stats_by_pk:"player_aim_weapon_stats",
 		delete_player_assists:"player_assists_mutation_response",
 		delete_player_assists_by_pk:"player_assists",
+		delete_player_blocks:"player_blocks_mutation_response",
+		delete_player_blocks_by_pk:"player_blocks",
 		delete_player_damages:"player_damages_mutation_response",
 		delete_player_damages_by_pk:"player_damages",
 		delete_player_elo:"player_elo_mutation_response",
@@ -45805,6 +48061,8 @@ export const ReturnTypes: Record<string,any> = {
 		delete_player_steam_bot_friend_by_pk:"player_steam_bot_friend",
 		delete_player_steam_match_auth:"player_steam_match_auth_mutation_response",
 		delete_player_steam_match_auth_by_pk:"player_steam_match_auth",
+		delete_player_terms_acceptances:"player_terms_acceptances_mutation_response",
+		delete_player_terms_acceptances_by_pk:"player_terms_acceptances",
 		delete_player_unused_utility:"player_unused_utility_mutation_response",
 		delete_player_unused_utility_by_pk:"player_unused_utility",
 		delete_player_utility:"player_utility_mutation_response",
@@ -45829,8 +48087,14 @@ export const ReturnTypes: Record<string,any> = {
 		delete_steam_account_claims_by_pk:"steam_account_claims",
 		delete_steam_accounts:"steam_accounts_mutation_response",
 		delete_steam_accounts_by_pk:"steam_accounts",
+		delete_support_request_messages:"support_request_messages_mutation_response",
+		delete_support_request_messages_by_pk:"support_request_messages",
+		delete_support_requests:"support_requests_mutation_response",
+		delete_support_requests_by_pk:"support_requests",
 		delete_system_alerts:"system_alerts_mutation_response",
 		delete_system_alerts_by_pk:"system_alerts",
+		delete_team_admin_audit:"team_admin_audit_mutation_response",
+		delete_team_admin_audit_by_pk:"team_admin_audit",
 		delete_team_invites:"team_invites_mutation_response",
 		delete_team_invites_by_pk:"team_invites",
 		delete_team_roster:"team_roster_mutation_response",
@@ -45857,6 +48121,7 @@ export const ReturnTypes: Record<string,any> = {
 		delete_tournament_categories_by_pk:"tournament_categories",
 		delete_tournament_individual_signups:"tournament_individual_signups_mutation_response",
 		delete_tournament_individual_signups_by_pk:"tournament_individual_signups",
+		delete_tournament_leaderboard_entries:"tournament_leaderboard_entries_mutation_response",
 		delete_tournament_organizer_teams:"tournament_organizer_teams_mutation_response",
 		delete_tournament_organizer_teams_by_pk:"tournament_organizer_teams",
 		delete_tournament_organizers:"tournament_organizers_mutation_response",
@@ -45883,10 +48148,14 @@ export const ReturnTypes: Record<string,any> = {
 		delete_v_pool_maps:"v_pool_maps_mutation_response",
 		delete_v_team_stage_results:"v_team_stage_results_mutation_response",
 		delete_v_team_stage_results_by_pk:"v_team_stage_results",
+		delete_verification_application_known_players:"verification_application_known_players_mutation_response",
+		delete_verification_application_known_players_by_pk:"verification_application_known_players",
 		delete_verification_application_messages:"verification_application_messages_mutation_response",
 		delete_verification_application_messages_by_pk:"verification_application_messages",
 		delete_verification_applications:"verification_applications_mutation_response",
 		delete_verification_applications_by_pk:"verification_applications",
+		delete_verification_call_tokens:"verification_call_tokens_mutation_response",
+		delete_verification_call_tokens_by_pk:"verification_call_tokens",
 		denyInvite:"SuccessOutput",
 		denyNameChange:"SuccessOutput",
 		forfeitMatch:"SuccessOutput",
@@ -45898,6 +48167,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert__map_pool_one:"_map_pool",
 		insert_abandoned_matches:"abandoned_matches_mutation_response",
 		insert_abandoned_matches_one:"abandoned_matches",
+		insert_admin_call_tokens:"admin_call_tokens_mutation_response",
+		insert_admin_call_tokens_one:"admin_call_tokens",
 		insert_api_keys:"api_keys_mutation_response",
 		insert_api_keys_one:"api_keys",
 		insert_award_occurrences:"award_occurrences_mutation_response",
@@ -45906,6 +48177,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_award_recipients_one:"award_recipients",
 		insert_awards:"awards_mutation_response",
 		insert_awards_one:"awards",
+		insert_chat_message_deletions:"chat_message_deletions_mutation_response",
+		insert_chat_message_deletions_one:"chat_message_deletions",
 		insert_clip_render_jobs:"clip_render_jobs_mutation_response",
 		insert_clip_render_jobs_one:"clip_render_jobs",
 		insert_custom_pages:"custom_pages_mutation_response",
@@ -45988,6 +48261,10 @@ export const ReturnTypes: Record<string,any> = {
 		insert_e_server_types_one:"e_server_types",
 		insert_e_sides:"e_sides_mutation_response",
 		insert_e_sides_one:"e_sides",
+		insert_e_support_request_categories:"e_support_request_categories_mutation_response",
+		insert_e_support_request_categories_one:"e_support_request_categories",
+		insert_e_support_request_statuses:"e_support_request_statuses_mutation_response",
+		insert_e_support_request_statuses_one:"e_support_request_statuses",
 		insert_e_system_alert_types:"e_system_alert_types_mutation_response",
 		insert_e_system_alert_types_one:"e_system_alert_types",
 		insert_e_team_roles:"e_team_roles_mutation_response",
@@ -46096,6 +48373,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_matches_one:"matches",
 		insert_migration_hashes_hashes:"migration_hashes_hashes_mutation_response",
 		insert_migration_hashes_hashes_one:"migration_hashes_hashes",
+		insert_my_blocks:"my_blocks_mutation_response",
+		insert_my_blocks_one:"my_blocks",
 		insert_my_friends:"my_friends_mutation_response",
 		insert_my_friends_one:"my_friends",
 		insert_news_articles:"news_articles_mutation_response",
@@ -46112,6 +48391,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_player_aim_weapon_stats_one:"player_aim_weapon_stats",
 		insert_player_assists:"player_assists_mutation_response",
 		insert_player_assists_one:"player_assists",
+		insert_player_blocks:"player_blocks_mutation_response",
+		insert_player_blocks_one:"player_blocks",
 		insert_player_damages:"player_damages_mutation_response",
 		insert_player_damages_one:"player_damages",
 		insert_player_elo:"player_elo_mutation_response",
@@ -46142,6 +48423,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_player_steam_bot_friend_one:"player_steam_bot_friend",
 		insert_player_steam_match_auth:"player_steam_match_auth_mutation_response",
 		insert_player_steam_match_auth_one:"player_steam_match_auth",
+		insert_player_terms_acceptances:"player_terms_acceptances_mutation_response",
+		insert_player_terms_acceptances_one:"player_terms_acceptances",
 		insert_player_unused_utility:"player_unused_utility_mutation_response",
 		insert_player_unused_utility_one:"player_unused_utility",
 		insert_player_utility:"player_utility_mutation_response",
@@ -46166,8 +48449,14 @@ export const ReturnTypes: Record<string,any> = {
 		insert_steam_account_claims_one:"steam_account_claims",
 		insert_steam_accounts:"steam_accounts_mutation_response",
 		insert_steam_accounts_one:"steam_accounts",
+		insert_support_request_messages:"support_request_messages_mutation_response",
+		insert_support_request_messages_one:"support_request_messages",
+		insert_support_requests:"support_requests_mutation_response",
+		insert_support_requests_one:"support_requests",
 		insert_system_alerts:"system_alerts_mutation_response",
 		insert_system_alerts_one:"system_alerts",
+		insert_team_admin_audit:"team_admin_audit_mutation_response",
+		insert_team_admin_audit_one:"team_admin_audit",
 		insert_team_invites:"team_invites_mutation_response",
 		insert_team_invites_one:"team_invites",
 		insert_team_roster:"team_roster_mutation_response",
@@ -46194,6 +48483,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_tournament_categories_one:"tournament_categories",
 		insert_tournament_individual_signups:"tournament_individual_signups_mutation_response",
 		insert_tournament_individual_signups_one:"tournament_individual_signups",
+		insert_tournament_leaderboard_entries:"tournament_leaderboard_entries_mutation_response",
+		insert_tournament_leaderboard_entries_one:"tournament_leaderboard_entries",
 		insert_tournament_organizer_teams:"tournament_organizer_teams_mutation_response",
 		insert_tournament_organizer_teams_one:"tournament_organizer_teams",
 		insert_tournament_organizers:"tournament_organizers_mutation_response",
@@ -46226,10 +48517,14 @@ export const ReturnTypes: Record<string,any> = {
 		insert_v_pool_maps_one:"v_pool_maps",
 		insert_v_team_stage_results:"v_team_stage_results_mutation_response",
 		insert_v_team_stage_results_one:"v_team_stage_results",
+		insert_verification_application_known_players:"verification_application_known_players_mutation_response",
+		insert_verification_application_known_players_one:"verification_application_known_players",
 		insert_verification_application_messages:"verification_application_messages_mutation_response",
 		insert_verification_application_messages_one:"verification_application_messages",
 		insert_verification_applications:"verification_applications_mutation_response",
 		insert_verification_applications_one:"verification_applications",
+		insert_verification_call_tokens:"verification_call_tokens_mutation_response",
+		insert_verification_call_tokens_one:"verification_call_tokens",
 		joinDraftGame:"SuccessOutput",
 		joinDraftGameAsParty:"SuccessOutput",
 		kickServerPlayer:"KickResult",
@@ -46251,6 +48546,7 @@ export const ReturnTypes: Record<string,any> = {
 		recomputePlayerElo:"RecomputeEloStartedOutput",
 		recomputePlayerEloStatus:"RecomputeEloStatusOutput",
 		reconnectLive:"SuccessOutput",
+		recover_team_admin:"team_roster",
 		refreshAllPlayers:"ReindexStartedOutput",
 		refreshAllPlayersStatus:"ReindexStatusOutput",
 		refreshFaceitRank:"SuccessOutput",
@@ -46329,6 +48625,9 @@ export const ReturnTypes: Record<string,any> = {
 		update_abandoned_matches:"abandoned_matches_mutation_response",
 		update_abandoned_matches_by_pk:"abandoned_matches",
 		update_abandoned_matches_many:"abandoned_matches_mutation_response",
+		update_admin_call_tokens:"admin_call_tokens_mutation_response",
+		update_admin_call_tokens_by_pk:"admin_call_tokens",
+		update_admin_call_tokens_many:"admin_call_tokens_mutation_response",
 		update_api_keys:"api_keys_mutation_response",
 		update_api_keys_by_pk:"api_keys",
 		update_api_keys_many:"api_keys_mutation_response",
@@ -46341,6 +48640,9 @@ export const ReturnTypes: Record<string,any> = {
 		update_awards:"awards_mutation_response",
 		update_awards_by_pk:"awards",
 		update_awards_many:"awards_mutation_response",
+		update_chat_message_deletions:"chat_message_deletions_mutation_response",
+		update_chat_message_deletions_by_pk:"chat_message_deletions",
+		update_chat_message_deletions_many:"chat_message_deletions_mutation_response",
 		update_clip_render_jobs:"clip_render_jobs_mutation_response",
 		update_clip_render_jobs_by_pk:"clip_render_jobs",
 		update_clip_render_jobs_many:"clip_render_jobs_mutation_response",
@@ -46464,6 +48766,12 @@ export const ReturnTypes: Record<string,any> = {
 		update_e_sides:"e_sides_mutation_response",
 		update_e_sides_by_pk:"e_sides",
 		update_e_sides_many:"e_sides_mutation_response",
+		update_e_support_request_categories:"e_support_request_categories_mutation_response",
+		update_e_support_request_categories_by_pk:"e_support_request_categories",
+		update_e_support_request_categories_many:"e_support_request_categories_mutation_response",
+		update_e_support_request_statuses:"e_support_request_statuses_mutation_response",
+		update_e_support_request_statuses_by_pk:"e_support_request_statuses",
+		update_e_support_request_statuses_many:"e_support_request_statuses_mutation_response",
 		update_e_system_alert_types:"e_system_alert_types_mutation_response",
 		update_e_system_alert_types_by_pk:"e_system_alert_types",
 		update_e_system_alert_types_many:"e_system_alert_types_mutation_response",
@@ -46648,6 +48956,9 @@ export const ReturnTypes: Record<string,any> = {
 		update_player_assists:"player_assists_mutation_response",
 		update_player_assists_by_pk:"player_assists",
 		update_player_assists_many:"player_assists_mutation_response",
+		update_player_blocks:"player_blocks_mutation_response",
+		update_player_blocks_by_pk:"player_blocks",
+		update_player_blocks_many:"player_blocks_mutation_response",
 		update_player_damages:"player_damages_mutation_response",
 		update_player_damages_by_pk:"player_damages",
 		update_player_damages_many:"player_damages_mutation_response",
@@ -46692,6 +49003,9 @@ export const ReturnTypes: Record<string,any> = {
 		update_player_steam_match_auth:"player_steam_match_auth_mutation_response",
 		update_player_steam_match_auth_by_pk:"player_steam_match_auth",
 		update_player_steam_match_auth_many:"player_steam_match_auth_mutation_response",
+		update_player_terms_acceptances:"player_terms_acceptances_mutation_response",
+		update_player_terms_acceptances_by_pk:"player_terms_acceptances",
+		update_player_terms_acceptances_many:"player_terms_acceptances_mutation_response",
 		update_player_unused_utility:"player_unused_utility_mutation_response",
 		update_player_unused_utility_by_pk:"player_unused_utility",
 		update_player_unused_utility_many:"player_unused_utility_mutation_response",
@@ -46728,9 +49042,18 @@ export const ReturnTypes: Record<string,any> = {
 		update_steam_accounts:"steam_accounts_mutation_response",
 		update_steam_accounts_by_pk:"steam_accounts",
 		update_steam_accounts_many:"steam_accounts_mutation_response",
+		update_support_request_messages:"support_request_messages_mutation_response",
+		update_support_request_messages_by_pk:"support_request_messages",
+		update_support_request_messages_many:"support_request_messages_mutation_response",
+		update_support_requests:"support_requests_mutation_response",
+		update_support_requests_by_pk:"support_requests",
+		update_support_requests_many:"support_requests_mutation_response",
 		update_system_alerts:"system_alerts_mutation_response",
 		update_system_alerts_by_pk:"system_alerts",
 		update_system_alerts_many:"system_alerts_mutation_response",
+		update_team_admin_audit:"team_admin_audit_mutation_response",
+		update_team_admin_audit_by_pk:"team_admin_audit",
+		update_team_admin_audit_many:"team_admin_audit_mutation_response",
 		update_team_invites:"team_invites_mutation_response",
 		update_team_invites_by_pk:"team_invites",
 		update_team_invites_many:"team_invites_mutation_response",
@@ -46770,6 +49093,8 @@ export const ReturnTypes: Record<string,any> = {
 		update_tournament_individual_signups:"tournament_individual_signups_mutation_response",
 		update_tournament_individual_signups_by_pk:"tournament_individual_signups",
 		update_tournament_individual_signups_many:"tournament_individual_signups_mutation_response",
+		update_tournament_leaderboard_entries:"tournament_leaderboard_entries_mutation_response",
+		update_tournament_leaderboard_entries_many:"tournament_leaderboard_entries_mutation_response",
 		update_tournament_organizer_teams:"tournament_organizer_teams_mutation_response",
 		update_tournament_organizer_teams_by_pk:"tournament_organizer_teams",
 		update_tournament_organizer_teams_many:"tournament_organizer_teams_mutation_response",
@@ -46810,15 +49135,113 @@ export const ReturnTypes: Record<string,any> = {
 		update_v_team_stage_results:"v_team_stage_results_mutation_response",
 		update_v_team_stage_results_by_pk:"v_team_stage_results",
 		update_v_team_stage_results_many:"v_team_stage_results_mutation_response",
+		update_verification_application_known_players:"verification_application_known_players_mutation_response",
+		update_verification_application_known_players_by_pk:"verification_application_known_players",
+		update_verification_application_known_players_many:"verification_application_known_players_mutation_response",
 		update_verification_application_messages:"verification_application_messages_mutation_response",
 		update_verification_application_messages_by_pk:"verification_application_messages",
 		update_verification_application_messages_many:"verification_application_messages_mutation_response",
 		update_verification_applications:"verification_applications_mutation_response",
 		update_verification_applications_by_pk:"verification_applications",
 		update_verification_applications_many:"verification_applications_mutation_response",
+		update_verification_call_tokens:"verification_call_tokens_mutation_response",
+		update_verification_call_tokens_by_pk:"verification_call_tokens",
+		update_verification_call_tokens_many:"verification_call_tokens_mutation_response",
 		validateGamedata:"SuccessOutput",
 		watchDemo:"WatchDemoOutput",
 		writeServerFile:"SuccessOutput"
+	},
+	my_blocks:{
+		avatar_url:"String",
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz",
+		custom_avatar_url:"String",
+		name:"String",
+		player:"players",
+		profile_url:"String",
+		steam_id:"bigint"
+	},
+	my_blocks_aggregate:{
+		aggregate:"my_blocks_aggregate_fields",
+		nodes:"my_blocks"
+	},
+	my_blocks_aggregate_fields:{
+		avg:"my_blocks_avg_fields",
+		count:"Int",
+		max:"my_blocks_max_fields",
+		min:"my_blocks_min_fields",
+		stddev:"my_blocks_stddev_fields",
+		stddev_pop:"my_blocks_stddev_pop_fields",
+		stddev_samp:"my_blocks_stddev_samp_fields",
+		sum:"my_blocks_sum_fields",
+		var_pop:"my_blocks_var_pop_fields",
+		var_samp:"my_blocks_var_samp_fields",
+		variance:"my_blocks_variance_fields"
+	},
+	my_blocks_avg_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float",
+		steam_id:"Float"
+	},
+	my_blocks_max_fields:{
+		avatar_url:"String",
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz",
+		custom_avatar_url:"String",
+		name:"String",
+		profile_url:"String",
+		steam_id:"bigint"
+	},
+	my_blocks_min_fields:{
+		avatar_url:"String",
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz",
+		custom_avatar_url:"String",
+		name:"String",
+		profile_url:"String",
+		steam_id:"bigint"
+	},
+	my_blocks_mutation_response:{
+		affected_rows:"Int",
+		returning:"my_blocks"
+	},
+	my_blocks_stddev_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float",
+		steam_id:"Float"
+	},
+	my_blocks_stddev_pop_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float",
+		steam_id:"Float"
+	},
+	my_blocks_stddev_samp_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float",
+		steam_id:"Float"
+	},
+	my_blocks_sum_fields:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		steam_id:"bigint"
+	},
+	my_blocks_var_pop_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float",
+		steam_id:"Float"
+	},
+	my_blocks_var_samp_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float",
+		steam_id:"Float"
+	},
+	my_blocks_variance_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float",
+		steam_id:"Float"
 	},
 	my_friends:{
 		avatar_url:"String",
@@ -47307,6 +49730,7 @@ export const ReturnTypes: Record<string,any> = {
 		error:"String",
 		map_name:"String",
 		match_start_time:"timestamptz",
+		match_timestamp_source:"String",
 		players:"pending_match_import_players",
 		players_aggregate:"pending_match_import_players_aggregate",
 		share_code:"String",
@@ -47340,6 +49764,7 @@ export const ReturnTypes: Record<string,any> = {
 		error:"String",
 		map_name:"String",
 		match_start_time:"timestamptz",
+		match_timestamp_source:"String",
 		share_code:"String",
 		status:"String",
 		updated_at:"timestamptz",
@@ -47351,6 +49776,7 @@ export const ReturnTypes: Record<string,any> = {
 		error:"String",
 		map_name:"String",
 		match_start_time:"timestamptz",
+		match_timestamp_source:"String",
 		share_code:"String",
 		status:"String",
 		updated_at:"timestamptz",
@@ -47862,6 +50288,74 @@ export const ReturnTypes: Record<string,any> = {
 		attacked_steam_id:"Float",
 		attacker_steam_id:"Float",
 		round:"Float"
+	},
+	player_blocks:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz"
+	},
+	player_blocks_aggregate:{
+		aggregate:"player_blocks_aggregate_fields",
+		nodes:"player_blocks"
+	},
+	player_blocks_aggregate_fields:{
+		avg:"player_blocks_avg_fields",
+		count:"Int",
+		max:"player_blocks_max_fields",
+		min:"player_blocks_min_fields",
+		stddev:"player_blocks_stddev_fields",
+		stddev_pop:"player_blocks_stddev_pop_fields",
+		stddev_samp:"player_blocks_stddev_samp_fields",
+		sum:"player_blocks_sum_fields",
+		var_pop:"player_blocks_var_pop_fields",
+		var_samp:"player_blocks_var_samp_fields",
+		variance:"player_blocks_variance_fields"
+	},
+	player_blocks_avg_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float"
+	},
+	player_blocks_max_fields:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz"
+	},
+	player_blocks_min_fields:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint",
+		created_at:"timestamptz"
+	},
+	player_blocks_mutation_response:{
+		affected_rows:"Int",
+		returning:"player_blocks"
+	},
+	player_blocks_stddev_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float"
+	},
+	player_blocks_stddev_pop_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float"
+	},
+	player_blocks_stddev_samp_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float"
+	},
+	player_blocks_sum_fields:{
+		blocked_steam_id:"bigint",
+		blocker_steam_id:"bigint"
+	},
+	player_blocks_var_pop_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float"
+	},
+	player_blocks_var_samp_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float"
+	},
+	player_blocks_variance_fields:{
+		blocked_steam_id:"Float",
+		blocker_steam_id:"Float"
 	},
 	player_career_stats_v:{
 		accuracy:"numeric",
@@ -51300,11 +53794,14 @@ export const ReturnTypes: Record<string,any> = {
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
 		e_sanction_type:"e_sanction_types",
+		evidence_message_id:"String",
 		id:"uuid",
 		player:"players",
 		player_steam_id:"bigint",
 		reason:"String",
 		remove_sanction_date:"timestamptz",
+		revoked_by:"players",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by:"players",
 		sanctioned_by_steam_id:"bigint",
 		type:"e_sanction_types_enum"
@@ -51328,24 +53825,29 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	player_sanctions_avg_fields:{
 		player_steam_id:"Float",
+		revoked_by_steam_id:"Float",
 		sanctioned_by_steam_id:"Float"
 	},
 	player_sanctions_max_fields:{
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
+		evidence_message_id:"String",
 		id:"uuid",
 		player_steam_id:"bigint",
 		reason:"String",
 		remove_sanction_date:"timestamptz",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by_steam_id:"bigint"
 	},
 	player_sanctions_min_fields:{
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
+		evidence_message_id:"String",
 		id:"uuid",
 		player_steam_id:"bigint",
 		reason:"String",
 		remove_sanction_date:"timestamptz",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by_steam_id:"bigint"
 	},
 	player_sanctions_mutation_response:{
@@ -51354,30 +53856,37 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	player_sanctions_stddev_fields:{
 		player_steam_id:"Float",
+		revoked_by_steam_id:"Float",
 		sanctioned_by_steam_id:"Float"
 	},
 	player_sanctions_stddev_pop_fields:{
 		player_steam_id:"Float",
+		revoked_by_steam_id:"Float",
 		sanctioned_by_steam_id:"Float"
 	},
 	player_sanctions_stddev_samp_fields:{
 		player_steam_id:"Float",
+		revoked_by_steam_id:"Float",
 		sanctioned_by_steam_id:"Float"
 	},
 	player_sanctions_sum_fields:{
 		player_steam_id:"bigint",
+		revoked_by_steam_id:"bigint",
 		sanctioned_by_steam_id:"bigint"
 	},
 	player_sanctions_var_pop_fields:{
 		player_steam_id:"Float",
+		revoked_by_steam_id:"Float",
 		sanctioned_by_steam_id:"Float"
 	},
 	player_sanctions_var_samp_fields:{
 		player_steam_id:"Float",
+		revoked_by_steam_id:"Float",
 		sanctioned_by_steam_id:"Float"
 	},
 	player_sanctions_variance_fields:{
 		player_steam_id:"Float",
+		revoked_by_steam_id:"Float",
 		sanctioned_by_steam_id:"Float"
 	},
 	player_season_stats:{
@@ -51759,6 +54268,67 @@ export const ReturnTypes: Record<string,any> = {
 	player_steam_match_auth_variance_fields:{
 		steam_id:"Float"
 	},
+	player_terms_acceptances:{
+		accepted_at:"timestamptz",
+		player:"players",
+		player_steam_id:"bigint",
+		terms_version:"String"
+	},
+	player_terms_acceptances_aggregate:{
+		aggregate:"player_terms_acceptances_aggregate_fields",
+		nodes:"player_terms_acceptances"
+	},
+	player_terms_acceptances_aggregate_fields:{
+		avg:"player_terms_acceptances_avg_fields",
+		count:"Int",
+		max:"player_terms_acceptances_max_fields",
+		min:"player_terms_acceptances_min_fields",
+		stddev:"player_terms_acceptances_stddev_fields",
+		stddev_pop:"player_terms_acceptances_stddev_pop_fields",
+		stddev_samp:"player_terms_acceptances_stddev_samp_fields",
+		sum:"player_terms_acceptances_sum_fields",
+		var_pop:"player_terms_acceptances_var_pop_fields",
+		var_samp:"player_terms_acceptances_var_samp_fields",
+		variance:"player_terms_acceptances_variance_fields"
+	},
+	player_terms_acceptances_avg_fields:{
+		player_steam_id:"Float"
+	},
+	player_terms_acceptances_max_fields:{
+		accepted_at:"timestamptz",
+		player_steam_id:"bigint",
+		terms_version:"String"
+	},
+	player_terms_acceptances_min_fields:{
+		accepted_at:"timestamptz",
+		player_steam_id:"bigint",
+		terms_version:"String"
+	},
+	player_terms_acceptances_mutation_response:{
+		affected_rows:"Int",
+		returning:"player_terms_acceptances"
+	},
+	player_terms_acceptances_stddev_fields:{
+		player_steam_id:"Float"
+	},
+	player_terms_acceptances_stddev_pop_fields:{
+		player_steam_id:"Float"
+	},
+	player_terms_acceptances_stddev_samp_fields:{
+		player_steam_id:"Float"
+	},
+	player_terms_acceptances_sum_fields:{
+		player_steam_id:"bigint"
+	},
+	player_terms_acceptances_var_pop_fields:{
+		player_steam_id:"Float"
+	},
+	player_terms_acceptances_var_samp_fields:{
+		player_steam_id:"Float"
+	},
+	player_terms_acceptances_variance_fields:{
+		player_steam_id:"Float"
+	},
 	player_unused_utility:{
 		deleted_at:"timestamptz",
 		match:"matches",
@@ -52084,10 +54654,12 @@ export const ReturnTypes: Record<string,any> = {
 		elo_history:"v_player_elo",
 		elo_history_aggregate:"v_player_elo_aggregate",
 		faceit_elo:"Int",
+		faceit_last_match_at:"timestamptz",
 		faceit_nickname:"String",
 		faceit_player_id:"String",
 		faceit_rank_history:"player_faceit_rank_history",
 		faceit_rank_history_aggregate:"player_faceit_rank_history_aggregate",
+		faceit_refresh_attempted_at:"timestamptz",
 		faceit_skill_level:"Int",
 		faceit_synced_at:"timestamptz",
 		faceit_updated_at:"timestamptz",
@@ -52099,6 +54671,7 @@ export const ReturnTypes: Record<string,any> = {
 		friends:"my_friends",
 		friends_aggregate:"my_friends_aggregate",
 		game_ban_count:"Int",
+		has_accepted_current_terms:"Boolean",
 		invited_players:"team_invites",
 		invited_players_aggregate:"team_invites_aggregate",
 		is_admin_sanctioned:"Boolean",
@@ -52235,8 +54808,10 @@ export const ReturnTypes: Record<string,any> = {
 		days_since_last_ban:"Int",
 		discord_id:"String",
 		faceit_elo:"Int",
+		faceit_last_match_at:"timestamptz",
 		faceit_nickname:"String",
 		faceit_player_id:"String",
+		faceit_refresh_attempted_at:"timestamptz",
 		faceit_skill_level:"Int",
 		faceit_synced_at:"timestamptz",
 		faceit_updated_at:"timestamptz",
@@ -52276,8 +54851,10 @@ export const ReturnTypes: Record<string,any> = {
 		days_since_last_ban:"Int",
 		discord_id:"String",
 		faceit_elo:"Int",
+		faceit_last_match_at:"timestamptz",
 		faceit_nickname:"String",
 		faceit_player_id:"String",
+		faceit_refresh_attempted_at:"timestamptz",
 		faceit_skill_level:"Int",
 		faceit_synced_at:"timestamptz",
 		faceit_updated_at:"timestamptz",
@@ -52648,6 +55225,9 @@ export const ReturnTypes: Record<string,any> = {
 		abandoned_matches:"abandoned_matches",
 		abandoned_matches_aggregate:"abandoned_matches_aggregate",
 		abandoned_matches_by_pk:"abandoned_matches",
+		admin_call_tokens:"admin_call_tokens",
+		admin_call_tokens_aggregate:"admin_call_tokens_aggregate",
+		admin_call_tokens_by_pk:"admin_call_tokens",
 		api_keys:"api_keys",
 		api_keys_aggregate:"api_keys_aggregate",
 		api_keys_by_pk:"api_keys",
@@ -52660,6 +55240,9 @@ export const ReturnTypes: Record<string,any> = {
 		awards:"awards",
 		awards_aggregate:"awards_aggregate",
 		awards_by_pk:"awards",
+		chat_message_deletions:"chat_message_deletions",
+		chat_message_deletions_aggregate:"chat_message_deletions_aggregate",
+		chat_message_deletions_by_pk:"chat_message_deletions",
 		clip_render_jobs:"clip_render_jobs",
 		clip_render_jobs_aggregate:"clip_render_jobs_aggregate",
 		clip_render_jobs_by_pk:"clip_render_jobs",
@@ -52784,6 +55367,12 @@ export const ReturnTypes: Record<string,any> = {
 		e_sides:"e_sides",
 		e_sides_aggregate:"e_sides_aggregate",
 		e_sides_by_pk:"e_sides",
+		e_support_request_categories:"e_support_request_categories",
+		e_support_request_categories_aggregate:"e_support_request_categories_aggregate",
+		e_support_request_categories_by_pk:"e_support_request_categories",
+		e_support_request_statuses:"e_support_request_statuses",
+		e_support_request_statuses_aggregate:"e_support_request_statuses_aggregate",
+		e_support_request_statuses_by_pk:"e_support_request_statuses",
 		e_system_alert_types:"e_system_alert_types",
 		e_system_alert_types_aggregate:"e_system_alert_types_aggregate",
 		e_system_alert_types_by_pk:"e_system_alert_types",
@@ -52841,6 +55430,8 @@ export const ReturnTypes: Record<string,any> = {
 		events:"events",
 		events_aggregate:"events_aggregate",
 		events_by_pk:"events",
+		external_rank_leaderboard:"external_rank_leaderboard",
+		external_rank_leaderboard_aggregate:"external_rank_leaderboard_aggregate",
 		friends:"friends",
 		friends_aggregate:"friends_aggregate",
 		friends_by_pk:"friends",
@@ -52881,6 +55472,8 @@ export const ReturnTypes: Record<string,any> = {
 		get_league_season_leaderboard_aggregate:"leaderboard_entries_aggregate",
 		get_player_leaderboard_rank:"player_leaderboard_rank",
 		get_player_leaderboard_rank_aggregate:"player_leaderboard_rank_aggregate",
+		get_tournament_leaderboard:"tournament_leaderboard_entries",
+		get_tournament_leaderboard_aggregate:"tournament_leaderboard_entries_aggregate",
 		leaderboard_entries:"leaderboard_entries",
 		leaderboard_entries_aggregate:"leaderboard_entries_aggregate",
 		league_divisions:"league_divisions",
@@ -52975,6 +55568,8 @@ export const ReturnTypes: Record<string,any> = {
 		migration_hashes_hashes:"migration_hashes_hashes",
 		migration_hashes_hashes_aggregate:"migration_hashes_hashes_aggregate",
 		migration_hashes_hashes_by_pk:"migration_hashes_hashes",
+		my_blocks:"my_blocks",
+		my_blocks_aggregate:"my_blocks_aggregate",
 		my_friends:"my_friends",
 		my_friends_aggregate:"my_friends_aggregate",
 		newsPostAdmin:"NewsPost",
@@ -53000,6 +55595,9 @@ export const ReturnTypes: Record<string,any> = {
 		player_assists:"player_assists",
 		player_assists_aggregate:"player_assists_aggregate",
 		player_assists_by_pk:"player_assists",
+		player_blocks:"player_blocks",
+		player_blocks_aggregate:"player_blocks_aggregate",
+		player_blocks_by_pk:"player_blocks",
 		player_career_stats_v:"player_career_stats_v",
 		player_career_stats_v_aggregate:"player_career_stats_v_aggregate",
 		player_damages:"player_damages",
@@ -53052,6 +55650,9 @@ export const ReturnTypes: Record<string,any> = {
 		player_steam_match_auth:"player_steam_match_auth",
 		player_steam_match_auth_aggregate:"player_steam_match_auth_aggregate",
 		player_steam_match_auth_by_pk:"player_steam_match_auth",
+		player_terms_acceptances:"player_terms_acceptances",
+		player_terms_acceptances_aggregate:"player_terms_acceptances_aggregate",
+		player_terms_acceptances_by_pk:"player_terms_acceptances",
 		player_unused_utility:"player_unused_utility",
 		player_unused_utility_aggregate:"player_unused_utility_aggregate",
 		player_unused_utility_by_pk:"player_unused_utility",
@@ -53092,10 +55693,19 @@ export const ReturnTypes: Record<string,any> = {
 		steam_accounts:"steam_accounts",
 		steam_accounts_aggregate:"steam_accounts_aggregate",
 		steam_accounts_by_pk:"steam_accounts",
+		support_request_messages:"support_request_messages",
+		support_request_messages_aggregate:"support_request_messages_aggregate",
+		support_request_messages_by_pk:"support_request_messages",
+		support_requests:"support_requests",
+		support_requests_aggregate:"support_requests_aggregate",
+		support_requests_by_pk:"support_requests",
 		system_alerts:"system_alerts",
 		system_alerts_aggregate:"system_alerts_aggregate",
 		system_alerts_by_pk:"system_alerts",
 		teamCalendarUrl:"TeamCalendarOutput",
+		team_admin_audit:"team_admin_audit",
+		team_admin_audit_aggregate:"team_admin_audit_aggregate",
+		team_admin_audit_by_pk:"team_admin_audit",
 		team_invites:"team_invites",
 		team_invites_aggregate:"team_invites_aggregate",
 		team_invites_by_pk:"team_invites",
@@ -53136,6 +55746,8 @@ export const ReturnTypes: Record<string,any> = {
 		tournament_individual_signups:"tournament_individual_signups",
 		tournament_individual_signups_aggregate:"tournament_individual_signups_aggregate",
 		tournament_individual_signups_by_pk:"tournament_individual_signups",
+		tournament_leaderboard_entries:"tournament_leaderboard_entries",
+		tournament_leaderboard_entries_aggregate:"tournament_leaderboard_entries_aggregate",
 		tournament_organizer_teams:"tournament_organizer_teams",
 		tournament_organizer_teams_aggregate:"tournament_organizer_teams_aggregate",
 		tournament_organizer_teams_by_pk:"tournament_organizer_teams",
@@ -53232,12 +55844,19 @@ export const ReturnTypes: Record<string,any> = {
 		v_team_tournament_results_aggregate:"v_team_tournament_results_aggregate",
 		v_tournament_player_stats:"v_tournament_player_stats",
 		v_tournament_player_stats_aggregate:"v_tournament_player_stats_aggregate",
+		verification_application_known_players:"verification_application_known_players",
+		verification_application_known_players_aggregate:"verification_application_known_players_aggregate",
+		verification_application_known_players_by_pk:"verification_application_known_players",
 		verification_application_messages:"verification_application_messages",
 		verification_application_messages_aggregate:"verification_application_messages_aggregate",
 		verification_application_messages_by_pk:"verification_application_messages",
 		verification_applications:"verification_applications",
 		verification_applications_aggregate:"verification_applications_aggregate",
-		verification_applications_by_pk:"verification_applications"
+		verification_applications_by_pk:"verification_applications",
+		verification_call_tokens:"verification_call_tokens",
+		verification_call_tokens_aggregate:"verification_call_tokens_aggregate",
+		verification_call_tokens_by_pk:"verification_call_tokens",
+		websiteRestrictionStatus:"WebsiteRestrictionStatus"
 	},
 	seasons:{
 		created_at:"timestamptz",
@@ -53703,6 +56322,10 @@ export const ReturnTypes: Record<string,any> = {
 		abandoned_matches_aggregate:"abandoned_matches_aggregate",
 		abandoned_matches_by_pk:"abandoned_matches",
 		abandoned_matches_stream:"abandoned_matches",
+		admin_call_tokens:"admin_call_tokens",
+		admin_call_tokens_aggregate:"admin_call_tokens_aggregate",
+		admin_call_tokens_by_pk:"admin_call_tokens",
+		admin_call_tokens_stream:"admin_call_tokens",
 		api_keys:"api_keys",
 		api_keys_aggregate:"api_keys_aggregate",
 		api_keys_by_pk:"api_keys",
@@ -53719,6 +56342,10 @@ export const ReturnTypes: Record<string,any> = {
 		awards_aggregate:"awards_aggregate",
 		awards_by_pk:"awards",
 		awards_stream:"awards",
+		chat_message_deletions:"chat_message_deletions",
+		chat_message_deletions_aggregate:"chat_message_deletions_aggregate",
+		chat_message_deletions_by_pk:"chat_message_deletions",
+		chat_message_deletions_stream:"chat_message_deletions",
 		clip_render_jobs:"clip_render_jobs",
 		clip_render_jobs_aggregate:"clip_render_jobs_aggregate",
 		clip_render_jobs_by_pk:"clip_render_jobs",
@@ -53883,6 +56510,14 @@ export const ReturnTypes: Record<string,any> = {
 		e_sides_aggregate:"e_sides_aggregate",
 		e_sides_by_pk:"e_sides",
 		e_sides_stream:"e_sides",
+		e_support_request_categories:"e_support_request_categories",
+		e_support_request_categories_aggregate:"e_support_request_categories_aggregate",
+		e_support_request_categories_by_pk:"e_support_request_categories",
+		e_support_request_categories_stream:"e_support_request_categories",
+		e_support_request_statuses:"e_support_request_statuses",
+		e_support_request_statuses_aggregate:"e_support_request_statuses_aggregate",
+		e_support_request_statuses_by_pk:"e_support_request_statuses",
+		e_support_request_statuses_stream:"e_support_request_statuses",
 		e_system_alert_types:"e_system_alert_types",
 		e_system_alert_types_aggregate:"e_system_alert_types_aggregate",
 		e_system_alert_types_by_pk:"e_system_alert_types",
@@ -53959,6 +56594,9 @@ export const ReturnTypes: Record<string,any> = {
 		events_aggregate:"events_aggregate",
 		events_by_pk:"events",
 		events_stream:"events",
+		external_rank_leaderboard:"external_rank_leaderboard",
+		external_rank_leaderboard_aggregate:"external_rank_leaderboard_aggregate",
+		external_rank_leaderboard_stream:"external_rank_leaderboard",
 		friends:"friends",
 		friends_aggregate:"friends_aggregate",
 		friends_by_pk:"friends",
@@ -53983,6 +56621,8 @@ export const ReturnTypes: Record<string,any> = {
 		get_league_season_leaderboard_aggregate:"leaderboard_entries_aggregate",
 		get_player_leaderboard_rank:"player_leaderboard_rank",
 		get_player_leaderboard_rank_aggregate:"player_leaderboard_rank_aggregate",
+		get_tournament_leaderboard:"tournament_leaderboard_entries",
+		get_tournament_leaderboard_aggregate:"tournament_leaderboard_entries_aggregate",
 		leaderboard_entries:"leaderboard_entries",
 		leaderboard_entries_aggregate:"leaderboard_entries_aggregate",
 		leaderboard_entries_stream:"leaderboard_entries",
@@ -54106,6 +56746,9 @@ export const ReturnTypes: Record<string,any> = {
 		migration_hashes_hashes_aggregate:"migration_hashes_hashes_aggregate",
 		migration_hashes_hashes_by_pk:"migration_hashes_hashes",
 		migration_hashes_hashes_stream:"migration_hashes_hashes",
+		my_blocks:"my_blocks",
+		my_blocks_aggregate:"my_blocks_aggregate",
+		my_blocks_stream:"my_blocks",
 		my_friends:"my_friends",
 		my_friends_aggregate:"my_friends_aggregate",
 		my_friends_stream:"my_friends",
@@ -54137,6 +56780,10 @@ export const ReturnTypes: Record<string,any> = {
 		player_assists_aggregate:"player_assists_aggregate",
 		player_assists_by_pk:"player_assists",
 		player_assists_stream:"player_assists",
+		player_blocks:"player_blocks",
+		player_blocks_aggregate:"player_blocks_aggregate",
+		player_blocks_by_pk:"player_blocks",
+		player_blocks_stream:"player_blocks",
 		player_career_stats_v:"player_career_stats_v",
 		player_career_stats_v_aggregate:"player_career_stats_v_aggregate",
 		player_career_stats_v_stream:"player_career_stats_v",
@@ -54208,6 +56855,10 @@ export const ReturnTypes: Record<string,any> = {
 		player_steam_match_auth_aggregate:"player_steam_match_auth_aggregate",
 		player_steam_match_auth_by_pk:"player_steam_match_auth",
 		player_steam_match_auth_stream:"player_steam_match_auth",
+		player_terms_acceptances:"player_terms_acceptances",
+		player_terms_acceptances_aggregate:"player_terms_acceptances_aggregate",
+		player_terms_acceptances_by_pk:"player_terms_acceptances",
+		player_terms_acceptances_stream:"player_terms_acceptances",
 		player_unused_utility:"player_unused_utility",
 		player_unused_utility_aggregate:"player_unused_utility_aggregate",
 		player_unused_utility_by_pk:"player_unused_utility",
@@ -54259,10 +56910,22 @@ export const ReturnTypes: Record<string,any> = {
 		steam_accounts_aggregate:"steam_accounts_aggregate",
 		steam_accounts_by_pk:"steam_accounts",
 		steam_accounts_stream:"steam_accounts",
+		support_request_messages:"support_request_messages",
+		support_request_messages_aggregate:"support_request_messages_aggregate",
+		support_request_messages_by_pk:"support_request_messages",
+		support_request_messages_stream:"support_request_messages",
+		support_requests:"support_requests",
+		support_requests_aggregate:"support_requests_aggregate",
+		support_requests_by_pk:"support_requests",
+		support_requests_stream:"support_requests",
 		system_alerts:"system_alerts",
 		system_alerts_aggregate:"system_alerts_aggregate",
 		system_alerts_by_pk:"system_alerts",
 		system_alerts_stream:"system_alerts",
+		team_admin_audit:"team_admin_audit",
+		team_admin_audit_aggregate:"team_admin_audit_aggregate",
+		team_admin_audit_by_pk:"team_admin_audit",
+		team_admin_audit_stream:"team_admin_audit",
 		team_invites:"team_invites",
 		team_invites_aggregate:"team_invites_aggregate",
 		team_invites_by_pk:"team_invites",
@@ -54315,6 +56978,9 @@ export const ReturnTypes: Record<string,any> = {
 		tournament_individual_signups_aggregate:"tournament_individual_signups_aggregate",
 		tournament_individual_signups_by_pk:"tournament_individual_signups",
 		tournament_individual_signups_stream:"tournament_individual_signups",
+		tournament_leaderboard_entries:"tournament_leaderboard_entries",
+		tournament_leaderboard_entries_aggregate:"tournament_leaderboard_entries_aggregate",
+		tournament_leaderboard_entries_stream:"tournament_leaderboard_entries",
 		tournament_organizer_teams:"tournament_organizer_teams",
 		tournament_organizer_teams_aggregate:"tournament_organizer_teams_aggregate",
 		tournament_organizer_teams_by_pk:"tournament_organizer_teams",
@@ -54454,6 +57120,10 @@ export const ReturnTypes: Record<string,any> = {
 		v_tournament_player_stats:"v_tournament_player_stats",
 		v_tournament_player_stats_aggregate:"v_tournament_player_stats_aggregate",
 		v_tournament_player_stats_stream:"v_tournament_player_stats",
+		verification_application_known_players:"verification_application_known_players",
+		verification_application_known_players_aggregate:"verification_application_known_players_aggregate",
+		verification_application_known_players_by_pk:"verification_application_known_players",
+		verification_application_known_players_stream:"verification_application_known_players",
 		verification_application_messages:"verification_application_messages",
 		verification_application_messages_aggregate:"verification_application_messages_aggregate",
 		verification_application_messages_by_pk:"verification_application_messages",
@@ -54461,7 +57131,207 @@ export const ReturnTypes: Record<string,any> = {
 		verification_applications:"verification_applications",
 		verification_applications_aggregate:"verification_applications_aggregate",
 		verification_applications_by_pk:"verification_applications",
-		verification_applications_stream:"verification_applications"
+		verification_applications_stream:"verification_applications",
+		verification_call_tokens:"verification_call_tokens",
+		verification_call_tokens_aggregate:"verification_call_tokens_aggregate",
+		verification_call_tokens_by_pk:"verification_call_tokens",
+		verification_call_tokens_stream:"verification_call_tokens"
+	},
+	support_request_messages:{
+		created_at:"timestamptz",
+		id:"uuid",
+		is_admin:"Boolean",
+		message:"String",
+		request:"support_requests",
+		request_id:"uuid",
+		sender:"players",
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_aggregate:{
+		aggregate:"support_request_messages_aggregate_fields",
+		nodes:"support_request_messages"
+	},
+	support_request_messages_aggregate_fields:{
+		avg:"support_request_messages_avg_fields",
+		count:"Int",
+		max:"support_request_messages_max_fields",
+		min:"support_request_messages_min_fields",
+		stddev:"support_request_messages_stddev_fields",
+		stddev_pop:"support_request_messages_stddev_pop_fields",
+		stddev_samp:"support_request_messages_stddev_samp_fields",
+		sum:"support_request_messages_sum_fields",
+		var_pop:"support_request_messages_var_pop_fields",
+		var_samp:"support_request_messages_var_samp_fields",
+		variance:"support_request_messages_variance_fields"
+	},
+	support_request_messages_avg_fields:{
+		sender_steam_id:"Float"
+	},
+	support_request_messages_max_fields:{
+		created_at:"timestamptz",
+		id:"uuid",
+		message:"String",
+		request_id:"uuid",
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_min_fields:{
+		created_at:"timestamptz",
+		id:"uuid",
+		message:"String",
+		request_id:"uuid",
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_mutation_response:{
+		affected_rows:"Int",
+		returning:"support_request_messages"
+	},
+	support_request_messages_stddev_fields:{
+		sender_steam_id:"Float"
+	},
+	support_request_messages_stddev_pop_fields:{
+		sender_steam_id:"Float"
+	},
+	support_request_messages_stddev_samp_fields:{
+		sender_steam_id:"Float"
+	},
+	support_request_messages_sum_fields:{
+		sender_steam_id:"bigint"
+	},
+	support_request_messages_var_pop_fields:{
+		sender_steam_id:"Float"
+	},
+	support_request_messages_var_samp_fields:{
+		sender_steam_id:"Float"
+	},
+	support_request_messages_variance_fields:{
+		sender_steam_id:"Float"
+	},
+	support_requests:{
+		category:"e_support_request_categories_enum",
+		closed_at:"timestamptz",
+		created_at:"timestamptz",
+		handled_by:"players",
+		handled_by_steam_id:"bigint",
+		id:"uuid",
+		initial_message:"String",
+		messages:"support_request_messages",
+		messages_aggregate:"support_request_messages_aggregate",
+		organizer_additional_info:"String",
+		organizer_experience:"String",
+		organizer_languages:"String",
+		organizer_motivation:"String",
+		player:"players",
+		player_steam_id:"bigint",
+		related_match_reference:"String",
+		report_details:"String",
+		report_evidence:"String",
+		report_reason:"String",
+		reported_player_profile_url:"String",
+		reported_player_steam_id:"bigint",
+		status:"e_support_request_statuses_enum",
+		subject:"String",
+		updated_at:"timestamptz"
+	},
+	support_requests_aggregate:{
+		aggregate:"support_requests_aggregate_fields",
+		nodes:"support_requests"
+	},
+	support_requests_aggregate_fields:{
+		avg:"support_requests_avg_fields",
+		count:"Int",
+		max:"support_requests_max_fields",
+		min:"support_requests_min_fields",
+		stddev:"support_requests_stddev_fields",
+		stddev_pop:"support_requests_stddev_pop_fields",
+		stddev_samp:"support_requests_stddev_samp_fields",
+		sum:"support_requests_sum_fields",
+		var_pop:"support_requests_var_pop_fields",
+		var_samp:"support_requests_var_samp_fields",
+		variance:"support_requests_variance_fields"
+	},
+	support_requests_avg_fields:{
+		handled_by_steam_id:"Float",
+		player_steam_id:"Float",
+		reported_player_steam_id:"Float"
+	},
+	support_requests_max_fields:{
+		closed_at:"timestamptz",
+		created_at:"timestamptz",
+		handled_by_steam_id:"bigint",
+		id:"uuid",
+		initial_message:"String",
+		organizer_additional_info:"String",
+		organizer_experience:"String",
+		organizer_languages:"String",
+		organizer_motivation:"String",
+		player_steam_id:"bigint",
+		related_match_reference:"String",
+		report_details:"String",
+		report_evidence:"String",
+		report_reason:"String",
+		reported_player_profile_url:"String",
+		reported_player_steam_id:"bigint",
+		subject:"String",
+		updated_at:"timestamptz"
+	},
+	support_requests_min_fields:{
+		closed_at:"timestamptz",
+		created_at:"timestamptz",
+		handled_by_steam_id:"bigint",
+		id:"uuid",
+		initial_message:"String",
+		organizer_additional_info:"String",
+		organizer_experience:"String",
+		organizer_languages:"String",
+		organizer_motivation:"String",
+		player_steam_id:"bigint",
+		related_match_reference:"String",
+		report_details:"String",
+		report_evidence:"String",
+		report_reason:"String",
+		reported_player_profile_url:"String",
+		reported_player_steam_id:"bigint",
+		subject:"String",
+		updated_at:"timestamptz"
+	},
+	support_requests_mutation_response:{
+		affected_rows:"Int",
+		returning:"support_requests"
+	},
+	support_requests_stddev_fields:{
+		handled_by_steam_id:"Float",
+		player_steam_id:"Float",
+		reported_player_steam_id:"Float"
+	},
+	support_requests_stddev_pop_fields:{
+		handled_by_steam_id:"Float",
+		player_steam_id:"Float",
+		reported_player_steam_id:"Float"
+	},
+	support_requests_stddev_samp_fields:{
+		handled_by_steam_id:"Float",
+		player_steam_id:"Float",
+		reported_player_steam_id:"Float"
+	},
+	support_requests_sum_fields:{
+		handled_by_steam_id:"bigint",
+		player_steam_id:"bigint",
+		reported_player_steam_id:"bigint"
+	},
+	support_requests_var_pop_fields:{
+		handled_by_steam_id:"Float",
+		player_steam_id:"Float",
+		reported_player_steam_id:"Float"
+	},
+	support_requests_var_samp_fields:{
+		handled_by_steam_id:"Float",
+		player_steam_id:"Float",
+		reported_player_steam_id:"Float"
+	},
+	support_requests_variance_fields:{
+		handled_by_steam_id:"Float",
+		player_steam_id:"Float",
+		reported_player_steam_id:"Float"
 	},
 	system_alerts:{
 		created_at:"timestamptz",
@@ -54537,6 +57407,95 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	system_alerts_variance_fields:{
 		created_by:"Float"
+	},
+	team_admin_audit:{
+		action:"String",
+		actor_role:"String",
+		actor_steam_id:"bigint",
+		created_at:"timestamptz",
+		id:"uuid",
+		new_role:"String",
+		player_steam_id:"bigint",
+		previous_role:"String",
+		reason:"String",
+		team_id:"uuid"
+	},
+	team_admin_audit_aggregate:{
+		aggregate:"team_admin_audit_aggregate_fields",
+		nodes:"team_admin_audit"
+	},
+	team_admin_audit_aggregate_fields:{
+		avg:"team_admin_audit_avg_fields",
+		count:"Int",
+		max:"team_admin_audit_max_fields",
+		min:"team_admin_audit_min_fields",
+		stddev:"team_admin_audit_stddev_fields",
+		stddev_pop:"team_admin_audit_stddev_pop_fields",
+		stddev_samp:"team_admin_audit_stddev_samp_fields",
+		sum:"team_admin_audit_sum_fields",
+		var_pop:"team_admin_audit_var_pop_fields",
+		var_samp:"team_admin_audit_var_samp_fields",
+		variance:"team_admin_audit_variance_fields"
+	},
+	team_admin_audit_avg_fields:{
+		actor_steam_id:"Float",
+		player_steam_id:"Float"
+	},
+	team_admin_audit_max_fields:{
+		action:"String",
+		actor_role:"String",
+		actor_steam_id:"bigint",
+		created_at:"timestamptz",
+		id:"uuid",
+		new_role:"String",
+		player_steam_id:"bigint",
+		previous_role:"String",
+		reason:"String",
+		team_id:"uuid"
+	},
+	team_admin_audit_min_fields:{
+		action:"String",
+		actor_role:"String",
+		actor_steam_id:"bigint",
+		created_at:"timestamptz",
+		id:"uuid",
+		new_role:"String",
+		player_steam_id:"bigint",
+		previous_role:"String",
+		reason:"String",
+		team_id:"uuid"
+	},
+	team_admin_audit_mutation_response:{
+		affected_rows:"Int",
+		returning:"team_admin_audit"
+	},
+	team_admin_audit_stddev_fields:{
+		actor_steam_id:"Float",
+		player_steam_id:"Float"
+	},
+	team_admin_audit_stddev_pop_fields:{
+		actor_steam_id:"Float",
+		player_steam_id:"Float"
+	},
+	team_admin_audit_stddev_samp_fields:{
+		actor_steam_id:"Float",
+		player_steam_id:"Float"
+	},
+	team_admin_audit_sum_fields:{
+		actor_steam_id:"bigint",
+		player_steam_id:"bigint"
+	},
+	team_admin_audit_var_pop_fields:{
+		actor_steam_id:"Float",
+		player_steam_id:"Float"
+	},
+	team_admin_audit_var_samp_fields:{
+		actor_steam_id:"Float",
+		player_steam_id:"Float"
+	},
+	team_admin_audit_variance_fields:{
+		actor_steam_id:"Float",
+		player_steam_id:"Float"
 	},
 	team_invites:{
 		created_at:"timestamptz",
@@ -55564,6 +58523,172 @@ export const ReturnTypes: Record<string,any> = {
 	tournament_individual_signups_variance_fields:{
 		player_steam_id:"Float"
 	},
+	tournament_leaderboard_entries:{
+		adr:"float8",
+		assists:"Int",
+		deaths:"Int",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		kills:"Int",
+		matches_played:"Int",
+		player_avatar_url:"String",
+		player_country:"String",
+		player_custom_avatar_url:"String",
+		player_name:"String",
+		player_steam_id:"String",
+		rating:"float8",
+		rounds_played:"Int",
+		team_id:"uuid",
+		team_name:"String",
+		tournament_team_id:"uuid"
+	},
+	tournament_leaderboard_entries_aggregate:{
+		aggregate:"tournament_leaderboard_entries_aggregate_fields",
+		nodes:"tournament_leaderboard_entries"
+	},
+	tournament_leaderboard_entries_aggregate_fields:{
+		avg:"tournament_leaderboard_entries_avg_fields",
+		count:"Int",
+		max:"tournament_leaderboard_entries_max_fields",
+		min:"tournament_leaderboard_entries_min_fields",
+		stddev:"tournament_leaderboard_entries_stddev_fields",
+		stddev_pop:"tournament_leaderboard_entries_stddev_pop_fields",
+		stddev_samp:"tournament_leaderboard_entries_stddev_samp_fields",
+		sum:"tournament_leaderboard_entries_sum_fields",
+		var_pop:"tournament_leaderboard_entries_var_pop_fields",
+		var_samp:"tournament_leaderboard_entries_var_samp_fields",
+		variance:"tournament_leaderboard_entries_variance_fields"
+	},
+	tournament_leaderboard_entries_avg_fields:{
+		adr:"Float",
+		assists:"Float",
+		deaths:"Float",
+		headshot_percentage:"Float",
+		kdr:"Float",
+		kills:"Float",
+		matches_played:"Float",
+		rating:"Float",
+		rounds_played:"Float"
+	},
+	tournament_leaderboard_entries_max_fields:{
+		adr:"float8",
+		assists:"Int",
+		deaths:"Int",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		kills:"Int",
+		matches_played:"Int",
+		player_avatar_url:"String",
+		player_country:"String",
+		player_custom_avatar_url:"String",
+		player_name:"String",
+		player_steam_id:"String",
+		rating:"float8",
+		rounds_played:"Int",
+		team_id:"uuid",
+		team_name:"String",
+		tournament_team_id:"uuid"
+	},
+	tournament_leaderboard_entries_min_fields:{
+		adr:"float8",
+		assists:"Int",
+		deaths:"Int",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		kills:"Int",
+		matches_played:"Int",
+		player_avatar_url:"String",
+		player_country:"String",
+		player_custom_avatar_url:"String",
+		player_name:"String",
+		player_steam_id:"String",
+		rating:"float8",
+		rounds_played:"Int",
+		team_id:"uuid",
+		team_name:"String",
+		tournament_team_id:"uuid"
+	},
+	tournament_leaderboard_entries_mutation_response:{
+		affected_rows:"Int",
+		returning:"tournament_leaderboard_entries"
+	},
+	tournament_leaderboard_entries_stddev_fields:{
+		adr:"Float",
+		assists:"Float",
+		deaths:"Float",
+		headshot_percentage:"Float",
+		kdr:"Float",
+		kills:"Float",
+		matches_played:"Float",
+		rating:"Float",
+		rounds_played:"Float"
+	},
+	tournament_leaderboard_entries_stddev_pop_fields:{
+		adr:"Float",
+		assists:"Float",
+		deaths:"Float",
+		headshot_percentage:"Float",
+		kdr:"Float",
+		kills:"Float",
+		matches_played:"Float",
+		rating:"Float",
+		rounds_played:"Float"
+	},
+	tournament_leaderboard_entries_stddev_samp_fields:{
+		adr:"Float",
+		assists:"Float",
+		deaths:"Float",
+		headshot_percentage:"Float",
+		kdr:"Float",
+		kills:"Float",
+		matches_played:"Float",
+		rating:"Float",
+		rounds_played:"Float"
+	},
+	tournament_leaderboard_entries_sum_fields:{
+		adr:"float8",
+		assists:"Int",
+		deaths:"Int",
+		headshot_percentage:"float8",
+		kdr:"float8",
+		kills:"Int",
+		matches_played:"Int",
+		rating:"float8",
+		rounds_played:"Int"
+	},
+	tournament_leaderboard_entries_var_pop_fields:{
+		adr:"Float",
+		assists:"Float",
+		deaths:"Float",
+		headshot_percentage:"Float",
+		kdr:"Float",
+		kills:"Float",
+		matches_played:"Float",
+		rating:"Float",
+		rounds_played:"Float"
+	},
+	tournament_leaderboard_entries_var_samp_fields:{
+		adr:"Float",
+		assists:"Float",
+		deaths:"Float",
+		headshot_percentage:"Float",
+		kdr:"Float",
+		kills:"Float",
+		matches_played:"Float",
+		rating:"Float",
+		rounds_played:"Float"
+	},
+	tournament_leaderboard_entries_variance_fields:{
+		adr:"Float",
+		assists:"Float",
+		deaths:"Float",
+		headshot_percentage:"Float",
+		kdr:"Float",
+		kills:"Float",
+		matches_played:"Float",
+		rating:"Float",
+		rounds_played:"Float"
+	},
 	tournament_organizer_teams:{
 		created_at:"timestamptz",
 		team:"teams",
@@ -56439,6 +59564,7 @@ export const ReturnTypes: Record<string,any> = {
 		discord_voice_enabled:"Boolean",
 		discord_webhook:"String",
 		e_tournament_status:"e_tournament_status",
+		finished_at:"timestamptz",
 		has_min_teams:"Boolean",
 		homepage:"String",
 		id:"uuid",
@@ -56522,6 +59648,7 @@ export const ReturnTypes: Record<string,any> = {
 		discord_guild_id:"String",
 		discord_role_id:"String",
 		discord_webhook:"String",
+		finished_at:"timestamptz",
 		homepage:"String",
 		id:"uuid",
 		individual_check_in_duration_minutes:"Int",
@@ -56547,6 +59674,7 @@ export const ReturnTypes: Record<string,any> = {
 		discord_guild_id:"String",
 		discord_role_id:"String",
 		discord_webhook:"String",
+		finished_at:"timestamptz",
 		homepage:"String",
 		id:"uuid",
 		individual_check_in_duration_minutes:"Int",
@@ -60559,6 +63687,76 @@ export const ReturnTypes: Record<string,any> = {
 		matches_played:"Float",
 		player_steam_id:"Float"
 	},
+	verification_application_known_players:{
+		application:"verification_applications",
+		created_at:"timestamptz",
+		id:"uuid",
+		nickname:"String",
+		sort_order:"Int",
+		steam_profile_url:"String",
+		verification_application_id:"uuid"
+	},
+	verification_application_known_players_aggregate:{
+		aggregate:"verification_application_known_players_aggregate_fields",
+		nodes:"verification_application_known_players"
+	},
+	verification_application_known_players_aggregate_fields:{
+		avg:"verification_application_known_players_avg_fields",
+		count:"Int",
+		max:"verification_application_known_players_max_fields",
+		min:"verification_application_known_players_min_fields",
+		stddev:"verification_application_known_players_stddev_fields",
+		stddev_pop:"verification_application_known_players_stddev_pop_fields",
+		stddev_samp:"verification_application_known_players_stddev_samp_fields",
+		sum:"verification_application_known_players_sum_fields",
+		var_pop:"verification_application_known_players_var_pop_fields",
+		var_samp:"verification_application_known_players_var_samp_fields",
+		variance:"verification_application_known_players_variance_fields"
+	},
+	verification_application_known_players_avg_fields:{
+		sort_order:"Float"
+	},
+	verification_application_known_players_max_fields:{
+		created_at:"timestamptz",
+		id:"uuid",
+		nickname:"String",
+		sort_order:"Int",
+		steam_profile_url:"String",
+		verification_application_id:"uuid"
+	},
+	verification_application_known_players_min_fields:{
+		created_at:"timestamptz",
+		id:"uuid",
+		nickname:"String",
+		sort_order:"Int",
+		steam_profile_url:"String",
+		verification_application_id:"uuid"
+	},
+	verification_application_known_players_mutation_response:{
+		affected_rows:"Int",
+		returning:"verification_application_known_players"
+	},
+	verification_application_known_players_stddev_fields:{
+		sort_order:"Float"
+	},
+	verification_application_known_players_stddev_pop_fields:{
+		sort_order:"Float"
+	},
+	verification_application_known_players_stddev_samp_fields:{
+		sort_order:"Float"
+	},
+	verification_application_known_players_sum_fields:{
+		sort_order:"Int"
+	},
+	verification_application_known_players_var_pop_fields:{
+		sort_order:"Float"
+	},
+	verification_application_known_players_var_samp_fields:{
+		sort_order:"Float"
+	},
+	verification_application_known_players_variance_fields:{
+		sort_order:"Float"
+	},
 	verification_application_messages:{
 		application:"verification_applications",
 		application_id:"uuid",
@@ -60629,13 +63827,17 @@ export const ReturnTypes: Record<string,any> = {
 		sender_steam_id:"Float"
 	},
 	verification_applications:{
+		account_declaration_accepted_at:"timestamptz",
 		additional_info:"String",
 		country:"String",
 		created_at:"timestamptz",
+		deaf_player_nickname:"String",
 		deaf_player_steam_url:"String",
 		found_via:"String",
 		id:"uuid",
 		is_deaf:"String",
+		known_players:"verification_application_known_players",
+		known_players_aggregate:"verification_application_known_players_aggregate",
 		knows_deaf_player:"Boolean",
 		messages:"verification_application_messages",
 		messages_aggregate:"verification_application_messages_aggregate",
@@ -60644,6 +63846,9 @@ export const ReturnTypes: Record<string,any> = {
 		reviewed_at:"timestamptz",
 		reviewed_by:"players",
 		reviewed_by_steam_id:"bigint",
+		social_facebook_url:"String",
+		social_instagram_url:"String",
+		social_vk_url:"String",
 		status:"String",
 		updated_at:"timestamptz"
 	},
@@ -60669,9 +63874,11 @@ export const ReturnTypes: Record<string,any> = {
 		reviewed_by_steam_id:"Float"
 	},
 	verification_applications_max_fields:{
+		account_declaration_accepted_at:"timestamptz",
 		additional_info:"String",
 		country:"String",
 		created_at:"timestamptz",
+		deaf_player_nickname:"String",
 		deaf_player_steam_url:"String",
 		found_via:"String",
 		id:"uuid",
@@ -60679,13 +63886,18 @@ export const ReturnTypes: Record<string,any> = {
 		player_steam_id:"bigint",
 		reviewed_at:"timestamptz",
 		reviewed_by_steam_id:"bigint",
+		social_facebook_url:"String",
+		social_instagram_url:"String",
+		social_vk_url:"String",
 		status:"String",
 		updated_at:"timestamptz"
 	},
 	verification_applications_min_fields:{
+		account_declaration_accepted_at:"timestamptz",
 		additional_info:"String",
 		country:"String",
 		created_at:"timestamptz",
+		deaf_player_nickname:"String",
 		deaf_player_steam_url:"String",
 		found_via:"String",
 		id:"uuid",
@@ -60693,6 +63905,9 @@ export const ReturnTypes: Record<string,any> = {
 		player_steam_id:"bigint",
 		reviewed_at:"timestamptz",
 		reviewed_by_steam_id:"bigint",
+		social_facebook_url:"String",
+		social_instagram_url:"String",
+		social_vk_url:"String",
 		status:"String",
 		updated_at:"timestamptz"
 	},
@@ -60727,6 +63942,69 @@ export const ReturnTypes: Record<string,any> = {
 	verification_applications_variance_fields:{
 		player_steam_id:"Float",
 		reviewed_by_steam_id:"Float"
+	},
+	verification_call_tokens:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	verification_call_tokens_aggregate:{
+		aggregate:"verification_call_tokens_aggregate_fields",
+		nodes:"verification_call_tokens"
+	},
+	verification_call_tokens_aggregate_fields:{
+		avg:"verification_call_tokens_avg_fields",
+		count:"Int",
+		max:"verification_call_tokens_max_fields",
+		min:"verification_call_tokens_min_fields",
+		stddev:"verification_call_tokens_stddev_fields",
+		stddev_pop:"verification_call_tokens_stddev_pop_fields",
+		stddev_samp:"verification_call_tokens_stddev_samp_fields",
+		sum:"verification_call_tokens_sum_fields",
+		var_pop:"verification_call_tokens_var_pop_fields",
+		var_samp:"verification_call_tokens_var_samp_fields",
+		variance:"verification_call_tokens_variance_fields"
+	},
+	verification_call_tokens_avg_fields:{
+		steam_id:"Float"
+	},
+	verification_call_tokens_max_fields:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	verification_call_tokens_min_fields:{
+		application_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint",
+		token:"uuid"
+	},
+	verification_call_tokens_mutation_response:{
+		affected_rows:"Int",
+		returning:"verification_call_tokens"
+	},
+	verification_call_tokens_stddev_fields:{
+		steam_id:"Float"
+	},
+	verification_call_tokens_stddev_pop_fields:{
+		steam_id:"Float"
+	},
+	verification_call_tokens_stddev_samp_fields:{
+		steam_id:"Float"
+	},
+	verification_call_tokens_sum_fields:{
+		steam_id:"bigint"
+	},
+	verification_call_tokens_var_pop_fields:{
+		steam_id:"Float"
+	},
+	verification_call_tokens_var_samp_fields:{
+		steam_id:"Float"
+	},
+	verification_call_tokens_variance_fields:{
+		steam_id:"Float"
 	},
 	ID: `scalar.ID` as const
 }
