@@ -3,6 +3,7 @@ import { mount } from "@vue/test-utils";
 import fs from "node:fs";
 import path from "node:path";
 import ChatMessage from "../../components/chat/ChatMessage.vue";
+import ChatMessageActionsMenu from "../../components/chat/ChatMessageActionsMenu.vue";
 import socket from "../../web-sockets/Socket";
 import { CHAT_REACTIONS } from "../../utils/chatReactions";
 
@@ -67,45 +68,105 @@ describe("Chat Hub message reactions", () => {
     });
   }
 
-  it("keeps reactions opt-in and hides controls for blocked or unstable messages", () => {
+  const actionsMenu = (wrapper: ReturnType<typeof mountMessage>) =>
+    wrapper.findComponent(ChatMessageActionsMenu);
+
+  it("keeps reactions opt-in and hides React for blocked or unstable messages", () => {
     const disabled = mountMessage({
       message: { ...message, reactions: [{ reaction: "heart", count: 1 }] },
     });
-    expect(disabled.find('[aria-label="Add reaction"]').exists()).toBe(false);
+    // Match-page style (reactions disabled, non-admin): no menu, no chips.
+    expect(actionsMenu(disabled).exists()).toBe(false);
+    expect(disabled.findAll("button")).toHaveLength(0);
     disabled.unmount();
 
     const blocked = mountMessage({
       reactionsEnabled: true,
       message: { ...message, blocked: true },
     });
-    expect(blocked.find('[aria-label="Add reaction"]').exists()).toBe(false);
+    expect(actionsMenu(blocked).exists()).toBe(false);
     blocked.unmount();
 
     const unstable = mountMessage({
       reactionsEnabled: true,
       message: { ...message, id: "old-message-id" },
     });
-    expect(unstable.find('[aria-label="Add reaction"]').exists()).toBe(false);
+    expect(actionsMenu(unstable).exists()).toBe(false);
     unstable.unmount();
   });
 
-  it("offers exactly four stable reactions and emits only the selected stable ID", async () => {
+  it("has no standalone reaction button and no reaction row when a message has zero reactions", () => {
     const wrapper = mountMessage({ reactionsEnabled: true });
-    await wrapper.get('[aria-label="Add reaction"]').trigger("click");
+    expect(wrapper.find('[aria-label="Add reaction"]').exists()).toBe(false);
+    expect(wrapper.findAll("button")).toHaveLength(0);
+    expect(wrapper.find(".reaction-chip").exists()).toBe(false);
+    wrapper.unmount();
+  });
 
-    const picker = wrapper.get('[role="group"]');
-    expect(picker.findAll("button").map((button) => button.text())).toEqual([
-      "👍",
-      "❤️",
-      "🔥",
-      "🎉",
-    ]);
-    await picker.get('[aria-label="React with 🔥"]').trigger("click");
+  it("offers React inside the ... menu for normal users without exposing Mute/Delete", async () => {
+    const wrapper = mountMessage({ reactionsEnabled: true });
+    const menu = actionsMenu(wrapper);
+    expect(menu.exists()).toBe(true);
+    expect(menu.props("canReact")).toBe(true);
+    expect(menu.props("canModerate")).toBe(false);
+    expect(menu.props("canEdit")).toBe(false);
+
+    menu.vm.$emit("react", "fire");
     expect(wrapper.emitted("toggle-reaction")?.[0]?.[0]).toEqual({
       messageId,
       reaction: "fire",
     });
     wrapper.unmount();
+  });
+
+  it("keeps administrator Mute/Delete and adds React only where reactions are enabled", () => {
+    vi.stubGlobal("useAuthStore", () => ({
+      me: { steam_id: "76561190000000123" },
+      isRoleAbove: () => true,
+    }));
+    const hub = mountMessage({ reactionsEnabled: true });
+    expect(actionsMenu(hub).props("canModerate")).toBe(true);
+    expect(actionsMenu(hub).props("canReact")).toBe(true);
+    hub.unmount();
+
+    const matchPage = mountMessage({ chatType: "match" });
+    expect(actionsMenu(matchPage).props("canModerate")).toBe(true);
+    expect(actionsMenu(matchPage).props("canReact")).toBe(false);
+    matchPage.unmount();
+  });
+
+  it("the menu's React submenu offers exactly the four reactions and emits the stable ID", async () => {
+    const passthrough = { template: "<div><slot /></div>" };
+    const menu = mount(ChatMessageActionsMenu, {
+      props: { canEdit: false, canModerate: false, canReact: true },
+      global: {
+        mocks: { $t: (key: string, fallback?: string) => fallback ?? key },
+        stubs: {
+          DropdownMenu: passthrough,
+          DropdownMenuTrigger: passthrough,
+          DropdownMenuContent: passthrough,
+          DropdownMenuSub: passthrough,
+          DropdownMenuSubTrigger: passthrough,
+          DropdownMenuSubContent: passthrough,
+          DropdownMenuItem: {
+            template: '<button type="button" v-bind="$attrs"><slot /></button>',
+          },
+        },
+      },
+    });
+    const choices = menu.findAll('[aria-label^="React with"]');
+    expect(choices.map((choice) => choice.text())).toEqual([
+      "👍",
+      "❤️",
+      "🔥",
+      "🎉",
+    ]);
+    expect(menu.text()).toContain("React");
+    expect(menu.text()).not.toContain("Mute Player");
+    expect(menu.text()).not.toContain("common.delete");
+    await menu.get('[aria-label="React with 🔥"]').trigger("click");
+    expect(menu.emitted("react")?.[0]).toEqual(["fire"]);
+    menu.unmount();
   });
 
   it("renders only known positive counts and marks the viewer's selected reaction", () => {
@@ -123,6 +184,11 @@ describe("Chat Hub message reactions", () => {
     const chips = wrapper.findAll('button[aria-label="❤️ 3"]');
     expect(chips).toHaveLength(1);
     expect(chips[0].attributes("aria-pressed")).toBe("true");
+    // Compact badge, not a button-sized pill.
+    expect(chips[0].classes()).toEqual(
+      expect.arrayContaining(["h-4", "px-1", "text-[9px]", "border-primary/70"]),
+    );
+    expect(chips[0].classes()).not.toContain("min-h-7");
     expect(wrapper.find('button[aria-label="🎉 0"]').exists()).toBe(false);
     expect(wrapper.find('button[aria-label="unknown 99"]').exists()).toBe(false);
     wrapper.unmount();

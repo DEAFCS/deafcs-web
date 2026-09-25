@@ -4,7 +4,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
 import ChatVideoPlayer from "~/components/chat/ChatVideoPlayer.vue";
-import { Check, SmilePlus, X as XIcon } from "lucide-vue-next";
+import { Check, X as XIcon } from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
@@ -101,68 +101,45 @@ import { e_player_roles_enum } from "~/generated/zeus";
         label="Short video message"
         class="mt-2 max-h-80 w-full max-w-full rounded-md bg-black"
       />
+      <!-- Only rendered once a message actually has reactions, so a
+           reaction-free message keeps the old compact chat spacing.
+           Adding a reaction lives in the "..." menu. -->
       <div
-        v-if="showReactionControls"
-        class="mt-2 flex flex-wrap items-center gap-1"
+        v-if="visibleReactions.length > 0"
+        class="mt-0.5 flex flex-wrap items-center gap-1"
         @click.stop
       >
         <button
           v-for="reaction in visibleReactions"
           :key="reaction.reaction"
           type="button"
-          class="inline-flex min-h-7 items-center gap-1 rounded-full border px-2 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="reaction-chip relative inline-flex h-4 items-center gap-0.5 rounded-full border px-1 text-[9px] leading-none tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           :class="
             reaction.reacted
               ? 'border-primary/70 bg-primary/15 text-primary'
-              : 'border-border/70 bg-muted/50 text-muted-foreground hover:bg-muted'
+              : 'border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted'
           "
           :aria-label="`${reaction.emoji} ${reaction.count}`"
           :aria-pressed="Boolean(reaction.reacted)"
           @click.stop="toggleReaction(reaction.reaction)"
         >
-          <span>{{ reaction.emoji }}</span>
+          <span class="text-[10px]">{{ reaction.emoji }}</span>
           <span>{{ reaction.count }}</span>
         </button>
-        <div class="relative">
-          <button
-            type="button"
-            class="reaction-add inline-flex size-7 items-center justify-center rounded-full border border-border/70 bg-muted/50 text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            :aria-label="$t('chat.add_reaction', 'Add reaction')"
-            :title="$t('chat.add_reaction', 'Add reaction')"
-            :aria-expanded="isReactionPickerOpen"
-            @click.stop="isReactionPickerOpen = !isReactionPickerOpen"
-          >
-            <SmilePlus class="size-3.5" />
-          </button>
-          <div
-            v-if="isReactionPickerOpen"
-            class="absolute bottom-full left-0 z-30 mb-1 flex items-center gap-1 rounded-lg border border-border bg-background p-1.5 shadow-lg"
-            role="group"
-            :aria-label="$t('chat.choose_reaction', 'Choose a reaction')"
-          >
-            <button
-              v-for="choice in reactionChoices"
-              :key="choice.id"
-              type="button"
-              class="inline-flex size-8 items-center justify-center rounded hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              :aria-label="`React with ${choice.emoji}`"
-              @click.stop="toggleReaction(choice.id)"
-            >
-              {{ choice.emoji }}
-            </button>
-          </div>
-        </div>
       </div>
     </div>
 
     <ChatMessageActionsMenu
-      v-if="canModerate && !isEditing"
+      v-if="hasMessageActions && !isEditing"
       :can-edit="canEdit"
+      :can-moderate="canModerate"
+      :can-react="showReactionControls"
       align="end"
       trigger-class="absolute right-1 top-0 z-10"
       @edit="startEdit"
       @mute="requestMute"
       @delete="requestDelete"
+      @react="toggleReaction"
     />
   </div>
 </template>
@@ -240,7 +217,6 @@ export default {
       liveAvatarUrl: null as string | null,
       isEditing: false,
       editDraft: "",
-      isReactionPickerOpen: false,
     };
   },
   created() {
@@ -279,6 +255,9 @@ export default {
     canEdit() {
       return this.canModerate && this.chatType === "announcement";
     },
+    hasMessageActions() {
+      return this.canModerate || this.showReactionControls;
+    },
     // Match-type chat mixes messages relayed in from the live CS2/CSS
     // server with ones typed directly on the DEAFCS site itself (see
     // ChatMessageEvent.ts / chat.service.ts's sendMessageToChat source
@@ -304,9 +283,6 @@ export default {
         isStableChatMessageId(this.message?.id) &&
         !this.message?.blocked
       );
-    },
-    reactionChoices() {
-      return CHAT_REACTIONS;
     },
     visibleReactions() {
       if (!this.showReactionControls || !Array.isArray(this.message?.reactions)) {
@@ -364,7 +340,6 @@ export default {
         messageId: String(this.message.id),
         reaction,
       });
-      this.isReactionPickerOpen = false;
     },
     async fetchLiveAvatar() {
       const steamId = this.message?.from?.steam_id;
@@ -390,18 +365,13 @@ export default {
 </script>
 
 <style scoped>
-.reaction-add {
-  opacity: 1;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .reaction-add {
-    opacity: 0;
-  }
-
-  .group\/chat-message:hover .reaction-add,
-  .group\/chat-message:focus-within .reaction-add {
-    opacity: 1;
+/* Visually a tiny badge, but keep a finger-sized hit area on touch
+   devices without adding any layout height to the message. */
+@media (pointer: coarse) {
+  .reaction-chip::before {
+    content: "";
+    position: absolute;
+    inset: -6px -2px;
   }
 }
 </style>

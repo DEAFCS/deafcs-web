@@ -16,14 +16,29 @@ test("each message owns a named hover group, isolated from the surrounding sideb
   assert.doesNotMatch(rightHub, /group\/chat-message/);
 });
 
-test("one shared menu instance is rendered for every moderatable message", () => {
+test("one shared menu instance is rendered for every moderatable or reactable message", () => {
   assert.equal((message.match(/<ChatMessageActionsMenu/g) ?? []).length, 1);
-  assert.match(message, /v-if="canModerate && !isEditing"/);
+  assert.match(message, /v-if="hasMessageActions && !isEditing"/);
+  assert.match(
+    message,
+    /hasMessageActions\(\)\s*\{\s*\n\s*return this\.canModerate \|\| this\.showReactionControls;/,
+  );
+});
+
+test("Mute and Delete stay administrator-only; React is gated by the chat's reaction setting", () => {
+  assert.match(message, /:can-moderate="canModerate"/);
+  assert.match(message, /:can-react="showReactionControls"/);
+  assert.match(message, /@react="toggleReaction"/);
+  assert.match(
+    menu,
+    /<template v-if="canModerate">[\s\S]*emit\('mute'\)[\s\S]*emit\('delete'\)[\s\S]*<\/template>/,
+  );
+  assert.match(menu, /<DropdownMenuSub v-if="canReact">/);
 });
 
 test("the menu is always anchored to the right for grouped and ungrouped messages", () => {
   const actionBlock = message.match(
-    /<ChatMessageActionsMenu\s+v-if="canModerate && !isEditing"[\s\S]*?\/>/,
+    /<ChatMessageActionsMenu\s+v-if="hasMessageActions && !isEditing"[\s\S]*?\/>/,
   )?.[0];
   assert.ok(actionBlock, "message action menu not found");
   assert.match(actionBlock, /align="end"/);
@@ -83,6 +98,9 @@ test("the trigger supports keyboard focus, touch pointers, and stays visible whi
 });
 
 test("Ellipsis is the trigger icon (Lucide), matching the requested three-dot design", () => {
-  assert.match(menu, /import \{ Ellipsis, Pencil, Trash2, MessageSquareOff \} from "lucide-vue-next"/);
+  assert.match(
+    menu,
+    /import \{\s*Ellipsis,\s*Pencil,\s*Trash2,\s*MessageSquareOff,\s*SmilePlus,\s*\} from "lucide-vue-next"/,
+  );
   assert.match(menu, /<Ellipsis class="h-3 w-3" \/>/);
 });
