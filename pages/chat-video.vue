@@ -13,6 +13,7 @@ const state = ref<
   | "recording"
   | "preview"
   | "uploading"
+  | "sending"
   | "complete"
   | "expired"
   | "error"
@@ -25,6 +26,7 @@ const blobUrl = ref("");
 const countdown = ref(0);
 const secondsLeft = ref(60);
 const uploadProgress = ref(0);
+const uploaded = ref(false);
 const facingMode = ref<"user" | "environment">("user");
 let recorder: MediaRecorder | undefined;
 let chunks: BlobPart[] = [];
@@ -32,6 +34,7 @@ let startedAt = 0;
 let durationMs = 0;
 let countdownTimer: ReturnType<typeof setInterval> | undefined;
 let durationTimer: ReturnType<typeof setInterval> | undefined;
+let sendStatusTimer: ReturnType<typeof setInterval> | undefined;
 
 function stopTracks() {
   stream.value?.getTracks().forEach((track) => track.stop());
@@ -42,6 +45,10 @@ function stopTimers() {
   if (durationTimer) clearInterval(durationTimer);
   countdownTimer = undefined;
   durationTimer = undefined;
+}
+function stopSendStatusPolling() {
+  if (sendStatusTimer) clearInterval(sendStatusTimer);
+  sendStatusTimer = undefined;
 }
 function chooseMime() {
   return (
@@ -63,15 +70,76 @@ async function validate() {
       state.value = "expired";
       return;
     }
-    state.value = "ready";
+    const result = await response.json();
+    if (result.state === "sent") {
+      state.value = "complete";
+    } else if (result.state === "sending") {
+      state.value = "sending";
+      pollSendStatus();
+    } else {
+      uploaded.value = result.state === "ready";
+      state.value = "ready";
+    }
   } catch {
     error.value = "Could not reach DEAFCS. Check your connection and reload.";
     state.value = "error";
   }
 }
+function pollSendStatus() {
+  stopSendStatusPolling();
+  sendStatusTimer = setInterval(async () => {
+    try {
+      const response = await fetch(`${api}/phone`, {
+        headers: { Authorization: `Bearer ${token.value}` },
+      });
+      if (!response.ok) {
+        stopSendStatusPolling();
+        state.value = "expired";
+        return;
+      }
+      const result = await response.json();
+      if (result.state === "sent") {
+        stopSendStatusPolling();
+        state.value = "complete";
+      } else if (result.state === "ready") {
+        stopSendStatusPolling();
+        uploaded.value = true;
+        state.value = "ready";
+      }
+    } catch {
+      /* keep polling through brief network interruptions */
+    }
+  }, 1000);
+}
 async function openCamera() {
   error.value = "";
   try {
+    if (uploaded.value && !blob.value) {
+      const reset = await fetch(`${api}/phone/retake`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token.value}` },
+      });
+      if (!reset.ok) {
+        const status = await fetch(`${api}/phone`, {
+          headers: { Authorization: `Bearer ${token.value}` },
+        }).catch(() => undefined);
+        if (status?.ok && (await status.json()).state === "sent") {
+          state.value = "complete";
+          return;
+        }
+        throw new Error("This video session is no longer available.");
+      }
+      const result = await reset.json();
+      if (result.state === "sent") {
+        state.value = "complete";
+        return;
+      }
+      if (result.state === "expired") {
+        state.value = "expired";
+        return;
+      }
+      uploaded.value = false;
+    }
     stopTracks();
     stream.value = await navigator.mediaDevices.getUserMedia({
       audio: false,
@@ -156,6 +224,30 @@ function stopRecording() {
 async function retake() {
   stopTimers();
   stopTracks();
+  if (uploaded.value) {
+    try {
+      const response = await fetch(`${api}/phone/retake`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token.value}` },
+      });
+      if (!response.ok)
+        throw new Error("The video session is busy. Retry in a moment.");
+      const result = await response.json();
+      if (result.state === "sent") {
+        state.value = "complete";
+        return;
+      }
+      if (result.state === "expired") {
+        state.value = "expired";
+        return;
+      }
+      uploaded.value = false;
+    } catch (cause: any) {
+      error.value = cause?.message || "Could not reset this video. Please retry.";
+      state.value = "preview";
+      return;
+    }
+  }
   if (blobUrl.value) URL.revokeObjectURL(blobUrl.value);
   blobUrl.value = "";
   blob.value = null;
@@ -163,8 +255,8 @@ async function retake() {
   durationMs = 0;
   await openCamera();
 }
-function upload() {
-  if (!blob.value) return;
+function upload(): Promise<void> {
+  if (!blob.value) return Promise.reject(new Error("Video preview is missing."));
   state.value = "uploading";
   uploadProgress.value = 0;
   const body = new FormData();
@@ -181,21 +273,67 @@ function upload() {
     if (event.lengthComputable)
       uploadProgress.value = Math.round((event.loaded / event.total) * 100);
   };
-  request.onload = () => {
-    if (request.status >= 200 && request.status < 300) state.value = "complete";
-    else {
-      error.value =
-        request.status === 404
-          ? "This video session has expired or was already used."
-          : "The video could not be uploaded. Please retry or record it again.";
-      state.value = request.status === 404 ? "expired" : "preview";
+  return new Promise((resolve, reject) => {
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        uploaded.value = true;
+        resolve();
+      } else {
+        reject(
+          new Error(
+            request.status === 404
+              ? "This video session has expired or was already used."
+              : "The video could not be uploaded. Retry Send Video or retake it.",
+          ),
+        );
+      }
+    };
+    request.onerror = () =>
+      reject(new Error("Upload failed. Check your connection and retry Send Video."));
+    request.send(body);
+  });
+}
+async function sendVideo() {
+  if (!blob.value || state.value === "uploading" || state.value === "sending")
+    return;
+  error.value = "";
+  try {
+    if (!uploaded.value) await upload();
+    state.value = "sending";
+    const response = await fetch(`${api}/phone/send`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token.value}` },
+    });
+    if (!response.ok)
+      throw new Error(
+        "Video could not be sent. Your chat permissions may have changed. Retry or retake the video.",
+      );
+    state.value = "complete";
+  } catch (cause: any) {
+    const status = await fetch(`${api}/phone`, {
+      headers: { Authorization: `Bearer ${token.value}` },
+    }).catch(() => undefined);
+    if (status?.ok) {
+      const result = await status.json();
+      if (result.state === "sent") {
+        state.value = "complete";
+        return;
+      }
+      if (result.state === "sending") {
+        uploaded.value = true;
+        state.value = "sending";
+        pollSendStatus();
+        return;
+      }
+      uploaded.value = result.state === "ready" || result.state === "sending";
+    } else if (status) {
+      state.value = "expired";
+      error.value = "This video session has expired or was already used.";
+      return;
     }
-  };
-  request.onerror = () => {
-    error.value = "Upload failed. Check your connection and try again.";
+    error.value = cause?.message || "Video could not be sent. Please retry.";
     state.value = "preview";
-  };
-  request.send(body);
+  }
 }
 async function cancel() {
   stopTimers();
@@ -216,6 +354,7 @@ onMounted(() => {
 });
 onBeforeUnmount(() => {
   stopTimers();
+  stopSendStatusPolling();
   stopTracks();
   if (blobUrl.value) URL.revokeObjectURL(blobUrl.value);
 });
@@ -257,8 +396,14 @@ onBeforeUnmount(() => {
         class="space-y-3 rounded-lg border border-zinc-800 p-5 text-center"
       >
         <p class="text-sm text-zinc-300">
-          This temporary link only transfers one video draft. It does not sign
-          you in to DEAFCS.
+          <template v-if="uploaded">
+            The previous preview is no longer available. Open the camera to
+            record and preview a new video.
+          </template>
+          <template v-else>
+            This temporary link only transfers one video. It does not sign you
+            in to DEAFCS.
+          </template>
         </p>
         <button
           class="inline-flex min-h-12 items-center gap-2 rounded bg-indigo-600 px-5 font-medium hover:bg-indigo-500"
@@ -329,7 +474,7 @@ onBeforeUnmount(() => {
           class="max-h-[65vh] w-full rounded-lg bg-black object-contain"
         />
         <p class="text-sm text-zinc-400">
-          Preview your video. You can retake it before uploading.
+          Preview your video. You can retake it before sending.
         </p>
         <div class="grid grid-cols-2 gap-3">
           <button
@@ -341,18 +486,30 @@ onBeforeUnmount(() => {
           ><button
             class="min-h-12 rounded bg-indigo-600 font-medium"
             type="button"
-            @click="upload"
+            @click="sendVideo"
           >
-            Use Video
+            {{
+              state === "uploading" || state === "sending"
+                ? "Sending…"
+                : uploaded
+                  ? "Retry Send Video"
+                  : "Send Video"
+            }}
           </button>
         </div>
       </section>
       <section
-        v-else-if="state === 'uploading'"
+        v-else-if="state === 'uploading' || state === 'sending'"
         class="rounded-lg border border-zinc-800 p-6 text-center"
       >
-        <p>Uploading video… {{ uploadProgress }}%</p>
-        <progress class="mt-3 w-full" :value="uploadProgress" max="100" />
+        <p v-if="state === 'uploading'">Uploading video… {{ uploadProgress }}%</p>
+        <p v-else>Sending video…</p>
+        <progress
+          v-if="state === 'uploading'"
+          class="mt-3 w-full"
+          :value="uploadProgress"
+          max="100"
+        />
       </section>
       <section
         v-else-if="state === 'complete'"
@@ -360,11 +517,10 @@ onBeforeUnmount(() => {
       >
         <Smartphone class="mx-auto mb-2 size-8 text-emerald-400" />
         <h2 class="font-semibold text-emerald-300">
-          Video sent to your DEAFCS chat
+          Video sent
         </h2>
         <p class="mt-2 text-sm text-zinc-300">
-          You can return to your PC. The message will not be published until you
-          click Send there.
+          You can return to your PC.
         </p>
       </section>
       <p class="text-center text-xs text-zinc-500">

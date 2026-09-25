@@ -68,7 +68,6 @@ function autoResize(event: Event) {
             />
             <ChatVideoComposer
               v-if="videoEnabled && !isWebsiteRestricted"
-              v-model="videoDraft"
               :type="chatType"
               :room-id="roomId"
             />
@@ -127,7 +126,6 @@ function autoResize(event: Event) {
             />
             <ChatVideoComposer
               v-if="videoEnabled && !isWebsiteRestricted"
-              v-model="videoDraft"
               :type="chatType"
               :room-id="roomId"
             />
@@ -182,15 +180,6 @@ export default {
   data() {
     return {
       sending: false,
-      videoDraft: null as {
-        sessionId: string;
-        media: {
-          id: string;
-          mimeType: string;
-          durationMs: number;
-          size: number;
-        };
-      } | null,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
@@ -233,14 +222,10 @@ export default {
       }
       const { message } = this.form.values;
       const normalizedMessage = (message || "").trim();
-      if (!normalizedMessage && !this.videoDraft) {
-        return;
-      }
+      if (!normalizedMessage) return;
       this.$emit("sendMessage", {
         message: normalizedMessage,
-        videoDraftId: this.videoDraft?.sessionId,
       });
-      this.videoDraft = null;
       this.form.resetForm();
       this.flashSending();
       // Collapse the multiline textarea back to its one-row default --

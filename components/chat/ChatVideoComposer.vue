@@ -1,18 +1,11 @@
 <script setup lang="ts">
 import QRCode from "qrcode";
 import { Camera, RefreshCw, Smartphone, Video, X } from "lucide-vue-next";
-import ChatVideoPlayer from "~/components/chat/ChatVideoPlayer.vue";
 
-type VideoDraft = {
-  sessionId: string;
-  media: { id: string; mimeType: string; durationMs: number; size: number };
-};
 const props = defineProps<{
   type: string;
   roomId: string;
-  modelValue: VideoDraft | null;
 }>();
-const emit = defineEmits<{ "update:modelValue": [value: VideoDraft | null] }>();
 const config = useRuntimeConfig();
 const open = ref(false);
 const step = ref<"choice" | "camera" | "recorded" | "phone">("choice");
@@ -28,7 +21,8 @@ const secondsLeft = ref(60);
 const busy = ref(false);
 const startingPhone = ref(false);
 const qrDataUrl = ref("");
-const phoneSessionId = ref("");
+const sessionId = ref("");
+const uploadComplete = ref(false);
 let chunks: BlobPart[] = [];
 let countTimer: ReturnType<typeof setInterval> | undefined;
 let maxTimer: ReturnType<typeof setTimeout> | undefined;
@@ -38,9 +32,6 @@ let recordedDurationMs = 0;
 let phoneToken = "";
 let facingMode: "user" | "environment" = "user";
 const api = `https://${config.public.apiDomain}/matches/chat-video`;
-const mediaUrl = computed(() =>
-  props.modelValue ? `${api}/media/${props.modelValue.media.id}` : "",
-);
 
 function stopCamera() {
   stream.value?.getTracks().forEach((track) => track.stop());
@@ -82,34 +73,32 @@ async function choosePhone() {
   busy.value = true;
   startingPhone.value = true;
   try {
-    if (!phoneSessionId.value || !phoneToken) {
+    if (!sessionId.value || !phoneToken) {
       const session = await createSession();
-      phoneSessionId.value = session.id;
+      sessionId.value = session.id;
       phoneToken = session.token;
     }
     qrDataUrl.value = await QRCode.toDataURL(
       `${window.location.origin}/chat-video#${phoneToken}`,
       { width: 240, margin: 1 },
     );
-    const sessionId = phoneSessionId.value;
+    const phoneSessionId = sessionId.value;
     step.value = "phone";
     pollTimer = setInterval(async () => {
       try {
-        const status = await fetch(`${api}/sessions/${sessionId}`, {
+        const status = await fetch(`${api}/sessions/${phoneSessionId}`, {
           credentials: "include",
         });
         if (!status.ok) return;
         const result = await status.json();
-        if (result.state === "ready" && result.media) {
+        if (result.state === "sent") {
+          finishSent();
+        } else if (result.state === "expired") {
           clearTimers();
-          emit("update:modelValue", {
-            sessionId,
-            media: result.media,
-          });
-          step.value = "choice";
-          open.value = false;
-          phoneSessionId.value = "";
+          sessionId.value = "";
           phoneToken = "";
+          step.value = "choice";
+          error.value = "This phone session expired. Create a new one.";
         }
       } catch {
         /* keep polling through brief network interruptions */
@@ -121,6 +110,16 @@ async function choosePhone() {
     startingPhone.value = false;
     busy.value = false;
   }
+}
+function finishSent() {
+  clearTimers();
+  resetRecording();
+  sessionId.value = "";
+  phoneToken = "";
+  uploadComplete.value = false;
+  open.value = false;
+  step.value = "choice";
+  error.value = "";
 }
 async function startCamera() {
   error.value = "";
@@ -252,73 +251,166 @@ function stopRecording() {
   maxTimer = undefined;
   if (recorder.value?.state === "recording") recorder.value.stop();
 }
-async function uploadVideo() {
+async function sendVideo() {
   const videoBlob = blob.value;
   if (!videoBlob) return;
   busy.value = true;
   error.value = "";
   try {
-    if (!phoneSessionId.value || !phoneToken) {
+    if (!sessionId.value || !phoneToken) {
       const session = await createSession();
-      phoneSessionId.value = session.id;
+      sessionId.value = session.id;
       phoneToken = session.token;
     }
-    const body = new FormData();
-    body.append(
-      "file",
-      videoBlob,
-      videoBlob.type.includes("mp4") ? "message.mp4" : "message.webm",
-    );
-    body.append("durationMs", String(recordedDurationMs));
-    const response = await fetch(
-      `${api}/sessions/${phoneSessionId.value}/upload`,
-      { method: "POST", credentials: "include", body },
-    );
-    if (!response.ok)
-      throw new Error("Upload failed. Please try again or retake the video.");
-    const status = await fetch(`${api}/sessions/${phoneSessionId.value}`, {
+    if (!uploadComplete.value) {
+      const status = await fetch(`${api}/sessions/${sessionId.value}`, {
+        credentials: "include",
+      });
+      if (status.ok) {
+        const result = await status.json();
+        if (result.state === "sent") {
+          finishSent();
+          return;
+        }
+        if (result.state === "ready" || result.state === "sending")
+          uploadComplete.value = true;
+        else if (result.state === "expired")
+          throw new Error("This video session expired. Record a new video.");
+      }
+      if (!uploadComplete.value) {
+        const body = new FormData();
+        body.append(
+          "file",
+          videoBlob,
+          videoBlob.type.includes("mp4") ? "message.mp4" : "message.webm",
+        );
+        body.append("durationMs", String(recordedDurationMs));
+        const response = await fetch(
+          `${api}/sessions/${sessionId.value}/upload`,
+          { method: "POST", credentials: "include", body },
+        );
+        if (!response.ok) {
+          const recovered = await fetch(`${api}/sessions/${sessionId.value}`, {
+            credentials: "include",
+          }).catch(() => undefined);
+          if (recovered?.ok) {
+            const result = await recovered.json();
+            if (result.state === "sent") {
+              finishSent();
+              return;
+            }
+            if (result.state === "ready" || result.state === "sending") {
+              uploadComplete.value = true;
+            } else {
+              throw new Error(
+                "Video upload failed. Retry Send Video or retake the video.",
+              );
+            }
+          } else {
+            throw new Error(
+              "Video upload failed. Retry Send Video or retake the video.",
+            );
+          }
+        } else {
+          uploadComplete.value = true;
+        }
+      }
+    }
+
+    const response = await fetch(`${api}/sessions/${sessionId.value}/send`, {
+      method: "POST",
       credentials: "include",
     });
-    const result = await status.json();
-    if (result.state !== "ready" || !result.media)
-      throw new Error("The uploaded video is not ready yet.");
-    emit("update:modelValue", {
-      sessionId: phoneSessionId.value,
-      media: result.media,
-    });
-    resetRecording();
-    open.value = false;
-    step.value = "choice";
+    if (!response.ok) {
+      const recovered = await fetch(`${api}/sessions/${sessionId.value}`, {
+        credentials: "include",
+      }).catch(() => undefined);
+      if (recovered?.ok && (await recovered.json()).state === "sent") {
+        finishSent();
+        return;
+      }
+      throw new Error(
+        "Video could not be sent. Your chat permissions may have changed. Retry or retake the video.",
+      );
+    }
+    finishSent();
   } catch (cause: any) {
-    error.value = cause?.message || "Upload failed.";
+    error.value = cause?.message || "Video could not be sent. Please retry.";
   } finally {
     busy.value = false;
   }
 }
-async function discardDraft() {
-  const id = props.modelValue?.sessionId || phoneSessionId.value;
-  if (id)
-    await fetch(`${api}/sessions/${id}/cancel`, {
+async function retake() {
+  if (busy.value) return;
+  let reopenCamera = true;
+  busy.value = true;
+  error.value = "";
+  try {
+    if (sessionId.value) {
+      const response = await fetch(`${api}/sessions/${sessionId.value}/retake`, {
+        method: "POST",
+        credentials: "include",
+      });
+      if (response.status === 404) {
+        sessionId.value = "";
+        phoneToken = "";
+        uploadComplete.value = false;
+      } else if (!response.ok) {
+        throw new Error(
+          "The video session is busy. Retry or wait for the send to finish.",
+        );
+      } else {
+        const result = await response.json();
+        if (result.state === "sent") {
+          finishSent();
+          reopenCamera = false;
+        } else if (result.state === "expired") {
+          sessionId.value = "";
+          phoneToken = "";
+          uploadComplete.value = false;
+        }
+        uploadComplete.value = false;
+      }
+    }
+  } catch (cause: any) {
+    error.value = cause?.message || "Could not reset this video. Please retry.";
+    reopenCamera = false;
+  } finally {
+    busy.value = false;
+  }
+  if (reopenCamera) {
+    resetRecording();
+    step.value = "choice";
+    await startCamera();
+  }
+}
+async function cancelPhoneSession() {
+  clearTimers();
+  if (sessionId.value)
+    await fetch(`${api}/sessions/${sessionId.value}/cancel`, {
       method: "POST",
       credentials: "include",
     }).catch(() => {});
-  emit("update:modelValue", null);
   resetRecording();
-  step.value = "choice";
-  phoneSessionId.value = "";
+  sessionId.value = "";
   phoneToken = "";
+  uploadComplete.value = false;
+  qrDataUrl.value = "";
+  error.value = "";
+  step.value = "choice";
 }
 async function close() {
   clearTimers();
   stopCamera();
-  if (!props.modelValue && phoneSessionId.value) {
-    await fetch(`${api}/sessions/${phoneSessionId.value}/cancel`, {
+  if (sessionId.value) {
+    await fetch(`${api}/sessions/${sessionId.value}/cancel`, {
       method: "POST",
       credentials: "include",
     }).catch(() => {});
   }
-  phoneSessionId.value = "";
+  sessionId.value = "";
   phoneToken = "";
+  uploadComplete.value = false;
   open.value = false;
   step.value = "choice";
   error.value = "";
@@ -328,15 +420,6 @@ onBeforeUnmount(() => {
   stopCamera();
   if (blobUrl.value) URL.revokeObjectURL(blobUrl.value);
 });
-watch(
-  () => props.modelValue,
-  (value, previous) => {
-    if (previous && !value) {
-      phoneSessionId.value = "";
-      phoneToken = "";
-    }
-  },
-);
 </script>
 
 <template>
@@ -344,14 +427,11 @@ watch(
     type="button"
     class="inline-flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50"
     :disabled="busy"
-    :title="modelValue ? 'Video ready' : 'Record a sign-language video message'"
+    title="Record a sign-language video message"
     @click="open = true"
   >
     <Video class="size-4" />
   </button>
-  <span v-if="modelValue" class="max-w-20 truncate text-xs text-emerald-600"
-    >Video ready</span
-  >
   <div
     v-if="open"
     class="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 p-4"
@@ -378,24 +458,7 @@ watch(
       >
         {{ error }}
       </p>
-      <div v-if="modelValue" class="space-y-3">
-        <ChatVideoPlayer
-          :src="mediaUrl"
-          label="Video ready preview"
-          class="max-h-[55vh] w-full rounded bg-black"
-        />
-        <div class="flex justify-between">
-          <span class="text-sm text-emerald-600">Video ready in composer</span
-          ><button
-            class="rounded border px-3 py-1.5 text-sm"
-            type="button"
-            @click="discardDraft"
-          >
-            Discard video
-          </button>
-        </div>
-      </div>
-      <div v-else-if="step === 'choice'" class="grid gap-3 sm:grid-cols-2">
+      <div v-if="step === 'choice'" class="grid gap-3 sm:grid-cols-2">
         <button
           class="flex min-h-24 items-center gap-3 rounded border p-4 text-left hover:bg-muted disabled:opacity-50"
           type="button"
@@ -476,16 +539,16 @@ watch(
             class="rounded border px-3 py-1.5 text-sm"
             type="button"
             :disabled="busy"
-            @click="startCamera"
+            @click="retake"
           >
             <RefreshCw class="mr-1 inline size-3.5" />Retake</button
           ><button
             class="rounded bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
             type="button"
             :disabled="busy"
-            @click="uploadVideo"
+            @click="sendVideo"
           >
-            {{ busy ? "Uploading…" : "Use Video" }}
+            {{ busy ? "Sending…" : error ? "Retry Send Video" : "Send Video" }}
           </button>
         </div>
       </div>
@@ -500,11 +563,13 @@ watch(
           Scan with your phone camera. No DEAFCS login is needed. This link
           expires in 5 minutes.
         </p>
-        <p class="text-xs text-muted-foreground">Waiting for your video…</p>
+        <p class="text-xs text-muted-foreground">
+          Waiting for your phone to send the video…
+        </p>
         <button
           class="rounded border px-3 py-1.5 text-sm"
           type="button"
-          @click="discardDraft"
+          @click="cancelPhoneSession"
         >
           Cancel
         </button>

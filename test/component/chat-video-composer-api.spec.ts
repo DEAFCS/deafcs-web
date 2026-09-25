@@ -14,6 +14,18 @@ const chatMessage = fs.readFileSync(
   path.resolve(__dirname, "../../components/chat/ChatMessage.vue"),
   "utf8",
 );
+const chatInput = fs.readFileSync(
+  path.resolve(__dirname, "../../components/chat/ChatInput.vue"),
+  "utf8",
+);
+const chatLobby = fs.readFileSync(
+  path.resolve(__dirname, "../../components/chat/ChatLobby.vue"),
+  "utf8",
+);
+const socket = fs.readFileSync(
+  path.resolve(__dirname, "../../web-sockets/Socket.ts"),
+  "utf8",
+);
 
 function between(source: string, start: string, end: string) {
   const startIndex = source.indexOf(start);
@@ -33,6 +45,8 @@ describe("Short Video API routing and local recording startup", () => {
     );
     expect(chatMessage).toContain("/matches/chat-video/media/");
     expect(phonePage).toContain("`${api}/phone/upload`");
+    expect(phonePage).toContain("`${api}/phone/send`");
+    expect(phonePage).toContain("`${api}/phone/retake`");
     expect(phonePage).toContain("`${api}/phone/cancel`");
   });
 
@@ -47,12 +61,30 @@ describe("Short Video API routing and local recording startup", () => {
     expect(startCamera).not.toContain("fetch(");
     expect(startCamera).not.toContain("choosePhone");
 
-    const uploadVideo = between(
+    const sendVideo = between(
       composer,
-      "async function uploadVideo()",
-      "async function discardDraft()",
+      "async function sendVideo()",
+      "async function retake()",
     );
-    expect(uploadVideo).toContain("await createSession()");
+    expect(sendVideo).toContain("await createSession()");
+    expect(sendVideo).toContain("`${api}/sessions/${sessionId.value}/send`");
+    expect(composer).not.toContain("modelValue");
+    expect(composer).not.toContain("Video ready");
+  });
+
+  it("keeps video out of the ordinary text composer and websocket send payload", () => {
+    expect(chatInput).toContain("if (!normalizedMessage) return;");
+    expect(chatInput).not.toContain("videoDraft");
+    expect(chatInput).not.toContain("modelValue");
+    expect(chatLobby).toContain("payload.message");
+    expect(chatLobby).not.toContain("videoDraftId");
+    const chatSend = between(
+      socket,
+      "public chat(",
+      "public editChat(",
+    );
+    expect(chatSend).toContain("message,");
+    expect(chatSend).not.toContain("videoDraftId");
   });
 
   it("requests video without audio from PC and phone cameras", () => {

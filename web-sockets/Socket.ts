@@ -334,13 +334,11 @@ class Socket extends EventEmitter {
     type: ChatType,
     id: string,
     message: string,
-    videoDraftId?: string,
   ) {
     this.event(`lobby:chat`, {
       id,
       type,
       message,
-      videoDraftId,
       clientId: this.sessionId,
     });
   }

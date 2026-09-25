@@ -19,10 +19,14 @@ const wrappers: ReturnType<typeof mount>[] = [];
 const originalCreateObjectURL = URL.createObjectURL;
 const originalRevokeObjectURL = URL.revokeObjectURL;
 const originalMediaPlay = HTMLMediaElement.prototype.play;
+const originalSrcObject = Object.getOwnPropertyDescriptor(
+  HTMLMediaElement.prototype,
+  "srcObject",
+);
 
 function mountComposer() {
   const wrapper = mount(ChatVideoComposer, {
-    props: { type: "Global", roomId: "global", modelValue: null },
+    props: { type: "Global", roomId: "global" },
   });
   wrappers.push(wrapper);
   return wrapper;
@@ -32,6 +36,31 @@ function mountPhonePage() {
   const wrapper = mount(PhoneVideoPage);
   wrappers.push(wrapper);
   return wrapper;
+}
+
+function stubRecorder() {
+  class FakeMediaRecorder {
+    static isTypeSupported() {
+      return true;
+    }
+    state = "inactive";
+    mimeType = "video/webm;codecs=vp9";
+    ondataavailable?: (event: { data: Blob }) => void;
+    onstop?: () => void;
+    start() {
+      this.state = "recording";
+      this.ondataavailable?.({
+        data: new Blob([new Uint8Array([0x1a, 0x45, 0xdf, 0xa3])], {
+          type: this.mimeType,
+        }),
+      });
+    }
+    stop() {
+      this.state = "inactive";
+      this.onstop?.();
+    }
+  }
+  vi.stubGlobal("MediaRecorder", FakeMediaRecorder);
 }
 
 async function clickButton(wrapper: ReturnType<typeof mount>, label: string) {
@@ -72,6 +101,15 @@ beforeEach(() => {
     configurable: true,
     value: vi.fn().mockResolvedValue(undefined),
   });
+  Object.defineProperty(HTMLMediaElement.prototype, "srcObject", {
+    configurable: true,
+    get() {
+      return (this as any).__srcObject;
+    },
+    set(value) {
+      (this as any).__srcObject = value;
+    },
+  });
   vi.mocked(QRCode.toDataURL).mockResolvedValue("data:image/png;base64,qr");
   window.history.replaceState({}, "", "/");
 });
@@ -92,6 +130,9 @@ afterEach(() => {
     configurable: true,
     value: originalMediaPlay,
   });
+  if (originalSrcObject)
+    Object.defineProperty(HTMLMediaElement.prototype, "srcObject", originalSrcObject);
+  else delete (HTMLMediaElement.prototype as any).srcObject;
 });
 
 describe("Short Video anonymous phone recorder", () => {
@@ -149,7 +190,7 @@ describe("Short Video anonymous phone recorder", () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ expiresAt: new Date().toISOString() }),
+      json: async () => ({ state: "recording", expiresAt: new Date().toISOString() }),
     } as Response);
 
     const wrapper = mountPhonePage();
@@ -230,28 +271,7 @@ describe("Short Video PC camera flow", () => {
       value: { getUserMedia },
     });
 
-    class FakeMediaRecorder {
-      static isTypeSupported() {
-        return true;
-      }
-      state = "inactive";
-      mimeType = "video/webm;codecs=vp9";
-      ondataavailable?: (event: { data: Blob }) => void;
-      onstop?: () => void;
-      start() {
-        this.state = "recording";
-        this.ondataavailable?.({
-          data: new Blob([new Uint8Array([0x1a, 0x45, 0xdf, 0xa3])], {
-            type: this.mimeType,
-          }),
-        });
-      }
-      stop() {
-        this.state = "inactive";
-        this.onstop?.();
-      }
-    }
-    vi.stubGlobal("MediaRecorder", FakeMediaRecorder);
+    stubRecorder();
 
     const fetchMock = vi.mocked(fetch);
     fetchMock
@@ -259,7 +279,19 @@ describe("Short Video PC camera flow", () => {
         ok: true,
         json: async () => ({ id: "pc-draft", token: "pc-capability" }),
       } as Response)
-      .mockResolvedValueOnce({ ok: false, status: 400 } as Response);
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ state: "recording" }),
+      } as Response)
+      .mockResolvedValueOnce({ ok: false, status: 400 } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ state: "recording" }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ state: "recording" }),
+      } as Response);
 
     const wrapper = mountComposer();
     await wrapper
@@ -274,25 +306,129 @@ describe("Short Video PC camera flow", () => {
     await clickButton(wrapper, "Stop");
     expect(wrapper.text()).toContain("Preview your video before sending");
 
-    await clickButton(wrapper, "Use Video");
-    expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(fetchMock.mock.calls[1][0]).toBe(
+    await clickButton(wrapper, "Send Video");
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock.mock.calls[2][0]).toBe(
       "https://api.deafcs.net/matches/chat-video/sessions/pc-draft/upload",
     );
     expect(wrapper.text()).toContain(
-      "Upload failed. Please try again or retake the video.",
+      "Video upload failed. Retry Send Video or retake the video.",
     );
     expect(wrapper.text()).toContain("Retake");
-    expect(wrapper.text()).toContain("Use Video");
+    expect(wrapper.text()).toContain("Retry Send Video");
     expect(
       wrapper.find('img[alt="Temporary phone recording QR code"]').exists(),
     ).toBe(false);
 
     await clickButton(wrapper, "Retake");
+    expect(fetchMock.mock.calls[4][0]).toBe(
+      "https://api.deafcs.net/matches/chat-video/sessions/pc-draft/retake",
+    );
     expect(getUserMedia).toHaveBeenCalledTimes(2);
     expect(wrapper.text()).toContain("Start recording");
     expect(
       wrapper.find('img[alt="Temporary phone recording QR code"]').exists(),
     ).toBe(false);
+  });
+
+  it("records with a 3-2-1 countdown, auto-stops at 60 seconds, and sends directly to chat", async () => {
+    vi.useFakeTimers();
+    const track = { stop: vi.fn() };
+    const getUserMedia = vi.fn().mockResolvedValue({ getTracks: () => [track] });
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia },
+    });
+    stubRecorder();
+
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: "pc-send", token: "pc-token" }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ state: "recording" }),
+      } as Response)
+      .mockResolvedValueOnce({ ok: true } as Response)
+      .mockResolvedValueOnce({ ok: true } as Response);
+
+    const wrapper = mountComposer();
+    await wrapper
+      .find('[title="Record a sign-language video message"]')
+      .trigger("click");
+    await clickButton(wrapper, "This device");
+    await clickButton(wrapper, "Start recording");
+    expect(wrapper.text()).toContain("3");
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(wrapper.text()).toContain("60 seconds left");
+    expect(wrapper.text()).toContain("Stop");
+    await vi.advanceTimersByTimeAsync(60_000);
+    await flushPromises();
+    expect(wrapper.text()).toContain("Preview your video before sending");
+
+    await clickButton(wrapper, "Send Video");
+    expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+      "https://api.deafcs.net/matches/chat-video/sessions",
+      "https://api.deafcs.net/matches/chat-video/sessions/pc-send",
+      "https://api.deafcs.net/matches/chat-video/sessions/pc-send/upload",
+      "https://api.deafcs.net/matches/chat-video/sessions/pc-send/send",
+    ]);
+    expect(wrapper.find('[title="Record a sign-language video message"]').exists()).toBe(true);
+    expect(wrapper.text()).not.toContain("Video ready");
+    expect(wrapper.emitted("update:modelValue")).toBeUndefined();
+    expect(wrapper.find("video").exists()).toBe(false);
+  });
+});
+
+describe("Short Video phone send flow", () => {
+  it("uploads only after preview, then sends and shows the exact success copy", async () => {
+    vi.useFakeTimers();
+    window.location.hash = "#phone-capability";
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: { getUserMedia: vi.fn().mockResolvedValue({ getTracks: () => [] }) },
+    });
+    stubRecorder();
+    class FakeXMLHttpRequest {
+      upload: Record<string, unknown> = {};
+      status = 200;
+      onload?: () => void;
+      onerror?: () => void;
+      open = vi.fn();
+      setRequestHeader = vi.fn();
+      send = vi.fn(() => this.onload?.());
+    }
+    vi.stubGlobal("XMLHttpRequest", FakeXMLHttpRequest);
+    const fetchMock = vi.mocked(fetch);
+    fetchMock
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ state: "recording" }),
+      } as Response)
+      .mockResolvedValueOnce({ ok: true } as Response);
+
+    const wrapper = mountPhonePage();
+    await flushPromises();
+    await clickButton(wrapper, "Open camera");
+    await clickButton(wrapper, "Start recording");
+    await vi.advanceTimersByTimeAsync(3_000);
+    expect(wrapper.text()).toContain("Stop · 60s");
+    await clickButton(wrapper, "Stop");
+    expect(wrapper.text()).toContain("Preview your video");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    await clickButton(wrapper, "Send Video");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[1][0]).toBe(
+      "https://api.deafcs.net/matches/chat-video/phone/send",
+    );
+    expect(fetchMock.mock.calls[1][1]).toMatchObject({
+      method: "POST",
+      headers: { Authorization: "Bearer phone-capability" },
+    });
+    expect(wrapper.text()).toContain("Video sent");
+    expect(wrapper.text()).toContain("You can return to your PC.");
   });
 });

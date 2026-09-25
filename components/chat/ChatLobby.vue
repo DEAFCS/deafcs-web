@@ -566,7 +566,7 @@ export default {
         }
       });
     },
-    handleSendMessage(payload: { message: string; videoDraftId?: string }) {
+    handleSendMessage(payload: { message: string }) {
       if (!this.effectiveCanSend) {
         return;
       }
@@ -574,7 +574,6 @@ export default {
         this.type as ChatType,
         this.lobbyId,
         payload.message,
-        payload.videoDraftId,
       );
       // Snap to latest after sending.
       this.safeScrollToBottom(true);
