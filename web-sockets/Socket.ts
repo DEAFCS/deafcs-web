@@ -871,14 +871,15 @@ socket.listen(
     // chat tabs anywhere in the UI today), so this mirrors
     // useChatNotificationNavigation's same exclusion rather than fight
     // the type mismatch. Those two chats simply don't get a live unread
-    // ping yet; unaffected otherwise.
+    // ping yet; unaffected otherwise. "match" is excluded too -- live
+    // match all-chat is high-volume and expected to already be open
+    // during a match, so it shouldn't ping an unread badge either.
     const registrableTypes = [
       "global",
       "organizers",
       "announcement",
       "matchmaking",
       "tournament",
-      "match",
       "team",
     ];
     if (!registrableTypes.includes(type)) {

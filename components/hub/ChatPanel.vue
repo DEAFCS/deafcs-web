@@ -425,7 +425,14 @@ function handleMessageReceived(payload: {
     // and live "chat" events like this one keep arriving too, so
     // incrementing here as well double-counted every DM's unread badge
     // (reported: sending one message gave the recipient two alerts).
-    if (tab?.type !== "direct") {
+    // Live match all-chat/team-chat is high-volume and expected to be
+    // open during a match already, so it's excluded from the unread
+    // badge the same way DMs are excluded above (for a different reason).
+    if (
+      tab?.type !== "direct" &&
+      tab?.type !== "match" &&
+      tab?.type !== "match_team"
+    ) {
       incrementUnread(tabId);
     }
     return;
