@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Component } from "vue";
 import { Info, TriangleAlert, OctagonAlert, X } from "lucide-vue-next";
+import LinkifyText from "~/components/LinkifyText.vue";
 
 defineProps<{
   type: "info" | "warning" | "critical";
@@ -77,10 +78,8 @@ const severity: Record<
       >
         {{ title }}
       </p>
-      <p
-        class="whitespace-pre-line break-words text-sm leading-snug text-foreground/85"
-      >
-        {{ message }}
+      <p class="text-sm leading-snug text-foreground/85">
+        <LinkifyText :text="message" />
       </p>
     </div>
     <!-- Absolutely positioned so toggling dismissible never changes row height. -->

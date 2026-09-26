@@ -34,6 +34,7 @@
       "title_placeholder": "Scheduled maintenance",
       "message": "Message",
       "message_placeholder": "Matchmaking is temporarily down while we investigate.",
+      "message_link_hint": "Add a clickable link with [label](https://example.com), or paste a bare https:// URL to link it as-is.",
       "is_active": "Active",
       "is_active_hint": "Show this banner to everyone right now.",
       "dismissible": "Dismissible",
