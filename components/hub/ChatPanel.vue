@@ -725,31 +725,6 @@ function openLobbyCallWindow() {
                 <span>
                   {{ activeTab ? getRoomSubtitle(activeTab) : "" }}
                 </span>
-                <span class="inline-flex items-center gap-1">
-                  <span
-                    class="inline-flex h-1.5 w-1.5 rounded-full"
-                    :class="
-                      activeParticipantsCount > 0
-                        ? 'bg-emerald-400'
-                        : 'bg-zinc-500/60'
-                    "
-                  ></span>
-                  <button
-                    type="button"
-                    class="text-[10px] text-zinc-400 underline-offset-2"
-                    :class="
-                      activeParticipantsCount
-                        ? 'hover:text-zinc-200 hover:underline cursor-pointer'
-                        : 'cursor-default opacity-60'
-                    "
-                    @click="
-                      activeParticipantsCount &&
-                      (isParticipantsOpen = !isParticipantsOpen)
-                    "
-                  >
-                    {{ $t("layouts.chat_panel.view_participants") }}
-                  </button>
-                </span>
               </div>
             </div>
           </div>
