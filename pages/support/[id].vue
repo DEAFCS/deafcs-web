@@ -8,6 +8,7 @@ import LinkifyText from "~/components/LinkifyText.vue";
 import { Textarea } from "~/components/ui/textarea";
 import PlayerProfileCard from "~/components/PlayerProfileCard.vue";
 import SanctionsHistoryPanel from "~/components/SanctionsHistoryPanel.vue";
+import PlayerMatchRow from "~/components/player/PlayerMatchRow.vue";
 
 useHead({ title: "Support Request" });
 </script>
@@ -220,6 +221,18 @@ useHead({ title: "Support Request" });
 
       <div v-if="showReportedPlayerPanel" class="flex flex-col gap-4">
         <PlayerProfileCard :steam-id="request.reported_player_steam_id" />
+        <Card v-if="relatedMatch" class="p-3">
+          <p
+            class="mb-2 font-mono text-[0.58rem] uppercase tracking-[0.24em] text-muted-foreground"
+          >
+            Related Match
+          </p>
+          <PlayerMatchRow
+            :match="relatedMatch"
+            :player="reportedPlayer"
+            compact
+          />
+        </Card>
         <Card class="p-4">
           <SanctionsHistoryPanel
             :player-id="request.reported_player_steam_id"
@@ -238,9 +251,24 @@ import { e_player_roles_enum } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $ } from "~/generated/zeus";
 import { playerFields } from "~/graphql/playerFields";
+import { simpleMatchFields } from "~/graphql/simpleMatchFields";
+import { eloFields } from "~/graphql/eloFields";
 
 const REPORTED_PLAYER_QUERY = typedGql("query")({
   players_by_pk: [{ steam_id: $("steamId", "bigint!") }, playerFields],
+});
+
+const RELATED_MATCH_QUERY = typedGql("query")({
+  matches_by_pk: [
+    { id: $("matchId", "uuid!") },
+    {
+      ...simpleMatchFields,
+      elo_changes: [
+        { where: { player_steam_id: { _eq: $("steamId", "bigint!") } } },
+        eloFields,
+      ],
+    },
+  ],
 });
 
 const REQUEST_DETAIL = gql`
@@ -320,6 +348,7 @@ export default {
     request: null as any,
     reply: "",
     reportedPlayer: null as any,
+    relatedMatch: null as any,
   }),
   computed: {
     isStaff() {
@@ -347,6 +376,18 @@ export default {
       )
         ? reference
         : null;
+    },
+    // Same UUID this page needs to know about for the related-match
+    // preview box, but also pulled out of a full match URL (e.g. pasted
+    // from the address bar) -- relatedMatchId above deliberately stays
+    // bare-ID-only so the NuxtLink-vs-LinkifyText branch in the template
+    // is unaffected.
+    relatedMatchIdForFetch() {
+      const reference = (this.request?.related_match_reference || "").trim();
+      const match = reference.match(
+        /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/,
+      );
+      return match ? match[0] : null;
     },
   },
   mounted() {
@@ -376,8 +417,28 @@ export default {
         });
         this.request = data?.support_requests_by_pk ?? null;
         await this.fetchReportedPlayer();
+        await this.fetchRelatedMatch();
       } finally {
         this.loading = false;
+      }
+    },
+    async fetchRelatedMatch() {
+      this.relatedMatch = null;
+      if (!this.showReportedPlayerPanel || !this.relatedMatchIdForFetch) {
+        return;
+      }
+      try {
+        const { data } = await (this.$apollo as any).query({
+          query: RELATED_MATCH_QUERY,
+          variables: {
+            matchId: this.relatedMatchIdForFetch,
+            steamId: this.request.reported_player_steam_id,
+          },
+          fetchPolicy: "network-only",
+        });
+        this.relatedMatch = data?.matches_by_pk ?? null;
+      } catch {
+        this.relatedMatch = null;
       }
     },
     async fetchReportedPlayer() {
