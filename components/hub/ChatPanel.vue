@@ -359,6 +359,18 @@ watch(
   () => props.isTabActive,
   (active) => {
     if (!active || orderedTabs.value.length === 0) return;
+    // An explicit "open this room" from outside the panel (e.g. the
+    // tournament page's Chat Room tab, which switches the hub to chat and
+    // then selects its room) that this panel has not applied yet wins
+    // over the unread auto-pick below, which would otherwise jump to
+    // whichever other room happens to have unread first.
+    const requested = activeTabId.value
+      ? orderedTabs.value.find((t) => t.id === activeTabId.value)
+      : null;
+    if (requested && requested.id !== activeChatId.value) {
+      handleSelectRoom(requested);
+      return;
+    }
     const unreadTab = orderedTabs.value.find(
       (t) => unreadCounts.value[t.id] > 0,
     );

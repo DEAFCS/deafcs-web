@@ -94,6 +94,11 @@ import {
 import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 import { canLeaveIndividualTournament } from "~/utilities/tournamentAttendance";
 
+// The Chat Room entry is a plain button, not a TabsTrigger (it opens the
+// Chat Hub rather than a panel), so it borrows TabsTrigger's base look.
+const chatRoomTabBaseClasses =
+  "relative z-[1] inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:text-foreground";
+
 const tournamentHeroClasses =
   "relative isolate overflow-hidden rounded-lg border border-border px-7 py-6 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
 const tournamentHeroToplineClasses =
@@ -615,6 +620,22 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               >
                 {{ $t("tournament.notifications.title") }}
               </TabsTrigger>
+              <!-- Not a tab panel: opens this tournament's room in the Chat
+                   Hub. Shown only while the Chat Hub itself lists this
+                   tournament (participants, assigned organizers,
+                   administrators; 24h after finishing). -->
+              <button
+                v-if="chatRoomTournament"
+                type="button"
+                data-testid="tournament-chat-room-tab"
+                :class="[chatRoomTabBaseClasses, tacticalTabsTriggerClasses]"
+                @click="openChatRoom"
+              >
+                {{ $t("tournament.page.chat_room_tab") }}
+                <span v-if="chatRoomUnreadLabel" class="ml-1 tabular-nums">
+                  ({{ chatRoomUnreadLabel }})
+                </span>
+              </button>
             </TabsList>
           </div>
         </header>
@@ -1040,6 +1061,14 @@ import {
   normalizeRouteTab,
   replaceRouteTab,
 } from "~/composables/useRouteTab";
+import { useChatTabs } from "~/composables/useChatTabs";
+import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
+import {
+  findChatTournament,
+  formatChatRoomUnread,
+  openTournamentChatRoom,
+  tournamentChatTabId,
+} from "~/composables/useTournamentChatRoom";
 
 export default {
   data() {
@@ -1502,6 +1531,23 @@ export default {
     },
   },
   computed: {
+    // Chat Hub's own list of tournaments this viewer may chat in; the
+    // Chat Room tab only exists while this tournament is in it.
+    chatRoomTournament() {
+      return findChatTournament(
+        useMatchLobbyStore().chatTournaments,
+        this.tournament?.id,
+      );
+    },
+    // The Chat Hub's existing unread count for this room, not a copy.
+    chatRoomUnreadLabel() {
+      if (!this.chatRoomTournament) return "";
+      return formatChatRoomUnread(
+        useChatTabs().unreadCounts.value[
+          tournamentChatTabId(this.chatRoomTournament.id)
+        ],
+      );
+    },
     apiDomain() {
       return useRuntimeConfig().public.apiDomain;
     },
@@ -1778,6 +1824,10 @@ export default {
     },
   },
   methods: {
+    openChatRoom() {
+      if (!this.chatRoomTournament) return;
+      openTournamentChatRoom(this.chatRoomTournament);
+    },
     // Current identity avatar for the "Organized by" trigger icon -- same
     // custom_avatar_url -> avatar_url priority PlayerDisplay already uses
     // internally (confirmed correct in the popover just below this trigger,
