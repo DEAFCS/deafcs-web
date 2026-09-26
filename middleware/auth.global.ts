@@ -107,6 +107,13 @@ function isPublicRoute(path: string): boolean {
     return true;
   }
 
+  // Token-gated join page for the tournament webcam support room -- same
+  // anonymous-phone-QR reasoning as /lobby-call above. The API re-checks
+  // the token's tournament access on every request.
+  if (path.startsWith("/tournament-call")) {
+    return true;
+  }
+
   // Token-gated join page for the verification-application webcam call
   // -- same anonymous-phone-QR reasoning as /lobby-call above.
   if (path.startsWith("/verification-call")) {

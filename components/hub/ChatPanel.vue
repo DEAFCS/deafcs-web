@@ -20,6 +20,11 @@ import ChatLobby from "~/components/chat/ChatLobby.vue";
 import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
+import { useTournamentWebcamStatus } from "~/composables/useTournamentWebcamStatus";
+import {
+  TOURNAMENT_WEBCAM_MAX,
+  tournamentWebcamPopoutPath,
+} from "~/composables/useWebcamRoomApi";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import { markDirectMessagesRead } from "~/composables/useIncomingDirectMessages";
 import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
@@ -560,6 +565,46 @@ function openLobbyCallWindow() {
   ].join(",");
   window.open(`/matchmaking/lobby-call/${tab.lobbyId}`, "lobby-call", features);
 }
+
+// Tournament webcam support room for the active tournament chat. Only
+// the header icon's state lives here; there is no popup/ring path.
+const activeTournamentId = computed(() =>
+  activeTab.value?.type === "tournament" ? activeTab.value.lobbyId : null,
+);
+const { participants: tournamentWebcamParticipants } =
+  useTournamentWebcamStatus(activeTournamentId);
+const tournamentWebcamCount = computed(
+  () => tournamentWebcamParticipants.value.length,
+);
+const tournamentWebcamLabel = computed(() =>
+  tournamentWebcamCount.value
+    ? t("tournament.webcam.join_count", {
+        count: tournamentWebcamCount.value,
+        max: TOURNAMENT_WEBCAM_MAX,
+      })
+    : t("tournament.webcam.tooltip"),
+);
+
+function openTournamentWebcamWindow() {
+  const id = activeTournamentId.value;
+  if (!id) return;
+  const w = 960;
+  const h = 720;
+  const left = Math.max(0, (window.screen.width - w) / 2);
+  const top = Math.max(0, (window.screen.height - h) / 2);
+  const features = [
+    `width=${w}`,
+    `height=${h}`,
+    `left=${left}`,
+    `top=${top}`,
+    "scrollbars=yes",
+    "location=no",
+    "menubar=no",
+    "toolbar=no",
+    "status=no",
+  ].join(",");
+  window.open(tournamentWebcamPopoutPath(id), "tournament-webcam", features);
+}
 </script>
 
 <template>
@@ -772,6 +817,39 @@ function openLobbyCallWindow() {
                       ? $t("matchmaking.lobby_call.join", "Join call")
                       : $t("matchmaking.lobby_call.tooltip", "Webcam call")
                   }}
+                </TooltipContent>
+              </Tooltip>
+              <!-- Tournament webcam support room: opt-in. Orange + count
+                   while anyone is in it; never rings, pops up or opens by
+                   itself. Clicking opens the room window. -->
+              <Tooltip v-if="activeTournamentId">
+                <TooltipTrigger as-child>
+                  <button
+                    type="button"
+                    data-testid="tournament-webcam-button"
+                    class="relative inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors"
+                    :class="
+                      tournamentWebcamCount
+                        ? 'border-[hsl(var(--tac-amber))]/50 bg-[hsl(var(--tac-amber))]/10 text-[hsl(var(--tac-amber))]'
+                        : 'border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                    "
+                    :aria-label="tournamentWebcamLabel"
+                    @click="openTournamentWebcamWindow"
+                  >
+                    <Video class="w-3.5 h-3.5" />
+                    <span
+                      v-if="tournamentWebcamCount"
+                      class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] text-black text-[9px] font-bold px-1 min-w-[1.05rem] h-4 leading-none"
+                    >
+                      {{ tournamentWebcamCount }}
+                    </span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="bottom"
+                  class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-1.5 text-[11px]"
+                >
+                  {{ tournamentWebcamLabel }}
                 </TooltipContent>
               </Tooltip>
               <Tooltip>

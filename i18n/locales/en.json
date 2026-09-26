@@ -5170,6 +5170,13 @@
       "players": "Player | Players",
       "teams": "Team | Teams"
     },
+    "webcam": {
+      "title": "Tournament webcam",
+      "tooltip": "Tournament webcam",
+      "join_count": "Join webcam ({count}/{max})",
+      "remove": "Remove",
+      "remove_hint": "Remove from the webcam room to free a slot"
+    },
     "feature_card": {
       "tournament": "Tournament",
       "teams": "Teams",
