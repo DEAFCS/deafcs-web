@@ -93,6 +93,12 @@ function revokeSource() {
 }
 
 async function loadFile(file: File) {
+  // Set before the (also async) downscale step, not just before
+  // removeBackground() -- otherwise there was a gap between picking a
+  // file and the overlay appearing where displaySrc was already null
+  // (old image cleared below) but nothing was shown yet, i.e. a blank
+  // card with no loading indicator at all.
+  removingBg.value = true;
   revokeSource();
   workingSrc.value = null;
   selectedTeams.value = {};
