@@ -38,6 +38,16 @@ import { e_player_roles_enum } from "~/generated/zeus";
 
     <button
       type="button"
+      :title="sanctions.warning.label"
+      :aria-label="sanctions.warning.label"
+      class="group/sanction inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-yellow-500/45 bg-yellow-500/10 text-yellow-400 transition-[border-color,background-color,color,box-shadow] duration-150 hover:border-yellow-500/80 hover:bg-yellow-500/20 hover:text-yellow-200 hover:shadow-[0_0_0_1px_rgb(234_179_8_/_0.35),0_6px_18px_-6px_rgb(234_179_8_/_0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      @click="openSanction('warning')"
+    >
+      <TriangleAlert class="h-4 w-4" />
+    </button>
+
+    <button
+      type="button"
       :title="sanctions.silence.label"
       :aria-label="sanctions.silence.label"
       class="group/sanction inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-red-500/45 bg-red-500/10 text-red-400 transition-[border-color,background-color,color,box-shadow] duration-150 hover:border-red-500/80 hover:bg-red-500/20 hover:text-red-200 hover:shadow-[0_0_0_1px_rgb(239_68_68_/_0.35),0_6px_18px_-6px_rgb(239_68_68_/_0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
@@ -140,7 +150,11 @@ import { e_player_roles_enum } from "~/generated/zeus";
           </FormItem>
         </FormField>
 
-        <FormField v-slot="{ componentField }" name="duration">
+        <FormField
+          v-if="sanctionType !== 'warning'"
+          v-slot="{ componentField }"
+          name="duration"
+        >
           <FormItem>
             <FormLabel>{{ $t("player.sanctions.duration_label") }}</FormLabel>
             <FormControl>
@@ -268,6 +282,18 @@ export default {
           ),
           description: this.$t("player.sanction.types.silence_description"),
         },
+        warning: {
+          icon: TriangleAlert,
+          label: this.$t("player.sanction.types.warning", "Warning"),
+          actionLabel: this.$t(
+            "player.sanction.actions.warning",
+            "Warn Player",
+          ),
+          description: this.$t(
+            "player.sanction.types.warning_description",
+            "Informational only -- not enforced on any server",
+          ),
+        },
       };
       if (this.isSiteAdministrator) {
         sanctions.website_restriction = {
@@ -312,7 +338,7 @@ export default {
       // sanctions used constantly. Anything else -- currently only the
       // site-administrator-only website sanctions -- still goes through
       // the overflow popover.
-      const { ban, silence, ...rest } = this.sanctions;
+      const { ban, silence, warning, ...rest } = this.sanctions;
       return rest;
     },
     durations(): Array<{ label: string; duration: number }> {

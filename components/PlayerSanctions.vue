@@ -209,6 +209,11 @@ import { fromDate, toCalendarDate } from "@internationalized/date";
                         class="h-4 w-4 shrink-0"
                         :class="accentTextClass(sanction)"
                       />
+                      <AlertTriangle
+                        v-else-if="sanction.type === 'warning'"
+                        class="h-4 w-4 shrink-0"
+                        :class="accentTextClass(sanction)"
+                      />
                       <VolumeX
                         v-else
                         class="h-4 w-4 shrink-0"
@@ -802,6 +807,9 @@ export default {
           "Website Restriction",
         );
       }
+      if (sanction.type === "warning") {
+        return this.$t("player.sanction.types.warning", "Warning");
+      }
       return sanction.type;
     },
     canManageSpecificSanction(sanction: any) {
@@ -827,17 +835,25 @@ export default {
       if (this.isExpired(sanction) || this.isRevoked(sanction)) {
         return "bg-muted-foreground/30";
       }
-      return sanction.type === "ban"
-        ? "bg-destructive"
-        : "bg-[hsl(var(--tac-amber))]";
+      if (sanction.type === "ban") {
+        return "bg-destructive";
+      }
+      if (sanction.type === "warning") {
+        return "bg-yellow-500";
+      }
+      return "bg-[hsl(var(--tac-amber))]";
     },
     accentTextClass(sanction: any) {
       if (this.isExpired(sanction) || this.isRevoked(sanction)) {
         return "text-muted-foreground";
       }
-      return sanction.type === "ban"
-        ? "text-destructive"
-        : "text-[hsl(var(--tac-amber))]";
+      if (sanction.type === "ban") {
+        return "text-destructive";
+      }
+      if (sanction.type === "warning") {
+        return "text-yellow-500";
+      }
+      return "text-[hsl(var(--tac-amber))]";
     },
     statusPillClass(sanction: any) {
       return this.isExpired(sanction) || this.isRevoked(sanction)
