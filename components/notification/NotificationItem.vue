@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onBeforeUnmount } from "vue";
-import { Trash2, Check, TriangleAlert } from "lucide-vue-next";
+import { Trash2, Check, TriangleAlert, Ban } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import TimeAgo from "~/components/TimeAgo.vue";
 import NotificationContext from "~/components/notification/NotificationContext.vue";
@@ -54,15 +54,25 @@ const emit = defineEmits<{
 }>();
 
 const isWarning = computed(() => props.notification.type === "PlayerWarning");
+// PlayerSanctioned currently only ever fires for a ban (see
+// notifyBannedPlayer/notifyMatchPlayersOfSanction/notifyAdminsOfBan in
+// NotificationsService, all gated on type === "ban") -- if a non-ban
+// sanction type is ever routed through this notification type, this will
+// need its own flag instead of reusing PlayerSanctioned wholesale.
+const isBan = computed(() => props.notification.type === "PlayerSanctioned");
 
 const wrapperClass = computed(() => {
   const base =
     props.variant === "sheet"
       ? "mb-4 p-4 rounded-lg shadow-md relative"
       : "mb-3 p-3 rounded-md border border-border bg-card/40 relative";
-  return isWarning.value
-    ? `${base} border-yellow-500/40 bg-yellow-500/10`
-    : base;
+  if (isWarning.value) {
+    return `${base} border-yellow-500/40 bg-yellow-500/10`;
+  }
+  if (isBan.value) {
+    return `${base} border-destructive/40 bg-destructive/10`;
+  }
+  return base;
 });
 
 // Support-request notifications (SupportRequestSubmitted / *PlayerReply /
@@ -156,6 +166,7 @@ onBeforeUnmount(() => {
         v-if="isWarning"
         class="h-5 w-5 shrink-0 text-yellow-500"
       />
+      <Ban v-else-if="isBan" class="h-5 w-5 shrink-0 text-destructive" />
       <NuxtLink
         v-if="titleLink"
         :to="titleLink"
