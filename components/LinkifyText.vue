@@ -3,9 +3,14 @@
 // rendering raw HTML. Two forms are recognized:
 //   - a bare URL (https://...), shown as its own text and linked
 //   - a Markdown-style [label](https://...) link, shown as the label
-// A DEAFCS match URL or player profile URL (this site's own webDomain,
-// /matches/<id> or /players/<steamid>) becomes an internal NuxtLink so
-// navigating doesn't force a full page reload; any other http(s) URL
+// ANY link to this site's own domain (webDomain) becomes an internal
+// NuxtLink using just its path -- not only /matches/<id> or
+// /players/<steamid> as before. This matters beyond avoiding a full page
+// reload: an own-domain link rendered as target="_blank" (the external
+// path below) is exactly the kind of navigation Windows/Chrome's PWA
+// "link capturing" intercepts and redirects into the installed DEAFCS
+// PWA window instead of opening in the browser tab the user actually
+// clicked from (reported live, 2026-09-26). Any other http(s) URL still
 // becomes a safe external link (target=_blank, rel=noopener). Everything
 // else -- plain text, and URLs using any other scheme (javascript:,
 // data:, etc) -- is rendered as inert text, never as a link and never
@@ -20,13 +25,7 @@ const LINK_PATTERN =
 
 type Segment =
   | { type: "text"; value: string }
-  | {
-      type: "internal";
-      value: string;
-      label: string;
-      routeName: string;
-      id: string;
-    }
+  | { type: "internal"; value: string; label: string; to: string }
   | { type: "external"; value: string; label: string; href: string };
 
 const webDomain = useRuntimeConfig().public.webDomain;
@@ -48,26 +47,12 @@ function toSegment(raw: string, label?: string): Segment {
     !!webDomain &&
     (url.hostname === webDomain || url.hostname === `www.${webDomain}`);
   if (isOwnDomain) {
-    const matchMatch = url.pathname.match(/^\/matches\/([0-9a-fA-F-]+)\/?$/);
-    if (matchMatch) {
-      return {
-        type: "internal",
-        value: raw,
-        label: displayLabel,
-        routeName: "matches-id",
-        id: matchMatch[1],
-      };
-    }
-    const playerMatch = url.pathname.match(/^\/players\/(\d{15,20})\/?$/);
-    if (playerMatch) {
-      return {
-        type: "internal",
-        value: raw,
-        label: displayLabel,
-        routeName: "players-id",
-        id: playerMatch[1],
-      };
-    }
+    return {
+      type: "internal",
+      value: raw,
+      label: displayLabel,
+      to: `${url.pathname}${url.search}${url.hash}`,
+    };
   }
 
   return { type: "external", value: raw, label: displayLabel, href: url.toString() };
@@ -103,7 +88,7 @@ const segments = computed<Segment[]>(() => {
     <template v-for="(segment, index) in segments" :key="index">
       <NuxtLink
         v-if="segment.type === 'internal'"
-        :to="{ name: segment.routeName, params: { id: segment.id } }"
+        :to="segment.to"
         class="text-[hsl(var(--tac-amber))] hover:underline break-all"
       >{{ segment.label }}</NuxtLink>
       <a
