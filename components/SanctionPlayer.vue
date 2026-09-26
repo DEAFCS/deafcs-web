@@ -9,12 +9,11 @@ import {
 } from "~/components/ui/drawer";
 import { Button } from "~/components/ui/button";
 import {
-  MicOff,
   MessageSquareOff,
-  BellOff,
   Ban,
   TriangleAlert,
   ShieldAlert,
+  MoreHorizontal,
 } from "lucide-vue-next";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
@@ -26,41 +25,63 @@ import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
 <template>
-  <Popover v-if="showTrigger">
-    <PopoverTrigger as-child>
-      <button
-        type="button"
-        :title="$t('player.sanction.button')"
-        :aria-label="$t('player.sanction.button')"
-        class="group/sanction inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-red-500/45 bg-red-500/10 text-red-400 transition-[border-color,background-color,color,box-shadow] duration-150 hover:border-red-500/80 hover:bg-red-500/20 hover:text-red-200 hover:shadow-[0_0_0_1px_rgb(239_68_68_/_0.35),0_6px_18px_-6px_rgb(239_68_68_/_0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-      >
-        <Ban class="h-4 w-4" />
-      </button>
-    </PopoverTrigger>
-    <PopoverContent class="p-0" align="end">
-      <Command v-model="sanctionType">
-        <CommandList>
-          <CommandGroup>
-            <template v-for="(sanction, type) in sanctions" :key="type">
-              <CommandItem
-                :value="type"
-                @click="sanctioningPlayer = true"
-                class="flex flex-col items-start px-4 py-2 cursor-pointer"
-              >
-                <div class="flex items-center gap-2">
-                  <component :is="sanction.icon" class="h-4 w-4" />
-                  <span class="font-medium">{{ sanction.label }}</span>
-                </div>
-                <p class="text-sm text-muted-foreground mt-1">
-                  {{ sanction.description }}
-                </p>
-              </CommandItem>
-            </template>
-          </CommandGroup>
-        </CommandList>
-      </Command>
-    </PopoverContent>
-  </Popover>
+  <div v-if="showTrigger" class="flex items-center gap-2">
+    <button
+      type="button"
+      :title="sanctions.ban.label"
+      :aria-label="sanctions.ban.label"
+      class="group/sanction inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-red-500/45 bg-red-500/10 text-red-400 transition-[border-color,background-color,color,box-shadow] duration-150 hover:border-red-500/80 hover:bg-red-500/20 hover:text-red-200 hover:shadow-[0_0_0_1px_rgb(239_68_68_/_0.35),0_6px_18px_-6px_rgb(239_68_68_/_0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      @click="openSanction('ban')"
+    >
+      <Ban class="h-4 w-4" />
+    </button>
+
+    <button
+      type="button"
+      :title="sanctions.silence.label"
+      :aria-label="sanctions.silence.label"
+      class="group/sanction inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-red-500/45 bg-red-500/10 text-red-400 transition-[border-color,background-color,color,box-shadow] duration-150 hover:border-red-500/80 hover:bg-red-500/20 hover:text-red-200 hover:shadow-[0_0_0_1px_rgb(239_68_68_/_0.35),0_6px_18px_-6px_rgb(239_68_68_/_0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      @click="openSanction('silence')"
+    >
+      <MessageSquareOff class="h-4 w-4" />
+    </button>
+
+    <Popover v-if="Object.keys(extraSanctions).length">
+      <PopoverTrigger as-child>
+        <button
+          type="button"
+          :title="$t('player.sanction.more_options', 'More sanctions')"
+          :aria-label="$t('player.sanction.more_options', 'More sanctions')"
+          class="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-border text-muted-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+        >
+          <MoreHorizontal class="h-4 w-4" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent class="p-0" align="end">
+        <Command v-model="sanctionType">
+          <CommandList>
+            <CommandGroup>
+              <template v-for="(sanction, type) in extraSanctions" :key="type">
+                <CommandItem
+                  :value="type"
+                  @click="sanctioningPlayer = true"
+                  class="flex flex-col items-start px-4 py-2 cursor-pointer"
+                >
+                  <div class="flex items-center gap-2">
+                    <component :is="sanction.icon" class="h-4 w-4" />
+                    <span class="font-medium">{{ sanction.label }}</span>
+                  </div>
+                  <p class="text-sm text-muted-foreground mt-1">
+                    {{ sanction.description }}
+                  </p>
+                </CommandItem>
+              </template>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  </div>
 
   <Drawer :open="sanctioningPlayer" @update:open="sanctioningPlayer = $event">
     <DrawerContent class="p-4">
@@ -238,20 +259,8 @@ export default {
           actionLabel: this.$t("player.sanction.actions.ban", "Ban Player"),
           description: this.$t("player.sanction.types.ban_description"),
         },
-        mute: {
-          icon: MicOff,
-          label: this.$t("player.sanction.types.mute", "CS2 Mute"),
-          actionLabel: this.$t("player.sanction.actions.mute", "Mute Player"),
-          description: this.$t("player.sanction.types.mute_description"),
-        },
-        gag: {
-          icon: MessageSquareOff,
-          label: this.$t("player.sanction.types.gag", "CS2 Gag"),
-          actionLabel: this.$t("player.sanction.actions.gag", "Gag Player"),
-          description: this.$t("player.sanction.types.gag_description"),
-        },
         silence: {
-          icon: BellOff,
+          icon: MessageSquareOff,
           label: this.$t("player.sanction.types.silence", "CS2 Silence"),
           actionLabel: this.$t(
             "player.sanction.actions.silence",
@@ -293,6 +302,18 @@ export default {
         };
       }
       return sanctions;
+    },
+    extraSanctions(): Record<
+      string,
+      { icon: any; label: string; actionLabel: string; description: string }
+    > {
+      // Ban and Silence each get their own always-visible icon button
+      // (see template) so admins don't need to open a menu for the two
+      // sanctions used constantly. Anything else -- currently only the
+      // site-administrator-only website sanctions -- still goes through
+      // the overflow popover.
+      const { ban, silence, ...rest } = this.sanctions;
+      return rest;
     },
     durations(): Array<{ label: string; duration: number }> {
       return [
