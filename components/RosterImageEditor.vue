@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { RotateCcw, Sparkles, Upload, Info } from "lucide-vue-next";
+import { ImagePlus, Upload, Info, TriangleAlert } from "lucide-vue-next";
 import { Spinner } from "~/components/ui/spinner";
 import { toast } from "@/components/ui/toast";
 import Cropper from "cropperjs";
@@ -92,6 +92,22 @@ function revokeSource() {
   sourceUrl.value = null;
 }
 
+async function loadFile(file: File) {
+  revokeSource();
+  workingSrc.value = null;
+  selectedTeams.value = {};
+  try {
+    sourceUrl.value = await downscaleFileToObjectUrl(file, MAX_SOURCE_EDGE);
+  } catch {
+    sourceUrl.value = URL.createObjectURL(file);
+  }
+  // Auto-remove the background as soon as an image is picked, before the
+  // user ever sees the crop tool -- the removingBg overlay (see template)
+  // covers the image the whole time this runs, so the crop step only
+  // becomes usable once this finishes.
+  await removeBackground();
+}
+
 watch(
   () => [props.open, props.file] as const,
   async ([open, file]) => {
@@ -103,23 +119,26 @@ watch(
       return;
     }
     if (!file) return;
-    revokeSource();
-    workingSrc.value = null;
-    selectedTeams.value = {};
-    try {
-      sourceUrl.value = await downscaleFileToObjectUrl(file, MAX_SOURCE_EDGE);
-    } catch {
-      sourceUrl.value = URL.createObjectURL(file);
-    }
-    // Auto-remove the background as soon as an image is picked, before the
-    // user ever sees the crop tool -- the removingBg overlay (see template)
-    // covers the image the whole time this runs, so the crop step only
-    // becomes usable once this finishes. The footer button stays as a
-    // manual re-run, e.g. if the result looks wrong on a specific photo.
-    await removeBackground();
+    await loadFile(file);
   },
   { immediate: true },
 );
+
+const anotherFileInput = ref<HTMLInputElement | null>(null);
+
+function pickAnotherImage() {
+  anotherFileInput.value?.click();
+}
+
+async function onAnotherFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const file = input.files?.[0];
+  // Reset so picking the exact same file again still fires change.
+  input.value = "";
+  if (file) {
+    await loadFile(file);
+  }
+}
 
 function onImgLoad() {
   setupCropper();
@@ -129,10 +148,6 @@ onBeforeUnmount(() => {
   teardownCropper();
   revokeSource();
 });
-
-function reset() {
-  cropper.value?.reset();
-}
 
 async function removeBackground() {
   if (!props.file && !workingSrc.value && !sourceUrl.value) return;
@@ -315,6 +330,15 @@ const noticeKey = computed(() =>
         <span class="leading-snug">{{ $t(noticeKey) }}</span>
       </div>
 
+      <div
+        class="flex items-start gap-2 rounded-md border border-yellow-500/40 bg-yellow-500/10 px-3 py-2 text-xs text-yellow-200"
+      >
+        <TriangleAlert class="h-3.5 w-3.5 mt-0.5 shrink-0 text-yellow-500" />
+        <span class="leading-snug">
+          {{ $t("avatar.roster_editor.bg_notice") }}
+        </span>
+      </div>
+
       <div v-if="showBulk" class="space-y-2">
         <div
           class="inline-flex items-center gap-2 font-mono text-[0.7rem] uppercase tracking-[0.22em] text-muted-foreground"
@@ -349,25 +373,23 @@ const noticeKey = computed(() =>
         </div>
       </div>
 
+      <input
+        ref="anotherFileInput"
+        type="file"
+        accept="image/*"
+        class="hidden"
+        @change="onAnotherFileSelected"
+      />
+
       <DialogFooter class="gap-2 sm:gap-2">
         <Button
           type="button"
           variant="outline"
           :disabled="removingBg || uploading"
-          @click="reset"
+          @click="pickAnotherImage"
         >
-          <RotateCcw class="h-4 w-4 mr-1" />
-          {{ $t("common.reset") }}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          :disabled="removingBg || uploading || !displaySrc"
-          @click="removeBackground"
-        >
-          <Spinner v-if="removingBg" class="h-4 w-4 mr-1" />
-          <Sparkles v-else class="h-4 w-4 mr-1" />
-          {{ $t("avatar.roster_editor.remove_bg") }}
+          <ImagePlus class="h-4 w-4 mr-1" />
+          {{ $t("avatar.roster_editor.another_image") }}
         </Button>
         <Button
           type="button"
