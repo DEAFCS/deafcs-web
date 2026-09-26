@@ -42,6 +42,12 @@ const emit = defineEmits<{
 // long as the menu itself is open, even if the pointer moves away from the
 // trigger and this row's hover state is lost.
 const open = ref(false);
+
+// Every row, the React sub-trigger included, relies on the dropdown
+// primitives' own `flex gap-2` layout plus this icon class. No per-row
+// margins, so icons share one column and labels start at the same x.
+const actionIconClass = "h-4 w-4 shrink-0";
+
 watch(open, (isOpen) => {
   if (isOpen) emit("opened");
 });
@@ -66,8 +72,8 @@ watch(open, (isOpen) => {
     </DropdownMenuTrigger>
     <DropdownMenuContent :align="align ?? 'end'" class="w-40">
       <DropdownMenuSub v-if="canReact">
-        <DropdownMenuSubTrigger>
-          <SmilePlus class="h-3.5 w-3.5" />
+        <DropdownMenuSubTrigger class="cursor-pointer">
+          <SmilePlus :class="actionIconClass" />
           {{ $t("chat.react", "React") }}
         </DropdownMenuSubTrigger>
         <DropdownMenuSubContent
@@ -86,11 +92,11 @@ watch(open, (isOpen) => {
         </DropdownMenuSubContent>
       </DropdownMenuSub>
       <DropdownMenuItem v-if="canEdit" @click="emit('edit')">
-        <Pencil class="mr-2 h-3.5 w-3.5" />
+        <Pencil :class="actionIconClass" />
         {{ $t("common.edit") }}
       </DropdownMenuItem>
       <DropdownMenuItem v-if="canMute" @click="emit('mute')">
-        <MessageSquareOff class="mr-2 h-3.5 w-3.5" />
+        <MessageSquareOff :class="actionIconClass" />
         {{ $t("chat.mute_player", "Mute Player") }}
       </DropdownMenuItem>
       <DropdownMenuItem
@@ -98,7 +104,7 @@ watch(open, (isOpen) => {
         class="text-destructive focus:text-destructive"
         @click="emit('delete')"
       >
-        <Trash2 class="mr-2 h-3.5 w-3.5" />
+        <Trash2 :class="actionIconClass" />
         {{ $t("common.delete") }}
       </DropdownMenuItem>
     </DropdownMenuContent>

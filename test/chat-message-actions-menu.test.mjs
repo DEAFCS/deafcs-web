@@ -122,3 +122,28 @@ test("Ellipsis is the trigger icon (Lucide), matching the requested three-dot de
   );
   assert.match(menu, /<Ellipsis class="h-3 w-3" \/>/);
 });
+
+test("React, Edit, Mute and Delete rows share one icon column and label start", () => {
+  // Every action icon uses the one shared class; no per-row margins that
+  // would push one label further right than the others.
+  assert.match(menu, /const actionIconClass = "h-4 w-4 shrink-0";/);
+  for (const icon of ["SmilePlus", "Pencil", "MessageSquareOff", "Trash2"]) {
+    assert.match(menu, new RegExp(`<${icon} :class="actionIconClass" />`));
+  }
+  assert.doesNotMatch(menu, /\bmr-2\b/);
+  assert.doesNotMatch(menu, /\bml-[0-9]/);
+  // The submenu arrow stays on the far right (from the primitive).
+  const subTrigger = read("components/ui/dropdown-menu/DropdownMenuSubTrigger.vue");
+  const item = read("components/ui/dropdown-menu/DropdownMenuItem.vue");
+  assert.match(subTrigger, /<ChevronRightIcon class="ml-auto h-4 w-4" \/>/);
+  // Both primitives use the same row box so heights and gaps match.
+  for (const src of [subTrigger, item]) {
+    assert.match(src, /items-center rounded-sm gap-2 px-2 py-1\.5 text-sm/);
+  }
+});
+
+test("reaction submenu keeps exactly the four compact chips", () => {
+  assert.match(menu, /class="size-8 justify-center p-0 text-base"/);
+  const reactions = read("utils/chatReactions.ts");
+  for (const emoji of ["👍", "❤️", "🔥", "🎉"]) assert.ok(reactions.includes(emoji));
+});
