@@ -6,6 +6,8 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import LinkifyText from "~/components/LinkifyText.vue";
 import { Textarea } from "~/components/ui/textarea";
+import PlayerProfileCard from "~/components/PlayerProfileCard.vue";
+import SanctionsHistoryPanel from "~/components/SanctionsHistoryPanel.vue";
 
 useHead({ title: "Support Request" });
 </script>
@@ -33,7 +35,12 @@ useHead({ title: "Support Request" });
       class="p-6 text-center text-sm text-muted-foreground"
       >Request not found, or you do not have permission to view it.</Card
     >
-    <div v-else class="mx-auto flex max-w-4xl flex-col gap-6">
+    <div
+      v-else
+      class="mx-auto grid max-w-6xl gap-6"
+      :class="showReportedPlayerPanel ? 'lg:grid-cols-[1fr_20rem] lg:items-start' : ''"
+    >
+    <div class="flex flex-col gap-6">
       <Card class="p-6">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -210,6 +217,17 @@ useHead({ title: "Support Request" });
         </p>
       </Card>
     </div>
+
+      <div v-if="showReportedPlayerPanel" class="flex flex-col gap-4">
+        <PlayerProfileCard :steam-id="request.reported_player_steam_id" />
+        <Card class="p-4">
+          <SanctionsHistoryPanel
+            :player-id="request.reported_player_steam_id"
+            :player="reportedPlayer"
+          />
+        </Card>
+      </div>
+    </div>
   </PageTransition>
 </template>
 
@@ -217,6 +235,13 @@ useHead({ title: "Support Request" });
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
 import { e_player_roles_enum } from "~/generated/zeus";
+import { typedGql } from "~/generated/zeus/typedDocumentNode";
+import { $ } from "~/generated/zeus";
+import { playerFields } from "~/graphql/playerFields";
+
+const REPORTED_PLAYER_QUERY = typedGql("query")({
+  players_by_pk: [{ steam_id: $("steamId", "bigint!") }, playerFields],
+});
 
 const REQUEST_DETAIL = gql`
   query SupportRequestDetail($id: uuid!) {
@@ -294,10 +319,21 @@ export default {
     changingStatus: false,
     request: null as any,
     reply: "",
+    reportedPlayer: null as any,
   }),
   computed: {
     isStaff() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
+    },
+    // Staff reviewing a player report get the reported player's profile
+    // card + sanction history alongside the report itself, so they don't
+    // have to open a second tab to see who this is or act on it.
+    showReportedPlayerPanel() {
+      return (
+        this.isStaff &&
+        this.request?.category === "player_report" &&
+        !!this.request?.reported_player_steam_id
+      );
     },
     // related_match_reference accepts either a full match URL (handled by
     // LinkifyText below) or a bare match ID -- a bare ID never matches
@@ -339,8 +375,29 @@ export default {
           fetchPolicy: "network-only",
         });
         this.request = data?.support_requests_by_pk ?? null;
+        await this.fetchReportedPlayer();
       } finally {
         this.loading = false;
+      }
+    },
+    async fetchReportedPlayer() {
+      this.reportedPlayer = null;
+      if (
+        !this.isStaff ||
+        this.request?.category !== "player_report" ||
+        !this.request?.reported_player_steam_id
+      ) {
+        return;
+      }
+      try {
+        const { data } = await (this.$apollo as any).query({
+          query: REPORTED_PLAYER_QUERY,
+          variables: { steamId: this.request.reported_player_steam_id },
+          fetchPolicy: "network-only",
+        });
+        this.reportedPlayer = data?.players_by_pk ?? null;
+      } catch {
+        this.reportedPlayer = null;
       }
     },
     async sendReply() {
