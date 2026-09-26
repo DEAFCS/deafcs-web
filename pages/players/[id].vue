@@ -1913,7 +1913,7 @@ const playerHeroTeamChipDotClasses =
                     <MessageSquare />
                   </button>
                   <button
-                    v-if="canEditPlayer && isSelfProfile"
+                    v-if="canOpenEditPlayer"
                     type="button"
                     :class="playerHeroNameEditButtonClasses"
                     :title="$t('pages.players.detail.edit_player')"
@@ -3161,7 +3161,7 @@ const playerHeroTeamChipDotClasses =
 
   <Sheet
     v-if="player"
-    :open="editPlayerSheet && isSelfProfile"
+    :open="editPlayerSheet && canOpenEditPlayer"
     @update:open="(open) => (editPlayerSheet = open)"
   >
     <SheetContent>
@@ -3656,6 +3656,14 @@ export default {
         this.canEditCountry ||
         this.canEditRole
       );
+    },
+    // The profile-card Edit Player button and its Sheet: own profile, or an
+    // Administrator editing someone else. canEditPlayer alone is also true
+    // for match/tournament organizers on other profiles, which must not open
+    // this sheet. Moderators never get it for other players. The API and
+    // Hasura re-check every field (avatar, name, country) server-side.
+    canOpenEditPlayer() {
+      return this.canEditPlayer && (this.isSelfProfile || this.isAdmin);
     },
     bulkApplyTeams() {
       if (!this.canEditRosterImages) return [];

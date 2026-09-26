@@ -6,21 +6,36 @@ const playerProfile = await readFile(
   new URL("../pages/players/[id].vue", import.meta.url),
   "utf8",
 );
+const changeName = await readFile(
+  new URL("../components/PlayerChangeName.vue", import.meta.url),
+  "utf8",
+);
+const changeCountry = await readFile(
+  new URL("../components/PlayerChangeCountry.vue", import.meta.url),
+  "utf8",
+);
 
-// Root cause: canEditPlayer combines several unrelated permissions --
-// canEditAvatar/canEditName (isSelfProfile || isAdmin), canEditCountry
-// (isSelfProfile || match_organizer+), canEditRosterImages
-// (tournament_organizer+) -- so it evaluates true for an admin/moderator/
-// organizer viewing SOMEONE ELSE's profile, which made the Player Card's
-// Edit Player button (and its Sheet) show up on other players' profiles.
-// canEditPlayer itself must stay untouched (it still gates which fields the
-// sheet shows once opened, and is the basis for other admin tooling), so
-// the fix only adds an isSelfProfile requirement at the two places this
-// specific profile-card control can show/open the sheet.
-test("the Player Card's Edit Player button additionally requires isSelfProfile (not just canEditPlayer)", () => {
+// canEditPlayer combines several unrelated permissions -- canEditAvatar/
+// canEditName (isSelfProfile || isAdmin), canEditCountry (isSelfProfile ||
+// match_organizer+), canEditRosterImages (tournament_organizer+) -- so it is
+// true for organizers viewing someone else's profile. The Edit Player button
+// and Sheet use canOpenEditPlayer: own profile, or Administrator on another
+// profile. Moderators and organizers never open it for other players.
+test("the Edit Player button is gated by canOpenEditPlayer", () => {
+  assert.match(playerProfile, /<button\s*\n\s*v-if="canOpenEditPlayer"/);
+});
+
+test("canOpenEditPlayer = canEditPlayer && (isSelfProfile || isAdmin)", () => {
   assert.match(
     playerProfile,
-    /<button\s*\n\s*v-if="canEditPlayer && isSelfProfile"/,
+    /canOpenEditPlayer\(\)\s*\{\s*\n\s*return this\.canEditPlayer && \(this\.isSelfProfile \|\| this\.isAdmin\);/,
+  );
+});
+
+test("isAdmin means the Administrator role specifically (not moderator/organizer)", () => {
+  assert.match(
+    playerProfile,
+    /isAdmin\(\)\s*\{\s*\n\s*return useAuthStore\(\)\.isRoleAbove\(e_player_roles_enum\.administrator\);/,
   );
 });
 
@@ -31,11 +46,18 @@ test("canEditPlayer itself is untouched -- still combines admin/roster permissio
   );
 });
 
-test("the Edit Player Sheet cannot be forced open on another profile through this control", () => {
+test("the Edit Player Sheet can only open through the same gate", () => {
   assert.match(
     playerProfile,
-    /<Sheet\s*\n\s*v-if="player"\s*\n\s*:open="editPlayerSheet && isSelfProfile"/,
+    /<Sheet\s*\n\s*v-if="player"\s*\n\s*:open="editPlayerSheet && canOpenEditPlayer"/,
   );
+});
+
+test("an Administrator reaches name, country and avatar for another player", () => {
+  assert.match(playerProfile, /canEditAvatar\(\)\s*\{\s*\n\s*return this\.isSelfProfile \|\| this\.isAdmin;/);
+  assert.match(playerProfile, /canEditName\(\)\s*\{\s*\n\s*return this\.isSelfProfile \|\| this\.isAdmin;/);
+  assert.match(changeName, /isRoleAbove\(e_player_roles_enum\.administrator\)/);
+  assert.match(changeCountry, /isRoleAbove\(e_player_roles_enum\.match_organizer\)/);
 });
 
 test("isSelfProfile requires both a logged-in viewer and a matching steam_id (false when logged out)", () => {
@@ -47,4 +69,29 @@ test("isSelfProfile requires both a logged-in viewer and a matching steam_id (fa
 
 test("the administrator webcam-call control on another profile is untouched (still isAdmin && !isSelfProfile, unrelated to Edit Player)", () => {
   assert.match(playerProfile, /v-if="isAdmin && !isSelfProfile"/);
+});
+
+// Role matrix, evaluated the same way the page does.
+const roleOrder = [
+  "user",
+  "verified_user",
+  "streamer",
+  "moderator",
+  "match_organizer",
+  "tournament_organizer",
+  "administrator",
+];
+const atLeast = (role, min) => roleOrder.indexOf(role) >= roleOrder.indexOf(min);
+const canOpen = (role, self) => {
+  const isAdmin = atLeast(role, "administrator");
+  const canEditPlayer =
+    self || isAdmin || atLeast(role, "match_organizer") || atLeast(role, "tournament_organizer");
+  return canEditPlayer && (self || isAdmin);
+};
+
+test("role matrix: everyone edits self; only Administrator edits others", () => {
+  for (const role of roleOrder) {
+    assert.equal(canOpen(role, true), true, `${role} self`);
+    assert.equal(canOpen(role, false), role === "administrator", `${role} other`);
+  }
 });
