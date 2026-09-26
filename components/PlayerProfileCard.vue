@@ -8,12 +8,12 @@ import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
   <NuxtLink
     v-if="player"
     :to="`/players/${player.steam_id}`"
-    class="group relative block overflow-hidden rounded-lg border border-border bg-card/40 p-4 transition-colors hover:border-[hsl(var(--tac-amber)/0.5)]"
+    class="group relative block overflow-hidden rounded-lg border border-border bg-card/40 p-5 transition-colors hover:border-[hsl(var(--tac-amber)/0.5)]"
   >
-    <div class="flex items-start gap-3">
+    <div class="flex items-start gap-4">
       <div class="relative shrink-0">
         <div
-          class="h-14 w-14 overflow-hidden rounded-md border border-border bg-muted"
+          class="h-20 w-20 overflow-hidden rounded-md border border-border bg-muted"
         >
           <img
             v-if="playerAvatarSrc"
@@ -23,7 +23,7 @@ import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
           />
           <div
             v-else
-            class="flex h-full w-full items-center justify-center text-lg font-bold text-muted-foreground"
+            class="flex h-full w-full items-center justify-center text-2xl font-bold text-muted-foreground"
           >
             {{ (player.name || "?").charAt(0).toUpperCase() }}
           </div>
@@ -35,7 +35,7 @@ import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
         />
       </div>
 
-      <div class="min-w-0 flex-1 space-y-1">
+      <div class="min-w-0 flex-1 space-y-1.5">
         <div
           class="inline-flex items-center gap-2 font-mono text-[0.58rem] uppercase tracking-[0.28em] text-[hsl(var(--tac-amber))]"
         >
@@ -43,7 +43,7 @@ import SanctionStatusBadge from "~/components/SanctionStatusBadge.vue";
           {{ $t("pages.players.detail.player_profile") }}
         </div>
         <h3
-          class="truncate text-lg font-bold group-hover:text-[hsl(var(--tac-amber))]"
+          class="truncate text-2xl font-bold group-hover:text-[hsl(var(--tac-amber))]"
         >
           {{ player.name }}
         </h3>

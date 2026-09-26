@@ -38,7 +38,7 @@ useHead({ title: "Support Request" });
     <div
       v-else
       class="mx-auto grid max-w-6xl gap-6"
-      :class="showReportedPlayerPanel ? 'lg:grid-cols-[1fr_20rem] lg:items-start' : ''"
+      :class="showReportedPlayerPanel ? 'lg:grid-cols-[1fr_26rem] lg:items-start' : ''"
     >
     <div class="flex flex-col gap-6">
       <Card class="p-6">
