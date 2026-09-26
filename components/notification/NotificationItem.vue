@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onBeforeUnmount } from "vue";
-import { Trash2, Check } from "lucide-vue-next";
+import { Trash2, Check, TriangleAlert } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import TimeAgo from "~/components/TimeAgo.vue";
 import NotificationContext from "~/components/notification/NotificationContext.vue";
@@ -53,11 +53,17 @@ const emit = defineEmits<{
   ): void;
 }>();
 
-const wrapperClass = computed(() =>
-  props.variant === "sheet"
-    ? "mb-4 p-4 rounded-lg shadow-md relative"
-    : "mb-3 p-3 rounded-md border border-border bg-card/40 relative",
-);
+const isWarning = computed(() => props.notification.type === "PlayerWarning");
+
+const wrapperClass = computed(() => {
+  const base =
+    props.variant === "sheet"
+      ? "mb-4 p-4 rounded-lg shadow-md relative"
+      : "mb-3 p-3 rounded-md border border-border bg-card/40 relative";
+  return isWarning.value
+    ? `${base} border-yellow-500/40 bg-yellow-500/10`
+    : base;
+});
 
 // Support-request notifications (SupportRequestSubmitted / *PlayerReply /
 // *AdminReply) carry the request id in entity_id and read as a plain
@@ -142,10 +148,14 @@ onBeforeUnmount(() => {
     </Button>
     <h3
       :class="[
-        'text-lg font-semibold mb-2',
+        'flex items-center gap-2 text-lg font-semibold mb-2',
         notification.is_read ? 'text-muted-foreground' : '',
       ]"
     >
+      <TriangleAlert
+        v-if="isWarning"
+        class="h-5 w-5 shrink-0 text-yellow-500"
+      />
       <NuxtLink
         v-if="titleLink"
         :to="titleLink"
