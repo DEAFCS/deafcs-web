@@ -14,7 +14,9 @@ import {
   TriangleAlert,
   ShieldAlert,
   MoreHorizontal,
+  Calendar as CalendarIcon,
 } from "lucide-vue-next";
+import { Calendar } from "~/components/ui/calendar";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { z } from "zod";
@@ -174,6 +176,34 @@ import { e_player_roles_enum } from "~/generated/zeus";
               </Select>
             </FormControl>
             <FormMessage />
+
+            <div
+              v-if="componentField.modelValue === 'custom'"
+              class="flex items-center gap-2 pt-2"
+            >
+              <Popover>
+                <PopoverTrigger as-child>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    class="justify-start text-left font-normal"
+                    :class="{ 'text-muted-foreground': !customDate }"
+                  >
+                    <CalendarIcon class="mr-2 h-4 w-4" />
+                    {{ customDate?.toString() || $t("common.pick_date") }}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-auto p-0">
+                  <Calendar v-model="customDate" initial-focus />
+                </PopoverContent>
+              </Popover>
+              <Input
+                type="time"
+                v-model="customTime"
+                style="color-scheme: dark"
+                class="w-[120px]"
+              />
+            </div>
           </FormItem>
         </FormField>
 
@@ -197,7 +227,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
         </label>
 
         <Button
-          variant="tactical"
+          :variant="sanctionType === 'ban' ? 'destructive' : 'tactical'"
           class="col-span-2 capitalize"
           type="submit"
           :loading="submitting"
@@ -253,6 +283,8 @@ export default {
       sanctionType: undefined as string | undefined,
       sanctioningPlayer: false,
       alsoRestrictWebsite: false,
+      customDate: undefined as any,
+      customTime: undefined as string | undefined,
     };
   },
   computed: {
@@ -341,7 +373,7 @@ export default {
       const { ban, silence, warning, ...rest } = this.sanctions;
       return rest;
     },
-    durations(): Array<{ label: string; duration: number }> {
+    durations(): Array<{ label: string; duration: number | string }> {
       return [
         {
           label: this.$t("player.sanction.durations.15_minutes"),
@@ -368,6 +400,10 @@ export default {
           duration: 1000 * 60 * 60 * 24 * 30,
         },
         { label: this.$t("player.sanction.durations.permanent"), duration: 0 },
+        {
+          label: this.$t("player.sanction.durations.custom", "Custom date..."),
+          duration: "custom",
+        },
       ];
     },
   },
@@ -378,6 +414,8 @@ export default {
       }
       this.sanctionType = type;
       this.alsoRestrictWebsite = false;
+      this.customDate = undefined;
+      this.customTime = undefined;
       this.sanctioningPlayer = true;
     },
     async sanctionPlayer() {
@@ -387,6 +425,31 @@ export default {
 
       if (!this.sanctionType) {
         return;
+      }
+
+      let durationMs = 0;
+      if (this.form.values.duration === "custom") {
+        if (!this.customDate || !this.customTime) {
+          toast({
+            title: this.$t(
+              "player.sanction.custom_date_required",
+              "Pick a custom date and time",
+            ),
+            variant: "destructive",
+          });
+          return;
+        }
+        const [hours, minutes] = this.customTime.split(":").map(Number);
+        const target = new Date(
+          this.customDate.year,
+          this.customDate.month - 1,
+          this.customDate.day,
+          hours,
+          minutes,
+        );
+        durationMs = target.getTime() - Date.now();
+      } else if (this.form.values.duration) {
+        durationMs = parseInt(this.form.values.duration);
       }
 
       this.submitting = true;
@@ -422,9 +485,7 @@ export default {
             steam_id: this.player.steam_id,
             type: this.sanctionType,
             reason: this.form.values.reason,
-            duration: this.form.values.duration
-              ? parseInt(this.form.values.duration)
-              : 0,
+            duration: durationMs,
             evidence_message_id: this.evidenceMessageId ?? null,
             also_restrict_website:
               this.sanctionType === "ban" && this.alsoRestrictWebsite,
