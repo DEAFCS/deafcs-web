@@ -111,6 +111,12 @@ watch(
     } catch {
       sourceUrl.value = URL.createObjectURL(file);
     }
+    // Auto-remove the background as soon as an image is picked, before the
+    // user ever sees the crop tool -- the removingBg overlay (see template)
+    // covers the image the whole time this runs, so the crop step only
+    // becomes usable once this finishes. The footer button stays as a
+    // manual re-run, e.g. if the result looks wrong on a specific photo.
+    await removeBackground();
   },
   { immediate: true },
 );

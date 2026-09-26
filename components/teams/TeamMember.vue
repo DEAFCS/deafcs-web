@@ -440,13 +440,24 @@ export default {
     canRemoveMember(): boolean {
       return !!this.team.can_remove && !this.isSelf && !this.isLastAdmin;
     },
-    // Independent of team.can_change_role (which also gates role assignment,
-    // remove-member, and set-captain for team owners/Admins) - roster images
-    // are Administrator/Tournament Organizer only, with no team self-service.
+    // Site staff (tournament_organizer+) can edit any team's roster images,
+    // team.can_change_role (team owner or a team_roster 'Admin' row -- see
+    // can_change_team_role.sql) can edit anyone on their own team, and a
+    // verified_user+ can always edit their own roster image even with no
+    // management role on the team.
     canEditRosterImage(): boolean {
+      if (this.isInvite) {
+        return false;
+      }
+      if (useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)) {
+        return true;
+      }
+      if (this.team.can_change_role) {
+        return true;
+      }
       return (
-        !this.isInvite &&
-        useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
+        this.isSelf &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.verified_user)
       );
     },
     showActionMenu(): boolean {
