@@ -14,6 +14,7 @@ import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import { awardArtworkDefinitionFor } from "~/utilities/awardOccurrenceResolution";
 import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
 import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
+import { tournamentCardCount } from "~/utilities/tournamentCardCount";
 
 const { t } = useI18n();
 
@@ -86,9 +87,8 @@ const hiddenCategoryCount = computed(() =>
 );
 const matchType = computed(() => props.tournament?.options?.type || null);
 
-const teamsCount = computed(
-  () => props.tournament?.teams_aggregate?.aggregate?.count || 0,
-);
+// Random tournaments show registered players while registration is open.
+const cardCount = computed(() => tournamentCardCount(props.tournament));
 
 const isLive = computed(() => props.statusVariant === "live");
 const isFinished = computed(() => props.statusVariant === "finished");
@@ -423,8 +423,8 @@ const runnerUps = computed(() => {
     >
       <span class="inline-flex items-center gap-1.5">
         <UsersRound class="h-3 w-3" />
-        <span class="text-foreground">{{ teamsCount }}</span>
-        {{ $t("tournament.compact_card.teams") }}
+        <span class="text-foreground">{{ cardCount.count }}</span>
+        {{ $t(`tournament.card_count.${cardCount.unit}`, cardCount.count) }}
       </span>
       <span class="inline-flex items-center gap-1.5">
         <CalendarClock class="h-3 w-3" />

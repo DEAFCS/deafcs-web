@@ -1,4 +1,8 @@
-import { order_by, Selector } from "~/generated/zeus";
+import {
+  e_tournament_individual_signup_status_enum,
+  order_by,
+  Selector,
+} from "~/generated/zeus";
 import { matchOptionsFields } from "./matchOptionsFields";
 
 export const simpleTournamentFields = Selector("tournaments")({
@@ -96,6 +100,20 @@ export const simpleTournamentFields = Selector("tournaments")({
       aggregate: {
         count: true,
       },
+    },
+  ],
+  // Random tournaments count registered players on cards while
+  // registration is open (see utilities/tournamentCardCount.ts). Signups
+  // have no aggregate permission, so select the minimal rows instead.
+  individual_signups: [
+    {
+      where: {
+        status: { _neq: e_tournament_individual_signup_status_enum.Removed },
+      },
+    },
+    {
+      id: true,
+      status: true,
     },
   ],
 });

@@ -7,6 +7,7 @@ import { formatPrizePool } from "~/utilities/prizePool";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
 import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
+import { tournamentCardCount } from "~/utilities/tournamentCardCount";
 
 type TournamentStatusVariant = "default" | "finished" | "live" | "registration";
 
@@ -73,9 +74,8 @@ const organizerTeam = computed(
   () => props.tournament?.organizer_teams?.[0]?.team || null,
 );
 
-const teamsCount = computed(
-  () => props.tournament?.teams_aggregate?.aggregate?.count || 0,
-);
+// Random tournaments show registered players while registration is open.
+const cardCount = computed(() => tournamentCardCount(props.tournament));
 
 const matchType = computed(() => props.tournament?.options?.type || null);
 const isIndividualRegistration = computed(
@@ -223,8 +223,8 @@ const statusChipClasses = computed(() => {
         </span>
         <span class="inline-flex items-center gap-1.5">
           <UsersRound class="h-3.5 w-3.5 text-white/55" />
-          <span class="font-bold text-white">{{ teamsCount }}</span>
-          {{ $t("tournament.feature_card.teams") }}
+          <span class="font-bold text-white">{{ cardCount.count }}</span>
+          {{ $t(`tournament.card_count.${cardCount.unit}`, cardCount.count) }}
         </span>
         <MatchTypeBadge v-if="matchType" :type="matchType" size="default" />
         <TournamentSoloRandomBadge

@@ -5165,6 +5165,10 @@
         "team": "Team"
       }
     },
+    "card_count": {
+      "players": "Player | Players",
+      "teams": "Team | Teams"
+    },
     "feature_card": {
       "tournament": "Tournament",
       "teams": "Teams",

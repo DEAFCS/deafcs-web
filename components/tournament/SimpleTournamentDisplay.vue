@@ -2,6 +2,7 @@
 import { ArrowRight, UsersIcon } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import MapDisplay from "~/components/MapDisplay.vue";
+import { tournamentCardCount } from "~/utilities/tournamentCardCount";
 </script>
 
 <template>
@@ -81,7 +82,16 @@ import MapDisplay from "~/components/MapDisplay.vue";
             class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400"
           >
             <UsersIcon class="h-3.5 w-3.5" />
-            <span>
+            <span v-if="tournamentCardCount(tournament).unit === 'players'">
+              {{ tournamentCardCount(tournament).count }}
+              {{
+                $t(
+                  "tournament.card_count.players",
+                  tournamentCardCount(tournament).count,
+                )
+              }}
+            </span>
+            <span v-else>
               {{ tournament.teams_aggregate.aggregate.count }}
               {{ $t("tournament.table.teams_joined") }}
             </span>
