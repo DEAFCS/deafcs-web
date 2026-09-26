@@ -893,25 +893,45 @@ export default {
       }
 
       try {
-        await (this as any).$apollo.mutate({
+        // player_sanctions' real primary key is the composite (id,
+        // created_at) -- created_at carries microsecond precision in
+        // Postgres, but a value that's passed back through a JS Date
+        // anywhere along the way only keeps millisecond precision. That
+        // silently failed to match any row for _by_pk, which returns
+        // null rather than an error when nothing matches -- the mutate()
+        // call still resolved without throwing, so this toasted success
+        // even though nothing was ever written. Filtering by id alone
+        // (already a globally-unique gen_random_uuid()) sidesteps the
+        // precision mismatch entirely, and checking affected_rows below
+        // means a genuine no-match (e.g. sanction deleted concurrently)
+        // now actually surfaces as a failure instead of a false success.
+        const { data } = await (this as any).$apollo.mutate({
           mutation: generateMutation({
-            update_player_sanctions_by_pk: [
+            update_player_sanctions: [
               {
-                pk_columns: {
-                  id: this.editingSanction.id,
-                  created_at: this.editingSanction.created_at,
+                where: {
+                  id: {
+                    _eq: this.editingSanction.id,
+                  },
                 },
                 _set: {
                   remove_sanction_date,
                 },
               },
               {
-                id: true,
-                remove_sanction_date: true,
+                affected_rows: true,
+                returning: {
+                  id: true,
+                  remove_sanction_date: true,
+                },
               },
             ],
           }),
         });
+
+        if (!data?.update_player_sanctions?.affected_rows) {
+          throw new Error("no matching sanction row was updated");
+        }
 
         toast({
           title: this.$t("player.sanctions.updated"),
