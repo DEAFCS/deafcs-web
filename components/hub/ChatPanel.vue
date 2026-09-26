@@ -747,11 +747,7 @@ function openLobbyCallWindow() {
                       (isParticipantsOpen = !isParticipantsOpen)
                     "
                   >
-                    {{
-                      $t("layouts.chat_panel.participants_in_chat", {
-                        count: activeParticipantsCount,
-                      })
-                    }}
+                    {{ $t("layouts.chat_panel.view_participants") }}
                   </button>
                 </span>
               </div>

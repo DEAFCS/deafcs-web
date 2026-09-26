@@ -4786,6 +4786,7 @@
     "chat_panel": {
       "default_title": "Chat",
       "participants_in_chat": "{count} in chat",
+      "view_participants": "Participants",
       "pop_out_tooltip": "Pop out to window",
       "no_chats_title": "No chats yet",
       "no_chats_description": "Once you join a chat, it will appear here."
