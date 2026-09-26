@@ -130,6 +130,7 @@ const { hasLobbyInvites } = useInvites();
             type="matchmaking"
             :lobby-id="(currentLobby as any).id"
             :frameless="true"
+            :hide-participants-summary="true"
             class="flex-1 min-h-0"
           />
         </div>
