@@ -22,6 +22,7 @@ import { Trash2 } from "lucide-vue-next";
           <PlayerSearch
             :label="$t('pages.settings.application.api_keys.grant_label')"
             :exclude="grantedSteamIds"
+            registered-only
             @selected="grantAccess"
           />
         </div>
