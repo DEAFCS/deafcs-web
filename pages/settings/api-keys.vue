@@ -8,25 +8,60 @@ import {
 import TimeAgo from "~/components/TimeAgo.vue";
 import ClipBoard from "~/components/ClipBoard.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import { generateQuery } from "~/graphql/graphqlGen";
+import { $ } from "~/generated/zeus";
+import { useApolloClient } from "@vue/apollo-composable";
 
 // Only players an admin has explicitly granted access to
 // (players.api_key_enabled) can reach this page -- everyone else is
 // redirected away even if they type the URL directly, since
 // ProfileSettingsShell.vue also only lists the nav entry for them.
-definePageMeta({
-  middleware: [
-    () => {
-      if (!useAuthStore().me?.api_key_enabled) {
-        return navigateTo("/settings", { replace: true });
-      }
-    },
-  ],
-});
+// Checked here in setup (not page middleware) because `useApolloClient`
+// needs an active component instance to resolve its injection, which a
+// route middleware function doesn't have. Fetched directly (not via
+// the shared meFields fragment -- see ProfileSettingsShell.vue's own
+// comment on why) since this route is only ever reached already
+// authenticated (auth.global.ts runs first).
+const allowed = ref(false);
+const checkedAccess = ref(false);
+const { client: apolloClient } = useApolloClient();
+
+async function checkAccess() {
+  const steamId = useAuthStore().me?.steam_id;
+  if (!steamId) {
+    allowed.value = false;
+    checkedAccess.value = true;
+    await navigateTo("/settings", { replace: true });
+    return;
+  }
+  try {
+    const { data } = await apolloClient.query({
+      query: generateQuery({
+        players_by_pk: [
+          { steam_id: $("steamId", "bigint!") },
+          { api_key_enabled: true },
+        ],
+      }),
+      variables: { steamId },
+      fetchPolicy: "network-only",
+    });
+    allowed.value = !!(data as any)?.players_by_pk?.api_key_enabled;
+  } catch {
+    allowed.value = false;
+  } finally {
+    checkedAccess.value = true;
+    if (!allowed.value) {
+      await navigateTo("/settings", { replace: true });
+    }
+  }
+}
+
+checkAccess();
 </script>
 
 <template>
   <!-- API Keys -->
-  <PageTransition :delay="0">
+  <PageTransition v-if="allowed" :delay="0">
     <div class="space-y-5">
       <!-- Section header -->
       <div class="flex items-start justify-between gap-4">

@@ -24,6 +24,9 @@ import { Link, Unlink } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
 import SettingsSideTabs from "~/components/settings/SettingsSideTabs.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
+import { generateQuery } from "~/graphql/graphqlGen";
+import { $ } from "~/generated/zeus";
+import { useApolloClient } from "@vue/apollo-composable";
 
 const { t: $t } = useI18n();
 
@@ -36,6 +39,43 @@ const supportsDiscordBot = computed(
 );
 
 const showUnlinkDiscordDialog = ref(false);
+
+// Fetched separately from `me`/meFields (not baked into the shared
+// meFields fragment) -- that fragment is also selected by the generic
+// "am I logged in" check that fires for every anonymous visitor too
+// (guest role), and guest was never granted select access to this
+// column on purpose, so including it there 400'd the login check
+// itself for every logged-out visitor. This shell only ever renders
+// once already authenticated, so a direct fetch here is always under
+// a real player role.
+const apiKeyEnabled = ref(false);
+const { client: apolloClient } = useApolloClient();
+
+watch(
+  () => useAuthStore().me?.steam_id,
+  async (steamId) => {
+    if (!steamId) {
+      apiKeyEnabled.value = false;
+      return;
+    }
+    try {
+      const { data } = await apolloClient.query({
+        query: generateQuery({
+          players_by_pk: [
+            { steam_id: $("steamId", "bigint!") },
+            { api_key_enabled: true },
+          ],
+        }),
+        variables: { steamId },
+        fetchPolicy: "network-only",
+      });
+      apiKeyEnabled.value = !!(data as any)?.players_by_pk?.api_key_enabled;
+    } catch {
+      apiKeyEnabled.value = false;
+    }
+  },
+  { immediate: true },
+);
 
 const navItems = computed(() => {
   const items: { path: string; label: string }[] = [
@@ -68,7 +108,7 @@ const navItems = computed(() => {
   // (players.api_key_enabled) -- see ApiKeys.createApiKey and
   // settings/application/api-keys.vue for the admin-facing grant/revoke
   // side of this.
-  if (useAuthStore().me?.api_key_enabled) {
+  if (apiKeyEnabled.value) {
     items.push({
       path: "/settings/api-keys",
       label: $t("pages.settings.account.api_keys"),
