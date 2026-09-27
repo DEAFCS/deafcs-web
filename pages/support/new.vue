@@ -14,6 +14,7 @@ import {
 } from "~/components/ui/select";
 import { Button } from "~/components/ui/button";
 import { e_player_roles_enum } from "~/generated/zeus";
+import SupportAttachmentInput from "~/components/support/SupportAttachmentInput.vue";
 
 useHead({ title: "New Support Request" });
 
@@ -101,6 +102,13 @@ const isVerified = computed(() =>
                   ? "Include the details an administrator needs to understand the report, such as links, timestamps, or other evidence."
                   : "Include the details an administrator needs to understand the request."
               }}
+            </p>
+          </div>
+          <div class="grid gap-2">
+            <Label>Attachment (optional)</Label>
+            <SupportAttachmentInput v-model="attachmentFile" />
+            <p class="text-xs text-muted-foreground">
+              Image or video, up to 50 MB. Removed automatically after 7 days.
             </p>
           </div>
         </div>
@@ -207,6 +215,7 @@ const isVerified = computed(() =>
 <script lang="ts">
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
+import { uploadSupportAttachment } from "~/utilities/uploadSupportAttachment";
 
 const categories = [
   { value: "general_support", label: "General Support" },
@@ -298,7 +307,12 @@ function isValidMatchReference(raw: string): boolean {
 }
 
 export default {
-  data: () => ({ categories, form: emptyForm(), submitting: false }),
+  data: () => ({
+    categories,
+    form: emptyForm(),
+    submitting: false,
+    attachmentFile: null as File | null,
+  }),
   mounted() {
     const category = Array.isArray(this.$route.query.category)
       ? this.$route.query.category[0]
@@ -391,6 +405,11 @@ export default {
 
       this.submitting = true;
       try {
+        if (this.attachmentFile) {
+          const attachment = await uploadSupportAttachment(this.attachmentFile);
+          object.attachment_url = attachment.path;
+          object.attachment_content_type = attachment.contentType;
+        }
         const { data } = await (this.$apollo as any).mutate({
           mutation: INSERT_REQUEST,
           variables: { object },

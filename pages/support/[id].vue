@@ -9,6 +9,8 @@ import { Textarea } from "~/components/ui/textarea";
 import PlayerProfileCard from "~/components/PlayerProfileCard.vue";
 import SanctionsHistoryPanel from "~/components/SanctionsHistoryPanel.vue";
 import PlayerMatchRow from "~/components/player/PlayerMatchRow.vue";
+import SupportAttachmentInput from "~/components/support/SupportAttachmentInput.vue";
+import SupportAttachmentView from "~/components/support/SupportAttachmentView.vue";
 
 useHead({ title: "Support Request" });
 </script>
@@ -156,6 +158,11 @@ useHead({ title: "Support Request" });
             <p class="whitespace-pre-wrap text-sm text-foreground/90">
               {{ request.initial_message }}
             </p>
+            <SupportAttachmentView
+              :url="request.attachment_url"
+              :content-type="request.attachment_content_type"
+              :removed-at="request.attachment_removed_at"
+            />
           </div>
           <div
             v-for="message in request.messages"
@@ -187,6 +194,11 @@ useHead({ title: "Support Request" });
             <p class="whitespace-pre-wrap text-sm text-foreground/90">
               {{ message.message }}
             </p>
+            <SupportAttachmentView
+              :url="message.attachment_url"
+              :content-type="message.attachment_content_type"
+              :removed-at="message.attachment_removed_at"
+            />
           </div>
         </div>
         <form
@@ -200,14 +212,16 @@ useHead({ title: "Support Request" });
             maxlength="5000"
             placeholder="Write a reply"
           />
-          <Button
-            participation
-            type="submit"
-            class="self-end"
-            :loading="sending"
-            :disabled="!reply.trim()"
-            >Send Reply</Button
-          >
+          <div class="flex items-center justify-between gap-2">
+            <SupportAttachmentInput v-model="replyAttachmentFile" />
+            <Button
+              participation
+              type="submit"
+              :loading="sending"
+              :disabled="!reply.trim()"
+              >Send Reply</Button
+            >
+          </div>
         </form>
         <p
           v-else
@@ -247,6 +261,7 @@ useHead({ title: "Support Request" });
 <script lang="ts">
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
+import { uploadSupportAttachment } from "~/utilities/uploadSupportAttachment";
 import { e_player_roles_enum } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $ } from "~/generated/zeus";
@@ -292,6 +307,9 @@ const REQUEST_DETAIL = gql`
       organizer_experience
       organizer_languages
       organizer_additional_info
+      attachment_url
+      attachment_content_type
+      attachment_removed_at
       player {
         steam_id
         name
@@ -305,6 +323,9 @@ const REQUEST_DETAIL = gql`
         is_admin
         message
         created_at
+        attachment_url
+        attachment_content_type
+        attachment_removed_at
         sender {
           steam_id
           name
@@ -347,6 +368,7 @@ export default {
     changingStatus: false,
     request: null as any,
     reply: "",
+    replyAttachmentFile: null as File | null,
     reportedPlayer: null as any,
     relatedMatch: null as any,
   }),
@@ -465,16 +487,23 @@ export default {
       if (!this.reply.trim() || this.sending) return;
       this.sending = true;
       try {
+        const object: Record<string, unknown> = {
+          request_id: this.$route.params.id,
+          message: this.reply.trim(),
+        };
+        if (this.replyAttachmentFile) {
+          const attachment = await uploadSupportAttachment(
+            this.replyAttachmentFile,
+          );
+          object.attachment_url = attachment.path;
+          object.attachment_content_type = attachment.contentType;
+        }
         await (this.$apollo as any).mutate({
           mutation: INSERT_REPLY,
-          variables: {
-            object: {
-              request_id: this.$route.params.id,
-              message: this.reply.trim(),
-            },
-          },
+          variables: { object },
         });
         this.reply = "";
+        this.replyAttachmentFile = null;
         await this.fetchRequest();
       } catch (error) {
         toast({
