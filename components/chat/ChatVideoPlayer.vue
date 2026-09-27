@@ -73,14 +73,33 @@ function primePreviewFrame() {
   if (video.value) primeVideoFrame(video.value, previewSrc.value);
 }
 
+type WebkitVideoElement = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void;
+  webkitExitFullscreen?: () => void;
+  webkitDisplayingFullscreen?: boolean;
+};
+
 async function toggleFullscreen() {
   if (!player.value) return;
   revealControls();
   try {
     if (document.fullscreenElement === player.value) {
       await document.exitFullscreen?.();
+      return;
+    }
+    if (player.value.requestFullscreen) {
+      await player.value.requestFullscreen();
+      return;
+    }
+    // iOS Safari/WebKit (including an installed PWA) has no Element
+    // Fullscreen API at all, so requestFullscreen is silently undefined
+    // there. Fall back to the video element's own native fullscreen
+    // presentation, which iOS does support.
+    const webkitVideo = video.value as WebkitVideoElement | undefined;
+    if (webkitVideo?.webkitDisplayingFullscreen) {
+      webkitVideo.webkitExitFullscreen?.();
     } else {
-      await player.value.requestFullscreen?.();
+      webkitVideo?.webkitEnterFullscreen?.();
     }
   } catch {
     // Fullscreen is optional on browsers that do not support the API.
@@ -91,14 +110,26 @@ function syncFullscreenState() {
   isFullscreen.value = document.fullscreenElement === player.value;
 }
 
+function handleWebkitBeginFullscreen() {
+  isFullscreen.value = true;
+}
+
+function handleWebkitEndFullscreen() {
+  isFullscreen.value = false;
+}
+
 onMounted(() => {
   keepVideoMuted();
   document.addEventListener("fullscreenchange", syncFullscreenState);
+  video.value?.addEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+  video.value?.addEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
 });
 
 onBeforeUnmount(() => {
   if (hideControlsTimer) clearTimeout(hideControlsTimer);
   document.removeEventListener("fullscreenchange", syncFullscreenState);
+  video.value?.removeEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
+  video.value?.removeEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
 });
 </script>
 
