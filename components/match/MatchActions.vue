@@ -335,6 +335,24 @@ import {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <AlertDialog :open="showSupportRequestedDialog">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{
+            $t("match.support_requested.title")
+          }}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {{ $t("match.support_requested.description") }}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction @click="showSupportRequestedDialog = false">
+            {{ $t("common.ok") }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   </div>
 </template>
 
@@ -379,6 +397,7 @@ export default {
   data() {
     return {
       showDeleteDialog: false,
+      showSupportRequestedDialog: false,
       rconUuid: undefined as string | undefined,
       switching: false,
       renderSummary: [] as Array<{
@@ -739,9 +758,7 @@ export default {
         }),
       });
 
-      toast({
-        title: this.$t("match.actions.requested_organizer"),
-      });
+      this.showSupportRequestedDialog = true;
     },
   },
   computed: {

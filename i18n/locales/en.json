@@ -4855,6 +4855,7 @@
     "edit": "Edit",
     "view": "View",
     "done": "Done",
+    "ok": "OK",
     "accept": "Accept",
     "decline": "Decline",
     "leave": "Leave call",
@@ -6412,6 +6413,10 @@
     "delete_confirm": {
       "title": "Delete Match",
       "description": "Are you sure you want to delete this match? This action cannot be undone."
+    },
+    "support_requested": {
+      "title": "Support Requested",
+      "description": "An organizer has been notified. Organizers aren't always available right away, but one will help as soon as they can."
     },
     "lineup": {
       "lineup_1": "Lineup 1",
