@@ -64,6 +64,16 @@ const navItems = computed(() => {
       label: $t("pages.settings.notifications.title"),
     },
   ];
+  // Only shown to players an admin has explicitly granted access to
+  // (players.api_key_enabled) -- see ApiKeys.createApiKey and
+  // settings/application/api-keys.vue for the admin-facing grant/revoke
+  // side of this.
+  if (useAuthStore().me?.api_key_enabled) {
+    items.push({
+      path: "/settings/api-keys",
+      label: $t("pages.settings.account.api_keys"),
+    });
+  }
   return items;
 });
 

@@ -137,6 +137,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
         labelKey: "pages.settings.application.top_bar.title",
         order: 4,
       },
+      {
+        path: "/settings/application/api-keys",
+        labelKey: "pages.settings.application.api_keys.title",
+        order: 5,
+      },
     ],
   },
   {

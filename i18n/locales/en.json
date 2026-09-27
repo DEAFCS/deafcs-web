@@ -2277,6 +2277,15 @@
             "placeholder": "/play or https://example.com",
             "hint": "Accepts an in-app path (e.g. /watch) or a full external URL."
           }
+        },
+        "api_keys": {
+          "title": "API Keys",
+          "description": "Grant specific players access to create their own API key for reading data (e.g. the leaderboard and match results) from an external website or tool. Access is per-player and hidden from everyone else until granted here.",
+          "grant_label": "Grant a player API key access",
+          "none_granted": "No players have been granted API key access yet.",
+          "granted": "{name} can now create an API key",
+          "grant_failed": "Could not grant API key access",
+          "revoke_failed": "Could not revoke API key access"
         }
       },
       "language": {

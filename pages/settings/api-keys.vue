@@ -9,12 +9,18 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import ClipBoard from "~/components/ClipBoard.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 
-// The API Keys nav entry is hidden (ProfileSettingsShell.vue no longer lists
-// it) because DEAFCS doesn't currently want to expose this feature. The
-// backend/API keys system itself is untouched -- this only stops someone
-// from reaching the page by typing the URL directly.
+// Only players an admin has explicitly granted access to
+// (players.api_key_enabled) can reach this page -- everyone else is
+// redirected away even if they type the URL directly, since
+// ProfileSettingsShell.vue also only lists the nav entry for them.
 definePageMeta({
-  middleware: [() => navigateTo("/settings", { replace: true })],
+  middleware: [
+    () => {
+      if (!useAuthStore().me?.api_key_enabled) {
+        return navigateTo("/settings", { replace: true });
+      }
+    },
+  ],
 });
 </script>
 
