@@ -1489,7 +1489,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                       :to="{ name: 'settings' }"
                       :class="{
                         'router-link-active': isRouteActive('settings'),
+                        'bg-accent text-accent-foreground': settingsPressed,
                       }"
+                      @pointerdown="settingsPressed = true"
                     >
                       <Settings class="size-4" />
                       {{ $t("layouts.app_nav.profile.my_account") }}
@@ -1550,6 +1552,13 @@ export default {
       infoOpened: false,
       profileOpened: false,
       showLogoutModal: false,
+      // Set directly on pointerdown (see the "My Settings" NuxtLink) so the
+      // highlight is guaranteed to paint before the tap navigates — the
+      // settings page's synchronous mount cost (vee-validate/zod schema,
+      // countries-and-timezones, Popover/Command) is heavy enough on mobile
+      // to block the frame the native focus:bg-accent highlight would
+      // otherwise paint on, unlike the lighter items in this menu.
+      settingsPressed: false,
     };
   },
   apollo: {
@@ -1762,6 +1771,9 @@ export default {
         }
       },
       immediate: true,
+    },
+    profileOpened(open: boolean) {
+      if (!open) this.settingsPressed = false;
     },
   },
 };
