@@ -2,31 +2,59 @@
 import { Input } from "~/components/ui/input";
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/ui/spinner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 </script>
 
 <template>
-  <form
-    v-if="canChangeName"
-    class="flex items-center gap-2"
-    @submit.prevent="save"
-  >
-    <Input
-      v-model="name"
-      maxlength="32"
-      :placeholder="$t('player.change_name.name_label')"
-      class="flex-1 min-w-0"
-    />
-    <Button
-      variant="tactical"
-      type="submit"
-      size="sm"
-      :loading="saving"
-      :disabled="saving || !isValid || name === player.name"
-    >
-      <Spinner v-if="saving" class="mr-1 h-4 w-4" />
-      {{ $t("common.save") }}
-    </Button>
-  </form>
+  <div v-if="canChangeName" class="space-y-1.5">
+    <form class="flex items-center gap-2" @submit.prevent="save">
+      <Input
+        v-model="name"
+        maxlength="32"
+        :placeholder="$t('player.change_name.name_label')"
+        class="flex-1 min-w-0"
+      />
+      <Button
+        variant="tactical"
+        type="submit"
+        size="sm"
+        :loading="saving"
+        :disabled="saving || !isValid || name === player.name"
+      >
+        <Spinner v-if="saving" class="mr-1 h-4 w-4" />
+        {{ $t("common.save") }}
+      </Button>
+    </form>
+    <p v-if="mustRequestNameChange" class="text-xs text-muted-foreground">
+      {{ $t("player.change_name.approval_hint") }}
+    </p>
+
+    <AlertDialog :open="showRequestedDialog">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{
+            $t("player.change_name.requested_title")
+          }}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {{ $t("player.change_name.requested_description") }}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogAction @click="showRequestedDialog = false">
+            {{ $t("common.ok") }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  </div>
 </template>
 
 <script lang="ts">
@@ -47,6 +75,7 @@ export default {
     return {
       name: "",
       saving: false,
+      showRequestedDialog: false,
     };
   },
   watch: {
@@ -97,7 +126,7 @@ export default {
               ],
             }),
           });
-          toast({ title: this.$t("player.change_name.request_success") });
+          this.showRequestedDialog = true;
         } else {
           await this.$apollo.mutate({
             variables: { player_name: this.name },
