@@ -61,11 +61,7 @@ import {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <template v-if="match.is_in_lineup">
-          <DropdownMenuItem
-            class="text-destructive"
-            @click="callForOrganizer"
-            :disabled="match.requested_organizer"
-          >
+          <DropdownMenuItem class="text-destructive" @click="callForOrganizer">
             <LifeBuoy />
             {{ $t("match.actions.call_support") }}
           </DropdownMenuItem>
