@@ -1387,28 +1387,6 @@
         "col_first_pick": "1ª Escolha",
         "col_decider": "Decisivo/tie-break",
         "based_on": "Baseado em {n} registros de veto"
-      },
-      "veto_sim": {
-        "section": "Simulação de veto",
-        "description": "Estime o provável resultado do veto e as chances de vitória em mapas contra um adversário escolhido, com base no histórico de vetos de ambas as equipes.",
-        "opponent": "Adversário",
-        "select_opponent": "Selecionar equipe adversária",
-        "format": "Formato",
-        "estimate_notice": "Estimativa apenas — derivada de tendências históricas de veto, não um resultado garantido.",
-        "loading": "Carregando histórico de vetos do adversário…",
-        "no_self_title": "Nenhum histórico de vetos para esta equipe",
-        "no_self_description": "A simulação requer que esta equipe tenha vetos de mapas registrados primeiro.",
-        "pick_opponent_title": "Escolha um adversário",
-        "pick_opponent_description": "Selecione uma equipe adversária para simular o veto de mapas.",
-        "no_opp_title": "Nenhum histórico de vetos para o adversário",
-        "no_opp_description": "O adversário selecionado não possui vetos de mapas registrados para simulação.",
-        "confidence_self": "Esta equipe: {n} registros",
-        "confidence_opp": "Adversário: {n} registros",
-        "col_map": "Mapa",
-        "col_ban": "Probabilidade de veto",
-        "col_pick": "Probabilidade de escolha",
-        "col_play": "Probabilidade de jogo",
-        "col_predicted_win": "Vitória prevista%"
       }
     },
     "settings": {
@@ -7518,7 +7496,50 @@
       "axis_assist": "Assistência"
     }
   },
-  "awards": {"title":"Pr�mios e T�tulos","gold":"Ouro","silver":"Prata","bronze":"Bronze","mvp":"MVP","first_place":"1� Lugar","second_place":"2� Lugar","third_place":"3� Lugar","tournament":"Torneio","placement":"Posicionamento","teammates":"Companheiros de Equipe","no_awards":"Ainda sem trof�us","no_awards_description":"Termine como TOP3 em um torneio para ganhar um t�tulo a ser exibido em seu perfil.","granted":"MVP","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award�","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award�","editing":"Editing: {name}"}},
-  "awards_modal": {"view_tournament":"VER TORNEIO"},
-  "awards_manage_form": {"team":"Equipe","player":"Jogador","select_team":"Selecionar equipe�","select_player":"Selecionar jogador�","award":"Equipe","recipient":"Recipient"}
+  "awards": {
+    "title": "Pr�mios e T�tulos",
+    "gold": "Ouro",
+    "silver": "Prata",
+    "bronze": "Bronze",
+    "mvp": "MVP",
+    "first_place": "1� Lugar",
+    "second_place": "2� Lugar",
+    "third_place": "3� Lugar",
+    "tournament": "Torneio",
+    "placement": "Posicionamento",
+    "teammates": "Companheiros de Equipe",
+    "no_awards": "Ainda sem trof�us",
+    "no_awards_description": "Termine como TOP3 em um torneio para ganhar um t�tulo a ser exibido em seu perfil.",
+    "granted": "MVP",
+    "composer": {
+      "title": "Create & assign award",
+      "award": "Award",
+      "new": "New",
+      "existing": "Existing",
+      "choose": "Choose an award�",
+      "assign": "Assign",
+      "artwork_needs_award": "Artwork attaches to the award, so save it first.",
+      "create_to_upload": "Create award to add artwork",
+      "team_fans_out": "Granting to a team also gives the award to everyone on its roster.",
+      "scope_global": "Not tied to a tournament, season or event.",
+      "scope_tournament": "Belongs to this tournament.",
+      "scope_season": "Belongs to this season.",
+      "scope_event": "Belongs to this event.",
+      "scope_league_season": "Belongs to this league season.",
+      "grant_here": "Grant award",
+      "load_existing": "Load an existing award�",
+      "editing": "Editing: {name}"
+    }
+  },
+  "awards_modal": {
+    "view_tournament": "VER TORNEIO"
+  },
+  "awards_manage_form": {
+    "team": "Equipe",
+    "player": "Jogador",
+    "select_team": "Selecionar equipe�",
+    "select_player": "Selecionar jogador�",
+    "award": "Equipe",
+    "recipient": "Recipient"
+  }
 }

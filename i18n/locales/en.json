@@ -1401,27 +1401,6 @@
         "col_first_pick": "1st Pick",
         "col_decider": "Decider",
         "based_on": "Based on {n} veto records"
-      },
-      "veto_sim": {
-        "section": "Veto Simulation",
-        "description": "Estimate the likely veto outcome and map win chances against a chosen opponent, based on both teams' veto history.",
-        "opponent": "Opponent",
-        "select_opponent": "Select opponent team",
-        "estimate_notice": "Estimate only — derived from historical veto tendencies, not a guaranteed outcome.",
-        "loading": "Loading opponent veto history…",
-        "no_self_title": "No veto history for this team",
-        "no_self_description": "Simulation needs this team to have recorded map vetos first.",
-        "pick_opponent_title": "Choose an opponent",
-        "pick_opponent_description": "Select an opponent team to simulate the map veto.",
-        "no_opp_title": "No veto history for opponent",
-        "no_opp_description": "The selected opponent has no recorded map vetos to simulate against.",
-        "confidence_self": "This team: {n} records",
-        "confidence_opp": "Opponent: {n} records",
-        "col_map": "Map",
-        "col_ban": "Ban Likelihood",
-        "col_pick": "Pick Likelihood",
-        "col_play": "Play Likelihood",
-        "col_predicted_win": "Predicted Win%"
       }
     },
     "settings": {
