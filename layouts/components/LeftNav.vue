@@ -1444,10 +1444,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 <SidebarMenuButton
                   size="lg"
                   class="hover:!bg-transparent hover:!text-current active:!bg-transparent"
-                  :class="{
-                    'bg-sidebar-accent text-sidebar-accent-foreground':
-                      profileOpened,
-                  }"
                 >
                   <PlayerDisplay
                     :player="me"
