@@ -73,63 +73,46 @@ function primePreviewFrame() {
   if (video.value) primeVideoFrame(video.value, previewSrc.value);
 }
 
-type WebkitVideoElement = HTMLVideoElement & {
-  webkitEnterFullscreen?: () => void;
-  webkitExitFullscreen?: () => void;
-  webkitDisplayingFullscreen?: boolean;
-};
+// CSS-only fallback for browsers/contexts with no working Fullscreen API —
+// notably iOS Safari and, especially, an iOS home-screen PWA's WKWebView,
+// which supports neither the standard Fullscreen API nor a functional
+// video.webkitEnterFullscreen() (that call is a silent no-op there). A
+// standalone PWA has no browser chrome to hide anyway, so a fixed overlay
+// that covers the viewport looks identical to real fullscreen and keeps
+// our own custom controls instead of handing off to a native player.
+const pseudoFullscreen = ref(false);
 
 async function toggleFullscreen() {
   if (!player.value) return;
   revealControls();
-  try {
-    if (document.fullscreenElement === player.value) {
-      await document.exitFullscreen?.();
+  if (player.value.requestFullscreen) {
+    try {
+      if (document.fullscreenElement === player.value) {
+        await document.exitFullscreen?.();
+      } else {
+        await player.value.requestFullscreen();
+      }
       return;
+    } catch {
+      // Fall through to the CSS-only fallback below.
     }
-    if (player.value.requestFullscreen) {
-      await player.value.requestFullscreen();
-      return;
-    }
-    // iOS Safari/WebKit (including an installed PWA) has no Element
-    // Fullscreen API at all, so requestFullscreen is silently undefined
-    // there. Fall back to the video element's own native fullscreen
-    // presentation, which iOS does support.
-    const webkitVideo = video.value as WebkitVideoElement | undefined;
-    if (webkitVideo?.webkitDisplayingFullscreen) {
-      webkitVideo.webkitExitFullscreen?.();
-    } else {
-      webkitVideo?.webkitEnterFullscreen?.();
-    }
-  } catch {
-    // Fullscreen is optional on browsers that do not support the API.
   }
+  pseudoFullscreen.value = !pseudoFullscreen.value;
+  isFullscreen.value = pseudoFullscreen.value;
 }
 
 function syncFullscreenState() {
   isFullscreen.value = document.fullscreenElement === player.value;
 }
 
-function handleWebkitBeginFullscreen() {
-  isFullscreen.value = true;
-}
-
-function handleWebkitEndFullscreen() {
-  isFullscreen.value = false;
-}
-
 onMounted(() => {
   keepVideoMuted();
   document.addEventListener("fullscreenchange", syncFullscreenState);
-  video.value?.addEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
-  video.value?.addEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
 });
 
 onBeforeUnmount(() => {
   if (hideControlsTimer) clearTimeout(hideControlsTimer);
   document.removeEventListener("fullscreenchange", syncFullscreenState);
-  video.value?.removeEventListener("webkitbeginfullscreen", handleWebkitBeginFullscreen);
-  video.value?.removeEventListener("webkitendfullscreen", handleWebkitEndFullscreen);
 });
 </script>
 
@@ -137,6 +120,7 @@ onBeforeUnmount(() => {
   <div
     ref="player"
     class="chat-video-player group relative isolate w-full overflow-hidden rounded-md bg-black"
+    :class="{ 'chat-video-player--pseudo-fullscreen': pseudoFullscreen }"
     role="group"
     :aria-label="label"
     @pointerdown="revealControls"
@@ -217,5 +201,24 @@ onBeforeUnmount(() => {
   width: 100%;
   height: 100%;
   max-height: 100vh;
+}
+
+.chat-video-player--pseudo-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  width: 100vw;
+  height: 100dvh;
+  max-height: none;
+  border-radius: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-video-player--pseudo-fullscreen video {
+  width: 100%;
+  height: 100%;
+  max-height: 100dvh;
 }
 </style>
