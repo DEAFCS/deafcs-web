@@ -3,7 +3,7 @@ import { Paperclip } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { toast } from "@/components/ui/toast";
 
-const MAX_ATTACHMENT_BYTES = 50 * 1024 * 1024;
+const MAX_ATTACHMENT_BYTES = 100 * 1024 * 1024;
 const ALLOWED_TYPES = [
   "image/png",
   "image/jpeg",
@@ -42,7 +42,7 @@ function onChange(event: Event) {
     toast({
       variant: "destructive",
       title: "File too large",
-      description: "Attachments are limited to 50 MB.",
+      description: "Attachments are limited to 100 MB.",
     });
     return;
   }
