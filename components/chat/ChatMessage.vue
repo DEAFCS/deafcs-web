@@ -4,7 +4,8 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Check, Play, X as XIcon } from "lucide-vue-next";
+import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
+import { Check, Play, SmilePlus, X as XIcon } from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
@@ -204,18 +205,49 @@ import { e_player_roles_enum } from "~/generated/zeus";
       </div>
     </div>
 
+    <Popover v-if="showReactionControls && !isEditing" v-model:open="reactPopoverOpen">
+      <PopoverTrigger as-child>
+        <button
+          type="button"
+          :aria-label="$t('chat.react', 'React')"
+          :class="[
+            'absolute right-6 top-0 z-10 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded text-muted-foreground transition-opacity hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
+            reactPopoverOpen
+              ? 'opacity-100'
+              : 'opacity-0 group-hover/chat-message:opacity-100 group-focus-within/chat-message:opacity-100 [@media(hover:none)]:opacity-100',
+          ]"
+        >
+          <SmilePlus class="h-3 w-3" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        class="flex w-auto items-center gap-0.5 p-1"
+        align="end"
+        :aria-label="$t('chat.choose_reaction', 'Choose a reaction')"
+      >
+        <button
+          v-for="choice in CHAT_REACTIONS"
+          :key="choice.id"
+          type="button"
+          class="flex size-8 items-center justify-center rounded text-base hover:bg-muted"
+          :aria-label="`React with ${choice.emoji}`"
+          @click="toggleReaction(choice.id); reactPopoverOpen = false"
+        >
+          {{ choice.emoji }}
+        </button>
+      </PopoverContent>
+    </Popover>
+
     <ChatMessageActionsMenu
       v-if="hasMessageActions && !isEditing"
       :can-edit="canEdit"
       :can-delete="canDelete"
       :can-mute="canMute"
-      :can-react="showReactionControls"
       align="end"
       trigger-class="absolute right-1 top-0 z-10"
       @edit="startEdit"
       @mute="requestMute"
       @delete="requestDelete"
-      @react="toggleReaction"
       @opened="refreshNow"
     />
   </div>
@@ -299,6 +331,7 @@ export default {
       // of a missing avatar while this is in flight.
       liveAvatarUrl: null as string | null,
       isEditing: false,
+      reactPopoverOpen: false,
       editDraft: "",
       // Own-message Edit/Delete depend on the message's age, which a
       // computed can't observe on its own -- refreshed when the menu opens
@@ -372,12 +405,9 @@ export default {
       return this.actionPermissions.canMute;
     },
     hasMessageActions() {
-      return (
-        this.showReactionControls ||
-        this.canEdit ||
-        this.canDelete ||
-        this.canMute
-      );
+      // React lives in its own always-checked button (see the template)
+      // now, not inside this "..." menu.
+      return this.canEdit || this.canDelete || this.canMute;
     },
     // Match-type chat mixes messages relayed in from the live CS2/CSS
     // server with ones typed directly on the DEAFCS site itself (see

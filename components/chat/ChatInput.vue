@@ -72,6 +72,7 @@ function autoResize(event: Event) {
           <div class="flex items-center gap-1.5">
             <ChatComposerMenu
               v-if="attachmentEnabled && !isWebsiteRestricted"
+              :has-draft="hasDraft"
               @pick-file="pendingAttachment = $event"
               @pick-gif="sendGif"
             />
@@ -154,6 +155,7 @@ function autoResize(event: Event) {
           <div class="flex items-center gap-1.5 p-2">
             <ChatComposerMenu
               v-if="attachmentEnabled && !isWebsiteRestricted"
+              :has-draft="hasDraft"
               @pick-file="pendingAttachment = $event"
               @pick-gif="sendGif"
             />
@@ -279,6 +281,11 @@ export default {
     // failed state waiting for a retry.
     isReadyToSend() {
       return !this.pendingAttachment || Boolean(this.uploadedAttachment);
+    },
+    // Drives ChatComposerMenu's collapse to a single "+" -- true as soon
+    // as there's any text or an attachment already picked.
+    hasDraft() {
+      return Boolean(this.form.values.message?.trim()) || Boolean(this.pendingAttachment);
     },
   },
   methods: {

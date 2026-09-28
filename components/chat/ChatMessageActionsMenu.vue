@@ -5,26 +5,23 @@ import {
   Pencil,
   Trash2,
   MessageSquareOff,
-  SmilePlus,
 } from "lucide-vue-next";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
-import { CHAT_REACTIONS, type ChatReaction } from "~/utils/chatReactions";
 
 defineProps<{
   // Each flag is decided by ChatMessage (see utils/chatMessageActions.ts);
   // the API re-checks every action, this only controls what is shown.
+  // React lives in its own quick-access button next to this menu now
+  // (see ChatMessage.vue) -- reported: opening "..." just to find React
+  // inside a submenu took too many clicks.
   canEdit: boolean;
   canDelete: boolean;
   canMute: boolean;
-  canReact?: boolean;
   // Extra classes let each message position its own trigger while this
   // component remains the single implementation of the action menu.
   triggerClass?: string;
@@ -34,7 +31,6 @@ const emit = defineEmits<{
   (e: "edit"): void;
   (e: "mute"): void;
   (e: "delete"): void;
-  (e: "react", reaction: ChatReaction): void;
   (e: "opened"): void;
 }>();
 
@@ -71,26 +67,6 @@ watch(open, (isOpen) => {
       </button>
     </DropdownMenuTrigger>
     <DropdownMenuContent :align="align ?? 'end'" class="w-40">
-      <DropdownMenuSub v-if="canReact">
-        <DropdownMenuSubTrigger class="cursor-pointer">
-          <SmilePlus :class="actionIconClass" />
-          {{ $t("chat.react", "React") }}
-        </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent
-          class="flex min-w-0 items-center gap-0.5 p-1"
-          :aria-label="$t('chat.choose_reaction', 'Choose a reaction')"
-        >
-          <DropdownMenuItem
-            v-for="choice in CHAT_REACTIONS"
-            :key="choice.id"
-            class="size-8 justify-center p-0 text-base"
-            :aria-label="`React with ${choice.emoji}`"
-            @click="emit('react', choice.id)"
-          >
-            {{ choice.emoji }}
-          </DropdownMenuItem>
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
       <DropdownMenuItem v-if="canEdit" @click="emit('edit')">
         <Pencil :class="actionIconClass" />
         {{ $t("common.edit") }}

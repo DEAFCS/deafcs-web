@@ -46,13 +46,17 @@ describe("Chat Hub message reactions", () => {
     vi.restoreAllMocks();
   });
 
-  function mountMessage(props: Record<string, unknown> = {}) {
+  function mountMessage(
+    props: Record<string, unknown> = {},
+    options: { attachTo?: Element } = {},
+  ) {
     return mount(ChatMessage, {
       props: {
         message,
         chatType: "global",
         ...props,
       },
+      ...options,
       global: {
         mocks: {
           $t: (key: string, fallback?: string) => fallback ?? key,
@@ -76,6 +80,7 @@ describe("Chat Hub message reactions", () => {
     });
     // Match-page style (reactions disabled, non-admin): no menu, no chips.
     expect(actionsMenu(disabled).exists()).toBe(false);
+    expect(disabled.find('[aria-label="React"]').exists()).toBe(false);
     expect(disabled.findAll("button")).toHaveLength(0);
     disabled.unmount();
 
@@ -84,6 +89,7 @@ describe("Chat Hub message reactions", () => {
       message: { ...message, blocked: true },
     });
     expect(actionsMenu(blocked).exists()).toBe(false);
+    expect(blocked.find('[aria-label="React"]').exists()).toBe(false);
     blocked.unmount();
 
     const unstable = mountMessage({
@@ -91,27 +97,27 @@ describe("Chat Hub message reactions", () => {
       message: { ...message, id: "old-message-id" },
     });
     expect(actionsMenu(unstable).exists()).toBe(false);
+    expect(unstable.find('[aria-label="React"]').exists()).toBe(false);
     unstable.unmount();
   });
 
-  it("has no standalone reaction button and no reaction row when a message has zero reactions", () => {
+  it("shows a standalone React button (not inside \"...\") but no reaction row when a message has zero reactions", () => {
     const wrapper = mountMessage({ reactionsEnabled: true });
-    expect(wrapper.find('[aria-label="Add reaction"]').exists()).toBe(false);
-    expect(wrapper.findAll("button")).toHaveLength(0);
+    // No edit/delete/mute rights on someone else's message -- "..." itself
+    // shouldn't render, only the quick-react button next to it.
+    expect(actionsMenu(wrapper).exists()).toBe(false);
+    expect(wrapper.find('[aria-label="React"]').exists()).toBe(true);
+    expect(wrapper.findAll("button")).toHaveLength(1);
     expect(wrapper.find(".reaction-chip").exists()).toBe(false);
     wrapper.unmount();
   });
 
-  it("offers React inside the ... menu for normal users without exposing Mute/Delete", async () => {
+  it("offers a quick React button next to \"...\" for normal users without exposing Mute/Delete", async () => {
     const wrapper = mountMessage({ reactionsEnabled: true });
-    const menu = actionsMenu(wrapper);
-    expect(menu.exists()).toBe(true);
-    expect(menu.props("canReact")).toBe(true);
-    expect(menu.props("canMute")).toBe(false);
-    expect(menu.props("canDelete")).toBe(false);
-    expect(menu.props("canEdit")).toBe(false);
+    expect(actionsMenu(wrapper).exists()).toBe(false);
+    expect(wrapper.find('[aria-label="React"]').exists()).toBe(true);
 
-    menu.vm.$emit("react", "fire");
+    (wrapper.vm as any).toggleReaction("fire");
     expect(wrapper.emitted("toggle-reaction")?.[0]?.[0]).toEqual({
       messageId,
       reaction: "fire",
@@ -119,7 +125,7 @@ describe("Chat Hub message reactions", () => {
     wrapper.unmount();
   });
 
-  it("keeps administrator Mute/Delete (no Edit) and adds React only where reactions are enabled", () => {
+  it("keeps administrator Mute/Delete (no Edit) and shows the React button only where reactions are enabled", () => {
     vi.stubGlobal("useAuthStore", () => ({
       me: { steam_id: "76561190000000123" },
       isRoleAbove: () => true,
@@ -128,52 +134,39 @@ describe("Chat Hub message reactions", () => {
     expect(actionsMenu(hub).props("canMute")).toBe(true);
     expect(actionsMenu(hub).props("canDelete")).toBe(true);
     expect(actionsMenu(hub).props("canEdit")).toBe(false);
-    expect(actionsMenu(hub).props("canReact")).toBe(true);
+    expect(hub.find('[aria-label="React"]').exists()).toBe(true);
     hub.unmount();
 
     const matchPage = mountMessage({ chatType: "match" });
     expect(actionsMenu(matchPage).props("canDelete")).toBe(true);
-    expect(actionsMenu(matchPage).props("canReact")).toBe(false);
+    expect(matchPage.find('[aria-label="React"]').exists()).toBe(false);
     matchPage.unmount();
   });
 
-  it("the menu's React submenu offers exactly the four reactions and emits the stable ID", async () => {
-    const passthrough = { template: "<div><slot /></div>" };
-    const menu = mount(ChatMessageActionsMenu, {
-      props: {
-        canEdit: false,
-        canDelete: false,
-        canMute: false,
-        canReact: true,
-      },
-      global: {
-        mocks: { $t: (key: string, fallback?: string) => fallback ?? key },
-        stubs: {
-          DropdownMenu: passthrough,
-          DropdownMenuTrigger: passthrough,
-          DropdownMenuContent: passthrough,
-          DropdownMenuSub: passthrough,
-          DropdownMenuSubTrigger: passthrough,
-          DropdownMenuSubContent: passthrough,
-          DropdownMenuItem: {
-            template: '<button type="button" v-bind="$attrs"><slot /></button>',
-          },
-        },
-      },
-    });
-    const choices = menu.findAll('[aria-label^="React with"]');
-    expect(choices.map((choice) => choice.text())).toEqual([
+  it("the quick React popover offers exactly the four reactions and emits the stable ID", async () => {
+    const wrapper = mountMessage(
+      { reactionsEnabled: true },
+      { attachTo: document.body },
+    );
+    await wrapper.get('[aria-label="React"]').trigger("click");
+    await wrapper.vm.$nextTick();
+
+    // PopoverContent teleports out of the wrapper's own DOM tree.
+    const choices = Array.from(
+      document.querySelectorAll('[aria-label^="React with"]'),
+    );
+    expect(choices.map((el) => el.textContent)).toEqual([
       "👍",
       "❤️",
       "🔥",
       "🎉",
     ]);
-    expect(menu.text()).toContain("React");
-    expect(menu.text()).not.toContain("Mute Player");
-    expect(menu.text()).not.toContain("common.delete");
-    await menu.get('[aria-label="React with 🔥"]').trigger("click");
-    expect(menu.emitted("react")?.[0]).toEqual(["fire"]);
-    menu.unmount();
+    (document.querySelector('[aria-label="React with 🔥"]') as HTMLElement)?.click();
+    expect(wrapper.emitted("toggle-reaction")?.[0]?.[0]).toEqual({
+      messageId,
+      reaction: "fire",
+    });
+    wrapper.unmount();
   });
 
   it("renders only known positive counts and marks the viewer's selected reaction", () => {

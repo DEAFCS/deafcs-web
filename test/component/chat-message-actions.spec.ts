@@ -180,11 +180,16 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
 
   const menuProps = (wrapper: ReturnType<typeof mountMessage>) => {
     const menu = wrapper.findComponent(ChatMessageActionsMenu);
+    // The "..." menu itself no longer renders at all once canEdit/canDelete/
+    // canMute are all false (nothing left to show in it) -- absence means
+    // false for each, same as if it were still there with every flag off.
     return {
-      canReact: menu.props("canReact"),
-      canEdit: menu.props("canEdit"),
-      canDelete: menu.props("canDelete"),
-      canMute: menu.props("canMute"),
+      // React lives in its own standalone button next to "..." now, not
+      // as a prop on the menu itself.
+      canReact: wrapper.find('[aria-label="React"]').exists(),
+      canEdit: menu.exists() ? menu.props("canEdit") : false,
+      canDelete: menu.exists() ? menu.props("canDelete") : false,
+      canMute: menu.exists() ? menu.props("canMute") : false,
     };
   };
 
@@ -357,26 +362,23 @@ describe("ChatMessageActionsMenu renders exactly the allowed items", () => {
     });
   }
 
-  it("normal user, own old message: React only", () => {
-    const text = mountMenu({ canReact: true }).text();
-    expect(text).toContain("React");
+  it("normal user, own old message: nothing to show", () => {
+    const text = mountMenu({}).text();
     expect(text).not.toContain("common.edit");
     expect(text).not.toContain("common.delete");
     expect(text).not.toContain("Mute Player");
   });
 
-  it("admin, someone else's: React, Mute, Delete, no Edit", async () => {
-    const menu = mountMenu({ canReact: true, canMute: true, canDelete: true });
+  it("admin, someone else's: Mute, Delete, no Edit", async () => {
+    const menu = mountMenu({ canMute: true, canDelete: true });
     const text = menu.text();
-    expect(text).toContain("React");
     expect(text).toContain("Mute Player");
     expect(text).toContain("common.delete");
     expect(text).not.toContain("common.edit");
-    expect(menu.findAll('[aria-label^="React with"]')).toHaveLength(4);
   });
 
-  it("own recent: React, Edit, Delete, no Mute", () => {
-    const text = mountMenu({ canReact: true, canEdit: true, canDelete: true }).text();
+  it("own recent: Edit, Delete, no Mute", () => {
+    const text = mountMenu({ canEdit: true, canDelete: true }).text();
     expect(text).toContain("common.edit");
     expect(text).toContain("common.delete");
     expect(text).not.toContain("Mute Player");
