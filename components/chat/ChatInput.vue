@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CornerDownLeft, Film, RotateCw, X } from "lucide-vue-next";
+import { Film, RotateCw, SendHorizontal, X } from "lucide-vue-next";
 import { Textarea } from "~/components/ui/textarea";
 
 // Enter sends; Shift+Enter inserts a real line break instead -- native
@@ -69,14 +69,11 @@ function autoResize(event: Event) {
     <FormField v-slot="{ componentField }" name="message">
       <FormItem>
         <FormControl>
-          <div class="flex gap-2">
-            <ChatAttachmentInput
+          <div class="flex items-center gap-1.5">
+            <ChatComposerMenu
               v-if="attachmentEnabled && !isWebsiteRestricted"
-              v-model="pendingAttachment"
-            />
-            <ChatGifPicker
-              v-if="attachmentEnabled && !isWebsiteRestricted"
-              @pick="sendGif"
+              @pick-file="pendingAttachment = $event"
+              @pick-gif="sendGif"
             />
             <Textarea
               ref="inputRef"
@@ -95,13 +92,14 @@ function autoResize(event: Event) {
             />
             <Button
               type="submit"
-              size="sm"
+              size="icon-sm"
+              variant="default"
               :loading="sending || uploadProgress !== null"
               :min-loading-ms="0"
               :disabled="isWebsiteRestricted || !isReadyToSend"
-              class="transition-all duration-200 hover:scale-105"
+              class="shrink-0 rounded-full transition-all duration-200 hover:scale-105"
             >
-              <CornerDownLeft class="size-3.5" />
+              <SendHorizontal class="h-4 w-4" />
             </Button>
           </div>
         </FormControl>
@@ -153,14 +151,11 @@ function autoResize(event: Event) {
     <FormField v-slot="{ componentField }" name="message">
       <FormItem>
         <FormControl>
-          <div class="flex items-center gap-2 p-2">
-            <ChatAttachmentInput
+          <div class="flex items-center gap-1.5 p-2">
+            <ChatComposerMenu
               v-if="attachmentEnabled && !isWebsiteRestricted"
-              v-model="pendingAttachment"
-            />
-            <ChatGifPicker
-              v-if="attachmentEnabled && !isWebsiteRestricted"
-              @pick="sendGif"
+              @pick-file="pendingAttachment = $event"
+              @pick-gif="sendGif"
             />
             <Textarea
               ref="inputRef"
@@ -179,13 +174,14 @@ function autoResize(event: Event) {
             />
             <Button
               type="submit"
-              size="sm"
+              size="icon-sm"
+              variant="default"
               :loading="sending || uploadProgress !== null"
               :min-loading-ms="0"
               :disabled="isWebsiteRestricted || !isReadyToSend"
-              class="shrink-0 gap-1.5"
+              class="shrink-0 rounded-full"
             >
-              <CornerDownLeft class="size-3.5" />
+              <SendHorizontal class="h-4 w-4" />
             </Button>
           </div>
         </FormControl>
@@ -196,8 +192,7 @@ function autoResize(event: Event) {
 
 <script lang="ts">
 import { FormControl, FormField, FormItem } from "~/components/ui/form";
-import ChatAttachmentInput from "~/components/chat/ChatAttachmentInput.vue";
-import ChatGifPicker from "~/components/chat/ChatGifPicker.vue";
+import ChatComposerMenu from "~/components/chat/ChatComposerMenu.vue";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
@@ -212,7 +207,7 @@ import {
 } from "~/utils/chatMessageActions";
 
 export default {
-  components: { ChatAttachmentInput, ChatGifPicker },
+  components: { ChatComposerMenu },
   props: {
     variant: {
       type: String,

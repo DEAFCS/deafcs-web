@@ -302,7 +302,7 @@ describe("ChatInput 2,000 character limit", () => {
     return mount(ChatInput, {
       global: {
         mocks: { $t: (key: string, fallback?: string) => fallback ?? key },
-        stubs: { ChatAttachmentInput: true },
+        stubs: { ChatComposerMenu: true },
       },
     });
   }
