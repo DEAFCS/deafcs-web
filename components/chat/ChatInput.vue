@@ -173,7 +173,10 @@ import * as z from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
-import { uploadChatAttachment } from "~/utilities/uploadChatAttachment";
+import {
+  uploadChatAttachment,
+  type ChatAttachmentUploadError,
+} from "~/utilities/uploadChatAttachment";
 import {
   isChatMessageTooLong,
   showChatMessageTooLong,
@@ -276,11 +279,18 @@ export default {
             (percent) => (this.uploadProgress = percent),
           );
           attachment = { url: uploaded.path, contentType: uploaded.contentType };
-        } catch {
+        } catch (error) {
+          console.error("[chat] attachment upload failed", error);
+          const upload = error as ChatAttachmentUploadError;
           toast({
             variant: "destructive",
             title: "Upload failed",
-            description: "Could not send the attachment. Try again.",
+            description:
+              upload?.kind === "network" && upload.bytesSent === 0
+                ? "Nothing was sent to the server. If this is a photo-library video, open it fully in Photos first (it may still be downloading from iCloud), then try again."
+                : upload?.kind === "timeout"
+                  ? "The upload took too long and was cancelled. Try again on a faster connection."
+                  : "Could not send the attachment. Try again.",
           });
           return;
         } finally {

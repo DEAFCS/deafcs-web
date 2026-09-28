@@ -1,3 +1,15 @@
+// Distinguishes *why* the upload failed so the caller can show a message
+// that actually points at the cause instead of a generic "try again" --
+// "network" with zero bytes ever sent is the signature of a phone's local
+// file picker handing over a placeholder for a photo-library video that
+// hasn't finished downloading from iCloud yet (confirmed in production:
+// the request never even reached the ingress, nothing in its access log).
+export type ChatAttachmentUploadError = Error & {
+  kind: "network" | "timeout" | "http";
+  status?: number;
+  bytesSent: number;
+};
+
 // Uploads a chat attachment ahead of the actual "lobby:chat" socket send --
 // the chat message doesn't exist yet at upload time, so this just stashes
 // the file in S3 and returns the key + content type to include as
@@ -18,17 +30,29 @@ export function uploadChatAttachment(
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
+    let bytesSent = 0;
     xhr.open("POST", `https://${apiDomain}/chat/attachment`);
     xhr.withCredentials = true;
+    // Generous but finite -- long enough for a large file on a slow mobile
+    // connection, short enough to eventually surface a stuck upload rather
+    // than spinning forever.
+    xhr.timeout = 10 * 60 * 1000;
 
     xhr.upload.onprogress = (event) => {
+      bytesSent = event.loaded;
       if (!event.lengthComputable || !onProgress) return;
       onProgress(Math.round((event.loaded / event.total) * 100));
     };
 
     xhr.onload = () => {
       if (xhr.status < 200 || xhr.status >= 300) {
-        reject(new Error(`${xhr.status} ${xhr.statusText}`));
+        const error = new Error(
+          `${xhr.status} ${xhr.statusText}`,
+        ) as ChatAttachmentUploadError;
+        error.kind = "http";
+        error.status = xhr.status;
+        error.bytesSent = bytesSent;
+        reject(error);
         return;
       }
       try {
@@ -37,7 +61,18 @@ export function uploadChatAttachment(
         reject(error);
       }
     };
-    xhr.onerror = () => reject(new Error("network error"));
+    xhr.ontimeout = () => {
+      const error = new Error("upload timed out") as ChatAttachmentUploadError;
+      error.kind = "timeout";
+      error.bytesSent = bytesSent;
+      reject(error);
+    };
+    xhr.onerror = () => {
+      const error = new Error("network error") as ChatAttachmentUploadError;
+      error.kind = "network";
+      error.bytesSent = bytesSent;
+      reject(error);
+    };
     xhr.send(formData);
   });
 }
