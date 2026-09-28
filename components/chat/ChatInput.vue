@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CornerDownLeft, Film, X } from "lucide-vue-next";
+import { CornerDownLeft, Film, RotateCw, X } from "lucide-vue-next";
 import { Textarea } from "~/components/ui/textarea";
 
 // Enter sends; Shift+Enter inserts a real line break instead -- native
@@ -47,7 +47,17 @@ function autoResize(event: Event) {
           {{ uploadProgress }}%
         </div>
         <button
-          v-else
+          v-else-if="uploadFailed"
+          type="button"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-destructive/80 text-white"
+          :title="$t('chat.attachment_retry', 'Upload failed -- tap to retry')"
+          @click="retryUpload"
+        >
+          <RotateCw class="h-4 w-4" />
+          <span class="text-[9px] font-semibold uppercase tracking-wide">{{ $t("common.retry", "Retry") }}</span>
+        </button>
+        <button
+          v-if="uploadProgress === null"
           type="button"
           class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
           @click="pendingAttachment = null"
@@ -84,7 +94,7 @@ function autoResize(event: Event) {
               size="sm"
               :loading="sending || uploadProgress !== null"
               :min-loading-ms="0"
-              :disabled="isWebsiteRestricted || uploadProgress !== null"
+              :disabled="isWebsiteRestricted || !isReadyToSend"
               class="transition-all duration-200 hover:scale-105"
             >
               <CornerDownLeft class="size-3.5" />
@@ -117,7 +127,17 @@ function autoResize(event: Event) {
           {{ uploadProgress }}%
         </div>
         <button
-          v-else
+          v-else-if="uploadFailed"
+          type="button"
+          class="absolute inset-0 flex flex-col items-center justify-center gap-0.5 bg-destructive/80 text-white"
+          :title="$t('chat.attachment_retry', 'Upload failed -- tap to retry')"
+          @click="retryUpload"
+        >
+          <RotateCw class="h-4 w-4" />
+          <span class="text-[9px] font-semibold uppercase tracking-wide">{{ $t("common.retry", "Retry") }}</span>
+        </button>
+        <button
+          v-if="uploadProgress === null"
           type="button"
           class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
           @click="pendingAttachment = null"
@@ -154,7 +174,7 @@ function autoResize(event: Event) {
               size="sm"
               :loading="sending || uploadProgress !== null"
               :min-loading-ms="0"
-              :disabled="isWebsiteRestricted || uploadProgress !== null"
+              :disabled="isWebsiteRestricted || !isReadyToSend"
               class="shrink-0 gap-1.5"
             >
               <CornerDownLeft class="size-3.5" />
@@ -203,7 +223,14 @@ export default {
       sending: false,
       pendingAttachment: null as File | null,
       pendingAttachmentPreviewUrl: null as string | null,
+      // Uploaded as soon as a file is picked, not on send -- reported: a
+      // large video failing was only discovered after pressing send, with
+      // no way to tell it apart from "just slow" until then. Send now
+      // stays locked until this is set, so there's nothing left to upload
+      // by the time Enter/Send actually does anything.
+      uploadedAttachment: null as { url: string; contentType: string } | null,
       uploadProgress: null as number | null,
+      uploadFailed: false,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
@@ -224,6 +251,11 @@ export default {
       if (file && file.type.startsWith("image/")) {
         this.pendingAttachmentPreviewUrl = URL.createObjectURL(file);
       }
+      this.uploadedAttachment = null;
+      this.uploadFailed = false;
+      if (file) {
+        this.startUpload(file);
+      }
     },
   },
   beforeUnmount() {
@@ -237,6 +269,12 @@ export default {
   computed: {
     isWebsiteRestricted() {
       return useWebsiteRestrictionStore().isRestricted;
+    },
+    // Nothing to wait on (no attachment), or an attachment that finished
+    // uploading. Not ready while it's still uploading, or sitting in a
+    // failed state waiting for a retry.
+    isReadyToSend() {
+      return !this.pendingAttachment || Boolean(this.uploadedAttachment);
     },
   },
   methods: {
@@ -256,8 +294,47 @@ export default {
         this.sendTimer = undefined;
       }, 1000);
     },
+    async startUpload(file: File) {
+      this.uploadProgress = 0;
+      this.uploadFailed = false;
+      try {
+        const uploaded = await uploadChatAttachment(
+          file,
+          (percent) => {
+            // The user may have swapped/removed the attachment while this
+            // was in flight -- ignore a stale upload's progress/result.
+            if (this.pendingAttachment === file) this.uploadProgress = percent;
+          },
+        );
+        if (this.pendingAttachment !== file) return;
+        this.uploadedAttachment = {
+          url: uploaded.path,
+          contentType: uploaded.contentType,
+        };
+      } catch (error) {
+        if (this.pendingAttachment !== file) return;
+        console.error("[chat] attachment upload failed", error);
+        const upload = error as ChatAttachmentUploadError;
+        this.uploadFailed = true;
+        toast({
+          variant: "destructive",
+          title: "Upload failed",
+          description:
+            upload?.kind === "network" && upload.bytesSent === 0
+              ? "Nothing was sent to the server. If this is a large video, try again on a more stable connection."
+              : upload?.kind === "timeout"
+                ? "The upload took too long and was cancelled. Try again on a faster connection."
+                : "Could not upload the attachment. Try again.",
+        });
+      } finally {
+        if (this.pendingAttachment === file) this.uploadProgress = null;
+      }
+    },
+    retryUpload() {
+      if (this.pendingAttachment) this.startUpload(this.pendingAttachment);
+    },
     async sendMessage() {
-      if (this.isWebsiteRestricted) {
+      if (this.isWebsiteRestricted || !this.isReadyToSend) {
         return;
       }
       const { message } = this.form.values;
@@ -270,39 +347,13 @@ export default {
         return;
       }
 
-      let attachment: { url: string; contentType: string } | undefined;
-      if (this.pendingAttachment) {
-        this.uploadProgress = 0;
-        try {
-          const uploaded = await uploadChatAttachment(
-            this.pendingAttachment,
-            (percent) => (this.uploadProgress = percent),
-          );
-          attachment = { url: uploaded.path, contentType: uploaded.contentType };
-        } catch (error) {
-          console.error("[chat] attachment upload failed", error);
-          const upload = error as ChatAttachmentUploadError;
-          toast({
-            variant: "destructive",
-            title: "Upload failed",
-            description:
-              upload?.kind === "network" && upload.bytesSent === 0
-                ? "Nothing was sent to the server. If this is a photo-library video, open it fully in Photos first (it may still be downloading from iCloud), then try again."
-                : upload?.kind === "timeout"
-                  ? "The upload took too long and was cancelled. Try again on a faster connection."
-                  : "Could not send the attachment. Try again.",
-          });
-          return;
-        } finally {
-          this.uploadProgress = null;
-        }
-      }
-
       this.$emit("sendMessage", {
         message: normalizedMessage,
-        attachment,
+        attachment: this.uploadedAttachment ?? undefined,
       });
       this.pendingAttachment = null;
+      this.uploadedAttachment = null;
+      this.uploadFailed = false;
       this.form.resetForm();
       this.flashSending();
       // Collapse the textarea back to its one-row default -- resetForm
