@@ -70,6 +70,10 @@ function autoResize(event: Event) {
       <FormItem>
         <FormControl>
           <div class="flex gap-2">
+            <ChatAttachmentInput
+              v-if="attachmentEnabled && !isWebsiteRestricted"
+              v-model="pendingAttachment"
+            />
             <Textarea
               ref="inputRef"
               rows="1"
@@ -84,10 +88,6 @@ function autoResize(event: Event) {
               class="flex-1 min-h-0 resize-none transition-all duration-200"
               @keydown="handleKeydown($event, sendMessage)"
               @input="autoResize"
-            />
-            <ChatAttachmentInput
-              v-if="attachmentEnabled && !isWebsiteRestricted"
-              v-model="pendingAttachment"
             />
             <Button
               type="submit"
@@ -150,6 +150,10 @@ function autoResize(event: Event) {
       <FormItem>
         <FormControl>
           <div class="flex items-center gap-2 p-2">
+            <ChatAttachmentInput
+              v-if="attachmentEnabled && !isWebsiteRestricted"
+              v-model="pendingAttachment"
+            />
             <Textarea
               ref="inputRef"
               rows="1"
@@ -164,10 +168,6 @@ function autoResize(event: Event) {
               class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
               @keydown="handleKeydown($event, sendMessage)"
               @input="autoResize"
-            />
-            <ChatAttachmentInput
-              v-if="attachmentEnabled && !isWebsiteRestricted"
-              v-model="pendingAttachment"
             />
             <Button
               type="submit"
