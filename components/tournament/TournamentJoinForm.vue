@@ -296,6 +296,7 @@ import { toast } from "@/components/ui/toast";
 import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 import {
   attendanceWindow,
+  canSelfCheckInIndividually,
   formatClockTime,
   isFinalizedSitOut,
 } from "~/utilities/tournamentAttendance";
@@ -453,11 +454,13 @@ export default {
       const endsAt = (this.tournament as any)?.individual_check_in_ends_at;
       return !!endsAt && new Date(endsAt) > new Date();
     },
+    // Same rule checkIntoTournament enforces: Waitlisted players check in
+    // too during the automatic (RegistrationOpen) window, but not during the
+    // older manual RegistrationClosed window.
     showIndividualCheckIn() {
-      return (
-        this.checkInWindowOpen &&
-        !!this.myIndividualSignup &&
-        !this.myIndividualSignup.checked_in_at
+      return canSelfCheckInIndividually(
+        this.myIndividualSignup as any,
+        this.tournament as any,
       );
     },
     individualAttendanceMessage() {
@@ -479,6 +482,13 @@ export default {
           : this.$t("tournament.attendance.auto_checked_in");
       }
       if (signup.status === "Waitlisted") {
+        // Asked to check in during the automatic window; checking in keeps
+        // them eligible if a spot opens, it does not promise one.
+        if (this.showIndividualCheckIn && this.checkInClosesClock) {
+          return this.$t("tournament.attendance.waitlisted_check_in_by", {
+            time: this.checkInClosesClock,
+          });
+        }
         return this.$t("tournament.join.individual.waitlisted");
       }
       if (this.checkInWindowOpen && this.checkInClosesClock) {

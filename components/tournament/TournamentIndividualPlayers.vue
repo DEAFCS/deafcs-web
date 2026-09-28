@@ -22,6 +22,28 @@ import {
       {{ closesAtNote }}
     </p>
 
+    <!-- Attendance, not team participation: checked-in players may still sit
+         out if generated teams cannot fit them all. Reads the subscribed
+         signups, so it updates live and stays after teams are generated. -->
+    <p
+      class="font-mono text-xs text-muted-foreground"
+      data-testid="individual-attendance-summary"
+    >
+      {{
+        $t(
+          "tournament.players.summary_signed_up",
+          attendanceSummary.signedUp,
+        )
+      }}
+      ·
+      {{
+        $t(
+          "tournament.players.summary_checked_in",
+          attendanceSummary.checkedIn,
+        )
+      }}
+    </p>
+
     <section>
       <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         <h3
@@ -206,6 +228,8 @@ import {
   formatClockTime,
   showAttendanceStatuses,
   canLeaveIndividualTournament,
+  individualAttendanceSummary,
+  canSelfCheckInIndividually,
 } from "~/utilities/tournamentAttendance";
 
 export default {
@@ -237,6 +261,9 @@ export default {
     },
     removedPlayers() {
       return this.signups.filter((s: any) => s.status === "Removed");
+    },
+    attendanceSummary() {
+      return individualAttendanceSummary(this.signups);
     },
     // Only meaningful while registration/check-in are still ahead of us --
     // once closed, teams have already been generated.
@@ -291,7 +318,12 @@ export default {
     canCheckIn(signup: any) {
       if (signup.checked_in_at) return false;
       if (!this.checkInWindowOpen) return false;
-      return this.isOrganizer || this.isSelf(signup);
+      // Checking yourself in goes through checkIntoTournament, which only
+      // accepts Waitlisted during the automatic RegistrationOpen window.
+      if (this.isSelf(signup)) {
+        return canSelfCheckInIndividually(signup, this.tournament as any);
+      }
+      return this.isOrganizer;
     },
     // Eligibility itself is the shared rule, so this row and the header Leave
     // button can never disagree again; who may act on it is the only extra

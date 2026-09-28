@@ -121,8 +121,12 @@ test("TournamentJoinForm: Solo Random attendance messaging covers pre-open, open
     joinFormSource.indexOf("showIndividualCheckIn()"),
     joinFormSource.indexOf("showIndividualCheckIn()") + 250,
   );
-  assert.match(showCheckInBlock, /checkInWindowOpen/);
-  assert.match(showCheckInBlock, /!this\.myIndividualSignup\.checked_in_at/);
+  // Window/checked-in/status gating is the shared rule the API mirrors
+  // (behavior covered in solo-random-attendance-summary.test.mjs).
+  assert.match(
+    showCheckInBlock,
+    /canSelfCheckInIndividually\(\s*this\.myIndividualSignup as any,\s*this\.tournament as any,?\s*\)/,
+  );
 
   assert.match(joinFormSource, /checkIntoTournament: \[/);
 });

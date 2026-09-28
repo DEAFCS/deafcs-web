@@ -5576,6 +5576,8 @@
       "not_checked_in": "Not checked in yet",
       "waitlist": "Waitlist ({count})",
       "removed": "Removed for not checking in ({count})",
+      "summary_signed_up": "{count} signed up | {count} signed up",
+      "summary_checked_in": "{count} checked in | {count} checked in",
       "check_in": {
         "title": "Check-in",
         "description": "Everyone Registered gets a forced overlay until they check in or the window closes.",
@@ -5591,6 +5593,7 @@
         "overlay_title": "Confirm you're still in",
         "overlay_description": "You're registered for {name}. Check in now or you'll be replaced by the next player on the waitlist.",
         "check_in_now": "Check In Now",
+        "overlay_waitlisted": "You're on the waitlist. Checking in keeps you eligible if a spot opens. A spot is not guaranteed.",
         "team_overlay_title": "Check in your team",
         "team_check_in_now": "Check In Team"
       },
@@ -5615,6 +5618,7 @@
       "check_in_button": "Check In",
       "opens_at": "Check-in opens at {time}",
       "check_in_by": "Check in by {time}",
+      "waitlisted_check_in_by": "You're on the waitlist. Check in by {time} to stay eligible if a spot opens.",
       "auto_checked_in": "You're registered and automatically checked in.",
       "waitlisted_checked_in": "You're checked in and on the waitlist. If a higher-priority player does not check in, you may receive a tournament spot.",
       "explainer": "Players registered before check-in opens must check in. Registrations made during the check-in window are automatically checked in.",

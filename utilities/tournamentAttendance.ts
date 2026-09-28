@@ -245,3 +245,63 @@ export function canLeaveIndividualTournament(
   }
   return signup.status === "Registered" || signup.status === "Waitlisted";
 }
+
+// --- Solo Random attendance summary -----------------------------------------
+//
+// "44 signed up · 40 checked in" on the Players page. Both numbers come
+// straight off the individual_signups rows the page already subscribes to.
+//
+//   * Signed up: every signup row that still exists, whatever its status
+//     (Registered, Waitlisted, Assigned, Removed). A voluntary leave deletes
+//     the row, so it drops out on its own.
+//   * Checked in: rows with checked_in_at set, regardless of status, so
+//     checked-in Waitlisted players count too and the number survives team
+//     generation. This is attendance, not team participation: generation may
+//     still leave some checked-in players sitting out.
+export type IndividualAttendanceSummary = {
+  signedUp: number;
+  checkedIn: number;
+};
+
+export function individualAttendanceSummary(
+  signups?: Array<TournamentSignupLike> | null,
+): IndividualAttendanceSummary {
+  const rows = (signups ?? []).filter(Boolean);
+  return {
+    signedUp: rows.length,
+    checkedIn: rows.filter((signup) => !!signup.checked_in_at).length,
+  };
+}
+
+// --- Solo Random self check-in ----------------------------------------------
+//
+// Mirrors checkIntoTournament server-side (the API stays authoritative).
+// Which signups may check THEMSELVES in depends on which window is open, and
+// the tournament status tells the two apart:
+//
+//   * RegistrationOpen: the automatic attendance window. Registered AND
+//     Waitlisted players check in, because team generation selects from every
+//     checked-in signup against the current capacity. Checking in while
+//     waitlisted keeps a player eligible; it does not promise a spot.
+//   * RegistrationClosed: the older manual window. Only Registered players
+//     are asked; a waitlisted player gets a fresh window when promoted.
+export function canSelfCheckInIndividually(
+  signup?: TournamentSignupLike | null,
+  tournament?: TournamentAttendanceTiming | null,
+): boolean {
+  if (!signup || !tournament) {
+    return false;
+  }
+  if (signup.checked_in_at || signup.tournament_team_id) {
+    return false;
+  }
+  if (!attendanceCheckInOpen(tournament)) {
+    return false;
+  }
+  if (signup.status === "Registered") {
+    return true;
+  }
+  return (
+    signup.status === "Waitlisted" && tournament.status === "RegistrationOpen"
+  );
+}

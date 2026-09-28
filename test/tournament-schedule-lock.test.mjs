@@ -167,10 +167,14 @@ test("leave eligibility is one shared rule mirroring the backend action", () => 
     attendanceUtilSource,
     /export function canLeaveIndividualTournament\(/,
   );
+  // Just this function's body (later helpers in the file are not part of
+  // the leave rule).
+  const blockStart = attendanceUtilSource.indexOf(
+    "export function canLeaveIndividualTournament",
+  );
   const block = attendanceUtilSource.slice(
-    attendanceUtilSource.indexOf(
-      "export function canLeaveIndividualTournament",
-    ),
+    blockStart,
+    attendanceUtilSource.indexOf("\n}", blockStart) + 2,
   );
   assert.match(block, /tournament\.status !== "RegistrationOpen"/);
   assert.match(block, /signup\.tournament_team_id/);

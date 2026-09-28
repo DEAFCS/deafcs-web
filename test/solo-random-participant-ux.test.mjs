@@ -101,7 +101,12 @@ test("organizer check-in respects the same window rule as self check-in", () => 
   );
   assert.match(canCheckIn, /if \(signup\.checked_in_at\) return false/);
   assert.match(canCheckIn, /if \(!this\.checkInWindowOpen\) return false/);
-  assert.match(canCheckIn, /this\.isOrganizer \|\| this\.isSelf\(signup\)/);
+  // Self check-in follows the shared rule the API enforces; anyone else
+  // needs to be an organizer.
+  assert.match(
+    canCheckIn,
+    /if \(this\.isSelf\(signup\)\) \{\s*return canSelfCheckInIndividually\(signup, this\.tournament as any\);\s*\}\s*return this\.isOrganizer;/,
+  );
   // Window state comes from the shared helper, not a local re-derivation.
   assert.match(
     individualPlayersSource,

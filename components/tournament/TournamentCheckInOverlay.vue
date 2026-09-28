@@ -7,10 +7,11 @@ import { Loader2, X } from "lucide-vue-next";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
 import { individualCheckInOpen } from "~/composables/useCheckInOverlayPriority";
+import { canSelfCheckInIndividually } from "~/utilities/tournamentAttendance";
 
 // Tournament attendance prompt for the individual sign-up check-in window: a
-// player who is Registered but has not checked in yet gets prompted wherever
-// they are on the site, same "reach them regardless of page" reasoning as
+// player who still has to check in (see PENDING_CHECK_INS_SUBSCRIPTION) gets
+// prompted wherever they are on the site, same "reach them regardless of page" reasoning as
 // GlobalLobbyCallNotifier.
 //
 // Visual shell is deliberately identical to MatchActiveAlert (the match ready
@@ -31,21 +32,37 @@ import { individualCheckInOpen } from "~/composables/useCheckInOverlayPriority";
 const me = computed(() => useAuthStore().me);
 const steamId = computed(() => me.value?.steam_id ?? null);
 
+// Who is asked to check in mirrors checkIntoTournament: every unchecked
+// Registered player, plus unchecked Waitlisted players during the automatic
+// attendance window (tournament still RegistrationOpen), since generation
+// picks from every checked-in signup against the current capacity. The older
+// manual RegistrationClosed window keeps prompting Registered players only;
+// waitlisted players there are prompted once promoted.
 const PENDING_CHECK_INS_SUBSCRIPTION = gql`
   subscription MyPendingTournamentCheckIns($steamId: bigint!) {
     tournament_individual_signups(
       where: {
         player_steam_id: { _eq: $steamId }
-        status: { _eq: Registered }
         checked_in_at: { _is_null: true }
         tournament: { individual_check_in_ends_at: { _is_null: false } }
+        _or: [
+          { status: { _eq: Registered } }
+          {
+            status: { _eq: Waitlisted }
+            tournament: { status: { _eq: RegistrationOpen } }
+          }
+        ]
       }
     ) {
       id
       tournament_id
+      status
+      checked_in_at
+      tournament_team_id
       tournament {
         id
         name
+        status
         individual_check_in_ends_at
       }
     }
@@ -70,9 +87,19 @@ const pending = computed(() => {
   const rows = result.value?.tournament_individual_signups ?? [];
   return rows.filter((row: any) => {
     const endsAt = row.tournament?.individual_check_in_ends_at;
-    return !!endsAt && new Date(endsAt).getTime() > now.value;
+    if (!endsAt || new Date(endsAt).getTime() <= now.value) {
+      return false;
+    }
+    // Same shared rule as the Players page and Join form.
+    return canSelfCheckInIndividually(row, row.tournament);
   });
 });
+
+// Waitlisted players get one extra line: checking in keeps them eligible,
+// it does not confirm a spot.
+const currentIsWaitlisted = computed(
+  () => current.value?.status === "Waitlisted",
+);
 
 // Only ever show one at a time -- vanishingly unlikely a player has two
 // simultaneous individual-sign-up check-ins, but if it happens, resolve
@@ -197,6 +224,13 @@ async function checkIn() {
               class="font-sans text-base font-semibold leading-snug text-foreground"
             >
               {{ current.tournament.name }}
+            </div>
+            <div
+              v-if="currentIsWaitlisted"
+              class="text-xs text-muted-foreground"
+              data-testid="check-in-overlay-waitlisted"
+            >
+              {{ $t("tournament.players.check_in.overlay_waitlisted") }}
             </div>
           </div>
 
