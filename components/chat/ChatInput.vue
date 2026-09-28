@@ -322,6 +322,7 @@ export default {
           variant: "destructive",
           title: "Upload failed",
           description: `${upload?.kind ?? "unknown"} -- ${upload?.bytesSent ?? 0}/${file.size} bytes sent${upload?.status ? `, HTTP ${upload.status}` : ""}`,
+          duration: 60000,
         });
       } finally {
         if (this.pendingAttachment === file) this.uploadProgress = null;

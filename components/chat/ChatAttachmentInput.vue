@@ -41,6 +41,7 @@ function onChange(event: Event) {
     description: file
       ? `${file.name} -- ${(file.size / (1024 * 1024)).toFixed(1)} MB, ${file.type || "unknown type"}`
       : "The file picker returned nothing.",
+    duration: 60000,
   });
 
   if (!file) return;
