@@ -40,7 +40,14 @@ function autoResize(event: Event) {
         <div v-else class="flex h-full w-full items-center justify-center">
           <Film class="h-5 w-5 text-muted-foreground" />
         </div>
+        <div
+          v-if="uploadProgress !== null"
+          class="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-white"
+        >
+          {{ uploadProgress }}%
+        </div>
         <button
+          v-else
           type="button"
           class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
           @click="pendingAttachment = null"
@@ -75,9 +82,9 @@ function autoResize(event: Event) {
             <Button
               type="submit"
               size="sm"
-              :loading="sending"
+              :loading="sending || uploadProgress !== null"
               :min-loading-ms="0"
-              :disabled="isWebsiteRestricted"
+              :disabled="isWebsiteRestricted || uploadProgress !== null"
               class="transition-all duration-200 hover:scale-105"
             >
               <CornerDownLeft class="size-3.5" />
@@ -103,7 +110,14 @@ function autoResize(event: Event) {
         <div v-else class="flex h-full w-full items-center justify-center">
           <Film class="h-5 w-5 text-muted-foreground" />
         </div>
+        <div
+          v-if="uploadProgress !== null"
+          class="absolute inset-0 flex items-center justify-center bg-black/60 text-[10px] font-semibold text-white"
+        >
+          {{ uploadProgress }}%
+        </div>
         <button
+          v-else
           type="button"
           class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
           @click="pendingAttachment = null"
@@ -138,9 +152,9 @@ function autoResize(event: Event) {
             <Button
               type="submit"
               size="sm"
-              :loading="sending"
+              :loading="sending || uploadProgress !== null"
               :min-loading-ms="0"
-              :disabled="isWebsiteRestricted"
+              :disabled="isWebsiteRestricted || uploadProgress !== null"
               class="shrink-0 gap-1.5"
             >
               <CornerDownLeft class="size-3.5" />
@@ -186,6 +200,7 @@ export default {
       sending: false,
       pendingAttachment: null as File | null,
       pendingAttachmentPreviewUrl: null as string | null,
+      uploadProgress: null as number | null,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
@@ -254,8 +269,12 @@ export default {
 
       let attachment: { url: string; contentType: string } | undefined;
       if (this.pendingAttachment) {
+        this.uploadProgress = 0;
         try {
-          const uploaded = await uploadChatAttachment(this.pendingAttachment);
+          const uploaded = await uploadChatAttachment(
+            this.pendingAttachment,
+            (percent) => (this.uploadProgress = percent),
+          );
           attachment = { url: uploaded.path, contentType: uploaded.contentType };
         } catch {
           toast({
@@ -264,6 +283,8 @@ export default {
             description: "Could not send the attachment. Try again.",
           });
           return;
+        } finally {
+          this.uploadProgress = null;
         }
       }
 

@@ -111,7 +111,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
         <button
           v-else-if="isAttachmentVideo"
           type="button"
-          class="group/chat-video relative block h-28 w-28 cursor-zoom-in overflow-hidden rounded-md border border-border/60"
+          class="group/chat-video relative block h-28 w-28 cursor-pointer overflow-hidden rounded-md border border-border/60"
           @click="videoLightboxOpen = true"
         >
           <video
@@ -140,7 +140,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
           </DialogContent>
         </Dialog>
         <Dialog v-else-if="isAttachmentVideo" v-model:open="videoLightboxOpen">
-          <DialogContent class="max-w-3xl border-border/60 bg-black/90 p-2 sm:p-3">
+          <DialogContent class="max-w-5xl border-border/60 bg-black/90 p-2 sm:p-3">
             <DialogTitle class="sr-only">
               {{ $t("chat.attachment_video", "Chat video") }}
             </DialogTitle>
@@ -149,7 +149,7 @@ import { e_player_roles_enum } from "~/generated/zeus";
               :src="attachmentUrl"
               controls
               autoplay
-              class="max-h-[80vh] w-full rounded object-contain"
+              class="max-h-[85vh] w-full rounded object-contain"
             ></video>
           </DialogContent>
         </Dialog>
