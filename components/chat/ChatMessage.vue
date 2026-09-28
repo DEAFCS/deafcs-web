@@ -4,7 +4,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Check, X as XIcon } from "lucide-vue-next";
+import { Check, Play, X as XIcon } from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
@@ -108,13 +108,28 @@ import { e_player_roles_enum } from "~/generated/zeus";
             class="h-28 w-28 rounded-md border border-border/60 object-cover"
           />
         </button>
-        <video
+        <button
           v-else-if="isAttachmentVideo"
-          :src="attachmentUrl"
-          controls
-          preload="metadata"
-          class="max-h-64 max-w-full rounded-md border border-border/60"
-        ></video>
+          type="button"
+          class="group/chat-video relative block h-28 w-28 cursor-zoom-in overflow-hidden rounded-md border border-border/60"
+          @click="videoLightboxOpen = true"
+        >
+          <video
+            :src="attachmentUrl"
+            preload="metadata"
+            muted
+            class="h-full w-full object-cover"
+          ></video>
+          <span
+            class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover/chat-video:bg-black/35"
+          >
+            <span
+              class="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white"
+            >
+              <Play class="ml-0.5 h-4 w-4" />
+            </span>
+          </span>
+        </button>
 
         <Dialog v-if="isAttachmentImage" v-model:open="imageLightboxOpen">
           <DialogContent class="max-w-3xl border-border/60 bg-black/90 p-2 sm:p-3">
@@ -122,6 +137,20 @@ import { e_player_roles_enum } from "~/generated/zeus";
               {{ $t("chat.attachment_image", "Chat image") }}
             </DialogTitle>
             <img :src="attachmentUrl" class="max-h-[80vh] w-full rounded object-contain" />
+          </DialogContent>
+        </Dialog>
+        <Dialog v-else-if="isAttachmentVideo" v-model:open="videoLightboxOpen">
+          <DialogContent class="max-w-3xl border-border/60 bg-black/90 p-2 sm:p-3">
+            <DialogTitle class="sr-only">
+              {{ $t("chat.attachment_video", "Chat video") }}
+            </DialogTitle>
+            <video
+              v-if="videoLightboxOpen"
+              :src="attachmentUrl"
+              controls
+              autoplay
+              class="max-h-[80vh] w-full rounded object-contain"
+            ></video>
           </DialogContent>
         </Dialog>
       </div>
@@ -258,6 +287,7 @@ export default {
       // pattern as EventMediaTile.vue) -- the chat thumbnail itself
       // always stays locked at its small size.
       imageLightboxOpen: false,
+      videoLightboxOpen: false,
     };
   },
   created() {
