@@ -6971,6 +6971,7 @@
       "reason_description": "Please provide a clear reason for this sanction",
       "also_restrict_website": "Also restrict website access (Read-only)",
       "also_restrict_website_description": "The player can view DEAFCS but cannot send messages, submit requests, add friends or participate while restricted.",
+      "notify_teammates": "Notify teammates",
       "types": {
         "ban": "Ban",
         "mute": "CS2 Mute",

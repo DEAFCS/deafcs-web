@@ -136,28 +136,43 @@ import { e_player_roles_enum } from "~/generated/zeus";
           {{ $t("player.sanction.button") }}
         </SettingHeader>
 
-        <FormField v-slot="{ componentField }" name="reason">
-          <FormItem>
-            <FormLabel>{{ $t("player.sanction.reason_label") }}</FormLabel>
-            <FormControl>
-              <Input
-                v-bind="componentField"
-                :placeholder="$t('player.sanction.reason_placeholder')"
-              ></Input>
-            </FormControl>
-            <FormDescription>
-              {{ $t("player.sanction.reason_description") }}
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
-        </FormField>
+        <div class="col-span-2 flex flex-wrap items-start gap-4">
+          <label
+            v-if="sanctionType === 'ban'"
+            class="flex shrink-0 cursor-pointer items-center gap-2 self-center rounded-md border border-border bg-muted/30 px-3 py-2"
+          >
+            <Checkbox
+              :model-value="notifyTeammates"
+              @update:model-value="(value) => (notifyTeammates = !!value)"
+            />
+            <span class="text-sm">
+              {{ $t("player.sanction.notify_teammates", "Notify teammates") }}
+            </span>
+          </label>
+
+          <FormField v-slot="{ componentField }" name="reason">
+            <FormItem class="min-w-[200px] flex-1">
+              <FormLabel>{{ $t("player.sanction.reason_label") }}</FormLabel>
+              <FormControl>
+                <Input
+                  v-bind="componentField"
+                  :placeholder="$t('player.sanction.reason_placeholder')"
+                ></Input>
+              </FormControl>
+              <FormDescription>
+                {{ $t("player.sanction.reason_description") }}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          </FormField>
+        </div>
 
         <FormField
           v-if="sanctionType !== 'warning'"
           v-slot="{ componentField }"
           name="duration"
         >
-          <FormItem>
+          <FormItem class="col-span-2">
             <FormLabel>{{ $t("player.sanctions.duration_label") }}</FormLabel>
             <FormControl>
               <Select v-bind="componentField">
@@ -283,6 +298,7 @@ export default {
       sanctionType: undefined as string | undefined,
       sanctioningPlayer: false,
       alsoRestrictWebsite: false,
+      notifyTeammates: false,
       customDate: undefined as any,
       customTime: undefined as string | undefined,
     };
@@ -414,6 +430,7 @@ export default {
       }
       this.sanctionType = type;
       this.alsoRestrictWebsite = false;
+      this.notifyTeammates = false;
       this.customDate = undefined;
       this.customTime = undefined;
       this.sanctioningPlayer = true;
@@ -464,6 +481,7 @@ export default {
               $duration: Float
               $evidence_message_id: String
               $also_restrict_website: Boolean
+              $notify_teammates: Boolean
             ) {
               sanctionServerPlayer(
                 serverId: $serverId
@@ -473,6 +491,7 @@ export default {
                 duration: $duration
                 evidence_message_id: $evidence_message_id
                 also_restrict_website: $also_restrict_website
+                notify_teammates: $notify_teammates
               ) {
                 id
                 enforced
@@ -489,6 +508,8 @@ export default {
             evidence_message_id: this.evidenceMessageId ?? null,
             also_restrict_website:
               this.sanctionType === "ban" && this.alsoRestrictWebsite,
+            notify_teammates:
+              this.sanctionType === "ban" && this.notifyTeammates,
           },
         });
 
@@ -498,6 +519,7 @@ export default {
 
         this.sanctioningPlayer = false;
         this.alsoRestrictWebsite = false;
+        this.notifyTeammates = false;
         this.$emit("sanctioned");
       } finally {
         this.submitting = false;
