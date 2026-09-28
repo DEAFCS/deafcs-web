@@ -74,6 +74,10 @@ function autoResize(event: Event) {
               v-if="attachmentEnabled && !isWebsiteRestricted"
               v-model="pendingAttachment"
             />
+            <ChatGifPicker
+              v-if="attachmentEnabled && !isWebsiteRestricted"
+              @pick="sendGif"
+            />
             <Textarea
               ref="inputRef"
               rows="1"
@@ -154,6 +158,10 @@ function autoResize(event: Event) {
               v-if="attachmentEnabled && !isWebsiteRestricted"
               v-model="pendingAttachment"
             />
+            <ChatGifPicker
+              v-if="attachmentEnabled && !isWebsiteRestricted"
+              @pick="sendGif"
+            />
             <Textarea
               ref="inputRef"
               rows="1"
@@ -189,6 +197,7 @@ function autoResize(event: Event) {
 <script lang="ts">
 import { FormControl, FormField, FormItem } from "~/components/ui/form";
 import ChatAttachmentInput from "~/components/chat/ChatAttachmentInput.vue";
+import ChatGifPicker from "~/components/chat/ChatGifPicker.vue";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
@@ -203,7 +212,7 @@ import {
 } from "~/utils/chatMessageActions";
 
 export default {
-  components: { ChatAttachmentInput },
+  components: { ChatAttachmentInput, ChatGifPicker },
   props: {
     variant: {
       type: String,
@@ -330,6 +339,13 @@ export default {
     },
     retryUpload() {
       if (this.pendingAttachment) this.startUpload(this.pendingAttachment);
+    },
+    // Sent immediately on pick, as its own message -- doesn't touch
+    // whatever text is currently being typed, same as clicking a GIF in
+    // Messenger/Discord's picker.
+    sendGif(gifUrl: string) {
+      if (this.isWebsiteRestricted) return;
+      this.$emit("sendMessage", { message: "", gifUrl });
     },
     async sendMessage() {
       if (this.isWebsiteRestricted || !this.isReadyToSend) {

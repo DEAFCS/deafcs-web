@@ -154,6 +154,28 @@ import { e_player_roles_enum } from "~/generated/zeus";
           </DialogContent>
         </Dialog>
       </div>
+      <div v-if="message.gifUrl && !message.blocked" class="mt-2">
+        <button
+          type="button"
+          class="block cursor-zoom-in"
+          @click="gifLightboxOpen = true"
+        >
+          <img
+            :src="message.gifUrl"
+            alt=""
+            class="h-28 w-28 rounded-md border border-border/60 object-cover"
+          />
+        </button>
+
+        <Dialog v-model:open="gifLightboxOpen">
+          <DialogContent class="max-w-3xl border-border/60 bg-black/90 p-2 sm:p-3">
+            <DialogTitle class="sr-only">
+              {{ $t("chat.attachment_gif", "GIF") }}
+            </DialogTitle>
+            <img :src="message.gifUrl" class="max-h-[80vh] w-full rounded object-contain" />
+          </DialogContent>
+        </Dialog>
+      </div>
       <!-- Only rendered once a message actually has reactions, so a
            reaction-free message keeps the old compact chat spacing.
            Adding a reaction lives in the "..." menu. -->
@@ -288,6 +310,7 @@ export default {
       // always stays locked at its small size.
       imageLightboxOpen: false,
       videoLightboxOpen: false,
+      gifLightboxOpen: false,
     };
   },
   created() {

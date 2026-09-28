@@ -607,6 +607,7 @@ export default {
     handleSendMessage(payload: {
       message: string;
       attachment?: { url: string; contentType: string };
+      gifUrl?: string;
     }) {
       if (!this.effectiveCanSend) {
         return;
@@ -616,6 +617,7 @@ export default {
         this.lobbyId,
         payload.message,
         payload.attachment,
+        payload.gifUrl,
       );
       // Snap to latest after sending.
       this.safeScrollToBottom(true);
@@ -623,7 +625,7 @@ export default {
       this.lastReadMessageCount = this.messages.length + 1;
       this.$emit("message-received", {
         tabId: this.tabId,
-        message: payload.message || "Attachment",
+        message: payload.message || (payload.gifUrl ? "GIF" : "Attachment"),
         direction: "outbound",
       });
     },

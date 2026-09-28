@@ -176,6 +176,7 @@ Secret/ConfigMap names are safe to document. Secret values are not.
 - `s3-config-2c64h9t79t`
 - `faceit-secrets-4khm66f5mm`
 - `push-secrets-m7bm7tggkg`
+- `giphy-secrets-07q8xe81ku`
 
 These are current production Secret/ConfigMap *names* only. Never record secret/config *values* here.
 
