@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { CornerDownLeft } from "lucide-vue-next";
+import { CornerDownLeft, Film, X } from "lucide-vue-next";
 import { Textarea } from "~/components/ui/textarea";
 
-// Enter sends (like every other input here); Shift+Enter inserts a
-// real line break instead -- native <textarea> already does that on
-// its own, so this only needs to intercept the plain-Enter case.
-// Only used when `multiline` is set (Announcements, see ChatLobby.vue),
-// so every other chat's single-line <Input> is untouched.
-function handleMultilineKeydown(event: KeyboardEvent, submit: () => void) {
+// Enter sends; Shift+Enter inserts a real line break instead -- native
+// <textarea> already does that on its own, so this only needs to
+// intercept the plain-Enter case.
+function handleKeydown(event: KeyboardEvent, submit: () => void) {
   if (event.key === "Enter" && !event.shiftKey) {
     event.preventDefault();
     submit();
@@ -15,10 +13,8 @@ function handleMultilineKeydown(event: KeyboardEvent, submit: () => void) {
 }
 
 // Grows the textarea with its content (Steam-chat-style) instead of
-// staying a fixed one-row box that scrolls internally once someone
-// actually uses the multi-line room Shift+Enter now gives them.
-// Capped so a very long announcement doesn't push the send button
-// off-screen.
+// staying a fixed one-row box that scrolls internally. Capped so a very
+// long message doesn't push the send button off-screen.
 const MULTILINE_MAX_HEIGHT_PX = 120;
 function autoResize(event: Event) {
   const el = event.target as HTMLTextAreaElement;
@@ -33,12 +29,31 @@ function autoResize(event: Event) {
     class="border-t bg-background p-3 flex-shrink-0"
     @submit.prevent="sendMessage"
   >
+    <div v-if="pendingAttachment" class="mb-2">
+      <div class="relative inline-block h-14 w-14 overflow-hidden rounded-md border border-border bg-muted">
+        <img
+          v-if="pendingAttachmentPreviewUrl"
+          :src="pendingAttachmentPreviewUrl"
+          class="h-full w-full object-cover"
+          alt=""
+        />
+        <div v-else class="flex h-full w-full items-center justify-center">
+          <Film class="h-5 w-5 text-muted-foreground" />
+        </div>
+        <button
+          type="button"
+          class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
+          @click="pendingAttachment = null"
+        >
+          <X class="h-3 w-3" />
+        </button>
+      </div>
+    </div>
     <FormField v-slot="{ componentField }" name="message">
       <FormItem>
         <FormControl>
           <div class="flex gap-2">
             <Textarea
-              v-if="multiline"
               ref="inputRef"
               rows="1"
               :placeholder="
@@ -50,21 +65,8 @@ function autoResize(event: Event) {
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none transition-all duration-200"
-              @keydown="handleMultilineKeydown($event, sendMessage)"
+              @keydown="handleKeydown($event, sendMessage)"
               @input="autoResize"
-            />
-            <Input
-              v-else
-              ref="inputRef"
-              :placeholder="
-                isWebsiteRestricted
-                  ? $t('account_restriction.short')
-                  : placeholder || $t('chat.message_placeholder')
-              "
-              :disabled="isWebsiteRestricted"
-              autocomplete="off"
-              v-bind="componentField"
-              class="flex-1 transition-all duration-200 focus:scale-[1.02]"
             />
             <ChatAttachmentInput
               v-if="attachmentEnabled && !isWebsiteRestricted"
@@ -90,12 +92,31 @@ function autoResize(event: Event) {
     class="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
     @submit.prevent="sendMessage"
   >
+    <div v-if="pendingAttachment" class="px-2 pt-2">
+      <div class="relative inline-block h-14 w-14 overflow-hidden rounded-md border border-border bg-muted">
+        <img
+          v-if="pendingAttachmentPreviewUrl"
+          :src="pendingAttachmentPreviewUrl"
+          class="h-full w-full object-cover"
+          alt=""
+        />
+        <div v-else class="flex h-full w-full items-center justify-center">
+          <Film class="h-5 w-5 text-muted-foreground" />
+        </div>
+        <button
+          type="button"
+          class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border border-border bg-background text-muted-foreground hover:text-foreground"
+          @click="pendingAttachment = null"
+        >
+          <X class="h-3 w-3" />
+        </button>
+      </div>
+    </div>
     <FormField v-slot="{ componentField }" name="message">
       <FormItem>
         <FormControl>
           <div class="flex items-center gap-2 p-2">
             <Textarea
-              v-if="multiline"
               ref="inputRef"
               rows="1"
               :placeholder="
@@ -107,21 +128,8 @@ function autoResize(event: Event) {
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
-              @keydown="handleMultilineKeydown($event, sendMessage)"
+              @keydown="handleKeydown($event, sendMessage)"
               @input="autoResize"
-            />
-            <Input
-              v-else
-              ref="inputRef"
-              :placeholder="
-                isWebsiteRestricted
-                  ? $t('account_restriction.short')
-                  : placeholder || $t('chat.message_placeholder')
-              "
-              :disabled="isWebsiteRestricted"
-              autocomplete="off"
-              v-bind="componentField"
-              class="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
             />
             <ChatAttachmentInput
               v-if="attachmentEnabled && !isWebsiteRestricted"
@@ -170,12 +178,6 @@ export default {
       required: false,
       default: undefined,
     },
-    // Announcements-only (see ChatLobby.vue) -- every other chat type
-    // keeps the single-line input, where Enter has always sent.
-    multiline: {
-      type: Boolean,
-      default: false,
-    },
     attachmentEnabled: { type: Boolean, default: false },
   },
   emits: ["sendMessage"],
@@ -183,6 +185,7 @@ export default {
     return {
       sending: false,
       pendingAttachment: null as File | null,
+      pendingAttachmentPreviewUrl: null as string | null,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
@@ -192,9 +195,25 @@ export default {
       }),
     };
   },
+  watch: {
+    // Object URLs must be revoked explicitly or they leak for the life of
+    // the tab -- only ever one outstanding at a time (the current pick).
+    pendingAttachment(file: File | null) {
+      if (this.pendingAttachmentPreviewUrl) {
+        URL.revokeObjectURL(this.pendingAttachmentPreviewUrl);
+        this.pendingAttachmentPreviewUrl = null;
+      }
+      if (file && file.type.startsWith("image/")) {
+        this.pendingAttachmentPreviewUrl = URL.createObjectURL(file);
+      }
+    },
+  },
   beforeUnmount() {
     if (this.sendTimer) {
       clearTimeout(this.sendTimer);
+    }
+    if (this.pendingAttachmentPreviewUrl) {
+      URL.revokeObjectURL(this.pendingAttachmentPreviewUrl);
     }
   },
   computed: {
@@ -255,15 +274,13 @@ export default {
       this.pendingAttachment = null;
       this.form.resetForm();
       this.flashSending();
-      // Collapse the multiline textarea back to its one-row default --
-      // resetForm clears the value but leaves the inline height style
-      // autoResize set, which would otherwise leave a tall empty box.
-      if (this.multiline) {
-        const el = (this.$refs.inputRef as any)?.$el as
-          | HTMLTextAreaElement
-          | undefined;
-        if (el) el.style.height = "auto";
-      }
+      // Collapse the textarea back to its one-row default -- resetForm
+      // clears the value but leaves the inline height style autoResize
+      // set, which would otherwise leave a tall empty box.
+      const el = (this.$refs.inputRef as any)?.$el as
+        | HTMLTextAreaElement
+        | undefined;
+      if (el) el.style.height = "auto";
     },
   },
 };

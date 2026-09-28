@@ -310,7 +310,7 @@ describe("ChatInput 2,000 character limit", () => {
   it("sends exactly 2,000 characters", async () => {
     const wrapper = mountInput();
     const text = "a".repeat(CHAT_MESSAGE_MAX_LENGTH);
-    await wrapper.get("input").setValue(text);
+    await wrapper.get("textarea").setValue(text);
     await wrapper.get("form").trigger("submit");
     expect(wrapper.emitted("sendMessage")?.[0]?.[0]).toEqual({
       message: text,
@@ -322,11 +322,11 @@ describe("ChatInput 2,000 character limit", () => {
   it("refuses 2,001 characters, keeps the text and explains why", async () => {
     const wrapper = mountInput();
     const text = "a".repeat(CHAT_MESSAGE_MAX_LENGTH + 1);
-    const input = wrapper.get("input");
+    const input = wrapper.get("textarea");
     await input.setValue(text);
     await wrapper.get("form").trigger("submit");
     expect(wrapper.emitted("sendMessage")).toBeUndefined();
-    expect((input.element as HTMLInputElement).value).toBe(text);
+    expect((input.element as HTMLTextAreaElement).value).toBe(text);
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
         description: "Message can be up to 2,000 characters.",

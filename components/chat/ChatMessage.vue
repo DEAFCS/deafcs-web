@@ -3,6 +3,7 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Check, X as XIcon } from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
@@ -95,14 +96,18 @@ import { e_player_roles_enum } from "~/generated/zeus";
         {{ message.message }}
       </p>
       <div v-if="message.attachment && !message.blocked" class="mt-2">
-        <img
+        <button
           v-if="isAttachmentImage"
-          :src="attachmentUrl"
-          alt=""
-          class="cursor-pointer rounded-md border border-border/60 object-cover transition-all duration-200"
-          :class="imageEnlarged ? 'max-h-80 max-w-full' : 'h-28 w-28'"
-          @click="imageEnlarged = !imageEnlarged"
-        />
+          type="button"
+          class="block cursor-zoom-in"
+          @click="imageLightboxOpen = true"
+        >
+          <img
+            :src="attachmentUrl"
+            alt=""
+            class="h-28 w-28 rounded-md border border-border/60 object-cover"
+          />
+        </button>
         <video
           v-else-if="isAttachmentVideo"
           :src="attachmentUrl"
@@ -110,6 +115,15 @@ import { e_player_roles_enum } from "~/generated/zeus";
           preload="metadata"
           class="max-h-64 max-w-full rounded-md border border-border/60"
         ></video>
+
+        <Dialog v-if="isAttachmentImage" v-model:open="imageLightboxOpen">
+          <DialogContent class="max-w-3xl border-border/60 bg-black/90 p-2 sm:p-3">
+            <DialogTitle class="sr-only">
+              {{ $t("chat.attachment_image", "Chat image") }}
+            </DialogTitle>
+            <img :src="attachmentUrl" class="max-h-[80vh] w-full rounded object-contain" />
+          </DialogContent>
+        </Dialog>
       </div>
       <!-- Only rendered once a message actually has reactions, so a
            reaction-free message keeps the old compact chat spacing.
@@ -240,9 +254,10 @@ export default {
       // and once more right as the 10-minute window closes.
       nowMs: Date.now(),
       selfServiceTimer: undefined as ReturnType<typeof setTimeout> | undefined,
-      // Toggled by clicking the attachment thumbnail below -- an inline
-      // enlarge/shrink in this one message, never a separate modal.
-      imageEnlarged: false,
+      // Opens the enlarged view in an overlay (same Dialog lightbox
+      // pattern as EventMediaTile.vue) -- the chat thumbnail itself
+      // always stays locked at its small size.
+      imageLightboxOpen: false,
     };
   },
   created() {

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Paperclip, X } from "lucide-vue-next";
+import { Paperclip } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { toast } from "@/components/ui/toast";
 
@@ -13,10 +13,6 @@ const ALLOWED_TYPES = [
   "video/webm",
   "video/quicktime",
 ];
-
-const props = defineProps<{
-  modelValue: File | null;
-}>();
 
 const emit = defineEmits<{
   (e: "update:modelValue", file: File | null): void;
@@ -52,14 +48,10 @@ function onChange(event: Event) {
   }
   emit("update:modelValue", file);
 }
-
-function clear() {
-  emit("update:modelValue", null);
-}
 </script>
 
 <template>
-  <div class="flex min-w-0 items-center gap-1.5">
+  <div>
     <input
       ref="inputRef"
       type="file"
@@ -77,19 +69,5 @@ function clear() {
       <Paperclip class="h-4 w-4" />
       <span class="sr-only">{{ $t("chat.attach_file", "Attach image or video") }}</span>
     </Button>
-    <span
-      v-if="props.modelValue"
-      :title="props.modelValue.name"
-      class="inline-flex min-w-0 max-w-[6rem] items-center gap-1 rounded-md border border-border bg-card/40 px-1.5 py-1 text-[11px] text-muted-foreground"
-    >
-      <span class="min-w-0 truncate">{{ props.modelValue.name }}</span>
-      <button
-        type="button"
-        class="shrink-0 hover:text-foreground"
-        @click="clear"
-      >
-        <X class="h-3.5 w-3.5" />
-      </button>
-    </span>
   </div>
 </template>
