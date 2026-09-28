@@ -1,6 +1,7 @@
 export const CHAT_REACTIONS = [
   { id: "thumbsup", emoji: "👍" },
   { id: "heart", emoji: "❤️" },
+  { id: "laugh", emoji: "😂" },
   { id: "fire", emoji: "🔥" },
   { id: "party", emoji: "🎉" },
 ] as const;

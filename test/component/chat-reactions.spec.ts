@@ -143,7 +143,7 @@ describe("Chat Hub message reactions", () => {
     matchPage.unmount();
   });
 
-  it("the quick React popover offers exactly the four reactions and emits the stable ID", async () => {
+  it("the quick React popover offers exactly the five reactions and emits the stable ID", async () => {
     const wrapper = mountMessage(
       { reactionsEnabled: true },
       { attachTo: document.body },
@@ -158,6 +158,7 @@ describe("Chat Hub message reactions", () => {
     expect(choices.map((el) => el.textContent)).toEqual([
       "👍",
       "❤️",
+      "😂",
       "🔥",
       "🎉",
     ]);
@@ -260,6 +261,7 @@ describe("Chat Hub message reactions", () => {
     expect(CHAT_REACTIONS.map(({ id }) => id)).toEqual([
       "thumbsup",
       "heart",
+      "laugh",
       "fire",
       "party",
     ]);
