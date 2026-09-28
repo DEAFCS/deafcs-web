@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Paperclip } from "lucide-vue-next";
+import { ImageUp } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { toast } from "@/components/ui/toast";
 
@@ -82,7 +82,7 @@ function onChange(event: Event) {
       class="shrink-0"
       @click="pick"
     >
-      <Paperclip class="h-4 w-4" />
+      <ImageUp class="h-4 w-4" />
       <span class="sr-only">{{ $t("chat.attach_file", "Attach image or video") }}</span>
     </Button>
   </div>
