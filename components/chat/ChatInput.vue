@@ -316,15 +316,12 @@ export default {
         console.error("[chat] attachment upload failed", error);
         const upload = error as ChatAttachmentUploadError;
         this.uploadFailed = true;
+        // Diagnostic (temporary): the exact numbers, visible without
+        // devtools, while tracking down a large-video-from-Photos failure.
         toast({
           variant: "destructive",
           title: "Upload failed",
-          description:
-            upload?.kind === "network" && upload.bytesSent === 0
-              ? "Nothing was sent to the server. If this is a large video, try again on a more stable connection."
-              : upload?.kind === "timeout"
-                ? "The upload took too long and was cancelled. Try again on a faster connection."
-                : "Could not upload the attachment. Try again.",
+          description: `${upload?.kind ?? "unknown"} -- ${upload?.bytesSent ?? 0}/${file.size} bytes sent${upload?.status ? `, HTTP ${upload.status}` : ""}`,
         });
       } finally {
         if (this.pendingAttachment === file) this.uploadProgress = null;

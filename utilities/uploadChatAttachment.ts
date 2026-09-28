@@ -36,6 +36,16 @@ export function uploadChatAttachment(
 ): Promise<{ path: string; contentType: string }> {
   const apiDomain = useRuntimeConfig().public.apiDomain as string;
 
+  // Diagnostic logging (temporary, while tracking down a reproducible
+  // failure for large Photo-Library videos on iOS) -- lastLoggedPercent
+  // just keeps this to one line per ~10% instead of flooding the console.
+  console.log("[chat attachment] starting upload", {
+    name: file.name,
+    size: file.size,
+    type: file.type,
+  });
+  let lastLoggedPercent = -1;
+
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     let bytesSent = 0;
@@ -49,11 +59,22 @@ export function uploadChatAttachment(
 
     xhr.upload.onprogress = (event) => {
       bytesSent = event.loaded;
-      if (!event.lengthComputable || !onProgress) return;
-      onProgress(Math.round((event.loaded / event.total) * 100));
+      if (!event.lengthComputable) return;
+      const percent = Math.round((event.loaded / event.total) * 100);
+      if (percent >= lastLoggedPercent + 10) {
+        lastLoggedPercent = percent;
+        console.log(
+          `[chat attachment] upload progress ${percent}% (${event.loaded}/${event.total} bytes)`,
+        );
+      }
+      onProgress?.(percent);
     };
 
     xhr.onload = () => {
+      console.log("[chat attachment] xhr load", {
+        status: xhr.status,
+        bytesSent,
+      });
       if (xhr.status < 200 || xhr.status >= 300) {
         const error = new Error(
           `${xhr.status} ${xhr.statusText}`,
@@ -71,17 +92,20 @@ export function uploadChatAttachment(
       }
     };
     xhr.ontimeout = () => {
+      console.log("[chat attachment] xhr timeout", { bytesSent });
       const error = new Error("upload timed out") as ChatAttachmentUploadError;
       error.kind = "timeout";
       error.bytesSent = bytesSent;
       reject(error);
     };
     xhr.onerror = () => {
+      console.log("[chat attachment] xhr error", { bytesSent });
       const error = new Error("network error") as ChatAttachmentUploadError;
       error.kind = "network";
       error.bytesSent = bytesSent;
       reject(error);
     };
     xhr.send(file);
+    console.log("[chat attachment] xhr.send() called");
   });
 }

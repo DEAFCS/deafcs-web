@@ -28,6 +28,21 @@ function onChange(event: Event) {
   const input = event.target as HTMLInputElement;
   const file = input.files?.[0] ?? null;
   input.value = "";
+
+  // Diagnostic: confirms whether the browser's file picker actually
+  // handed back a File at all, and what it reports for a picked file --
+  // shown directly in the UI (not just the console) since a phone often
+  // has no easy way to open devtools. Investigating a report that a large
+  // video picked via iOS's "Photo Library" option fails, while the exact
+  // same video picked via "Choose File" (Files app) works.
+  console.log("[chat attachment] file input changed", file);
+  toast({
+    title: file ? "File picked" : "No file",
+    description: file
+      ? `${file.name} -- ${(file.size / (1024 * 1024)).toFixed(1)} MB, ${file.type || "unknown type"}`
+      : "The file picker returned nothing.",
+  });
+
   if (!file) return;
 
   if (!ALLOWED_TYPES.includes(file.type)) {
