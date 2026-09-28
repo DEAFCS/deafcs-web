@@ -42,12 +42,6 @@ function isPublicRoute(path: string): boolean {
     return true;
   }
 
-  // The standalone phone recorder is capability-gated by its temporary
-  // token through the API; it does not require a DEAFCS account session.
-  if (path === "/chat-video") {
-    return true;
-  }
-
   if (path.startsWith("/awards/") && path !== "/awards/manage") {
     return true;
   }
@@ -172,11 +166,7 @@ function isTermsExemptRoute(path: string): boolean {
     "/contact",
   ];
 
-  return (
-    termsExemptRoutes.includes(path) ||
-    path === "/chat-video" ||
-    isAuthTransportRoute(path)
-  );
+  return termsExemptRoutes.includes(path) || isAuthTransportRoute(path);
 }
 
 export default defineNuxtRouteMiddleware(async (to) => {

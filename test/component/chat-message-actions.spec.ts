@@ -81,14 +81,14 @@ describe("chat message action permissions", () => {
     }
   });
 
-  it("never offers Edit on a Short Video, but allows own recent delete", () => {
-    const video = own({ message: "", media: { type: "video", id: "m-1" } });
-    expect(permissions(video, false)).toEqual({
+  it("never offers Edit on a message with an attachment, but allows own recent delete", () => {
+    const withAttachment = own({ message: "", attachment: { id: "a-1" } });
+    expect(permissions(withAttachment, false)).toEqual({
       canEdit: false,
       canDelete: true,
       canMute: false,
     });
-    expect(permissions(others({ message: "", media: { type: "video", id: "m-1" } }), false))
+    expect(permissions(others({ message: "", attachment: { id: "a-1" } }), false))
       .toEqual({ canEdit: false, canDelete: false, canMute: false });
   });
 
@@ -173,7 +173,6 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
           PlayerDisplay: true,
           FiveStackToolTip: true,
           ChatMessageActionsMenu: true,
-          ChatVideoPlayer: true,
         },
       },
     });
@@ -303,7 +302,7 @@ describe("ChatInput 2,000 character limit", () => {
     return mount(ChatInput, {
       global: {
         mocks: { $t: (key: string, fallback?: string) => fallback ?? key },
-        stubs: { ChatVideoComposer: true },
+        stubs: { ChatAttachmentInput: true },
       },
     });
   }
@@ -313,7 +312,10 @@ describe("ChatInput 2,000 character limit", () => {
     const text = "a".repeat(CHAT_MESSAGE_MAX_LENGTH);
     await wrapper.get("input").setValue(text);
     await wrapper.get("form").trigger("submit");
-    expect(wrapper.emitted("sendMessage")?.[0]?.[0]).toEqual({ message: text });
+    expect(wrapper.emitted("sendMessage")?.[0]?.[0]).toEqual({
+      message: text,
+      attachment: undefined,
+    });
     expect(toastMock).not.toHaveBeenCalled();
   });
 

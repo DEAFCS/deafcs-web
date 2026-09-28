@@ -66,10 +66,9 @@ function autoResize(event: Event) {
               v-bind="componentField"
               class="flex-1 transition-all duration-200 focus:scale-[1.02]"
             />
-            <ChatVideoComposer
-              v-if="videoEnabled && !isWebsiteRestricted"
-              :type="chatType"
-              :room-id="roomId"
+            <ChatAttachmentInput
+              v-if="attachmentEnabled && !isWebsiteRestricted"
+              v-model="pendingAttachment"
             />
             <Button
               type="submit"
@@ -124,10 +123,9 @@ function autoResize(event: Event) {
               v-bind="componentField"
               class="flex-1 resize-none border-0 shadow-none focus-visible:ring-0"
             />
-            <ChatVideoComposer
-              v-if="videoEnabled && !isWebsiteRestricted"
-              :type="chatType"
-              :room-id="roomId"
+            <ChatAttachmentInput
+              v-if="attachmentEnabled && !isWebsiteRestricted"
+              v-model="pendingAttachment"
             />
             <Button
               type="submit"
@@ -148,17 +146,19 @@ function autoResize(event: Event) {
 
 <script lang="ts">
 import { FormControl, FormField, FormItem } from "~/components/ui/form";
-import ChatVideoComposer from "~/components/chat/ChatVideoComposer.vue";
+import ChatAttachmentInput from "~/components/chat/ChatAttachmentInput.vue";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
+import { toast } from "@/components/ui/toast";
+import { uploadChatAttachment } from "~/utilities/uploadChatAttachment";
 import {
   isChatMessageTooLong,
   showChatMessageTooLong,
 } from "~/utils/chatMessageActions";
 
 export default {
-  components: { ChatVideoComposer },
+  components: { ChatAttachmentInput },
   props: {
     variant: {
       type: String,
@@ -176,14 +176,13 @@ export default {
       type: Boolean,
       default: false,
     },
-    videoEnabled: { type: Boolean, default: false },
-    chatType: { type: String, default: "global" },
-    roomId: { type: String, default: "" },
+    attachmentEnabled: { type: Boolean, default: false },
   },
   emits: ["sendMessage"],
   data() {
     return {
       sending: false,
+      pendingAttachment: null as File | null,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
@@ -220,22 +219,40 @@ export default {
         this.sendTimer = undefined;
       }, 1000);
     },
-    sendMessage() {
+    async sendMessage() {
       if (this.isWebsiteRestricted) {
         return;
       }
       const { message } = this.form.values;
       const normalizedMessage = (message || "").trim();
-      if (!normalizedMessage) return;
+      if (!normalizedMessage && !this.pendingAttachment) return;
       // Refused (text kept) rather than truncated; the API enforces the
       // same limit.
       if (isChatMessageTooLong(normalizedMessage)) {
         showChatMessageTooLong();
         return;
       }
+
+      let attachment: { url: string; contentType: string } | undefined;
+      if (this.pendingAttachment) {
+        try {
+          const uploaded = await uploadChatAttachment(this.pendingAttachment);
+          attachment = { url: uploaded.path, contentType: uploaded.contentType };
+        } catch {
+          toast({
+            variant: "destructive",
+            title: "Upload failed",
+            description: "Could not send the attachment. Try again.",
+          });
+          return;
+        }
+      }
+
       this.$emit("sendMessage", {
         message: normalizedMessage,
+        attachment,
       });
+      this.pendingAttachment = null;
       this.form.resetForm();
       this.flashSending();
       // Collapse the multiline textarea back to its one-row default --

@@ -128,9 +128,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
           variant="global"
           :placeholder="messagePlaceholder"
           :multiline="type === 'announcement'"
-          :video-enabled="allowVideoMessages && type !== 'announcement' && effectiveCanSend"
-          :chat-type="type"
-          :room-id="lobbyId"
+          :attachment-enabled="allowChatAttachments && type !== 'announcement' && effectiveCanSend"
           @send-message="handleSendMessage"
         />
         <div v-else class="px-3 py-2 text-center text-xs text-muted-foreground">
@@ -210,9 +208,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         variant="embedded"
         :placeholder="messagePlaceholder"
         :multiline="type === 'announcement'"
-        :video-enabled="allowVideoMessages && type !== 'announcement' && effectiveCanSend"
-        :chat-type="type"
-        :room-id="lobbyId"
+        :attachment-enabled="allowChatAttachments && type !== 'announcement' && effectiveCanSend"
         @send-message="handleSendMessage"
       />
       <div v-else class="px-3 py-2 text-center text-xs text-muted-foreground">
@@ -338,7 +334,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    allowVideoMessages: {
+    allowChatAttachments: {
       type: Boolean,
       default: true,
     },
@@ -610,7 +606,10 @@ export default {
         }
       });
     },
-    handleSendMessage(payload: { message: string }) {
+    handleSendMessage(payload: {
+      message: string;
+      attachment?: { url: string; contentType: string };
+    }) {
       if (!this.effectiveCanSend) {
         return;
       }
@@ -618,6 +617,7 @@ export default {
         this.type as ChatType,
         this.lobbyId,
         payload.message,
+        payload.attachment,
       );
       // Snap to latest after sending.
       this.safeScrollToBottom(true);
@@ -625,7 +625,7 @@ export default {
       this.lastReadMessageCount = this.messages.length + 1;
       this.$emit("message-received", {
         tabId: this.tabId,
-        message: payload.message || "Video message",
+        message: payload.message || "Attachment",
         direction: "outbound",
       });
     },

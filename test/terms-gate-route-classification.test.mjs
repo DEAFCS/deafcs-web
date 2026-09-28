@@ -220,30 +220,10 @@ test("legal/public routes remain reachable for an unaccepted authenticated playe
   }
 });
 
-test("the temporary phone recorder is reachable without login or Terms acceptance, while normal chat remains protected", async () => {
-  assert.equal(isPublicRoute("/chat-video"), true);
-  assert.equal(isTermsExemptRoute("/chat-video"), true);
+test("normal chat remains protected", async () => {
   assert.equal(isPublicRoute("/chat"), false);
   assert.equal(isTermsExemptRoute("/chat"), false);
-  assert.equal(isPublicRoute("/chat-video/extra"), false);
-  assert.equal(isTermsExemptRoute("/chat-video/extra"), false);
 
-  assert.deepEqual(
-    await decide({
-      path: "/chat-video",
-      resolvesTo: false,
-      hasAcceptedCurrentTerms: false,
-    }),
-    { action: "allow" },
-  );
-  assert.deepEqual(
-    await decide({
-      path: "/chat-video",
-      resolvesTo: true,
-      hasAcceptedCurrentTerms: false,
-    }),
-    { action: "allow" },
-  );
   assert.deepEqual(
     await decide({
       path: "/chat",

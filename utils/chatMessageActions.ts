@@ -76,7 +76,7 @@ export function getChatMessageActionPermissions({
   const isEditableText =
     typeof message.message === "string" &&
     message.message.trim().length > 0 &&
-    !message.media;
+    !message.attachment;
 
   return {
     // Ownership only: administrators never edit someone else's message.

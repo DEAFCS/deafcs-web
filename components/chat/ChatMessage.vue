@@ -3,7 +3,6 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
-import ChatVideoPlayer from "~/components/chat/ChatVideoPlayer.vue";
 import { Check, X as XIcon } from "lucide-vue-next";
 import { e_player_roles_enum } from "~/generated/zeus";
 </script>
@@ -95,12 +94,23 @@ import { e_player_roles_enum } from "~/generated/zeus";
       >
         {{ message.message }}
       </p>
-      <ChatVideoPlayer
-        v-if="message.media?.type === 'video' && !message.blocked"
-        :src="videoUrl(message.media.id)"
-        label="Short video message"
-        class="mt-2 max-h-80 w-full max-w-full rounded-md bg-black"
-      />
+      <div v-if="message.attachment && !message.blocked" class="mt-2">
+        <img
+          v-if="isAttachmentImage"
+          :src="attachmentUrl"
+          alt=""
+          class="cursor-pointer rounded-md border border-border/60 object-cover transition-all duration-200"
+          :class="imageEnlarged ? 'max-h-80 max-w-full' : 'h-28 w-28'"
+          @click="imageEnlarged = !imageEnlarged"
+        />
+        <video
+          v-else-if="isAttachmentVideo"
+          :src="attachmentUrl"
+          controls
+          preload="metadata"
+          class="max-h-64 max-w-full rounded-md border border-border/60"
+        ></video>
+      </div>
       <!-- Only rendered once a message actually has reactions, so a
            reaction-free message keeps the old compact chat spacing.
            Adding a reaction lives in the "..." menu. -->
@@ -230,6 +240,9 @@ export default {
       // and once more right as the 10-minute window closes.
       nowMs: Date.now(),
       selfServiceTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+      // Toggled by clicking the attachment thumbnail below -- an inline
+      // enlarge/shrink in this one message, never a separate modal.
+      imageEnlarged: false,
     };
   },
   created() {
@@ -308,6 +321,17 @@ export default {
     showSourceTag() {
       return this.chatType === "match" && this.message?.source === "website";
     },
+    attachmentUrl() {
+      const id = this.message?.attachment?.id;
+      if (!id) return null;
+      return `https://${useRuntimeConfig().public.apiDomain}/chat/attachment/${encodeURIComponent(id)}`;
+    },
+    isAttachmentImage() {
+      return (this.message?.attachment?.contentType || "").startsWith("image/");
+    },
+    isAttachmentVideo() {
+      return (this.message?.attachment?.contentType || "").startsWith("video/");
+    },
     formattedTimestamp() {
       if (!this.message?.timestamp) return "";
       // Intl with no explicit locale/timeZone follows the viewer's own
@@ -352,9 +376,6 @@ export default {
       const left = selfServiceTimeLeft(this.message?.timestamp);
       if (left === null) return;
       this.selfServiceTimer = setTimeout(() => this.refreshNow(), left + 50);
-    },
-    videoUrl(id: string) {
-      return `https://${useRuntimeConfig().public.apiDomain}/matches/chat-video/media/${encodeURIComponent(id)}`;
     },
     startEdit() {
       this.editDraft = this.message.message;

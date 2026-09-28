@@ -62,7 +62,6 @@ describe("Chat Hub message reactions", () => {
           PlayerDisplay: true,
           FiveStackToolTip: true,
           ChatMessageActionsMenu: true,
-          ChatVideoPlayer: true,
         },
       },
     });
@@ -257,7 +256,7 @@ describe("Chat Hub message reactions", () => {
     });
   });
 
-  it("keeps reaction UI scoped to Chat Hub and hides only match-page video composers", () => {
+  it("keeps reaction UI scoped to Chat Hub and hides only match-page attachment inputs", () => {
     const read = (relativePath: string) =>
       fs.readFileSync(path.resolve(__dirname, "../..", relativePath), "utf8");
     const lobby = read("components/chat/ChatLobby.vue");
@@ -272,8 +271,8 @@ describe("Chat Hub message reactions", () => {
       "party",
     ]);
     expect(lobby).toMatch(/reactionsEnabled:\s*\{[\s\S]*?default:\s*false/);
-    expect(lobby).toMatch(/allowVideoMessages:\s*\{[\s\S]*?default:\s*true/);
-    expect(matchPage.match(/:allow-video-messages="false"/g)).toHaveLength(2);
+    expect(lobby).toMatch(/allowChatAttachments:\s*\{[\s\S]*?default:\s*true/);
+    expect(matchPage.match(/:allow-chat-attachments="false"/g)).toHaveLength(2);
     expect(chatPanel).toContain(':reactions-enabled="true"');
     expect(chatPopout).toContain(':reactions-enabled="true"');
     expect(matchPage).not.toContain(':reactions-enabled="true"');

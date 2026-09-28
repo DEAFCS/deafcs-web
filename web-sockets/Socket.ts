@@ -370,11 +370,13 @@ class Socket extends EventEmitter {
     type: ChatType,
     id: string,
     message: string,
+    attachment?: { url: string; contentType: string },
   ) {
     this.event(`lobby:chat`, {
       id,
       type,
       message,
+      attachment,
       clientId: this.sessionId,
     });
   }
