@@ -1,9 +1,9 @@
 // Distinguishes *why* the upload failed so the caller can show a message
 // that actually points at the cause instead of a generic "try again" --
-// "network" with zero bytes ever sent is the signature of a phone's local
-// file picker handing over a placeholder for a photo-library video that
-// hasn't finished downloading from iCloud yet (confirmed in production:
-// the request never even reached the ingress, nothing in its access log).
+// "network" with zero bytes ever sent is the signature this endpoint hit in
+// production for a ~95MB video from an iPhone: the request never reached
+// the server at all, most likely Safari failing to buffer a large
+// multipart/form-data body in memory before it could send anything.
 export type ChatAttachmentUploadError = Error & {
   kind: "network" | "timeout" | "http";
   status?: number;
@@ -13,7 +13,17 @@ export type ChatAttachmentUploadError = Error & {
 // Uploads a chat attachment ahead of the actual "lobby:chat" socket send --
 // the chat message doesn't exist yet at upload time, so this just stashes
 // the file in S3 and returns the key + content type to include as
-// `attachment` on the socket send. Mirrors uploadSupportAttachment.ts.
+// `attachment` on the socket send.
+//
+// Sends the file as a raw binary body (Content-Type: the file's own
+// mimetype) instead of wrapping it in multipart/form-data like
+// uploadSupportAttachment.ts does -- multipart requires the browser to
+// build one combined body from all its parts before sending, and Safari
+// appears to do that fully in memory: a large video reliably failed there
+// (confirmed via server logs: zero bytes ever arrived) while working fine
+// on desktop browsers. A raw Blob/File body lets every browser stream it
+// directly instead. See chat.module.ts for the matching raw-body parser
+// this needs server-side.
 //
 // Uses XMLHttpRequest rather than fetch() specifically for its
 // upload.onprogress event -- fetch has no cross-browser way to observe
@@ -25,14 +35,13 @@ export function uploadChatAttachment(
   onProgress?: (percent: number) => void,
 ): Promise<{ path: string; contentType: string }> {
   const apiDomain = useRuntimeConfig().public.apiDomain as string;
-  const formData = new FormData();
-  formData.append("file", file);
 
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     let bytesSent = 0;
     xhr.open("POST", `https://${apiDomain}/chat/attachment`);
     xhr.withCredentials = true;
+    xhr.setRequestHeader("Content-Type", file.type);
     // Generous but finite -- long enough for a large file on a slow mobile
     // connection, short enough to eventually surface a stuck upload rather
     // than spinning forever.
@@ -73,6 +82,6 @@ export function uploadChatAttachment(
       error.bytesSent = bytesSent;
       reject(error);
     };
-    xhr.send(formData);
+    xhr.send(file);
   });
 }
