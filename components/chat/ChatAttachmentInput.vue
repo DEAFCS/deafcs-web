@@ -59,7 +59,7 @@ function clear() {
 </script>
 
 <template>
-  <div class="flex items-center gap-2">
+  <div class="flex min-w-0 items-center gap-1.5">
     <input
       ref="inputRef"
       type="file"
@@ -67,16 +67,27 @@ function clear() {
       class="hidden"
       @change="onChange"
     />
-    <Button type="button" variant="outline" size="icon" @click="pick">
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      class="shrink-0"
+      @click="pick"
+    >
       <Paperclip class="h-4 w-4" />
       <span class="sr-only">{{ $t("chat.attach_file", "Attach image or video") }}</span>
     </Button>
     <span
       v-if="props.modelValue"
-      class="inline-flex items-center gap-1.5 rounded-md border border-border bg-card/40 px-2 py-1 text-xs text-muted-foreground"
+      :title="props.modelValue.name"
+      class="inline-flex min-w-0 max-w-[6rem] items-center gap-1 rounded-md border border-border bg-card/40 px-1.5 py-1 text-[11px] text-muted-foreground"
     >
-      {{ props.modelValue.name }}
-      <button type="button" @click="clear" class="hover:text-foreground">
+      <span class="min-w-0 truncate">{{ props.modelValue.name }}</span>
+      <button
+        type="button"
+        class="shrink-0 hover:text-foreground"
+        @click="clear"
+      >
         <X class="h-3.5 w-3.5" />
       </button>
     </span>
