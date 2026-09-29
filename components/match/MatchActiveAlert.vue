@@ -107,11 +107,43 @@ const ALERT_STATUSES: string[] = [
   e_match_status_enum.Live,
 ];
 
+// Both were in-memory only (component data), so a fresh tab had no idea
+// the player had already dismissed or reached the match in another one --
+// reported: opening a new tab while in an active match re-triggered the
+// full-screen "GO TO MATCH" popup every time. Persisting them to
+// localStorage (read on mount, written alongside the existing state, and
+// synced live across open tabs via the "storage" event) means dismissing
+// or visiting the match in any one tab quiets every other tab too.
+const ACKNOWLEDGED_KEY_STORAGE_KEY = "deafcs:match-ready-modal:acknowledged";
+const VISITED_MATCH_ID_STORAGE_KEY = "deafcs:match-ready-modal:visited";
+
+function readStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: string | null) {
+  try {
+    if (value === null) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, value);
+    }
+  } catch {
+    // Ignore -- private browsing / storage disabled. Falls back to the
+    // in-memory-only behavior for that tab.
+  }
+}
+
 export default {
   data() {
     return {
-      acknowledgedKey: null as string | null,
-      visitedMatchId: null as string | null,
+      acknowledgedKey: readStorage(ACKNOWLEDGED_KEY_STORAGE_KEY),
+      visitedMatchId: readStorage(VISITED_MATCH_ID_STORAGE_KEY),
+      onStorageEvent: undefined as ((event: StorageEvent) => void) | undefined,
     };
   },
   computed: {
@@ -179,6 +211,7 @@ export default {
     matchKey(next, prev) {
       if (next !== prev && this.acknowledgedKey !== next) {
         this.acknowledgedKey = null;
+        writeStorage(ACKNOWLEDGED_KEY_STORAGE_KEY, null);
       }
     },
     isOnMatchPage: {
@@ -186,13 +219,36 @@ export default {
       handler(onPage: boolean) {
         if (onPage && this.match) {
           this.visitedMatchId = this.match.id;
+          writeStorage(VISITED_MATCH_ID_STORAGE_KEY, this.match.id);
         }
       },
     },
   },
+  mounted() {
+    // Client-only (unlike created(), this never runs during SSR) --
+    // window/localStorage don't exist on the server. Another tab
+    // dismissing or reaching the match should quiet this one too --
+    // "storage" only fires in tabs OTHER than the one that wrote the
+    // value, which is exactly what's needed here (this tab's own writes
+    // already update its own state directly).
+    this.onStorageEvent = (event: StorageEvent) => {
+      if (event.key === ACKNOWLEDGED_KEY_STORAGE_KEY) {
+        this.acknowledgedKey = event.newValue;
+      } else if (event.key === VISITED_MATCH_ID_STORAGE_KEY) {
+        this.visitedMatchId = event.newValue;
+      }
+    };
+    window.addEventListener("storage", this.onStorageEvent);
+  },
+  beforeUnmount() {
+    if (this.onStorageEvent) {
+      window.removeEventListener("storage", this.onStorageEvent);
+    }
+  },
   methods: {
     acknowledge() {
       this.acknowledgedKey = this.matchKey;
+      writeStorage(ACKNOWLEDGED_KEY_STORAGE_KEY, this.matchKey);
       useMatchReadyModal().closeMatchReadyModal();
     },
   },
