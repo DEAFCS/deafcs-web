@@ -4,6 +4,9 @@ import { ChevronRight, Cpu } from "lucide-vue-next";
 
 const props = defineProps<{
   picks: Array<any>;
+  // Spell out "Auto-picked" next to the icon (Captain Pick). Off by default
+  // so Draft Games keeps its icon-only log.
+  showAutoPickLabel?: boolean;
 }>();
 
 const entries = computed(() => {
@@ -43,13 +46,17 @@ const entries = computed(() => {
             }}</span>
           </span>
           <span
-            v-if="entry.auto_picked"
+            v-if="entry.auto_picked && showAutoPickLabel"
             class="inline-flex shrink-0 items-center gap-1 font-mono text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground/70"
             data-testid="draft-log-auto"
           >
             <Cpu class="h-3 w-3 text-muted-foreground/50" aria-hidden="true" />
             {{ $t("draft_games.room.log_auto") }}
           </span>
+          <Cpu
+            v-else-if="entry.auto_picked"
+            class="h-3 w-3 shrink-0 text-muted-foreground/50"
+          />
           <span
             class="ml-auto shrink-0 font-mono text-[0.6rem] uppercase tracking-wider team-tag"
           >

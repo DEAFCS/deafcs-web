@@ -61,6 +61,16 @@ afterEach(() => {
 });
 
 describe("Captain Pick chat sidebar", () => {
+  it("stays compact and visible on phones (the rooms scroll inside)", () => {
+    const root = mountChat(1).find('[data-testid="captain-pick-chat"]');
+
+    expect(root.classes()).not.toContain("hidden");
+    // No forced height below xl: just the tabs and the fixed-height room.
+    expect(root.classes().filter((c) => /^min-h-/.test(c))).toEqual([]);
+    // From xl it fills the sticky right sidebar, as before.
+    expect(root.classes()).toContain("xl:flex-1");
+  });
+
   it("always offers DEAFCS Global Chat", () => {
     for (const lineup of [null, 1, 2] as const) {
       const wrapper = mountChat(lineup);

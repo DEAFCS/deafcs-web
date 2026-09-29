@@ -338,7 +338,7 @@ const onCardClick = (event: MouseEvent, steamId: string) => {
         class="rounded-xl border border-border bg-card/40 p-4"
         data-testid="captain-pick-history"
       >
-        <DraftLog :picks="logEntries" />
+        <DraftLog :picks="logEntries" show-auto-pick-label />
         <p
           v-if="lastPlayer"
           class="mt-2 text-xs text-muted-foreground"
@@ -356,7 +356,13 @@ const onCardClick = (event: MouseEvent, steamId: string) => {
       </div>
     </div>
 
-    <div class="flex flex-col xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)]">
+    <!-- The same one chat on every screen size: the right sidebar from xl,
+         below the Draft Log on phones and tablets (the draft comes first).
+         Each room's ChatLobby is a fixed-height box that scrolls inside. -->
+    <div
+      class="flex flex-col xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)]"
+      data-testid="captain-pick-chat-section"
+    >
       <CaptainPickChat :draft-id="draft.draftId" :my-lineup="myLineup" />
     </div>
   </div>

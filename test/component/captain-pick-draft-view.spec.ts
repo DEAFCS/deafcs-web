@@ -212,10 +212,26 @@ describe("DraftPlayerCard profile link", () => {
 });
 
 describe("DraftLog", () => {
-  const mountLog = (picks: any[]) =>
+  const picks = [
+    {
+      id: "pick-0",
+      lineup: 1,
+      auto_picked: false,
+      captain: { name: "Cap" },
+      picked: { name: "Three" },
+    },
+    {
+      id: "pick-1",
+      lineup: 2,
+      auto_picked: true,
+      captain: { name: "Cap B" },
+      picked: { name: "Four" },
+    },
+  ];
+  const mountLog = (props: Record<string, unknown> = {}) =>
     track(
       mount(DraftLog, {
-        props: { picks },
+        props: { picks, ...props },
         global: {
           mocks: { $t },
           stubs: {
@@ -229,28 +245,30 @@ describe("DraftLog", () => {
         },
       }),
     );
+  const rows = (wrapper: ReturnType<typeof mountLog>) =>
+    wrapper.findAll(".log-row");
 
-  it("labels timed-out picks as auto-picked", () => {
-    const wrapper = mountLog([
-      {
-        id: "pick-0",
-        lineup: 1,
-        auto_picked: false,
-        captain: { name: "Cap" },
-        picked: { name: "Three" },
-      },
-      {
-        id: "pick-1",
-        lineup: 2,
-        auto_picked: true,
-        captain: { name: "Cap B" },
-        picked: { name: "Four" },
-      },
-    ]);
+  it("keeps Draft Games' icon-only auto-pick marker by default", () => {
+    const wrapper = mountLog();
+
+    expect(wrapper.find('[data-testid="draft-log-auto"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain("draft_games.room.log_auto");
+    // Newest first: the auto pick row carries the bare icon, the other none.
+    expect(rows(wrapper)[0].findAll("svg")).toHaveLength(2);
+    expect(rows(wrapper)[1].findAll("svg")).toHaveLength(1);
+    expect(wrapper.text()).toContain("Four");
+  });
+
+  it("spells out Auto-picked when Captain Pick asks for it", () => {
+    const wrapper = mountLog({ showAutoPickLabel: true });
     const autos = wrapper.findAll('[data-testid="draft-log-auto"]');
 
     expect(autos).toHaveLength(1);
     expect(autos[0].text()).toBe("draft_games.room.log_auto");
-    expect(wrapper.text()).toContain("Four");
+    // Label replaces the bare icon, it doesn't add a second one.
+    expect(rows(wrapper)[0].findAll("svg")).toHaveLength(2);
+    expect(
+      rows(wrapper)[1].findAll('[data-testid="draft-log-auto"]'),
+    ).toHaveLength(0);
   });
 });

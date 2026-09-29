@@ -57,7 +57,7 @@ watch(
 
 <template>
   <div
-    class="flex min-h-[440px] flex-col overflow-hidden rounded-xl border border-border bg-card/40 xl:min-h-0 xl:flex-1"
+    class="flex flex-col overflow-hidden rounded-xl border border-border bg-card/40 xl:flex-1"
     data-testid="captain-pick-chat"
   >
     <div class="flex flex-col gap-3 p-4">

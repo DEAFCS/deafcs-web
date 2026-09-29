@@ -190,6 +190,83 @@ describe("Captain Pick screen: Draft layout", () => {
   });
 });
 
+describe("Captain Pick screen: chat on phones and tablets", () => {
+  const classesOf = (node: { classes: () => string[] }) => node.classes();
+
+  it("keeps one chat, shown on every screen size and placed after the Draft Log", () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "5" });
+    const section = wrapper.find('[data-testid="captain-pick-chat-section"]');
+    const history = wrapper.find('[data-testid="captain-pick-history"]');
+
+    expect(wrapper.findAllComponents(Chat)).toHaveLength(1);
+    expect(section.exists()).toBe(true);
+    // Never hidden below xl: no base "hidden", no display only from xl up.
+    expect(classesOf(section)).not.toContain("hidden");
+    expect(
+      classesOf(section).filter((c) =>
+        /^(xl|lg|md|sm):(flex|block|grid)$/.test(c),
+      ),
+    ).toEqual([]);
+    // Sidebar only from xl; below that the single column stacks in order.
+    expect(
+      wrapper.find('[data-testid="captain-pick-screen"]').classes(),
+    ).toContain("xl:grid-cols-[minmax(0,1fr)_340px]");
+    expect(
+      history.element.compareDocumentPosition(section.element) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("puts the draft first: clock, teams, pool, Draft Log, then chat", () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "2" });
+    const order = [
+      "captain-pick-turn-card",
+      "captain-pick-team-1",
+      "captain-pick-pool",
+      "captain-pick-history",
+      "captain-pick-chat-section",
+    ].map((id) => wrapper.find(`[data-testid="${id}"]`).element);
+
+    for (let i = 1; i < order.length; i++) {
+      expect(
+        order[i - 1].compareDocumentPosition(order[i]) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    }
+  });
+
+  it("unlocks Team the moment the server picks the player, including the last one", async () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "10" });
+    const chat = () => wrapper.findComponent(Chat);
+    expect(chat().props("myLineup")).toBeNull();
+
+    await wrapper.setProps({ draft: draftAfter([{ steam_id: "4" }]) });
+    expect(chat().props("myLineup")).toBeNull();
+
+    // Nobody picks 10: the server places them on Team A after pick seven.
+    await wrapper.setProps({
+      draft: draftAfter(
+        ["3", "4", "5", "6", "7", "8", "9"].map((steam_id) => ({ steam_id })),
+      ),
+    });
+    expect(chat().props("myLineup")).toBe(1);
+    expect(wrapper.findAllComponents(Chat)).toHaveLength(1);
+  });
+
+  it("gives a picked player their own side only", async () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "4" });
+
+    await wrapper.setProps({
+      draft: draftAfter([{ steam_id: "3" }, { steam_id: "4" }]),
+    });
+
+    expect(wrapper.findComponent(Chat).props()).toEqual({
+      draftId: "draft-1",
+      myLineup: 2,
+    });
+  });
+});
+
 describe("Captain Pick screen: ratings", () => {
   it("offers DEAFCS / CS2 / FACEIT and only changes what the cards show", async () => {
     const wrapper = mountScreen(makeDraft(), { selfSteamId: "2", players });
@@ -292,6 +369,8 @@ describe("Captain Pick screen: Draft Log and the end of the draft", () => {
     );
     const picks = wrapper.findComponent(Log).props("picks");
 
+    // Captain Pick opts in to the spelled-out label (Draft Games doesn't).
+    expect(wrapper.findComponent(Log).props("showAutoPickLabel")).toBe(true);
     expect(picks).toHaveLength(2);
     expect(picks[0]).toMatchObject({
       lineup: 1,

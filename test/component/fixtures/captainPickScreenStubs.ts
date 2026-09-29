@@ -69,7 +69,7 @@ export const TurnStatus = defineComponent({
 });
 export const Log = defineComponent({
   name: "DraftLog",
-  props: ["picks"],
+  props: { picks: null, showAutoPickLabel: Boolean },
   setup() {
     return () => h("div", { "data-stub": "log" });
   },
