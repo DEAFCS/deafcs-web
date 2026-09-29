@@ -325,7 +325,15 @@ export default {
           if (this.routedConfirmedId !== this.confirmation.matchId) {
             this.routedConfirmedId = this.confirmation.matchId;
             writeStorage(ROUTED_MATCH_ID_STORAGE_KEY, this.confirmation.matchId);
-            this.$router.push(`/matches/${this.confirmation.matchId}`);
+            // The draft page handles its own MatchCreated transition. Avoid
+            // issuing a second navigation while it is still mounted.
+            const matchPath = `/matches/${this.confirmation.matchId}`;
+            if (
+              this.$route?.path !== CAPTAIN_PICK_PATH &&
+              this.$route?.path !== matchPath
+            ) {
+              this.$router.push(matchPath);
+            }
           }
         }
       },

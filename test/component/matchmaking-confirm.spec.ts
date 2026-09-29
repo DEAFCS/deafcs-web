@@ -86,7 +86,7 @@ function makeConfirmation(overrides: Record<string, unknown> = {}) {
   };
 }
 
-function mountConfirm(initial = makeConfirmation()) {
+function mountConfirm(initial = makeConfirmation(), routePath = "/play") {
   mocks.store = reactive({
     joinedMatchmakingQueues: { confirmation: initial },
   });
@@ -98,6 +98,7 @@ function mountConfirm(initial = makeConfirmation()) {
             Object.assign(app.config.globalProperties, {
               $t: (key: string) => key,
               $router: { push: mocks.routerPush },
+              $route: { path: routePath },
             });
           },
         },
@@ -279,6 +280,7 @@ describe("Match Found confirmation modal with 5v5 Captain Pick", () => {
 
   beforeEach(() => {
     localStorage.removeItem(CAPTAIN_PICK_ROUTE_KEY);
+    localStorage.removeItem("deafcs:matchmaking:routed-match-id");
   });
 
   it("uses the normal ready check first", () => {
@@ -372,5 +374,30 @@ describe("Match Found confirmation modal with 5v5 Captain Pick", () => {
 
     expect(mocks.routerPush).toHaveBeenCalledOnce();
     expect(mocks.routerPush).toHaveBeenCalledWith("/matches/match-9");
+  });
+
+  it("lets the draft page handle MatchCreated navigation once", async () => {
+    mountConfirm(
+      makeConfirmation({ confirmed: 10, captainPick: draft() }) as any,
+      "/play/captain-pick",
+    );
+    await flushPromises();
+    mocks.routerPush.mockClear();
+
+    setConfirmation(
+      makeConfirmation({
+        confirmed: 10,
+        matchId: "match-9",
+        captainPick: draft({
+          phase: "MatchCreated",
+          pickIndex: null,
+          matchId: "match-9",
+        }),
+      }) as any,
+    );
+    await flushPromises();
+
+    expect(mocks.routerPush).not.toHaveBeenCalled();
+    expect(localStorage.getItem("deafcs:matchmaking:routed-match-id")).toBe("match-9");
   });
 });

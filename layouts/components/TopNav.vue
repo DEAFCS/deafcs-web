@@ -1291,7 +1291,7 @@ const socialLinkClasses =
               ></span>
             </span>
             <CheckCircle2 class="h-3.5 w-3.5" />
-            <span :class="isMyCaptainPick ? 'inline' : 'hidden sm:inline'">{{
+            <span class="hidden sm:inline">{{
               $t("matchmaking.check_in")
             }}</span>
             <span v-if="pendingCheckIn" class="tabular-nums">
@@ -1327,7 +1327,7 @@ const socialLinkClasses =
               ></span>
             </span>
             <Crown class="h-3.5 w-3.5" />
-            <span class="hidden sm:inline">{{
+            <span :class="isMyCaptainPick ? 'inline' : 'hidden sm:inline'">{{
               isMyCaptainPick
                 ? $t("matchmaking.captain_pick.your_pick_nav")
                 : $t("matchmaking.captain_pick.nav")
