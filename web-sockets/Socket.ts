@@ -47,6 +47,10 @@ export type ChatType =
   // from "team" (a persistent Team entity's own chat, which matchmaking/
   // draft lineups don't have). Never relayed to the in-game CS2 server.
   | "match_team"
+  // Private team chat while a matchmaking Captain Pick draft is running,
+  // before any match exists -- id is `${draftId}:${lineup}`. The server only
+  // lets in players it has on that side of the draft.
+  | "captain_pick_team"
   // Single site-wide room, open to every verified_user+ player. Fixed
   // lobbyId "global" -- there's only ever one.
   | "global"

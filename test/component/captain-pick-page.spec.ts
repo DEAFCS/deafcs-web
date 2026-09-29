@@ -40,6 +40,15 @@ vi.mock("~/components/TacticalPageHeader.vue", () => ({
   }),
 }));
 
+vi.mock("~/composables/useCaptainPickPlayers", async () => {
+  const vue = await import("vue");
+  return {
+    useCaptainPickPlayers: () => ({
+      players: vue.ref({ "3": { steam_id: "3", name: "P3", country: "DE" } }),
+    }),
+  };
+});
+
 vi.mock(
   "~/components/matchmaking/captain-pick/CaptainPickScreen.vue",
   async () => {
@@ -47,7 +56,14 @@ vi.mock(
     return {
       default: vue.defineComponent({
         name: "CaptainPickScreen",
-        props: ["draft", "selfSteamId", "localDeadline", "timeUp", "pending"],
+        props: [
+          "draft",
+          "selfSteamId",
+          "localDeadline",
+          "timeUp",
+          "pending",
+          "players",
+        ],
         emits: ["pick"],
         setup() {
           return () => vue.h("div", { "data-stub": "screen" });
@@ -118,6 +134,14 @@ describe("/play/captain-pick", () => {
 
     expect(screen(wrapper).props("draft").draftId).toBe("draft-1");
     expect(screen(wrapper).props("selfSteamId")).toBe("2");
+  });
+
+  it("passes the public player records (flags, ratings) to the screen", () => {
+    mocks.store.joinedMatchmakingQueues.confirmation =
+      confirmationWith(makeDraft());
+    const wrapper = mountPage();
+
+    expect(screen(wrapper).props("players")["3"].country).toBe("DE");
   });
 
   it("sends the pick with the draft id, target and current pick index", async () => {

@@ -1,48 +1,43 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import { defineComponent, h } from "vue";
-import CaptainPickScreen from "../../components/matchmaking/captain-pick/CaptainPickScreen.vue";
+import { reactive } from "vue";
 import { draftAfter, makeDraft } from "./fixtures/captainPick";
+import {
+  ButtonStub,
+  Chat,
+  Filters,
+  Log,
+  PlayerCard,
+  TeamPanel,
+  TurnStatus,
+} from "./fixtures/captainPickScreenStubs";
 import type { CaptainPickDraftState } from "~/utilities/captainPickDraft";
 
-// Roster/clock/ELO pieces come from Draft Games and pull in stores and
-// GraphQL; they are stubbed here but their props are what we assert on.
-const TeamPanel = defineComponent({
-  name: "DraftTeamPanel",
-  props: ["title", "players", "perTeam", "active", "accent"],
-  setup(props) {
-    return () =>
-      h("div", { "data-stub": "team", "data-active": String(!!props.active) }, [
-        h("span", { class: "title" }, props.title),
-        ...props.players.map((p: any) =>
-          h(
-            "span",
-            { class: "member", "data-steam": p.steam_id },
-            p.player.name,
-          ),
-        ),
-      ]);
-  },
-});
-const Clock = defineComponent({
-  name: "DraftClock",
-  props: ["deadline", "total", "pulse"],
-  setup(props, { slots }) {
-    return () =>
-      h(
-        "div",
-        { "data-stub": "clock", "data-deadline": props.deadline },
-        slots.default?.(),
-      );
-  },
-});
-const Elo = defineComponent({
-  name: "PlayerElo",
-  props: ["elo", "historicalElo"],
-  setup(props) {
-    return () => h("span", { class: "elo" }, String(props.historicalElo));
-  },
-});
+const mocks = vi.hoisted(() => ({ settings: null as any }));
+
+vi.mock("~/stores/ApplicationSettings", () => ({
+  useApplicationSettingsStore: () => mocks.settings,
+}));
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+
+// The Draft Games pieces pull in stores, GraphQL and sockets; they are
+// replaced by stand-ins and the props Captain Pick hands them are what we
+// assert on.
+const { stub } = vi.hoisted(() => ({
+  stub: (name: string) => async () => ({
+    default: ((await import("./fixtures/captainPickScreenStubs")) as any)[name],
+  }),
+}));
+vi.mock("~/components/draft-games/DraftTeamPanel.vue", stub("TeamPanel"));
+vi.mock("~/components/draft-games/DraftPlayerCard.vue", stub("PlayerCard"));
+vi.mock("~/components/draft-games/DraftTurnStatus.vue", stub("TurnStatus"));
+vi.mock("~/components/draft-games/DraftLog.vue", stub("Log"));
+vi.mock(
+  "~/components/matchmaking/captain-pick/CaptainPickChat.vue",
+  stub("Chat"),
+);
+
+import CaptainPickScreen from "../../components/matchmaking/captain-pick/CaptainPickScreen.vue";
 
 const wrappers: ReturnType<typeof mount>[] = [];
 
@@ -53,7 +48,15 @@ const mountScreen = (
   const wrapper = mount(CaptainPickScreen, {
     props: { draft, localDeadline: draft.deadline, ...props },
     global: {
-      stubs: { DraftTeamPanel: TeamPanel, DraftClock: Clock, PlayerElo: Elo },
+      stubs: {
+        DraftTeamPanel: TeamPanel,
+        DraftPlayerCard: PlayerCard,
+        DraftTurnStatus: TurnStatus,
+        DraftLog: Log,
+        CaptainPickChat: Chat,
+        AnimatedFilters: Filters,
+        Button: ButtonStub,
+      },
       mocks: {
         $t: (key: string, params?: Record<string, unknown>) =>
           params ? `${key}:${JSON.stringify(params)}` : key,
@@ -64,214 +67,266 @@ const mountScreen = (
   return wrapper;
 };
 
-const poolButtons = (wrapper: ReturnType<typeof mount>) =>
-  wrapper.findAll('[data-testid^="captain-pick-player-"]');
+const card = (wrapper: ReturnType<typeof mount>, steamId: string) =>
+  wrapper.find(`[data-testid="captain-pick-player-${steamId}"]`);
+
+const poolIds = (wrapper: ReturnType<typeof mount>) =>
+  wrapper
+    .findAll('[data-testid^="captain-pick-player-"]')
+    .map((node) =>
+      node.attributes("data-testid").replace("captain-pick-player-", ""),
+    );
+
+const players = {
+  "2": { steam_id: "2", name: "Captain Two", country: "DK" },
+  "3": { steam_id: "3", name: "Three", country: "DE", premier_rank: 21000 },
+  "4": { steam_id: "4", name: "Four", country: "NO" },
+  "5": { steam_id: "5", name: "Five" },
+};
+
+beforeEach(() => {
+  mocks.settings = reactive({
+    linkedAccountsEnabled: true,
+    faceitEnabled: true,
+  });
+});
 
 afterEach(() => {
   for (const wrapper of wrappers.splice(0)) wrapper.unmount();
 });
 
-describe("Captain Pick screen", () => {
-  it("renders both server-chosen captains' teams and the pool", () => {
-    const wrapper = mountScreen(makeDraft(), { selfSteamId: "7" });
-    const teams = wrapper.findAllComponents(TeamPanel);
-
-    // Team A is lineup 1 (the captain picking first), Team B lineup 2.
-    expect(teams[0].props("title")).toContain('"name":"Player 2"');
-    expect(teams[0].props("players").map((p: any) => p.steam_id)).toEqual([
-      "2",
-    ]);
-    expect(teams[0].props("perTeam")).toBe(5);
-    expect(teams[1].props("title")).toContain('"name":"Player 1"');
-    expect(teams[1].props("players").map((p: any) => p.steam_id)).toEqual([
-      "1",
-    ]);
-    // Rosters carry the Competitive ELO the draft started with.
-    expect(teams[1].props("players")[0].player.elo).toEqual({
-      competitive: 12500,
+describe("Captain Pick screen: Draft layout", () => {
+  it("shows the clock, who is picking and the pick order like Draft Games", () => {
+    const wrapper = mountScreen(draftAfter([{ steam_id: "3" }]), {
+      selfSteamId: "7",
     });
+    const turn = wrapper.findComponent(TurnStatus);
 
-    expect(
-      poolButtons(wrapper).map((b) => b.attributes("data-testid")),
-    ).toEqual(
-      ["3", "4", "5", "6", "7", "8", "9", "10"].map(
-        (id) => `captain-pick-player-${id}`,
-      ),
-    );
-    expect(wrapper.find('[data-testid="captain-pick-pool"]').text()).toContain(
-      "9000",
-    );
-  });
-
-  it("shows whose turn it is and highlights that team", () => {
-    const wrapper = mountScreen(makeDraft(), { selfSteamId: "7" });
-
+    expect(turn.props("deadline")).toBe("2026-09-29T20:00:30.000Z");
+    expect(turn.props("total")).toBe(30);
+    expect(turn.props("isMine")).toBe(false);
+    // Team 2 on the clock: Draft's blue accent.
+    expect(turn.props("accent")).toBe("200 90% 62%");
+    expect(turn.props("timeline").map((slot: any) => slot.state)).toEqual([
+      "done",
+      "current",
+      "upcoming",
+      "upcoming",
+      "upcoming",
+      "upcoming",
+      "upcoming",
+    ]);
+    expect(turn.props("timeline").map((slot: any) => slot.lineup)).toEqual([
+      1, 2, 2, 1, 1, 2, 2,
+    ]);
     expect(wrapper.find('[data-testid="captain-pick-turn"]').text()).toContain(
-      '"name":"Player 2"',
+      '"name":"Player 1"',
     );
-    expect(
-      wrapper.find('[data-testid="captain-pick-your-turn"]').exists(),
-    ).toBe(false);
-    const teams = wrapper.findAllComponents(TeamPanel);
-    expect(teams[0].props("active")).toBe(true);
-    expect(teams[1].props("active")).toBe(false);
-    expect(
-      wrapper.find('[data-testid="captain-pick-progress"]').text(),
-    ).toContain('"current":1,"total":7');
-  });
-
-  it("lets only the captain on turn pick, and says so clearly", async () => {
-    const captain = mountScreen(makeDraft(), { selfSteamId: "2" });
-
-    expect(captain.find('[data-testid="captain-pick-your-turn"]').text()).toBe(
-      "matchmaking.captain_pick.your_pick",
+    expect(wrapper.find('[data-testid="captain-pick-progress"]').text()).toBe(
+      'matchmaking.captain_pick.pick_progress:{"current":2,"total":7}',
     );
-    expect(poolButtons(captain).every((b) => !b.attributes("disabled"))).toBe(
-      true,
-    );
-
-    await poolButtons(captain)[2].trigger("click");
-    expect(captain.emitted("pick")).toEqual([["5"]]);
   });
 
-  it("does not let the other captain or a player pick", async () => {
-    for (const steamId of ["1", "6", null]) {
-      const wrapper = mountScreen(makeDraft(), { selfSteamId: steamId });
-      expect(
-        poolButtons(wrapper).every(
-          (b) => b.attributes("disabled") !== undefined,
-        ),
-      ).toBe(true);
-      await poolButtons(wrapper)[0].trigger("click");
-      expect(wrapper.emitted("pick")).toBeUndefined();
-    }
-  });
-
-  it("blocks repeat clicks while a pick is on its way", async () => {
-    const wrapper = mountScreen(makeDraft(), {
-      selfSteamId: "2",
-      pending: true,
-    });
-
-    await poolButtons(wrapper)[0].trigger("click");
-    expect(wrapper.emitted("pick")).toBeUndefined();
-  });
-
-  it("stops picking once time is up and waits for the server's auto-pick", async () => {
-    const wrapper = mountScreen(makeDraft(), {
-      selfSteamId: "2",
-      timeUp: true,
-    });
-
-    expect(wrapper.text()).toContain("matchmaking.captain_pick.time_up");
-    await poolButtons(wrapper)[0].trigger("click");
-    expect(wrapper.emitted("pick")).toBeUndefined();
-  });
-
-  it("follows the server when the captain has two picks in a row", () => {
-    // After pick 1, captain B (player 1) has picks 2 and 3.
-    const afterFirst = draftAfter([{ steam_id: "5" }]);
-    const wrapper = mountScreen(afterFirst, { selfSteamId: "1" });
+  it("tells the captain it is their pick", () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "2" });
 
     expect(
       wrapper.find('[data-testid="captain-pick-your-turn"]').exists(),
     ).toBe(true);
-    expect(
-      wrapper
-        .findAllComponents(TeamPanel)[0]
-        .props("players")
-        .map((p: any) => p.steam_id),
-    ).toEqual(["2", "5"]);
-    expect(
-      wrapper.find('[data-testid="captain-pick-progress"]').text(),
-    ).toContain('"current":2,"total":7');
+    expect(wrapper.findComponent(TurnStatus).props("isMine")).toBe(true);
+    expect(wrapper.findComponent(TurnStatus).props("accent")).toBe(
+      "var(--tac-amber)",
+    );
   });
 
-  it("marks auto-picks in the pick history", () => {
+  it("renders both teams in Draft team panels with full player records", () => {
+    const wrapper = mountScreen(draftAfter([{ steam_id: "3" }]), {
+      selfSteamId: "7",
+      players,
+    });
+    const [teamA, teamB] = wrapper.findAllComponents(TeamPanel);
+
+    expect(teamA.props("title")).toContain('"name":"Player 2"');
+    expect(teamB.props("title")).toContain('"name":"Player 1"');
+    expect(teamA.props("accent")).toBe("amber");
+    expect(teamB.props("accent")).toBe("blue");
+    expect(teamA.props("perTeam")).toBe(5);
+    expect(teamA.props("profileInNewTab")).toBe(true);
+    expect(teamB.props("active")).toBe(true);
+    expect(teamA.props("active")).toBe(false);
+    // Fetched records (with country) replace the lean participant data.
+    expect(
+      teamA.findAll(".member").map((m) => m.attributes("data-country")),
+    ).toEqual(["DK", "DE"]);
+    // Missing record: still shown, from the server's participant data.
+    expect(teamB.find(".member").text()).toBe("Player 1");
+  });
+
+  it("shows the pool as Draft player cards with flags from the player records", () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "7", players });
+    const cards = wrapper.findAllComponents(PlayerCard);
+
+    expect(poolIds(wrapper)).toEqual(["3", "4", "5", "6", "7", "8", "9", "10"]);
+    expect(cards[0].props("member").player.country).toBe("DE");
+    expect(cards[1].props("member").player.country).toBe("NO");
+    expect(cards[2].props("member").player.country).toBeUndefined();
+    expect(cards[0].props("profileInNewTab")).toBe(true);
+  });
+
+  it("puts the chat in the sidebar with the viewer's server-side lineup", () => {
+    const captain = mountScreen(makeDraft(), { selfSteamId: "1" });
+    expect(captain.findComponent(Chat).props()).toEqual({
+      draftId: "draft-1",
+      myLineup: 2,
+    });
+
+    const unpicked = mountScreen(makeDraft(), { selfSteamId: "5" });
+    expect(unpicked.findComponent(Chat).props("myLineup")).toBeNull();
+
+    const picked = mountScreen(draftAfter([{ steam_id: "5" }]), {
+      selfSteamId: "5",
+    });
+    expect(picked.findComponent(Chat).props("myLineup")).toBe(1);
+  });
+});
+
+describe("Captain Pick screen: ratings", () => {
+  it("offers DEAFCS / CS2 / FACEIT and only changes what the cards show", async () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "2", players });
+    const source = wrapper.find('[data-testid="captain-pick-rating-source"]');
+    expect(
+      source.findAll("button").map((b) => b.attributes("data-source")),
+    ).toEqual(["elo", "cs2", "faceit"]);
+
+    const matchTypes = () => [
+      ...wrapper.findAllComponents(TeamPanel).map((c) => c.props("matchType")),
+      ...wrapper.findAllComponents(PlayerCard).map((c) => c.props("matchType")),
+    ];
+    expect(new Set(matchTypes())).toEqual(new Set(["Competitive"]));
+
+    await source.find('[data-source="cs2"]').trigger("click");
+    expect(new Set(matchTypes())).toEqual(new Set(["Premier"]));
+
+    await source.find('[data-source="faceit"]').trigger("click");
+    expect(new Set(matchTypes())).toEqual(new Set(["Faceit"]));
+
+    // Same pool, same pick: the rating is display only.
+    expect(poolIds(wrapper)).toEqual(["3", "4", "5", "6", "7", "8", "9", "10"]);
+    await wrapper.find('[data-testid="captain-pick-draft-4"]').trigger("click");
+    expect(wrapper.emitted("pick")).toEqual([["4"]]);
+  });
+
+  it("hides the selector when only DEAFCS ratings exist", () => {
+    mocks.settings = reactive({
+      linkedAccountsEnabled: false,
+      faceitEnabled: false,
+    });
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "2" });
+
+    expect(
+      wrapper.find('[data-testid="captain-pick-rating-source"]').exists(),
+    ).toBe(false);
+  });
+});
+
+describe("Captain Pick screen: picking", () => {
+  it("picks from the Draft button and from the card itself", async () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "2" });
+
+    await wrapper.find('[data-testid="captain-pick-draft-5"]').trigger("click");
+    await card(wrapper, "6").find(".body").trigger("click");
+
+    expect(wrapper.emitted("pick")).toEqual([["5"], ["6"]]);
+  });
+
+  it("opens the profile in a new tab without picking", async () => {
+    const wrapper = mountScreen(makeDraft(), { selfSteamId: "2" });
+    const profile = card(wrapper, "5").find("a.profile");
+
+    expect(profile.attributes("href")).toBe("/players/5");
+    expect(profile.attributes("target")).toBe("_blank");
+    await profile.trigger("click");
+
+    expect(wrapper.emitted("pick")).toBeUndefined();
+  });
+
+  it("never picks for someone who is not on the clock", async () => {
+    for (const selfSteamId of ["1", "5", null]) {
+      const wrapper = mountScreen(makeDraft(), { selfSteamId });
+      expect(
+        wrapper.find('[data-testid="captain-pick-draft-5"]').exists(),
+      ).toBe(false);
+      await card(wrapper, "5").find(".body").trigger("click");
+      expect(wrapper.emitted("pick")).toBeUndefined();
+    }
+  });
+
+  it("blocks picks while one is pending or after the deadline", async () => {
+    for (const props of [{ pending: true }, { timeUp: true }]) {
+      const wrapper = mountScreen(makeDraft(), { selfSteamId: "2", ...props });
+      expect(
+        wrapper.find('[data-testid="captain-pick-draft-5"]').exists(),
+      ).toBe(false);
+      await card(wrapper, "5").find(".body").trigger("click");
+      expect(wrapper.emitted("pick")).toBeUndefined();
+    }
+    const late = mountScreen(makeDraft(), { selfSteamId: "2", timeUp: true });
+    expect(late.text()).toContain("matchmaking.captain_pick.time_up");
+  });
+
+  it("removes picked players from the pool", () => {
     const wrapper = mountScreen(
-      draftAfter([{ steam_id: "3", auto: true }, { steam_id: "4" }]),
-      { selfSteamId: "7" },
+      draftAfter([{ steam_id: "3" }, { steam_id: "4" }]),
+      { selfSteamId: "1" },
     );
 
-    const first = wrapper.find('[data-testid="captain-pick-history-0"]');
-    const second = wrapper.find('[data-testid="captain-pick-history-1"]');
-    expect(first.find('[data-testid="captain-pick-auto"]').exists()).toBe(true);
-    expect(first.text()).toContain('"captain":"Player 2","player":"Player 3"');
-    expect(second.find('[data-testid="captain-pick-auto"]').exists()).toBe(
-      false,
+    expect(poolIds(wrapper)).toEqual(["5", "6", "7", "8", "9", "10"]);
+  });
+});
+
+describe("Captain Pick screen: Draft Log and the end of the draft", () => {
+  it("logs every pick with who picked and marks timeout picks as auto", () => {
+    const wrapper = mountScreen(
+      draftAfter([{ steam_id: "3" }, { steam_id: "4", auto: true }]),
+      { selfSteamId: "7", players },
     );
+    const picks = wrapper.findComponent(Log).props("picks");
+
+    expect(picks).toHaveLength(2);
+    expect(picks[0]).toMatchObject({
+      lineup: 1,
+      auto_picked: false,
+      captain: { steam_id: "2", name: "Captain Two" },
+      picked: { steam_id: "3", name: "Three" },
+    });
+    expect(picks[1]).toMatchObject({
+      lineup: 2,
+      auto_picked: true,
+      captain: { steam_id: "1" },
+      picked: { steam_id: "4", name: "Four" },
+    });
   });
 
-  it("treats pick 7 as the last manual pick", () => {
-    const beforeLast = draftAfter(
-      ["3", "4", "5", "6", "7", "8"].map((steam_id) => ({ steam_id })),
-    );
-    const wrapper = mountScreen(beforeLast, { selfSteamId: "1" });
-
-    expect(
-      wrapper.find('[data-testid="captain-pick-progress"]').text(),
-    ).toContain('"current":7,"total":7');
-    expect(poolButtons(wrapper)).toHaveLength(2);
-  });
-
-  it("shows no eighth pick: the last player is placed automatically", async () => {
-    const locked = draftAfter(
+  it("locks the teams after seven picks and places the last player without an eighth pick", () => {
+    const done = draftAfter(
       ["3", "4", "5", "6", "7", "8", "9"].map((steam_id) => ({ steam_id })),
     );
-    const wrapper = mountScreen(locked, { selfSteamId: "2" });
+    const wrapper = mountScreen(done, { selfSteamId: "2" });
 
-    expect(locked.lineups[1]).toHaveLength(5);
-    expect(locked.lineups[2]).toHaveLength(5);
-    expect(
-      wrapper.find('[data-testid="captain-pick-your-turn"]').exists(),
-    ).toBe(false);
-    expect(wrapper.find('[data-stub="clock"]').exists()).toBe(false);
-    expect(poolButtons(wrapper)).toHaveLength(0);
+    expect(wrapper.findComponent(TurnStatus).exists()).toBe(false);
     expect(wrapper.find('[data-testid="captain-pick-locked"]').text()).toBe(
       "matchmaking.captain_pick.creating_match",
     );
+    expect(wrapper.find('[data-testid="captain-pick-pool"]').exists()).toBe(
+      false,
+    );
+    expect(wrapper.findComponent(Log).props("picks")).toHaveLength(7);
     expect(
       wrapper.find('[data-testid="captain-pick-last-player"]').text(),
     ).toContain('"player":"Player 10"');
-  });
-
-  it("drives the countdown from the server deadline it is given", () => {
-    const wrapper = mountScreen(makeDraft(), {
-      selfSteamId: "2",
-      localDeadline: "2026-09-29T20:00:25.000Z",
-    });
-
-    const clock = wrapper.findComponent(Clock);
-    expect(clock.props("deadline")).toBe("2026-09-29T20:00:25.000Z");
-    expect(clock.props("total")).toBe(30);
-    expect(clock.props("pulse")).toBe(true);
-  });
-
-  it("explains a tied first pick without animating a coin flip", () => {
-    const wrapper = mountScreen(
-      makeDraft({ firstPickReason: "EqualEloCoinFlip" }),
-    );
-
-    expect(wrapper.text()).toContain(
-      "matchmaking.captain_pick.first_pick_coin_flip",
-    );
-    expect(wrapper.findComponent({ name: "DraftCoinFlip" }).exists()).toBe(
-      false,
-    );
-  });
-
-  it("never mentions leaving, requeueing or a random map", () => {
-    const wrapper = mountScreen(makeDraft(), { selfSteamId: "2" });
-    const text = wrapper.text().toLowerCase();
-
-    for (const word of [
-      "leave queue",
-      "requeue",
-      "cancel",
-      "roulette",
-      "random map",
-    ]) {
-      expect(text).not.toContain(word);
-    }
+    const [teamA, teamB] = wrapper.findAllComponents(TeamPanel);
+    expect(teamA.props("players")).toHaveLength(5);
+    expect(teamB.props("players")).toHaveLength(5);
+    expect(wrapper.emitted("pick")).toBeUndefined();
   });
 });

@@ -35,7 +35,7 @@ import DraftSettingsBar from "~/components/draft-games/DraftSettingsBar.vue";
 import DraftTeamPanel from "~/components/draft-games/DraftTeamPanel.vue";
 import DraftPlayerCard from "~/components/draft-games/DraftPlayerCard.vue";
 import DraftBackupsPanel from "~/components/draft-games/DraftBackupsPanel.vue";
-import DraftClock from "~/components/draft-games/DraftClock.vue";
+import DraftTurnStatus from "~/components/draft-games/DraftTurnStatus.vue";
 import DraftLog from "~/components/draft-games/DraftLog.vue";
 import DraftRequestQueue from "~/components/draft-games/DraftRequestQueue.vue";
 import DraftOpenSlot from "~/components/draft-games/DraftOpenSlot.vue";
@@ -1112,51 +1112,28 @@ const start = () => {
             </div>
 
             <template v-else-if="isDrafting">
-              <DraftClock
+              <DraftTurnStatus
                 :deadline="room.pick_deadline"
                 :accent="clockAccent"
-                :pulse="isMyTurn"
+                :is-mine="isMyTurn"
+                :timeline="pickTimeline"
               >
-                {{ $t("draft_games.room.on_the_clock") }}
-              </DraftClock>
-              <div
-                class="status-banner text-center font-sans text-sm font-bold uppercase tracking-[0.18em]"
-                :class="isMyTurn ? 'is-mine' : ''"
-                :style="{ '--accent': clockAccent }"
-              >
-                <template v-if="isMyTurn">
-                  {{ $t("draft_games.room.your_pick") }}
+                <template #status>
+                  <template v-if="isMyTurn">
+                    {{ $t("draft_games.room.your_pick") }}
+                  </template>
+                  <template v-else-if="currentCaptain">
+                    {{
+                      $t("draft_games.room.captain_picking", {
+                        name: currentCaptain.player.name,
+                      })
+                    }}
+                  </template>
+                  <template v-else>
+                    {{ $t(statusLabel) }}
+                  </template>
                 </template>
-                <template v-else-if="currentCaptain">
-                  {{
-                    $t("draft_games.room.captain_picking", {
-                      name: currentCaptain.player.name,
-                    })
-                  }}
-                </template>
-                <template v-else>
-                  {{ $t(statusLabel) }}
-                </template>
-              </div>
-
-              <div v-if="pickTimeline.length" class="pick-order-strip">
-                <span class="pick-order-label">
-                  {{ $t("draft_games.room.pick_order") }}
-                </span>
-                <div class="pick-order-track">
-                  <span
-                    v-for="(slot, index) in pickTimeline"
-                    :key="index"
-                    class="pick-order-chip"
-                    :class="[
-                      `is-${slot.state}`,
-                      slot.lineup === 1 ? 'is-alpha' : 'is-bravo',
-                    ]"
-                  >
-                    {{ slot.lineup === 1 ? "T1" : "T2" }}
-                  </span>
-                </div>
-              </div>
+              </DraftTurnStatus>
             </template>
 
             <Button
@@ -1806,70 +1783,6 @@ const start = () => {
     opacity: 1;
   }
 }
-.status-banner {
-  color: hsl(var(--muted-foreground));
-}
-.pick-order-strip {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-}
-.pick-order-label {
-  font-family: var(--font-mono, monospace);
-  font-size: 0.6rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.24em;
-  color: hsl(var(--muted-foreground));
-}
-.pick-order-track {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.35rem;
-}
-.pick-order-chip {
-  --chip: var(--tac-amber);
-  min-width: 1.9rem;
-  padding: 0.15rem 0.4rem;
-  border-radius: 0.375rem;
-  border: 1px solid hsl(var(--chip) / 0.5);
-  font-family: var(--font-mono, monospace);
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-align: center;
-  color: hsl(var(--chip));
-  background: hsl(var(--chip) / 0.08);
-  transition: all 0.15s ease;
-}
-.pick-order-chip.is-bravo {
-  --chip: 200 90% 62%;
-}
-.pick-order-chip.is-done {
-  opacity: 0.4;
-}
-.pick-order-chip.is-current {
-  background: hsl(var(--chip) / 0.22);
-  box-shadow: 0 0 12px hsl(var(--chip) / 0.5);
-  transform: scale(1.08);
-}
-.status-banner.is-mine {
-  color: hsl(var(--accent));
-  text-shadow: 0 0 16px hsl(var(--accent) / 0.5);
-  animation: banner-flash 1.2s ease-in-out infinite;
-}
-@keyframes banner-flash {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.55;
-  }
-}
 .assign-btn {
   display: grid;
   place-items: center;
@@ -2059,7 +1972,6 @@ const start = () => {
 }
 @media (prefers-reduced-motion: reduce) {
   .slot--next,
-  .status-banner.is-mine,
   .starting-map {
     animation: none;
   }

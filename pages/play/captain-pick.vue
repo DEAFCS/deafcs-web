@@ -8,6 +8,7 @@ import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { useAuthStore } from "~/stores/AuthStore";
 import socket from "~/web-sockets/Socket";
+import { useCaptainPickPlayers } from "~/composables/useCaptainPickPlayers";
 import {
   getCaptainPickDraft,
   localCaptainPickDeadline,
@@ -34,6 +35,9 @@ const auth = useAuthStore();
 const draft = computed(() =>
   getCaptainPickDraft(matchmaking.joinedMatchmakingQueues?.confirmation),
 );
+
+// Flags, CS2/FACEIT ratings and profile data, as Draft Games shows them.
+const { players } = useCaptainPickPlayers(draft);
 
 const hadDraft = ref(false);
 const waitingForState = ref(true);
@@ -143,6 +147,7 @@ onBeforeUnmount(() => {
       :local-deadline="localDeadline"
       :time-up="timeUp"
       :pending="pendingPickIndex !== null"
+      :players="players"
       @pick="pick"
     />
     <div

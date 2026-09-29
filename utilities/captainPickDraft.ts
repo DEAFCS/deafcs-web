@@ -124,25 +124,97 @@ export function captainPickParticipant(
 }
 
 /**
+ * The player object the Draft Games cards render (PlayerDisplay: flag,
+ * ratings, avatar, profile link). Uses the public player record when it has
+ * loaded (see useCaptainPickPlayers); until then, what the draft state
+ * carries. Display only.
+ */
+export function captainPickPlayer(
+  draft: CaptainPickDraftState,
+  steamId: string,
+  players: Record<string, any> = {},
+) {
+  const record = players[String(steamId)];
+  if (record) {
+    return record;
+  }
+  const participant = captainPickParticipant(draft, steamId);
+  return {
+    steam_id: steamId,
+    name: participant?.name ?? steamId,
+    avatar_url: participant?.avatar_url ?? null,
+    elo: { competitive: participant?.elo },
+  };
+}
+
+/**
  * A lineup in the shape the Draft Games roster components render: captain
  * first (pick order 0), then everyone in the order they joined the team.
- * The ELO shown is the Competitive ELO the draft was started with.
  */
 export function captainPickLineupMembers(
   draft: CaptainPickDraftState,
   lineup: CaptainPickLineup,
+  players: Record<string, any> = {},
 ) {
-  return draft.lineups[lineup].map((steamId, index) => {
-    const participant = captainPickParticipant(draft, steamId);
-    return {
-      steam_id: steamId,
-      pick_order: index,
-      player: {
-        steam_id: steamId,
-        name: participant?.name ?? steamId,
-        avatar_url: participant?.avatar_url ?? null,
-        elo: { competitive: participant?.elo },
-      },
-    };
-  });
+  return draft.lineups[lineup].map((steamId, index) => ({
+    steam_id: steamId,
+    pick_order: index,
+    player: captainPickPlayer(draft, steamId, players),
+  }));
+}
+
+/** The side the viewer is on, straight from the server's lineups. */
+export function myCaptainPickLineup(
+  draft: CaptainPickDraftState | null | undefined,
+  steamId: string | null | undefined,
+): CaptainPickLineup | null {
+  if (!draft || !steamId) {
+    return null;
+  }
+  for (const lineup of [1, 2] as const) {
+    if (draft.lineups[lineup].some((id) => String(id) === String(steamId))) {
+      return lineup;
+    }
+  }
+  return null;
+}
+
+/** Private team chat room for one side (server checks membership). */
+export function captainPickTeamChatId(
+  draftId: string,
+  lineup: CaptainPickLineup,
+): string {
+  return `${draftId}:${lineup}`;
+}
+
+/** The Draft Games pick-order strip for this draft's seven timed picks. */
+export function captainPickTimeline(draft: CaptainPickDraftState) {
+  const made = draft.pickIndex ?? draft.pickOrder.length;
+  return draft.pickOrder.map((lineup, index) => ({
+    lineup,
+    state:
+      index < made
+        ? ("done" as const)
+        : index === made && draft.phase === "Drafting"
+          ? ("current" as const)
+          : ("upcoming" as const),
+  }));
+}
+
+/**
+ * The server's pick history in the Draft Games log shape. Only real picks
+ * (manual or timed-out): the last player the server places on Team A is not
+ * a captain's pick and is not listed as one.
+ */
+export function captainPickLogEntries(
+  draft: CaptainPickDraftState,
+  players: Record<string, any> = {},
+) {
+  return draft.picks.map((pick) => ({
+    id: `pick-${pick.pickIndex}`,
+    lineup: pick.lineup,
+    auto_picked: pick.auto,
+    captain: captainPickPlayer(draft, pick.captain_steam_id, players),
+    picked: captainPickPlayer(draft, pick.steam_id, players),
+  }));
 }

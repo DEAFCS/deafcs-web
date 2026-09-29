@@ -22,6 +22,7 @@ const props = defineProps<{
   dragSteamId?: string | null;
   matchType?: string | null;
   eloType?: string | null;
+  profileInNewTab?: boolean;
 }>();
 
 const { eloForPlayer } = usePlayerActiveSeasonElo();
@@ -131,6 +132,7 @@ const slots = computed(() => {
         :show-pick-order="true"
         :match-type="matchType"
         :elo-type="eloType"
+        :profile-in-new-tab="profileInNewTab"
         :checked-in="
           checkInBySteamId == null
             ? null

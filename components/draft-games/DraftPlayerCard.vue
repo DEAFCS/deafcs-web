@@ -18,6 +18,9 @@ const props = withDefaults(
     checkedIn?: boolean | null;
     draggable?: boolean;
     dragging?: boolean;
+    // Open the player's profile in a new tab instead of navigating away,
+    // for screens that must stay open (a live draft).
+    profileInNewTab?: boolean;
   }>(),
   {
     accent: "neutral",
@@ -30,7 +33,12 @@ const props = withDefaults(
     checkedIn: null,
     draggable: false,
     dragging: false,
+    profileInNewTab: false,
   },
+);
+
+const profileLinkAttrs = computed(() =>
+  props.profileInNewTab ? { target: "_blank", rel: "noopener" } : {},
 );
 
 const emit = defineEmits<{
@@ -86,6 +94,7 @@ const accentVar = computed(() => {
       <template #trigger>
         <div class="min-w-0 flex-1 cursor-default">
           <PlayerDisplay
+            v-bind="profileLinkAttrs"
             :player="member.player"
             :show-online="false"
             :show-flag="true"
