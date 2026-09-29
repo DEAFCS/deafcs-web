@@ -159,12 +159,42 @@ import { useSound } from "~/composables/useSound";
 import { startTabFlash, stopTabFlash } from "~/composables/useTabFlash";
 import { useTabFlashSettings } from "~/composables/useTabFlashSettings";
 
+// routedConfirmedId was in-memory only, so a hard reload (F5) forgot that
+// this exact match had already triggered the one-time "match found, go to
+// it" auto-route -- reported: navigating away to another page (players,
+// leaderboard, home) and refreshing that page yanked the player straight
+// back to the match page, since the still-active confirmation looked like
+// a brand new match to route to. Persisting it means a reload doesn't
+// repeat the auto-route for a match already seen.
+const ROUTED_MATCH_ID_STORAGE_KEY = "deafcs:matchmaking:routed-match-id";
+
+function readStorage(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function writeStorage(key: string, value: string | null) {
+  try {
+    if (value === null) {
+      localStorage.removeItem(key);
+    } else {
+      localStorage.setItem(key, value);
+    }
+  } catch {
+    // Ignore -- private browsing / storage disabled. Falls back to the
+    // in-memory-only behavior for that tab.
+  }
+}
+
 export default {
   data() {
     return {
       remainingSeconds: 0,
       countdownNow: 0,
-      routedConfirmedId: undefined as string | undefined,
+      routedConfirmedId: readStorage(ROUTED_MATCH_ID_STORAGE_KEY) ?? undefined,
       countdownInterval: undefined as NodeJS.Timeout | undefined,
       playCountdownSound: useSound().playCountdownSound,
       playMatchFoundSound: useSound().playMatchFoundSound,
@@ -254,6 +284,7 @@ export default {
           stopTabFlash();
           if (this.routedConfirmedId !== this.confirmation.matchId) {
             this.routedConfirmedId = this.confirmation.matchId;
+            writeStorage(ROUTED_MATCH_ID_STORAGE_KEY, this.confirmation.matchId);
             this.$router.push(`/matches/${this.confirmation.matchId}`);
           }
         }
