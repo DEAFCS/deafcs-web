@@ -197,6 +197,7 @@ const mmCardBase =
           <button
             v-for="mode in queueModes"
             :key="mode.key"
+            :data-mode-key="mode.key"
             type="button"
             :disabled="!canQueueType(mode)"
             :style="modeColorStyle(mode)"
@@ -267,13 +268,12 @@ const mmCardBase =
                 ></span>
                 <span class="min-w-0 break-words">{{ modeLabel(mode) }}</span>
               </div>
-              <p class="m-0 text-[0.78rem] leading-[1.5] text-muted-foreground">
+              <p
+                v-if="mode.variant !== 'CaptainPick' || !canQueueType(mode)"
+                class="m-0 text-[0.78rem] leading-[1.5] text-muted-foreground"
+              >
                 <template v-if="canQueueType(mode)">
-                  {{
-                    $t(
-                      modeDescriptionKey(mode),
-                    )
-                  }}
+                  {{ $t(modeDescriptionKey(mode)) }}
                 </template>
                 <template v-else>
                   <span class="block font-medium text-destructive">
@@ -309,6 +309,7 @@ const mmCardBase =
           <button
             v-for="mode in queueModes"
             :key="mode.key"
+            :data-mode-key="mode.key"
             type="button"
             :disabled="!canQueueType(mode)"
             :style="modeColorStyle(mode)"
@@ -583,9 +584,7 @@ export default {
         : mode.type;
     },
     modeDescriptionKey(mode: MatchmakingMode): string {
-      return mode.variant === "CaptainPick"
-        ? "matchmaking.match_types.captain_pick.description"
-        : `matchmaking.match_types.${mode.type.toLowerCase()}.description`;
+      return `matchmaking.match_types.${mode.type.toLowerCase()}.description`;
     },
     isMatchmakingTypeEnabled(matchType: string): boolean {
       return useApplicationSettingsStore().isMatchmakingTypeEnabled(matchType);
@@ -720,7 +719,7 @@ export default {
           this.isMatchmakingTypeEnabled(type.value.toLowerCase()),
       );
     },
-    // The /play cards: 5v5, 5v5 Captain Pick, 2v2, 1v1. Captain Pick has its
+    // The /play cards: Pick System, Competitive, Wingman, Duel. Pick System has its
     // own switch and only appears once match types have loaded, like the rest.
     queueModes(): MatchmakingMode[] {
       const enabledTypes = new Set(

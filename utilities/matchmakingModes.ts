@@ -32,17 +32,17 @@ export function modeColorStyle(mode: {
     : matchTypeColorStyle(mode.type);
 }
 
-// Order on /play: 5v5, 5v5 Captain Pick, 2v2, 1v1.
+// Order on /play: Pick System, Competitive, Wingman, Duel.
 const MODE_ORDER: Array<MatchmakingMode> = [
-  {
-    key: e_match_types_enum.Competitive,
-    type: e_match_types_enum.Competitive,
-    variant: "Standard",
-  },
   {
     key: CAPTAIN_PICK_MODE_KEY,
     type: e_match_types_enum.Competitive,
     variant: "CaptainPick",
+  },
+  {
+    key: e_match_types_enum.Competitive,
+    type: e_match_types_enum.Competitive,
+    variant: "Standard",
   },
   {
     key: e_match_types_enum.Wingman,

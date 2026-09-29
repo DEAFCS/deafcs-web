@@ -39,46 +39,42 @@ import {
                   $t(`pages.settings.application.matchmaking_type_description`)
                 }}
               </p>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div
+                class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"
+                data-testid="matchmaking-toggle-grid"
+              >
+                <div
+                  class="flex min-w-0 flex-row items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer hover:bg-accent/40 transition-colors"
+                  data-testid="captain-pick-toggle"
+                  @click="toggleCaptainPick"
+                >
+                  <h4 class="min-w-0 break-words text-sm font-medium capitalize">
+                    {{ $t("matchmaking.captain_pick.title") }}
+                  </h4>
+                  <Switch
+                    class="shrink-0"
+                    :model-value="captainPickEnabled"
+                    @update:model-value="toggleCaptainPick"
+                    @click.stop
+                  />
+                </div>
                 <template
                   v-for="match_type in ['competitive', 'wingman', 'duel']"
                 >
                   <div
-                    class="flex flex-row items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer hover:bg-accent/40 transition-colors"
+                    class="flex min-w-0 flex-row items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer hover:bg-accent/40 transition-colors"
                     @click="toggleMatchmakingType(match_type)"
                   >
-                    <h4 class="text-sm font-medium capitalize">
+                    <h4 class="min-w-0 break-words text-sm font-medium capitalize">
                       {{ match_type }}
                     </h4>
                     <Switch
+                      class="shrink-0"
                       :model-value="isMatchmakingTypeEnabled(match_type)"
                       @update:model-value="toggleMatchmakingType(match_type)"
                     />
                   </div>
                 </template>
-              </div>
-              <div
-                class="flex flex-row items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer hover:bg-accent/40 transition-colors"
-                data-testid="captain-pick-toggle"
-                @click="toggleCaptainPick"
-              >
-                <div>
-                  <h4 class="text-sm font-medium">
-                    {{ $t("pages.settings.application.captain_pick_enabled") }}
-                  </h4>
-                  <p class="text-sm text-muted-foreground">
-                    {{
-                      $t(
-                        "pages.settings.application.captain_pick_enabled_description",
-                      )
-                    }}
-                  </p>
-                </div>
-                <Switch
-                  :model-value="captainPickEnabled"
-                  @update:model-value="toggleCaptainPick"
-                  @click.stop
-                />
               </div>
             </div>
 

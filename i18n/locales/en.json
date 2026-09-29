@@ -1778,8 +1778,6 @@
         "map_veto_pick_seconds": "Map Veto Pick Time",
         "map_veto_pick_seconds_description": "How many seconds a team has to make each map veto pick.",
         "matchmaking_type_description": "Toggle matchmaking for each type that will allow players to join matchmaking for this type of match.",
-        "captain_pick_enabled": "Enable 5v5 Captain Pick",
-        "captain_pick_enabled_description": "Solo queue 5v5 where the two highest rated players draft the teams. Matches count as normal Competitive. Off by default. Turning it off stops new queues; drafts already running finish.",
         "captain_pick_seconds": "Captain Pick Timer",
         "captain_pick_seconds_description": "Seconds a captain has for each pick (10 to 120). A change applies from the next pick.",
         "captain_pick_seconds_invalid": "Enter a whole number from 10 to 120.",
@@ -7122,13 +7120,10 @@
       },
       "duel": {
         "description": "A competitive 1 vs 1 experience, perfect for practicing individual skill"
-      },
-      "captain_pick": {
-        "description": "Captains draft the teams before the match."
       }
     },
     "captain_pick": {
-      "title": "5v5 Captain Pick",
+      "title": "Competitive - Pick System",
       "solo_only": "Captain Pick is solo queue only.",
       "in_progress": "Captain Pick in progress",
       "in_progress_description": "Teams are being drafted. The draft continues if you leave this page.",

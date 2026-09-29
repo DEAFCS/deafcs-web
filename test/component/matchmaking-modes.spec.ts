@@ -3,6 +3,7 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { defineComponent, h, reactive, ref } from "vue";
 import { makeDraft } from "./fixtures/captainPick";
 import type { e_match_types_enum } from "../../generated/zeus";
+import en from "../../i18n/locales/en.json";
 
 const mocks = vi.hoisted(() => ({
   socketEvent: vi.fn(),
@@ -60,7 +61,11 @@ const mountMatchmaking = async () => {
           install(app) {
             Object.assign(app.config.globalProperties, {
               $t: (key: string, params?: Record<string, unknown>) =>
-                params ? `${key}:${JSON.stringify(params)}` : key,
+                key === "matchmaking.captain_pick.title"
+                  ? en.matchmaking.captain_pick.title
+                  : params
+                    ? `${key}:${JSON.stringify(params)}`
+                    : key,
               $route: { query: {} },
             });
           },
@@ -78,6 +83,9 @@ const cards = (wrapper: ReturnType<typeof mount>) =>
 
 const cardByLabel = (wrapper: ReturnType<typeof mount>, label: string) =>
   cards(wrapper).find((b) => b.text().includes(label))!;
+
+const cardByKey = (wrapper: ReturnType<typeof mount>, key: string) =>
+  cards(wrapper).find((b) => b.attributes("data-mode-key") === key)!;
 
 beforeEach(() => {
   mocks.socketEvent.mockClear();
@@ -115,16 +123,23 @@ afterEach(() => {
 });
 
 describe("/play matchmaking modes", () => {
-  it("shows 5v5, 5v5 Captain Pick, 2v2 and 1v1 in that order", async () => {
+  it("shows Pick System, Competitive, Wingman and Duel in that order", async () => {
     const wrapper = await mountMatchmaking();
 
     const labels = cards(wrapper).map((b) => b.text());
     expect(labels).toHaveLength(4);
-    expect(labels[0]).toContain("Competitive");
-    expect(labels[1]).toContain("matchmaking.captain_pick.title");
-    expect(labels[1]).toContain(
-      "matchmaking.match_types.captain_pick.description",
-    );
+    expect(cards(wrapper).map((b) => b.attributes("data-mode-key"))).toEqual([
+      "CompetitiveCaptainPick",
+      "Competitive",
+      "Wingman",
+      "Duel",
+    ]);
+    expect(labels[0]).toContain("Competitive - Pick System");
+    expect(
+      cardByKey(wrapper, "CompetitiveCaptainPick").find("p").exists(),
+    ).toBe(false);
+    expect(labels[1]).toContain("Competitive");
+    expect(cardByKey(wrapper, "Competitive").find("p").exists()).toBe(true);
     expect(labels[2]).toContain("Wingman");
     expect(labels[3]).toContain("Duel");
   });
@@ -134,8 +149,8 @@ describe("/play matchmaking modes", () => {
     const wrapper = await mountMatchmaking();
 
     expect(cards(wrapper).map((b) => b.text().trim())).toEqual([
+      "Competitive - Pick System",
       "5v5",
-      "matchmaking.captain_pick.title",
       "2v2",
       "1v1",
     ]);
@@ -146,13 +161,13 @@ describe("/play matchmaking modes", () => {
     const wrapper = await mountMatchmaking();
 
     expect(cards(wrapper)).toHaveLength(3);
-    expect(wrapper.text()).not.toContain("matchmaking.captain_pick.title");
+    expect(wrapper.text()).not.toContain("Competitive - Pick System");
   });
 
   it("joins Standard 5v5 with exactly the old payload", async () => {
     const wrapper = await mountMatchmaking();
 
-    await cardByLabel(wrapper, "Competitive").trigger("click");
+    await cardByKey(wrapper, "Competitive").trigger("click");
 
     expect(mocks.socketEvent).toHaveBeenCalledWith("matchmaking:join-queue", {
       type: "Competitive",
@@ -163,9 +178,7 @@ describe("/play matchmaking modes", () => {
   it("joins Captain Pick as Competitive with the CaptainPick variant", async () => {
     const wrapper = await mountMatchmaking();
 
-    await cardByLabel(wrapper, "matchmaking.captain_pick.title").trigger(
-      "click",
-    );
+    await cardByLabel(wrapper, "Competitive - Pick System").trigger("click");
 
     expect(mocks.socketEvent).toHaveBeenCalledWith("matchmaking:join-queue", {
       type: "Competitive",
@@ -192,11 +205,11 @@ describe("/play matchmaking modes", () => {
     };
     const wrapper = await mountMatchmaking();
 
-    const captainPick = cardByLabel(wrapper, "matchmaking.captain_pick.title");
+    const captainPick = cardByLabel(wrapper, "Competitive - Pick System");
     expect(captainPick.attributes("disabled")).toBeDefined();
     expect(captainPick.text()).toContain("matchmaking.captain_pick.solo_only");
     expect(
-      cardByLabel(wrapper, "Competitive").attributes("disabled"),
+      cardByKey(wrapper, "Competitive").attributes("disabled"),
     ).toBeUndefined();
 
     await captainPick.trigger("click");
@@ -217,7 +230,7 @@ describe("/play matchmaking modes", () => {
     };
     const wrapper = await mountMatchmaking();
 
-    const [standard, captainPick, wingman, duel] = cards(wrapper).map((b) =>
+    const [captainPick, standard, wingman, duel] = cards(wrapper).map((b) =>
       b.text(),
     );
     expect(standard).toContain("6 matchmaking.in_queue");
@@ -240,7 +253,7 @@ describe("/play matchmaking modes", () => {
     };
     const wrapper = await mountMatchmaking();
 
-    expect(wrapper.text()).toContain("matchmaking.captain_pick.title");
+    expect(wrapper.text()).toContain("Competitive - Pick System");
     expect(wrapper.text()).toContain("1 matchmaking.in_queue");
     expect(wrapper.text()).not.toContain("5 matchmaking.in_queue");
   });

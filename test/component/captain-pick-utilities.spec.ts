@@ -30,17 +30,17 @@ import { makeDraft } from "./fixtures/captainPick";
 const allOn = { isTypeEnabled: () => true, captainPickEnabled: true };
 
 describe("matchmaking modes", () => {
-  it("lists 5v5, 5v5 Captain Pick, 2v2, 1v1 in that order", () => {
+  it("lists Pick System, Competitive, Wingman, Duel in that order", () => {
     expect(buildMatchmakingModes(allOn).map((mode) => mode.key)).toEqual([
-      "Competitive",
       "CompetitiveCaptainPick",
+      "Competitive",
       "Wingman",
       "Duel",
     ]);
   });
 
   it("plays Captain Pick as Competitive, never a new match type", () => {
-    const captainPick = buildMatchmakingModes(allOn)[1];
+    const captainPick = buildMatchmakingModes(allOn)[0];
     expect(captainPick).toEqual({
       key: CAPTAIN_PICK_MODE_KEY,
       type: e_match_types_enum.Competitive,
@@ -71,7 +71,7 @@ describe("matchmaking modes", () => {
   });
 
   it("sends Standard modes exactly as before and Captain Pick with its variant", () => {
-    const [standard, captainPick, wingman, duel] = buildMatchmakingModes(allOn);
+    const [captainPick, standard, wingman, duel] = buildMatchmakingModes(allOn);
 
     expect(joinQueuePayload(standard, ["EU"])).toStrictEqual({
       type: "Competitive",
@@ -93,7 +93,7 @@ describe("matchmaking modes", () => {
   });
 
   it("lets only solo players queue Captain Pick, and leaves party rules alone", () => {
-    const [standard, captainPick, wingman, duel] = buildMatchmakingModes(allOn);
+    const [captainPick, standard, wingman, duel] = buildMatchmakingModes(allOn);
 
     expect(canQueueMode(captainPick, 1, 5)).toBe(true);
     for (const size of [2, 3, 5]) {
@@ -130,7 +130,7 @@ describe("queue counts", () => {
   };
 
   it("maps each card to its own region-stats entry", () => {
-    const [standard, captainPick, wingman, duel] = buildMatchmakingModes(allOn);
+    const [captainPick, standard, wingman, duel] = buildMatchmakingModes(allOn);
     expect(regionStatsKey(standard)).toBe("Competitive");
     expect(regionStatsKey(captainPick)).toBe("CompetitiveCaptainPick");
     expect(regionStatsKey(wingman)).toBe("Wingman");
