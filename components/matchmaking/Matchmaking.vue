@@ -4,13 +4,14 @@ import type { Component } from "vue";
 import {
   AlertTriangle,
   ArrowRight,
+  Crown,
   UserRound,
   UsersRound,
 } from "lucide-vue-next";
 import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
 import MatchStatus from "~/components/match/MatchStatus.vue";
 import TimeAgo from "../TimeAgo.vue";
-import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
+import { modeColorStyle } from "~/utilities/matchmakingModes";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
 
 const isMobile = useMediaQuery("(max-width: 768px)");
@@ -20,7 +21,10 @@ const matchTypeIcons: Record<string, Component> = {
   Duel: UserRound,
 };
 
-const matchTypeIcon = (type: string) => matchTypeIcons[type] ?? UserRound;
+const matchTypeIcon = (mode: { type: string; variant: string }) =>
+  mode.variant === "CaptainPick"
+    ? Crown
+    : (matchTypeIcons[mode.type] ?? UserRound);
 
 const mmCardBase =
   "group/mmc relative flex min-h-[176px] flex-1 flex-col overflow-hidden isolate rounded-lg border border-[rgb(var(--mode-rgb)/0.28)] px-5 pb-4 pt-5 text-left text-foreground cursor-pointer [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_60%,rgb(var(--mode-rgb)/0.05)_100%)] [transition:border-color_180ms_ease,background_220ms_ease,box-shadow_220ms_ease,transform_180ms_ease] hover:border-[rgb(var(--mode-rgb)/0.55)] hover:shadow-[0_0_24px_rgb(var(--mode-rgb)/0.12)] focus-visible:outline-none focus-visible:border-[rgb(var(--mode-rgb))] focus-visible:shadow-[0_0_0_2px_rgb(var(--mode-rgb)/0.35)]";
@@ -57,7 +61,7 @@ const mmCardBase =
       <div
         v-if="isInQueue && matchMakingQueueDetails"
         class="search-ring relative mb-4 overflow-hidden rounded-lg border border-[rgb(var(--mode-rgb)/0.28)] px-6 py-10 sm:px-10 sm:py-12 [backdrop-filter:blur(6px)] [background:linear-gradient(180deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.3)_100%)] animate-fade-in"
-        :style="matchTypeColorStyle(matchMakingQueueDetails.type)"
+        :style="modeColorStyle(queueDetailsMode)"
       >
         <span
           aria-hidden="true"
@@ -95,7 +99,7 @@ const mmCardBase =
             <div
               class="font-sans text-2xl font-bold uppercase leading-none tracking-[0.08em] text-foreground sm:text-3xl [font-stretch:80%]"
             >
-              {{ matchMakingQueueDetails.type }}
+              {{ modeLabel(queueDetailsMode) }}
             </div>
             <div
               class="font-mono text-[0.65rem] uppercase tracking-[0.3em] text-muted-foreground/80"
@@ -140,7 +144,7 @@ const mmCardBase =
             <span
               v-if="
                 distinctInQueue(
-                  matchMakingQueueDetails.type,
+                  queueDetailsMode,
                   matchMakingQueueDetails.regions,
                 ) > 0
               "
@@ -148,7 +152,7 @@ const mmCardBase =
             >
               {{
                 distinctInQueue(
-                  matchMakingQueueDetails.type,
+                  queueDetailsMode,
                   matchMakingQueueDetails.regions,
                 )
               }}
@@ -191,19 +195,19 @@ const mmCardBase =
 
         <div v-if="!isMobile" class="flex flex-row gap-4">
           <button
-            v-for="type in allowedMatchTypes"
-            :key="type.value"
+            v-for="mode in queueModes"
+            :key="mode.key"
             type="button"
-            :disabled="!canQueueType(type.value)"
-            :style="matchTypeColorStyle(type.value)"
+            :disabled="!canQueueType(mode)"
+            :style="modeColorStyle(mode)"
             :class="[
               mmCardBase,
-              canQueueType(type.value) &&
+              canQueueType(mode) &&
                 'group/mmc-enabled hover:scale-[1.01] active:scale-[0.995]',
-              !canQueueType(type.value) &&
+              !canQueueType(mode) &&
                 '!cursor-not-allowed opacity-45 grayscale hover:!border-border hover:!shadow-none',
             ]"
-            @click="handleMatchTypeClick(type.value)"
+            @click="handleMatchTypeClick(mode)"
           >
             <span
               class="pointer-events-none absolute inset-0 z-0 opacity-0 [background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,rgb(var(--mode-rgb)/0.10)_100%)] transition-opacity [transition-duration:220ms] [transition-timing-function:ease] group-hover/mmc-enabled:opacity-100 group-focus-visible/mmc-enabled:opacity-100"
@@ -218,7 +222,7 @@ const mmCardBase =
               aria-hidden="true"
             ></span>
             <svg
-              v-if="type.value === 'Competitive'"
+              v-if="mode.key === 'Competitive'"
               class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb))] opacity-[0.18] transition-[color,filter,opacity,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:opacity-[0.3] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:opacity-[0.3] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
               viewBox="0 0 24 24"
               aria-hidden="true"
@@ -227,7 +231,7 @@ const mmCardBase =
             </svg>
             <component
               v-else
-              :is="matchTypeIcon(type.value)"
+              :is="matchTypeIcon(mode)"
               class="pointer-events-none absolute bottom-4 right-4 z-0 size-16 text-[rgb(var(--mode-rgb))] opacity-[0.18] transition-[color,filter,opacity,transform] duration-300 group-hover/mmc-enabled:scale-105 group-hover/mmc-enabled:opacity-[0.3] group-hover/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] group-focus-visible/mmc-enabled:scale-105 group-focus-visible/mmc-enabled:opacity-[0.3] group-focus-visible/mmc-enabled:drop-shadow-[0_0_10px_rgb(var(--mode-rgb)/0.2)] sm:size-20"
               aria-hidden="true"
             />
@@ -237,14 +241,14 @@ const mmCardBase =
               class="absolute right-2 top-2 z-[2] px-2 py-0.5 text-[0.65rem] uppercase tracking-[0.12em] transition-opacity duration-200"
               v-if="
                 distinctInQueue(
-                  type.value,
+                  mode,
                   preferredRegions.map((region) => region.value),
                 ) > 0
               "
             >
               {{
                 distinctInQueue(
-                  type.value,
+                  mode,
                   preferredRegions.map((region) => region.value),
                 )
               }}
@@ -261,13 +265,13 @@ const mmCardBase =
                   class="inline-block h-[2px] w-[10px] shrink-0 bg-[rgb(var(--mode-rgb))]"
                   aria-hidden="true"
                 ></span>
-                <span class="min-w-0 break-words">{{ type.value }}</span>
+                <span class="min-w-0 break-words">{{ modeLabel(mode) }}</span>
               </div>
               <p class="m-0 text-[0.78rem] leading-[1.5] text-muted-foreground">
-                <template v-if="canQueueType(type.value)">
+                <template v-if="canQueueType(mode)">
                   {{
                     $t(
-                      `matchmaking.match_types.${type.value.toLowerCase()}.description`,
+                      modeDescriptionKey(mode),
                     )
                   }}
                 </template>
@@ -279,7 +283,7 @@ const mmCardBase =
                       })
                     }}
                   </span>
-                  {{ partySizeRequirementText(type.value) }}
+                  {{ partySizeRequirementText(mode) }}
                 </template>
               </p>
               <span
@@ -303,17 +307,17 @@ const mmCardBase =
              the same descriptive treatment as desktop. -->
         <div v-else class="flex flex-col gap-2">
           <button
-            v-for="type in allowedMatchTypes"
-            :key="type.value"
+            v-for="mode in queueModes"
+            :key="mode.key"
             type="button"
-            :disabled="!canQueueType(type.value)"
-            :style="matchTypeColorStyle(type.value)"
+            :disabled="!canQueueType(mode)"
+            :style="modeColorStyle(mode)"
             class="flex items-center justify-between gap-3 rounded-lg border border-[rgb(var(--mode-rgb)/0.3)] px-4 py-3 text-left text-foreground [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_100%)] disabled:cursor-not-allowed disabled:opacity-45 disabled:grayscale"
-            @click="handleMatchTypeClick(type.value)"
+            @click="handleMatchTypeClick(mode)"
           >
             <span class="flex items-center gap-2.5">
               <svg
-                v-if="type.value === 'Competitive'"
+                v-if="mode.key === 'Competitive'"
                 class="size-4 shrink-0 text-[rgb(var(--mode-rgb))]"
                 viewBox="0 0 24 24"
                 aria-hidden="true"
@@ -322,14 +326,14 @@ const mmCardBase =
               </svg>
               <component
                 v-else
-                :is="matchTypeIcon(type.value)"
+                :is="matchTypeIcon(mode)"
                 class="size-4 shrink-0 text-[rgb(var(--mode-rgb))]"
                 aria-hidden="true"
               />
               <span
                 class="font-mono text-xs font-bold uppercase tracking-[0.16em]"
               >
-                {{ mobileMatchTypeLabel(type.value) }}
+                {{ mobileMatchTypeLabel(mode) }}
               </span>
             </span>
             <span class="flex shrink-0 items-center gap-2">
@@ -338,14 +342,14 @@ const mmCardBase =
                 class="px-2 py-0.5 text-[0.6rem] uppercase tracking-[0.1em]"
                 v-if="
                   distinctInQueue(
-                    type.value,
+                    mode,
                     preferredRegions.map((region) => region.value),
                   ) > 0
                 "
               >
                 {{
                   distinctInQueue(
-                    type.value,
+                    mode,
                     preferredRegions.map((region) => region.value),
                   )
                 }}
@@ -355,6 +359,32 @@ const mmCardBase =
             </span>
           </button>
         </div>
+      </div>
+    </template>
+    <!-- Committed Captain Pick draft: no match yet and no way to leave, the
+         draft itself lives on its own screen. -->
+    <template v-else-if="captainPickInProgress">
+      <div
+        class="flex flex-wrap items-center gap-3 rounded-lg border border-[rgb(var(--mode-rgb)/0.35)] bg-[rgb(var(--mode-rgb)/0.06)] px-4 py-3"
+        :style="modeColorStyle({ variant: 'CaptainPick' })"
+        data-testid="captain-pick-in-progress"
+      >
+        <div class="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span
+            class="font-mono text-xs font-bold uppercase tracking-[0.18em] text-[rgb(var(--mode-rgb))]"
+          >
+            {{ $t("matchmaking.captain_pick.in_progress") }}
+          </span>
+          <span class="text-sm text-muted-foreground">
+            {{ $t("matchmaking.captain_pick.in_progress_description") }}
+          </span>
+        </div>
+        <NuxtLink
+          to="/play/captain-pick"
+          :class="[tacticalCtaButtonClasses, 'shrink-0']"
+        >
+          {{ $t("matchmaking.captain_pick.open") }}
+        </NuxtLink>
       </div>
     </template>
     <template v-else-if="match">
@@ -384,10 +414,21 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { e_match_types_enum, e_match_status_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
+import { EXPECTED_PLAYERS } from "~/utilities/matchmakingPartySize";
 import {
-  EXPECTED_PLAYERS,
-  canPartyQueue,
-} from "~/utilities/matchmakingPartySize";
+  CAPTAIN_PICK_MODE_KEY,
+  buildMatchmakingModes,
+  canQueueMode,
+  joinQueuePayload,
+  playersInQueue,
+  regionStatsKey,
+  type MatchmakingMode,
+  type MatchmakingQueueVariant,
+} from "~/utilities/matchmakingModes";
+import {
+  getCaptainPickDraft,
+  isCaptainPickInProgress,
+} from "~/utilities/captainPickDraft";
 
 interface Region {
   value: string;
@@ -399,6 +440,7 @@ interface Region {
 interface QueueDetails {
   totalInQueue: number;
   type: e_match_types_enum;
+  variant?: MatchmakingQueueVariant;
   regions: string[];
   joinedAt?: string;
 }
@@ -522,13 +564,28 @@ export default {
   methods: {
     // Short player-count labels for the compact mobile list -- simpler than
     // the desktop cards' mode names, per explicit request.
-    mobileMatchTypeLabel(type: e_match_types_enum): string {
+    mobileMatchTypeLabel(mode: MatchmakingMode): string {
+      if (mode.variant === "CaptainPick") {
+        return this.$t("matchmaking.captain_pick.title");
+      }
       const labels: Partial<Record<e_match_types_enum, string>> = {
         [e_match_types_enum.Competitive]: "5v5",
         [e_match_types_enum.Wingman]: "2v2",
         [e_match_types_enum.Duel]: "1v1",
       };
-      return labels[type] ?? type;
+      return labels[mode.type] ?? mode.type;
+    },
+    // Desktop card / queue panel title: the match type as before, or the
+    // Captain Pick queue name.
+    modeLabel(mode: MatchmakingMode): string {
+      return mode.variant === "CaptainPick"
+        ? this.$t("matchmaking.captain_pick.title")
+        : mode.type;
+    },
+    modeDescriptionKey(mode: MatchmakingMode): string {
+      return mode.variant === "CaptainPick"
+        ? "matchmaking.match_types.captain_pick.description"
+        : `matchmaking.match_types.${mode.type.toLowerCase()}.description`;
     },
     isMatchmakingTypeEnabled(matchType: string): boolean {
       return useApplicationSettingsStore().isMatchmakingTypeEnabled(matchType);
@@ -536,11 +593,14 @@ export default {
     expectedPlayers(type: e_match_types_enum): number {
       return EXPECTED_PLAYERS[type] ?? 0;
     },
-    canQueueType(type: e_match_types_enum): boolean {
-      return !useWebsiteRestrictionStore().isRestricted && canPartyQueue(
-        type,
-        this.partySize,
-        useApplicationSettingsStore().maxCompetitivePartySize,
+    canQueueType(mode: MatchmakingMode): boolean {
+      return (
+        !useWebsiteRestrictionStore().isRestricted &&
+        canQueueMode(
+          mode,
+          this.partySize,
+          useApplicationSettingsStore().maxCompetitivePartySize,
+        )
       );
     },
     partySizeLimit(type: e_match_types_enum): number {
@@ -552,33 +612,22 @@ export default {
       }
       return this.expectedPlayers(type) / 2;
     },
-    partySizeRequirementText(type: e_match_types_enum): string {
-      if (type === e_match_types_enum.Duel) {
+    partySizeRequirementText(mode: MatchmakingMode): string {
+      if (mode.variant === "CaptainPick") {
+        return this.$t("matchmaking.captain_pick.solo_only");
+      }
+      if (mode.type === e_match_types_enum.Duel) {
         return this.$t("matchmaking.party_size.duel_requirement");
       }
       return this.$t("matchmaking.party_size.requirement", {
-        half: this.partySizeLimit(type),
+        half: this.partySizeLimit(mode.type),
       });
     },
     // Counts players, not lobbies -- a trio queuing together is one lobby
-    // entry but should still show as 3 in queue, not 1. Dedupe by index
-    // first (the same lobby can appear in more than one preferred region).
-    distinctInQueue(type: e_match_types_enum, regionValues: string[]): number {
-      const lobbySizes = new Map<number, number>();
-      for (const regionValue of regionValues) {
-        const entries = this.regionStats[regionValue]?.[type];
-        if (!entries) {
-          continue;
-        }
-        for (const entry of entries) {
-          lobbySizes.set(entry.index, entry.size);
-        }
-      }
-      let total = 0;
-      for (const size of lobbySizes.values()) {
-        total += size;
-      }
-      return total;
+    // entry but should still show as 3 in queue, not 1. Each mode reads its
+    // own region-stats entry, so 5v5 and Captain Pick counts never mix.
+    distinctInQueue(mode: MatchmakingMode, regionValues: string[]): number {
+      return playersInQueue(this.regionStats, regionStatsKey(mode), regionValues);
     },
     getRegionlatencyResult(region: string):
       | {
@@ -588,7 +637,7 @@ export default {
       | undefined {
       return useMatchmakingStore().getRegionlatencyResult(region);
     },
-    handleMatchTypeClick(matchType: e_match_types_enum): void {
+    handleMatchTypeClick(mode: MatchmakingMode): void {
       if (!this.me?.steam_id) {
         navigateTo("/login?redirect=/play");
         return;
@@ -600,9 +649,9 @@ export default {
         });
         return;
       }
-      if (!this.canQueueType(matchType)) {
+      if (!this.canQueueType(mode)) {
         toast({
-          title: this.partySizeRequirementText(matchType),
+          title: this.partySizeRequirementText(mode),
           variant: "destructive",
         });
         return;
@@ -614,21 +663,24 @@ export default {
         });
         return;
       }
-      this.joinMatchmaking(matchType);
+      this.joinMatchmaking(mode);
     },
-    joinMatchmaking(matchType: e_match_types_enum): void {
+    joinMatchmaking(mode: MatchmakingMode): void {
       if (
         this.isQueuePreview ||
         useWebsiteRestrictionStore().isRestricted
       ) {
         return;
       }
-      socket.event("matchmaking:join-queue", {
-        type: matchType,
-        regions: this.preferredRegions.map((region: Region) => {
-          return region.value;
-        }),
-      });
+      socket.event(
+        "matchmaking:join-queue",
+        joinQueuePayload(
+          mode,
+          this.preferredRegions.map((region: Region) => {
+            return region.value;
+          }),
+        ),
+      );
     },
     leaveMatchmaking(): void {
       if (this.isQueuePreview) {
@@ -666,6 +718,34 @@ export default {
           type.value !== e_match_types_enum.Premier &&
           type.value !== e_match_types_enum.Faceit &&
           this.isMatchmakingTypeEnabled(type.value.toLowerCase()),
+      );
+    },
+    // The /play cards: 5v5, 5v5 Captain Pick, 2v2, 1v1. Captain Pick has its
+    // own switch and only appears once match types have loaded, like the rest.
+    queueModes(): MatchmakingMode[] {
+      const enabledTypes = new Set(
+        this.allowedMatchTypes.map((type) => type.value),
+      );
+      return buildMatchmakingModes({
+        isTypeEnabled: (type) => enabledTypes.has(type),
+        captainPickEnabled:
+          this.e_match_types.length > 0 &&
+          useApplicationSettingsStore().captainPickEnabled,
+      });
+    },
+    queueDetailsMode(): MatchmakingMode {
+      const details = this.matchMakingQueueDetails;
+      const variant = details?.variant === "CaptainPick" ? "CaptainPick" : "Standard";
+      return {
+        key: variant === "CaptainPick" ? CAPTAIN_PICK_MODE_KEY : details?.type,
+        type: details?.type,
+        variant,
+      } as MatchmakingMode;
+    },
+    // Committed to a Captain Pick draft that has no match to show yet.
+    captainPickInProgress(): boolean {
+      return isCaptainPickInProgress(
+        getCaptainPickDraft(this.confirmationDetails as any),
       );
     },
     isInQueue(): boolean {

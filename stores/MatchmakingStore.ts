@@ -16,6 +16,11 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { webrtc } from "~/web-sockets/Webrtc";
 import { setActiveHub } from "~/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
+import {
+  CAPTAIN_PICK_MODE_KEY,
+  type MatchmakingQueueVariant,
+} from "~/utilities/matchmakingModes";
+import type { CaptainPickDraftState } from "~/utilities/captainPickDraft";
 
 const REGION_LATENCY_PREFIX = "5stack_region_latency_";
 const MAX_LATENCY_KEY = "5stack_max_acceptable_latency";
@@ -43,6 +48,8 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     details?: {
       totalInQueue: number;
       type: e_match_types_enum;
+      // Only present for 5v5 Captain Pick.
+      variant?: MatchmakingQueueVariant;
       regions: Array<string>;
     };
     confirmation?: {
@@ -52,27 +59,32 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
       confirmed: number;
       confirmationId: string;
       type: e_match_types_enum;
+      // Only present for 5v5 Captain Pick.
+      variant?: MatchmakingQueueVariant;
       region: string;
       players: number;
+      // Present once all ten accepted a Captain Pick ready check.
+      captainPick?: CaptainPickDraftState;
     };
   }>({
     details: undefined,
     confirmation: undefined,
   });
 
+  // Keyed by match type for Standard queues and CompetitiveCaptainPick for
+  // Captain Pick (see regionStatsKey).
   const regionStats = ref<
     Partial<
       Record<
         string,
-        Partial<
-          Record<e_match_types_enum, Array<{ index: number; size: number }>>
-        >
+        Partial<Record<string, Array<{ index: number; size: number }>>>
       >
     >
   >({});
 
-  const queueMatchTypes = [
+  const queueStatsKeys = [
     e_match_types_enum.Competitive,
+    CAPTAIN_PICK_MODE_KEY,
     e_match_types_enum.Wingman,
     e_match_types_enum.Duel,
   ] as const;
@@ -85,7 +97,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     const lobbySizes = new Map<string, number>();
 
     for (const statsByType of Object.values(regionStats.value)) {
-      for (const type of queueMatchTypes) {
+      for (const type of queueStatsKeys) {
         for (const entry of statsByType?.[type] ?? []) {
           lobbySizes.set(`${type}:${entry.index}`, entry.size);
         }

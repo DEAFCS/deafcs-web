@@ -158,6 +158,7 @@ import socket from "~/web-sockets/Socket";
 import { useSound } from "~/composables/useSound";
 import { startTabFlash, stopTabFlash } from "~/composables/useTabFlash";
 import { useTabFlashSettings } from "~/composables/useTabFlashSettings";
+import { isCaptainPickInProgress } from "~/utilities/captainPickDraft";
 
 // routedConfirmedId was in-memory only, so a hard reload (F5) forgot that
 // this exact match had already triggered the one-time "match found, go to
@@ -167,6 +168,13 @@ import { useTabFlashSettings } from "~/composables/useTabFlashSettings";
 // a brand new match to route to. Persisting it means a reload doesn't
 // repeat the auto-route for a match already seen.
 const ROUTED_MATCH_ID_STORAGE_KEY = "deafcs:matchmaking:routed-match-id";
+
+// Same one-time auto-route, for a committed Captain Pick draft: after 10/10
+// the group goes to the draft screen once, and a reload elsewhere doesn't
+// drag the player back (the top nav still links there).
+const ROUTED_CAPTAIN_PICK_STORAGE_KEY =
+  "deafcs:matchmaking:routed-captain-pick-id";
+const CAPTAIN_PICK_PATH = "/play/captain-pick";
 
 function readStorage(key: string): string | null {
   try {
@@ -195,6 +203,8 @@ export default {
       remainingSeconds: 0,
       countdownNow: 0,
       routedConfirmedId: readStorage(ROUTED_MATCH_ID_STORAGE_KEY) ?? undefined,
+      routedCaptainPickId:
+        readStorage(ROUTED_CAPTAIN_PICK_STORAGE_KEY) ?? undefined,
       countdownInterval: undefined as NodeJS.Timeout | undefined,
       playCountdownSound: useSound().playCountdownSound,
       playMatchFoundSound: useSound().playMatchFoundSound,
@@ -229,6 +239,8 @@ export default {
       return Boolean(
         confirmation &&
           !confirmation.matchId &&
+          // A committed Captain Pick draft is past the ready check for good.
+          !confirmation.captainPick &&
           !everyoneConfirmed &&
           !this.timerExpired,
       );
@@ -260,24 +272,52 @@ export default {
           return;
         }
 
+        const captainPick = confirmation.captainPick;
+
         if (
           confirmation.confirmationId !== oldConfirmation?.confirmationId
         ) {
           if (this.countdownInterval) {
             clearInterval(this.countdownInterval);
           }
-          this.playMatchFoundSound();
-          if (useTabFlashSettings().isMatchFoundFlashEnabled.value) {
-            startTabFlash(this.$t("matchmaking.match_found_flash_title"));
-          }
-          this.updateCountdown();
-          if (this.shouldShow) {
-            this.countdownInterval = setInterval(this.updateCountdown, 1000);
+          // Reconnecting into a committed Captain Pick draft is not a new
+          // "match found".
+          if (!captainPick) {
+            this.playMatchFoundSound();
+            if (useTabFlashSettings().isMatchFoundFlashEnabled.value) {
+              startTabFlash(this.$t("matchmaking.match_found_flash_title"));
+            }
+            this.updateCountdown();
+            if (this.shouldShow) {
+              this.countdownInterval = setInterval(this.updateCountdown, 1000);
+            }
           }
         }
 
         if (this.confirmation?.isReady && !oldConfirmation?.isReady) {
           this.playTickSound();
+        }
+
+        if (captainPick) {
+          // The ready check is over; its countdown and "accept" flash too.
+          if (!oldConfirmation?.captainPick) {
+            if (this.countdownInterval) {
+              clearInterval(this.countdownInterval);
+              this.countdownInterval = undefined;
+            }
+            stopTabFlash();
+          }
+
+          if (
+            isCaptainPickInProgress(captainPick) &&
+            this.routedCaptainPickId !== captainPick.draftId
+          ) {
+            this.routedCaptainPickId = captainPick.draftId;
+            writeStorage(ROUTED_CAPTAIN_PICK_STORAGE_KEY, captainPick.draftId);
+            if (this.$route?.path !== CAPTAIN_PICK_PATH) {
+              this.$router.push(CAPTAIN_PICK_PATH);
+            }
+          }
         }
 
         if (this.confirmation?.matchId) {

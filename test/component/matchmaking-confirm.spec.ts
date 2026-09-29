@@ -266,3 +266,111 @@ describe("Match Found confirmation modal", () => {
     expect(wrapper.find("button").text()).toBe("matchmaking.ready");
   });
 });
+
+describe("Match Found confirmation modal with 5v5 Captain Pick", () => {
+  const CAPTAIN_PICK_ROUTE_KEY = "deafcs:matchmaking:routed-captain-pick-id";
+
+  const draft = (overrides: Record<string, unknown> = {}) => ({
+    draftId: "confirmation-1",
+    phase: "Drafting",
+    pickIndex: 0,
+    ...overrides,
+  });
+
+  beforeEach(() => {
+    localStorage.removeItem(CAPTAIN_PICK_ROUTE_KEY);
+  });
+
+  it("uses the normal ready check first", () => {
+    const wrapper = mountConfirm(makeConfirmation({ variant: "CaptainPick" }));
+
+    expect(isDialogOpen(wrapper)).toBe("true");
+    expect(wrapper.find("button").text()).toBe("matchmaking.ready");
+    expect(mocks.playMatchFoundSound).toHaveBeenCalledOnce();
+    expect(mocks.routerPush).not.toHaveBeenCalled();
+  });
+
+  it("goes to the draft once all ten accepted, and ends the ready check", async () => {
+    const wrapper = mountConfirm(
+      makeConfirmation({ variant: "CaptainPick", isReady: true, confirmed: 9 }),
+    );
+
+    setConfirmation(
+      makeConfirmation({
+        variant: "CaptainPick",
+        isReady: true,
+        confirmed: 10,
+        captainPick: draft(),
+      }) as any,
+    );
+    await flushPromises();
+
+    expect(isDialogOpen(wrapper)).toBe("false");
+    expect(mocks.stopTabFlash).toHaveBeenCalled();
+    expect(mocks.routerPush).toHaveBeenCalledOnce();
+    expect(mocks.routerPush).toHaveBeenCalledWith("/play/captain-pick");
+  });
+
+  it("does not treat a committed draft without a match id as a ready check", async () => {
+    // e.g. the first message after F5 / a reconnect mid-draft.
+    const wrapper = mountConfirm(
+      makeConfirmation({
+        variant: "CaptainPick",
+        confirmed: 10,
+        isReady: "2",
+        matchId: undefined,
+        captainPick: draft({ pickIndex: 4 }),
+      }) as any,
+    );
+    await flushPromises();
+
+    expect(isDialogOpen(wrapper)).toBe("false");
+    expect(wrapper.findAll("button")).toHaveLength(0);
+    expect(mocks.playMatchFoundSound).not.toHaveBeenCalled();
+    expect(mocks.startTabFlash).not.toHaveBeenCalled();
+  });
+
+  it("routes to a given draft only once, even after a reload", async () => {
+    mountConfirm(
+      makeConfirmation({ confirmed: 10, captainPick: draft() }) as any,
+    );
+    await flushPromises();
+    expect(mocks.routerPush).toHaveBeenCalledOnce();
+
+    // Every later pick is a new update for the same draft.
+    setConfirmation(
+      makeConfirmation({ confirmed: 10, captainPick: draft({ pickIndex: 1 }) }) as any,
+    );
+    await flushPromises();
+    expect(mocks.routerPush).toHaveBeenCalledOnce();
+
+    // A reload somewhere else on the site doesn't drag the player back.
+    for (const wrapper of wrappers.splice(0)) wrapper.unmount();
+    mocks.routerPush.mockClear();
+    mountConfirm(
+      makeConfirmation({ confirmed: 10, captainPick: draft({ pickIndex: 2 }) }) as any,
+    );
+    await flushPromises();
+    expect(mocks.routerPush).not.toHaveBeenCalled();
+  });
+
+  it("opens the normal match page when the draft's match is created", async () => {
+    mountConfirm(
+      makeConfirmation({ confirmed: 10, captainPick: draft() }) as any,
+    );
+    await flushPromises();
+    mocks.routerPush.mockClear();
+
+    setConfirmation(
+      makeConfirmation({
+        confirmed: 10,
+        matchId: "match-9",
+        captainPick: draft({ phase: "MatchCreated", pickIndex: null, matchId: "match-9" }),
+      }) as any,
+    );
+    await flushPromises();
+
+    expect(mocks.routerPush).toHaveBeenCalledOnce();
+    expect(mocks.routerPush).toHaveBeenCalledWith("/matches/match-9");
+  });
+});

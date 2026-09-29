@@ -7,6 +7,12 @@ import { useMatchmakingStore } from "./MatchmakingStore";
 import { useAuthStore } from "./AuthStore";
 import { order_by } from "@/generated/zeus";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
+import {
+  CAPTAIN_PICK_ENABLED_SETTING,
+  CAPTAIN_PICK_SECONDS_SETTING,
+  parseCaptainPickEnabled,
+  parseCaptainPickSeconds,
+} from "~/utilities/captainPickSettings";
 
 interface Region {
   value: string;
@@ -650,6 +656,25 @@ export const useApplicationSettingsStore = defineStore(
       return parsed >= 1 && parsed <= 5 ? parsed : 5;
     });
 
+    // 5v5 Captain Pick: off unless an admin enabled it. Independent of the
+    // Standard 5v5 toggle above.
+    const captainPickEnabled = computed(() =>
+      parseCaptainPickEnabled(
+        settings.value?.find(
+          (setting) => setting.name === CAPTAIN_PICK_ENABLED_SETTING,
+        )?.value,
+      ),
+    );
+
+    // Seconds per Captain Pick selection (the API snapshots it per pick).
+    const captainPickSeconds = computed(() =>
+      parseCaptainPickSeconds(
+        settings.value?.find(
+          (setting) => setting.name === CAPTAIN_PICK_SECONDS_SETTING,
+        )?.value,
+      ),
+    );
+
     return {
       settings,
       currentTermsVersion,
@@ -702,6 +727,8 @@ export const useApplicationSettingsStore = defineStore(
       setGlobalStream,
       isMatchmakingTypeEnabled,
       maxCompetitivePartySize,
+      captainPickEnabled,
+      captainPickSeconds,
     };
   },
 );

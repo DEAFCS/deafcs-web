@@ -6,13 +6,19 @@ const matchmaking = await readFile(
   new URL("../components/matchmaking/Matchmaking.vue", import.meta.url),
   "utf8",
 );
+const modes = await readFile(
+  new URL("../utilities/matchmakingModes.ts", import.meta.url),
+  "utf8",
+);
 const competitiveIcon = await readFile(
   new URL("../public/img/icons/competitive-team.svg", import.meta.url),
   "utf8",
 );
 
 test("matchmaking mode cards use the intended mode icons", () => {
-  assert.match(matchmaking, /type\.value === 'Competitive'/);
+  // Standard 5v5 keeps the team icon; Captain Pick (also Competitive) has its own.
+  assert.match(matchmaking, /mode\.key === 'Competitive'/);
+  assert.match(matchmaking, /"CaptainPick"\s*\?\s*Crown/);
   assert.match(matchmaking, /href="\/img\/icons\/competitive-team\.svg#competitive-team"/);
   assert.match(matchmaking, /Wingman:\s*UsersRound/);
   assert.match(matchmaking, /Duel:\s*UserRound/);
@@ -41,18 +47,26 @@ test("decorative icons apply opacity once to avoid darker overlapping strokes", 
 
 test("matchmaking cards preserve native queue behavior", () => {
   assert.match(matchmaking, /<button[\s\S]*type="button"/);
-  assert.match(matchmaking, /:disabled="!canQueueType\(type\.value\)"/);
+  assert.match(matchmaking, /:disabled="!canQueueType\(mode\)"/);
   assert.match(
     matchmaking,
-    /@click="handleMatchTypeClick\(type\.value\)"/,
+    /@click="handleMatchTypeClick\(mode\)"/,
   );
 });
 
 test("matchmaking cards reuse shared mode colors without local RGB duplication", () => {
+  // Cards go through modeColorStyle, which uses the shared match type
+  // colors for every real match type.
   assert.match(
     matchmaking,
+    /import \{ modeColorStyle \} from "~\/utilities\/matchmakingModes"/,
+  );
+  assert.match(
+    modes,
     /import \{ matchTypeColorStyle \} from "~\/utilities\/matchTypeColors"/,
   );
+  assert.match(modes, /:\s*matchTypeColorStyle\(mode\.type\)/);
+  assert.doesNotMatch(modes, /249 158 47|217 70 239|34 211 238/);
   assert.doesNotMatch(matchmaking, /const matchTypeColors/);
   assert.doesNotMatch(matchmaking, /249 158 47|217 70 239|34 211 238/);
 });

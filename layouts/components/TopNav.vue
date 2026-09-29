@@ -58,6 +58,13 @@ import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import { loginLinks } from "~/utilities/loginLinks";
 import { socialLinks } from "~/utilities/socialLinks";
 import {
+  getCaptainPickDraft,
+  isCaptainPickInProgress,
+  isMyCaptainPickTurn,
+  pendingReadyCheck,
+} from "~/utilities/captainPickDraft";
+import { Crown } from "lucide-vue-next";
+import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
@@ -87,11 +94,20 @@ const chatBadgeLabel = computed(() =>
 // Genuine matchmaking ready-check only. Active matches (Veto/Live/etc.) are
 // already surfaced by the lineup pills in <MatchLobbies>, so we don't duplicate
 // them as a top-nav check-in banner.
-const pendingCheckIn = computed(() => {
-  const confirmation = matchmakingStore.joinedMatchmakingQueues?.confirmation;
-  if (!confirmation || confirmation.matchId) return null;
-  return confirmation;
+// Past 10/10 a Captain Pick group is drafting, not checking in.
+const pendingCheckIn = computed(() =>
+  pendingReadyCheck(matchmakingStore.joinedMatchmakingQueues?.confirmation),
+);
+// A committed Captain Pick draft with no match yet: link back to it.
+const activeCaptainPick = computed(() => {
+  const draft = getCaptainPickDraft(
+    matchmakingStore.joinedMatchmakingQueues?.confirmation,
+  );
+  return isCaptainPickInProgress(draft) ? draft : null;
 });
+const isMyCaptainPick = computed(() =>
+  isMyCaptainPickTurn(activeCaptainPick.value, useAuthStore().me?.steam_id),
+);
 const route = useRoute();
 const authStore = useAuthStore();
 
@@ -1275,13 +1291,48 @@ const socialLinkClasses =
               ></span>
             </span>
             <CheckCircle2 class="h-3.5 w-3.5" />
-            <span class="hidden sm:inline">{{
+            <span :class="isMyCaptainPick ? 'inline' : 'hidden sm:inline'">{{
               $t("matchmaking.check_in")
             }}</span>
             <span v-if="pendingCheckIn" class="tabular-nums">
               {{ pendingCheckIn.confirmed }}/{{ pendingCheckIn.players }}
             </span>
           </button>
+          <NuxtLink
+            v-if="activeCaptainPick && route.path !== '/play/captain-pick'"
+            to="/play/captain-pick"
+            data-testid="captain-pick-nav"
+            class="relative inline-flex h-7 items-center gap-1.5 rounded-md border px-2 font-mono text-[0.7rem] uppercase tracking-[0.18em] transition-colors"
+            :class="
+              isMyCaptainPick
+                ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.2)] text-[hsl(var(--tac-amber))]'
+                : 'border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.08)] text-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)/0.15)]'
+            "
+            :aria-label="
+              isMyCaptainPick
+                ? $t('matchmaking.captain_pick.your_pick_nav')
+                : $t('matchmaking.captain_pick.nav')
+            "
+          >
+            <span
+              v-if="isMyCaptainPick"
+              class="relative flex h-1.5 w-1.5"
+              aria-hidden="true"
+            >
+              <span
+                class="absolute inline-flex h-full w-full animate-ping rounded-full bg-[hsl(var(--tac-amber))] opacity-75 motion-reduce:animate-none"
+              ></span>
+              <span
+                class="relative inline-flex h-1.5 w-1.5 rounded-full bg-[hsl(var(--tac-amber))]"
+              ></span>
+            </span>
+            <Crown class="h-3.5 w-3.5" />
+            <span class="hidden sm:inline">{{
+              isMyCaptainPick
+                ? $t("matchmaking.captain_pick.your_pick_nav")
+                : $t("matchmaking.captain_pick.nav")
+            }}</span>
+          </NuxtLink>
           <DraftRoomNav v-if="!isMobile" />
           <MatchLobbies v-if="!isMobile" />
           <Button

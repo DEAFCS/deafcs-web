@@ -6,6 +6,10 @@ import SettingsPage from "~/components/settings/SettingsPage.vue";
 import SettingsSection from "~/components/settings/SettingsSection.vue";
 import { TriangleAlert } from "lucide-vue-next";
 import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
+import {
+  MAX_CAPTAIN_PICK_SECONDS,
+  MIN_CAPTAIN_PICK_SECONDS,
+} from "~/utilities/captainPickSettings";
 </script>
 
 <template>
@@ -52,6 +56,29 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
                     />
                   </div>
                 </template>
+              </div>
+              <div
+                class="flex flex-row items-center justify-between gap-3 p-3 rounded-lg border cursor-pointer hover:bg-accent/40 transition-colors"
+                data-testid="captain-pick-toggle"
+                @click="toggleCaptainPick"
+              >
+                <div>
+                  <h4 class="text-sm font-medium">
+                    {{ $t("pages.settings.application.captain_pick_enabled") }}
+                  </h4>
+                  <p class="text-sm text-muted-foreground">
+                    {{
+                      $t(
+                        "pages.settings.application.captain_pick_enabled_description",
+                      )
+                    }}
+                  </p>
+                </div>
+                <Switch
+                  :model-value="captainPickEnabled"
+                  @update:model-value="toggleCaptainPick"
+                  @click.stop
+                />
               </div>
             </div>
 
@@ -219,7 +246,7 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
                     {{
                       $t("pages.settings.application.map_veto_pick_seconds")
                     }}
-                    <span class="text-muted-foreground font-normal">(sek)</span>
+                    <span class="text-muted-foreground font-normal">(sec)</span>
                   </FormLabel>
                   <FormDescription>{{
                     $t(
@@ -228,6 +255,33 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
                   }}</FormDescription>
                   <FormControl>
                     <Input v-bind="componentField" type="number" min="5" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              </FormField>
+
+              <FormField
+                v-slot="{ componentField }"
+                name="public.matchmaking_captain_pick_seconds"
+              >
+                <FormItem>
+                  <FormLabel>
+                    {{ $t("pages.settings.application.captain_pick_seconds") }}
+                    <span class="text-muted-foreground font-normal">(sek)</span>
+                  </FormLabel>
+                  <FormDescription>{{
+                    $t(
+                      "pages.settings.application.captain_pick_seconds_description",
+                    )
+                  }}</FormDescription>
+                  <FormControl>
+                    <Input
+                      v-bind="componentField"
+                      type="number"
+                      :min="MIN_CAPTAIN_PICK_SECONDS"
+                      :max="MAX_CAPTAIN_PICK_SECONDS"
+                      step="1"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -383,6 +437,14 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { z } from "zod";
 import { toast } from "@/components/ui/toast";
+import {
+  CAPTAIN_PICK_ENABLED_SETTING,
+  CAPTAIN_PICK_SECONDS_SETTING,
+  DEFAULT_CAPTAIN_PICK_SECONDS,
+  MAX_CAPTAIN_PICK_SECONDS as MAX_PICK_SECONDS,
+  MIN_CAPTAIN_PICK_SECONDS as MIN_PICK_SECONDS,
+  parseCaptainPickSeconds,
+} from "~/utilities/captainPickSettings";
 
 export default {
   data() {
@@ -405,6 +467,31 @@ export default {
               matchmaking_max_party_size_competitive: z
                 .string()
                 .default("5"),
+              // Same bounds the API enforces (captain-pick-settings.ts).
+              matchmaking_captain_pick_seconds: z
+                .number({
+                  error: this.$t(
+                    "pages.settings.application.captain_pick_seconds_invalid",
+                  ),
+                })
+                .int(
+                  this.$t(
+                    "pages.settings.application.captain_pick_seconds_invalid",
+                  ),
+                )
+                .min(
+                  MIN_PICK_SECONDS,
+                  this.$t(
+                    "pages.settings.application.captain_pick_seconds_invalid",
+                  ),
+                )
+                .max(
+                  MAX_PICK_SECONDS,
+                  this.$t(
+                    "pages.settings.application.captain_pick_seconds_invalid",
+                  ),
+                )
+                .default(DEFAULT_CAPTAIN_PICK_SECONDS),
             }),
           }),
         ),
@@ -415,8 +502,18 @@ export default {
     settings: {
       immediate: true,
       handler(newVal: Array<{ name: string; value: string | null }>) {
+        // Absent means the default; the API treats it the same way.
+        (this.form.setFieldValue as any)(
+          CAPTAIN_PICK_SECONDS_SETTING,
+          DEFAULT_CAPTAIN_PICK_SECONDS,
+        );
         for (const setting of newVal) {
-          if (setting.name === "public.map_veto_pick_seconds") {
+          if (setting.name === CAPTAIN_PICK_SECONDS_SETTING) {
+            (this.form.setFieldValue as any)(
+              setting.name,
+              parseCaptainPickSeconds(setting.value),
+            );
+          } else if (setting.name === "public.map_veto_pick_seconds") {
             (this.form.setFieldValue as any)(
               setting.name,
               Number(setting.value) || 30,
@@ -481,6 +578,31 @@ export default {
                 value: this.isMatchmakingTypeEnabled(match_type)
                   ? "false"
                   : "true",
+              },
+              on_conflict: {
+                constraint: settings_constraint.settings_pkey,
+                update_columns: [settings_update_column.value],
+              },
+            },
+            {
+              __typename: true,
+            },
+          ],
+        }),
+      });
+
+      toast({
+        title: this.$t("pages.settings.application.matchmaking.updated"),
+      });
+    },
+    async toggleCaptainPick() {
+      await (this as any).$apollo.mutate({
+        mutation: generateMutation({
+          insert_settings_one: [
+            {
+              object: {
+                name: CAPTAIN_PICK_ENABLED_SETTING,
+                value: this.captainPickEnabled ? "false" : "true",
               },
               on_conflict: {
                 constraint: settings_constraint.settings_pkey,
@@ -586,6 +708,15 @@ export default {
       if (this.submitting) {
         return;
       }
+
+      // Never save a pick timer the API would have to clamp.
+      const { valid } = await this.form.validateField(
+        CAPTAIN_PICK_SECONDS_SETTING as any,
+      );
+      if (!valid) {
+        return;
+      }
+
       this.submitting = true;
       try {
         await (this as any).$apollo.mutate({
@@ -617,6 +748,13 @@ export default {
                     name: "public.map_veto_pick_seconds",
                     value: String(
                       (this.form.values as any).public.map_veto_pick_seconds,
+                    ),
+                  },
+                  {
+                    name: CAPTAIN_PICK_SECONDS_SETTING,
+                    value: String(
+                      (this.form.values as any).public
+                        .matchmaking_captain_pick_seconds,
                     ),
                   },
                   {
@@ -690,6 +828,9 @@ export default {
       }
 
       return true;
+    },
+    captainPickEnabled(): boolean {
+      return useApplicationSettingsStore().captainPickEnabled;
     },
     vacDisabled() {
       const setting = this.settings.find(
