@@ -65,7 +65,7 @@ useHead({
           </div>
         </div>
 
-        <dl class="grid grid-cols-[max-content_1fr] gap-x-4 gap-y-2 text-sm">
+        <dl class="grid grid-cols-1 gap-y-3 text-sm sm:grid-cols-[max-content_1fr] sm:gap-x-4 sm:gap-y-2">
           <dt class="text-muted-foreground">{{ $t("pages.verify.form.is_deaf") }}</dt>
           <dd>{{ $t(`pages.verify.form.is_deaf_options.${application.is_deaf}`) }}</dd>
 
@@ -93,7 +93,7 @@ useHead({
                   :href="reference.steam_profile_url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="text-[hsl(var(--tac-amber))] hover:underline"
+                  class="text-[hsl(var(--tac-amber))] hover:underline break-all"
                 >{{ reference.steam_profile_url }}</a>
                 <template v-else>{{ emptyValue }}</template>
               </div>
@@ -108,7 +108,7 @@ useHead({
                   :href="application.deaf_player_steam_url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="text-[hsl(var(--tac-amber))] hover:underline"
+                  class="text-[hsl(var(--tac-amber))] hover:underline break-all"
                 >{{ application.deaf_player_steam_url }}</a>
                 <template v-else>{{ emptyValue }}</template>
               </div>
@@ -122,7 +122,7 @@ useHead({
               v-if="application.social_instagram_url"
               :href="application.social_instagram_url"
               target="_blank"
-              class="text-[hsl(var(--tac-amber))] hover:underline"
+              class="text-[hsl(var(--tac-amber))] hover:underline break-all"
             >{{ application.social_instagram_url }}</a>
             <template v-else>{{ emptyValue }}</template>
           </dd>
@@ -133,7 +133,7 @@ useHead({
               v-if="application.social_facebook_url"
               :href="application.social_facebook_url"
               target="_blank"
-              class="text-[hsl(var(--tac-amber))] hover:underline"
+              class="text-[hsl(var(--tac-amber))] hover:underline break-all"
             >{{ application.social_facebook_url }}</a>
             <template v-else>{{ emptyValue }}</template>
           </dd>
@@ -144,7 +144,7 @@ useHead({
               v-if="application.social_vk_url"
               :href="application.social_vk_url"
               target="_blank"
-              class="text-[hsl(var(--tac-amber))] hover:underline"
+              class="text-[hsl(var(--tac-amber))] hover:underline break-all"
             >{{ application.social_vk_url }}</a>
             <template v-else>{{ emptyValue }}</template>
           </dd>
