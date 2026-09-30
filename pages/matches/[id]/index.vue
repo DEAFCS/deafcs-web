@@ -710,6 +710,7 @@ export default {
       // so a disconnect mid-match re-blocks without needing this page
       // to unmount/remount anything.
       cameraReady: false,
+      cameraTokenRequestedAt: null as string | null,
       captainPickMatch: {
         matchId: null,
         resolved: false,
@@ -719,6 +720,12 @@ export default {
     };
   },
   watch: {
+    cameraRequestScope: {
+      flush: "sync",
+      handler() {
+        this.cameraTokenRequestedAt = null;
+      },
+    },
     "match.cancels_at": {
       immediate: true,
       handler(cancelsAt) {
@@ -750,6 +757,46 @@ export default {
   },
   apollo: {
     $subscribe: {
+      cameraRequest: {
+        // Hasura still enforces steam_id = X-Hasura-User-Id. The extra
+        // viewer filter also restarts this subscription on account changes.
+        query: typedGql("subscription")({
+          match_camera_tokens: [
+            {
+              where: {
+                match_id: { _eq: $("matchId", "uuid!") },
+                steam_id: { _eq: $("steamId", "bigint!") },
+              },
+              limit: 1,
+            },
+            { requested_at: true },
+          ],
+        }),
+        variables: function () {
+          return {
+            matchId: this.matchId,
+            steamId: useAuthStore().me?.steam_id,
+          };
+        },
+        skip: function () {
+          return !useAuthStore().me?.steam_id;
+        },
+        result: function ({ data }) {
+          const variables =
+            this.$apollo.subscriptions.cameraRequest.lastApolloOptions.variables;
+          // Ignore an old operation during route/auth changes, before
+          // Apollo's reactive watchers have restarted or stopped it.
+          if (
+            !useAuthStore().me?.steam_id ||
+            variables.matchId !== this.matchId ||
+            variables.steamId !== useAuthStore().me?.steam_id
+          ) {
+            return;
+          }
+          this.cameraTokenRequestedAt =
+            data.match_camera_tokens?.[0]?.requested_at ?? null;
+        },
+      },
       matches_by_pk: {
         variables: function () {
           return {
@@ -823,16 +870,6 @@ export default {
               organizer: playerFields,
               options: {
                 ...matchOptionsFields,
-              },
-              // Filtered server-side to just the logged-in player's own
-              // row (public_match_camera_tokens select permission scopes
-              // to steam_id = X-Hasura-User-Id) -- this is how the spot
-              // check ("Request camera" on a specific player from the
-              // scoreboard) reaches this page live, no F5 needed: an
-              // admin marking requested_at flows straight through this
-              // same subscription.
-              camera_tokens: {
-                requested_at: true,
               },
               tournament_brackets: [
                 { limit: 1 },
@@ -1008,6 +1045,9 @@ export default {
     },
   },
   computed: {
+    cameraRequestScope() {
+      return `${this.matchId}:${useAuthStore().me?.steam_id ?? ""}`;
+    },
     apiDomain() {
       return useRuntimeConfig().public.apiDomain;
     },
@@ -1097,7 +1137,7 @@ export default {
     // spot check. Same row camera_required's own token-minting also
     // writes to, just distinguished by this timestamp being non-null.
     cameraSpotCheckRequested() {
-      return !!this.match?.camera_tokens?.[0]?.requested_at;
+      return !!useAuthStore().me?.steam_id && !!this.cameraTokenRequestedAt;
     },
     // Whether CameraRequirementOverlay should be mounted at all. This
     // is intentionally NOT gated on cameraReady/ready-ness — the
