@@ -39,9 +39,12 @@ import CaptainPickChat from "../../components/matchmaking/captain-pick/CaptainPi
 const Lobby = { name: "ChatLobby" };
 const wrappers: ReturnType<typeof mount>[] = [];
 
-const mountChat = (myLineup: 1 | 2 | null) => {
+const mountChat = (
+  myLineup: 1 | 2 | null,
+  matchId: string | null = "match-1",
+) => {
   const wrapper = mount(CaptainPickChat, {
-    props: { draftId: "draft-1", myLineup },
+    props: { draftId: "draft-1", matchId, myLineup },
     global: { mocks: { $t: (key: string) => key } },
   });
   wrappers.push(wrapper);
@@ -71,13 +74,13 @@ describe("Captain Pick chat sidebar", () => {
     expect(root.classes()).toContain("xl:flex-1");
   });
 
-  it("always offers this draft's own Match Chat, never the site-wide Global Chat", () => {
+  it("always offers the real match's Match Chat, never the site-wide Global Chat", () => {
     for (const lineup of [null, 1, 2] as const) {
       const wrapper = mountChat(lineup);
       expect(lobbies(wrapper)[0]).toEqual({
         instance: "captain-pick",
-        type: "captain_pick_match",
-        lobbyId: "draft-1",
+        type: "match",
+        lobbyId: "match-1",
         allowChatAttachments: false,
       });
       expect(
@@ -89,6 +92,18 @@ describe("Captain Pick chat sidebar", () => {
         false,
       );
     }
+  });
+
+  it("waits for the match before joining a Match Chat", async () => {
+    const wrapper = mountChat(null, null);
+    expect(lobbies(wrapper)).toEqual([]);
+    expect(
+      wrapper.find('[data-testid="captain-pick-match-chat-pending"]').text(),
+    ).toBe("matchmaking.captain_pick.match_chat_pending");
+
+    await wrapper.setProps({ matchId: "match-1" });
+
+    expect(lobbies(wrapper).map((lobby) => lobby.type)).toEqual(["match"]);
   });
 
   it("labels the tabs Match | Team", () => {
@@ -124,8 +139,8 @@ describe("Captain Pick chat sidebar", () => {
     expect(lobbies(wrapper)).toEqual([
       {
         instance: "captain-pick",
-        type: "captain_pick_match",
-        lobbyId: "draft-1",
+        type: "match",
+        lobbyId: "match-1",
         allowChatAttachments: false,
       },
       {
@@ -158,7 +173,7 @@ describe("Captain Pick chat sidebar", () => {
       tabButton(wrapper, "chat.team_chat").attributes("disabled"),
     ).toBeUndefined();
     expect(lobbies(wrapper).map((lobby) => lobby.lobbyId)).toEqual([
-      "draft-1",
+      "match-1",
       "draft-1:1",
     ]);
     expect(

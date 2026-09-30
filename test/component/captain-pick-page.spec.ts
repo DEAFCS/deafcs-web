@@ -101,7 +101,13 @@ const confirmationWith = (captainPick: any) => ({
   confirmed: 10,
   players: 10,
   isReady: "2",
-  matchId: captainPick.matchId ?? undefined,
+  // As the API sends it: the draft carries its real match id from the
+  // start, the confirmation's own (routing) matchId only once the teams are
+  // seated.
+  matchId:
+    captainPick.phase === "MatchCreated"
+      ? (captainPick.matchId ?? undefined)
+      : undefined,
   captainPick,
 });
 
@@ -295,9 +301,30 @@ describe("/play/captain-pick", () => {
     );
   });
 
-  it("hands the Chat Hub the draft's Match Chat plus this player's own team room, and drops them when the draft ends", async () => {
-    mocks.store.joinedMatchmakingQueues.confirmation =
-      confirmationWith(makeDraft());
+  it("stays on the draft while it is running, even though the real match already exists", async () => {
+    mocks.store.joinedMatchmakingQueues.confirmation = confirmationWith(
+      makeDraft({ matchId: "match-7" }),
+    );
+    mountPage();
+
+    setConfirmation(
+      confirmationWith(draftAfter([{ steam_id: "3" }, { steam_id: "4" }])),
+    );
+    mocks.store.joinedMatchmakingQueues.confirmation.captainPick.matchId =
+      "match-7";
+    await flushPromises();
+    await vi.advanceTimersByTimeAsync(10_000);
+
+    expect(mocks.routerReplace).not.toHaveBeenCalled();
+    expect(
+      mocks.store.joinedMatchmakingQueues.confirmation.matchId,
+    ).toBeUndefined();
+  });
+
+  it("hands the Chat Hub the real Match Chat plus this player's own team room, and drops them when the draft ends", async () => {
+    mocks.store.joinedMatchmakingQueues.confirmation = confirmationWith(
+      makeDraft({ matchId: "match-7" }),
+    );
     mountPage();
 
     // Player "2" is lineup 1's captain in the fixture.
@@ -305,8 +332,8 @@ describe("/play/captain-pick", () => {
     expect(context.key).toBe("captain_pick:draft-1");
     expect(context.rooms).toEqual([
       expect.objectContaining({
-        type: "captain_pick_match",
-        lobbyId: "draft-1",
+        type: "match",
+        lobbyId: "match-7",
       }),
       expect.objectContaining({
         type: "captain_pick_team",

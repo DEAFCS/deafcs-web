@@ -236,45 +236,58 @@ describe("admin observer lifecycle", () => {
 });
 
 describe("Captain Pick", () => {
-  const MATCH_ROOM = "captain_pick_match:draft-1";
+  // The real match exists from 10/10; the draft carries its id.
+  const MATCH = "match-7";
+  const MATCH_ROOM = `match:${MATCH}`;
+  const withMatch = <T extends object>(draft: T) => ({ ...draft, matchId: MATCH });
   const ids = (context: ChatHubContext | null) =>
     context!.rooms.map((r) => `${r.type}:${r.lobbyId}`);
 
-  it("uses the draft's own Match Chat, never the site-wide Global Chat", () => {
+  it("uses the real match's Match Chat, never the site-wide Global Chat or a separate draft room", () => {
     for (const steamId of ["3", "2", "1"]) {
-      const context = captainPickChatHubContext(makeDraft(), steamId, t)!;
+      const context = captainPickChatHubContext(
+        withMatch(makeDraft()),
+        steamId,
+        t,
+      )!;
       expect(context.rooms[0]).toEqual({
-        type: "captain_pick_match",
-        lobbyId: "draft-1",
+        type: "match",
+        lobbyId: MATCH,
         label: "chat.match_chat",
       });
-      expect(context.rooms.some((r) => r.type === "global")).toBe(false);
+      // Only the real match room and, with a side, the team room.
+      expect(
+        context.rooms.every(
+          (r) => r.type === "match" || r.type === "captain_pick_team",
+        ),
+      ).toBe(true);
       expect(context.focus ?? null).toBeNull();
+      expect(context.autoOpen).toBe(true);
     }
   });
 
   it("has Match Chat but no Team Chat before a side is assigned", () => {
     // Player 3 is still in the pool.
-    expect(ids(captainPickChatHubContext(makeDraft(), "3", t))).toEqual([
+    expect(ids(captainPickChatHubContext(withMatch(makeDraft()), "3", t))).toEqual([
       MATCH_ROOM,
     ]);
   });
 
   it("gives a captain Match Chat and their own Team Chat immediately", () => {
     // Player 2 captains lineup 1, player 1 captains lineup 2.
-    const context = captainPickChatHubContext(makeDraft(), "2", t)!;
+    const context = captainPickChatHubContext(withMatch(makeDraft()), "2", t)!;
     expect(ids(context)).toEqual([MATCH_ROOM, "captain_pick_team:draft-1:1"]);
     expect(context.rooms[1].label).toBe(
       "matchmaking.captain_pick.team_of(Player 2)",
     );
-    expect(ids(captainPickChatHubContext(makeDraft(), "1", t))).toEqual([
+    expect(ids(captainPickChatHubContext(withMatch(makeDraft()), "1", t))).toEqual([
       MATCH_ROOM,
       "captain_pick_team:draft-1:2",
     ]);
   });
 
   it("keeps Match Chat and adds Team Chat as soon as the server has a picked player on a side", () => {
-    const draft = draftAfter([{ steam_id: "3" }, { steam_id: "4" }]);
+    const draft = withMatch(draftAfter([{ steam_id: "3" }, { steam_id: "4" }]));
     expect(ids(captainPickChatHubContext(draft, "3", t))).toEqual([
       MATCH_ROOM,
       "captain_pick_team:draft-1:1",
@@ -286,8 +299,8 @@ describe("Captain Pick", () => {
   });
 
   it("gives the final auto-assigned player their Team Chat", () => {
-    const draft = draftAfter(
-      ["3", "4", "5", "6", "7", "8", "9"].map((steam_id) => ({ steam_id })),
+    const draft = withMatch(
+      draftAfter(["3", "4", "5", "6", "7", "8", "9"].map((steam_id) => ({ steam_id }))),
     );
     expect(ids(captainPickChatHubContext(draft, "10", t))).toEqual([
       MATCH_ROOM,
@@ -295,17 +308,23 @@ describe("Captain Pick", () => {
     ]);
   });
 
-  it("offers an outsider or admin nothing: without a draft of their own there is no context", () => {
+  it("offers an outsider or admin no team room (and without a draft of their own, nothing)", () => {
     // The server only sends the draft to its ten players.
     expect(captainPickChatHubContext(null, "999", t)).toBeNull();
-    // Even a draft object on screen gives a non-participant no team room;
-    // the shared room is refused by the API for anyone outside the ten.
-    expect(ids(captainPickChatHubContext(makeDraft(), "999", t))).toEqual([
+    // Even with a draft on screen: no team room; the API refuses the
+    // match's chat to anyone outside the ten while picking.
+    expect(ids(captainPickChatHubContext(withMatch(makeDraft()), "999", t))).toEqual([
       MATCH_ROOM,
     ]);
   });
 
-  it("focuses Match Chat on entry, keeps Global as its own standing room, adds Team Chat without stealing focus, and leaves cleanly for the match", async () => {
+  it("waits for the match before opening the Hub", () => {
+    const context = captainPickChatHubContext(makeDraft(), "3", t)!;
+    expect(context.rooms).toEqual([]);
+    expect(context.autoOpen).toBe(false);
+  });
+
+  it("focuses Match Chat on entry, keeps Global separate, adds Team Chat without stealing focus", async () => {
     const { openTab } = useChatTabs();
     openTab(
       {
@@ -319,40 +338,53 @@ describe("Captain Pick", () => {
       { setActive: true },
     );
 
-    const { context, wrapper } = mountContext(
-      captainPickChatHubContext(makeDraft(), "3", t),
+    const { context } = mountContext(
+      captainPickChatHubContext(withMatch(makeDraft()), "3", t),
     );
     expect(useRightSidebar().rightSidebarOpen.value).toBe(true);
     expect(useChatTabs().activeTabId.value).toBe(MATCH_ROOM);
     expect(tabIds()).toEqual(["global", MATCH_ROOM]);
 
     context.value = captainPickChatHubContext(
-      draftAfter([{ steam_id: "3" }]),
+      withMatch(draftAfter([{ steam_id: "3" }])),
       "3",
       t,
     );
     await flush();
-    expect(tabIds()).toEqual([
-      "global",
-      MATCH_ROOM,
-      "captain_pick_team:draft-1:1",
-    ]);
+    expect(tabIds()).toEqual(["global", MATCH_ROOM, "captain_pick_team:draft-1:1"]);
     expect(tabIds()).not.toContain("captain_pick_team:draft-1:2");
     expect(useChatTabs().activeTabId.value).toBe(MATCH_ROOM);
-
-    // The match exists: the page routes to /matches/<id> and unmounts.
-    wrapper.unmount();
-    expect(tabIds()).toEqual(["global"]);
-
-    mountContext(matchChatHubContext(match(), true, MY_LINEUP, t));
-    expect(tabIds()).toEqual(["global", "match:m1", "match_team:m1:l1"]);
-    expect(useChatTabs().activeTabId.value).toBe("match:m1");
   });
 
-  it("opens on Match Chat even when the player already has a side on entry", () => {
-    mountContext(captainPickChatHubContext(makeDraft(), "2", t));
+  it("opens once the match id arrives if it wasn't there on entry", async () => {
+    const { context } = mountContext(captainPickChatHubContext(makeDraft(), "3", t));
+    expect(useRightSidebar().rightSidebarOpen.value).toBe(false);
+
+    context.value = captainPickChatHubContext(withMatch(makeDraft()), "3", t);
+    await flush();
+
+    expect(useRightSidebar().rightSidebarOpen.value).toBe(true);
     expect(useChatTabs().activeTabId.value).toBe(MATCH_ROOM);
-    expect(tabIds()).toContain("captain_pick_team:draft-1:1");
+  });
+
+  it("carries the same Match Chat into the match page; only the Captain Pick team room goes", () => {
+    // Once the teams are seated the player is a real participant.
+    mocks.matchLobbyStore.myMatches = [
+      match({ id: MATCH, lineup_1: { ...MY_LINEUP }, lineup_1_id: "l1" }),
+    ];
+    const { wrapper } = mountContext(
+      captainPickChatHubContext(withMatch(makeDraft()), "2", t),
+    );
+    expect(tabIds()).toEqual([MATCH_ROOM, "captain_pick_team:draft-1:1"]);
+
+    // MatchCreated: the draft page routes to /matches/<id> and unmounts.
+    wrapper.unmount();
+    expect(tabIds()).toEqual([MATCH_ROOM]);
+
+    mountContext(matchChatHubContext(match({ id: MATCH }), true, MY_LINEUP, t));
+    // The very same room, plus the normal match Team Chat. No second
+    // shared room, nothing to migrate.
+    expect(tabIds()).toEqual([MATCH_ROOM, `match_team:${MATCH}:l1`]);
   });
 });
 
@@ -460,7 +492,9 @@ describe("notification focus", () => {
 
   it("focuses the requested room once its page offers it", () => {
     requestChatHubFocus("captain_pick_team:draft-1:1");
-    mountContext(captainPickChatHubContext(makeDraft(), "2", t));
+    mountContext(
+      captainPickChatHubContext({ ...makeDraft(), matchId: "match-7" }, "2", t),
+    );
     expect(useChatTabs().activeTabId.value).toBe(
       "captain_pick_team:draft-1:1",
     );

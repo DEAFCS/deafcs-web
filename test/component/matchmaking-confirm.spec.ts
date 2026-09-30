@@ -356,6 +356,45 @@ describe("Match Found confirmation modal with 5v5 Captain Pick", () => {
     expect(mocks.routerPush).not.toHaveBeenCalled();
   });
 
+  it("never leaves the draft for the match page while players are still being picked", async () => {
+    // The real match exists from 10/10: the draft carries its id, but the
+    // confirmation's own matchId stays empty until the teams are seated.
+    mountConfirm(
+      makeConfirmation({
+        confirmed: 10,
+        captainPick: draft({ matchId: "match-9" }),
+      }) as any,
+    );
+    await flushPromises();
+    mocks.routerPush.mockClear();
+
+    for (const pickIndex of [1, 2, 6]) {
+      setConfirmation(
+        makeConfirmation({
+          confirmed: 10,
+          matchId: undefined,
+          captainPick: draft({ pickIndex, matchId: "match-9" }),
+        }) as any,
+      );
+      await flushPromises();
+    }
+    setConfirmation(
+      makeConfirmation({
+        confirmed: 10,
+        matchId: undefined,
+        captainPick: draft({
+          phase: "CreatingMatch",
+          pickIndex: null,
+          matchId: "match-9",
+        }),
+      }) as any,
+    );
+    await flushPromises();
+
+    expect(mocks.routerPush).not.toHaveBeenCalledWith("/matches/match-9");
+    expect(mocks.routerPush).not.toHaveBeenCalled();
+  });
+
   it("opens the normal match page when the draft's match is created", async () => {
     mountConfirm(
       makeConfirmation({ confirmed: 10, captainPick: draft() }) as any,

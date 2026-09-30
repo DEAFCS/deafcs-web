@@ -141,9 +141,7 @@ function handleBackToHub() {
           :can-send="canSend"
           :readonly-hint="readonlyHint"
           :allow-chat-attachments="
-            currentTab!.type !== 'match' &&
-            currentTab!.type !== 'match_team' &&
-            currentTab!.type !== 'captain_pick_match'
+            currentTab!.type !== 'match' && currentTab!.type !== 'match_team'
           "
         />
       </div>

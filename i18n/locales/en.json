@@ -5091,7 +5091,6 @@
     "team": "Team chat",
     "match_team": "Team chat",
     "captain_pick_team": "Team chat",
-    "captain_pick_match": "Match chat",
     "draft": "Draft chat",
     "tournament": "Tournament chat",
     "organizers": "Organizers chat",
@@ -7148,6 +7147,7 @@
       "creating_match": "Teams are set. Creating the match.",
       "match_ready": "Match created. Opening the match.",
       "team_chat_locked": "Team chat opens when you're on a team.",
+      "match_chat_pending": "Match chat opens in a moment.",
       "committed_note": "Leaving this page won't cancel the draft. If it's your turn and time runs out, a player is picked for you."
     },
     "cancel_matchmaking": "Cancel Matchmaking",

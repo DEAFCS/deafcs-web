@@ -11,10 +11,8 @@ type ChatType =
   | "announcement"
   // Contextual match-flow rooms (see useChatHubContext). Same canonical
   // lobby types/ids as the API: match_team is `${matchId}:${lineupId}`,
-  // captain_pick_team is `${draftId}:${lineup}`, captain_pick_match is the
-  // draftId, draft is the room id.
+  // captain_pick_team is `${draftId}:${lineup}`, draft is the room id.
   | "match_team"
-  | "captain_pick_match"
   | "captain_pick_team"
   | "draft";
 

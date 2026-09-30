@@ -47,6 +47,8 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
                   e_match_status_enum.Veto,
                   e_match_status_enum.WaitingForCheckIn,
                   e_match_status_enum.WaitingForServer,
+                  // A Captain Pick match while its players are picked.
+                  e_match_status_enum.PickingPlayers,
                 ],
               },
             },

@@ -9,15 +9,17 @@ import {
 } from "~/utilities/captainPickDraft";
 
 /**
- * The Captain Pick right sidebar: the draft's own Match Chat (only the ten
- * players in this draft, not the site-wide Global Chat) and the viewer's
- * own private team chat. The Team tab opens as soon as the server has the
- * viewer on a side (captains immediately, others when picked). Which room
- * they may read or post in is always decided by the server; this only
- * offers the tab.
+ * The Captain Pick right sidebar: the real match's Match Chat (the match
+ * exists from 10/10; during the draft the server lets in exactly its ten
+ * players, not the site-wide Global Chat) and the viewer's own private team
+ * chat. The Team tab opens as soon as the server has the viewer on a side
+ * (captains immediately, others when picked). Which room they may read or
+ * post in is always decided by the server; this only offers the tab.
  */
 const props = defineProps<{
   draftId: string;
+  // The draft's real match, once the server has created it.
+  matchId: string | null;
   // The viewer's side in the server's lineups, null while unpicked.
   myLineup: CaptainPickLineup | null;
 }>();
@@ -81,11 +83,19 @@ watch(
 
       <div v-show="tab === 'match'" data-testid="captain-pick-match-chat">
         <ChatLobby
+          v-if="matchId"
           instance="captain-pick"
-          type="captain_pick_match"
-          :lobby-id="draftId"
+          type="match"
+          :lobby-id="matchId"
           :allow-chat-attachments="false"
         />
+        <p
+          v-else
+          class="text-xs text-muted-foreground"
+          data-testid="captain-pick-match-chat-pending"
+        >
+          {{ $t("matchmaking.captain_pick.match_chat_pending") }}
+        </p>
       </div>
 
       <div

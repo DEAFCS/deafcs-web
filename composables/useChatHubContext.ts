@@ -80,23 +80,25 @@ export function matchChatHubContext(
   return { key: `match:${match.id}`, rooms };
 }
 
-// Captain Pick. Opens on the draft's own Match Chat (captain_pick_match, id
-// = draftId: only the ten players in this draft, never the site-wide Global
-// Chat). The player's Team Chat is added once the server has them on a side,
-// without taking focus.
+// Captain Pick. Opens on the real match's Match Chat (the match exists from
+// 10/10 and the server lets exactly the draft's ten players in; never the
+// site-wide Global Chat). It is the same room the match page uses, so it
+// simply carries on after the draft. The player's Team Chat is added once
+// the server has them on a side, without taking focus.
 export function captainPickChatHubContext(
   draft: CaptainPickDraftState | null | undefined,
   steamId: string | null | undefined,
   t: Translate,
 ): ChatHubContext | null {
   if (!draft) return null;
-  const rooms: ChatHubContextRoom[] = [
-    {
-      type: "captain_pick_match",
-      lobbyId: draft.draftId,
+  const rooms: ChatHubContextRoom[] = [];
+  if (draft.matchId) {
+    rooms.push({
+      type: "match",
+      lobbyId: draft.matchId,
       label: t("chat.match_chat"),
-    },
-  ];
+    });
+  }
   const lineup = myCaptainPickLineup(draft, steamId);
   if (lineup !== null) {
     rooms.push({
@@ -107,7 +109,12 @@ export function captainPickChatHubContext(
       }),
     });
   }
-  return { key: `captain_pick:${draft.draftId}`, rooms };
+  return {
+    key: `captain_pick:${draft.draftId}`,
+    rooms,
+    // Opens (once) when there is a Match Chat to open on.
+    autoOpen: !!draft.matchId,
+  };
 }
 
 // Draft room. The Draft chat while there is no match yet, then the match's

@@ -363,7 +363,11 @@ const onCardClick = (event: MouseEvent, steamId: string) => {
       class="flex flex-col xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)]"
       data-testid="captain-pick-chat-section"
     >
-      <CaptainPickChat :draft-id="draft.draftId" :my-lineup="myLineup" />
+      <CaptainPickChat
+        :draft-id="draft.draftId"
+        :match-id="draft.matchId"
+        :my-lineup="myLineup"
+      />
     </div>
   </div>
 </template>
