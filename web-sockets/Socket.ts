@@ -51,6 +51,10 @@ export type ChatType =
   // before any match exists -- id is `${draftId}:${lineup}`. The server only
   // lets in players it has on that side of the draft.
   | "captain_pick_team"
+  // Shared "Match Chat" of a Captain Pick draft, before the match exists --
+  // id is the draftId. Only the ten players in that draft; when the match
+  // is created the API carries its history into the real match chat.
+  | "captain_pick_match"
   // Single site-wide room, open to every verified_user+ player. Fixed
   // lobbyId "global" -- there's only ever one.
   | "global"
@@ -883,7 +887,8 @@ socket.listen(
       return;
     }
 
-    // Match-flow rooms (match, match_team, draft, captain_pick_team) are
+    // Match-flow rooms (match, match_team, draft, captain_pick_match,
+    // captain_pick_team) are
     // only ever offered in the Chat Hub by the page the player is on (see
     // useChatHubContext), never registered from a background ping, and
     // none of them shows an unread badge: match/team/draft chat is

@@ -295,7 +295,7 @@ describe("/play/captain-pick", () => {
     );
   });
 
-  it("hands the Chat Hub this player's own team room, and drops it when the draft ends", async () => {
+  it("hands the Chat Hub the draft's Match Chat plus this player's own team room, and drops them when the draft ends", async () => {
     mocks.store.joinedMatchmakingQueues.confirmation =
       confirmationWith(makeDraft());
     mountPage();
@@ -305,10 +305,15 @@ describe("/play/captain-pick", () => {
     expect(context.key).toBe("captain_pick:draft-1");
     expect(context.rooms).toEqual([
       expect.objectContaining({
+        type: "captain_pick_match",
+        lobbyId: "draft-1",
+      }),
+      expect.objectContaining({
         type: "captain_pick_team",
         lobbyId: "draft-1:1",
       }),
     ]);
+    expect(context.focus ?? null).toBeNull();
 
     setConfirmation(undefined);
     await flushPromises();

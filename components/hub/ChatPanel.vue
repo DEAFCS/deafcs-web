@@ -466,14 +466,15 @@ function handleMessageReceived(payload: {
     // Live match all-chat/team-chat is high-volume and expected to be
     // open during a match already, so it's excluded from the unread
     // badge the same way DMs are excluded above (for a different reason).
-    // Draft chat has the same no-badge policy on the API side, and
-    // Captain Pick team chat never had a Hub badge before it had a room
-    // here, so both stay badge-free.
+    // Draft and Captain Pick match chat have the same no-badge policy on
+    // the API side, and Captain Pick team chat never had a Hub badge
+    // before it had a room here, so all three stay badge-free.
     if (
       tab?.type !== "direct" &&
       tab?.type !== "match" &&
       tab?.type !== "match_team" &&
       tab?.type !== "draft" &&
+      tab?.type !== "captain_pick_match" &&
       tab?.type !== "captain_pick_team"
     ) {
       incrementUnread(tabId);
@@ -495,7 +496,12 @@ function getRoomIcon(tab: ChatTab) {
   if (tab.type === "tournament") return Trophy;
   if (tab.type === "organizers") return Megaphone;
   if (tab.id.startsWith("matchmaking:")) return Merge;
-  if (tab.type === "match" || tab.type === "draft") return Sword;
+  if (
+    tab.type === "match" ||
+    tab.type === "captain_pick_match" ||
+    tab.type === "draft"
+  )
+    return Sword;
   if (
     tab.type === "team" ||
     tab.type === "match_team" ||
@@ -512,7 +518,8 @@ function getRoomSubtitle(tab: ChatTab) {
   if (tab.type === "tournament") return t("chat_room_subtitles.tournament");
   if (tab.id.startsWith("matchmaking:"))
     return t("chat_room_subtitles.matchmaking");
-  if (tab.type === "match") return t("chat_room_subtitles.match");
+  if (tab.type === "match" || tab.type === "captain_pick_match")
+    return t("chat_room_subtitles.match");
   if (
     tab.type === "team" ||
     tab.type === "match_team" ||
@@ -966,7 +973,9 @@ function openTournamentWebcamWindow() {
               :can-send="canSendToTab(tab)"
               :readonly-hint="readonlyHintFor(tab)"
               :allow-chat-attachments="
-                tab.type !== 'match' && tab.type !== 'match_team'
+                tab.type !== 'match' &&
+                tab.type !== 'match_team' &&
+                tab.type !== 'captain_pick_match'
               "
               @message-received="handleMessageReceived"
             />

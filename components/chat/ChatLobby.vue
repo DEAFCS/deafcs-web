@@ -267,6 +267,7 @@ export default {
           "draft",
           "match_team",
           "captain_pick_team",
+          "captain_pick_match",
           "global",
           "direct",
           "announcement",
@@ -431,7 +432,7 @@ export default {
       return this.participants.length;
     },
     messagePlaceholder() {
-      if (this.type === "match") {
+      if (this.type === "match" || this.type === "captain_pick_match") {
         return this.$t("chat.message_placeholder_global");
       }
       if (this.type === "match_team" || this.type === "captain_pick_team") {

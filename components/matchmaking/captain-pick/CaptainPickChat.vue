@@ -9,11 +9,12 @@ import {
 } from "~/utilities/captainPickDraft";
 
 /**
- * The Captain Pick right sidebar: DEAFCS Global Chat (the one site-wide
- * room, same as everywhere else) and the viewer's own private team chat.
- * The Team tab opens as soon as the server has the viewer on a side
- * (captains immediately, others when picked). Which room they may read or
- * post in is always decided by the server; this only offers the tab.
+ * The Captain Pick right sidebar: the draft's own Match Chat (only the ten
+ * players in this draft, not the site-wide Global Chat) and the viewer's
+ * own private team chat. The Team tab opens as soon as the server has the
+ * viewer on a side (captains immediately, others when picked). Which room
+ * they may read or post in is always decided by the server; this only
+ * offers the tab.
  */
 const props = defineProps<{
   draftId: string;
@@ -23,10 +24,10 @@ const props = defineProps<{
 
 const { t } = useI18n();
 
-const tab = ref<"global" | "team">("global");
+const tab = ref<"match" | "team">("match");
 
 const tabs = computed(() => [
-  { key: "global", label: t("chat.global_chat") },
+  { key: "match", label: t("chat.match_chat") },
   {
     key: "team",
     label: t("chat.team_chat"),
@@ -49,7 +50,7 @@ watch(
   () => props.myLineup,
   (lineup) => {
     if (lineup === null && tab.value === "team") {
-      tab.value = "global";
+      tab.value = "match";
     }
   },
 );
@@ -78,8 +79,13 @@ watch(
         {{ $t("matchmaking.captain_pick.team_chat_locked") }}
       </p>
 
-      <div v-show="tab === 'global'" data-testid="captain-pick-global-chat">
-        <ChatLobby instance="captain-pick" type="global" lobby-id="global" />
+      <div v-show="tab === 'match'" data-testid="captain-pick-match-chat">
+        <ChatLobby
+          instance="captain-pick"
+          type="captain_pick_match"
+          :lobby-id="draftId"
+          :allow-chat-attachments="false"
+        />
       </div>
 
       <div

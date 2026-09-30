@@ -168,13 +168,14 @@ describe("Chat Hub room list", () => {
     wrapper.unmount();
   });
 
-  it("never counts unread for match, team, draft or Captain Pick team rooms, but still does for tournament chat", async () => {
+  it("never counts unread for match, team, draft or Captain Pick rooms, but still does for tournament chat", async () => {
     const { openTab, unreadCounts } = useChatTabs();
     const rooms = [
       room("global", "global", "Global"),
       room("match", "m1", "A vs B"),
       room("match_team", "m1:l1", "Team A"),
       room("draft", "d1", "Draft"),
+      room("captain_pick_match", "d2", "Match Chat"),
       room("captain_pick_team", "d2:1", "Team X"),
       room("tournament", "t1", "Cup"),
     ];
@@ -199,6 +200,7 @@ describe("Chat Hub room list", () => {
       "match:m1",
       "match_team:m1:l1",
       "draft:d1",
+      "captain_pick_match:d2",
       "captain_pick_team:d2:1",
     ]) {
       expect(unreadCounts.value[id] ?? 0).toBe(0);
@@ -210,6 +212,9 @@ describe("Chat Hub room list", () => {
     const { openTab } = useChatTabs();
     openTab(room("match", "m1", "A vs B"), { setActive: false });
     openTab(room("match_team", "m1:l1", "Team A"), { setActive: false });
+    openTab(room("captain_pick_match", "d1", "Match Chat"), {
+      setActive: false,
+    });
     openTab(room("captain_pick_team", "d1:2", "Team B"), { setActive: false });
     const wrapper = mountPanel();
     await flushPromises();
@@ -224,8 +229,11 @@ describe("Chat Hub room list", () => {
     expect(mounted).toEqual([
       { type: "match", lobbyId: "m1", attachments: false },
       { type: "match_team", lobbyId: "m1:l1", attachments: false },
+      { type: "captain_pick_match", lobbyId: "d1", attachments: false },
       { type: "captain_pick_team", lobbyId: "d1:2", attachments: true },
     ]);
+    // Captain Pick Match Chat looks like Match Chat.
+    expect(wrapper.text()).toContain("chat_room_subtitles.match");
     wrapper.unmount();
   });
 });
@@ -319,6 +327,7 @@ describe("Chat pop-out", () => {
   it.each([
     ["match", "m1", false],
     ["match_team", "m1:l1", false],
+    ["captain_pick_match", "d1", false],
     ["captain_pick_team", "d1:1", true],
   ])("joins the %s room with its canonical id", (type, lobbyId, attachments) => {
     const wrapper = popout(type, lobbyId);
@@ -342,6 +351,9 @@ describe("chat notification click", () => {
 
     await openChatFromNotification("ChatMessage", "captain_pick_team:d1:2");
     expect(navigateTo).toHaveBeenCalledWith("/play/captain-pick");
+
+    await openChatFromNotification("ChatMessage", "captain_pick_match:d1");
+    expect(navigateTo).toHaveBeenLastCalledWith("/play/captain-pick");
 
     await openChatFromNotification("ChatMessage", "draft:d9");
     expect(navigateTo).toHaveBeenCalledWith("/draft-room/d9");

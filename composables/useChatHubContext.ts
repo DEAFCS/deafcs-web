@@ -80,35 +80,34 @@ export function matchChatHubContext(
   return { key: `match:${match.id}`, rooms };
 }
 
-// Captain Pick. Opens on Global Chat, or on Team Chat when the player
-// already has a side (a captain, or after F5). A side assigned later only
-// adds the team room, without taking focus.
+// Captain Pick. Opens on the draft's own Match Chat (captain_pick_match, id
+// = draftId: only the ten players in this draft, never the site-wide Global
+// Chat). The player's Team Chat is added once the server has them on a side,
+// without taking focus.
 export function captainPickChatHubContext(
   draft: CaptainPickDraftState | null | undefined,
   steamId: string | null | undefined,
   t: Translate,
 ): ChatHubContext | null {
   if (!draft) return null;
+  const rooms: ChatHubContextRoom[] = [
+    {
+      type: "captain_pick_match",
+      lobbyId: draft.draftId,
+      label: t("chat.match_chat"),
+    },
+  ];
   const lineup = myCaptainPickLineup(draft, steamId);
-  const rooms: ChatHubContextRoom[] =
-    lineup === null
-      ? []
-      : [
-          {
-            type: "captain_pick_team",
-            lobbyId: captainPickTeamChatId(draft.draftId, lineup),
-            label: t("matchmaking.captain_pick.team_of", {
-              name:
-                captainPickParticipant(draft, draft.captains[lineup])?.name ??
-                "",
-            }),
-          },
-        ];
-  return {
-    key: `captain_pick:${draft.draftId}`,
-    rooms,
-    focus: rooms.length ? null : "global",
-  };
+  if (lineup !== null) {
+    rooms.push({
+      type: "captain_pick_team",
+      lobbyId: captainPickTeamChatId(draft.draftId, lineup),
+      label: t("matchmaking.captain_pick.team_of", {
+        name: captainPickParticipant(draft, draft.captains[lineup])?.name ?? "",
+      }),
+    });
+  }
+  return { key: `captain_pick:${draft.draftId}`, rooms };
 }
 
 // Draft room. The Draft chat while there is no match yet, then the match's

@@ -160,11 +160,13 @@ export function useChatNotificationNavigation() {
       return true;
     }
 
-    if (type === "draft") {
-      const draftId = entityId.slice(type.length + 1);
-      if (!draftId) return false;
+    if (type === "draft" || type === "captain_pick_match") {
+      const roomId = entityId.slice(type.length + 1);
+      if (!roomId) return false;
       requestChatHubFocus(entityId);
-      await navigateTo(`/draft-room/${draftId}`);
+      await navigateTo(
+        type === "draft" ? `/draft-room/${roomId}` : "/play/captain-pick",
+      );
       return true;
     }
 

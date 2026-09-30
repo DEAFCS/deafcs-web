@@ -9,7 +9,7 @@ vi.mock("~/components/chat/ChatLobby.vue", async () => {
   return {
     default: vue.defineComponent({
       name: "ChatLobby",
-      props: ["instance", "type", "lobbyId"],
+      props: ["instance", "type", "lobbyId", "allowChatAttachments"],
       setup(props) {
         return () =>
           vue.h("div", {
@@ -71,20 +71,31 @@ describe("Captain Pick chat sidebar", () => {
     expect(root.classes()).toContain("xl:flex-1");
   });
 
-  it("always offers DEAFCS Global Chat", () => {
+  it("always offers this draft's own Match Chat, never the site-wide Global Chat", () => {
     for (const lineup of [null, 1, 2] as const) {
       const wrapper = mountChat(lineup);
       expect(lobbies(wrapper)[0]).toEqual({
         instance: "captain-pick",
-        type: "global",
-        lobbyId: "global",
+        type: "captain_pick_match",
+        lobbyId: "draft-1",
+        allowChatAttachments: false,
       });
       expect(
         wrapper
-          .find('[data-testid="captain-pick-global-chat"]')
+          .find('[data-testid="captain-pick-match-chat"]')
           .attributes("style"),
       ).toBeUndefined();
+      expect(lobbies(wrapper).some((lobby) => lobby.type === "global")).toBe(
+        false,
+      );
     }
+  });
+
+  it("labels the tabs Match | Team", () => {
+    const labels = mountChat(1)
+      .findAll('[data-testid="captain-pick-chat-tabs"] button')
+      .map((button) => button.text());
+    expect(labels).toEqual(["chat.match_chat", "chat.team_chat"]);
   });
 
   it("locks Team chat for a player nobody has picked yet", async () => {
@@ -111,11 +122,17 @@ describe("Captain Pick chat sidebar", () => {
     await team.trigger("click");
 
     expect(lobbies(wrapper)).toEqual([
-      { instance: "captain-pick", type: "global", lobbyId: "global" },
+      {
+        instance: "captain-pick",
+        type: "captain_pick_match",
+        lobbyId: "draft-1",
+        allowChatAttachments: false,
+      },
       {
         instance: "captain-pick",
         type: "captain_pick_team",
         lobbyId: "draft-1:2",
+        allowChatAttachments: undefined,
       },
     ]);
     expect(wrapper.find('[data-lobby="draft-1:1"]').exists()).toBe(false);
@@ -126,7 +143,7 @@ describe("Captain Pick chat sidebar", () => {
     ).toBeUndefined();
     expect(
       wrapper
-        .find('[data-testid="captain-pick-global-chat"]')
+        .find('[data-testid="captain-pick-match-chat"]')
         .attributes("style"),
     ).toContain("display: none");
   });
@@ -141,7 +158,7 @@ describe("Captain Pick chat sidebar", () => {
       tabButton(wrapper, "chat.team_chat").attributes("disabled"),
     ).toBeUndefined();
     expect(lobbies(wrapper).map((lobby) => lobby.lobbyId)).toEqual([
-      "global",
+      "draft-1",
       "draft-1:1",
     ]);
     expect(
@@ -153,13 +170,13 @@ describe("Captain Pick chat sidebar", () => {
     const wrapper = mountChat(1);
 
     await tabButton(wrapper, "chat.team_chat").trigger("click");
-    await tabButton(wrapper, "chat.global_chat").trigger("click");
+    await tabButton(wrapper, "chat.match_chat").trigger("click");
     await tabButton(wrapper, "chat.team_chat").trigger("click");
 
     expect(lobbies(wrapper)).toHaveLength(2);
   });
 
-  it("falls back to Global if the team is gone", async () => {
+  it("falls back to Match Chat if the team is gone", async () => {
     const wrapper = mountChat(1);
     await tabButton(wrapper, "chat.team_chat").trigger("click");
 
@@ -168,7 +185,7 @@ describe("Captain Pick chat sidebar", () => {
     expect(lobbies(wrapper)).toHaveLength(1);
     expect(
       wrapper
-        .find('[data-testid="captain-pick-global-chat"]')
+        .find('[data-testid="captain-pick-match-chat"]')
         .attributes("style"),
     ).toBeUndefined();
   });
