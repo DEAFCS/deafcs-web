@@ -34,6 +34,8 @@ vi.mock("~/stores/MatchLobbyStore", () => ({
 }));
 
 import {
+  CAPTAIN_PICK_STATUS_ATTEMPTS,
+  CAPTAIN_PICK_STATUS_RETRY_MS,
   createCaptainPickMatchStatus,
   isCaptainPickChatParticipant,
   isCaptainPickLineupLocked,
@@ -74,28 +76,125 @@ beforeEach(() => {
 
 describe("Captain Pick status of the match on screen", () => {
   let status: ReturnType<typeof createCaptainPickMatchStatus>;
+  const requests = () => mocks.sent.filter((s) => s.event === STATUS_EVENT);
+  const locked = (match = picking) =>
+    isCaptainPickLineupLocked(match, status.state);
+  const participant = (match = picking) =>
+    isCaptainPickChatParticipant(match, status.state);
+
   beforeEach(() => {
+    vi.useFakeTimers();
     status = createCaptainPickMatchStatus();
   });
-  afterEach(() => status.stop());
+  afterEach(() => {
+    status.stop();
+    vi.useRealTimers();
+  });
 
-  it("asks the server once per picking match, never for other statuses", () => {
+  it("keeps the lineups locked and the chat closed while the answer is pending", () => {
     status.update(picking);
-    status.update(picking);
-    status.update({ id: "m2", status: "Veto" });
-    status.update({ id: "m3", status: "Live" });
 
-    expect(mocks.sent).toEqual([{ event: STATUS_EVENT, data: { matchId: "m1" } }]);
+    expect(requests()).toEqual([{ event: STATUS_EVENT, data: { matchId: "m1" } }]);
+    expect(status.state.resolved).toBe(false);
+    expect(locked()).toBe(true);
+    expect(participant()).toBe(false);
+  });
+
+  it("is locked even before anything was asked for a picking match", () => {
+    expect(locked()).toBe(true);
+    expect(participant()).toBe(false);
+  });
+
+  it("stays locked on a positive answer and stops asking", async () => {
+    status.update(picking);
+    answer({ matchId: "m1", active: true, participant: true });
+
+    expect(locked()).toBe(true);
+    expect(participant()).toBe(true);
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS * 5);
+    expect(requests()).toHaveLength(1);
+  });
+
+  it("gives Match Chat only on the API's positive participant answer", () => {
+    status.update(picking);
+    answer({ matchId: "m1", active: true, participant: false });
+    expect(locked()).toBe(true);
+    expect(participant()).toBe(false);
+  });
+
+  it("unlocks an ordinary picking match once the bounded retries all say no", async () => {
+    status.update(picking);
+    answer({ matchId: "m1", active: false, participant: false });
+    // One "no" isn't believed yet: the shell may be ahead of its mapping.
+    expect(locked()).toBe(true);
+
+    for (let i = 1; i < CAPTAIN_PICK_STATUS_ATTEMPTS; i++) {
+      await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS);
+      answer({ matchId: "m1", active: false, participant: false });
+    }
+
+    expect(requests()).toHaveLength(CAPTAIN_PICK_STATUS_ATTEMPTS);
+    expect(status.state.resolved).toBe(true);
+    expect(locked()).toBe(false);
+    expect(participant()).toBe(false);
+
+    // Bounded: no more asking after that.
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS * 10);
+    expect(requests()).toHaveLength(CAPTAIN_PICK_STATUS_ATTEMPTS);
+  });
+
+  it("catches the mapping race: a first no, then yes on the retry", async () => {
+    status.update(picking);
+    answer({ matchId: "m1", active: false, participant: false });
+
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS);
+    expect(requests()).toHaveLength(2);
+    answer({ matchId: "m1", active: true, participant: true });
+
+    expect(locked()).toBe(true);
+    expect(participant()).toBe(true);
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS * 5);
+    expect(requests()).toHaveLength(2);
+  });
+
+  it("asks at most a bounded number of times when no answer comes", async () => {
+    status.update(picking);
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS * 20);
+
+    expect(requests()).toHaveLength(CAPTAIN_PICK_STATUS_ATTEMPTS);
+    // Still unknown, so still locked; a late answer is still accepted.
+    expect(locked()).toBe(true);
+    answer({ matchId: "m1", active: true, participant: false });
+    expect(status.state.resolved).toBe(true);
+  });
+
+  it("cancels a pending retry when the match changes or leaves PickingPlayers", async () => {
+    status.update(picking);
+    status.update({ id: "m1", status: "Veto" });
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS * 5);
+    expect(requests()).toHaveLength(1);
+    expect(locked({ id: "m1", status: "Veto" })).toBe(false);
+
+    mocks.sent.length = 0;
+    status.update({ id: "m2", status: "PickingPlayers" });
+    status.update({ id: "m3", status: "PickingPlayers" });
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS);
+    // m2's retry is gone; only m3 is still being asked about.
+    expect(requests().map((r) => r.data.matchId)).toEqual(["m2", "m3", "m3"]);
+  });
+
+  it("cancels a pending retry when disposed", async () => {
+    status.update(picking);
+    status.stop();
+    await vi.advanceTimersByTimeAsync(CAPTAIN_PICK_STATUS_RETRY_MS * 5);
+    expect(requests()).toHaveLength(1);
   });
 
   it("only trusts the answer for the match it asked about", () => {
     status.update(picking);
     answer({ matchId: "other", active: true, participant: true });
-    expect(isCaptainPickLineupLocked(picking, status.state)).toBe(false);
-
-    answer({ matchId: "m1", active: true, participant: false });
-    expect(isCaptainPickLineupLocked(picking, status.state)).toBe(true);
-    expect(isCaptainPickChatParticipant(picking, status.state)).toBe(false);
+    expect(status.state.resolved).toBe(false);
+    expect(participant()).toBe(false);
   });
 
   it("drops the lock as soon as the match leaves PickingPlayers (no permanent lock)", () => {
@@ -105,15 +204,14 @@ describe("Captain Pick status of the match on screen", () => {
     const veto = { id: "m1", status: "Veto" };
     status.update(veto);
 
-    expect(isCaptainPickLineupLocked(veto, status.state)).toBe(false);
-    expect(isCaptainPickChatParticipant(veto, status.state)).toBe(false);
-    expect(status.state.active).toBe(false);
+    expect(locked(veto)).toBe(false);
+    expect(participant(veto)).toBe(false);
   });
 
-  it("never locks an ordinary custom match being set up", () => {
-    status.update(picking);
-    answer({ matchId: "m1", active: false, participant: false });
-    expect(isCaptainPickLineupLocked(picking, status.state)).toBe(false);
+  it("never locks matches outside PickingPlayers", () => {
+    for (const s of ["Scheduled", "Veto", "Live", "Finished", "Canceled"]) {
+      expect(locked({ id: "m9", status: s })).toBe(false);
+    }
   });
 });
 
@@ -126,7 +224,7 @@ describe("Match Chat on the match page while players are picked", () => {
     lineup_2: { id: "l2", name: "Team 2" },
   };
   const statusFor = (active: boolean, participant: boolean) =>
-    reactive({ matchId: "m1", active, participant });
+    reactive({ matchId: "m1", resolved: true, active, participant });
   // The page's own gate: canJoinLobby || server-confirmed participant.
   const canUseMatchChat = (
     canJoinLobby: boolean,
@@ -170,6 +268,18 @@ describe("Match Chat on the match page while players are picked", () => {
     wrapper.unmount();
   });
 
+  it("nobody gets participant Match Chat while the answer is unresolved", () => {
+    const pending = reactive({
+      matchId: "m1",
+      resolved: false,
+      active: false,
+      participant: false,
+    });
+    expect(
+      matchChatHubContext(match, canUseMatchChat(false, pending), null, t),
+    ).toBeNull();
+  });
+
   it("a spectator gets no Match Chat", () => {
     expect(
       matchChatHubContext(match, canUseMatchChat(false, statusFor(true, false)), null, t),
@@ -189,6 +299,14 @@ describe("Match Chat on the match page while players are picked", () => {
   it("the page uses that gate for the inline chat and the Hub, and keeps Team Chat on the lineup rule", () => {
     const page = read("pages/matches/[id]/index.vue");
     expect(page).toContain('<div v-if="canUseMatchChat" class="flex flex-col gap-2">');
+    // Labelled Match Chat (only this match), not the site-wide Global Chat,
+    // and still the ordinary match room.
+    const start = page.indexOf('<div v-if="canUseMatchChat"');
+    const inline = page.slice(start, page.indexOf("</div>", start));
+    expect(inline).toContain('{{ $t("chat.match_chat") }}');
+    expect(inline).not.toContain("chat.global_chat");
+    expect(inline).toContain('type="match"');
+    expect(inline).toContain(':lobby-id="match.id"');
     expect(page).toContain('<div v-if="canJoinLobby && myLineupChatId"');
     expect(page).toMatch(/matchChatHubContext\(\s*this\.match,\s*this\.canUseMatchChat,/);
   });

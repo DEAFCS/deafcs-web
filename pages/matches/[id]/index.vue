@@ -472,7 +472,7 @@ const vsBaseClasses =
         <PageTransition :delay="200">
           <div v-if="canUseMatchChat" class="flex flex-col gap-2">
             <span class="text-sm font-medium text-muted-foreground">
-              {{ $t("chat.global_chat") }}
+              {{ $t("chat.match_chat") }}
             </span>
             <ChatLobby
               instance="matches/id"
@@ -710,7 +710,12 @@ export default {
       // so a disconnect mid-match re-blocks without needing this page
       // to unmount/remount anything.
       cameraReady: false,
-      captainPickMatch: { matchId: null, active: false, participant: false },
+      captainPickMatch: {
+        matchId: null,
+        resolved: false,
+        active: false,
+        participant: false,
+      },
     };
   },
   watch: {
