@@ -4,6 +4,8 @@ import { useRoute } from "vue-router";
 import { useApolloClient } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 import { useMatchClips } from "~/composables/useMatchClips";
+import CaptainPickProgress from "~/components/match/CaptainPickProgress.vue";
+import { createCaptainPickProgress } from "~/composables/useCaptainPickProgress";
 import MatchTabs from "~/components/match/MatchTabs.vue";
 import AnimatedStat from "~/components/AnimatedStat.vue";
 import MatchMaps from "~/components/match/MatchMaps.vue";
@@ -622,7 +624,8 @@ const vsBaseClasses =
         </PageTransition>
 
         <PageTransition :delay="200">
-          <MatchTabs
+          <CaptainPickProgress v-if="publicCaptainPick.progress" :progress="publicCaptainPick.progress" />
+          <MatchTabs v-else
             v-model:selected-map-id="selectedStatsMapId"
             :match="match"
           ></MatchTabs>
@@ -680,9 +683,14 @@ export default {
     // whether the viewer is one of its ten -- asked from the API.
     this.captainPick = createCaptainPickMatchStatus();
     this.captainPickMatch = this.captainPick.state;
+    this.publicProgress = createCaptainPickProgress(useRuntimeConfig().public.apiDomain);
+    this.publicCaptainPick = this.publicProgress.state;
     this.$watch(
       () => (this.match ? `${this.match.id}:${this.match.status}` : null),
-      () => this.captainPick.update(this.match),
+      () => {
+        this.captainPick.update(this.match);
+        this.publicProgress.update(this.match);
+      },
       { immediate: true },
     );
     // Opens the Chat Hub on this match's Match Chat (plus the viewer's own
@@ -693,6 +701,7 @@ export default {
   unmounted() {
     this.chatHub?.dispose();
     this.captainPick?.stop();
+    this.publicProgress?.stop();
     useMatchContext().value = null;
     if (this.autoCancelInterval) {
       clearInterval(this.autoCancelInterval);
@@ -701,6 +710,7 @@ export default {
   data() {
     return {
       match: undefined,
+      publicCaptainPick: { matchId: null, progress: null },
       vetoPickCount: undefined,
       autoCancelRemainingSeconds: 0,
       autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,

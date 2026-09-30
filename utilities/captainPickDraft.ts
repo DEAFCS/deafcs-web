@@ -115,7 +115,7 @@ export function localCaptainPickDeadline(
 }
 
 export function captainPickParticipant(
-  draft: CaptainPickDraftState,
+  draft: Pick<CaptainPickDraftState, "participants">,
   steamId: string,
 ): CaptainPickParticipant | undefined {
   return draft.participants.find(
@@ -130,7 +130,7 @@ export function captainPickParticipant(
  * carries. Display only.
  */
 export function captainPickPlayer(
-  draft: CaptainPickDraftState,
+  draft: Pick<CaptainPickDraftState, "participants">,
   steamId: string,
   players: Record<string, any> = {},
 ) {
@@ -152,7 +152,7 @@ export function captainPickPlayer(
  * first (pick order 0), then everyone in the order they joined the team.
  */
 export function captainPickLineupMembers(
-  draft: CaptainPickDraftState,
+  draft: Pick<CaptainPickDraftState, "participants" | "lineups">,
   lineup: CaptainPickLineup,
   players: Record<string, any> = {},
 ) {
