@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { flushPromises, mount } from "@vue/test-utils";
+import { flushPromises, mount, shallowMount } from "@vue/test-utils";
 import { defineComponent, h, nextTick, onMounted, reactive } from "vue";
 
 const mocks = vi.hoisted(() => ({
@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   matchLobbyStore: null as any,
   route: { params: {} as Record<string, string>, query: {} as any },
   lobbyProps: [] as any[],
+  routerPush: vi.fn(),
   emptyComponent: async () => {
     const { defineComponent, h } = await import("vue");
     return { default: defineComponent({ setup: () => () => h("div") }) };
@@ -22,7 +23,7 @@ vi.mock("~/stores/MatchLobbyStore", () => ({
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("#app", () => ({
   useRoute: () => mocks.route,
-  useRouter: () => ({ resolve: () => ({ href: "/chat/x" }), push: vi.fn() }),
+  useRouter: () => ({ resolve: () => ({ href: "/chat/x" }), push: mocks.routerPush }),
 }));
 vi.mock("~/stores/AuthStore", () => ({
   useAuthStore: () => ({ me: { steam_id: "1" }, isRoleAbove: () => false }),
@@ -47,7 +48,10 @@ vi.mock("~/components/chat/ChatLobby.vue", async () => {
     emits: ["message-received"],
     setup(props) {
       mocks.lobbyProps.push(props);
-      return () => h("div", { "data-lobby": `${props.type}:${props.lobbyId}` });
+      return () => h("div", { "data-lobby": `${props.type}:${props.lobbyId}` }, [
+        h("div", { class: "room-messages" }, `messages for ${props.lobbyId}`),
+        h("textarea", { class: "room-composer", "data-send-room": `${props.type}:${props.lobbyId}` }),
+      ]);
     },
   }) };
 });
@@ -64,6 +68,8 @@ vi.mock("~/composables/useIncomingDirectMessages", () => ({
 
 import socket from "../../web-sockets/Socket";
 import ChatPanel from "../../components/hub/ChatPanel.vue";
+import ChatMatchHeader from "../../components/chat/ChatMatchHeader.vue";
+import MatchTableRow from "../../components/MatchTableRow.vue";
 import ChatPopoutPage from "../../pages/chat/[tabId].vue";
 import { useChatTabs, type ChatTab } from "../../composables/useChatTabs";
 import { useRightSidebar } from "../../composables/useRightSidebar";
@@ -101,6 +107,7 @@ function mountPanel() {
         TooltipTrigger: PassThrough,
         TooltipContent: PassThrough,
         Empty: PassThrough,
+        ChatMatchHeader: true,
       },
       mocks: { $t: (key: string) => key },
     },
@@ -127,7 +134,7 @@ afterEach(() => {
 });
 
 describe("Chat Hub room list", () => {
-  it("lists Team Chat right below its match's Match Chat", async () => {
+  it("keeps one match icon, with no separate Team Chat icon", async () => {
     const { openTab } = useChatTabs();
     for (const tab of [
       room("match_team", "m1:l1", "Team Alpha"),
@@ -147,12 +154,82 @@ describe("Chat Hub room list", () => {
       "tournament:t1",
       "match:m2",
       "match:m1",
-      "match_team:m1:l1",
     ]);
     wrapper.unmount();
   });
 
-  it("shows the Team Chat subtitle for match and Captain Pick team rooms", async () => {
+  it("shows shared and own-team messages and composers together, with separate routing", async () => {
+    const { openTab, setActiveTab } = useChatTabs();
+    openTab(room("match", "m1", "A vs B"), { setActive: false });
+    openTab(room("match_team", "m1:l1", "Team A"), { setActive: false });
+    setActiveTab("match:m1");
+    const wrapper = mountPanel();
+    await flushPromises();
+    const visible = wrapper.findAllComponents({ name: "ChatLobby" }).filter((lobby) =>
+      (wrapper.find(`[data-chat-room-id="${lobby.props("tabId")}"]`).element as HTMLElement).style.display !== "none",
+    );
+    expect(visible.map((lobby) => lobby.props("tabId"))).toEqual(["match:m1", "match_team:m1:l1"]);
+    expect(visible.every((lobby) => lobby.props("isActiveTab"))).toBe(true);
+    expect(visible.flatMap((lobby) => lobby.findAll(".room-composer").map((composer) => composer.attributes("data-send-room"))))
+      .toEqual(["match:m1", "match_team:m1:l1"]);
+    expect(wrapper.findAll("h3").map((heading) => heading.text())).toEqual(["chat.match_chat", "chat.team_chat"]);
+    expect(wrapper.find('[data-chat-room-id="match_team:m1:l1"]').classes()).toContain("border-t");
+    expect(wrapper.find('[data-chat-room-id="match_team:m1:l2"]').exists()).toBe(false);
+    // A notification for the private room focuses this same combined view.
+    setActiveTab("match_team:m1:l1");
+    await flushPromises();
+    expect(wrapper.find('[data-chat-room-id="match:m1"]').isVisible()).toBe(true);
+    expect(wrapper.find('[data-chat-room-id="match_team:m1:l1"]').isVisible()).toBe(true);
+    wrapper.unmount();
+  });
+
+  it("lets an admin observe another match without showing their current match's Team Chat", async () => {
+    const { openTab, setActiveTab } = useChatTabs();
+    openTab(room("match", "own", "Own match"), { setActive: false });
+    openTab(room("match_team", "own:l1", "Own team"), { setActive: false });
+    openTab(room("match", "observed", "Observed match"), { setActive: false });
+    setActiveTab("match:observed");
+    const wrapper = mountPanel();
+    await flushPromises();
+    const visible = wrapper.findAllComponents({ name: "ChatLobby" }).filter((lobby) =>
+      (wrapper.find(`[data-chat-room-id="${lobby.props("tabId")}"]`).element as HTMLElement).style.display !== "none",
+    );
+    expect(visible.map((lobby) => lobby.props("tabId"))).toEqual(["match:observed"]);
+    expect(wrapper.find('[data-chat-room-id="match:observed"]').classes()).toEqual(expect.arrayContaining(["flex-1", "basis-0", "min-h-0"]));
+    wrapper.unmount();
+  });
+
+  it("hides private match rooms from a guest even if old tabs remain", async () => {
+    vi.stubGlobal("useAuthStore", () => ({ me: null, isRoleAbove: () => false }));
+    const { openTab } = useChatTabs();
+    openTab(room("match", "m1", "A vs B"), { setActive: false });
+    openTab(room("match_team", "m1:l1", "Team A"), { setActive: false });
+    const wrapper = mountPanel();
+    await flushPromises();
+    expect(wrapper.findAllComponents({ name: "ChatLobby" })).toHaveLength(0);
+    expect(wrapper.findAll("[data-chat-tab-id]")).toHaveLength(0);
+    wrapper.unmount();
+  });
+
+  it("groups Captain Pick's secure own-team room under its real match", async () => {
+    const { openTab, setActiveTab } = useChatTabs();
+    openTab(room("match", "m1", "Match"), { setActive: false });
+    openTab({ ...room("captain_pick_team", "draft1:2", "Own team"), parentMatchId: "m1" }, { setActive: false });
+    setActiveTab("match:m1");
+    const wrapper = mountPanel();
+    await flushPromises();
+    expect(wrapper.findAll("[data-chat-tab-id]")).toHaveLength(1);
+    const visible = wrapper.findAllComponents({ name: "ChatLobby" }).filter((lobby) =>
+      (wrapper.find(`[data-chat-room-id="${lobby.props("tabId")}"]`).element as HTMLElement).style.display !== "none",
+    );
+    expect(visible.map((lobby) => [lobby.props("type"), lobby.props("lobbyId")])).toEqual([
+      ["match", "m1"], ["captain_pick_team", "draft1:2"],
+    ]);
+    expect(wrapper.find('[data-chat-room-id="captain_pick_team:draft1:1"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it("keeps Draft chat available alongside the combined match view", async () => {
     const { openTab } = useChatTabs();
     openTab(room("match_team", "m1:l1", "Team Alpha"), { setActive: false });
     openTab(room("captain_pick_team", "d1:1", "Team Anna"), {
@@ -163,7 +240,8 @@ describe("Chat Hub room list", () => {
     await flushPromises();
 
     const text = wrapper.text();
-    expect(text.match(/chat_room_subtitles\.team/g)?.length).toBe(2);
+    expect(wrapper.findAll('[data-chat-tab-id^="match_team:"]')).toHaveLength(0);
+    expect(wrapper.findAll('[data-chat-tab-id^="captain_pick_team:"]')).toHaveLength(0);
     expect(text).toContain("chat_room_subtitles.draft");
     wrapper.unmount();
   });
@@ -206,11 +284,11 @@ describe("Chat Hub room list", () => {
     wrapper.unmount();
   });
 
-  it("mounts each room once with its canonical type and id, without attachments for match rooms", async () => {
-    const { openTab } = useChatTabs();
+  it("preserves canonical routing and attachments through Captain Pick's team-room handover", async () => {
+    const { openTab, closeTab } = useChatTabs();
     openTab(room("match", "m1", "A vs B"), { setActive: false });
     openTab(room("match_team", "m1:l1", "Team A"), { setActive: false });
-    openTab(room("captain_pick_team", "d1:2", "Team B"), { setActive: false });
+    openTab({ ...room("captain_pick_team", "d1:2", "Team B"), parentMatchId: "m1" }, { setActive: false });
     const wrapper = mountPanel();
     await flushPromises();
 
@@ -223,9 +301,45 @@ describe("Chat Hub room list", () => {
       }));
     expect(mounted).toEqual([
       { type: "match", lobbyId: "m1", attachments: false },
-      { type: "match_team", lobbyId: "m1:l1", attachments: false },
       { type: "captain_pick_team", lobbyId: "d1:2", attachments: true },
     ]);
+    closeTab("captain_pick_team:d1:2");
+    await flushPromises();
+    expect(wrapper.findAllComponents({ name: "ChatLobby" }).map((lobby) =>
+      [lobby.props("type"), lobby.props("lobbyId"), lobby.props("allowChatAttachments")],
+    )).toEqual([["match", "m1", false], ["match_team", "m1:l1", false]]);
+    wrapper.unmount();
+  });
+});
+
+describe("compact Chat Hub match card", () => {
+  it("removes both action buttons and routes the card by mouse and Enter", async () => {
+    const push = vi.fn();
+    mocks.routerPush.mockClear();
+    const match = {
+      id: "m1", status: "Live", options: { best_of: 1 }, match_maps: [],
+      lineup_1: { id: "l1", name: "Team A", lineup_players: [] },
+      lineup_2: { id: "l2", name: "Team B", lineup_players: [] },
+    };
+    const wrapper = shallowMount(ChatMatchHeader, {
+      props: { match },
+      global: {
+        stubs: { MatchTableRow: false },
+        plugins: [{ install(app: any) { app.config.globalProperties.$router = { push }; } }],
+        mocks: { $t: (key: string) => key, $router: { push } },
+      },
+    });
+    expect(wrapper.text()).not.toContain("ui_extras.quick_overview");
+    expect(wrapper.text()).not.toContain("match.open_match");
+    expect(wrapper.findComponent(MatchTableRow).props("hideOverview")).toBe(true);
+    await wrapper.findComponent(MatchTableRow).trigger("click");
+    expect(push).toHaveBeenCalledWith({ name: "matches-id", params: { id: "m1" } });
+    expect(wrapper.attributes("tabindex")).toBe("0");
+    await wrapper.trigger("keydown", { key: "Enter" });
+    expect(mocks.routerPush).toHaveBeenCalledWith("/matches/m1");
+    mocks.routerPush.mockClear();
+    await wrapper.findComponent(MatchTableRow).trigger("keydown", { key: "Enter" });
+    expect(mocks.routerPush).not.toHaveBeenCalled();
     wrapper.unmount();
   });
 });

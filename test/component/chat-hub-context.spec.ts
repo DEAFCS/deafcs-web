@@ -89,6 +89,12 @@ describe("match context", () => {
     expect(context.rooms.map((r) => r.type)).toEqual(["match"]);
   });
 
+  it("does not offer a coach or the opposing lineup a private Team Chat", () => {
+    const coachLineup = { ...MY_LINEUP, is_on_lineup: false };
+    expect(matchChatHubContext(match({ lineup_1: coachLineup }), true, coachLineup, t)!.rooms.map((r) => r.type)).toEqual(["match"]);
+    expect(matchChatHubContext(match(), true, OPPONENT, t)!.rooms.map((r) => r.type)).toEqual(["match"]);
+  });
+
   it("an admin who is actually on a lineup gets their Team Chat like any player", () => {
     const context = matchChatHubContext(match(), true, MY_LINEUP, t)!;
     expect(context.rooms.map((r) => `${r.type}:${r.lobbyId}`)).toContain(
@@ -277,6 +283,7 @@ describe("Captain Pick", () => {
     // Player 2 captains lineup 1, player 1 captains lineup 2.
     const context = captainPickChatHubContext(withMatch(makeDraft()), "2", t)!;
     expect(ids(context)).toEqual([MATCH_ROOM, "captain_pick_team:draft-1:1"]);
+    expect(context.rooms[1].parentMatchId).toBe(MATCH);
     expect(context.rooms[1].label).toBe(
       "matchmaking.captain_pick.team_of(Player 2)",
     );
@@ -311,6 +318,7 @@ describe("Captain Pick", () => {
   it("offers an outsider or admin no team room (and without a draft of their own, nothing)", () => {
     // The server only sends the draft to its ten players.
     expect(captainPickChatHubContext(null, "999", t)).toBeNull();
+    expect(captainPickChatHubContext(withMatch(makeDraft()), null, t)).toBeNull();
     // Even with a draft on screen: no team room; the API refuses the
     // match's chat to anyone outside the ten while picking.
     expect(ids(captainPickChatHubContext(withMatch(makeDraft()), "999", t))).toEqual([

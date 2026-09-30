@@ -138,7 +138,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
   </Teleport>
   <div v-else v-bind="$attrs" :class="embeddedContainerClasses">
     <ChatMatchHeader
-      v-if="isGlobalContext && hideParticipantsSummary && matchInfo"
+      v-if="isGlobalContext && hideParticipantsSummary && !hideMatchHeader && matchInfo"
       :match="matchInfo"
     />
     <div
@@ -299,6 +299,10 @@ export default {
       default: true,
     },
     hideParticipantsSummary: {
+      type: Boolean,
+      default: false,
+    },
+    hideMatchHeader: {
       type: Boolean,
       default: false,
     },

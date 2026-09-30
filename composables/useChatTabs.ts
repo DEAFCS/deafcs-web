@@ -22,6 +22,9 @@ export interface ChatTab {
   instance: string;
   type: ChatType;
   lobbyId: string;
+  // Captain Pick's private room uses a draft id, so its match association
+  // must come from the server-provided context rather than parsing its id.
+  parentMatchId?: string;
   pinned: boolean;
   // Direct-message tabs render the other player's own avatar as the tab
   // icon instead of a lucide icon (see ChatPanel.vue).
@@ -137,6 +140,16 @@ const unreadCountsRef = ref<Record<string, number>>(
   loadPersistedUnreadCounts(),
 );
 const activeTabIdRef = ref<string | null>(null);
+
+export function chatHubViewId(tab: ChatTab, tabs: readonly ChatTab[]) {
+  const matchId = tab.type === "match_team"
+    ? tab.lobbyId.split(":")[0]
+    : tab.type === "captain_pick_team" ? tab.parentMatchId : null;
+  const parentId = matchId ? `match:${matchId}` : null;
+  return parentId && tabs.some((room) => room.id === parentId)
+    ? parentId
+    : tab.id;
+}
 
 const TAB_ORDER_STORAGE_KEY = "chat-tab-manual-order";
 

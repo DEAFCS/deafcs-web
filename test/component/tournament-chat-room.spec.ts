@@ -115,7 +115,7 @@ describe("tournament Chat Room tab", () => {
     expect(unreadPick).toBeGreaterThan(requested);
     // Selecting still goes through handleSelectRoom, which resets unread.
     expect(panel).toMatch(
-      /function handleSelectRoom\(tab: ChatTab\) \{\s*activeChatId\.value = tab\.id;\s*setActiveTab\(tab\.id\);\s*resetUnread\(tab\.id\);/,
+      /function handleSelectRoom\(tab: ChatTab\) \{\s*activeChatId\.value = viewId\(tab\);\s*setActiveTab\(viewId\(tab\)\);\s*resetUnread\(tab\.id\);/,
     );
   });
 

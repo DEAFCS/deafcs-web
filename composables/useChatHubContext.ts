@@ -31,6 +31,7 @@ export interface ChatHubContextRoom {
   type: ChatTab["type"];
   lobbyId: string;
   label: string;
+  parentMatchId?: string;
 }
 
 export interface ChatHubContext {
@@ -58,8 +59,8 @@ function matchLabel(match: any, t: Translate) {
 
 // Match page. `canJoin` is the page's own "may use the match chat" check
 // (active match + lineup player, coach or organizer/admin); `myLineup` is
-// the viewer's own lineup as player or coach, never the opponent's. An
-// admin watching a match they are not in gets Match Chat only.
+// the viewer's own lineup as player or coach. Only an actual lineup player
+// gets Team Chat in the Hub; a coach or admin observer gets Match Chat only.
 export function matchChatHubContext(
   match: any,
   canJoin: boolean,
@@ -70,7 +71,9 @@ export function matchChatHubContext(
   const rooms: ChatHubContextRoom[] = [
     { type: "match", lobbyId: match.id, label: matchLabel(match, t) },
   ];
-  if (myLineup?.id) {
+  if (myLineup?.id && [match.lineup_1, match.lineup_2].some(
+    (lineup) => lineup?.id === myLineup.id && lineup.is_on_lineup,
+  )) {
     rooms.push({
       type: "match_team",
       lobbyId: `${match.id}:${myLineup.id}`,
@@ -90,7 +93,7 @@ export function captainPickChatHubContext(
   steamId: string | null | undefined,
   t: Translate,
 ): ChatHubContext | null {
-  if (!draft) return null;
+  if (!draft || !steamId) return null;
   const rooms: ChatHubContextRoom[] = [];
   if (draft.matchId) {
     rooms.push({
@@ -104,6 +107,7 @@ export function captainPickChatHubContext(
     rooms.push({
       type: "captain_pick_team",
       lobbyId: captainPickTeamChatId(draft.draftId, lineup),
+      parentMatchId: draft.matchId ?? undefined,
       label: t("matchmaking.captain_pick.team_of", {
         name: captainPickParticipant(draft, draft.captains[lineup])?.name ?? "",
       }),
@@ -278,10 +282,15 @@ export function useChatHubContext(
             instance: room.type,
             type: room.type,
             lobbyId: room.lobbyId,
+            ...(room.parentMatchId ? { parentMatchId: room.parentMatchId } : {}),
             pinned: true,
           },
           { setActive: false },
         );
+      }
+      const tab = tabs.value.find((t) => t.id === id);
+      if (tab?.type === "captain_pick_team") {
+        tab.parentMatchId = room.parentMatchId;
       }
     }
 

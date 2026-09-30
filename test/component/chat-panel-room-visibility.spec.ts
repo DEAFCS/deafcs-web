@@ -150,7 +150,7 @@ describe("ChatPanel.vue source: v-show is on a real element, not on <ChatLobby> 
 
   it("wraps each mounted room in its own v-show'd element", () => {
     expect(source).toMatch(
-      /v-for="tab in mountedTabs"[\s\S]{0,40}:key="tab\.id"[\s\S]{0,60}v-show="tab\.id === activeChatId"/,
+      /v-for="tab in mountedTabs"[\s\S]{0,40}:key="tab\.id"[\s\S]{0,60}v-show="viewId\(tab\) === activeChatId"/,
     );
   });
 });

@@ -32,12 +32,16 @@ export function useChatTabSetup() {
   const persistentLobbies = new Map<string, Lobby>();
 
   // The player's own lineup chat for a match they are actually playing in,
-  // listed right next to that match's Match Chat. Only is_on_lineup: the
+  // shown below that match's Match Chat. Only is_on_lineup: the
   // opponent's lineup is never offered, and the API decides who may join.
   function ensureMatchTeamTab(match: any) {
     const lineup = [match?.lineup_1, match?.lineup_2].find(
       (l: any) => l?.is_on_lineup && l?.id,
     );
+    for (const tab of [...tabs.value]) {
+      if (tab.type === "match_team" && tab.lobbyId.startsWith(`${match.id}:`) &&
+        tab.lobbyId !== `${match.id}:${lineup?.id}`) closeTab(tab.id);
+    }
     if (!lineup) return;
     const lobbyId = `${match.id}:${lineup.id}`;
     const id = `match_team:${lobbyId}`;
@@ -340,7 +344,11 @@ export function useChatTabSetup() {
     () => {
       const matches = matchLobbyStore.myMatches as any[];
       const activeMatchTabIds = new Set(matches.map((m) => `match:${m.id}`));
-      const activeMatchIds = new Set(matches.map((m) => String(m.id)));
+      const ownTeamIds = new Set(matches.flatMap((match) =>
+        [match.lineup_1, match.lineup_2]
+          .filter((lineup) => lineup?.is_on_lineup && lineup.id)
+          .map((lineup) => `${match.id}:${lineup.id}`),
+      ));
 
       for (const tab of [...tabs.value]) {
         // A room a page is showing right now (e.g. an admin watching a
@@ -351,7 +359,7 @@ export function useChatTabSetup() {
         }
         if (
           tab.type === "match_team" &&
-          !activeMatchIds.has(tab.lobbyId.split(":")[0])
+          !ownTeamIds.has(tab.lobbyId)
         ) {
           closeTab(tab.id);
         }

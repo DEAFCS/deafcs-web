@@ -17,6 +17,7 @@ import {
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
+import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
@@ -25,7 +26,7 @@ import {
   TOURNAMENT_WEBCAM_MAX,
   tournamentWebcamPopoutPath,
 } from "~/composables/useWebcamRoomApi";
-import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
+import { chatHubViewId, useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import { markDirectMessagesRead } from "~/composables/useIncomingDirectMessages";
 import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
 import TooltipTrigger from "~/components/ui/tooltip/TooltipTrigger.vue";
@@ -60,7 +61,29 @@ const {
 // double-counted (once by the always-on chat:new-message ping, once
 // more by this newly-joined lobby's own realtime "chat" event). Only
 // mount tabs the user has actually looked at at least once.
-const mountedTabs = computed(() => tabs.value.filter((tab) => !tab.unopened));
+function viewId(tab: ChatTab) {
+  return chatHubViewId(tab, tabs.value);
+}
+function isTeamRoom(tab: ChatTab) {
+  return tab.type === "match_team" || tab.type === "captain_pick_team";
+}
+function canShowRoom(tab: ChatTab) {
+  return (tab.type !== "match" && !isTeamRoom(tab)) || !!useAuthStore().me?.steam_id;
+}
+function isDisplayedTeamRoom(tab: ChatTab) {
+  const parent = viewId(tab);
+  if (parent === tab.id) return false;
+  // During Captain Pick's handover the draft and finalized lineup rooms
+  // can briefly coexist. Show the draft's own room until its context ends.
+  const teamRooms = tabs.value.filter((room) =>
+    !room.unopened && isTeamRoom(room) && viewId(room) === parent,
+  );
+  return (teamRooms.find((room) => room.type === "captain_pick_team") ?? teamRooms[0])?.id === tab.id;
+}
+const mountedTabs = computed(() => tabs.value
+  .filter((tab) => !tab.unopened && canShowRoom(tab) &&
+    (!isTeamRoom(tab) || isDisplayedTeamRoom(tab)))
+  .sort((a, b) => Number(isTeamRoom(a)) - Number(isTeamRoom(b))));
 
 const isAdmin = computed(() =>
   useAuthStore().isRoleAbove(e_player_roles_enum.administrator),
@@ -93,8 +116,10 @@ const activeChatId = ref<string | null>(null);
 // without this it silently kept showing whatever was already open
 // (reported as "clicking Message lands on Global Chat instead").
 watch(activeTabId, (id) => {
-  if (id && id !== activeChatId.value && tabs.value.some((t) => t.id === id)) {
-    activeChatId.value = id;
+  const requested = tabs.value.find((tab) => tab.id === id);
+  const view = requested ? viewId(requested) : null;
+  if (view && view !== activeChatId.value) {
+    activeChatId.value = view;
     resetUnread(id);
     const tab = tabs.value.find((t) => t.id === id);
     if (tab?.type === "direct") markDirectMessagesRead(tab.lobbyId);
@@ -113,31 +138,10 @@ const orderedTabs = computed<ChatTab[]>(() => {
     if (tab.type === "tournament") return 3;
     return 4;
   };
-  // A match's Team Chat sits right below that match's Match Chat: both
-  // sort under the match's own label, Match Chat first.
-  const matchIdOf = (tab: ChatTab) =>
-    tab.type === "match"
-      ? tab.lobbyId
-      : tab.type === "match_team"
-        ? tab.lobbyId.split(":")[0]
-        : null;
-  const sortLabel = (tab: ChatTab) => {
-    const matchId = tab.type === "match_team" ? matchIdOf(tab) : null;
-    const matchTab = matchId
-      ? tabs.value.find((t) => t.id === `match:${matchId}`)
-      : null;
-    return matchTab?.label ?? tab.label;
-  };
-  const base = [...tabs.value].sort((a, b) => {
+  const base = tabs.value.filter((tab) => canShowRoom(tab) && !isTeamRoom(tab)).sort((a, b) => {
     const wa = weight(a);
     const wb = weight(b);
     if (wa !== wb) return wa - wb;
-    const byLabel = sortLabel(a).localeCompare(sortLabel(b));
-    if (byLabel !== 0) return byLabel;
-    const ma = matchIdOf(a);
-    if (ma && ma === matchIdOf(b)) {
-      return (a.type === "match" ? 0 : 1) - (b.type === "match" ? 0 : 1);
-    }
     return a.label.localeCompare(b.label);
   });
 
@@ -303,6 +307,9 @@ const activeTab = computed<ChatTab | null>(() => {
   if (!activeChatId.value) return null;
   return orderedTabs.value.find((t) => t.id === activeChatId.value) || null;
 });
+const activeMatch = computed(() => activeTab.value?.type === "match"
+  ? matchLobbyStore.myMatches?.find((match) => String(match.id) === activeTab.value?.lobbyId) ?? null
+  : null);
 
 const activeParticipantsCount = computed(() => {
   const tab = activeTab.value;
@@ -437,9 +444,12 @@ watch(
 );
 
 function handleSelectRoom(tab: ChatTab) {
-  activeChatId.value = tab.id;
-  setActiveTab(tab.id);
+  activeChatId.value = viewId(tab);
+  setActiveTab(viewId(tab));
   resetUnread(tab.id);
+  for (const room of mountedTabs.value) {
+    if (viewId(room) === activeChatId.value) resetUnread(room.id);
+  }
   if (tab.type === "direct") markDirectMessagesRead(tab.lobbyId);
 }
 
@@ -451,7 +461,8 @@ function handleMessageReceived(payload: {
   if (payload.direction !== "inbound") return;
   const tabId = payload.tabId ?? activeChatId.value;
   if (!tabId) return;
-  const isCurrentRoom = tabId === activeChatId.value;
+  const room = tabs.value.find((tab) => tab.id === tabId);
+  const isCurrentRoom = room && viewId(room) === activeChatId.value;
   const isVisible = props.isSidebarOpen && props.isTabActive && isCurrentRoom;
   const tab = tabs.value.find((t) => t.id === tabId);
   if (!isVisible) {
@@ -934,7 +945,8 @@ function openTournamentWebcamWindow() {
           <ChatParticipantsList :participants="activeParticipants" />
         </div>
 
-        <div class="flex-1 min-h-0 flex flex-col">
+        <ChatMatchHeader v-if="activeMatch" :match="activeMatch" class="mx-3 mt-2" />
+        <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
           <!-- ChatLobby's root template is a Teleport-or-div pair plus a
                sibling SanctionPlayer node, so it has no single element
                root -- Vue only special-cases v-show for a component
@@ -947,9 +959,17 @@ function openTournamentWebcamWindow() {
           <div
             v-for="tab in mountedTabs"
             :key="tab.id"
-            v-show="tab.id === activeChatId"
-            class="flex-1 min-h-0 flex flex-col"
+            v-show="viewId(tab) === activeChatId"
+            class="flex-1 basis-0 min-h-0 flex flex-col overflow-hidden"
+            :class="isTeamRoom(tab) && viewId(tab) !== tab.id ? 'border-t border-border' : ''"
+            :data-chat-room-id="tab.id"
           >
+            <h3
+              v-if="tab.type === 'match' || isTeamRoom(tab)"
+              class="shrink-0 px-3 pt-2 text-xs font-semibold text-muted-foreground"
+            >
+              {{ tab.type === 'match' ? $t('chat.match_chat') : $t('chat.team_chat') }}
+            </h3>
             <ChatLobby
               :instance="tab.instance"
               :type="tab.type"
@@ -959,9 +979,10 @@ function openTournamentWebcamWindow() {
               :is-global-context="true"
               :reactions-enabled="true"
               :hide-participants-summary="true"
-              :disable-auto-focus-on-activate="isMobile"
+              :hide-match-header="true"
+              :disable-auto-focus-on-activate="isMobile || isTeamRoom(tab)"
               :is-active-tab="
-                tab.id === activeChatId && isSidebarOpen && isTabActive
+                viewId(tab) === activeChatId && isSidebarOpen && isTabActive
               "
               :can-send="canSendToTab(tab)"
               :readonly-hint="readonlyHintFor(tab)"
