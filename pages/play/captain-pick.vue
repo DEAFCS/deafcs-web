@@ -13,6 +13,10 @@ import {
   getCaptainPickDraft,
   localCaptainPickDeadline,
 } from "~/utilities/captainPickDraft";
+import {
+  captainPickChatHubContext,
+  useChatHubContext,
+} from "~/composables/useChatHubContext";
 
 /**
  * Stable home of a committed 5v5 Captain Pick draft. Everything shown comes
@@ -38,6 +42,13 @@ const draft = computed(() =>
 
 // Flags, CS2/FACEIT ratings and profile data, as Draft Games shows them.
 const { players } = useCaptainPickPlayers(draft);
+
+// Chat Hub: opens when the draft is entered. The private team room appears
+// the moment the draft state from the server puts the player on a side,
+// and goes away with this page, so the Team Chat of the match takes over.
+useChatHubContext(() =>
+  captainPickChatHubContext(draft.value, auth.me?.steam_id ?? null, t),
+);
 
 const hadDraft = ref(false);
 const waitingForState = ref(true);

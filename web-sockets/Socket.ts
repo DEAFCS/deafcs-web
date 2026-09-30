@@ -557,7 +557,16 @@ class Socket extends EventEmitter {
         // reported as "my own message disappears after closing and
         // reopening the sidebar."
         const lobby = this.lobbies.get(`${type}:${id}`);
-        if (lobby) {
+        // Every mounted ChatLobby for this room (e.g. the match page's own
+        // chat box plus the same room in the Chat Hub) runs this wrapper
+        // for the same message -- only the first may add it to the shared
+        // cache, or a later fresh mount would render it once per listener.
+        const messageId = (data as any)?.id;
+        if (
+          lobby &&
+          (messageId == null ||
+            !lobby.messages.some((m: any) => m?.id === messageId))
+        ) {
           lobby.messages.push(data);
         }
         callback(data);
@@ -874,14 +883,11 @@ socket.listen(
       return;
     }
 
-    // registerTabIfMissing's tab type is narrower than the full ChatType
-    // above (no "draft"/"match_team" -- those aren't opened as regular
-    // chat tabs anywhere in the UI today), so this mirrors
-    // useChatNotificationNavigation's same exclusion rather than fight
-    // the type mismatch. Those two chats simply don't get a live unread
-    // ping yet; unaffected otherwise. "match" is excluded too -- live
-    // match all-chat is high-volume and expected to already be open
-    // during a match, so it shouldn't ping an unread badge either.
+    // Match-flow rooms (match, match_team, draft, captain_pick_team) are
+    // only ever offered in the Chat Hub by the page the player is on (see
+    // useChatHubContext), never registered from a background ping, and
+    // none of them shows an unread badge: match/team/draft chat is
+    // high-volume and expected to already be open.
     const registrableTypes = [
       "global",
       "organizers",

@@ -8,7 +8,13 @@ type ChatType =
   | "tournament"
   | "global"
   | "direct"
-  | "announcement";
+  | "announcement"
+  // Contextual match-flow rooms (see useChatHubContext). Same canonical
+  // lobby types/ids as the API: match_team is `${matchId}:${lineupId}`,
+  // captain_pick_team is `${draftId}:${lineup}`, draft is the room id.
+  | "match_team"
+  | "captain_pick_team"
+  | "draft";
 
 export interface ChatTab {
   id: string;

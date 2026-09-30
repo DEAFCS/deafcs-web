@@ -8,6 +8,17 @@ const mocks = vi.hoisted(() => ({
   settings: null as any,
   socketEvent: vi.fn(),
   routerReplace: vi.fn(),
+  chatHubSource: null as null | (() => any),
+}));
+
+// The Chat Hub lifecycle has its own spec (chat-hub-context.spec.ts); here
+// only what this page hands it.
+vi.mock("~/composables/useChatHubContext", async (importActual) => ({
+  ...(await importActual<any>()),
+  useChatHubContext: (source: () => any) => {
+    mocks.chatHubSource = source;
+    return { dispose: () => {} };
+  },
 }));
 
 vi.mock("~/stores/MatchmakingStore", () => ({
@@ -282,6 +293,26 @@ describe("/play/captain-pick", () => {
     expect(wrapper.find('[data-testid="captain-pick-loading"]').text()).toBe(
       "matchmaking.captain_pick.not_found",
     );
+  });
+
+  it("hands the Chat Hub this player's own team room, and drops it when the draft ends", async () => {
+    mocks.store.joinedMatchmakingQueues.confirmation =
+      confirmationWith(makeDraft());
+    mountPage();
+
+    // Player "2" is lineup 1's captain in the fixture.
+    const context = mocks.chatHubSource!();
+    expect(context.key).toBe("captain_pick:draft-1");
+    expect(context.rooms).toEqual([
+      expect.objectContaining({
+        type: "captain_pick_team",
+        lobbyId: "draft-1:1",
+      }),
+    ]);
+
+    setConfirmation(undefined);
+    await flushPromises();
+    expect(mocks.chatHubSource!()).toBeNull();
   });
 
   it("keeps a running draft when an admin switches Captain Pick off", async () => {

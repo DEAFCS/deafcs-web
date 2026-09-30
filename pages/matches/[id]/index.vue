@@ -645,6 +645,10 @@ import { playerFields } from "~/graphql/playerFields";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { eloFields } from "~/graphql/eloFields";
 import { useMatchContext } from "~/composables/useMatchContext";
+import {
+  matchChatHubContext,
+  useChatHubContext,
+} from "~/composables/useChatHubContext";
 
 // generated/zeus predates demo_processing_started_at (needs a live Hasura
 // codegen run to pick it up, same reason as partyFields in
@@ -655,7 +659,14 @@ const demoProcessingFields: any = {
 };
 
 export default {
+  created() {
+    // Opens the Chat Hub on this match's Match Chat (plus the viewer's own
+    // Team Chat, if any) while this page is open. Options API: not inside
+    // setup(), so it's disposed in unmounted() below.
+    this.chatHub = useChatHubContext(() => this.chatHubContext);
+  },
   unmounted() {
+    this.chatHub?.dispose();
     useMatchContext().value = null;
     if (this.autoCancelInterval) {
       clearInterval(this.autoCancelInterval);
@@ -1018,6 +1029,15 @@ export default {
         return null;
       }
       return `${this.match.id}:${this.myLineup.id}`;
+    },
+    // Same rooms as the inline chats below (see matchChatHubContext).
+    chatHubContext() {
+      return matchChatHubContext(
+        this.match,
+        this.canJoinLobby,
+        this.myLineup,
+        (key, params) => this.$t(key, params),
+      );
     },
     // Deliberately stricter than myLineup: is_on_lineup is only true
     // for an actual rostered player row (see is_on_lineup.sql), not a

@@ -3552,6 +3552,9 @@
   "chat_tab_labels": {
     "match": "比赛聊天",
     "team": "队伍聊天",
+    "match_team": "队伍聊天",
+    "captain_pick_team": "队伍聊天",
+    "draft": "选人房间聊天",
     "tournament": "赛事聊天",
     "organizers": "组织者聊天",
     "matchmaking": "队列聊天",
@@ -3563,7 +3566,8 @@
     "tournament": "赛事聊天",
     "matchmaking": "队列聊天",
     "match": "比赛聊天",
-    "team": "队伍聊天"
+    "team": "队伍聊天",
+    "draft": "选人房间聊天"
   },
   "latency_status": {
     "measuring": "测量中...",

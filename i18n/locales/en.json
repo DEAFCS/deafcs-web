@@ -5089,6 +5089,9 @@
   "chat_tab_labels": {
     "match": "Match chat",
     "team": "Team chat",
+    "match_team": "Team chat",
+    "captain_pick_team": "Team chat",
+    "draft": "Draft chat",
     "tournament": "Tournament chat",
     "organizers": "Organizers chat",
     "matchmaking": "Queue chat",
@@ -5104,6 +5107,7 @@
     "matchmaking": "Queue Chat",
     "match": "Match Chat",
     "team": "Team Chat",
+    "draft": "Draft Chat",
     "global": "All Verified Players",
     "direct": "Direct Message",
     "announcement": "Admin Announcements"

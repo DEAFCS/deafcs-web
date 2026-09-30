@@ -5,6 +5,7 @@ import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
 import socket, { type ChatType, type Lobby } from "~/web-sockets/Socket";
+import { isChatTabHeldByContext } from "~/composables/useChatHubContext";
 
 export function useChatTabSetup() {
   const { t } = useI18n();
@@ -29,6 +30,30 @@ export function useChatTabSetup() {
     authStore.isRoleAbove(e_player_roles_enum.verified_user),
   );
   const persistentLobbies = new Map<string, Lobby>();
+
+  // The player's own lineup chat for a match they are actually playing in,
+  // listed right next to that match's Match Chat. Only is_on_lineup: the
+  // opponent's lineup is never offered, and the API decides who may join.
+  function ensureMatchTeamTab(match: any) {
+    const lineup = [match?.lineup_1, match?.lineup_2].find(
+      (l: any) => l?.is_on_lineup && l?.id,
+    );
+    if (!lineup) return;
+    const lobbyId = `${match.id}:${lineup.id}`;
+    const id = `match_team:${lobbyId}`;
+    if (tabs.value.some((tab) => tab.id === id)) return;
+    openTab(
+      {
+        id,
+        label: lineup.name || t("chat_tab_labels.match_team"),
+        instance: "match_team",
+        type: "match_team",
+        lobbyId,
+        pinned: true,
+      },
+      { setActive: false },
+    );
+  }
 
   function syncPersistentChatJoins() {
     const activeIds = new Set(tabs.value.map((tab) => tab.id));
@@ -152,6 +177,7 @@ export function useChatTabSetup() {
           { setActive: false },
         );
       }
+      ensureMatchTeamTab(currentMatch);
     }
 
     const globalId = "global";
@@ -305,6 +331,7 @@ export function useChatTabSetup() {
           { setActive: false },
         );
       }
+      ensureMatchTeamTab(match);
     },
   );
 
@@ -313,9 +340,19 @@ export function useChatTabSetup() {
     () => {
       const matches = matchLobbyStore.myMatches as any[];
       const activeMatchTabIds = new Set(matches.map((m) => `match:${m.id}`));
+      const activeMatchIds = new Set(matches.map((m) => String(m.id)));
 
       for (const tab of [...tabs.value]) {
+        // A room a page is showing right now (e.g. an admin watching a
+        // match they are not in) is removed by that page when it leaves.
+        if (isChatTabHeldByContext(tab.id)) continue;
         if (tab.type === "match" && !activeMatchTabIds.has(tab.id)) {
+          closeTab(tab.id);
+        }
+        if (
+          tab.type === "match_team" &&
+          !activeMatchIds.has(tab.lobbyId.split(":")[0])
+        ) {
           closeTab(tab.id);
         }
       }

@@ -3854,6 +3854,9 @@
   "chat_tab_labels": {
     "match": "Chat da partida",
     "team": "Chat da equipe",
+    "match_team": "Chat da equipe",
+    "captain_pick_team": "Chat da equipe",
+    "draft": "Chat do draft",
     "tournament": "Chat do Torneio",
     "organizers": "Chat dos Organizadores",
     "matchmaking": "Chat da Fila",
@@ -3865,7 +3868,8 @@
     "tournament": "Chat do Torneio",
     "matchmaking": "Chat da Fila",
     "match": "Chat da partida",
-    "team": "Chat da equipe"
+    "team": "Chat da equipe",
+    "draft": "Chat do draft"
   },
   "latency_status": {
     "measuring": "Medindo...",

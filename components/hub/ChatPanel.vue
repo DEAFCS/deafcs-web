@@ -113,10 +113,31 @@ const orderedTabs = computed<ChatTab[]>(() => {
     if (tab.type === "tournament") return 3;
     return 4;
   };
+  // A match's Team Chat sits right below that match's Match Chat: both
+  // sort under the match's own label, Match Chat first.
+  const matchIdOf = (tab: ChatTab) =>
+    tab.type === "match"
+      ? tab.lobbyId
+      : tab.type === "match_team"
+        ? tab.lobbyId.split(":")[0]
+        : null;
+  const sortLabel = (tab: ChatTab) => {
+    const matchId = tab.type === "match_team" ? matchIdOf(tab) : null;
+    const matchTab = matchId
+      ? tabs.value.find((t) => t.id === `match:${matchId}`)
+      : null;
+    return matchTab?.label ?? tab.label;
+  };
   const base = [...tabs.value].sort((a, b) => {
     const wa = weight(a);
     const wb = weight(b);
     if (wa !== wb) return wa - wb;
+    const byLabel = sortLabel(a).localeCompare(sortLabel(b));
+    if (byLabel !== 0) return byLabel;
+    const ma = matchIdOf(a);
+    if (ma && ma === matchIdOf(b)) {
+      return (a.type === "match" ? 0 : 1) - (b.type === "match" ? 0 : 1);
+    }
     return a.label.localeCompare(b.label);
   });
 
@@ -445,10 +466,15 @@ function handleMessageReceived(payload: {
     // Live match all-chat/team-chat is high-volume and expected to be
     // open during a match already, so it's excluded from the unread
     // badge the same way DMs are excluded above (for a different reason).
+    // Draft chat has the same no-badge policy on the API side, and
+    // Captain Pick team chat never had a Hub badge before it had a room
+    // here, so both stay badge-free.
     if (
       tab?.type !== "direct" &&
       tab?.type !== "match" &&
-      tab?.type !== "match_team"
+      tab?.type !== "match_team" &&
+      tab?.type !== "draft" &&
+      tab?.type !== "captain_pick_team"
     ) {
       incrementUnread(tabId);
     }
@@ -469,8 +495,13 @@ function getRoomIcon(tab: ChatTab) {
   if (tab.type === "tournament") return Trophy;
   if (tab.type === "organizers") return Megaphone;
   if (tab.id.startsWith("matchmaking:")) return Merge;
-  if (tab.type === "match") return Sword;
-  if (tab.type === "team") return Shield;
+  if (tab.type === "match" || tab.type === "draft") return Sword;
+  if (
+    tab.type === "team" ||
+    tab.type === "match_team" ||
+    tab.type === "captain_pick_team"
+  )
+    return Shield;
   if (tab.type === "global") return Globe;
   return MessageSquare;
 }
@@ -482,7 +513,13 @@ function getRoomSubtitle(tab: ChatTab) {
   if (tab.id.startsWith("matchmaking:"))
     return t("chat_room_subtitles.matchmaking");
   if (tab.type === "match") return t("chat_room_subtitles.match");
-  if (tab.type === "team") return t("chat_room_subtitles.team");
+  if (
+    tab.type === "team" ||
+    tab.type === "match_team" ||
+    tab.type === "captain_pick_team"
+  )
+    return t("chat_room_subtitles.team");
+  if (tab.type === "draft") return t("chat_room_subtitles.draft");
   if (tab.type === "global") return t("chat_room_subtitles.global");
   if (tab.type === "direct") return t("chat_room_subtitles.direct");
   return "";
@@ -928,6 +965,9 @@ function openTournamentWebcamWindow() {
               "
               :can-send="canSendToTab(tab)"
               :readonly-hint="readonlyHintFor(tab)"
+              :allow-chat-attachments="
+                tab.type !== 'match' && tab.type !== 'match_team'
+              "
               @message-received="handleMessageReceived"
             />
           </div>

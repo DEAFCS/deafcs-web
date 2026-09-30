@@ -12,6 +12,7 @@ import gql from "graphql-tag";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { setActiveHub } from "~/composables/useHubState";
+import { requestChatHubFocus } from "~/composables/useChatHubContext";
 
 const PLAYER_QUERY = gql`
   query ChatNotificationPlayer($steamId: bigint!) {
@@ -144,19 +145,26 @@ export function useChatNotificationNavigation() {
       return true;
     }
 
-    if (type === "match_team") {
-      // Team Chat has no sidebar chat-hub tab at all -- unlike every
-      // other lobby type, it's only ever rendered inline on the match
-      // page itself (see pages/matches/[id]/index.vue). entity_id is
-      // "match_team:<matchId>:<lineupId>", so route to that match page
-      // rather than trying (and silently failing) to open a hub tab
-      // that doesn't exist for this type -- this was the actual bug:
-      // "match_team" wasn't in SIMPLE_LOBBY_TYPES below, so a Team Chat
-      // notification click matched nothing and did nothing at all.
+    // Match-flow rooms are offered in the Chat Hub by the page they belong
+    // to (see useChatHubContext), never opened here directly -- that page
+    // is where the player's access to the room is known. Route there and
+    // let the Hub focus the room once the page offers it.
+    if (type === "match_team" || type === "captain_pick_team") {
+      // "match_team:<matchId>:<lineupId>" / "captain_pick_team:<draftId>:<lineup>"
       const parts = entityId.split(":");
       if (parts.length !== 3) return false;
-      const [, matchId] = parts;
-      await navigateTo(`/matches/${matchId}`);
+      requestChatHubFocus(entityId);
+      await navigateTo(
+        type === "match_team" ? `/matches/${parts[1]}` : "/play/captain-pick",
+      );
+      return true;
+    }
+
+    if (type === "draft") {
+      const draftId = entityId.slice(type.length + 1);
+      if (!draftId) return false;
+      requestChatHubFocus(entityId);
+      await navigateTo(`/draft-room/${draftId}`);
       return true;
     }
 

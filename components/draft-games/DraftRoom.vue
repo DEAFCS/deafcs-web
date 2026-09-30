@@ -28,6 +28,10 @@ import { Spinner } from "~/components/ui/spinner";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import mapLabel from "~/utilities/mapLabel";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
+import {
+  draftChatHubContext,
+  useChatHubContext,
+} from "~/composables/useChatHubContext";
 import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
 import MatchMapVeto from "~/components/match/MatchMapVeto.vue";
 import MatchInfo from "~/components/match/MatchInfo.vue";
@@ -160,6 +164,23 @@ const canChat = computed(() => {
   }
   return isLobbyPhase.value || isMember.value || isOrganizer.value;
 });
+// Chat Hub: the Draft chat until the match exists, then the Match Chat of
+// that match plus the own Team Chat of the viewer (see draftChatHubContext).
+useChatHubContext(() =>
+  draftChatHubContext({
+    room: props.room,
+    match: props.match,
+    matchChatReady: matchChatReady.value,
+    signedIn: !!me.value,
+    canChat: canChat.value,
+    inLineup: inLineup.value,
+    isOrganizer: isOrganizer.value,
+    isParticipant: isMember.value || isHost.value,
+    myLineupNumber: myMembership.value?.lineup,
+    t,
+  }),
+);
+
 const isWaitlisted = computed(() => myMembership.value?.status === "Waitlist");
 const hasRequested = computed(() => myMembership.value?.status === "Requested");
 const isInvited = computed(() => myMembership.value?.status === "Invited");

@@ -36,13 +36,7 @@ const tabFromQuery = computed<ChatTab | null>(() => {
     id: tabId.value,
     label: label || t("chat_page.fallback_title"),
     instance,
-    type: type as
-      | "match"
-      | "team"
-      | "matchmaking"
-      | "organizers"
-      | "tournament"
-      | "announcement",
+    type: type as ChatTab["type"],
     lobbyId,
     pinned: false,
   };
@@ -146,6 +140,9 @@ function handleBackToHub() {
           :is-active-tab="true"
           :can-send="canSend"
           :readonly-hint="readonlyHint"
+          :allow-chat-attachments="
+            currentTab!.type !== 'match' && currentTab!.type !== 'match_team'
+          "
         />
       </div>
     </div>
