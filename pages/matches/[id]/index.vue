@@ -470,7 +470,7 @@ const vsBaseClasses =
         </PageTransition>
 
         <PageTransition :delay="200">
-          <div v-if="canJoinLobby" class="flex flex-col gap-2">
+          <div v-if="canUseMatchChat" class="flex flex-col gap-2">
             <span class="text-sm font-medium text-muted-foreground">
               {{ $t("chat.global_chat") }}
             </span>
@@ -649,6 +649,13 @@ import {
   matchChatHubContext,
   useChatHubContext,
 } from "~/composables/useChatHubContext";
+import {
+  CAPTAIN_PICK_LINEUP_LOCK,
+  createCaptainPickMatchStatus,
+  isCaptainPickChatParticipant,
+  isCaptainPickLineupLocked,
+} from "~/composables/useCaptainPickMatchStatus";
+import { computed as computedRef } from "vue";
 
 // generated/zeus predates demo_processing_started_at (needs a live Hasura
 // codegen run to pick it up, same reason as partyFields in
@@ -659,7 +666,25 @@ const demoProcessingFields: any = {
 };
 
 export default {
+  // Lineup components below lock manual edits while this is an active
+  // Captain Pick draft's match (see useCaptainPickMatchStatus).
+  provide() {
+    return {
+      [CAPTAIN_PICK_LINEUP_LOCK]: computedRef(
+        () => this.captainPickLineupsLocked,
+      ),
+    };
+  },
   created() {
+    // Whether this match is an active Captain Pick draft's match, and
+    // whether the viewer is one of its ten -- asked from the API.
+    this.captainPick = createCaptainPickMatchStatus();
+    this.captainPickMatch = this.captainPick.state;
+    this.$watch(
+      () => (this.match ? `${this.match.id}:${this.match.status}` : null),
+      () => this.captainPick.update(this.match),
+      { immediate: true },
+    );
     // Opens the Chat Hub on this match's Match Chat (plus the viewer's own
     // Team Chat, if any) while this page is open. Options API: not inside
     // setup(), so it's disposed in unmounted() below.
@@ -667,6 +692,7 @@ export default {
   },
   unmounted() {
     this.chatHub?.dispose();
+    this.captainPick?.stop();
     useMatchContext().value = null;
     if (this.autoCancelInterval) {
       clearInterval(this.autoCancelInterval);
@@ -684,6 +710,7 @@ export default {
       // so a disconnect mid-match re-blocks without needing this page
       // to unmount/remount anything.
       cameraReady: false,
+      captainPickMatch: { matchId: null, active: false, participant: false },
     };
   },
   watch: {
@@ -1030,11 +1057,23 @@ export default {
       }
       return `${this.match.id}:${this.myLineup.id}`;
     },
+    captainPickLineupsLocked() {
+      return isCaptainPickLineupLocked(this.match, this.captainPickMatch);
+    },
+    // The shared Match Chat: everyone canJoinLobby lets in, plus the ten
+    // players of a Captain Pick draft while they're still being picked
+    // (not seated in the lineups yet). The API authorizes the join itself.
+    canUseMatchChat() {
+      return (
+        this.canJoinLobby ||
+        isCaptainPickChatParticipant(this.match, this.captainPickMatch)
+      );
+    },
     // Same rooms as the inline chats below (see matchChatHubContext).
     chatHubContext() {
       return matchChatHubContext(
         this.match,
-        this.canJoinLobby,
+        this.canUseMatchChat,
         this.myLineup,
         (key, params) => this.$t(key, params),
       );

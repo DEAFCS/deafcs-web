@@ -809,6 +809,8 @@ provide("commander", commander);
 </style>
 
 <script lang="ts">
+import { unref } from "vue";
+import { CAPTAIN_PICK_LINEUP_LOCK } from "~/composables/useCaptainPickMatchStatus";
 import {
   $,
   order_by,
@@ -859,6 +861,15 @@ const allMapsStatsQuery = generateQuery({
 
 export default {
   emits: ["update:selectedMapId"],
+  // True while this is an active Captain Pick draft's match: the drafted
+  // teams are the server's, not editable here (see the match page).
+  inject: {
+    captainPickLineupsLocked: {
+      from: CAPTAIN_PICK_LINEUP_LOCK,
+      default: false,
+    },
+  },
+
   props: {
     match: {
       type: Object,
@@ -1200,6 +1211,9 @@ export default {
         : false;
     },
     canAdjustLineups() {
+      if (unref(this.captainPickLineupsLocked)) {
+        return false;
+      }
       if (
         this.match.status !== e_match_status_enum.PickingPlayers ||
         !this.match.is_organizer

@@ -537,6 +537,8 @@ import {
 </template>
 
 <script lang="ts">
+import { unref } from "vue";
+import { CAPTAIN_PICK_LINEUP_LOCK } from "~/composables/useCaptainPickMatchStatus";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { $ } from "~/generated/zeus";
 import { useForm } from "vee-validate";
@@ -545,6 +547,15 @@ import * as z from "zod";
 
 export default {
   emits: ["joined"],
+  // True while this is an active Captain Pick draft's match: the drafted
+  // teams are the server's, not editable here (see the match page).
+  inject: {
+    captainPickLineupsLocked: {
+      from: CAPTAIN_PICK_LINEUP_LOCK,
+      default: false,
+    },
+  },
+
   props: {
     match: {
       required: true,
@@ -651,7 +662,11 @@ export default {
       });
     },
     canAddToLineupFor(lp: any): boolean {
-      return lp.can_update_lineup && lp.lineup_players.length < this.maxPlayers;
+      return (
+        !unref(this.captainPickLineupsLocked) &&
+        lp.can_update_lineup &&
+        lp.lineup_players.length < this.maxPlayers
+      );
     },
     // Historical pre-match team average, shown next to the team name in the
     // header. Reads the backend-computed player_team_elo_avg already stored

@@ -395,6 +395,8 @@ const DASH = "—";
 </template>
 
 <script lang="ts">
+import { unref } from "vue";
+import { CAPTAIN_PICK_LINEUP_LOCK } from "~/composables/useCaptainPickMatchStatus";
 import LineupMember from "~/components/match/LineupMember.vue";
 import PartyBadge from "~/components/match/PartyBadge.vue";
 import { partyIndexOf, partyMemberNames } from "~/utilities/matchParties";
@@ -416,6 +418,15 @@ export default {
     LineupMember,
     PartyBadge,
   },
+  // True while this is an active Captain Pick draft's match: the drafted
+  // teams are the server's, not editable here (see the match page).
+  inject: {
+    captainPickLineupsLocked: {
+      from: CAPTAIN_PICK_LINEUP_LOCK,
+      default: false,
+    },
+  },
+
   data() {
     return {
       drilldownKillCount: null as null | number,
@@ -707,7 +718,11 @@ export default {
     // valid before the match goes live — once it's Live or terminal the lineup
     // is locked, so these actions disappear (and with them the row's action
     // column, which keeps the table from jerking when switching stat lenses).
+    lineupsLocked() {
+      return !!unref(this.captainPickLineupsLocked);
+    },
     canManageLineup() {
+      if (this.lineupsLocked) return false;
       if (!this.lineup.can_update_lineup) return false;
       return [
         e_match_status_enum.PickingPlayers,
@@ -779,6 +794,7 @@ export default {
     },
     canLeaveLineup() {
       if (!this.me?.steam_id) return false;
+      if (this.lineupsLocked) return false;
       return (
         this.match.status === e_match_status_enum.PickingPlayers &&
         this.member.steam_id === this.me.steam_id

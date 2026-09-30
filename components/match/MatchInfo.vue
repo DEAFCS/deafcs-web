@@ -103,7 +103,7 @@ import {
               :allow-roster-image="allowRosterImage"
             />
             <AssignCoachToLineup
-              v-if="lineup.can_update_lineup"
+              v-if="lineup.can_update_lineup && !lineupsLocked"
               :lineup="lineup"
               :exclude="excludePlayers"
             />
@@ -115,7 +115,17 @@ import {
 </template>
 
 <script lang="ts">
+import { unref } from "vue";
+import { CAPTAIN_PICK_LINEUP_LOCK } from "~/composables/useCaptainPickMatchStatus";
 export default {
+  // True while this is an active Captain Pick draft's match: the drafted
+  // teams are the server's, not editable here (see the match page).
+  inject: {
+    captainPickLineupsLocked: {
+      from: CAPTAIN_PICK_LINEUP_LOCK,
+      default: false,
+    },
+  },
   props: {
     match: {
       type: Object,
@@ -222,6 +232,9 @@ export default {
     },
   },
   computed: {
+    lineupsLocked() {
+      return !!unref(this.captainPickLineupsLocked);
+    },
     // MM/Draft matches must stay avatar-only; only a real tournament match
     // may fall through to a roster image.
     allowRosterImage() {
