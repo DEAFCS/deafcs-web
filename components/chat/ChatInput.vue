@@ -26,9 +26,18 @@ function autoResize(event: Event) {
 <template>
   <form
     v-if="variant === 'global'"
-    class="border-t bg-background p-3 flex-shrink-0"
+    class="relative border-t bg-background p-3 flex-shrink-0"
     @submit.prevent="sendMessage"
+    @dragover.prevent="onDragOver"
+    @dragleave="onDragLeave"
+    @drop.prevent="onDrop"
   >
+    <div
+      v-if="isDraggingOver"
+      class="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-background/90 text-sm font-medium text-primary"
+    >
+      {{ $t("chat.drop_file_here", "Drop to attach") }}
+    </div>
     <div v-if="pendingAttachment" class="mb-2">
       <div class="relative inline-block h-14 w-14 overflow-hidden rounded-md border border-border bg-muted">
         <img
@@ -88,6 +97,7 @@ function autoResize(event: Event) {
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none transition-all duration-200"
               @keydown="handleKeydown($event, sendMessage)"
+              @paste="onPaste"
               @input="autoResize"
             />
             <Button
@@ -110,7 +120,16 @@ function autoResize(event: Event) {
     v-else
     class="relative overflow-hidden rounded-lg border bg-background focus-within:ring-1 focus-within:ring-ring"
     @submit.prevent="sendMessage"
+    @dragover.prevent="onDragOver"
+    @dragleave="onDragLeave"
+    @drop.prevent="onDrop"
   >
+    <div
+      v-if="isDraggingOver"
+      class="pointer-events-none absolute inset-1 z-10 flex items-center justify-center rounded-lg border-2 border-dashed border-primary bg-background/90 text-sm font-medium text-primary"
+    >
+      {{ $t("chat.drop_file_here", "Drop to attach") }}
+    </div>
     <div v-if="pendingAttachment" class="px-2 pt-2">
       <div class="relative inline-block h-14 w-14 overflow-hidden rounded-md border border-border bg-muted">
         <img
@@ -170,6 +189,7 @@ function autoResize(event: Event) {
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
               @keydown="handleKeydown($event, sendMessage)"
+              @paste="onPaste"
               @input="autoResize"
             />
             <Button
@@ -205,6 +225,10 @@ import {
   isChatMessageTooLong,
   showChatMessageTooLong,
 } from "~/utils/chatMessageActions";
+import {
+  describeChatAttachmentRejection,
+  validateChatAttachment,
+} from "~/utilities/chatAttachmentValidation";
 
 export default {
   components: { ChatComposerMenu },
@@ -235,6 +259,7 @@ export default {
       uploadedAttachment: null as { url: string; contentType: string } | null,
       uploadProgress: null as number | null,
       uploadFailed: false,
+      isDraggingOver: false,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
@@ -334,6 +359,44 @@ export default {
     },
     retryUpload() {
       if (this.pendingAttachment) this.startUpload(this.pendingAttachment);
+    },
+    // Shared by paste and drag-and-drop -- same validation and rejection
+    // copy as the "+" menu's file picker (ChatComposerMenu.vue).
+    pickFile(file: File) {
+      const rejection = validateChatAttachment(file);
+      if (rejection) {
+        toast({ variant: "destructive", ...describeChatAttachmentRejection(rejection) });
+        return;
+      }
+      this.pendingAttachment = file;
+    },
+    onPaste(event: ClipboardEvent) {
+      if (!this.attachmentEnabled || this.isWebsiteRestricted) return;
+      const file = Array.from(event.clipboardData?.files ?? [])[0];
+      if (!file) return;
+      // A file on the clipboard means an image/video paste, not text -- some
+      // browsers also put a filename on the text/plain slot alongside it.
+      event.preventDefault();
+      this.pickFile(file);
+    },
+    onDragOver(event: DragEvent) {
+      if (!this.attachmentEnabled || this.isWebsiteRestricted) return;
+      if (!event.dataTransfer?.types?.includes("Files")) return;
+      this.isDraggingOver = true;
+    },
+    onDragLeave(event: DragEvent) {
+      // dragleave also fires when the pointer moves over a child element
+      // within the form, which would otherwise make the overlay flicker.
+      const next = event.relatedTarget as Node | null;
+      if (next && (event.currentTarget as Node).contains(next)) return;
+      this.isDraggingOver = false;
+    },
+    onDrop(event: DragEvent) {
+      this.isDraggingOver = false;
+      if (!this.attachmentEnabled || this.isWebsiteRestricted) return;
+      const file = event.dataTransfer?.files?.[0];
+      if (!file) return;
+      this.pickFile(file);
     },
     // Sent immediately on pick, as its own message -- doesn't touch
     // whatever text is currently being typed, same as clicking a GIF in

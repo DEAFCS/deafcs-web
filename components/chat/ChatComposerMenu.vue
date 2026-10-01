@@ -6,17 +6,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { toast } from "@/components/ui/toast";
 import { searchGifs, type GifSearchResult } from "~/utilities/searchGifs";
 import GifIcon from "~/components/chat/icons/GifIcon.vue";
-
-const MAX_ATTACHMENT_BYTES = 200 * 1024 * 1024;
-const ALLOWED_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-  "video/mp4",
-  "video/webm",
-  "video/quicktime",
-];
+import {
+  ALLOWED_CHAT_ATTACHMENT_TYPES,
+  describeChatAttachmentRejection,
+  validateChatAttachment,
+} from "~/utilities/chatAttachmentValidation";
 
 // Single "+" trigger instead of one icon button per action (attach, GIF)
 // crowding the text field. Opens straight to the action list; picking
@@ -47,20 +41,9 @@ function onFileChange(event: Event) {
   input.value = "";
   if (!file) return;
 
-  if (!ALLOWED_TYPES.includes(file.type)) {
-    toast({
-      variant: "destructive",
-      title: "Unsupported file type",
-      description: "Attach an image (PNG/JPEG/WEBP/GIF) or a video (MP4/WEBM/MOV).",
-    });
-    return;
-  }
-  if (file.size > MAX_ATTACHMENT_BYTES) {
-    toast({
-      variant: "destructive",
-      title: "File too large",
-      description: "Attachments are limited to 200 MB.",
-    });
+  const rejection = validateChatAttachment(file);
+  if (rejection) {
+    toast({ variant: "destructive", ...describeChatAttachmentRejection(rejection) });
     return;
   }
   emit("pick-file", file);
@@ -109,7 +92,7 @@ function pickGif(gif: GifSearchResult) {
     <input
       ref="fileInputRef"
       type="file"
-      accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm,video/quicktime"
+      :accept="ALLOWED_CHAT_ATTACHMENT_TYPES.join(',')"
       class="hidden"
       @change="onFileChange"
     />
