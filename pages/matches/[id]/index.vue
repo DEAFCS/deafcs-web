@@ -634,13 +634,18 @@ const vsBaseClasses =
       </div>
     </div>
 
-    <MatchAdminBottomBar v-if="match.is_organizer" :match="match" />
+    <MatchAdminBottomBar v-if="canViewMatchAdminBar" :match="match" />
     </template>
   </div>
 </template>
 
 <script lang="ts">
-import { $, order_by, e_match_status_enum } from "~/generated/zeus";
+import {
+  $,
+  order_by,
+  e_match_status_enum,
+  e_player_roles_enum,
+} from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { mapFields } from "~/graphql/mapGraphql";
 import { matchLineups } from "~/graphql/matchLineupsGraphql";
@@ -1055,6 +1060,16 @@ export default {
     },
   },
   computed: {
+    // Mirrors rcon.service.ts's canAccessServer: being the organizer alone
+    // is never enough server-side (non-staff players organize their own
+    // scrims routinely), so gating the floating Admin/RCON bar on
+    // is_organizer alone exposed it to regular verified users.
+    canViewMatchAdminBar() {
+      return (
+        !!this.match?.is_organizer &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
+      );
+    },
     cameraRequestScope() {
       return `${this.matchId}:${useAuthStore().me?.steam_id ?? ""}`;
     },

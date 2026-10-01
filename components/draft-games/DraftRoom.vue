@@ -11,6 +11,7 @@ import {
 import { useI18n } from "vue-i18n";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
 import { useAuthStore } from "~/stores/AuthStore";
+import { e_player_roles_enum } from "~/generated/zeus";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { Button } from "~/components/ui/button";
 import { toast } from "~/components/ui/toast";
@@ -101,6 +102,15 @@ const checkInProgress = computed(() => {
 });
 
 const me = computed(() => useAuthStore().me);
+// Mirrors rcon.service.ts's canAccessServer: being the organizer alone is
+// never enough server-side (non-staff players organize their own drafts
+// routinely), so gating the floating Admin/RCON bar on is_organizer alone
+// exposed it to regular verified users.
+const canViewMatchAdminBar = computed(
+  () =>
+    !!props.match?.is_organizer &&
+    useAuthStore().isRoleAbove(e_player_roles_enum.moderator),
+);
 const perTeam = computed(() => props.room.capacity / 2);
 
 const settingsOpen = ref(false);
@@ -1656,7 +1666,7 @@ const start = () => {
       </div>
     </div>
 
-    <MatchAdminBottomBar v-if="match?.is_organizer" :match="match" />
+    <MatchAdminBottomBar v-if="canViewMatchAdminBar" :match="props.match" />
 
     <AlertDialog
       :open="kickTarget !== null"
