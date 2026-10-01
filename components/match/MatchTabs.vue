@@ -18,6 +18,7 @@ import MatchSideFilter from "~/components/match/MatchSideFilter.vue";
 import TableColumnPicker from "~/components/common/TableColumnPicker.vue";
 import TeamUtilitySummary from "~/components/match/TeamUtilitySummary.vue";
 import { provideMatchSide } from "~/composables/useMatchSide";
+import { OVERVIEW_TAB } from "~/utilities/matchLifecycle";
 import {
   useOverviewColumns,
   useUtilityColumns,
@@ -138,6 +139,9 @@ provide("commander", commander);
               <SelectValue :placeholder="$t('match.tabs.scoreboard')" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem v-if="overviewAvailable" :value="OVERVIEW_TAB">
+                {{ $t("match.tabs.overview") }}
+              </SelectItem>
               <SelectItem value="scoreboard">
                 {{ $t("match.tabs.scoreboard") }}
               </SelectItem>
@@ -213,6 +217,9 @@ provide("commander", commander);
       </Select>
       <div class="min-w-0 flex-1 overflow-x-auto match-tabs__scroll">
         <TabsList variant="underline" class="h-auto flex-nowrap">
+          <TabsTrigger v-if="overviewAvailable" :value="OVERVIEW_TAB">
+            {{ $t("match.tabs.overview") }}
+          </TabsTrigger>
           <TabsTrigger value="scoreboard">
             {{ $t("match.tabs.scoreboard") }}
           </TabsTrigger>
@@ -270,6 +277,11 @@ provide("commander", commander);
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
+    <!-- The pre-game Overview (Captain Pick, veto, final maps), supplied by
+         the match page. -->
+    <TabsContent v-if="overviewAvailable" :value="OVERVIEW_TAB">
+      <slot name="overview"></slot>
+    </TabsContent>
     <TabsContent value="scoreboard">
       <div
         v-if="!disableStats"
@@ -824,6 +836,11 @@ import {
   generateSubscription,
 } from "~/graphql/graphqlGen";
 import { matchMapStats } from "~/graphql/matchMapStatsGraphql";
+import {
+  OVERVIEW_TAB as OVERVIEW_TAB_VALUE,
+  defaultMatchTab as resolveDefaultMatchTab,
+  tabAfterOverviewChange,
+} from "~/utilities/matchLifecycle";
 import { matchAllMapsStats } from "~/graphql/matchAllMapsStatsGraphql";
 import { trackMatchBackupRounds } from "~/composables/useMatchBackupRounds";
 import {
@@ -860,7 +877,7 @@ const allMapsStatsQuery = generateQuery({
 });
 
 export default {
-  emits: ["update:selectedMapId"],
+  emits: ["update:selectedMapId", "update:activeTab"],
   // True while this is an active Captain Pick draft's match: the drafted
   // teams are the server's, not editable here (see the match page).
   inject: {
@@ -878,6 +895,21 @@ export default {
     selectedMapId: {
       type: String as () => string | null,
       default: null,
+    },
+    // The match page's pre-game Overview tab (slot "overview"): offered
+    // while overviewAvailable, and the default view while overviewDefault.
+    overviewAvailable: {
+      type: Boolean,
+      default: false,
+    },
+    overviewDefault: {
+      type: Boolean,
+      default: false,
+    },
+    // Rises when the viewer has to act there (their veto turn).
+    overviewFocus: {
+      type: Boolean,
+      default: false,
     },
   },
   data() {
@@ -967,11 +999,27 @@ export default {
       },
     },
     activeTab(newTab) {
+      this.$emit("update:activeTab", newTab);
+
       if (!this.availableMatchTabs.includes(newTab)) {
         return;
       }
 
-      void replaceRouteTab(this.$router, this.$route, newTab, "scoreboard");
+      void replaceRouteTab(this.$router, this.$route, newTab, this.defaultMatchTab);
+    },
+    // The lifecycle handoff: once the Overview stops being the default, a
+    // viewer still on it moves to the Scoreboard. Only on that transition,
+    // so a tab chosen afterwards (the Overview included) is left alone.
+    overviewDefault(isDefault, wasDefault) {
+      const next = tabAfterOverviewChange(this.activeTab, wasDefault, isDefault);
+      if (next) {
+        this.activeTab = next;
+      }
+    },
+    overviewFocus(focus) {
+      if (focus && this.overviewAvailable) {
+        this.activeTab = OVERVIEW_TAB_VALUE;
+      }
     },
     "$route.query.tab": {
       immediate: true,
@@ -1241,8 +1289,13 @@ export default {
 
       return true;
     },
+    defaultMatchTab() {
+      return resolveDefaultMatchTab(this.overviewAvailable, this.overviewDefault);
+    },
     availableMatchTabs() {
-      const tabs = ["scoreboard"];
+      const tabs = this.overviewAvailable
+        ? [OVERVIEW_TAB_VALUE, "scoreboard"]
+        : ["scoreboard"];
 
       if (!this.disableStats) {
         tabs.push("economy");
@@ -1273,6 +1326,10 @@ export default {
     this.backupRoundsTracker = trackMatchBackupRounds(
       () => this.currentMap?.id,
     );
+  },
+  mounted() {
+    // The page lays itself out around the Overview tab (see activeTab).
+    this.$emit("update:activeTab", this.activeTab);
   },
   beforeUnmount() {
     this.backupRoundsTracker?.stop();
@@ -1368,7 +1425,7 @@ export default {
           this.$router,
           this.$route,
           "scoreboard",
-          "scoreboard",
+          this.defaultMatchTab,
         );
         return;
       }
@@ -1376,7 +1433,7 @@ export default {
       const activeTab = getRouteTabValue(
         this.$route,
         this.availableMatchTabs,
-        "scoreboard",
+        this.defaultMatchTab,
       );
 
       if (this.activeTab !== activeTab) {
@@ -1387,7 +1444,7 @@ export default {
         this.$router,
         this.$route,
         this.availableMatchTabs,
-        "scoreboard",
+        this.defaultMatchTab,
       );
     },
     rconCommand(action: RconAction) {

@@ -4,7 +4,7 @@ import { useRoute } from "vue-router";
 import { useApolloClient } from "@vue/apollo-composable";
 import gql from "graphql-tag";
 import { useMatchClips } from "~/composables/useMatchClips";
-import CaptainPickProgress from "~/components/match/CaptainPickProgress.vue";
+import MatchOverview from "~/components/match/overview/MatchOverview.vue";
 import { createCaptainPickProgress } from "~/composables/useCaptainPickProgress";
 import MatchTabs from "~/components/match/MatchTabs.vue";
 import AnimatedStat from "~/components/AnimatedStat.vue";
@@ -16,15 +16,12 @@ import MatchActions from "~/components/match/MatchActions.vue";
 import CameraRequirementOverlay from "~/components/match/CameraRequirementOverlay.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
-import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
 import { e_match_status_enum } from "~/generated/zeus";
-import MatchMapVeto from "~/components/match/MatchMapVeto.vue";
 import MatchPicksDisplay from "~/components/match/MatchPicksDisplay.vue";
 import StreamEmbed from "~/components/StreamEmbed.vue";
 import LiveStreamPlayer from "~/components/match/LiveStreamPlayer.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Alert, AlertTitle, AlertDescription } from "~/components/ui/alert";
-import ChatLobby from "~/components/chat/ChatLobby.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import { AlertTriangle } from "lucide-vue-next";
 import { useMatchContext } from "~/composables/useMatchContext";
@@ -458,52 +455,43 @@ const vsBaseClasses =
       <MatchHighlightsReel :match="match" />
     </PageTransition>
 
+    <!-- While the Overview tab is open it takes the full width (Team 1 |
+         stage | Team 2); the info column moves below it. -->
     <div
-      class="grid items-start gap-4 md:gap-6 lg:gap-8 grid-cols-1 lg:grid-cols-[minmax(320px,_400px)_minmax(0,1fr)]"
+      class="grid items-start gap-4 md:gap-6 lg:gap-8 grid-cols-1"
+      :class="
+        overviewShown
+          ? ''
+          : 'lg:grid-cols-[minmax(320px,_400px)_minmax(0,1fr)]'
+      "
     >
-      <!-- Left column: match info, chat, maps. On desktop it's the
-           first grid column; on mobile it drops below the stream. -->
+      <!-- Left column: match info and maps. On desktop it's the first grid
+           column; on mobile it drops below the stream. Match Chat and Team
+           Chat live in the Chat Hub (see chatHubContext). -->
       <div
         class="grid grid-cols-1 gap-y-4 md:gap-y-6 min-w-0"
-        :class="showLiveStreamBlock ? 'order-2 lg:order-none' : ''"
+        :class="
+          overviewShown
+            ? 'order-2'
+            : showLiveStreamBlock
+              ? 'order-2 lg:order-none'
+              : ''
+        "
       >
         <PageTransition :delay="100">
-          <MatchInfo :match="match"></MatchInfo>
-        </PageTransition>
-
-        <PageTransition :delay="200">
-          <div v-if="canUseMatchChat" class="flex flex-col gap-2">
-            <span class="text-sm font-medium text-muted-foreground">
-              {{ $t("chat.match_chat") }}
-            </span>
-            <ChatLobby
-              instance="matches/id"
-              type="match"
-              :lobby-id="match.id"
-              :allow-chat-attachments="false"
-              :play-notification-sound="match.status !== e_match_status_enum.Live"
-            />
-          </div>
-        </PageTransition>
-
-        <PageTransition :delay="200">
-          <div v-if="canJoinLobby && myLineupChatId" class="flex flex-col gap-2">
-            <span class="text-sm font-medium text-muted-foreground">
-              {{ $t("chat.team_chat") }}
-            </span>
-            <ChatLobby
-              instance="matches/id"
-              type="match_team"
-              :lobby-id="myLineupChatId"
-              :allow-chat-attachments="false"
-              :play-notification-sound="match.status !== e_match_status_enum.Live"
-            />
-          </div>
+          <MatchInfo
+            :match="match"
+            :hide-connect="overviewShown && overviewStage === 'pre-match'"
+          ></MatchInfo>
         </PageTransition>
 
         <PageTransition :delay="200">
           <div
-            v-if="match.options.best_of && match.options.best_of > 0"
+            v-if="
+              !overviewShown &&
+              match.options.best_of &&
+              match.options.best_of > 0
+            "
             class="flex flex-col gap-3"
           >
             <div
@@ -574,7 +562,13 @@ const vsBaseClasses =
            rises above the left column so the stream leads. -->
       <div
         class="min-w-0 flex flex-col gap-4 md:gap-6"
-        :class="showLiveStreamBlock ? 'order-1 lg:order-none' : ''"
+        :class="
+          overviewShown
+            ? 'order-1'
+            : showLiveStreamBlock
+              ? 'order-1 lg:order-none'
+              : ''
+        "
       >
         <PageTransition v-if="showLiveStreamBlock">
           <div class="min-w-0 space-y-4">
@@ -615,20 +609,29 @@ const vsBaseClasses =
           </template>
         </PageTransition>
 
-        <PageTransition :delay="100">
-          <MatchRegionVeto :match="match" class="pb-6" />
-        </PageTransition>
-
-        <PageTransition :delay="100">
-          <MatchMapVeto :match="match" class="pb-6" />
-        </PageTransition>
-
+        <!-- Region veto, map veto and Captain Pick progress all live in the
+             Overview tab now, so the page has one continuous lifecycle. -->
         <PageTransition :delay="200">
-          <CaptainPickProgress v-if="publicCaptainPick.progress" :progress="publicCaptainPick.progress" />
-          <MatchTabs v-else
+          <MatchTabs
             v-model:selected-map-id="selectedStatsMapId"
             :match="match"
-          ></MatchTabs>
+            :overview-available="!!overviewStage"
+            :overview-default="overviewDefault"
+            :overview-focus="overviewFocus"
+            @update:active-tab="matchTab = $event"
+          >
+            <template #overview>
+              <MatchOverview
+                v-if="overviewStage"
+                :match="match"
+                :stage="overviewStage"
+                :captain-pick-progress="publicCaptainPick.progress"
+                :participant-draft="participantDraft"
+                :participant="captainPickMatch.participant"
+                :now="lifecycleNow"
+              />
+            </template>
+          </MatchTabs>
         </PageTransition>
         </div>
       </div>
@@ -664,6 +667,14 @@ import {
   isCaptainPickLineupLocked,
 } from "~/composables/useCaptainPickMatchStatus";
 import { computed as computedRef } from "vue";
+import { getCaptainPickDraft } from "~/utilities/captainPickDraft";
+import {
+  overviewIsDefault,
+  overviewStage,
+  scoreboardHandoffAt,
+  SCOREBOARD_HANDOFF_MS,
+  OVERVIEW_TAB,
+} from "~/utilities/matchLifecycle";
 
 // generated/zeus predates demo_processing_started_at (needs a live Hasura
 // codegen run to pick it up, same reason as partyFields in
@@ -707,6 +718,9 @@ export default {
     this.chatHub?.dispose();
     this.captainPick?.stop();
     this.publicProgress?.stop();
+    if (this.lifecycleHandoffTimer) {
+      clearTimeout(this.lifecycleHandoffTimer);
+    }
     useMatchContext().value = null;
     if (this.autoCancelInterval) {
       clearInterval(this.autoCancelInterval);
@@ -716,6 +730,14 @@ export default {
     return {
       match: undefined,
       publicCaptainPick: { matchId: null, progress: null },
+      // The MatchTabs tab on screen (the Overview takes the full width).
+      matchTab: null as string | null,
+      // Clock for the Overview's 30 second cooldown. Only bumped when the
+      // handoff is due (see the overviewHandoffAt watcher).
+      lifecycleNow: Date.now(),
+      lifecycleHandoffTimer: undefined as
+        | ReturnType<typeof setTimeout>
+        | undefined,
       vetoPickCount: undefined,
       autoCancelRemainingSeconds: 0,
       autoCancelInterval: undefined as ReturnType<typeof setInterval> | undefined,
@@ -735,6 +757,30 @@ export default {
     };
   },
   watch: {
+    // Anchored on matches.started_at (stamped by Postgres when the match goes
+    // Live), so a refresh resumes the same cooldown instead of restarting it.
+    overviewHandoffAt: {
+      immediate: true,
+      handler(handoffAt: number | null) {
+        if (this.lifecycleHandoffTimer) {
+          clearTimeout(this.lifecycleHandoffTimer);
+          this.lifecycleHandoffTimer = undefined;
+        }
+        this.lifecycleNow = Date.now();
+        if (handoffAt === null || handoffAt <= this.lifecycleNow) {
+          return;
+        }
+        // Capped so a client clock running behind the server can't stretch
+        // the cooldown; when it fires, the handoff is due regardless.
+        this.lifecycleHandoffTimer = setTimeout(
+          () => {
+            this.lifecycleHandoffTimer = undefined;
+            this.lifecycleNow = Math.max(Date.now(), handoffAt);
+          },
+          Math.min(handoffAt - this.lifecycleNow, SCOREBOARD_HANDOFF_MS),
+        );
+      },
+    },
     cameraRequestScope: {
       flush: "sync",
       handler() {
@@ -1060,6 +1106,57 @@ export default {
     },
   },
   computed: {
+    // A Captain Pick draft owns this PickingPlayers match: the public feed has
+    // its picks, or (between the final pick and the match moving to veto) the
+    // API has confirmed the draft for this match.
+    captainPickActive() {
+      if (this.match?.status !== e_match_status_enum.PickingPlayers) {
+        return false;
+      }
+      return (
+        !!this.publicCaptainPick.progress ||
+        (this.captainPickMatch.matchId === this.match.id &&
+          this.captainPickMatch.active)
+      );
+    },
+    overviewStage() {
+      return overviewStage(this.match, {
+        captainPickActive: this.captainPickActive,
+      });
+    },
+    overviewHandoffAt() {
+      return scoreboardHandoffAt(this.match);
+    },
+    // The Overview is the default view until the 30 second cooldown after
+    // the match goes Live; then MatchTabs hands over to the Scoreboard once.
+    overviewDefault() {
+      return overviewIsDefault(this.match, this.overviewStage, this.lifecycleNow);
+    },
+    overviewShown() {
+      return !!this.overviewStage && this.matchTab === OVERVIEW_TAB;
+    },
+    // The viewer's own Captain Pick draft (only the ten players have one),
+    // for the real pick timer. Never used to decide anything.
+    participantDraft() {
+      const draft = getCaptainPickDraft(
+        useMatchmakingStore().joinedMatchmakingQueues?.confirmation,
+      );
+      return draft && draft.matchId === this.match?.id ? draft : null;
+    },
+    // Brings a captain back to the Overview when it's their veto turn, so
+    // the veto controls are never hidden behind another tab.
+    overviewFocus() {
+      return (
+        this.match?.status === e_match_status_enum.Veto &&
+        !(this.match.is_organizer && !this.match.is_captain) &&
+        !!(
+          this.match.lineup_1?.can_pick_map_veto ||
+          this.match.lineup_2?.can_pick_map_veto ||
+          this.match.lineup_1?.can_pick_region_veto ||
+          this.match.lineup_2?.can_pick_region_veto
+        )
+      );
+    },
     // Mirrors rcon.service.ts's canAccessServer: being the organizer alone
     // is never enough server-side (non-staff players organize their own
     // scrims routinely), so gating the floating Admin/RCON bar on

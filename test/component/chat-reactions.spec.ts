@@ -267,7 +267,9 @@ describe("Chat Hub message reactions", () => {
     ]);
     expect(lobby).toMatch(/reactionsEnabled:\s*\{[\s\S]*?default:\s*false/);
     expect(lobby).toMatch(/allowChatAttachments:\s*\{[\s\S]*?default:\s*true/);
-    expect(matchPage.match(/:allow-chat-attachments="false"/g)).toHaveLength(2);
+    // The match page's inline chats were removed (the Chat Hub has both
+    // rooms), so it has no attachment inputs left to hide.
+    expect(matchPage).not.toContain("<ChatLobby");
     expect(chatPanel).toContain(':reactions-enabled="true"');
     expect(chatPopout).toContain(':reactions-enabled="true"');
     expect(matchPage).not.toContain(':reactions-enabled="true"');

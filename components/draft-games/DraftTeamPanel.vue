@@ -23,6 +23,9 @@ const props = defineProps<{
   matchType?: string | null;
   eloType?: string | null;
   profileInNewTab?: boolean;
+  // Explicit captain (null for none). Left out, the lowest pick_order is the
+  // captain, as in the draft room.
+  captainSteamId?: string | null;
 }>();
 
 const { eloForPlayer } = usePlayerActiveSeasonElo();
@@ -70,6 +73,9 @@ const avgElo = computed(() => {
 });
 
 const captainSteamId = computed(() => {
+  if (props.captainSteamId !== undefined) {
+    return props.captainSteamId;
+  }
   return [...props.players].sort(
     (a, b) => (a.pick_order ?? 99) - (b.pick_order ?? 99),
   )[0]?.steam_id;

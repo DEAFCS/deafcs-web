@@ -188,7 +188,9 @@ export function captainPickTeamChatId(
 }
 
 /** The Draft Games pick-order strip for this draft's seven timed picks. */
-export function captainPickTimeline(draft: CaptainPickDraftState) {
+export function captainPickTimeline(
+  draft: Pick<CaptainPickDraftState, "pickIndex" | "pickOrder" | "phase">,
+) {
   const made = draft.pickIndex ?? draft.pickOrder.length;
   return draft.pickOrder.map((lineup, index) => ({
     lineup,

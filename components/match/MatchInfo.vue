@@ -137,6 +137,12 @@ export default {
       type: Boolean,
       default: false,
     },
+    // The match page's Overview shows the same QuickMatchConnect in its
+    // final pre-match stage, so the connect panel isn't rendered twice.
+    hideConnect: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -368,7 +374,11 @@ export default {
       return !!this.isInMatch && this.match.can_check_in;
     },
     showQuickConnectSection() {
-      return this.match.status === e_match_status_enum.Live && !!this.me;
+      return (
+        this.match.status === e_match_status_enum.Live &&
+        !!this.me &&
+        !this.hideConnect
+      );
     },
     showAnyActionSection() {
       return (

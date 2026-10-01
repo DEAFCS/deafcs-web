@@ -1,93 +1,119 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import DraftTeamPanel from "~/components/draft-games/DraftTeamPanel.vue";
+import { ArrowRight } from "lucide-vue-next";
 import DraftPlayerCard from "~/components/draft-games/DraftPlayerCard.vue";
-import {
-  captainPickLineupMembers,
-  captainPickParticipant,
-  captainPickPlayer,
-} from "~/utilities/captainPickDraft";
+import DraftLog from "~/components/draft-games/DraftLog.vue";
+import { captainPickPlayer } from "~/utilities/captainPickDraft";
+import { captainPickHistory } from "~/utilities/matchLifecycle";
 import type { CaptainPickProgress } from "~/composables/useCaptainPickProgress";
 
-const props = defineProps<{ progress: CaptainPickProgress }>();
-const lineups = [1, 2] as const;
-const members = computed(() => ({
-  1: captainPickLineupMembers(props.progress, 1),
-  2: captainPickLineupMembers(props.progress, 2),
-}));
-const captainName = (lineup: 1 | 2) =>
-  captainPickParticipant(props.progress, props.progress.captains[lineup])
-    ?.name ?? "";
+// Middle of the match Overview while a Captain Pick draft runs: who is still
+// available and what has been picked. Read only for everyone: the ten
+// players pick on /play/captain-pick, which participants get a link to.
+// progress is null between the final pick and the match moving to veto.
+const props = defineProps<{
+  progress: CaptainPickProgress | null;
+  participant?: boolean;
+}>();
+
+const pool = computed(() =>
+  (props.progress?.available ?? []).map((steamId) => ({
+    steam_id: steamId,
+    player: captainPickPlayer(props.progress!, steamId),
+  })),
+);
+
+const history = computed(() =>
+  props.progress ? captainPickHistory(props.progress) : [],
+);
 </script>
 
 <template>
   <section
-    class="mx-auto w-full min-w-0 max-w-5xl space-y-4 rounded-xl border border-border bg-muted/30 p-4"
+    class="flex min-w-0 flex-col gap-4"
     data-testid="captain-pick-spectator"
   >
-    <div class="text-center" aria-live="polite">
-      <h2 class="text-lg font-semibold">
-        {{ $t("matchmaking.captain_pick.title") }}
-      </h2>
-      <p class="break-words text-sm font-medium">
-        {{ captainName(1) }} {{ $t("common.vs") }} {{ captainName(2) }}
-      </p>
-      <p
-        v-if="progress.pickingLineup"
-        data-testid="spectator-turn"
-        class="text-sm"
+    <NuxtLink
+      v-if="participant"
+      to="/play/captain-pick"
+      class="inline-flex items-center justify-center gap-2 self-center rounded-md border border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.1)] px-4 py-2 font-mono text-[0.7rem] font-semibold uppercase tracking-[0.15em] text-[hsl(var(--tac-amber))] transition-colors hover:bg-[hsl(var(--tac-amber)/0.18)]"
+      data-testid="open-captain-pick"
+    >
+      {{ $t("matchmaking.captain_pick.open") }}
+      <ArrowRight class="h-3.5 w-3.5" />
+    </NuxtLink>
+
+    <div
+      v-if="progress && pool.length"
+      class="rounded-xl border border-border bg-card/40 p-4 [backdrop-filter:blur(8px)]"
+      data-testid="spectator-available"
+    >
+      <div class="mb-3 flex items-center gap-2">
+        <span class="section-tick"></span>
+        <h3
+          class="font-sans text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-muted-foreground"
+        >
+          {{ $t("draft_games.room.pool") }}
+          <span class="ml-1 text-foreground/70">({{ pool.length }})</span>
+        </h3>
+      </div>
+      <TransitionGroup
+        name="pool"
+        tag="div"
+        class="grid min-w-0 gap-2 sm:grid-cols-2"
       >
-        {{
-          $t("draft_games.room.captain_picking", {
-            name: captainName(progress.pickingLineup),
-          })
-        }}
-      </p>
-      <p v-else class="text-sm">
-        {{ $t("matchmaking.captain_pick.creating_match") }}
-      </p>
-      <p class="text-xs text-muted-foreground">
-        {{
-          $t("matchmaking.captain_pick.pick_progress", {
-            current:
-              progress.pickIndex === null
-                ? progress.pickOrder.length
-                : progress.pickIndex + 1,
-            total: progress.pickOrder.length,
-          })
-        }}
-      </p>
-    </div>
-    <div class="grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2">
-      <DraftTeamPanel
-        v-for="lineup in lineups"
-        :key="lineup"
-        :title="
-          $t('matchmaking.captain_pick.team_of', { name: captainName(lineup) })
-        "
-        :players="members[lineup]"
-        :per-team="5"
-        :accent="lineup === 1 ? 'amber' : 'blue'"
-        :active="progress.pickingLineup === lineup"
-        profile-in-new-tab
-        :data-testid="`spectator-team-${lineup}`"
-      />
-    </div>
-    <div data-testid="spectator-available">
-      <h3 class="mb-2 text-sm font-semibold">
-        {{ $t("draft_games.room.pool") }} ({{ progress.available.length }})
-      </h3>
-      <div class="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
         <DraftPlayerCard
-          v-for="steamId in progress.available"
-          :key="steamId"
-          :member="{
-            steam_id: steamId,
-            player: captainPickPlayer(progress, steamId),
-          }"
+          v-for="member in pool"
+          :key="member.steam_id"
+          :member="member"
+          accent="neutral"
+          match-type="Competitive"
+          elo-type="Competitive"
           profile-in-new-tab
         />
-      </div>
+      </TransitionGroup>
+    </div>
+
+    <p
+      v-else
+      class="rounded-xl border border-border bg-card/40 p-4 text-center text-sm text-muted-foreground"
+      data-testid="spectator-finalizing"
+    >
+      {{ $t("matchmaking.captain_pick.creating_match") }}
+    </p>
+
+    <div
+      v-if="progress"
+      class="rounded-xl border border-border bg-card/40 p-4"
+      data-testid="spectator-history"
+    >
+      <DraftLog :picks="history" />
     </div>
   </section>
 </template>
+
+<style scoped>
+.section-tick {
+  display: inline-block;
+  height: 2px;
+  width: 10px;
+  background: hsl(var(--tac-amber));
+}
+.pool-move,
+.pool-enter-active,
+.pool-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pool-enter-from,
+.pool-leave-to {
+  opacity: 0;
+  transform: scale(0.96);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pool-move,
+  .pool-enter-active,
+  .pool-leave-active {
+    transition: none;
+  }
+}
+</style>

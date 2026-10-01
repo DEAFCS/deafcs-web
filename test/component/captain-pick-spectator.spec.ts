@@ -11,7 +11,17 @@ vi.mock("~/components/draft-games/DraftTeamPanel.vue", async () => ({
 vi.mock("~/components/draft-games/DraftPlayerCard.vue", async () => ({
   default: (await import("./fixtures/captainPickScreenStubs")).PlayerCard,
 }));
-import CaptainPickProgressPanel from "../../components/match/CaptainPickProgress.vue";
+// The other stages' middles pull in GraphQL and sounds; not under test here.
+vi.mock("~/components/match/overview/OverviewVeto.vue", () => ({
+  default: { name: "OverviewVeto", render: () => null },
+}));
+vi.mock("~/components/match/overview/OverviewPreMatch.vue", () => ({
+  default: { name: "OverviewPreMatch", render: () => null },
+}));
+vi.mock("~/components/match/MatchRegionVeto.vue", () => ({
+  default: { name: "MatchRegionVeto", render: () => null },
+}));
+import MatchOverview from "../../components/match/overview/MatchOverview.vue";
 import { createCaptainPickProgress } from "../../composables/useCaptainPickProgress";
 
 class PublicStream {
@@ -39,6 +49,8 @@ const payload = (progress = makeDraft(), matchId = "m1") => ({
 let feed: ReturnType<typeof createCaptainPickProgress>;
 beforeEach(() => {
   vi.stubGlobal("EventSource", PublicStream);
+  // A signed-out viewer: no account, no own draft.
+  vi.stubGlobal("useAuthStore", () => ({ me: null }));
   PublicStream.streams = [];
   feed = createCaptainPickProgress("api.example");
 });
@@ -56,45 +68,57 @@ describe("Captain Pick public observation", () => {
       "https://api.example/matchmaking/captain-pick/m1/progress",
     );
     stream.send(payload());
-    const wrapper = mount(CaptainPickProgressPanel, {
-      props: { progress: feed.state.progress! },
+    // The match page's Overview tab: action bar, Team 1 | pool | Team 2.
+    const wrapper = mount(MatchOverview, {
+      props: {
+        match: { id: "m1", status: "PickingPlayers", options: {} },
+        stage: "captain-pick",
+        captainPickProgress: feed.state.progress!,
+      },
       global: {
-        mocks: {
-          $t: (key: string, args?: unknown) =>
-            `${key}:${JSON.stringify(args ?? {})}`,
+        // globalProperties, not mocks: the Overview's computeds use this.$t.
+        config: {
+          globalProperties: {
+            $t: (key: string, args?: unknown) =>
+              `${key}:${JSON.stringify(args ?? {})}`,
+          } as any,
         },
       },
     });
-    expect(wrapper.get('[data-testid="spectator-team-1"]').text()).toContain(
+    expect(wrapper.get('[data-testid="overview-team-1"]').text()).toContain(
       "Player 2",
     );
-    expect(wrapper.get('[data-testid="spectator-team-2"]').text()).toContain(
+    expect(wrapper.get('[data-testid="overview-team-2"]').text()).toContain(
       "Player 1",
     );
-    expect(wrapper.get('[data-testid="spectator-turn"]').text()).toContain(
+    expect(wrapper.get('[data-testid="overview-action-title"]').text()).toContain(
       "Player 2",
     );
     expect(wrapper.get('[data-testid="spectator-available"]').text()).toContain(
       "(8)",
     );
     stream.send(payload(draftAfter([{ steam_id: "3" }])));
-    await wrapper.setProps({ progress: feed.state.progress! });
-    expect(wrapper.get('[data-testid="spectator-team-1"]').text()).toContain(
+    await wrapper.setProps({ captainPickProgress: feed.state.progress! });
+    expect(wrapper.get('[data-testid="overview-team-1"]').text()).toContain(
       "Player 3",
     );
-    expect(wrapper.get('[data-testid="spectator-turn"]').text()).toContain(
+    expect(wrapper.get('[data-testid="overview-action-title"]').text()).toContain(
       "Player 1",
     );
     stream.send(payload(draftAfter([{ steam_id: "3" }, { steam_id: "4" }])));
-    await wrapper.setProps({ progress: feed.state.progress! });
-    expect(wrapper.get('[data-testid="spectator-team-2"]').text()).toContain(
+    await wrapper.setProps({ captainPickProgress: feed.state.progress! });
+    expect(wrapper.get('[data-testid="overview-team-2"]').text()).toContain(
       "Player 4",
     );
     expect(wrapper.get('[data-testid="spectator-available"]').text()).toContain(
       "(6)",
     );
+    // Spectators get no pick controls, no clock (no own draft) and no link
+    // to the participants' Captain Pick screen.
     expect(wrapper.findAll("button,textarea,input")).toHaveLength(0);
-    await wrapper.get('[data-testid="spectator-team-1"]').trigger("click");
+    expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="open-captain-pick"]').exists()).toBe(false);
+    await wrapper.get('[data-testid="overview-team-1"]').trigger("click");
     expect(wrapper.emitted("pick")).toBeUndefined();
     expect(wrapper.find('[data-testid="captain-pick-chat"]').exists()).toBe(
       false,
@@ -165,8 +189,9 @@ describe("Captain Pick public observation", () => {
       path.resolve(__dirname, "../../pages/matches/[id]/index.vue"),
       "utf8",
     );
+    // The feed now drives the Overview tab inside MatchTabs.
     expect(page).toMatch(
-      /<CaptainPickProgress v-if="publicCaptainPick\.progress"[^>]*\/>\s*<MatchTabs v-else/,
+      /<MatchTabs[\s\S]*?<template #overview>[\s\S]*?<MatchOverview[\s\S]*?:captain-pick-progress="publicCaptainPick\.progress"[\s\S]*?<\/MatchTabs>/,
     );
     expect(page).toContain("this.publicProgress.update(this.match)");
     expect(page).toContain("this.publicProgress?.stop()");
@@ -176,6 +201,13 @@ describe("Captain Pick public observation", () => {
     );
     expect(panel).not.toMatch(
       /ChatLobby|CaptainPickChat|camera|socket|@pick|@click|@remove/,
+    );
+    const overview = fs.readFileSync(
+      path.resolve(__dirname, "../../components/match/overview/MatchOverview.vue"),
+      "utf8",
+    );
+    expect(overview).not.toMatch(
+      /ChatLobby|CaptainPickChat|camera|socket|@pick|@remove|removable|addable/,
     );
   });
 });

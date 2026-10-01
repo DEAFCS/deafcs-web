@@ -296,19 +296,25 @@ describe("Match Chat on the match page while players are picked", () => {
     expect(context.rooms.map((r) => r.type)).toEqual(["match"]);
   });
 
-  it("the page uses that gate for the inline chat and the Hub, and keeps Team Chat on the lineup rule", () => {
+  it("the page uses that gate for the Hub, keeps Team Chat on the lineup rule, and has no inline chat", () => {
     const page = read("pages/matches/[id]/index.vue");
-    expect(page).toContain('<div v-if="canUseMatchChat" class="flex flex-col gap-2">');
-    // Labelled Match Chat (only this match), not the site-wide Global Chat,
-    // and still the ordinary match room.
-    const start = page.indexOf('<div v-if="canUseMatchChat"');
-    const inline = page.slice(start, page.indexOf("</div>", start));
-    expect(inline).toContain('{{ $t("chat.match_chat") }}');
-    expect(inline).not.toContain("chat.global_chat");
-    expect(inline).toContain('type="match"');
-    expect(inline).toContain(':lobby-id="match.id"');
-    expect(page).toContain('<div v-if="canJoinLobby && myLineupChatId"');
-    expect(page).toMatch(/matchChatHubContext\(\s*this\.match,\s*this\.canUseMatchChat,/);
+    // Match Chat and Team Chat live only in the Chat Hub now; the page no
+    // longer renders a second inline copy of either room.
+    expect(page).not.toContain("<ChatLobby");
+    expect(page).toMatch(
+      /matchChatHubContext\(\s*this\.match,\s*this\.canUseMatchChat,\s*this\.myLineup,/,
+    );
+    const gate = page.slice(
+      page.indexOf("canUseMatchChat() {"),
+      page.indexOf("chatHubContext() {"),
+    );
+    expect(gate).toContain("this.canJoinLobby ||");
+    expect(gate).toContain(
+      "isCaptainPickChatParticipant(this.match, this.captainPickMatch)",
+    );
+    expect(page).toContain(
+      "this.chatHub = useChatHubContext(() => this.chatHubContext);",
+    );
   });
 });
 

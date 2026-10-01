@@ -182,7 +182,7 @@ import MatchPicksDisplay from "~/components/match/MatchPicksDisplay.vue";
 
 <script lang="ts">
 import { useAuthStore } from "~/stores/AuthStore";
-import { generateMutation } from "~/graphql/graphqlGen";
+import { mapVetoPickMutation } from "~/graphql/mapVetoPick";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import {
   $,
@@ -398,22 +398,7 @@ export default {
             match_id: (this.matchId || this.$route.params.id),
             match_lineup_id: this.match.map_veto_picking_lineup_id,
           },
-          mutation: generateMutation({
-            insert_match_map_veto_picks_one: [
-              {
-                object: {
-                  map_id: $("map_id", "uuid!"),
-                  side: $("side", "String"),
-                  type: $("type", "e_veto_pick_types_enum!"),
-                  match_id: $("match_id", "uuid!"),
-                  match_lineup_id: $("match_lineup_id", "uuid!"),
-                },
-              },
-              {
-                id: true,
-              },
-            ],
-          }),
+          mutation: mapVetoPickMutation,
         });
 
         this.submitTimeout = setTimeout(() => {
