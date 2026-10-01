@@ -78,7 +78,7 @@ import {
           <MatchSelectWinner :match="match"></MatchSelectWinner>
         </DropdownMenuItem>
 
-        <template v-if="match.is_organizer && hasOrganizerLiveActions">
+        <template v-if="canManageLiveStream && hasOrganizerLiveActions">
           <DropdownMenuSeparator />
           <!-- "Start" only shows when there's nothing running. Once
                a Job exists (booting OR live), the only remaining
@@ -828,6 +828,16 @@ export default {
     hasOrganizerLiveActions() {
       return this.isLive || this.hasMatchDemos;
     },
+    // Starting/stopping the live stream and GOTV is a staff tool, not a
+    // regular-organizer one (any verified user can organize their own
+    // scrim/draft) -- require moderator+ in addition to organizer status,
+    // same as canWatchCamera and the RCON console below.
+    canManageLiveStream() {
+      return (
+        this.match.is_organizer &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
+      );
+    },
     activeStreamElsewhere() {
       const streams = useStreamerStore().liveStreams ?? [];
       return streams.find(
@@ -1019,7 +1029,8 @@ export default {
     // it just shows whoever's currently connected.
     canWatchCamera() {
       return (
-        this.match.is_organizer ||
+        (this.match.is_organizer &&
+          useAuthStore().isRoleAbove(e_player_roles_enum.moderator)) ||
         useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },
