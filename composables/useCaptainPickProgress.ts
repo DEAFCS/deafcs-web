@@ -12,7 +12,10 @@ export type CaptainPickProgress = Pick<
   | "pickIndex"
   | "pickOrder"
   | "pickingLineup"
->;
+> &
+  // The pick clock, as the public feed sends it: the draft's own deadline and
+  // the server's time for clock correction (null while nobody is picking).
+  Partial<Pick<CaptainPickDraftState, "serverNow" | "deadline" | "timerSeconds">>;
 
 export function createCaptainPickProgress(apiDomain: string) {
   const state = reactive<{

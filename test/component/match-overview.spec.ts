@@ -34,8 +34,6 @@ import {
   captainPickHistory,
   ctStartTeam,
   defaultMatchTab,
-  mapVetoPattern,
-  mapVetoTurnTeam,
   OVERVIEW_TAB,
   overviewIsDefault,
   overviewStage,
@@ -112,7 +110,17 @@ const pool = ["mirage", "inferno", "nuke", "ancient", "anubis", "dust2", "train"
   label: null,
   poster: `/img/maps/${name}.webp`,
 }));
+// matches.map_veto_sequence exactly as get_map_veto_sequence returns it
+// (locked by api-deafcs test/map-veto.spec.ts).
+const seq = (steps: string) =>
+  steps.split(" ").map((step, index) => {
+    const [type, team] = step.split(":");
+    return { index, type, team: Number(team) };
+  });
+const BO3_SEQUENCE = seq("Ban:1 Ban:2 Pick:1 Side:2 Pick:2 Side:1 Ban:2 Ban:1 Decider:2");
+const BO1_SEQUENCE = seq("Ban:1 Ban:2 Ban:1 Ban:2 Ban:1 Ban:2 Decider:1");
 const baseMatch = (overrides: Record<string, any> = {}) => ({
+  map_veto_sequence: BO3_SEQUENCE,
   id: "m1",
   status: "Veto",
   source: "5stack",
@@ -195,13 +203,22 @@ describe("lifecycle stage and cooldown", () => {
 });
 
 describe("veto sequence", () => {
-  it("mirrors get_map_veto_pattern for Bo1, Bo3 and Bo5", () => {
-    expect(mapVetoPattern(3, 7)).toEqual(["Ban", "Ban", "Pick", "Side", "Pick", "Side", "Ban", "Ban", "Decider"]);
-    expect(mapVetoPattern(1, 7)).toEqual(["Ban", "Ban", "Ban", "Ban", "Ban", "Ban", "Decider"]);
-    expect(mapVetoPattern(5, 7)).toEqual(["Ban", "Ban", "Pick", "Side", "Pick", "Side", "Pick", "Side", "Pick", "Side", "Decider"]);
-    expect(mapVetoPattern(2, 7)).toEqual([]);
-    expect([0, 1, 2, 3, 4, 5].map((turn) => mapVetoTurnTeam(3, turn))).toEqual([1, 2, 1, 2, 2, 1]);
-    expect([0, 1, 2].map((turn) => mapVetoTurnTeam(1, turn))).toEqual([1, 2, 1]);
+  it("takes upcoming steps from the server's sequence and computes none itself", () => {
+    const upcoming = (match: any) =>
+      vetoSteps(match, []).map((s) => `${s.type}:${s.team ?? "-"}:${s.state}`);
+    expect(upcoming(baseMatch())).toEqual([
+      "Ban:1:current", "Ban:2:upcoming", "Pick:1:upcoming", "Pick:2:upcoming",
+      "Ban:2:upcoming", "Ban:1:upcoming", "Decider:-:upcoming",
+    ]);
+    // A different (e.g. future) server rule is followed as-is.
+    expect(upcoming(baseMatch({ map_veto_sequence: seq("Ban:1 Ban:1 Decider:2") }))).toEqual([
+      "Ban:1:current", "Ban:1:upcoming", "Decider:-:upcoming",
+    ]);
+    // No sequence (no valid veto): only what has happened and the current step.
+    expect(upcoming(baseMatch({ map_veto_sequence: null }))).toEqual(["Ban:1:current"]);
+    // The copied formula is gone from the WEB.
+    const source = readFileSync(path.resolve(__dirname, "../../utilities/matchLifecycle.ts"), "utf8");
+    expect(source).not.toMatch(/mapVetoPattern|mapVetoTurnTeam|turn >= 4|preBans/);
   });
 
   it("done steps are the real picks, the current one is the server's, the rest is previewed", () => {
@@ -260,6 +277,34 @@ describe("Captain Pick overview", () => {
     expect(wrapper.get('[data-testid="spectator-available"]').text()).toContain("(6)");
     expect(wrapper.get('[data-testid="spectator-history"]').text()).toContain("Player 3");
     expect(wrapper.findAll("button,input,textarea")).toHaveLength(0);
+    // The public feed's pick clock reaches spectators too.
+    expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(true);
+  });
+
+  it("spectators get the real pick clock, corrected by the server's time, and resynced on every snapshot", async () => {
+    vi.useFakeTimers();
+    // This device runs 60s fast; the server says 20s are left.
+    vi.setSystemTime(NOW + 60_000);
+    const wrapper = mountOverview({
+      match: { id: "m1", status: "PickingPlayers", options: {} },
+      stage: "captain-pick",
+      captainPickProgress: { ...makeDraft(), serverNow: iso(0), deadline: iso(20_000), timerSeconds: 30 },
+    });
+    const clock = () => wrapper.findComponent({ name: "DraftClock" });
+    expect(Date.parse(clock().props("deadline")) - Date.now()).toBe(20_000);
+    expect(clock().props("total")).toBe(30);
+
+    // A reconnect snapshot later in the turn: 8s left, re-anchored on arrival.
+    vi.advanceTimersByTime(5_000);
+    await wrapper.setProps({
+      captainPickProgress: { ...makeDraft(), serverNow: iso(22_000), deadline: iso(30_000), timerSeconds: 30 },
+    });
+    expect(Date.parse(clock().props("deadline")) - Date.now()).toBe(8_000);
+
+    // No clock once nobody is picking (the feed sends null).
+    await wrapper.setProps({
+      captainPickProgress: { ...makeDraft(), pickingLineup: null, pickIndex: null, phase: "CreatingMatch", deadline: null, timerSeconds: null },
+    });
     expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(false);
   });
 
@@ -338,8 +383,27 @@ describe("veto overview", () => {
     expect(wrapper.findAllComponents({ name: "DraftTeamPanel" }).map((p: any) => p.props("active"))).toEqual([false, true]);
   });
 
+  it("the veto clock is the match's own map_veto_pick_expires_at, for every viewer", async () => {
+    const expires = iso(17_000);
+    const wrapper = await mountOverview(baseMatch({ map_veto_pick_expires_at: expires }), []);
+    expect(wrapper.findComponent({ name: "DraftClock" }).props("deadline")).toBe(expires);
+    // A region veto runs on the same server timer.
+    const region = await mountOverview(
+      baseMatch({
+        map_veto_pick_expires_at: expires,
+        region: null,
+        options: { ...baseMatch().options, region_veto: true, regions: ["EU", "NA"] },
+      }),
+      [],
+    );
+    expect(region.findComponent({ name: "DraftClock" }).props("deadline")).toBe(expires);
+  });
+
   it("Bo1 is all bans and a decider", async () => {
-    const wrapper = await mountOverview(baseMatch({ options: { ...baseMatch().options, best_of: 1 } }), []);
+    const wrapper = await mountOverview(
+      baseMatch({ options: { ...baseMatch().options, best_of: 1 }, map_veto_sequence: BO1_SEQUENCE }),
+      [],
+    );
     await wrapper.vm.$nextTick();
     const tones = wrapper.findAll('[data-testid="overview-strip-step"]').map((c) => c.attributes("data-tone"));
     expect(tones).toEqual(["ban", "ban", "ban", "ban", "ban", "ban", "decider"]);

@@ -113,10 +113,10 @@ describe("Captain Pick public observation", () => {
     expect(wrapper.get('[data-testid="spectator-available"]').text()).toContain(
       "(6)",
     );
-    // Spectators get no pick controls, no clock (no own draft) and no link
-    // to the participants' Captain Pick screen.
+    // Spectators get no pick controls and no link to the participants'
+    // Captain Pick screen, but they do get the public pick clock.
     expect(wrapper.findAll("button,textarea,input")).toHaveLength(0);
-    expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(true);
     expect(wrapper.find('[data-testid="open-captain-pick"]').exists()).toBe(false);
     await wrapper.get('[data-testid="overview-team-1"]').trigger("click");
     expect(wrapper.emitted("pick")).toBeUndefined();

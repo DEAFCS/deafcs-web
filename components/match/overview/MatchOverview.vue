@@ -199,12 +199,18 @@ export default {
       picks: [] as any[],
       regionPicks: [] as any[],
       draftReceivedAt: Date.now(),
+      progressReceivedAt: Date.now(),
       vetoClockTotal: 30,
     };
   },
   watch: {
     participantDraft() {
       this.draftReceivedAt = Date.now();
+    },
+    // Every public snapshot (a reconnect's fresh one included) re-anchors the
+    // clock correction to the moment it arrived.
+    captainPickProgress() {
+      this.progressReceivedAt = Date.now();
     },
     // The ring's full length is however long this turn had when first seen
     // (map_veto_pick_seconds is a server setting; 30 is its default).
@@ -332,11 +338,22 @@ export default {
       const name = picking
         ? (captainPickParticipant(progress!, progress!.captains[picking])?.name ?? "")
         : "";
+      // One server timer, two feeds: the ten use their own draft, everyone
+      // else the public one. Both are corrected by the server's clock
+      // (serverNow vs arrival), so a slow or wrong device clock doesn't
+      // shift the countdown and opening mid-turn shows what's left.
       const own =
         this.participantDraft &&
         this.participantDraft.phase === "Drafting" &&
         picking
           ? localCaptainPickDeadline(this.participantDraft, this.draftReceivedAt)
+          : null;
+      const shared =
+        !own && picking && progress?.deadline && progress.serverNow
+          ? localCaptainPickDeadline(
+              { deadline: progress.deadline, serverNow: progress.serverNow },
+              this.progressReceivedAt,
+            )
           : null;
       const total = progress?.pickOrder.length ?? 0;
       return {
@@ -353,8 +370,9 @@ export default {
                 total,
               })
             : null,
-        deadline: own,
-        total: this.participantDraft?.timerSeconds ?? 30,
+        deadline: own ?? shared,
+        total:
+          (own ? this.participantDraft?.timerSeconds : progress?.timerSeconds) ?? 30,
         accent: picking === 2 ? BLUE : AMBER,
         mine:
           !!picking &&

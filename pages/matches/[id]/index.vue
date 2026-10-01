@@ -685,6 +685,13 @@ const demoProcessingFields: any = {
   demo_processing_started_at: true,
 };
 
+// Same reason: matches.map_veto_sequence (the server's whole map veto, see
+// get_map_veto_sequence) is newer than the generated client. The Overview's
+// veto strip shows its upcoming steps from it.
+const mapVetoSequenceField: any = {
+  map_veto_sequence: true,
+};
+
 export default {
   // Lineup components below lock manual edits while this is an active
   // Captain Pick draft's match (see useCaptainPickMatchStatus).
@@ -918,6 +925,7 @@ export default {
               lineup_2_id: true,
               winning_lineup_id: true,
               map_veto_type: true,
+              ...mapVetoSequenceField,
               map_veto_picking_lineup_id: true,
               region_veto_picking_lineup_id: true,
               connection_link: true,

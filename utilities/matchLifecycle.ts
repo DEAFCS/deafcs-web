@@ -301,44 +301,15 @@ type VetoMatch = {
   lineup_2_id?: string | null;
   map_veto_type?: string | null;
   map_veto_picking_lineup_id?: string | null;
+  // The server's whole veto (matches.map_veto_sequence, from
+  // get_map_veto_pattern and get_map_veto_turn_team). Null when the match has
+  // no valid veto.
+  map_veto_sequence?: Array<{ index: number; type: VetoAction; team: 1 | 2 }> | null;
   options?: {
     best_of?: number | null;
     map_pool?: { maps?: Array<{ id: string }> | null } | null;
   } | null;
 };
-
-/**
- * Mirror of get_map_veto_pattern(): the veto actions for a best-of and pool
- * size. Only used to preview steps that haven't happened yet; done steps
- * come from the real picks and the current one from the match itself.
- */
-export function mapVetoPattern(bestOf: number, poolSize: number): VetoAction[] {
-  const base: VetoAction[] = [];
-  if (bestOf === 1 && poolSize > 0) {
-    for (let i = 0; i < poolSize - 1; i++) base.push("Ban");
-    base.push("Decider");
-  } else if ((bestOf === 3 || bestOf === 5) && poolSize >= bestOf) {
-    const bans = poolSize - bestOf;
-    const preBans = Math.min(bans, 2);
-    for (let i = 0; i < preBans; i++) base.push("Ban");
-    for (let i = 0; i < bestOf - 1; i++) base.push("Pick");
-    for (let i = 0; i < bans - preBans; i++) base.push("Ban");
-    base.push("Decider");
-  }
-  return base.flatMap((type) =>
-    type === "Pick" ? (["Pick", "Side"] as VetoAction[]) : [type],
-  );
-}
-
-/**
- * Mirror of get_map_veto_picking_lineup_id() for map actions (Ban, Pick,
- * Decider), by their 0-based turn: Bo3 swaps the order after four turns.
- */
-export function mapVetoTurnTeam(bestOf: number, turn: number): 1 | 2 {
-  const even = turn % 2 === 0;
-  if (bestOf === 3 && turn >= 4) return even ? 2 : 1;
-  return even ? 1 : 2;
-}
 
 export type VetoStepState = "done" | "current" | "upcoming";
 export type VetoStep = {
@@ -360,8 +331,8 @@ const teamOf = (match: VetoMatch, lineupId?: string | null): 1 | 2 | null =>
 /**
  * The veto as a strip of map actions (side choices ride on their Pick).
  * Done steps are the real picks, the current step is the match's own
- * map_veto_type and picking lineup, and upcoming steps are previewed from
- * the mirrored pattern only while it agrees with the server so far.
+ * map_veto_type and picking lineup, and upcoming steps come from the
+ * server's map_veto_sequence. Nothing about the order is computed here.
  */
 export function vetoSteps(match: VetoMatch, picks: VetoPick[] | null | undefined) {
   const mapPicks = (picks ?? []).filter((pick) => pick.type !== "Side");
@@ -389,18 +360,21 @@ export function vetoSteps(match: VetoMatch, picks: VetoPick[] | null | undefined
     });
   }
 
-  const bestOf = match.options?.best_of ?? 0;
-  const expected = mapVetoPattern(bestOf, match.options?.map_pool?.maps?.length ?? 0)
-    .filter((type) => type !== "Side") as VetoStep["type"][];
-  const agrees =
+  const upcoming = (match.map_veto_sequence ?? []).filter(
+    (step) => step.type !== "Side",
+  );
+  // The server's sequence and its picks come from the same rules; this only
+  // guards against an out-of-date sequence (e.g. a pool edited mid-veto).
+  const consistent =
     inVeto &&
-    expected.length >= steps.length &&
-    steps.every((step, index) => step.type === expected[index]);
-  if (agrees) {
-    for (let index = steps.length; index < expected.length; index++) {
+    upcoming.length >= steps.length &&
+    steps.every((step, index) => step.type === upcoming[index].type);
+  if (consistent) {
+    for (let index = steps.length; index < upcoming.length; index++) {
+      const next = upcoming[index];
       steps.push({
-        type: expected[index],
-        team: expected[index] === "Decider" ? null : mapVetoTurnTeam(bestOf, index),
+        type: next.type as VetoStep["type"],
+        team: next.type === "Decider" ? null : next.team,
         state: "upcoming",
         mapId: null,
         choosingSide: false,
