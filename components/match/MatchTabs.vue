@@ -1186,7 +1186,16 @@ export default {
       );
     },
     canViewAdmin() {
-      return this.match.is_organizer;
+      // Mirror the backend's rcon.service.ts canAccessServer check: being
+      // the match organizer is never enough on its own there (non-staff
+      // players routinely organize their own scrims), so showing the
+      // Admin tab / RCON console off organizer status alone exposed the
+      // console UI to regular verified users whose commands would then
+      // silently no-op server-side.
+      return (
+        this.match.is_organizer &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
+      );
     },
     canViewMatchServerLogs() {
       return [
