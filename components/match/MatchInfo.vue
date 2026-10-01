@@ -16,7 +16,7 @@ import {
   <div v-if="hasContent" class="flex flex-col gap-4">
     <!-- Action Panel — Check In / Schedule -->
     <div
-      v-if="match.can_schedule || showCheckInSection"
+      v-if="!connectOnly && (match.can_schedule || showCheckInSection)"
       class="rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4 flex flex-col gap-3"
     >
       <ScheduleMatch :match="match" v-if="match.can_schedule" />
@@ -59,7 +59,7 @@ import {
          the moment the map is actually Finished, since stats are already
          computed and available by then. -->
     <div
-      v-if="showStatsCountdown"
+      v-if="!connectOnly && showStatsCountdown"
       class="flex flex-col items-center gap-1 rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4"
     >
       <span
@@ -82,7 +82,7 @@ import {
     />
 
     <!-- Coaches -->
-    <Card v-if="match.options.coaches">
+    <Card v-if="!connectOnly && match.options.coaches">
       <CardContent class="flex flex-col gap-4 p-6">
         <h3 class="font-semibold text-lg">{{ $t("common.coaches") }}</h3>
         <ul class="flex flex-col gap-6">
@@ -137,8 +137,9 @@ export default {
       type: Boolean,
       default: false,
     },
-    // The match page's Overview shows the same QuickMatchConnect in its
-    // final pre-match stage, so the connect panel isn't rendered twice.
+    // Reuse the authoritative connect deadline and actions in the Overview center.
+    connectOnly: { type: Boolean, default: false },
+    // The Overview owns both the countdown and connect actions while open.
     hideConnect: {
       type: Boolean,
       default: false,
@@ -282,6 +283,11 @@ export default {
       return this.match?.status === e_match_status_enum.WaitingForCheckIn;
     },
     showConnectCountdown() {
+      if (this.hideConnect && !this.isCheckInPhase) return false;
+      if (
+        this.connectOnly &&
+        (this.match.status !== e_match_status_enum.Live || !this.match.is_server_online)
+      ) return false;
       if (
         !this.match?.cancels_at ||
         this.match.status === e_match_status_enum.Veto ||
@@ -400,7 +406,9 @@ export default {
       );
     },
     hasContent() {
-      return this.showAnyActionSection || this.match.options.coaches;
+      return this.connectOnly
+        ? this.showQuickConnectSection || this.showConnectCountdown
+        : this.showAnyActionSection || this.match.options.coaches;
     },
     excludePlayers() {
       const players = [];

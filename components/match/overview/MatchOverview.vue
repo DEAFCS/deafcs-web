@@ -19,6 +19,7 @@ import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
       :title="bar.title"
       :hint="bar.hint"
       :meta="bar.meta"
+      :region="regionLabel ? $t('match.lifecycle.region_is', { region: regionLabel }) : null"
       :deadline="bar.deadline"
       :total="bar.total"
       :accent="bar.accent"
@@ -36,7 +37,7 @@ import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
       class="grid min-w-0 grid-cols-1 items-start gap-4 sm:grid-cols-2 min-[1400px]:grid-cols-[minmax(260px,1fr)_minmax(0,1.35fr)_minmax(260px,1fr)]"
     >
       <div
-        class="order-1 min-w-0 sm:col-span-2 min-[1400px]:order-2 min-[1400px]:col-span-1"
+        class="order-1 min-w-0 w-full max-w-2xl justify-self-center sm:col-span-2 min-[1400px]:order-2 min-[1400px]:col-span-1"
         data-testid="overview-middle"
       >
         <OverviewCheckIn v-if="stage === 'check-in'" :match="match" />
@@ -107,9 +108,6 @@ import {
   lineupMembers,
   regionSteps,
   regionVetoPending,
-  scoreboardHandoffAt,
-  scoreboardHandoffRemainingMs,
-  SCOREBOARD_HANDOFF_MS,
   vetoSteps,
   type OverviewStage,
   type OverviewStripStep,
@@ -459,10 +457,8 @@ export default {
         meta:
           kind === "side" && sideMap
             ? mapLabel(sideMap)
-            : this.regionLabel
-              ? this.$t("match.lifecycle.region_is", { region: this.regionLabel })
-              : null,
-        deadline: this.match.map_veto_pick_expires_at ?? null,
+            : null,
+        deadline: kind ? this.match.map_veto_pick_expires_at ?? null : null,
         total: this.vetoClockTotal,
         accent: team === 2 ? BLUE : AMBER,
         mine,
@@ -471,31 +467,19 @@ export default {
       };
     },
     preMatchBar() {
-      const handoffAt = scoreboardHandoffAt(this.match);
       const waiting = this.match.status === "WaitingForServer";
-      const cooling =
-        !waiting && scoreboardHandoffRemainingMs(this.match, this.now) > 0;
       return {
         title: waiting
           ? this.$t("match.lifecycle.preparing_server")
-          : cooling
-            ? this.$t("match.lifecycle.match_starting")
-            : this.$t("match.lifecycle.match_live"),
+          : this.$t("match.lifecycle.match_live"),
         hint: waiting
           ? this.$t("match.lifecycle.waiting_for_server")
-          : cooling
-            ? this.$t("match.lifecycle.switching_in")
-            : null,
+          : null,
         meta: this.regionLabel
           ? this.$t("match.lifecycle.region_is", { region: this.regionLabel })
           : null,
-        deadline:
-          cooling && handoffAt !== null
-            ? new Date(
-                Math.min(handoffAt, this.now + SCOREBOARD_HANDOFF_MS),
-              ).toISOString()
-            : null,
-        total: SCOREBOARD_HANDOFF_MS / 1000,
+        deadline: null,
+        total: 30,
         accent: NEUTRAL,
         mine: false,
         clockLabel: "SEC",

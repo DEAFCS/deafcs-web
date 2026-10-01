@@ -136,13 +136,14 @@ provide("commander", commander);
               class="w-full"
               :aria-label="$t('ui.tooltips.match_section')"
             >
-              <SelectValue :placeholder="$t('match.tabs.scoreboard')" />
+              <SelectValue v-if="!hideLifecycleTabs" :placeholder="$t('match.tabs.scoreboard')" />
+              <span v-else>{{ $t("match.tabs.more") }}</span>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-if="overviewAvailable" :value="OVERVIEW_TAB">
+              <SelectItem v-if="overviewAvailable && !hideLifecycleTabs" :value="OVERVIEW_TAB">
                 {{ $t("match.tabs.overview") }}
               </SelectItem>
-              <SelectItem value="scoreboard">
+              <SelectItem v-if="!hideLifecycleTabs" value="scoreboard">
                 {{ $t("match.tabs.scoreboard") }}
               </SelectItem>
               <template v-if="!disableStats">
@@ -215,12 +216,12 @@ provide("commander", commander);
           </SelectItem>
         </SelectContent>
       </Select>
-      <div class="min-w-0 flex-1 overflow-x-auto match-tabs__scroll">
+      <div v-if="!hideLifecycleTabs" class="min-w-0 flex-1 overflow-x-auto match-tabs__scroll">
         <TabsList variant="underline" class="h-auto flex-nowrap">
-          <TabsTrigger v-if="overviewAvailable" :value="OVERVIEW_TAB">
+          <TabsTrigger v-if="overviewAvailable && !hideLifecycleTabs" :value="OVERVIEW_TAB">
             {{ $t("match.tabs.overview") }}
           </TabsTrigger>
-          <TabsTrigger value="scoreboard">
+          <TabsTrigger v-if="!hideLifecycleTabs" value="scoreboard">
             {{ $t("match.tabs.scoreboard") }}
           </TabsTrigger>
           <template v-if="!disableStats">
@@ -1047,6 +1048,15 @@ export default {
     },
   },
   computed: {
+    hideLifecycleTabs() {
+      // Keep explicit Scoreboard navigation and organizer/manual controls available.
+      return (
+        this.overviewDefault &&
+        this.activeTab === OVERVIEW_TAB_VALUE &&
+        !this.match.is_organizer &&
+        !this.canViewAdmin
+      );
+    },
     me() {
       return useAuthStore().me;
     },

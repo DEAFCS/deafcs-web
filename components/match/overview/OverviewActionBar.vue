@@ -13,6 +13,7 @@ const props = withDefaults(
     title: string;
     hint?: string | null;
     meta?: string | null;
+    region?: string | null;
     // Local deadline for the clock; no deadline, no clock.
     deadline?: string | null;
     total?: number;
@@ -29,6 +30,7 @@ const props = withDefaults(
   {
     hint: null,
     meta: null,
+    region: null,
     deadline: null,
     total: 30,
     accent: "var(--tac-amber)",
@@ -62,86 +64,30 @@ const countdownText = computed(() => {
 </script>
 
 <template>
-  <div
-    class="action-bar flex flex-col items-center gap-3 rounded-xl border bg-card/40 p-4 [backdrop-filter:blur(8px)] sm:p-5"
-    :class="mine ? 'is-mine' : ''"
-    :style="{ '--accent': accent }"
-    aria-live="polite"
-    data-testid="overview-action-bar"
-  >
-    <div
-      class="flex w-full flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6"
-    >
-      <DraftClock
-        v-if="deadline"
-        :deadline="deadline"
-        :total="total"
-        :accent="accent"
-        :pulse="mine"
-        data-testid="overview-clock"
-      >
-        {{ clockLabel ?? "SEC" }}
-      </DraftClock>
-      <div class="flex min-w-0 flex-col items-center gap-1 text-center sm:items-start sm:text-left">
-        <div
-          class="action-title break-words font-sans text-base font-bold uppercase tracking-[0.18em] sm:text-lg"
-          data-testid="overview-action-title"
-        >
-          <slot name="title">{{ title }}</slot>
-        </div>
-        <p
-          v-if="hint"
-          class="text-sm text-muted-foreground"
-          data-testid="overview-action-hint"
-        >
-          {{ hint }}
-        </p>
-        <p
-          v-if="meta"
-          class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
-          data-testid="overview-action-meta"
-        >
-          {{ meta }}
-        </p>
-        <slot />
+  <div class="action-bar grid grid-cols-1 items-center gap-4 rounded-xl border bg-card/40 p-4 [backdrop-filter:blur(8px)] sm:p-5 min-[1400px]:grid-cols-[minmax(260px,1fr)_minmax(0,1.35fr)_minmax(260px,1fr)]"
+    :class="mine ? 'is-mine' : ''" :style="{ '--accent': accent }" aria-live="polite" data-testid="overview-action-bar">
+    <div class="flex min-w-0 flex-col gap-1 text-left" data-testid="overview-banner-left">
+      <div class="action-title break-words font-sans text-base font-bold uppercase tracking-[0.18em]" data-testid="overview-action-title">
+        <slot name="title">{{ title }}</slot>
       </div>
-      <div
-        v-if="countdownText"
-        class="flex flex-col items-center gap-0.5"
-        data-testid="overview-countdown"
-      >
-        <span
-          v-if="countdownLabel"
-          class="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground"
-        >
-          {{ countdownLabel }}
-        </span>
-        <span class="font-mono text-3xl font-bold tabular-nums leading-none">
-          {{ countdownText }}
-        </span>
+      <p v-if="hint" class="text-sm text-muted-foreground" data-testid="overview-action-hint">{{ hint }}</p>
+      <p v-if="meta && meta !== region" class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground" data-testid="overview-action-meta">{{ meta }}</p>
+      <slot />
+      <div v-if="countdownText" class="flex items-center gap-2 text-sm" data-testid="overview-countdown">
+        <span v-if="countdownLabel">{{ countdownLabel }}</span>
+        <span class="font-mono font-bold tabular-nums">{{ countdownText }}</span>
       </div>
     </div>
-
-    <div v-if="steps.length" class="flex flex-col items-center gap-2">
-      <span
-        v-if="stripLabel"
-        class="font-mono text-[0.6rem] font-bold uppercase tracking-[0.24em] text-muted-foreground"
-      >
-        {{ stripLabel }}
-      </span>
-      <ol class="flex flex-wrap justify-center gap-1.5" data-testid="overview-strip">
-        <li
-          v-for="(step, index) in steps"
-          :key="index"
-          class="strip-chip"
-          :class="[`tone-${step.tone}`, `is-${step.state}`]"
-          :data-tone="step.tone"
-          :data-state="step.state"
-          data-testid="overview-strip-step"
-        >
-          {{ step.label }}
-        </li>
+    <div class="flex min-w-0 flex-col items-center gap-2 text-center" data-testid="overview-banner-middle">
+      <p v-if="region" class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground" data-testid="overview-banner-region">{{ region }}</p>
+      <span v-if="steps.length && stripLabel" class="font-mono text-[0.6rem] font-bold uppercase tracking-[0.24em] text-muted-foreground">{{ stripLabel }}</span>
+      <ol v-if="steps.length" class="flex flex-wrap justify-center gap-1.5" data-testid="overview-strip">
+        <li v-for="(step, index) in steps" :key="index" class="strip-chip" :class="[`tone-${step.tone}`, `is-${step.state}`]"
+          :data-tone="step.tone" :data-state="step.state" data-testid="overview-strip-step">{{ step.label }}</li>
       </ol>
+    </div>
+    <div v-if="deadline" class="justify-self-end" data-testid="overview-banner-right">
+      <DraftClock :deadline="deadline" :total="total" :accent="accent" :pulse="mine" data-testid="overview-clock">{{ clockLabel ?? "SEC" }}</DraftClock>
     </div>
   </div>
 </template>

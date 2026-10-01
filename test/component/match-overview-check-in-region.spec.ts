@@ -321,7 +321,7 @@ describe("region stage", () => {
       global: globalConfig(),
     });
     expect(wrapper.find('[data-testid="overview-region"]').exists()).toBe(false);
-    expect(wrapper.get('[data-testid="overview-action-meta"]').text()).toContain('"region":"Europe"');
+    expect(wrapper.get('[data-testid="overview-banner-region"]').text()).toContain('"region":"Europe"');
   });
 });
 

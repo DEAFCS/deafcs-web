@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { Spinner } from "~/components/ui/spinner";
-import QuickMatchConnect from "~/components/match/QuickMatchConnect.vue";
+import MatchInfo from "~/components/match/MatchInfo.vue";
 import mapLabel from "~/utilities/mapLabel";
 </script>
 
@@ -61,10 +61,11 @@ import mapLabel from "~/utilities/mapLabel";
       <span>{{ $t(`match.lifecycle.server_${serverState}`) }}</span>
     </div>
 
-    <!-- The match page's own connect panel: renders nothing for guests or
-         before Live, and Hasura already returns no connection fields to
-         viewers who may not see them. Join Server and Copy IP come from it. -->
-    <QuickMatchConnect :match="match" hide-booting />
+    <!-- Reuse the existing connect deadline and permissions in the middle.
+         Hasura supplies no connection fields to viewers who may not see them. -->
+    <div class="min-w-0 w-full" data-testid="pre-match-connect">
+      <MatchInfo :match="match" connect-only hide-booting />
+    </div>
   </section>
 </template>
 

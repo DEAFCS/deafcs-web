@@ -74,7 +74,7 @@ const apollo = { mutate: vi.fn().mockResolvedValue({}) };
 
 const globalConfig = () => ({
   config: { globalProperties: { $t: t, $apollo: apollo } as any },
-  stubs: { Label: { template: "<label><slot /></label>" }, Switch: true, NuxtLink: { props: ["to"], template: `<a :href="to"><slot /></a>` } },
+  stubs: { Badge: { template: "<span><slot /></span>" }, Label: { template: "<label><slot /></label>" }, Switch: true, NuxtLink: { props: ["to"], template: `<a :href="to"><slot /></a>` } },
 });
 
 beforeEach(() => {
@@ -565,15 +565,16 @@ describe("pre-match summary", () => {
     expect(player.find("a[href='steam://connect/1.2.3.4']").exists()).toBe(true);
   });
 
-  it("the cooldown bar counts down from started_at", () => {
+  it("the internal handoff has no visible countdown or transition message", () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
     const wrapper = mount(MatchOverview, {
       props: { match: liveMatch({ started_at: iso(-20_000) }), stage: "pre-match", now: NOW },
       global: globalConfig(),
     });
-    expect(wrapper.get('[data-testid="overview-action-title"]').text()).toBe("match.lifecycle.match_starting");
-    expect(wrapper.find('[data-testid="overview-clock"]').text()).toContain("10");
+    expect(wrapper.get('[data-testid="overview-action-title"]').text()).toBe("match.lifecycle.match_live");
+    expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain("match.lifecycle.switching_in");
     const live = mount(MatchOverview, {
       props: { match: liveMatch({ started_at: iso(-60_000) }), stage: "pre-match", now: NOW },
       global: globalConfig(),
@@ -753,5 +754,98 @@ describe("match page", () => {
     const tabs = readFileSync(path.resolve(__dirname, "../../components/match/MatchTabs.vue"), "utf8");
     expect(tabs).toContain('<DropdownMenuItem v-if="canViewAdmin" @click="activeTab = \'server\'">');
     expect(tabs).toContain('<SelectItem v-if="canViewAdmin" value="server">');
+  });
+});
+
+
+describe("Overview layout refinement", () => {
+  const mountVeto = (match: any, picks: any[] = []) => mount(OverviewVeto, { props: { match, picks }, global: globalConfig() });
+  const liveMatch = (extra: any = {}) => baseMatch({ status: "Live", is_server_online: true, match_maps: [{ id: "mm1", order: 1, map: pool[1] }], ...extra });
+  it("places action, region/progress and authoritative timer in separate banner columns", async () => {
+    vi.useFakeTimers(); vi.setSystemTime(NOW);
+    const match = baseMatch({ region: "Germany", map_veto_pick_expires_at: iso(19_000), lineup_1: lineup("Alpha", ["11"], { is_picking_map_veto: true }) });
+    const wrapper = mount(MatchOverview, { props: { match, stage: "veto" }, global: globalConfig() });
+    expect(wrapper.get('[data-testid="overview-banner-left"] [data-testid="overview-action-title"]').text()).toContain('"team":"Alpha"');
+    expect(wrapper.get('[data-testid="overview-banner-middle"] [data-testid="overview-banner-region"]').text()).toContain("Germany");
+    expect(wrapper.get('[data-testid="overview-banner-middle"] [data-testid="overview-strip"]').exists()).toBe(true);
+    expect(wrapper.get('[data-testid="overview-banner-right"] [data-testid="overview-clock"]').text()).toContain("19");
+    await wrapper.setProps({ match: { ...match, map_veto_type: null } });
+    expect(wrapper.find('[data-testid="overview-banner-right"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it.each(["Ban", "Pick"])("%s confirmation belongs to the selected card, supports Cancel/Escape and submits once", async (type) => {
+    const wrapper = mountVeto(baseMatch({ map_veto_type: type, is_captain: true, lineup_1: lineup("Alpha", ["11"], { can_pick_map_veto: true }) }), []);
+    await wrapper.get('[data-testid="veto-map-inferno"]').trigger("click");
+    const card = wrapper.get('[data-testid="veto-map-inferno"]');
+    expect(card.classes()).toContain("is-selected");
+    expect(card.element.tagName).toBe("DIV"); // Avoid nesting confirm buttons in a button.
+    expect(card.get('[data-testid="veto-confirm-question"]').text()).toContain(type.toLowerCase());
+    expect(wrapper.findAll('[data-testid="veto-confirm"]')).toHaveLength(1);
+    expect(card.get('[data-testid="veto-confirm"]').attributes("role")).toBe("group");
+    await card.get('[data-testid="veto-confirm-cancel"]').trigger("click");
+    expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+    await wrapper.get('[data-testid="veto-map-inferno"]').trigger("click");
+    await wrapper.get('[data-testid="veto-confirm"]').trigger("keydown", { key: "Escape" });
+    expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+    await wrapper.get('[data-testid="veto-map-inferno"]').trigger("click");
+    await wrapper.get('[data-testid="veto-map-inferno"] [data-testid="veto-confirm-submit"]').trigger("click");
+    expect(apollo.mutate).toHaveBeenCalledTimes(1);
+    expect(apollo.mutate.mock.calls[0][0].variables).toMatchObject({ map_id: "inferno", type });
+    wrapper.unmount();
+  });
+
+  it("override stays outside the centered map grid and side confirmation stays inside its map", async () => {
+    const wrapper = mountVeto(baseMatch({ is_organizer: true }), []);
+    expect(wrapper.get('[data-testid="veto-maps"]').classes()).toContain("justify-center");
+    expect(wrapper.get('[data-testid="veto-maps"]').classes()).toContain("flex-wrap");
+    expect(wrapper.get('[data-testid="veto-maps"]').find('[data-testid="veto-override"]').exists()).toBe(false);
+    await wrapper.get('[data-testid="veto-override"]').trigger("click");
+    await wrapper.get('[data-testid="veto-map-mirage"]').trigger("click");
+    expect(wrapper.get('[data-testid="veto-map-mirage"] [data-testid="veto-confirm"]').exists()).toBe(true);
+    wrapper.unmount();
+    const side = mountVeto(baseMatch({ map_veto_type: "Side", is_captain: true, lineup_2: lineup("Bravo", ["21"], { can_pick_map_veto: true }) }), bo3Picks.slice(0,3));
+    await side.get('[data-testid="veto-side-CT"]').trigger("click");
+    expect(side.get('[data-testid="veto-side-choice"] [data-testid="veto-confirm"]').exists()).toBe(true);
+    expect(side.find('[data-testid="veto-maps"]').exists()).toBe(false);
+    side.unmount();
+  });
+
+  it("constrains final map, server, Time to Connect and Connect/Copy to the middle", () => {
+    vi.useFakeTimers(); vi.setSystemTime(NOW); auth.me = { steam_id: "11" };
+    const match = liveMatch({ cancels_at: iso(120_000), is_in_lineup: true, connection_string: "connect 1.2.3.4", connection_link: "steam://connect/1.2.3.4" });
+    match.match_maps[0] = { ...match.match_maps[0], is_current_map: true, status: "Warmup" };
+    const wrapper = mount(MatchOverview, { props: { match, stage: "pre-match" }, global: globalConfig() });
+    const middle = wrapper.get('[data-testid="overview-middle"]');
+    expect(middle.classes()).toContain("justify-self-center");
+    expect(middle.classes()).toContain("max-w-2xl");
+    expect(middle.get('[data-testid="pre-match-server"]').attributes("data-state")).toBe("ready");
+    expect(middle.get('[data-testid="pre-match-connect"]').text()).toContain("match.time_to_connect");
+    expect(middle.get('[data-testid="pre-match-connect"] [data-testid="copy-ip"]').exists()).toBe(true);
+    expect(middle.get('a[href="steam://connect/1.2.3.4"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(false);
+    wrapper.unmount();
+  });
+
+  it("hides lifecycle tabs for the default Overview, restores normal and explicit/admin navigation", () => {
+    const source = readFileSync(path.resolve(__dirname, "../../components/match/MatchTabs.vue"), "utf8");
+    const descriptor = parse(source).descriptor;
+    const ast = ts.createSourceFile("tabs.ts", descriptor.script!.content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
+    const statement = ast.statements.find(ts.isExportAssignment)! as ts.ExportAssignment;
+    const object = statement.expression as ts.ObjectLiteralExpression;
+    const computed = (object.properties.find((node) => node.name?.getText(ast) === "computed") as ts.PropertyAssignment).initializer as ts.ObjectLiteralExpression;
+    const method = computed.properties.find((node) => node.name?.getText(ast) === "hideLifecycleTabs")!;
+    const hide = new Function("OVERVIEW_TAB_VALUE", "return ({" + method.getText(ast) + "}).hideLifecycleTabs")("lifecycle");
+    const state = { overviewDefault: true, activeTab: "lifecycle", match: { is_organizer: false }, canViewAdmin: false };
+    expect(hide.call(state)).toBe(true);
+    expect(hide.call({ ...state, overviewDefault: false })).toBe(false);
+    expect(hide.call({ ...state, activeTab: "scoreboard" })).toBe(false);
+    expect(hide.call({ ...state, match: { is_organizer: true } })).toBe(false);
+    expect(hide.call({ ...state, canViewAdmin: true })).toBe(false);
+    // Render the real desktop/mobile trigger fragments with the real predicate.
+    const triggers = descriptor.template!.content.match(/<(?:TabsTrigger|SelectItem)[^>]*(?:OVERVIEW_TAB|value="scoreboard")[^>]*>[\s\S]*?<\/(?:TabsTrigger|SelectItem)>/g)!;
+    const render = (context: any) => mount({ template: '<div>' + triggers.join('') + '</div>', data: () => ({ ...context, overviewAvailable: true, OVERVIEW_TAB: "lifecycle" }), computed: { hideLifecycleTabs: hide } }, { global: { ...globalConfig(), stubs: { TabsTrigger: { template: '<button><slot /></button>' }, SelectItem: { template: '<option><slot /></option>' } } } });
+    const hidden = render(state); expect(hidden.findAll('button,option')).toHaveLength(0); hidden.unmount();
+    const live = render({ ...state, overviewDefault: false }); expect(live.findAll('button,option')).toHaveLength(4); live.unmount();
   });
 });

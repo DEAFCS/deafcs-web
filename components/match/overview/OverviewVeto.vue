@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Check, X } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/ui/spinner";
 import mapLabel from "~/utilities/mapLabel";
@@ -60,30 +59,63 @@ import mapLabel from "~/utilities/mapLabel";
           </component>
         </div>
       </div>
+      <div
+        v-if="confirmation && selectedSide"
+        class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/95 p-2 text-center"
+        :style="{ '--accent': accent }"
+        data-testid="veto-confirm"
+        role="group"
+        :aria-label="confirmation.question"
+        @keydown.esc.stop="!submitting && cancelSelection()"
+      >
+        <span class="text-xs font-semibold" data-testid="veto-confirm-question">
+          {{ confirmation.question }}
+        </span>
+        <div class="flex w-full flex-wrap justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            :disabled="submitting"
+            data-testid="veto-confirm-cancel"
+            @click.stop="cancelSelection"
+          >
+            {{ $t("common.cancel") }}
+          </Button>
+          <Button
+            size="sm"
+            :disabled="submitting"
+            data-testid="veto-confirm-submit"
+            @click.stop="submit"
+          >
+            <Spinner v-if="submitting" class="h-4 w-4" />
+            {{ confirmation.action }}
+          </Button>
+        </div>
+      </div>
     </div>
 
     <!-- Map pool: every map's state, and the picker's selection. -->
     <div
       v-else
-      class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4"
+      class="flex w-full flex-wrap justify-center gap-2"
       data-testid="veto-maps"
     >
       <component
-        :is="canSelect(row) ? 'button' : 'div'"
+        :is="canSelect(row) && selectedMapId !== row.map.id ? 'button' : 'div'"
         v-for="row in mapRows"
         :key="row.map.id"
-        :type="canSelect(row) ? 'button' : undefined"
-        class="veto-map relative aspect-[4/3] overflow-hidden rounded-lg border text-left"
+        :type="canSelect(row) && selectedMapId !== row.map.id ? 'button' : undefined"
+        class="veto-map relative w-[calc((100%_-_0.5rem)/2)] aspect-[4/3] overflow-hidden rounded-lg border text-left sm:w-[calc((100%_-_1rem)/3)]"
         :class="[
           `is-${row.state}`,
           row.team ? `team-${row.team}` : '',
-          selectedMapId === row.map.id ? 'is-selected' : '',
+          selectedMapId === row.map.id ? 'is-selected min-h-36' : '',
           canSelect(row) ? 'is-pickable' : '',
         ]"
         :data-state="row.state"
         :data-team="row.team ?? undefined"
         :data-testid="`veto-map-${row.map.id}`"
-        @click="canSelect(row) && (selectedMapId = row.map.id)"
+        @click="canSelect(row) && selectMap(row.map.id)"
       >
         <img
           v-if="row.map.poster"
@@ -108,41 +140,40 @@ import mapLabel from "~/utilities/mapLabel";
             {{ mapLabel(row.map) }}
           </span>
         </div>
+        <div
+          v-if="confirmation && selectedMapId === row.map.id"
+          class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-background/95 p-2 text-center"
+          :style="{ '--accent': accent }"
+          data-testid="veto-confirm"
+          role="group"
+          :aria-label="confirmation.question"
+          @keydown.esc.stop="!submitting && cancelSelection()"
+        >
+          <span class="text-xs font-semibold" data-testid="veto-confirm-question">
+            {{ confirmation.question }}
+          </span>
+          <div class="flex w-full flex-wrap justify-center gap-1">
+            <Button
+              variant="outline"
+              size="sm"
+              :disabled="submitting"
+              data-testid="veto-confirm-cancel"
+              @click.stop="cancelSelection"
+            >
+              {{ $t("common.cancel") }}
+            </Button>
+            <Button
+              size="sm"
+              :disabled="submitting"
+              data-testid="veto-confirm-submit"
+              @click.stop="submit"
+            >
+              <Spinner v-if="submitting" class="h-4 w-4" />
+              {{ confirmation.action }}
+            </Button>
+          </div>
+        </div>
       </component>
-    </div>
-
-    <!-- The confirmation step. Postgres still decides whether it's allowed. -->
-    <div
-      v-if="confirmation"
-      class="flex flex-col items-center gap-3 rounded-xl border border-[hsl(var(--accent)/0.6)] bg-[hsl(var(--accent)/0.08)] p-4 sm:flex-row sm:justify-between"
-      :style="{ '--accent': accent }"
-      data-testid="veto-confirm"
-    >
-      <span class="text-sm font-semibold" data-testid="veto-confirm-question">
-        {{ confirmation.question }}
-      </span>
-      <div class="flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          :disabled="submitting"
-          data-testid="veto-confirm-cancel"
-          @click="cancelSelection"
-        >
-          <X class="h-4 w-4" />
-          {{ $t("common.cancel") }}
-        </Button>
-        <Button
-          size="sm"
-          :disabled="submitting"
-          data-testid="veto-confirm-submit"
-          @click="submit"
-        >
-          <Spinner v-if="submitting" class="h-4 w-4" />
-          <Check v-else class="h-4 w-4" />
-          {{ confirmation.action }}
-        </Button>
-      </div>
     </div>
   </section>
 </template>
@@ -170,7 +201,7 @@ export default {
       type: Array,
       default: () => [],
     },
-    // Accent of the side on the clock, for the confirmation bar.
+    // Accent of the side on the clock, for the selected-card confirmation.
     accent: {
       type: String,
       default: "var(--tac-amber)",
@@ -237,7 +268,13 @@ export default {
         row.state === "available"
       );
     },
+    selectMap(mapId: string) {
+      this.selectedMapId = mapId;
+      this.$nextTick(() => this.$el.querySelector('[data-testid="veto-confirm-cancel"]')?.focus());
+    },
     cancelSelection() {
+      const previousMapId = this.selectedMapId;
+      if (previousMapId) this.$nextTick(() => this.$el?.querySelector(`[data-testid="veto-map-${previousMapId}"]`)?.focus());
       this.selectedMapId = null;
       this.selectedSide = null;
     },
