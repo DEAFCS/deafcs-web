@@ -102,13 +102,19 @@ export default {
         (a: any, b: any) => (a.order ?? 0) - (b.order ?? 0),
       );
       const count = Math.max(this.match.options?.best_of ?? 0, maps.length);
+      // Veto picks and match_maps arrive on separate subscriptions. Keep a
+      // known final map visible while the match_maps snapshot catches up.
+      const selectedMaps = (this.picks as any[]).filter(
+        (pick) => pick.type === "Pick" || pick.type === "Decider",
+      );
       return Array.from({ length: count }, (_, index) => {
         const matchMap = maps[index] ?? null;
+        const map = matchMap?.map ?? selectedMaps[index]?.map ?? null;
         return {
           key: matchMap?.id ?? `slot-${index}`,
           number: index + 1,
-          map: matchMap?.map ?? null,
-          decider: !!matchMap && this.deciderMapIds.has(matchMap.map?.id),
+          map,
+          decider: this.deciderMapIds.has(map?.id),
           ctTeam: matchMap ? ctStartTeam(matchMap) : null,
         };
       });

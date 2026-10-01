@@ -671,7 +671,7 @@ import { computed as computedRef } from "vue";
 import { getCaptainPickDraft } from "~/utilities/captainPickDraft";
 import {
   overviewIsDefault,
-  overviewStage,
+  overviewStage as deriveOverviewStage,
   scoreboardHandoffAt,
   SCOREBOARD_HANDOFF_MS,
   OVERVIEW_TAB,
@@ -883,6 +883,7 @@ export default {
             {
               id: true,
               status: true,
+              started_at: true,
               source: true,
               invite_code: true,
               draft_games: [
@@ -1129,7 +1130,7 @@ export default {
       );
     },
     overviewStage() {
-      return overviewStage(this.match, {
+      return deriveOverviewStage(this.match, {
         captainPickActive: this.captainPickActive,
       });
     },

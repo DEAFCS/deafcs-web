@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { readFileSync } from "node:fs";
 import path from "node:path";
-import { parse } from "@vue/compiler-sfc";
+import { parse, compileScript, compileTemplate } from "@vue/compiler-sfc";
 import ts from "typescript";
 import { draftAfter, makeDraft } from "./fixtures/captainPick";
 
@@ -531,6 +531,18 @@ describe("pre-match summary", () => {
     expect(wrapper.findAll('[data-testid^="pre-match-map-"]')).toHaveLength(1);
   });
 
+  it("completed BO1 uses its known decider while match_maps catches up", () => {
+    const wrapper = mount(OverviewPreMatch, {
+      props: {
+        match: liveMatch({ options: { ...baseMatch().options, best_of: 1 }, match_maps: [] }),
+        picks: [pick("Decider", "inferno", "Alpha-id")],
+      },
+      global: globalConfig(),
+    });
+    expect(wrapper.get('[data-testid="pre-match-map-1"]').text()).toContain("Inferno");
+    expect(wrapper.text()).not.toContain("match.map_tbd");
+  });
+
   it("server preparation states", () => {
     expect(mountSummary(liveMatch({ status: "WaitingForServer" })).get('[data-testid="pre-match-server"]').attributes("data-state")).toBe("waiting");
     expect(mountSummary(liveMatch({ is_server_online: false })).get('[data-testid="pre-match-server"]').attributes("data-state")).toBe("starting");
@@ -583,7 +595,7 @@ for (const node of [...pageAst.statements].reverse()) {
 const pageExports: any = {};
 new Function(
   "exports", "$", "order_by", "e_match_status_enum", "e_player_roles_enum", "typedGql", "mapFields", "matchLineups", "playerFields", "matchOptionsFields", "eloFields",
-  "overviewStage", "overviewIsDefault", "scoreboardHandoffAt", "SCOREBOARD_HANDOFF_MS", "OVERVIEW_TAB", "getCaptainPickDraft", "useAuthStore", "useMatchmakingStore",
+  "deriveOverviewStage", "overviewIsDefault", "scoreboardHandoffAt", "SCOREBOARD_HANDOFF_MS", "OVERVIEW_TAB", "getCaptainPickDraft", "useAuthStore", "useMatchmakingStore",
   ts.transpileModule(pageBody, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
 )(
   pageExports, $, order_by, e_match_status_enum, e_player_roles_enum, typedGql, mapFields, matchLineups, playerFields, matchOptionsFields, eloFields,
@@ -607,6 +619,72 @@ const pageContext = (state: Record<string, any>) => {
 const template = parse(pageSource).descriptor.template!.content;
 
 describe("match page", () => {
+  it("compiled template binds the computed stage, not the imported helper", () => {
+    const { descriptor } = parse(pageSource);
+    const script = compileScript(descriptor, { id: "overview-regression" });
+    const compiled = compileTemplate({
+      source: descriptor.template!.content,
+      filename: "index.vue",
+      id: "overview-regression",
+      compilerOptions: { bindingMetadata: script.bindings },
+    });
+    expect(compiled.errors).toEqual([]);
+    expect(compiled.code).toContain("stage: $options.overviewStage");
+    expect(compiled.code).not.toContain("$setup.overviewStage");
+  });
+
+  it("subscribes to the live timestamp needed for the handoff and stage label", () => {
+    const query = page.apollo.$subscribe.matches_by_pk.query;
+    const fields = query.definitions[0].selectionSet.selections[0].selectionSet.selections;
+    expect(fields.map((field: any) => field.name.value)).toContain("started_at");
+  });
+
+  it.each(["Ban", "Pick"])("active BO1 %s stays actionable despite a full future sequence", async (type) => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    const match = baseMatch({
+      options: { ...baseMatch().options, best_of: 1 },
+      map_veto_sequence: BO1_SEQUENCE,
+      map_veto_type: type,
+      map_veto_pick_expires_at: iso(12_000),
+      is_captain: true,
+      lineup_1: lineup("Alpha", ["11"], { can_pick_map_veto: true, is_picking_map_veto: true }),
+    });
+    const stage = pageContext({ match }).overviewStage;
+    const wrapper = mount(MatchOverview, { props: { match, stage }, global: globalConfig() });
+    expect(wrapper.attributes("data-stage")).toBe("veto");
+    expect(wrapper.find('[data-testid="overview-pre-match"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="overview-clock"]').text()).toContain("12");
+    expect(wrapper.get('[data-testid="overview-action-title"]').text()).toContain(`match.lifecycle.veto_${type.toLowerCase()}`);
+    expect(wrapper.text()).not.toContain("match.lifecycle.match_live");
+    await wrapper.get('[data-testid="veto-map-mirage"]').trigger("click");
+    await wrapper.get('[data-testid="veto-confirm-submit"]').trigger("click");
+    expect(apollo.mutate).toHaveBeenCalledWith({
+      mutation: mapVetoPickMutation,
+      variables: { map_id: "mirage", type, match_id: "m1", match_lineup_id: "Alpha-id" },
+    });
+    wrapper.unmount();
+  });
+
+  it("spectator BO1 veto renders cards and timer without actions, then transitions only on server status", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    const match = baseMatch({ options: { ...baseMatch().options, best_of: 1 }, map_veto_sequence: BO1_SEQUENCE, map_veto_pick_expires_at: iso(15_000) });
+    const wrapper = mount(MatchOverview, { props: { match, stage: pageContext({ match }).overviewStage }, global: globalConfig() });
+    expect(wrapper.findAll('button[data-testid^="veto-map-"]')).toHaveLength(0);
+    expect(wrapper.findAll('[data-testid^="veto-map-"]').length).toBe(7);
+    await wrapper.get('[data-testid="veto-map-mirage"]').trigger("click");
+    expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+    expect(apollo.mutate).not.toHaveBeenCalled();
+    const complete = { ...match, status: "WaitingForServer", map_veto_type: null, map_veto_pick_expires_at: null, match_maps: [{ id: "mm1", order: 1, map: pool[1] }] };
+    await wrapper.setProps({ match: complete, stage: pageContext({ match: complete }).overviewStage });
+    expect(wrapper.find('[data-testid="overview-veto"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="pre-match-map-1"]').text()).toContain("Inferno");
+    expect(wrapper.get('[data-testid="overview-action-title"]').text()).toBe("match.lifecycle.preparing_server");
+    expect(wrapper.text()).not.toContain("match.lifecycle.match_live");
+    wrapper.unmount();
+  });
+
   it("keeps the normal banner and its ... menu from the start of Captain Pick", () => {
     const header = template.slice(template.indexOf("<header"), template.indexOf("</header>"));
     expect(header).toContain('<MatchActions :match="match" />');
