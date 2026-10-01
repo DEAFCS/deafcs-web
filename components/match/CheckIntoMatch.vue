@@ -18,7 +18,7 @@
       </span>
       <CheckCircle2 class="w-4 h-4" :class="{ invisible: loading }" />
       <span :class="{ invisible: loading }">{{
-        $t("match.check_in.check_in")
+        label || $t("match.check_in.check_in")
       }}</span>
     </button>
     <div v-else class="flex items-center gap-3">
@@ -51,6 +51,11 @@ export default {
     match: {
       type: Object,
       required: true,
+    },
+    // e.g. "Check in team" where one captain readies the whole lineup.
+    label: {
+      type: String,
+      default: null,
     },
   },
   setup() {

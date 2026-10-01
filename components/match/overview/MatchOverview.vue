@@ -5,6 +5,8 @@ import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
 import OverviewActionBar from "~/components/match/overview/OverviewActionBar.vue";
 import OverviewVeto from "~/components/match/overview/OverviewVeto.vue";
 import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
+import OverviewCheckIn from "~/components/match/overview/OverviewCheckIn.vue";
+import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
 </script>
 
 <template>
@@ -24,6 +26,8 @@ import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
       :clock-label="bar.clockLabel"
       :steps="bar.steps"
       :strip-label="bar.stripLabel"
+      :countdown="bar.countdown"
+      :countdown-label="bar.countdownLabel"
     />
 
     <!-- Wide screens: Team 1 | stage | Team 2. Narrower: the stage first,
@@ -35,18 +39,27 @@ import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
         class="order-1 min-w-0 sm:col-span-2 min-[1400px]:order-2 min-[1400px]:col-span-1"
         data-testid="overview-middle"
       >
+        <OverviewCheckIn v-if="stage === 'check-in'" :match="match" />
         <CaptainPickProgress
-          v-if="stage === 'captain-pick'"
+          v-else-if="stage === 'captain-pick'"
           :progress="captainPickProgress"
           :participant="participant"
         />
-        <MatchRegionVeto v-else-if="regionVetoPending" :match="match" />
-        <OverviewVeto
-          v-else-if="stage === 'veto'"
+        <OverviewRegion
+          v-else-if="regionPending"
           :match="match"
-          :picks="picks"
-          :accent="bar.accent"
+          :picks="regionPicks"
         />
+        <template v-else-if="stage === 'veto'">
+          <!-- Without a region veto, an organizer may still set the server
+               region by hand; MatchRegionVeto shows only that form then. -->
+          <MatchRegionVeto
+            v-if="!match.options?.region_veto"
+            :match="match"
+            class="mb-4"
+          />
+          <OverviewVeto :match="match" :picks="picks" :accent="bar.accent" />
+        </template>
         <OverviewPreMatch v-else :match="match" :picks="picks" />
       </div>
 
@@ -66,6 +79,7 @@ import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
           :captain-steam-id="team.captainSteamId"
           :accent="team.lineup === 1 ? 'amber' : 'blue'"
           :active="team.active"
+          :check-in-by-steam-id="team.checkIns"
           :match-type="eloType"
           :elo-type="eloType"
           profile-in-new-tab
@@ -88,8 +102,11 @@ import {
   type CaptainPickDraftState,
 } from "~/utilities/captainPickDraft";
 import {
+  checkInSummary,
   lineupCaptainSteamId,
   lineupMembers,
+  regionSteps,
+  regionVetoPending,
   scoreboardHandoffAt,
   scoreboardHandoffRemainingMs,
   SCOREBOARD_HANDOFF_MS,
@@ -129,9 +146,29 @@ export default {
   },
   apollo: {
     $subscribe: {
+      match_region_veto_picks: {
+        skip() {
+          return this.stage !== "veto" && this.stage !== "pre-match";
+        },
+        variables() {
+          return { matchId: this.match.id };
+        },
+        query: typedGql("subscription")({
+          match_region_veto_picks: [
+            {
+              where: { match_id: { _eq: $("matchId", "uuid!") } },
+              order_by: [{ created_at: order_by.asc }],
+            },
+            { id: true, type: true, region: true, match_lineup_id: true },
+          ],
+        }),
+        result({ data }: { data: any }) {
+          this.regionPicks = data?.match_region_veto_picks ?? [];
+        },
+      },
       match_map_veto_picks: {
         skip() {
-          return this.stage === "captain-pick";
+          return this.stage !== "veto" && this.stage !== "pre-match";
         },
         variables() {
           return { matchId: this.match.id, order_by: order_by.asc };
@@ -160,6 +197,7 @@ export default {
   data() {
     return {
       picks: [] as any[],
+      regionPicks: [] as any[],
       draftReceivedAt: Date.now(),
       vetoClockTotal: 30,
     };
@@ -197,17 +235,20 @@ export default {
         ? "Competitive"
         : (this.match.options?.type ?? null);
     },
-    regionVetoPending() {
-      return (
-        this.stage === "veto" &&
-        !!this.match.options?.region_veto &&
-        !this.match.region
-      );
+    regionPending() {
+      return this.stage === "veto" && regionVetoPending(this.match);
+    },
+    regionLabel() {
+      return this.match.e_region?.description || this.match.region || null;
     },
     vetoTeam(): 1 | 2 | null {
-      if (this.match.lineup_1?.is_picking_map_veto) return 1;
-      if (this.match.lineup_2?.is_picking_map_veto) return 2;
+      const key = this.regionPending ? "is_picking_region_veto" : "is_picking_map_veto";
+      if (this.match.lineup_1?.[key]) return 1;
+      if (this.match.lineup_2?.[key]) return 2;
       return null;
+    },
+    checkIn() {
+      return this.stage === "check-in" ? checkInSummary(this.match) : null;
     },
     teams() {
       return ([1, 2] as const).map((lineup) => {
@@ -223,9 +264,21 @@ export default {
             captainSteamId: captain ? String(captain) : null,
             perTeam: Math.max(1, Math.ceil(progress.participants.length / 2)),
             active: progress.pickingLineup === lineup,
+            checkIns: null,
           };
         }
         const row = this.match[`lineup_${lineup}`];
+        // Per-player check-in marks only where each player checks in;
+        // with captain check-in one captain readies the whole team.
+        const checkIns =
+          this.checkIn?.mode === "Players"
+            ? Object.fromEntries(
+                (row?.lineup_players ?? []).map((p: any) => [
+                  String(p.steam_id),
+                  !!p.checked_in,
+                ]),
+              )
+            : null;
         return {
           lineup,
           title: this.lineupName(lineup),
@@ -233,10 +286,22 @@ export default {
           captainSteamId: lineupCaptainSteamId(row),
           perTeam: this.match.min_players_per_lineup || 5,
           active: this.stage === "veto" && this.vetoTeam === lineup,
+          checkIns,
         };
       });
     },
     steps(): OverviewStripStep[] {
+      if (this.stage === "check-in") return [];
+      if (this.regionPending) {
+        return regionSteps(this.match, this.regionPicks).map((step) => ({
+          label:
+            step.type === "Decider"
+              ? this.$t("match.lifecycle.step_region")
+              : `${this.$t("match.lifecycle.step_ban")} T${step.team ?? "?"}`,
+          tone: step.type === "Decider" ? "decider" : "ban",
+          state: step.state,
+        }));
+      }
       if (this.stage === "captain-pick") {
         if (!this.draft) return [];
         return captainPickTimeline(this.draft).map((slot) => ({
@@ -299,23 +364,62 @@ export default {
         stripLabel: this.$t("draft_games.room.pick_order"),
       };
     },
+    checkInBar() {
+      const summary = this.checkIn!;
+      const timed = summary.mode !== "Admin" && !!this.match.cancels_at;
+      return {
+        title: this.$t("match.lifecycle.check_in_title"),
+        hint:
+          summary.mode === "Admin"
+            ? this.$t("match.lifecycle.admin_check_in")
+            : this.$t(
+                summary.mode === "Captains"
+                  ? "match.lifecycle.teams_ready"
+                  : "match.lifecycle.players_ready",
+                { ready: summary.ready, required: summary.required },
+              ),
+        meta: null,
+        deadline: null,
+        total: 30,
+        accent: AMBER,
+        mine: !!this.match.can_check_in,
+        clockLabel: null,
+        stripLabel: null,
+        // cancels_at is the Check-in Time deadline the server enforces.
+        countdown: timed ? this.match.cancels_at : null,
+        countdownLabel: timed ? this.$t("match.lifecycle.check_in_closes") : null,
+      };
+    },
+    regionBar() {
+      const team = this.vetoTeam;
+      const name = team ? this.lineupName(team) : "";
+      const mine = !!(
+        this.match.lineup_1?.can_pick_region_veto ||
+        this.match.lineup_2?.can_pick_region_veto
+      );
+      const left = (this.match.options?.regions ?? []).length - this.regionPicks.length;
+      return {
+        title: team
+          ? this.$t("match.lifecycle.region_ban", { team: name })
+          : this.$t("match.lifecycle.choosing_region"),
+        hint: team
+          ? mine
+            ? this.$t("match.lifecycle.your_region_ban")
+            : this.$t("match.lifecycle.wait_region_ban", { team: name })
+          : null,
+        meta: this.$t("match.lifecycle.regions_left", { count: Math.max(left, 0) }),
+        deadline: this.match.map_veto_pick_expires_at ?? null,
+        total: this.vetoClockTotal,
+        accent: team === 2 ? BLUE : AMBER,
+        mine,
+        clockLabel: null,
+        stripLabel: this.$t("match.lifecycle.region_veto"),
+      };
+    },
     vetoBar() {
       const team = this.vetoTeam;
       const name = team ? this.lineupName(team) : "";
       const type = this.match.map_veto_type;
-      if (this.regionVetoPending) {
-        return {
-          title: this.$t("match.lifecycle.choosing_region"),
-          hint: null,
-          meta: null,
-          deadline: null,
-          total: 30,
-          accent: AMBER,
-          mine: false,
-          clockLabel: null,
-          stripLabel: null,
-        };
-      }
       const mine = !!(
         this.match.lineup_1?.can_pick_map_veto ||
         this.match.lineup_2?.can_pick_map_veto
@@ -334,7 +438,12 @@ export default {
             ? this.$t(`match.lifecycle.your_${kind}`)
             : this.$t(`match.lifecycle.wait_${kind}`, { team: name })
           : null,
-        meta: kind === "side" && sideMap ? mapLabel(sideMap) : null,
+        meta:
+          kind === "side" && sideMap
+            ? mapLabel(sideMap)
+            : this.regionLabel
+              ? this.$t("match.lifecycle.region_is", { region: this.regionLabel })
+              : null,
         deadline: this.match.map_veto_pick_expires_at ?? null,
         total: this.vetoClockTotal,
         accent: team === 2 ? BLUE : AMBER,
@@ -359,7 +468,9 @@ export default {
           : cooling
             ? this.$t("match.lifecycle.switching_in")
             : null,
-        meta: null,
+        meta: this.regionLabel
+          ? this.$t("match.lifecycle.region_is", { region: this.regionLabel })
+          : null,
         deadline:
           cooling && handoffAt !== null
             ? new Date(
@@ -375,12 +486,16 @@ export default {
     },
     bar() {
       const base =
-        this.stage === "captain-pick"
-          ? this.captainPickBar
-          : this.stage === "veto"
-            ? this.vetoBar
-            : this.preMatchBar;
-      return { ...base, steps: this.steps };
+        this.stage === "check-in"
+          ? this.checkInBar
+          : this.stage === "captain-pick"
+            ? this.captainPickBar
+            : this.regionPending
+              ? this.regionBar
+              : this.stage === "veto"
+                ? this.vetoBar
+                : this.preMatchBar;
+      return { countdown: null, countdownLabel: null, ...base, steps: this.steps };
     },
   },
 };

@@ -212,6 +212,7 @@ import {
   e_player_roles_enum,
 } from "~/generated/zeus";
 import { generateMutation } from "~/graphql/graphqlGen";
+import { regionVetoPickMutation } from "~/graphql/regionVetoPick";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useSound } from "~/composables/useSound";
 import { toast } from "@/components/ui/toast";
@@ -445,21 +446,7 @@ export default {
             match_id: (this.matchId || this.$route.params.id),
             match_lineup_id: this.match.region_veto_picking_lineup_id,
           },
-          mutation: generateMutation({
-            insert_match_region_veto_picks_one: [
-              {
-                object: {
-                  region: $("region", "String!"),
-                  type: $("type", "e_veto_pick_types_enum!"),
-                  match_id: $("match_id", "uuid!"),
-                  match_lineup_id: $("match_lineup_id", "uuid!"),
-                },
-              },
-              {
-                id: true,
-              },
-            ],
-          }),
+          mutation: regionVetoPickMutation,
         });
 
         this.submitTimeout = setTimeout(() => {

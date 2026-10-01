@@ -345,9 +345,19 @@ describe("veto overview", () => {
     expect(tones).toEqual(["ban", "ban", "ban", "ban", "ban", "ban", "decider"]);
   });
 
-  it("shows the region veto in the middle while one is pending", async () => {
-    const wrapper = await mountOverview(baseMatch({ options: { ...baseMatch().options, region_veto: true }, region: null }), []);
+  it("shows the region stage in the middle while a region veto is pending", async () => {
+    const wrapper = await mountOverview(
+      baseMatch({ options: { ...baseMatch().options, region_veto: true, regions: ["EU", "NA"] }, region: null }),
+      [],
+    );
+    expect(wrapper.find('[data-testid="overview-region"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="overview-veto"]').exists()).toBe(false);
+  });
+
+  it("without a region veto, keeps the organizer's own Set Server Region form", async () => {
+    const wrapper = await mountOverview(baseMatch(), []);
     expect(wrapper.find('[data-testid="region-veto"]').exists()).toBe(true);
+    expect(wrapper.find('[data-testid="overview-veto"]').exists()).toBe(true);
   });
 });
 

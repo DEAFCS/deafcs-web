@@ -13,6 +13,8 @@ export const TeamPanel = defineComponent({
     matchType: null,
     eloType: null,
     profileInNewTab: Boolean,
+    captainSteamId: null,
+    checkInBySteamId: null,
   },
   setup(props) {
     return () =>

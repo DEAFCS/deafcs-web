@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import DraftClock from "~/components/draft-games/DraftClock.vue";
 import type { OverviewStripStep } from "~/utilities/matchLifecycle";
 
@@ -7,7 +8,7 @@ import type { OverviewStripStep } from "~/utilities/matchLifecycle";
  * every stage (Captain Pick, veto, pre-match): the Draft clock, the action,
  * a hint and the step strip that doubles as progress and history.
  */
-withDefaults(
+const props = withDefaults(
   defineProps<{
     title: string;
     hint?: string | null;
@@ -21,6 +22,9 @@ withDefaults(
     clockLabel?: string | null;
     steps?: OverviewStripStep[];
     stripLabel?: string | null;
+    // A longer deadline (e.g. check-in) shown as mm:ss instead of the ring.
+    countdown?: string | null;
+    countdownLabel?: string | null;
   }>(),
   {
     hint: null,
@@ -32,8 +36,29 @@ withDefaults(
     clockLabel: null,
     steps: () => [],
     stripLabel: null,
+    countdown: null,
+    countdownLabel: null,
   },
 );
+
+const now = ref(Date.now());
+let tick: ReturnType<typeof setInterval> | undefined;
+onMounted(() => {
+  tick = setInterval(() => (now.value = Date.now()), 1000);
+});
+onUnmounted(() => tick && clearInterval(tick));
+
+// Straight from the deadline every second, so a refresh resumes it.
+const countdownText = computed(() => {
+  if (!props.countdown) return null;
+  const total = Math.max(
+    0,
+    Math.ceil((new Date(props.countdown).getTime() - now.value) / 1000),
+  );
+  const minutes = Math.floor(total / 60);
+  const seconds = String(total % 60).padStart(2, "0");
+  return `${String(minutes).padStart(2, "0")}:${seconds}`;
+});
 </script>
 
 <template>
@@ -79,6 +104,21 @@ withDefaults(
           {{ meta }}
         </p>
         <slot />
+      </div>
+      <div
+        v-if="countdownText"
+        class="flex flex-col items-center gap-0.5"
+        data-testid="overview-countdown"
+      >
+        <span
+          v-if="countdownLabel"
+          class="font-mono text-[0.6rem] uppercase tracking-[0.2em] text-muted-foreground"
+        >
+          {{ countdownLabel }}
+        </span>
+        <span class="font-mono text-3xl font-bold tabular-nums leading-none">
+          {{ countdownText }}
+        </span>
       </div>
     </div>
 

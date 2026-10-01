@@ -482,6 +482,7 @@ const vsBaseClasses =
           <MatchInfo
             :match="match"
             :hide-connect="overviewShown && overviewStage === 'pre-match'"
+            :hide-check-in="overviewShown && overviewStage === 'check-in'"
           ></MatchInfo>
         </PageTransition>
 

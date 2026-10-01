@@ -143,6 +143,12 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Same for check-in: the Overview's check-in stage has the action and
+    // the deadline while it's open.
+    hideCheckIn: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -285,6 +291,10 @@ export default {
       }
 
       if (this.isCheckInPhase) {
+        // The Overview's check-in stage shows this same deadline.
+        if (this.hideCheckIn) {
+          return false;
+        }
         // Admin check-in has no automatic timer -- the organizer controls
         // progression manually, so there's nothing to count down to.
         return this.match?.options?.check_in_setting !== "Admin";
@@ -371,7 +381,7 @@ export default {
       });
     },
     showCheckInSection() {
-      return !!this.isInMatch && this.match.can_check_in;
+      return !!this.isInMatch && this.match.can_check_in && !this.hideCheckIn;
     },
     showQuickConnectSection() {
       return (

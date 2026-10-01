@@ -9,7 +9,7 @@ import {
   type CaptainPickDraftState,
 } from "~/utilities/captainPickDraft";
 
-export type OverviewStage = "captain-pick" | "veto" | "pre-match";
+export type OverviewStage = "check-in" | "captain-pick" | "veto" | "pre-match";
 
 /** One chip of the Overview's progress strip. */
 export type OverviewStripStep = {
@@ -42,6 +42,11 @@ export function overviewStage(
   // Imported (e.g. FACEIT) matches have no DEAFCS lifecycle.
   if (match.source && match.source !== "5stack") return null;
   switch (match.status) {
+    // Match check-in (check_in_setting). Tournament attendance (individual
+    // signups / team check-in) happens on the tournament before any match
+    // exists, so it is never a match-page stage.
+    case "WaitingForCheckIn":
+      return "check-in";
     case "PickingPlayers":
       // Only a Captain Pick draft. Manual lineups keep the Scoreboard flow.
       return captainPickActive ? "captain-pick" : null;
@@ -173,6 +178,109 @@ export function captainPickHistory(progress: ProgressLike) {
     });
   }
   return entries;
+}
+
+// ---------------------------------------------------------------------------
+// Match check-in
+
+type CheckInPlayer = { steam_id: string; checked_in?: boolean | null; captain?: boolean | null };
+type CheckInMatch = {
+  min_players_per_lineup?: number | null;
+  options?: { check_in_setting?: string | null } | null;
+  lineup_1?: { is_ready?: boolean | null; lineup_players?: CheckInPlayer[] | null } | null;
+  lineup_2?: { is_ready?: boolean | null; lineup_players?: CheckInPlayer[] | null } | null;
+};
+
+/**
+ * Check-in progress in the match's own model (check_in_setting):
+ * Players: every player checks in, a lineup is ready at the match type's
+ * minimum; Captains: one captain check-in readies the whole team; Admin: an
+ * administrator starts the match, nothing to count. Readiness itself is the
+ * server's is_ready, never recomputed here.
+ */
+export function checkInSummary(match: CheckInMatch) {
+  const mode = (match.options?.check_in_setting ?? "Players") as
+    | "Players"
+    | "Captains"
+    | "Admin";
+  const perTeam = match.min_players_per_lineup || 5;
+  const teams = ([1, 2] as const).map((team) => {
+    const lineup = match[`lineup_${team}`];
+    const players = lineup?.lineup_players ?? [];
+    return {
+      team,
+      ready: !!lineup?.is_ready,
+      checkedIn: players.filter((p) => p.checked_in).length,
+      required: mode === "Captains" ? 1 : perTeam,
+    };
+  });
+  const ready =
+    mode === "Captains"
+      ? teams.filter((t) => t.ready).length
+      : teams.reduce((sum, t) => sum + Math.min(t.checkedIn, t.required), 0);
+  const required = mode === "Captains" ? 2 : perTeam * 2;
+  return { mode, teams, ready, required };
+}
+
+// ---------------------------------------------------------------------------
+// Region veto
+
+type RegionPick = { type: string; region: string; match_lineup_id?: string | null };
+type RegionMatch = {
+  status?: string | null;
+  region?: string | null;
+  lineup_1_id?: string | null;
+  lineup_2_id?: string | null;
+  region_veto_picking_lineup_id?: string | null;
+  options?: { region_veto?: boolean | null; regions?: string[] | null } | null;
+};
+
+/** A region veto is running: the match is in Veto and no region is locked. */
+export function regionVetoPending(match: RegionMatch | null | undefined): boolean {
+  return (
+    match?.status === "Veto" && !!match.options?.region_veto && !match.region
+  );
+}
+
+export type RegionState = "available" | "banned" | "selected";
+
+/** Each configured region's state, from the real region veto picks. */
+export function regionVetoStates(match: RegionMatch, picks: RegionPick[] | null | undefined) {
+  const byRegion = new Map(
+    (picks ?? []).map((pick) => [pick.region.toLowerCase(), pick]),
+  );
+  return (match.options?.regions ?? []).map((value) => {
+    const pick = byRegion.get(value.toLowerCase());
+    const selected =
+      pick?.type === "Decider" ||
+      (!!match.region && match.region.toLowerCase() === value.toLowerCase());
+    const state: RegionState = selected ? "selected" : pick ? "banned" : "available";
+    return {
+      value,
+      state,
+      team: pick && pick.type !== "Decider" ? teamOf(match, pick.match_lineup_id) : null,
+    };
+  });
+}
+
+/**
+ * The region veto so far: the real picks, then the server's current turn.
+ * Future turns are not shown (the order is not stored anywhere).
+ */
+export function regionSteps(match: RegionMatch, picks: RegionPick[] | null | undefined) {
+  const steps = (picks ?? []).map((pick) => ({
+    type: pick.type === "Decider" ? ("Decider" as const) : ("Ban" as const),
+    team: pick.type === "Decider" ? null : teamOf(match, pick.match_lineup_id),
+    state: "done" as VetoStepState,
+  }));
+  if (regionVetoPending(match) && match.region_veto_picking_lineup_id) {
+    steps.push({
+      type: "Ban",
+      team: teamOf(match, match.region_veto_picking_lineup_id),
+      state: "current",
+    });
+  }
+  return steps;
 }
 
 // ---------------------------------------------------------------------------
