@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import ChatVideoPlayer from "~/components/chat/ChatVideoPlayer.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
@@ -107,6 +108,11 @@ import { e_player_roles_enum } from "~/generated/zeus";
       >
         {{ message.message }}
       </p>
+      <ChatVideoPlayer
+        v-if="message.media?.type === 'video' && !message.blocked"
+        :src="liveVideoUrl"
+        class="mt-2"
+      />
       <div v-if="message.attachment && !message.blocked" class="mt-2">
         <button
           v-if="isAttachmentImage"
@@ -365,6 +371,9 @@ export default {
     clearTimeout(this.selfServiceTimer);
   },
   computed: {
+    liveVideoUrl() {
+      return `https://${useRuntimeConfig().public.apiDomain}/matches/chat-video/media/${this.message.media.id}`;
+    },
     isSameSender() {
       if (!this.previousMessage) {
         return false;

@@ -15,6 +15,7 @@ function isAuthTransportRoute(path: string): boolean {
 }
 
 function isPublicRoute(path: string): boolean {
+  if (path === "/chat-video") return true;
   const publicRoutes = [
     "/",
     "/login",
@@ -156,6 +157,7 @@ function isPublicRoute(path: string): boolean {
 // approved as reachable without accepting terms -- genuinely public/legal
 // reading, nothing that hosts a gated action.
 function isTermsExemptRoute(path: string): boolean {
+  if (path === "/chat-video") return true;
   const termsExemptRoutes = [
     "/terms-of-service",
     "/privacy-policy",

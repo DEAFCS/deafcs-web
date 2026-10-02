@@ -81,6 +81,8 @@ function autoResize(event: Event) {
           <div class="flex items-center gap-1.5">
             <ChatComposerMenu
               v-if="attachmentEnabled && !isWebsiteRestricted"
+              :live-video-enabled="liveVideoEnabled"
+              @live-video="openLiveVideo"
               @pick-file="pendingAttachment = $event"
               @pick-gif="sendGif"
             />
@@ -173,6 +175,8 @@ function autoResize(event: Event) {
           <div class="flex items-center gap-1.5 p-2">
             <ChatComposerMenu
               v-if="attachmentEnabled && !isWebsiteRestricted"
+              :live-video-enabled="liveVideoEnabled"
+              @live-video="openLiveVideo"
               @pick-file="pendingAttachment = $event"
               @pick-gif="sendGif"
             />
@@ -208,10 +212,18 @@ function autoResize(event: Event) {
       </FormItem>
     </FormField>
   </form>
+  <ChatVideoComposer
+    v-if="liveVideoEnabled && !isWebsiteRestricted"
+    :key="`${chatType}:${roomId}`"
+    ref="liveVideoRecorder"
+    :type="chatType"
+    :room-id="roomId"
+  />
 </template>
 
 <script lang="ts">
 import { FormControl, FormField, FormItem } from "~/components/ui/form";
+import ChatVideoComposer from "~/components/chat/ChatVideoComposer.vue";
 import ChatComposerMenu from "~/components/chat/ChatComposerMenu.vue";
 import * as z from "zod";
 import { useForm } from "vee-validate";
@@ -231,7 +243,7 @@ import {
 } from "~/utilities/chatAttachmentValidation";
 
 export default {
-  components: { ChatComposerMenu },
+  components: { ChatComposerMenu, ChatVideoComposer },
   props: {
     variant: {
       type: String,
@@ -244,6 +256,8 @@ export default {
       default: undefined,
     },
     attachmentEnabled: { type: Boolean, default: false },
+    chatType: { type: String, default: "" },
+    roomId: { type: String, default: "" },
   },
   emits: ["sendMessage"],
   data() {
@@ -296,6 +310,10 @@ export default {
     }
   },
   computed: {
+    liveVideoEnabled() {
+      return this.attachmentEnabled && !!this.roomId && !!this.chatType &&
+        !["match", "match_team", "announcement"].includes(this.chatType);
+    },
     isWebsiteRestricted() {
       return useWebsiteRestrictionStore().isRestricted;
     },
@@ -307,6 +325,11 @@ export default {
     },
   },
   methods: {
+    openLiveVideo() {
+      if (this.liveVideoEnabled && !this.isWebsiteRestricted) {
+        (this.$refs.liveVideoRecorder as any)?.openRecorder();
+      }
+    },
     focus() {
       this.$nextTick(() => {
         const el = (this.$refs.inputRef as any)?.$el;

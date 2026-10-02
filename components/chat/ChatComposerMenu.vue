@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronLeft, ImageUp, Loader2, Plus } from "lucide-vue-next";
+import { ChevronLeft, ImageUp, Loader2, Plus, Video } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
@@ -18,7 +18,14 @@ import {
 // rather than stacking a second popover. (Tried a Messenger-style
 // two-state toggle -- separate icons when the draft is empty, collapsing
 // to "+" once typing starts -- but it wasn't wanted; always just "+".)
+const props = defineProps<{ liveVideoEnabled?: boolean }>();
+const appleMobile = ref(true);
+onMounted(() => {
+  appleMobile.value = /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+});
 const emit = defineEmits<{
+  (e: "live-video"): void;
   (e: "pick-file", file: File): void;
   (e: "pick-gif", gifUrl: string): void;
 }>();
@@ -120,6 +127,15 @@ function pickGif(gif: GifSearchResult) {
           >
             <GifIcon class="h-4 w-4 shrink-0 text-muted-foreground" />
             {{ $t("chat.choose_gif_menu", "Choose a GIF") }}
+          </button>
+          <button
+            v-if="props.liveVideoEnabled && !appleMobile"
+            type="button"
+            class="flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm hover:bg-muted"
+            @click="emit('live-video'); open = false"
+          >
+            <Video class="h-4 w-4 shrink-0 text-muted-foreground" />
+            Live video
           </button>
         </template>
         <template v-else>

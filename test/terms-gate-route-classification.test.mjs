@@ -61,6 +61,15 @@ const loadedSource = [
 
 const { isPublicRoute, isTermsExemptRoute } = new Function(loadedSource)();
 
+test("temporary phone recorder alone is public and terms-exempt; normal chat remains protected", () => {
+  assert.equal(isPublicRoute("/chat-video"), true);
+  assert.equal(isTermsExemptRoute("/chat-video"), true);
+  assert.equal(isPublicRoute("/chat-video/other"), false);
+  assert.equal(isTermsExemptRoute("/chat-video/other"), false);
+  assert.equal(isPublicRoute("/chat"), false);
+  assert.equal(isTermsExemptRoute("/chat"), false);
+});
+
 test("the real isTermsExemptRoute does NOT exempt mixed guest/authenticated pages that isPublicRoute does", () => {
   for (const path of ["/play", "/watch", "/forum", "/tournaments", "/teams"]) {
     assert.equal(

@@ -127,6 +127,8 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
           ref="chatInputRef"
           variant="global"
           :placeholder="messagePlaceholder"
+          :chat-type="type"
+          :room-id="lobbyId"
           :attachment-enabled="allowChatAttachments && type !== 'announcement' && effectiveCanSend"
           @send-message="handleSendMessage"
         />
@@ -206,6 +208,8 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         ref="chatInputRef"
         variant="embedded"
         :placeholder="messagePlaceholder"
+        :chat-type="type"
+        :room-id="lobbyId"
         :attachment-enabled="allowChatAttachments && type !== 'announcement' && effectiveCanSend"
         @send-message="handleSendMessage"
       />
