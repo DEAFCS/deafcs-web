@@ -13,13 +13,14 @@ import type { CaptainPickProgress } from "~/composables/useCaptainPickProgress";
 // progress is null between the final pick and the match moving to veto.
 const props = defineProps<{
   progress: CaptainPickProgress | null;
+  players?: Record<string, any>;
   participant?: boolean;
 }>();
 
 const pool = computed(() =>
   (props.progress?.available ?? []).map((steamId) => ({
     steam_id: steamId,
-    player: captainPickPlayer(props.progress!, steamId),
+    player: captainPickPlayer(props.progress!, steamId, props.players),
   })),
 );
 

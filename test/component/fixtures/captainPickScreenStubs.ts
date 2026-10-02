@@ -36,7 +36,7 @@ export const TeamPanel = defineComponent({
       ]);
   },
 });
-// Like the real card: the name is the profile link, the rest is the card.
+// Like the real card: the name only links when explicitly made linkable.
 export const PlayerCard = defineComponent({
   name: "DraftPlayerCard",
   props: {
@@ -52,7 +52,7 @@ export const PlayerCard = defineComponent({
     return () =>
       h("div", { class: "card" }, [
         h(
-          "a",
+          props.linkable ? "a" : "span",
           {
             class: "profile",
             href: `/players/${props.member.steam_id}`,

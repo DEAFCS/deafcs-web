@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { ArrowRight, Info } from "lucide-vue-next";
+import { ArrowRight, Info, UserRound } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import DraftTeamPanel from "~/components/draft-games/DraftTeamPanel.vue";
@@ -159,7 +159,9 @@ const pick = (steamId: string) => {
 // profile link (opens in a new tab) or on the card's own Draft button.
 const onCardClick = (event: MouseEvent, steamId: string) => {
   const target = event.target as Element | null;
-  if (target?.closest("a, button")) {
+  // PlayerDisplay's plain root can be an anchor without an href.
+  // It remains part of the pick surface; only actual links/buttons opt out.
+  if (target?.closest("a[href], button")) {
     return;
   }
   pick(steamId);
@@ -264,7 +266,6 @@ const onCardClick = (event: MouseEvent, steamId: string) => {
           :active="isDrafting && draft.pickingLineup === lineup"
           :match-type="rankMatchType"
           elo-type="Competitive"
-          profile-in-new-tab
           :data-testid="`captain-pick-team-${lineup}`"
         />
       </div>
@@ -310,9 +311,18 @@ const onCardClick = (event: MouseEvent, steamId: string) => {
               accent="neutral"
               :match-type="rankMatchType"
               elo-type="Competitive"
-              profile-in-new-tab
             >
               <template #action>
+                <NuxtLink
+                  v-if="member.player.steam_id"
+                  :to="{ name: 'players-id', params: { id: member.player.steam_id } }"
+                  class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  :aria-label="`${$t('common.view')} ${member.player.name}`"
+                  :data-testid="`captain-pick-profile-${member.steam_id}`"
+                  @click.stop
+                >
+                  <UserRound class="h-3.5 w-3.5" />
+                </NuxtLink>
                 <Button
                   v-if="canPick"
                   variant="tactical"

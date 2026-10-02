@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import { reactive } from "vue";
+import { defineComponent, h, reactive } from "vue";
 import { draftAfter, makeDraft } from "./fixtures/captainPick";
 import {
   ButtonStub,
@@ -40,6 +40,17 @@ vi.mock(
 import CaptainPickScreen from "../../components/matchmaking/captain-pick/CaptainPickScreen.vue";
 
 const wrappers: ReturnType<typeof mount>[] = [];
+const NuxtLink = defineComponent({
+  name: "NuxtLink",
+  props: ["to"],
+  setup(props, { attrs, slots }) {
+    return () => h("a", {
+      ...attrs,
+      href: `/players/${props.to.params.id}`,
+      onClick: (event: Event) => event.preventDefault(),
+    }, slots.default?.());
+  },
+});
 
 const mountScreen = (
   draft: CaptainPickDraftState,
@@ -49,6 +60,7 @@ const mountScreen = (
     props: { draft, localDeadline: draft.deadline, ...props },
     global: {
       stubs: {
+        NuxtLink,
         DraftTeamPanel: TeamPanel,
         DraftPlayerCard: PlayerCard,
         DraftTurnStatus: TurnStatus,
@@ -151,7 +163,7 @@ describe("Captain Pick screen: Draft layout", () => {
     expect(teamA.props("accent")).toBe("amber");
     expect(teamB.props("accent")).toBe("blue");
     expect(teamA.props("perTeam")).toBe(5);
-    expect(teamA.props("profileInNewTab")).toBe(true);
+    expect(teamA.props("profileInNewTab")).toBe(false);
     expect(teamB.props("active")).toBe(true);
     expect(teamA.props("active")).toBe(false);
     // Fetched records (with country) replace the lean participant data.
@@ -170,7 +182,8 @@ describe("Captain Pick screen: Draft layout", () => {
     expect(cards[0].props("member").player.country).toBe("DE");
     expect(cards[1].props("member").player.country).toBe("NO");
     expect(cards[2].props("member").player.country).toBeUndefined();
-    expect(cards[0].props("profileInNewTab")).toBe(true);
+    expect(cards[0].props("profileInNewTab")).toBe(false);
+    expect(cards[0].props("linkable")).toBe(false);
   });
 
   it("puts the chat in the sidebar with the viewer's server-side lineup", () => {
@@ -316,15 +329,23 @@ describe("Captain Pick screen: picking", () => {
     expect(wrapper.emitted("pick")).toEqual([["5"], ["6"]]);
   });
 
-  it("opens the profile in a new tab without picking", async () => {
+  it("uses a dedicated same-context profile control without picking or bubbling", async () => {
     const wrapper = mountScreen(makeDraft(), { selfSteamId: "2" });
-    const profile = card(wrapper, "5").find("a.profile");
+    const playerCard = card(wrapper, "5");
+    expect(playerCard.find("a.profile").exists()).toBe(false);
+    const profile = playerCard.get('[data-testid="captain-pick-profile-5"]');
+    const parentClick = vi.fn();
+    playerCard.element.addEventListener("click", parentClick);
 
     expect(profile.attributes("href")).toBe("/players/5");
-    expect(profile.attributes("target")).toBe("_blank");
+    expect(profile.attributes("target")).toBeUndefined();
+    expect(playerCard.getComponent(NuxtLink).props("to")).toEqual({
+      name: "players-id", params: { id: "5" },
+    });
     await profile.trigger("click");
 
     expect(wrapper.emitted("pick")).toBeUndefined();
+    expect(parentClick).not.toHaveBeenCalled();
   });
 
   it("never picks for someone who is not on the clock", async () => {

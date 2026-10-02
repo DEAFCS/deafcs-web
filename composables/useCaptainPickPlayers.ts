@@ -15,18 +15,21 @@ import type { CaptainPickDraftState } from "~/utilities/captainPickDraft";
  * draft state and never from these records.
  */
 export function useCaptainPickPlayers(
-  draft: Ref<CaptainPickDraftState | null | undefined>,
+  draft: Ref<Pick<CaptainPickDraftState, "draftId" | "participants"> | null | undefined>,
 ) {
   const players = ref<Record<string, any>>({});
   let loadedFor: string | null = null;
+  let loadVersion = 0;
 
-  const load = async (current: CaptainPickDraftState) => {
+  const load = async (current: Pick<CaptainPickDraftState, "draftId" | "participants">) => {
     const steamIds = current.participants.map((p) => String(p.steam_id));
     const key = `${current.draftId}:${steamIds.join(",")}`;
     if (key === loadedFor || steamIds.length === 0) {
       return;
     }
     loadedFor = key;
+    const version = ++loadVersion;
+    players.value = {};
 
     try {
       const { data } = await getGraphqlClient().query({
@@ -39,6 +42,7 @@ export function useCaptainPickPlayers(
         variables: { steam_ids: steamIds },
       });
 
+      if (version !== loadVersion) return;
       const bySteamId: Record<string, any> = {};
       for (const player of data?.players ?? []) {
         bySteamId[String(player.steam_id)] = player;
@@ -47,7 +51,7 @@ export function useCaptainPickPlayers(
     } catch {
       // The draft still works with the names/ELO the server sent; allow a
       // later update to try again.
-      loadedFor = null;
+      if (version === loadVersion) loadedFor = null;
     }
   };
 
@@ -56,6 +60,10 @@ export function useCaptainPickPlayers(
     (current) => {
       if (current) {
         void load(current);
+      } else {
+        loadVersion++;
+        loadedFor = null;
+        players.value = {};
       }
     },
     { immediate: true },

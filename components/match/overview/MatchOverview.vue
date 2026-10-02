@@ -1,15 +1,3 @@
-<script lang="ts" setup>
-import DraftTeamPanel from "~/components/draft-games/DraftTeamPanel.vue";
-import CaptainPickProgress from "~/components/match/CaptainPickProgress.vue";
-import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
-import OverviewActionBar from "~/components/match/overview/OverviewActionBar.vue";
-import OverviewVeto from "~/components/match/overview/OverviewVeto.vue";
-import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
-import OverviewCheckIn from "~/components/match/overview/OverviewCheckIn.vue";
-import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
-import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
-</script>
-
 <template>
   <section
     class="flex min-w-0 flex-col gap-4"
@@ -46,6 +34,7 @@ import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
         <CaptainPickProgress
           v-else-if="stage === 'captain-pick'"
           :progress="captainPickProgress"
+          :players="captainPickPlayers"
           :participant="participant"
         />
         <OverviewRegion
@@ -95,7 +84,17 @@ import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
 </template>
 
 <script lang="ts">
-import type { PropType } from "vue";
+import DraftTeamPanel from "~/components/draft-games/DraftTeamPanel.vue";
+import CaptainPickProgress from "~/components/match/CaptainPickProgress.vue";
+import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
+import OverviewActionBar from "~/components/match/overview/OverviewActionBar.vue";
+import OverviewVeto from "~/components/match/overview/OverviewVeto.vue";
+import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
+import OverviewCheckIn from "~/components/match/overview/OverviewCheckIn.vue";
+import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
+import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
+import { computed, type PropType } from "vue";
+import { useCaptainPickPlayers } from "~/composables/useCaptainPickPlayers";
 import { $, order_by } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import {
@@ -129,6 +128,10 @@ const NEUTRAL = "0 0% 92%";
  * the match subscription and its veto picks.
  */
 export default {
+  components: {
+    DraftTeamPanel, CaptainPickProgress, MatchRegionVeto, OverviewActionBar,
+    OverviewVeto, OverviewPreMatch, OverviewCheckIn, OverviewRegion, OverviewSchedule,
+  },
   props: {
     match: { type: Object, required: true },
     stage: { type: String as PropType<OverviewStage>, required: true },
@@ -144,6 +147,17 @@ export default {
     participant: { type: Boolean, default: false },
     // The page's lifecycle clock (bumped when the cooldown ends).
     now: { type: Number, default: () => Date.now() },
+  },
+  setup(props) {
+    // The public progress projection carries the pool, not a full private
+    // draft. One shared player query enriches both team panels and the pool.
+    const playerScope = computed(() =>
+      props.stage === "captain-pick" && props.captainPickProgress
+        ? { draftId: props.match.id, participants: props.captainPickProgress.participants }
+        : null,
+    );
+    const { players: captainPickPlayers } = useCaptainPickPlayers(playerScope);
+    return { captainPickPlayers };
   },
   apollo: {
     $subscribe: {
@@ -267,7 +281,7 @@ export default {
             title: this.$t("matchmaking.captain_pick.team_of", {
               name: captainPickParticipant(progress, captain)?.name ?? "",
             }),
-            players: captainPickLineupMembers(progress, lineup),
+            players: captainPickLineupMembers(progress, lineup, this.captainPickPlayers),
             captainSteamId: captain ? String(captain) : null,
             perTeam: Math.max(1, Math.ceil(progress.participants.length / 2)),
             active: progress.pickingLineup === lineup,
