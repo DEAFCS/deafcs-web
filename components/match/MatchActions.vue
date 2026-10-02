@@ -411,18 +411,22 @@ export default {
   created() {
     this.rconUuid = uuidv4();
     socket.on("rcon", this.onRconResponse);
-    this.subscribeRenderSummary();
   },
   beforeUnmount() {
     socket.removeListener("rcon", this.onRconResponse);
     this.renderSummarySub?.unsubscribe();
   },
   watch: {
-    "match.id"() {
-      this.renderSummarySub?.unsubscribe();
-      this.renderSummarySub = undefined;
-      this.renderSummary = [];
-      this.subscribeRenderSummary();
+    // (Re)subscribe for a new match, and on sign-in / sign-out: guests have
+    // no select permission on clip_render_jobs, so they never subscribe.
+    renderSummaryScope: {
+      immediate: true,
+      handler() {
+        this.renderSummarySub?.unsubscribe();
+        this.renderSummarySub = undefined;
+        this.renderSummary = [];
+        this.subscribeRenderSummary();
+      },
     },
   },
   methods: {
@@ -589,6 +593,7 @@ export default {
       }
     },
     subscribeRenderSummary() {
+      if (!this.canSelectRenderJobs) return;
       const mapIds = (this.match?.match_maps ?? [])
         .map((m: any) => m?.id)
         .filter((id: any) => !!id);
@@ -758,6 +763,15 @@ export default {
     },
   },
   computed: {
+    // clip_render_jobs select permission (public_clip_render_jobs.yaml):
+    // user (own rows), streamer, match_organizer, administrator, and every
+    // role inheriting them, i.e. any signed-in player. Not guest.
+    canSelectRenderJobs() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.user);
+    },
+    renderSummaryScope() {
+      return `${this.match?.id ?? ""}:${this.canSelectRenderJobs}`;
+    },
     canAct() {
       return (
         this.match.is_in_lineup ||
