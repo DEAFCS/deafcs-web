@@ -69,7 +69,6 @@ const history = computed(() =>
           accent="neutral"
           match-type="Competitive"
           elo-type="Competitive"
-          profile-in-new-tab
           linkable
           show-role
         />

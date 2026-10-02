@@ -10,6 +10,7 @@ export const PlayerDisplayStub = defineComponent({
     player: null,
     linkable: { type: Boolean, default: false },
     showRole: { type: Boolean, default: true },
+    dense: { type: Boolean, default: false },
   },
   setup(props, { attrs, slots }) {
     return () => {
@@ -25,6 +26,7 @@ export const PlayerDisplayStub = defineComponent({
             "a",
             {
               "data-testid": "player-link",
+              "data-dense": props.dense ? "true" : "false",
               href: `/players/${props.player.steam_id}`,
               target: attrs.target,
               rel: attrs.rel,

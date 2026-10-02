@@ -85,7 +85,6 @@ import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
           :check-in-by-steam-id="team.checkIns"
           :match-type="eloType"
           :elo-type="eloType"
-          profile-in-new-tab
           linkable
           show-role
           :data-testid="`overview-team-${team.lineup}`"

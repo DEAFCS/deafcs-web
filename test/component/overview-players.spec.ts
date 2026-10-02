@@ -43,15 +43,18 @@ describe("player cards", () => {
     expect(card.find('[data-testid="role-icon"]').exists()).toBe(false);
   });
 
-  it("read-only views: the avatar/name opens the player's profile in a new tab, with the role icon", () => {
+  it("read-only views: the avatar/name is a normal in-app profile link (same context), with the role icon", () => {
+    // How the Overview uses it: linkable without profileInNewTab, i.e. the
+    // site's ordinary NuxtLink navigation. Website stays website, the
+    // installed app stays the app; no new window to be captured elsewhere.
     const card = mount(DraftPlayerCard, {
-      props: { member: member("11", "moderator"), linkable: true, showRole: true, profileInNewTab: true },
+      props: { member: member("11", "moderator"), linkable: true, showRole: true },
       global: global(),
     });
     const link = card.get('[data-testid="player-link"]');
     expect(link.attributes("href")).toBe("/players/11");
-    expect(link.attributes("target")).toBe("_blank");
-    expect(link.attributes("rel")).toBe("noopener");
+    expect(link.attributes("target")).toBeUndefined();
+    expect(link.attributes("rel")).toBeUndefined();
     expect(link.get('[data-testid="role-icon"]').attributes("data-role")).toBe("moderator");
   });
 
@@ -64,13 +67,13 @@ describe("player cards", () => {
         accent: "amber",
         linkable: true,
         showRole: true,
-        profileInNewTab: true,
         removable: true,
       },
       global: global(),
     });
     const links = panel.findAll('[data-testid="player-link"]');
     expect(links.map((l) => l.attributes("href"))).toEqual(["/players/11", "/players/12"]);
+    expect(links.map((l) => l.attributes("target"))).toEqual([undefined, undefined]);
     expect(panel.findAll('[data-testid="role-icon"]')).toHaveLength(2);
     const buttons = panel.findAll("button");
     expect(buttons.length).toBeGreaterThan(0);
@@ -90,9 +93,18 @@ describe("player cards", () => {
 describe("Overview wiring", () => {
   const source = (file: string) => readFileSync(path.resolve(__dirname, "../..", file), "utf8");
 
-  it("Overview team panels (every stage, Captain Pick included) and the Captain Pick pool link and show roles", () => {
-    expect(source("components/match/overview/MatchOverview.vue")).toMatch(/<DraftTeamPanel[\s\S]*profile-in-new-tab\s+linkable\s+show-role/);
-    expect(source("components/match/CaptainPickProgress.vue")).toMatch(/<DraftPlayerCard[\s\S]*profile-in-new-tab\s+linkable\s+show-role/);
+  it("Overview team panels (every stage, Captain Pick included) and the Captain Pick pool link in the same context and show roles", () => {
+    for (const [file, tag] of [
+      ["components/match/overview/MatchOverview.vue", "DraftTeamPanel"],
+      ["components/match/CaptainPickProgress.vue", "DraftPlayerCard"],
+    ]) {
+      const markup = source(file).match(new RegExp(`<${tag}[\\s\\S]*?/>`))![0];
+      expect(markup).toMatch(/\blinkable\s+show-role\b/);
+      // No new tab/window: that is what moved website users into the
+      // installed app (and app users out of it).
+      expect(markup).not.toMatch(/profile-in-new-tab|_blank/);
+    }
+    expect(source("components/match/overview/OverviewCheckIn.vue")).not.toMatch(/_blank/);
   });
 
   it("the draft room and Captain Pick screen keep their non-linked cards", () => {

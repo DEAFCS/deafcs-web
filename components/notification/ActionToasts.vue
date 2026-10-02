@@ -9,8 +9,11 @@ import { useDraftGamesStore } from "~/stores/DraftGamesStore";
 import { useInvites } from "~/composables/useInvites";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useRightSidebar } from "~/composables/useRightSidebar";
+import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
+import { matchActions, onActionPage } from "~/utilities/matchActionToasts";
 
 const { rightSidebarOpen } = useRightSidebar();
+const route = useRoute();
 
 type ToastItem = {
   id: string;
@@ -20,6 +23,12 @@ type ToastItem = {
   detail: string;
   accept: () => Promise<unknown> | void;
   decline: () => Promise<unknown> | void;
+  acceptLabel?: string;
+  hideDecline?: boolean;
+  // Match actions: hidden while the viewer is on that match's page (the
+  // action is in front of them), and the only toasts shown on phones.
+  onPage?: boolean;
+  mobile?: boolean;
 };
 
 const { t } = useI18n();
@@ -74,8 +83,38 @@ const friendMutation = (steamId: string, accept: boolean) =>
     }),
   });
 
+const matchLobbyStore = useMatchLobbyStore();
+
+const matchTitle = (match: any) =>
+  match?.lineup_1?.name && match?.lineup_2?.name
+    ? `${match.lineup_1.name} vs ${match.lineup_2.name}`
+    : t("layouts.notifications.toast.your_match");
+
 const items = computed<ToastItem[]>(() => {
   const list: ToastItem[] = [];
+
+  // The viewer's own match needs them now (check-in, their veto turn).
+  for (const action of matchActions(
+    matchLobbyStore.myMatches as any[],
+    useAuthStore().me?.steam_id,
+  )) {
+    const match = (matchLobbyStore.myMatches as any[]).find(
+      (m) => m.id === action.matchId,
+    );
+    list.push({
+      id: action.id,
+      kind: t(`layouts.notifications.toast.match_${action.kind}`),
+      who: matchTitle(match),
+      action: t(`layouts.notifications.toast.match_${action.kind}_action`),
+      detail: "",
+      accept: () => navigateTo(action.target),
+      decline: () => undefined,
+      acceptLabel: t("layouts.notifications.toast.open_match"),
+      hideDecline: true,
+      onPage: onActionPage(action, route.path),
+      mobile: true,
+    });
+  }
 
   for (const invite of notificationStore.draft_invites) {
     const id = `draft:${invite.draft_game_id}`;
@@ -200,7 +239,7 @@ watch(items, (current) => {
 const hoveredGroup = ref<string | null>(null);
 
 const visibleItems = computed(() =>
-  items.value.filter((item) => !dismissed.value.has(item.id)),
+  items.value.filter((item) => !dismissed.value.has(item.id) && !item.onPage),
 );
 
 const groups = computed(() => {
@@ -260,10 +299,13 @@ const dismissItem = (item: ToastItem) => {
   <ClientOnly>
     <div
       v-if="displayList.length > 0"
-      class="pointer-events-none fixed bottom-4 left-2 right-2 z-[60] hidden flex-col transition-[right] duration-200 ease-linear md:left-auto md:flex md:w-[340px]"
-      :class="
-        rightSidebarOpen ? 'md:right-[30.75rem]' : 'md:right-[4.75rem]'
-      "
+      class="pointer-events-none fixed bottom-4 left-2 right-2 z-[60] flex-col transition-[right] duration-200 ease-linear md:left-auto md:flex md:w-[340px]"
+      :class="[
+        rightSidebarOpen ? 'md:right-[30.75rem]' : 'md:right-[4.75rem]',
+        // Phones show match actions only (invites stay desktop-only).
+        displayList.some((entry) => entry.item.mobile) ? 'flex' : 'hidden',
+      ]"
+      data-testid="action-toasts"
     >
       <TransitionGroup
         name="toast"
@@ -274,7 +316,9 @@ const dismissItem = (item: ToastItem) => {
           v-for="entry in displayList"
           :key="entry.key"
           class="relative origin-bottom transition-all duration-200"
+          :data-testid="`action-toast-${entry.item.id}`"
           :class="[
+            entry.item.mobile ? '' : 'hidden md:block',
             { 'pb-2.5': entry.count > 1 },
             hoveredGroup === entry.key ? 'z-50 scale-[1.04]' : 'z-0',
             hoveredGroup && hoveredGroup !== entry.key

@@ -4530,7 +4530,15 @@
         "friend_request": "Friend Request",
         "invited_you": "invited you to",
         "invited_party": "invited you to their party",
-        "wants_to_be_friends": "wants to be friends"
+        "wants_to_be_friends": "wants to be friends",
+        "match_check_in": "Match Check-in",
+        "match_check_in_action": "Match check-in is open. Check in to play.",
+        "match_region_veto": "Region Veto",
+        "match_region_veto_action": "It's your turn to ban a region.",
+        "match_map_veto": "Map Veto",
+        "match_map_veto_action": "It's your turn in the map veto.",
+        "open_match": "Open Match",
+        "your_match": "Your match"
       }
     },
     "app_nav": {

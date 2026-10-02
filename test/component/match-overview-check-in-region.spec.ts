@@ -159,11 +159,16 @@ describe("check-in stage", () => {
     expect(grid.get('[data-testid="check-in-team-1"]').text()).toContain('"checked":3,"required":5');
     expect(grid.get('[data-testid="check-in-team-2"]').attributes("data-ready")).toBe("true");
     expect(grid.get('[data-testid="check-in-team-2"]').text()).toContain("match.lifecycle.ready");
-    // Each name links to the player's profile (new tab) with the usual role icon.
+    // Each name is a normal in-app profile link (same tab/window, so the
+    // website stays the website and the app stays the app) with the role icon.
     const link = rows(1)[0].get('[data-testid="player-link"]');
     expect(link.attributes("href")).toBe("/players/11");
-    expect(link.attributes("target")).toBe("_blank");
+    expect(link.attributes("target")).toBeUndefined();
     expect(rows(1)[0].find('[data-testid="role-icon"]').exists()).toBe(true);
+    // Alignment: PlayerDisplay's dense layout centers the name + role block
+    // on the avatar; the row centers the check mark on the same line.
+    expect(link.attributes("data-dense")).toBe("true");
+    expect(rows(1)[0].classes()).toEqual(expect.arrayContaining(["flex", "items-center"]));
     // The check mark is not part of the link.
     expect(rows(1)[0].get(".check-mark").element.closest("a")).toBeNull();
   });

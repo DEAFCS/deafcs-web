@@ -1055,6 +1055,41 @@ describe("Overview layout refinement", () => {
     side.unmount();
   });
 
+  it("CT/T choice keeps the map grid's footprint; choosing a side works exactly as before", async () => {
+    const captain = { is_captain: true, lineup_2: lineup("Bravo", ["21"], { can_pick_map_veto: true }) };
+    // A Pick is on the table, then the server asks Bravo for a side.
+    const wrapper = mountVeto(baseMatch({ map_veto_type: "Ban", ...captain }), bo3Picks.slice(0, 2));
+    expect(wrapper.find('[data-testid="veto-maps"]').exists()).toBe(true);
+    // The grid's rendered height (ResizeObserver in a browser) is what the
+    // side choice takes over.
+    (wrapper.vm as any).$.data.mapGridHeight = 412;
+    await wrapper.setProps({ match: baseMatch({ map_veto_type: "Side", ...captain }), picks: bo3Picks.slice(0, 3) });
+    const side = wrapper.get('[data-testid="veto-side-choice"]');
+    expect(wrapper.find('[data-testid="veto-maps"]').exists()).toBe(false);
+    expect(side.attributes("style")).toContain("height: 412px");
+    expect(side.classes()).toContain("w-full");
+    // Map background and name kept; slightly smaller CT/T cards.
+    expect(side.find("img").attributes("src")).toBe("/img/maps/mirage.webp");
+    expect(side.get('[data-testid="veto-side-map"]').text()).toBe("Mirage");
+    expect(side.get('[data-testid="veto-side-CT"]').classes()).toEqual(expect.arrayContaining(["px-4", "py-2"]));
+    // Same CT/T confirmation and mutation as before.
+    await side.get('[data-testid="veto-side-CT"]').trigger("click");
+    await wrapper.get('[data-testid="veto-confirm-submit"]').trigger("click");
+    expect(apollo.mutate).toHaveBeenCalledWith({
+      mutation: mapVetoPickMutation,
+      variables: { map_id: "mirage", type: "Side", side: "CT", match_id: "m1", match_lineup_id: "Alpha-id" },
+    });
+    wrapper.unmount();
+
+    // Opened straight into a side choice (nothing measured yet): the shape a
+    // three-column grid of this 7-map pool has (3 rows of 4:3 cards).
+    const fresh = mountVeto(baseMatch({ map_veto_type: "Side", ...captain }), bo3Picks.slice(0, 3));
+    const style = fresh.get('[data-testid="veto-side-choice"]').attributes("style");
+    expect(style).toContain("aspect-ratio: 4 / 3");
+    expect(style).toContain("min-height: 12rem");
+    fresh.unmount();
+  });
+
   it("active veto: picked maps and the decider show who starts CT once the server set it", () => {
     // As Postgres writes them on each Side pick (create_match_map_from_veto):
     // Mirage (Alpha's pick, Bravo chose CT), Nuke (Bravo's pick, Alpha chose T).

@@ -44,15 +44,15 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
             :data-testid="`check-in-player-${player.steam_id}`"
             :data-checked-in="player.checked_in ? 'true' : 'false'"
           >
-            <!-- The site's player display: profile link (new tab, the
-                 lifecycle page stays open) and the usual role icon. -->
+            <!-- The site's player display: a normal in-app profile link (same
+                 tab/window, like every other player link) and the usual role
+                 icon. dense centers the name + role block on the avatar. -->
             <div class="min-w-0 flex-1">
               <PlayerDisplay
                 v-if="player.player"
                 :player="player.player"
                 linkable
-                target="_blank"
-                rel="noopener"
+                dense
                 size="xs"
                 :show-online="false"
                 :show-flag="false"

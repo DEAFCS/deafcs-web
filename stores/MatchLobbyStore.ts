@@ -387,15 +387,20 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
           },
           {
             ...simpleMatchFields,
+            // Viewer-specific: whether this player may check in now
+            // (ActionToasts' "Match check-in is open").
+            can_check_in: true,
             lineup_1: {
               ...simpleMatchFields.lineup_1,
               can_pick_map_veto: true,
               can_pick_region_veto: true,
+              is_ready: true,
             },
             lineup_2: {
               ...simpleMatchFields.lineup_2,
               can_pick_map_veto: true,
               can_pick_region_veto: true,
+              is_ready: true,
             },
             draft_games: [
               {},
