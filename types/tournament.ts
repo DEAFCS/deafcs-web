@@ -47,17 +47,30 @@ export interface Bracket {
     path?: string;
   };
   team_1?: {
+    id?: string;
     name?: string;
+    team_id?: string | null;
     team?: {
       name?: string;
     };
   };
   team_2?: {
+    id?: string;
     name?: string;
+    team_id?: string | null;
     team?: {
       name?: string;
     };
   };
+  // Negotiated scheduling (league_scheduling_proposals on this bracket).
+  scheduling_proposals?: Array<{
+    id: string;
+    proposed_time: string;
+    status: string;
+    message?: string | null;
+    proposed_by_steam_id: string;
+    proposed_by?: { steam_id: string; name: string } | null;
+  }>;
   team_1_seed?: number;
   team_2_seed?: number;
   stage?: {

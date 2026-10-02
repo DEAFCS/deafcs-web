@@ -5449,6 +5449,14 @@
       "embed_no_stage": "No active stage.",
       "zoom_fit": "Fit"
     },
+    "negotiation": {
+      "title": "Match time",
+      "open": "Schedule",
+      "no_time": "No time agreed yet",
+      "proposed": "Proposed: {time}",
+      "agreed": "Agreed: {time}",
+      "teams_only": "The two teams agree the time. Their managers can propose or answer here."
+    },
     "match": {
       "reset_winner": "Reset winner",
       "reset_warning": "Changing this result can delete downstream matches in the bracket",
@@ -6392,9 +6400,13 @@
       "match_starting": "Match starting",
       "switching_in": "Switching to Scoreboard in",
       "match_live": "Match live",
-      "server_waiting": "Waiting for game server",
-      "server_starting": "Server is starting",
-      "server_ready": "Server ready",
+      "schedule_kicker": "Match scheduled",
+      "schedule_title": "Match scheduled",
+      "schedule_unset": "Waiting for a start time",
+      "starts_in": "Starts in {time}",
+      "starting_soon": "Starting soon",
+      "check_in_opens": "Check-in opens shortly before the start.",
+      "new_time_proposed": "New time proposed: {time}",
       "check_in_title": "Match check-in",
       "players_ready": "{ready} / {required} players ready",
       "teams_ready": "{ready} / {required} teams ready",

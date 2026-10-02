@@ -3,8 +3,8 @@ import { e_match_status_enum } from "~/generated/zeus";
 </script>
 
 <template>
-  <div v-if="showConnectPanel">
-    <template v-if="isLive && canWatch && !match.tv_connection_string">
+  <div v-if="showConnectPanel || showLifecyclePanel">
+    <template v-if="me && isLive && canWatch && !match.tv_connection_string">
       <div
         class="flex items-center gap-2 p-4 rounded-lg border bg-foreground/10 mb-2"
       >
@@ -13,7 +13,7 @@ import { e_match_status_enum } from "~/generated/zeus";
       </div>
     </template>
     <template
-      v-if="isLive && match.tv_connection_string && !match.connection_link"
+      v-if="me && isLive && match.tv_connection_string && !match.connection_link"
     >
       <div
         class="flex items-center gap-2 p-4 rounded-lg border bg-foreground/10 mb-2"
@@ -54,7 +54,7 @@ import { e_match_status_enum } from "~/generated/zeus";
       </div>
     </div>
 
-    <div v-if="match.connection_string">
+    <div v-if="me && match.connection_string">
       <template v-if="!match.is_server_online">
         <template v-if="match.server_type === 'Dedicated'">
           <div
@@ -180,6 +180,15 @@ export default {
       type: Boolean,
       default: false,
     },
+    // The match page Overview: the same booting box also covers the wait for
+    // a server (WaitingForServer, no server yet) and shows to every viewer,
+    // so the panel is there from the end of the veto. Connect and TV details
+    // still need a signed-in viewer and Hasura's connection fields, exactly
+    // as without it.
+    lifecycle: {
+      type: Boolean,
+      default: false,
+    },
   },
   data() {
     return {
@@ -206,11 +215,25 @@ export default {
         this.match.server_type !== "Dedicated"
       );
     },
+    isWaitingForServer() {
+      return this.match.status === e_match_status_enum.WaitingForServer;
+    },
     showBootingState() {
-      return this.isAssignedOnDemandServerBooting && !this.hideBooting;
+      if (this.hideBooting) return false;
+      return (
+        this.isAssignedOnDemandServerBooting ||
+        (this.lifecycle &&
+          (this.isWaitingForServer ||
+            (this.isLive && !this.match.server_id && !this.match.is_server_online)))
+      );
     },
     showConnectPanel() {
       return !!this.me && this.isLive;
+    },
+    // The Overview's panel: also before Live and for signed-out viewers,
+    // who only ever get the booting state.
+    showLifecyclePanel() {
+      return this.lifecycle && (this.isLive || this.isWaitingForServer);
     },
     me() {
       return useAuthStore().me;

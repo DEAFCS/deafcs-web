@@ -9,7 +9,12 @@ import {
   type CaptainPickDraftState,
 } from "~/utilities/captainPickDraft";
 
-export type OverviewStage = "check-in" | "captain-pick" | "veto" | "pre-match";
+export type OverviewStage =
+  | "schedule"
+  | "check-in"
+  | "captain-pick"
+  | "veto"
+  | "pre-match";
 
 /** One chip of the Overview's progress strip. */
 export type OverviewStripStep = {
@@ -42,6 +47,10 @@ export function overviewStage(
   // Imported (e.g. FACEIT) matches have no DEAFCS lifecycle.
   if (match.source && match.source !== "5stack") return null;
   switch (match.status) {
+    // A committed future start (scheduled_at). Only the server moves it on:
+    // CheckForScheduledMatches opens check-in shortly before the start.
+    case "Scheduled":
+      return "schedule";
     // Match check-in (check_in_setting). Tournament attendance (individual
     // signups / team check-in) happens on the tournament before any match
     // exists, so it is never a match-page stage.
@@ -139,6 +148,37 @@ export function rememberServerReadyAt(matchId: string, now: number): number {
   return now;
 }
 
+/** Drops the remembered server-ready moment (see rememberServerReadyAt). */
+export function forgetServerReadyAt(matchId: string): void {
+  try {
+    window.localStorage.removeItem(readyKey(matchId));
+  } catch {
+    // Nothing stored that could be read either.
+  }
+}
+
+// Stages before any server exists. A ready moment is only ever stored while
+// the match is Live, so one remembered while the match is (again) in one of
+// these belongs to an earlier run of the same match (a restart or reset).
+export const PRE_SERVER_STAGES = new Set<OverviewStage>([
+  "schedule",
+  "check-in",
+  "captain-pick",
+  "veto",
+]);
+
+/**
+ * The same match went from the server stage back to an earlier one: its
+ * previous server-ready moment (and Scoreboard handoff) no longer applies.
+ * Driven by the authoritative status only, never by a page load.
+ */
+export function lifecycleRestarted(
+  previous: OverviewStage | null | undefined,
+  current: OverviewStage | null | undefined,
+): boolean {
+  return previous === "pre-match" && !!current && PRE_SERVER_STAGES.has(current);
+}
+
 /** MatchTabs' default tab: the Overview while it is the default view. */
 export function defaultMatchTab(
   overviewAvailable: boolean,
@@ -160,6 +200,42 @@ export function tabAfterOverviewChange(
   return wasDefault && !isDefault && activeTab === OVERVIEW_TAB
     ? "scoreboard"
     : null;
+}
+
+// ---------------------------------------------------------------------------
+// Schedule
+
+/**
+ * Time until a committed start, compact ("3d 4h", "2h 14m", "45m"), or
+ * null once it has passed. Only ever fed matches.scheduled_at, never a
+ * bracket's scheduled_eta projection.
+ */
+export function startsInText(scheduledAt: string | null | undefined, now: number): string | null {
+  if (!scheduledAt) return null;
+  const ms = new Date(scheduledAt).getTime() - now;
+  if (!Number.isFinite(ms) || ms <= 0) return null;
+  const minutes = Math.ceil(ms / 60_000);
+  const days = Math.floor(minutes / 1440);
+  const hours = Math.floor((minutes % 1440) / 60);
+  const rest = minutes % 60;
+  if (days > 0) return hours > 0 ? `${days}d ${hours}h` : `${days}d`;
+  if (hours > 0) return rest > 0 ? `${hours}h ${rest}m` : `${hours}h`;
+  return `${rest}m`;
+}
+
+type ScheduleProposal = { status?: string | null };
+
+/**
+ * A tournament or league match's open re-scheduling proposals
+ * (league_scheduling_proposals on its bracket). Accepting one moves
+ * matches.scheduled_at server-side; until then the committed time stands.
+ */
+export function pendingScheduleProposals<P extends ScheduleProposal>(match: {
+  tournament_brackets?: Array<{ scheduling_proposals?: P[] | null }> | null;
+}): P[] {
+  return (match.tournament_brackets?.[0]?.scheduling_proposals ?? []).filter(
+    (proposal) => proposal.status === "Pending",
+  );
 }
 
 type LineupPlayer = {
@@ -350,6 +426,11 @@ type VetoMatch = {
     best_of?: number | null;
     map_pool?: { maps?: Array<{ id: string }> | null } | null;
   } | null;
+  match_maps?: Array<{
+    map?: { id: string } | null;
+    lineup_1_side?: string | null;
+    lineup_2_side?: string | null;
+  }> | null;
 };
 
 export type VetoStepState = "done" | "current" | "upcoming";
@@ -427,8 +508,18 @@ export function vetoSteps(match: VetoMatch, picks: VetoPick[] | null | undefined
 
 export type VetoMapState = "available" | "banned" | "picked" | "decider";
 
-/** Each pool map's veto state, from the real picks. */
+/**
+ * Each pool map's veto state, from the real picks. ctTeam is the lineup
+ * starting CT on that map, read from its match_maps row (Postgres writes
+ * both lineups' sides there when the side is chosen,
+ * create_match_map_from_veto); null while no side is set.
+ */
 export function vetoMapStates(match: VetoMatch, picks: VetoPick[] | null | undefined) {
+  const matchMapByMap = new Map(
+    (match.match_maps ?? [])
+      .filter((matchMap) => matchMap.map?.id)
+      .map((matchMap) => [matchMap.map!.id, matchMap]),
+  );
   const byMap = new Map<string, VetoPick>();
   const sideByMap = new Map<string, VetoPick>();
   for (const pick of picks ?? []) {
@@ -453,6 +544,10 @@ export function vetoMapStates(match: VetoMatch, picks: VetoPick[] | null | undef
       team: pick && pick.type !== "Decider" ? teamOf(match, pick.match_lineup_id) : null,
       sideTeam: side ? teamOf(match, side.match_lineup_id) : null,
       side: side?.side ?? null,
+      ctTeam:
+        state === "picked" || state === "decider"
+          ? ctStartTeam(matchMapByMap.get(map.id) ?? {})
+          : null,
     };
   });
 }

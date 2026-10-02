@@ -21,6 +21,11 @@ const props = withDefaults(
     // Open the player's profile in a new tab instead of navigating away,
     // for screens that must stay open (a live draft).
     profileInNewTab?: boolean;
+    // Read-only views (the match Overview): the name/avatar links to the
+    // player's profile and the usual role icon shows. Off in the draft room,
+    // where cards are dragged.
+    linkable?: boolean;
+    showRole?: boolean;
   }>(),
   {
     accent: "neutral",
@@ -34,6 +39,8 @@ const props = withDefaults(
     draggable: false,
     dragging: false,
     profileInNewTab: false,
+    linkable: false,
+    showRole: false,
   },
 );
 
@@ -92,13 +99,14 @@ const accentVar = computed(() => {
 
     <FiveStackToolTip as-child side="top" :delay-duration="120">
       <template #trigger>
-        <div class="min-w-0 flex-1 cursor-default">
+        <div class="min-w-0 flex-1" :class="linkable ? '' : 'cursor-default'">
           <PlayerDisplay
             v-bind="profileLinkAttrs"
             :player="member.player"
+            :linkable="linkable"
             :show-online="false"
             :show-flag="true"
-            :show-role="false"
+            :show-role="showRole"
             :show-add-friend="false"
             :show-elo="true"
             :truncate-name="true"

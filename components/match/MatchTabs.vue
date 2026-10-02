@@ -912,6 +912,12 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Bumped when the same match restarts its lifecycle (back from the
+    // server stage to an earlier one): everyone returns to the Overview.
+    overviewRestart: {
+      type: Number,
+      default: 0,
+    },
   },
   data() {
     return {
@@ -1019,6 +1025,11 @@ export default {
     },
     overviewFocus(focus) {
       if (focus && this.overviewAvailable) {
+        this.activeTab = OVERVIEW_TAB_VALUE;
+      }
+    },
+    overviewRestart() {
+      if (this.overviewAvailable) {
         this.activeTab = OVERVIEW_TAB_VALUE;
       }
     },

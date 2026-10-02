@@ -9,6 +9,9 @@ vi.mock("~/components/draft-games/DraftTeamPanel.vue", async () => ({
 vi.mock("~/components/draft-games/DraftPlayerCard.vue", async () => ({
   default: (await import("./fixtures/captainPickScreenStubs")).PlayerCard,
 }));
+vi.mock("~/components/PlayerDisplay.vue", async () => ({
+  default: (await import("./fixtures/playerDisplayStub")).PlayerDisplayStub,
+}));
 vi.mock("~/components/match/MatchRegionVeto.vue", () => ({
   default: { name: "MatchRegionVeto", template: `<div data-testid="region-veto" />` },
 }));
@@ -137,6 +140,41 @@ describe("check-in stage", () => {
     await button.trigger("click");
     expect(apollo.mutate).toHaveBeenCalledTimes(1);
     expect(JSON.stringify(apollo.mutate.mock.calls[0][0].mutation)).toContain("checkIntoMatch");
+  });
+
+  it("players check-in: Team 1 left, Team 2 right, one compact row per player", () => {
+    const wrapper = mountCheckIn(checkInMatch("Players"));
+    const grid = wrapper.get('[data-testid="check-in-players"]');
+    expect(grid.classes()).toEqual(expect.arrayContaining(["grid", "sm:grid-cols-2"]));
+    // Exactly two columns, in team order; no single long list.
+    const columns = grid.findAll('[data-testid^="check-in-team-"]');
+    expect(columns.map((c) => c.attributes("data-testid"))).toEqual(["check-in-team-1", "check-in-team-2"]);
+    expect(wrapper.find('[data-testid="check-in-teams"]').exists()).toBe(false);
+    const rows = (team: number) => grid.get(`[data-testid="check-in-team-${team}"]`).findAll('[data-testid^="check-in-player-"]');
+    expect(rows(1).map((r) => r.attributes("data-checked-in"))).toEqual(["true", "true", "true", "false", "false"]);
+    expect(rows(2)).toHaveLength(5);
+    expect(rows(1)[0].text()).toContain("P11");
+    // Counts and readiness are the server's (is_ready), not recomputed.
+    expect(grid.get('[data-testid="check-in-team-1"]').attributes("data-ready")).toBe("false");
+    expect(grid.get('[data-testid="check-in-team-1"]').text()).toContain('"checked":3,"required":5');
+    expect(grid.get('[data-testid="check-in-team-2"]').attributes("data-ready")).toBe("true");
+    expect(grid.get('[data-testid="check-in-team-2"]').text()).toContain("match.lifecycle.ready");
+    // Each name links to the player's profile (new tab) with the usual role icon.
+    const link = rows(1)[0].get('[data-testid="player-link"]');
+    expect(link.attributes("href")).toBe("/players/11");
+    expect(link.attributes("target")).toBe("_blank");
+    expect(rows(1)[0].find('[data-testid="role-icon"]').exists()).toBe(true);
+    // The check mark is not part of the link.
+    expect(rows(1)[0].get(".check-mark").element.closest("a")).toBeNull();
+  });
+
+  it("captain and admin check-in keep their team rows", () => {
+    for (const setting of ["Captains", "Admin"]) {
+      const wrapper = mountCheckIn(checkInMatch(setting));
+      expect(wrapper.find('[data-testid="check-in-players"]').exists()).toBe(false);
+      expect(wrapper.findAll('[data-testid="check-in-teams"] > li')).toHaveLength(2);
+      expect(wrapper.find('[data-testid^="check-in-player-"]').exists()).toBe(false);
+    }
   });
 
   it("no action for a viewer can_check_in rejects, or who is not in the lineup", () => {

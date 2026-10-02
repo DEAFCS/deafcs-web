@@ -23,6 +23,9 @@ const props = defineProps<{
   matchType?: string | null;
   eloType?: string | null;
   profileInNewTab?: boolean;
+  // Passed to each DraftPlayerCard (profile link and role icon).
+  linkable?: boolean;
+  showRole?: boolean;
   // Explicit captain (null for none). Left out, the lowest pick_order is the
   // captain, as in the draft room.
   captainSteamId?: string | null;
@@ -139,6 +142,8 @@ const slots = computed(() => {
         :match-type="matchType"
         :elo-type="eloType"
         :profile-in-new-tab="profileInNewTab"
+        :linkable="linkable"
+        :show-role="showRole"
         :checked-in="
           checkInBySteamId == null
             ? null

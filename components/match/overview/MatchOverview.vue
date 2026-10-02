@@ -7,6 +7,7 @@ import OverviewVeto from "~/components/match/overview/OverviewVeto.vue";
 import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
 import OverviewCheckIn from "~/components/match/overview/OverviewCheckIn.vue";
 import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
+import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
 </script>
 
 <template>
@@ -40,7 +41,8 @@ import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
         class="order-1 min-w-0 w-full max-w-2xl justify-self-center sm:col-span-2 min-[1400px]:order-2 min-[1400px]:col-span-1"
         data-testid="overview-middle"
       >
-        <OverviewCheckIn v-if="stage === 'check-in'" :match="match" />
+        <OverviewSchedule v-if="stage === 'schedule'" :match="match" />
+        <OverviewCheckIn v-else-if="stage === 'check-in'" :match="match" />
         <CaptainPickProgress
           v-else-if="stage === 'captain-pick'"
           :progress="captainPickProgress"
@@ -84,6 +86,8 @@ import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
           :match-type="eloType"
           :elo-type="eloType"
           profile-in-new-tab
+          linkable
+          show-role
           :data-testid="`overview-team-${team.lineup}`"
         />
       </div>
@@ -295,7 +299,7 @@ export default {
       });
     },
     steps(): OverviewStripStep[] {
-      if (this.stage === "check-in") return [];
+      if (this.stage === "schedule" || this.stage === "check-in") return [];
       if (this.regionPending) {
         return regionSteps(this.match, this.regionPicks).map((step) => ({
           label:
@@ -378,6 +382,22 @@ export default {
             String(useAuthStore().me?.steam_id ?? "-"),
         clockLabel: null,
         stripLabel: this.$t("draft_games.room.pick_order"),
+      };
+    },
+    scheduleBar() {
+      return {
+        title: this.match.scheduled_at
+          ? this.$t("match.lifecycle.schedule_title")
+          : this.$t("match.lifecycle.schedule_unset"),
+        // The server opens check-in near the start; nothing here starts it.
+        hint: this.match.scheduled_at ? this.$t("match.lifecycle.check_in_opens") : null,
+        meta: null,
+        deadline: null,
+        total: 30,
+        accent: AMBER,
+        mine: false,
+        clockLabel: null,
+        stripLabel: null,
       };
     },
     checkInBar() {
@@ -488,7 +508,9 @@ export default {
     },
     bar() {
       const base =
-        this.stage === "check-in"
+        this.stage === "schedule"
+          ? this.scheduleBar
+          : this.stage === "check-in"
           ? this.checkInBar
           : this.stage === "captain-pick"
             ? this.captainPickBar

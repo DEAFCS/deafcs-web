@@ -16,10 +16,10 @@ import {
   <div v-if="hasContent" class="flex flex-col gap-4">
     <!-- Action Panel — Check In / Schedule -->
     <div
-      v-if="!connectOnly && (match.can_schedule || showCheckInSection)"
+      v-if="!connectOnly && (showScheduleSection || showCheckInSection)"
       class="rounded-xl border border-white/10 bg-background/80 backdrop-blur-sm p-4 flex flex-col gap-3"
     >
-      <ScheduleMatch :match="match" v-if="match.can_schedule" />
+      <ScheduleMatch :match="match" v-if="showScheduleSection" />
       <CheckIntoMatch :match="match" v-if="showCheckInSection" />
     </div>
 
@@ -78,6 +78,7 @@ import {
     <QuickMatchConnect
       :match="match"
       :hide-booting="hideBooting"
+      :lifecycle="lifecycle"
       v-if="showQuickConnectSection"
     />
 
@@ -147,6 +148,17 @@ export default {
     // Same for check-in: the Overview's check-in stage has the action and
     // the deadline while it's open.
     hideCheckIn: {
+      type: Boolean,
+      default: false,
+    },
+    // And for scheduling: the Overview's schedule stage has ScheduleMatch.
+    hideSchedule: {
+      type: Boolean,
+      default: false,
+    },
+    // The Overview's server panel: QuickMatchConnect in its lifecycle mode
+    // (booting from the end of the veto, for every viewer).
+    lifecycle: {
       type: Boolean,
       default: false,
     },
@@ -389,16 +401,22 @@ export default {
     showCheckInSection() {
       return !!this.isInMatch && this.match.can_check_in && !this.hideCheckIn;
     },
+    showScheduleSection() {
+      return !!this.match.can_schedule && !this.hideSchedule;
+    },
     showQuickConnectSection() {
-      return (
-        this.match.status === e_match_status_enum.Live &&
-        !!this.me &&
-        !this.hideConnect
-      );
+      if (this.hideConnect) return false;
+      if (this.lifecycle) {
+        return (
+          this.match.status === e_match_status_enum.Live ||
+          this.match.status === e_match_status_enum.WaitingForServer
+        );
+      }
+      return this.match.status === e_match_status_enum.Live && !!this.me;
     },
     showAnyActionSection() {
       return (
-        this.match.can_schedule ||
+        this.showScheduleSection ||
         this.showCheckInSection ||
         this.showQuickConnectSection ||
         this.showConnectCountdown ||

@@ -1129,6 +1129,9 @@ export default {
               status: true,
               auto_start: true,
               scheduling_mode: true,
+              // A league's division tournament: its fixtures are negotiated
+              // on the league schedule, not on the bracket cards.
+              league_season_division: { id: true },
               e_tournament_status: {
                 description: true,
               },
@@ -1275,6 +1278,12 @@ export default {
                   final_map_advantage: true,
                   settings: true,
                   third_place_match: true,
+                  // Where negotiated proposals may fall, per round (the
+                  // proposal trigger enforces the same window).
+                  windows: [
+                    {},
+                    { round: true, opens_at: true, closes_at: true },
+                  ],
                   options: matchOptionsFields,
                   results: [
                     {},
@@ -1420,6 +1429,7 @@ export default {
                       team_1: {
                         id: true,
                         name: true,
+                        team_id: true,
                         team: {
                           name: true,
                         },
@@ -1427,10 +1437,24 @@ export default {
                       team_2: {
                         id: true,
                         name: true,
+                        team_id: true,
                         team: {
                           name: true,
                         },
                       },
+                      // Negotiated scheduling (BracketNegotiation): the same
+                      // proposal rows as the league schedule.
+                      scheduling_proposals: [
+                        { order_by: [{ created_at: order_by.desc }] },
+                        {
+                          id: true,
+                          proposed_time: true,
+                          status: true,
+                          message: true,
+                          proposed_by_steam_id: true,
+                          proposed_by: { steam_id: true, name: true },
+                        },
+                      ],
                       created_at: true,
                     },
                   ],

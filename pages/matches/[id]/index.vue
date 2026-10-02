@@ -483,6 +483,7 @@ const vsBaseClasses =
             :match="match"
             :hide-connect="overviewShown && overviewStage === 'pre-match'"
             :hide-check-in="overviewShown && overviewStage === 'check-in'"
+            :hide-schedule="overviewShown && overviewStage === 'schedule'"
           ></MatchInfo>
         </PageTransition>
 
@@ -619,6 +620,7 @@ const vsBaseClasses =
             :overview-available="!!overviewStage"
             :overview-default="overviewDefault"
             :overview-focus="overviewFocus"
+            :overview-restart="overviewRestart"
             @update:active-tab="matchTab = $event"
           >
             <template #overview>
@@ -674,6 +676,9 @@ import {
   overviewStage as deriveOverviewStage,
   matchServerReady,
   rememberServerReadyAt,
+  forgetServerReadyAt,
+  lifecycleRestarted,
+  PRE_SERVER_STAGES,
   scoreboardHandoffAt,
   SCOREBOARD_HANDOFF_MS,
   OVERVIEW_TAB,
@@ -749,6 +754,9 @@ export default {
       // usable); the hidden 30 second handoff to the Scoreboard counts from
       // here. See matchServerReady / rememberServerReadyAt.
       serverReadyAt: null as number | null,
+      // Bumped when the same match restarts its lifecycle (see
+      // overviewStageScope); MatchTabs returns to the Overview.
+      overviewRestart: 0,
       lifecycleHandoffTimer: undefined as
         | ReturnType<typeof setTimeout>
         | undefined,
@@ -771,6 +779,27 @@ export default {
     };
   },
   watch: {
+    // The server put the match (back) before its server stage: a ready
+    // moment remembered from an earlier run of this same match must not
+    // hand the new run over to the Scoreboard. Viewers who were already
+    // handed over return to the Overview when it happens live.
+    overviewStageScope: {
+      immediate: true,
+      handler(scope: string | null, previous: string | null) {
+        if (!scope) return;
+        const [matchId, stage] = scope.split(":");
+        const [previousId, previousStage] = (previous ?? "").split(":");
+        if (PRE_SERVER_STAGES.has(stage as any)) {
+          forgetServerReadyAt(matchId);
+        }
+        if (
+          previousId === matchId &&
+          lifecycleRestarted(previousStage as any, stage as any)
+        ) {
+          this.overviewRestart += 1;
+        }
+      },
+    },
     // Veto completion alone never starts the handoff: it waits for the server
     // to be ready (the moment Join Server / Copy IP become usable).
     serverReadyScope: {
@@ -962,6 +991,21 @@ export default {
               tournament_brackets: [
                 { limit: 1 },
                 {
+                  id: true,
+                  // The bracket's open re-scheduling proposals, shown by the
+                  // Overview's schedule stage (same rows as the league
+                  // schedule and its notifications).
+                  scheduling_proposals: [
+                    { order_by: [{ created_at: order_by.desc }] },
+                    {
+                      id: true,
+                      proposed_time: true,
+                      status: true,
+                      message: true,
+                      proposed_by_steam_id: true,
+                      proposed_by: { steam_id: true, name: true },
+                    },
+                  ],
                   stage: {
                     tournament: {
                       id: true,
@@ -1150,6 +1194,9 @@ export default {
       return deriveOverviewStage(this.match, {
         captainPickActive: this.captainPickActive,
       });
+    },
+    overviewStageScope() {
+      return this.match ? `${this.match.id}:${this.overviewStage}` : null;
     },
     serverReadyScope() {
       return this.match

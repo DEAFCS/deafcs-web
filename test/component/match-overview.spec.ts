@@ -40,6 +40,9 @@ import {
   matchMapInPlay,
   matchServerReady,
   rememberServerReadyAt,
+  forgetServerReadyAt,
+  lifecycleRestarted,
+  PRE_SERVER_STAGES,
   scoreboardHandoffAt,
   SCOREBOARD_HANDOFF_MS,
   tabAfterOverviewChange,
@@ -570,10 +573,57 @@ describe("pre-match summary", () => {
     expect(wrapper.text()).not.toContain("match.map_tbd");
   });
 
-  it("server preparation states", () => {
-    expect(mountSummary(liveMatch({ status: "WaitingForServer" })).get('[data-testid="pre-match-server"]').attributes("data-state")).toBe("waiting");
-    expect(mountSummary(liveMatch({ is_server_online: false })).get('[data-testid="pre-match-server"]').attributes("data-state")).toBe("starting");
-    expect(mountSummary(liveMatch()).get('[data-testid="pre-match-server"]').attributes("data-state")).toBe("ready");
+  it("one server panel right under the maps: booting from the end of the veto, no separate status bar", () => {
+    for (const viewer of [null, { steam_id: "99" }]) {
+      auth.me = viewer;
+      // Veto done, no server yet / server assigned but still booting.
+      for (const match of [
+        liveMatch({ status: "WaitingForServer", server_id: null, is_server_online: false }),
+        liveMatch({ is_server_online: false }),
+        liveMatch({ server_id: null, is_server_online: false }),
+      ]) {
+        const wrapper = mountSummary(match);
+        const panel = wrapper.get('[data-testid="pre-match-connect"]');
+        expect(panel.attributes("data-state")).toBe("booting");
+        // QuickMatchConnect's own booting box, the Scoreboard's.
+        expect(panel.text()).toContain("match.server.booting");
+        expect(panel.find('[data-testid="copy-ip"]').exists()).toBe(false);
+        expect(panel.text()).not.toContain("match.time_to_connect");
+        expect(wrapper.find('[data-testid="pre-match-server"]').exists()).toBe(false);
+        expect(wrapper.text()).not.toContain("match.lifecycle.server_ready");
+        // Directly after the final maps.
+        const children = [...wrapper.get('[data-testid="overview-pre-match"]').element.children];
+        expect(children.map((el) => el.getAttribute("data-testid"))).toEqual(["pre-match-maps", "pre-match-connect"]);
+      }
+    }
+    auth.me = null;
+    const ready = mountSummary(liveMatch());
+    expect(ready.get('[data-testid="pre-match-connect"]').attributes("data-state")).toBe("ready");
+    expect(ready.text()).not.toContain("match.server.booting");
+  });
+
+  it("the same panel turns into Time to Connect, Copy IP and Join Server once the server is up", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(NOW);
+    auth.me = { steam_id: "11" };
+    const secret = { is_in_lineup: true, cancels_at: iso(150_000), connection_string: "connect 1.2.3.4", connection_link: "steam://connect/1.2.3.4" };
+    const warmup = (extra: any) => {
+      const match = liveMatch({ ...secret, ...extra });
+      match.match_maps[0] = { ...match.match_maps[0], is_current_map: true, status: "Warmup" };
+      return match;
+    };
+    const wrapper = mountSummary(warmup({ is_server_online: false }));
+    const panel = () => wrapper.get('[data-testid="pre-match-connect"]');
+    expect(panel().text()).toContain("match.server.booting");
+    expect(panel().find('[data-testid="copy-ip"]').exists()).toBe(false);
+    await wrapper.setProps({ match: warmup({ is_server_online: true }) });
+    expect(panel().attributes("data-state")).toBe("ready");
+    expect(panel().text()).not.toContain("match.server.booting");
+    expect(panel().text()).toContain("match.time_to_connect");
+    expect(panel().text()).toContain("2:30");
+    expect(panel().find('[data-testid="copy-ip"]').exists()).toBe(true);
+    expect(panel().find("a[href='steam://connect/1.2.3.4']").exists()).toBe(true);
+    wrapper.unmount();
   });
 
   it("Join Server and Copy IP follow the existing permissions and never leak", () => {
@@ -624,12 +674,12 @@ const pageExports: any = {};
 new Function(
   "exports", "$", "order_by", "e_match_status_enum", "e_player_roles_enum", "typedGql", "mapFields", "matchLineups", "playerFields", "matchOptionsFields", "eloFields",
   "deriveOverviewStage", "overviewIsDefault", "scoreboardHandoffAt", "SCOREBOARD_HANDOFF_MS", "OVERVIEW_TAB", "getCaptainPickDraft", "useAuthStore", "useMatchmakingStore",
-  "matchServerReady", "rememberServerReadyAt",
+  "matchServerReady", "rememberServerReadyAt", "forgetServerReadyAt", "lifecycleRestarted", "PRE_SERVER_STAGES",
   ts.transpileModule(pageBody, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
 )(
   pageExports, $, order_by, e_match_status_enum, e_player_roles_enum, typedGql, mapFields, matchLineups, playerFields, matchOptionsFields, eloFields,
   overviewStage, overviewIsDefault, scoreboardHandoffAt, SCOREBOARD_HANDOFF_MS, OVERVIEW_TAB, getCaptainPickDraft, () => auth, () => matchmaking,
-  matchServerReady, rememberServerReadyAt,
+  matchServerReady, rememberServerReadyAt, forgetServerReadyAt, lifecycleRestarted, PRE_SERVER_STAGES,
 );
 const page = pageExports.default;
 const pageContext = (state: Record<string, any>) => {
@@ -639,10 +689,11 @@ const pageContext = (state: Record<string, any>) => {
     lifecycleNow: NOW,
     lifecycleHandoffTimer: undefined,
     serverReadyAt: null,
+    overviewRestart: 0,
     matchTab: null,
     ...state,
   };
-  for (const name of ["captainPickActive", "overviewStage", "serverReadyScope", "overviewHandoffAt", "overviewDefault", "overviewShown", "participantDraft", "overviewFocus"]) {
+  for (const name of ["captainPickActive", "overviewStage", "overviewStageScope", "serverReadyScope", "overviewHandoffAt", "overviewDefault", "overviewShown", "participantDraft", "overviewFocus"]) {
     Object.defineProperty(ctx, name, { get: () => page.computed[name].call(ctx) });
   }
   return ctx;
@@ -770,6 +821,102 @@ describe("match page", () => {
     expect(late.lifecycleHandoffTimer).toBeUndefined();
     expect(late.overviewDefault).toBe(false);
     window.localStorage.clear();
+  });
+
+  describe("same match restarted after its Scoreboard handoff", () => {
+    const run = (ctx: any, previousScope: string | null) => {
+      page.watch.overviewStageScope.handler.call(ctx, ctx.overviewStageScope, previousScope);
+      page.watch.serverReadyScope.handler.call(ctx);
+      page.watch.overviewHandoffAt.handler.call(ctx, ctx.overviewHandoffAt);
+    };
+    const live = (online: boolean) => baseMatch({ status: "Live", started_at: iso(-600_000), server_id: "s1", is_server_online: online });
+
+    it("handoff done -> back to veto -> Overview again -> a later ready state gets a fresh 30 seconds", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(NOW);
+      window.localStorage.clear();
+      // First run: server ready, 30 seconds pass, handed over.
+      const ctx = pageContext({ match: live(true) });
+      run(ctx, null);
+      expect(ctx.serverReadyAt).toBe(NOW);
+      vi.advanceTimersByTime(30_000);
+      expect(ctx.overviewDefault).toBe(false);
+      expect(window.localStorage.getItem("deafcs:match-server-ready:m1")).toBe(String(NOW));
+
+      // The same match is reset into a new veto.
+      vi.setSystemTime(NOW + 120_000);
+      let previous = ctx.overviewStageScope;
+      ctx.match = baseMatch({ status: "Veto" });
+      run(ctx, previous);
+      expect(ctx.overviewStage).toBe("veto");
+      expect(ctx.overviewDefault).toBe(true);
+      expect(ctx.overviewRestart).toBe(1);
+      expect(ctx.serverReadyAt).toBeNull();
+      expect(window.localStorage.getItem("deafcs:match-server-ready:m1")).toBeNull();
+
+      // Veto done, the new server boots: still the Overview.
+      vi.setSystemTime(NOW + 300_000);
+      previous = ctx.overviewStageScope;
+      ctx.match = live(false);
+      run(ctx, previous);
+      expect(ctx.overviewDefault).toBe(true);
+      expect(ctx.overviewRestart).toBe(1);
+
+      // Ready again: a fresh window from now, not the first run's moment.
+      previous = ctx.overviewStageScope;
+      ctx.match = live(true);
+      run(ctx, previous);
+      expect(ctx.serverReadyAt).toBe(NOW + 300_000);
+      expect(ctx.overviewDefault).toBe(true);
+      vi.advanceTimersByTime(29_000);
+      expect(ctx.overviewDefault).toBe(true);
+      vi.advanceTimersByTime(1_000);
+      expect(ctx.overviewDefault).toBe(false);
+      window.localStorage.clear();
+    });
+
+    it("a page opened during the new run ignores the old ready moment too", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(NOW + 600_000);
+      window.localStorage.setItem("deafcs:match-server-ready:m1", String(NOW));
+      const ctx = pageContext({ match: baseMatch({ status: "Veto" }) });
+      run(ctx, null);
+      expect(window.localStorage.getItem("deafcs:match-server-ready:m1")).toBeNull();
+      // Opening the page is not a restart: the viewer's tab is left alone.
+      expect(ctx.overviewRestart).toBe(0);
+      ctx.match = live(true);
+      run(ctx, "m1:veto");
+      expect(ctx.serverReadyAt).toBe(NOW + 600_000);
+      expect(ctx.overviewDefault).toBe(true);
+      window.localStorage.clear();
+    });
+
+    it("a server reboot mid-match is not a restart; nothing is cleared on a plain re-render", () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(NOW);
+      window.localStorage.setItem("deafcs:match-server-ready:m1", String(NOW - 60_000));
+      const ctx = pageContext({ match: live(true) });
+      run(ctx, null);
+      // Same stage again (a re-render, or the server going offline mid-game).
+      ctx.match = live(false);
+      run(ctx, ctx.overviewStageScope);
+      expect(ctx.overviewRestart).toBe(0);
+      expect(window.localStorage.getItem("deafcs:match-server-ready:m1")).toBe(String(NOW - 60_000));
+      // Another match's lifecycle never touches this one.
+      expect(lifecycleRestarted("pre-match", "veto")).toBe(true);
+      expect(lifecycleRestarted("veto", "pre-match")).toBe(false);
+      expect(lifecycleRestarted(null, "veto")).toBe(false);
+      expect([...PRE_SERVER_STAGES].sort()).toEqual(["captain-pick", "check-in", "schedule", "veto"]);
+      forgetServerReadyAt("m2");
+      expect(window.localStorage.getItem("deafcs:match-server-ready:m1")).toBe(String(NOW - 60_000));
+      window.localStorage.clear();
+    });
+
+    it("MatchTabs returns everyone to the Overview on a restart", () => {
+      expect(template).toContain(':overview-restart="overviewRestart"');
+      const tabs = readFileSync(path.resolve(__dirname, "../../components/match/MatchTabs.vue"), "utf8");
+      expect(tabs).toMatch(/overviewRestart\(\) \{\s*if \(this\.overviewAvailable\) \{\s*this\.activeTab = OVERVIEW_TAB_VALUE;/);
+    });
   });
 
   it("brings a captain back to the Overview on their veto turn only", () => {
@@ -908,6 +1055,53 @@ describe("Overview layout refinement", () => {
     side.unmount();
   });
 
+  it("active veto: picked maps and the decider show who starts CT once the server set it", () => {
+    // As Postgres writes them on each Side pick (create_match_map_from_veto):
+    // Mirage (Alpha's pick, Bravo chose CT), Nuke (Bravo's pick, Alpha chose T).
+    const match = baseMatch({
+      map_veto_type: "Ban",
+      map_veto_picking_lineup_id: "Bravo-id",
+      match_maps: [
+        { id: "mm1", order: 1, map: pool[0], lineup_1_side: "TERRORIST", lineup_2_side: "CT" },
+        { id: "mm2", order: 2, map: pool[2], lineup_1_side: "CT", lineup_2_side: "TERRORIST" },
+      ],
+    });
+    const picks = bo3Picks.slice(0, 7);
+    const states = vetoMapStates(match, picks);
+    const byId = (id: string) => states.find((row: any) => row.map.id === id)!;
+    expect(byId("mirage")).toMatchObject({ state: "picked", team: 1, ctTeam: 2 });
+    expect(byId("nuke")).toMatchObject({ state: "picked", team: 2, ctTeam: 1 });
+    expect(byId("ancient")).toMatchObject({ state: "banned", ctTeam: null });
+
+    const wrapper = mountVeto(match, picks);
+    const mirage = wrapper.get('[data-testid="veto-map-mirage"]');
+    expect(mirage.text()).toContain("match.lifecycle.map_picked");
+    expect(mirage.text()).toContain("T1");
+    expect(mirage.get('[data-testid="veto-map-side"]').text()).toBe('match.lifecycle.starts_ct:{"team":"Bravo"}');
+    expect(wrapper.get('[data-testid="veto-map-nuke"] [data-testid="veto-map-side"]').text()).toBe('match.lifecycle.starts_ct:{"team":"Alpha"}');
+    // Banned and still-open maps have no side line.
+    expect(wrapper.get('[data-testid="veto-map-ancient"]').find('[data-testid="veto-map-side"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="veto-map-train"]').find('[data-testid="veto-map-side"]').exists()).toBe(false);
+    wrapper.unmount();
+
+    // A picked map whose side choice is still pending: nothing guessed.
+    const pending = baseMatch({ map_veto_type: "Side", match_maps: [] });
+    const sidePending = mountVeto({ ...pending, map_veto_type: "Ban" }, bo3Picks.slice(0, 3));
+    expect(sidePending.get('[data-testid="veto-map-mirage"]').find('[data-testid="veto-map-side"]').exists()).toBe(false);
+    sidePending.unmount();
+
+    // The decider: only once its match_maps row carries sides.
+    const deciderMatch = (sides: any) => baseMatch({
+      status: "Veto",
+      map_veto_type: null,
+      match_maps: [{ id: "mm3", order: 3, map: pool[1], ...sides }],
+    });
+    expect(vetoMapStates(deciderMatch({ lineup_1_side: null, lineup_2_side: null }), bo3Picks).find((r: any) => r.map.id === "inferno")).toMatchObject({ state: "decider", ctTeam: null });
+    const decided = mountVeto(deciderMatch({ lineup_1_side: "CT", lineup_2_side: "TERRORIST" }), bo3Picks);
+    expect(decided.get('[data-testid="veto-map-inferno"] [data-testid="veto-map-side"]').text()).toBe('match.lifecycle.starts_ct:{"team":"Alpha"}');
+    decided.unmount();
+  });
+
   it("constrains final map, server, Time to Connect and Connect/Copy to the middle", () => {
     vi.useFakeTimers(); vi.setSystemTime(NOW); auth.me = { steam_id: "11" };
     const match = liveMatch({ cancels_at: iso(120_000), is_in_lineup: true, connection_string: "connect 1.2.3.4", connection_link: "steam://connect/1.2.3.4" });
@@ -916,7 +1110,8 @@ describe("Overview layout refinement", () => {
     const middle = wrapper.get('[data-testid="overview-middle"]');
     expect(middle.classes()).toContain("justify-self-center");
     expect(middle.classes()).toContain("max-w-2xl");
-    expect(middle.get('[data-testid="pre-match-server"]').attributes("data-state")).toBe("ready");
+    expect(middle.get('[data-testid="pre-match-connect"]').attributes("data-state")).toBe("ready");
+    expect(wrapper.find('[data-testid="pre-match-server"]').exists()).toBe(false);
     expect(middle.get('[data-testid="pre-match-connect"]').text()).toContain("match.time_to_connect");
     expect(middle.get('[data-testid="pre-match-connect"] [data-testid="copy-ip"]').exists()).toBe(true);
     expect(middle.get('a[href="steam://connect/1.2.3.4"]').exists()).toBe(true);

@@ -70,6 +70,8 @@ const history = computed(() =>
           match-type="Competitive"
           elo-type="Competitive"
           profile-in-new-tab
+          linkable
+          show-role
         />
       </TransitionGroup>
     </div>

@@ -124,12 +124,23 @@ import mapLabel from "~/utilities/mapLabel";
             <template v-if="row.team"> · T{{ row.team }}</template>
           </span>
           <span v-else></span>
-          <span
-            class="truncate font-sans text-sm font-bold uppercase tracking-[0.12em] text-white"
-            :class="row.state === 'banned' ? 'line-through opacity-70' : ''"
-          >
-            {{ mapLabel(row.map) }}
-          </span>
+          <div class="flex min-w-0 flex-col">
+            <span
+              class="truncate font-sans text-sm font-bold uppercase tracking-[0.12em] text-white"
+              :class="row.state === 'banned' ? 'line-through opacity-70' : ''"
+            >
+              {{ mapLabel(row.map) }}
+            </span>
+            <!-- The starting side once the server has set it (match_maps). -->
+            <span
+              v-if="row.ctTeam"
+              class="truncate text-[0.65rem] font-semibold"
+              :class="row.ctTeam === 1 ? 'text-[hsl(var(--tac-amber))]' : 'text-[hsl(200_90%_62%)]'"
+              data-testid="veto-map-side"
+            >
+              {{ $t("match.lifecycle.starts_ct", { team: teamName(row.ctTeam) }) }}
+            </span>
+          </div>
         </div>
         <div
           v-if="confirmation && selectedMapId === row.map.id"
@@ -234,6 +245,9 @@ export default {
     if (this.countdownInterval) clearInterval(this.countdownInterval);
   },
   methods: {
+    teamName(team: 1 | 2) {
+      return this.match[`lineup_${team}`]?.name || this.$t(`match.lineup.lineup_${team}`);
+    },
     updateCountdown() {
       const expiresAt = this.match?.map_veto_pick_expires_at;
       const seconds = expiresAt

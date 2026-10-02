@@ -30,6 +30,8 @@ import {
 import TournamentRoundLineup from "~/components/tournament/TournamentRoundLineup.vue";
 import MatchMapDots from "~/components/match/MatchMapDots.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
+import BracketNegotiation from "~/components/tournament/BracketNegotiation.vue";
+import { negotiableBracket } from "~/utilities/bracketNegotiation";
 import {
   e_match_status_enum,
   e_player_roles_enum,
@@ -55,8 +57,13 @@ const props = defineProps<{
     options?: {
       best_of?: number;
     };
+    // Per-round scheduling windows (only leagues create them today).
+    windows?: Array<{ round: number; opens_at?: string | null; closes_at?: string | null }>;
   };
   tournament?: {
+    // "negotiated": teams agree each bracket's time (BracketNegotiation).
+    scheduling_mode?: string;
+    league_season_division?: { id?: string } | null;
     is_organizer?: boolean;
     status?: string;
     // Whether later rounds start themselves once their feeders resolve.
@@ -827,6 +834,14 @@ const shouldShowCrossBracketDestination = (
           <TimeAgo :date="bracket.scheduled_eta"></TimeAgo>
         </span>
       </div>
+
+      <!-- Negotiated tournament (not a league): the teams agree the time
+           here, before and after the match exists. -->
+      <BracketNegotiation
+        v-if="negotiableBracket(props.tournament, bracket as any)"
+        :bracket="bracket"
+        :stage="props.stage"
+      />
 
       <!-- Team Display -->
       <div class="flex flex-col gap-2">

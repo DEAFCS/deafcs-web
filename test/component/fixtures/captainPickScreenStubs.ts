@@ -13,6 +13,8 @@ export const TeamPanel = defineComponent({
     matchType: null,
     eloType: null,
     profileInNewTab: Boolean,
+    linkable: Boolean,
+    showRole: Boolean,
     captainSteamId: null,
     checkInBySteamId: null,
   },
@@ -43,6 +45,8 @@ export const PlayerCard = defineComponent({
     matchType: null,
     eloType: null,
     profileInNewTab: Boolean,
+    linkable: Boolean,
+    showRole: Boolean,
   },
   setup(props, { slots }) {
     return () =>

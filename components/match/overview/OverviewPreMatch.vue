@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { Spinner } from "~/components/ui/spinner";
 import MatchInfo from "~/components/match/MatchInfo.vue";
 import mapLabel from "~/utilities/mapLabel";
 </script>
@@ -51,20 +50,16 @@ import mapLabel from "~/utilities/mapLabel";
       </li>
     </ol>
 
+    <!-- The Scoreboard's own server panel (MatchInfo / QuickMatchConnect):
+         Server Booting until the server is up, then Time to Connect and
+         Copy IP / Join Server in the same place. Hasura supplies no
+         connection fields to viewers who may not see them. -->
     <div
-      class="flex items-center justify-center gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 text-sm"
-      data-testid="pre-match-server"
+      class="min-w-0 w-full"
+      data-testid="pre-match-connect"
       :data-state="serverState"
     >
-      <Spinner v-if="serverState !== 'ready'" class="h-4 w-4 shrink-0" />
-      <span v-else class="h-2 w-2 shrink-0 rounded-full bg-green-500"></span>
-      <span>{{ $t(`match.lifecycle.server_${serverState}`) }}</span>
-    </div>
-
-    <!-- Reuse the existing connect deadline and permissions in the middle.
-         Hasura supplies no connection fields to viewers who may not see them. -->
-    <div class="min-w-0 w-full" data-testid="pre-match-connect">
-      <MatchInfo :match="match" connect-only hide-booting />
+      <MatchInfo :match="match" connect-only lifecycle />
     </div>
   </section>
 </template>
@@ -120,9 +115,12 @@ export default {
         };
       });
     },
+    // Not shown as its own bar (the panel itself says Server Booting); kept
+    // as a data attribute for the page and tests.
     serverState() {
-      if (this.match.status !== "Live") return "waiting";
-      return this.match.is_server_online ? "ready" : "starting";
+      return this.match.status === "Live" && this.match.is_server_online
+        ? "ready"
+        : "booting";
     },
   },
 };
