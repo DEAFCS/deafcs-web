@@ -33,9 +33,11 @@
         <OverviewCheckIn v-else-if="stage === 'check-in'" :match="match" />
         <CaptainPickProgress
           v-else-if="stage === 'captain-pick'"
-          :progress="captainPickProgress"
+          :progress="draft"
           :players="captainPickPlayers"
-          :participant="participant"
+          :participant-draft="actionDraft"
+          :can-pick="canCaptainPick"
+          @pick="pickCaptainPlayer"
         />
         <OverviewRegion
           v-else-if="regionPending"
@@ -95,6 +97,7 @@ import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
 import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
 import { computed, type PropType } from "vue";
 import { useCaptainPickPlayers } from "~/composables/useCaptainPickPlayers";
+import { useCaptainPickActions } from "~/composables/useCaptainPickActions";
 import { $, order_by } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import {
@@ -148,16 +151,30 @@ export default {
     // The page's lifecycle clock (bumped when the cooldown ends).
     now: { type: Number, default: () => Date.now() },
   },
-  setup(props) {
+  emits: ["pick"],
+  setup(props, { emit }) {
+    const actionDraft = computed(() =>
+      props.stage === "captain-pick" && props.match.status === "PickingPlayers" &&
+      props.participantDraft?.matchId === props.match.id ? props.participantDraft : null,
+    );
+    const actions = useCaptainPickActions(
+      actionDraft,
+      computed(() => useAuthStore().me?.steam_id ?? null),
+      (request) => emit("pick", request),
+    );
     // The public progress projection carries the pool, not a full private
     // draft. One shared player query enriches both team panels and the pool.
     const playerScope = computed(() =>
-      props.stage === "captain-pick" && props.captainPickProgress
-        ? { draftId: props.match.id, participants: props.captainPickProgress.participants }
+      props.stage === "captain-pick" && (actionDraft.value || props.captainPickProgress)
+        ? { draftId: props.match.id, participants: (actionDraft.value || props.captainPickProgress)!.participants }
         : null,
     );
     const { players: captainPickPlayers } = useCaptainPickPlayers(playerScope);
-    return { captainPickPlayers };
+    return {
+      captainPickPlayers, actionDraft,
+      canCaptainPick: actions.canPick, captainPickMyTurn: actions.myTurn,
+      captainPickTimeUp: actions.timeUp, pickCaptainPlayer: actions.pick,
+    };
   },
   apollo: {
     $subscribe: {
@@ -249,7 +266,7 @@ export default {
   },
   computed: {
     draft() {
-      return this.stage === "captain-pick" ? this.captainPickProgress : null;
+      return this.stage === "captain-pick" ? (this.actionDraft || this.captainPickProgress) : null;
     },
     eloType() {
       return this.stage === "captain-pick"
@@ -376,7 +393,9 @@ export default {
           ? this.$t("draft_games.room.captain_picking", { name })
           : this.$t("matchmaking.captain_pick.nav"),
         hint: picking
-          ? this.$t("matchmaking.captain_pick.waiting_hint", { name })
+          ? this.$t(this.captainPickTimeUp ? "matchmaking.captain_pick.time_up"
+              : this.captainPickMyTurn ? "matchmaking.captain_pick.your_pick_hint"
+              : "matchmaking.captain_pick.waiting_hint", { name })
           : this.$t("matchmaking.captain_pick.creating_match"),
         meta:
           progress && picking
@@ -389,10 +408,7 @@ export default {
         total:
           (own ? this.participantDraft?.timerSeconds : progress?.timerSeconds) ?? 30,
         accent: picking === 2 ? BLUE : AMBER,
-        mine:
-          !!picking &&
-          String(this.participantDraft?.pickingCaptainSteamId ?? "") ===
-            String(useAuthStore().me?.steam_id ?? "-"),
+        mine: this.captainPickMyTurn,
         clockLabel: null,
         stripLabel: this.$t("draft_games.room.pick_order"),
       };

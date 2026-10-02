@@ -98,8 +98,8 @@ describe("Overview wiring", () => {
       ["components/match/overview/MatchOverview.vue", "DraftTeamPanel"],
       ["components/match/CaptainPickProgress.vue", "DraftPlayerCard"],
     ]) {
-      const markup = source(file).match(new RegExp(`<${tag}[\\s\\S]*?/>`))![0];
-      expect(markup).toMatch(/\blinkable\s+show-role\b/);
+      const markup = source(file).match(new RegExp(`<${tag}[\\s\\S]*?>`))![0];
+      expect(markup).toMatch(/linkable[\s\S]*show-role/);
       // No new tab/window: that is what moved website users into the
       // installed app (and app users out of it).
       expect(markup).not.toMatch(/profile-in-new-tab|_blank/);
@@ -107,8 +107,8 @@ describe("Overview wiring", () => {
     expect(source("components/match/overview/OverviewCheckIn.vue")).not.toMatch(/_blank/);
   });
 
-  it("the draft room and Captain Pick screen keep their non-linked cards", () => {
-    for (const file of ["components/draft-games/DraftRoom.vue", "components/matchmaking/captain-pick/CaptainPickScreen.vue"]) {
+  it("the draft room keeps its non-linked cards", () => {
+    for (const file of ["components/draft-games/DraftRoom.vue"]) {
       expect(source(file)).not.toMatch(/\blinkable\b/);
     }
   });

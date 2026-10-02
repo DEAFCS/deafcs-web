@@ -25,7 +25,6 @@ vi.mock("~/components/draft-games/DraftLog.vue", () => ({
 import CaptainPickProgress from "../../components/match/CaptainPickProgress.vue";
 import MatchOverview from "../../components/match/overview/MatchOverview.vue";
 import PlayerDisplay from "../../components/PlayerDisplay.vue";
-import CaptainPickScreen from "../../components/matchmaking/captain-pick/CaptainPickScreen.vue";
 
 const navigate = vi.fn();
 const NuxtLink = defineComponent({
@@ -140,19 +139,19 @@ describe("Captain Pick public country records in match Overview", () => {
   });
 
   it("real selectable cards pick on the main card while the dedicated profile link stops propagation", async () => {
-    const wrapper = mount(CaptainPickScreen, {
-      props: { draft: makeDraft(), selfSteamId: "2", players: { "3": records[0] } },
+    query.mockResolvedValue({ data: { players: records } });
+    vi.stubGlobal("useAuthStore", () => ({ me: { steam_id: "2" } }));
+    const draft = makeDraft({ matchId: "m1" });
+    const wrapper = mount(MatchOverview, {
+      props: { match: { id: "m1", status: "PickingPlayers", options: {} }, stage: "captain-pick", participantDraft: draft, captainPickProgress: draft },
       global: globalOptions,
     });
     wrappers.push(wrapper);
+    await flushPromises();
     const card = wrapper.get('[data-testid="captain-pick-player-3"]');
     const display = card.getComponent(PlayerDisplay);
     expect(display.props("linkable")).toBe(false);
     expect(display.getComponent(NuxtLink).props("to")).toBeNull();
-    await card.get(".draft-player-card").trigger("click");
-    expect(wrapper.emitted("pick")).toEqual([["3"]]);
-    await display.getComponent(NuxtLink).trigger("click");
-    expect(wrapper.emitted("pick")).toEqual([["3"], ["3"]]);
     const parentClick = vi.fn();
     card.element.addEventListener("click", parentClick);
     const profile = card.get('[data-testid="captain-pick-profile-3"]');
@@ -162,10 +161,13 @@ describe("Captain Pick public country records in match Overview", () => {
     const open = vi.spyOn(window, "open");
     await profile.trigger("click");
     expect(navigate).toHaveBeenCalledWith({ name: "players-id", params: { id: "3" } });
-    expect(wrapper.emitted("pick")).toEqual([["3"], ["3"]]);
+    expect(wrapper.emitted("pick")).toBeUndefined();
     expect(parentClick).not.toHaveBeenCalled();
     expect(open).not.toHaveBeenCalled();
     open.mockRestore();
+    await card.get(".draft-player-card").trigger("click");
+    await card.trigger("click");
+    expect(wrapper.emitted("pick")).toEqual([[{ confirmationId: "draft-1", steamId: "3", pickIndex: 0 }]]);
   });
 
   it("does not start player enrichment for a normal match stage", async () => {

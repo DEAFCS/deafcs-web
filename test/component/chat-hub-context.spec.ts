@@ -375,21 +375,19 @@ describe("Captain Pick", () => {
     expect(useChatTabs().activeTabId.value).toBe(MATCH_ROOM);
   });
 
-  it("carries the same Match Chat into the match page; only the Captain Pick team room goes", () => {
+  it("hands draft Team Chat to match Team Chat in the same mounted match page", async () => {
     // Once the teams are seated the player is a real participant.
     mocks.matchLobbyStore.myMatches = [
       match({ id: MATCH, lineup_1: { ...MY_LINEUP }, lineup_1_id: "l1" }),
     ];
-    const { wrapper } = mountContext(
+    const { context } = mountContext(
       captainPickChatHubContext(withMatch(makeDraft()), "2", t),
     );
     expect(tabIds()).toEqual([MATCH_ROOM, "captain_pick_team:draft-1:1"]);
 
-    // MatchCreated: the draft page routes to /matches/<id> and unmounts.
-    wrapper.unmount();
-    expect(tabIds()).toEqual([MATCH_ROOM]);
-
-    mountContext(matchChatHubContext(match({ id: MATCH }), true, MY_LINEUP, t));
+    // Final seating changes context without leaving the canonical match page.
+    context.value = matchChatHubContext(match({ id: MATCH }), true, MY_LINEUP, t);
+    await flush();
     // The very same room, plus the normal match Team Chat. No second
     // shared room, nothing to migrate.
     expect(tabIds()).toEqual([MATCH_ROOM, `match_team:${MATCH}:l1`]);

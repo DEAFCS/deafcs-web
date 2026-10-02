@@ -200,14 +200,14 @@ describe("Captain Pick public observation", () => {
       "utf8",
     );
     expect(panel).not.toMatch(
-      /ChatLobby|CaptainPickChat|camera|socket|@pick|@click|@remove/,
+      /ChatLobby|CaptainPickChat|camera|socket|@remove/,
     );
     const overview = fs.readFileSync(
       path.resolve(__dirname, "../../components/match/overview/MatchOverview.vue"),
       "utf8",
     );
     expect(overview).not.toMatch(
-      /ChatLobby|CaptainPickChat|camera|socket|@pick|@remove|removable|addable/,
+      /ChatLobby|CaptainPickChat|camera|socket|@remove|removable|addable/,
     );
   });
 });

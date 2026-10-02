@@ -308,7 +308,17 @@ export default {
             stopTabFlash();
           }
 
-          if (
+          if (captainPick.matchId) {
+            if (this.routedConfirmedId !== captainPick.matchId) {
+              this.routedConfirmedId = captainPick.matchId;
+              writeStorage(ROUTED_MATCH_ID_STORAGE_KEY, captainPick.matchId);
+              const matchPath = `/matches/${captainPick.matchId}`;
+              // The temporary route owns its replace when the shell arrives.
+              if (this.$route?.path !== CAPTAIN_PICK_PATH && this.$route?.path !== matchPath) {
+                this.$router.push(matchPath);
+              }
+            }
+          } else if (
             isCaptainPickInProgress(captainPick) &&
             this.routedCaptainPickId !== captainPick.draftId
           ) {
@@ -318,6 +328,7 @@ export default {
               this.$router.push(CAPTAIN_PICK_PATH);
             }
           }
+          return;
         }
 
         if (this.confirmation?.matchId) {

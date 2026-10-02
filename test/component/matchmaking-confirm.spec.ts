@@ -356,7 +356,7 @@ describe("Match Found confirmation modal with 5v5 Captain Pick", () => {
     expect(mocks.routerPush).not.toHaveBeenCalled();
   });
 
-  it("never leaves the draft for the match page while players are still being picked", async () => {
+  it("routes to the match shell immediately and never repeats navigation during picking", async () => {
     // The real match exists from 10/10: the draft carries its id, but the
     // confirmation's own matchId stays empty until the teams are seated.
     mountConfirm(
@@ -366,6 +366,8 @@ describe("Match Found confirmation modal with 5v5 Captain Pick", () => {
       }) as any,
     );
     await flushPromises();
+    expect(mocks.routerPush).toHaveBeenCalledOnce();
+    expect(mocks.routerPush).toHaveBeenCalledWith("/matches/match-9");
     mocks.routerPush.mockClear();
 
     for (const pickIndex of [1, 2, 6]) {
@@ -439,4 +441,13 @@ describe("Match Found confirmation modal with 5v5 Captain Pick", () => {
     expect(mocks.routerPush).not.toHaveBeenCalled();
     expect(localStorage.getItem("deafcs:matchmaking:routed-match-id")).toBe("match-9");
   });
+
+it("keeps a restored Captain Pick participant on the canonical match route", async () => {
+  mountConfirm(makeConfirmation({ confirmed: 10, captainPick: draft({ matchId: "match-9" }) }) as any, "/matches/match-9");
+  await flushPromises();
+  setConfirmation(makeConfirmation({ confirmed: 10, captainPick: draft({ matchId: "match-9", pickIndex: 2 }) }) as any);
+  await flushPromises();
+  expect(mocks.routerPush).not.toHaveBeenCalled();
+});
+
 });

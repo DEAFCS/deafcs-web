@@ -347,7 +347,7 @@ describe("Captain Pick overview", () => {
     expect(captainPickHistory(done)).toHaveLength(7);
   });
 
-  it("participants keep their workflow: a link to their Captain Pick and the real timer", () => {
+  it("participants use the same Overview with selectable cards and the real timer", () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
     auth.me = { steam_id: "2" };
@@ -359,10 +359,11 @@ describe("Captain Pick overview", () => {
       participantDraft: draft,
       participant: true,
     });
-    expect(wrapper.get('[data-testid="open-captain-pick"]').attributes("href")).toBe("/play/captain-pick");
+    expect(wrapper.find('[data-testid="open-captain-pick"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="captain-pick-player-3"]').attributes("role")).toBe("button");
     expect(wrapper.find('[data-testid="overview-clock"]').exists()).toBe(true);
     expect(wrapper.get('[data-testid="overview-action-bar"]').classes()).toContain("is-mine");
-    // Still no pick buttons on the match page itself.
+    // Picking uses the main pool cards; the profile action stays separate.
     expect(wrapper.findAll("button")).toHaveLength(0);
   });
 

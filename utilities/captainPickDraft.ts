@@ -72,13 +72,18 @@ export function pendingReadyCheck<
   return confirmation;
 }
 
-/** A draft that still needs its own screen (no match to go to yet). */
+/** A committed draft that has not finished seating its players. */
 export function isCaptainPickInProgress(
   draft: CaptainPickDraftState | null | undefined,
 ): boolean {
   return (
     !!draft && (draft.phase === "Drafting" || draft.phase === "CreatingMatch")
   );
+}
+
+/** The real match is the draft's home as soon as its shell exists. */
+export function captainPickPath(draft: CaptainPickDraftState): string {
+  return draft.matchId ? `/matches/${draft.matchId}` : "/play/captain-pick";
 }
 
 export function isMyCaptainPickTurn(

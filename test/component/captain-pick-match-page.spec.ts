@@ -400,3 +400,13 @@ describe("drafted lineups can't be edited by hand while players are picked", () 
     );
   });
 });
+
+it("keeps the real match header and navigation around canonical Captain Pick", () => {
+  const page = read("pages/matches/[id]/index.vue");
+  const header = page.slice(page.indexOf("<template>"), page.indexOf("<MatchTabs"));
+  for (const content of ["lineup1Name", "lineup2Name", "<MatchInfo", "<MatchActions"]) expect(header).toContain(content);
+  expect(page).toMatch(/<MatchTabs[\s\S]*?<template #overview>[\s\S]*?<MatchOverview/);
+  expect(page).not.toMatch(/<CaptainPickScreen|<CaptainPickChat|<TacticalPageHeader/);
+  const info = read("components/match/MatchInfo.vue");
+  expect(info).toContain("match.status");
+});

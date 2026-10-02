@@ -632,6 +632,7 @@ const vsBaseClasses =
                 :participant-draft="participantDraft"
                 :participant="captainPickMatch.participant"
                 :now="lifecycleNow"
+                @pick="pickCaptainPlayer"
               />
             </template>
           </MatchTabs>
@@ -661,6 +662,7 @@ import { eloFields } from "~/graphql/eloFields";
 import { useMatchContext } from "~/composables/useMatchContext";
 import {
   matchChatHubContext,
+  captainPickChatHubContext,
   useChatHubContext,
 } from "~/composables/useChatHubContext";
 import {
@@ -671,6 +673,8 @@ import {
 } from "~/composables/useCaptainPickMatchStatus";
 import { computed as computedRef } from "vue";
 import { getCaptainPickDraft } from "~/utilities/captainPickDraft";
+import socket from "~/web-sockets/Socket";
+import type { CaptainPickRequest } from "~/composables/useCaptainPickActions";
 import {
   overviewIsDefault,
   overviewStage as deriveOverviewStage,
@@ -864,6 +868,9 @@ export default {
     },
   },
   methods: {
+    pickCaptainPlayer(request: CaptainPickRequest) {
+      socket.event("matchmaking:captain-pick", request);
+    },
     updateAutoCancelCountdown() {
       const cancelsAt = this.match?.cancels_at;
       if (!cancelsAt) {
@@ -1192,7 +1199,7 @@ export default {
         return false;
       }
       return (
-        !!this.publicCaptainPick.progress ||
+        !!this.participantDraft || !!this.publicCaptainPick.progress ||
         (this.captainPickMatch.matchId === this.match.id &&
           this.captainPickMatch.active)
       );
@@ -1227,7 +1234,7 @@ export default {
       return !!this.overviewStage && this.matchTab === OVERVIEW_TAB;
     },
     // The viewer's own Captain Pick draft (only the ten players have one),
-    // for the real pick timer. Never used to decide anything.
+    // for the existing participant turn gate, pick request and real timer.
     participantDraft() {
       const draft = getCaptainPickDraft(
         useMatchmakingStore().joinedMatchmakingQueues?.confirmation,
@@ -1327,8 +1334,16 @@ export default {
         isCaptainPickChatParticipant(this.match, this.captainPickMatch)
       );
     },
-    // Same rooms as the inline chats below (see matchChatHubContext).
+    // Before final seating, team privacy still uses the existing draft room.
+    // Finalization hands the same Match Chat to the normal match context.
     chatHubContext() {
+      if (this.participantDraft &&
+          ["Drafting", "CreatingMatch"].includes(this.participantDraft.phase)) {
+        return captainPickChatHubContext(
+          this.participantDraft, useAuthStore().me?.steam_id ?? null,
+          (key, params) => this.$t(key, params),
+        );
+      }
       return matchChatHubContext(
         this.match,
         this.canUseMatchChat,

@@ -381,7 +381,7 @@ const mmCardBase =
           </span>
         </div>
         <NuxtLink
-          to="/play/captain-pick"
+          :to="captainPickDestination"
           :class="[tacticalCtaButtonClasses, 'shrink-0']"
         >
           {{ $t("matchmaking.captain_pick.open") }}
@@ -429,6 +429,7 @@ import {
 import {
   getCaptainPickDraft,
   isCaptainPickInProgress,
+  captainPickPath,
 } from "~/utilities/captainPickDraft";
 
 interface Region {
@@ -746,6 +747,10 @@ export default {
       return isCaptainPickInProgress(
         getCaptainPickDraft(this.confirmationDetails as any),
       );
+    },
+    captainPickDestination(): string {
+      const draft = getCaptainPickDraft(this.confirmationDetails as any);
+      return draft ? captainPickPath(draft) : "/play/captain-pick";
     },
     isInQueue(): boolean {
       return !!this.matchMakingQueueDetails;
