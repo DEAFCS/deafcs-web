@@ -6449,6 +6449,8 @@
       "delete": "Delete Match",
       "canceled": "Match Canceled",
       "deleted": "Match Deleted",
+      "void_elo": "Void ELO",
+      "elo_voided": "ELO voided",
       "requested_organizer": "Requested Organizer",
       "pause": "Pause Match",
       "resume": "Resume Match",
@@ -6490,6 +6492,11 @@
     "delete_confirm": {
       "title": "Delete Match",
       "description": "Are you sure you want to delete this match? This action cannot be undone."
+    },
+    "void_elo_confirm": {
+      "title": "Void ELO?",
+      "description": "Remove the ELO changes from this match? The match, score, stats, highlights and demo will stay.",
+      "action": "Void ELO"
     },
     "support_requested": {
       "title": "Support Requested",

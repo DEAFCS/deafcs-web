@@ -115,12 +115,13 @@ import mapLabel from "~/utilities/mapLabel";
           v-if="row.map.poster"
           :src="row.map.poster"
           alt=""
-          class="absolute inset-0 h-full w-full object-cover"
+          class="veto-map-poster absolute inset-0 h-full w-full object-cover"
         />
         <div class="veto-map-shade absolute inset-0"></div>
         <div class="relative flex h-full flex-col justify-between p-2">
           <span
             v-if="row.state !== 'available'"
+            data-testid="veto-map-tag"
             class="veto-map-tag self-start rounded px-1.5 py-0.5 font-mono text-[0.55rem] font-bold uppercase tracking-[0.14em]"
           >
             {{ $t(`match.lifecycle.map_${row.state}`) }}
@@ -462,8 +463,13 @@ export default {
 .veto-map-shade {
   background: linear-gradient(180deg, rgb(0 0 0 / 0.15) 0%, rgb(0 0 0 / 0.75) 100%);
 }
+/* Banned: only the map art goes dark and grey (the name keeps its own
+   line-through + dim). Never the card itself, or the BANNED · T1/T2 tag
+   inside it would fade with it. */
 .veto-map.is-banned {
   --tone: var(--destructive);
+}
+.veto-map.is-banned .veto-map-poster {
   opacity: 0.45;
   filter: grayscale(0.9);
 }

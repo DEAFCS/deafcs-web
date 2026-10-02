@@ -1055,6 +1055,33 @@ describe("Overview layout refinement", () => {
     side.unmount();
   });
 
+  it("a banned map's art goes dark, its BANNED · T1/T2 tag stays fully bright", () => {
+    const wrapper = mountVeto(baseMatch({ map_veto_type: "Ban" }), bo3Picks.slice(0, 2));
+    const banned = wrapper.get('[data-testid="veto-map-ancient"]');
+    expect(banned.classes()).toContain("is-banned");
+    const tag = banned.get('[data-testid="veto-map-tag"]');
+    expect(tag.text()).toContain("match.lifecycle.map_banned");
+    expect(tag.text()).toContain("T1");
+    // The tag is not inside the dimmed poster, and nothing between it and the
+    // card carries an opacity/filter utility.
+    const poster = banned.get("img.veto-map-poster");
+    expect(poster.element.contains(tag.element)).toBe(false);
+    for (let el: Element | null = tag.element; el && el !== banned.element; el = el.parentElement) {
+      expect([...el.classList].filter((c) => /^(opacity-|grayscale|brightness-|filter)/.test(c))).toEqual([]);
+    }
+    // The scoped CSS dims only the poster, never the card itself.
+    const style = parse(readFileSync(path.resolve(__dirname, "../../components/match/overview/OverviewVeto.vue"), "utf8")).descriptor.styles[0].content;
+    const cardRule = style.match(/\.veto-map\.is-banned \{([^}]*)\}/)![1];
+    expect(cardRule).not.toMatch(/opacity|filter/);
+    expect(cardRule).toContain("--tone: var(--destructive)");
+    const posterRule = style.match(/\.veto-map\.is-banned \.veto-map-poster \{([^}]*)\}/)![1];
+    expect(posterRule).toContain("opacity: 0.45");
+    expect(posterRule).toContain("filter: grayscale(0.9)");
+    // The name keeps its own dim + line-through.
+    expect(banned.find(".line-through").exists()).toBe(true);
+    wrapper.unmount();
+  });
+
   it("CT/T choice keeps the map grid's footprint; choosing a side works exactly as before", async () => {
     const captain = { is_captain: true, lineup_2: lineup("Bravo", ["21"], { can_pick_map_veto: true }) };
     // A Pick is on the table, then the server asks Bravo for a side.

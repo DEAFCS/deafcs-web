@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  Ban,
   LifeBuoy,
   MessageSquare,
   MoreVertical,
@@ -248,6 +249,7 @@ import {
           v-if="
             match.can_start ||
             canCancelMatch ||
+            canVoidElo ||
             canDeleteMatch ||
             canReparseDemos
           "
@@ -294,6 +296,18 @@ import {
           </DropdownMenuItem>
         </template>
 
+        <!-- Admin only, played matches: removes the rating effect only. -->
+        <template v-if="canVoidElo">
+          <DropdownMenuItem
+            class="text-destructive"
+            data-testid="match-action-void-elo"
+            @click="showVoidEloDialog = true"
+          >
+            <Ban />
+            {{ $t("match.actions.void_elo") }}
+          </DropdownMenuItem>
+        </template>
+
         <template v-if="canDeleteMatch">
           <DropdownMenuItem
             class="text-destructive"
@@ -327,6 +341,33 @@ import {
             "
           >
             {{ $t("common.delete") }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <AlertDialog :open="showVoidEloDialog">
+      <AlertDialogContent data-testid="void-elo-dialog">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{
+            $t("match.void_elo_confirm.title")
+          }}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {{ $t("match.void_elo_confirm.description") }}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showVoidEloDialog = false">
+            {{ $t("common.cancel") }}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            data-testid="void-elo-confirm"
+            @click="
+              voidElo();
+              showVoidEloDialog = false;
+            "
+          >
+            {{ $t("match.void_elo_confirm.action") }}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -393,6 +434,8 @@ export default {
   data() {
     return {
       showDeleteDialog: false,
+      showVoidEloDialog: false,
+      voidingElo: false,
       showSupportRequestedDialog: false,
       rconUuid: undefined as string | undefined,
       switching: false,
@@ -475,6 +518,32 @@ export default {
         });
       } finally {
         this.cancellingMatch = false;
+      }
+    },
+    // Admin "Void ELO": keeps the match, score, stats, highlights and demo;
+    // the API removes its rating effect for every player.
+    async voidElo() {
+      if (this.voidingElo) {
+        return;
+      }
+      this.voidingElo = true;
+      try {
+        await this.$apollo.mutate({
+          // voidMatchElo is newer than the generated client (needs a live
+          // Hasura codegen run after the API release).
+          mutation: generateMutation({
+            voidMatchElo: [{ match_id: this.match.id }, { success: true }],
+          } as any),
+        });
+        toast({ title: this.$t("match.actions.elo_voided") });
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: error?.message,
+        });
+      } finally {
+        this.voidingElo = false;
       }
     },
     async deleteMatch() {
@@ -1007,6 +1076,21 @@ export default {
         status === e_match_map_status_enum.Live ||
         status === e_match_map_status_enum.Overtime ||
         status === e_match_map_status_enum.Paused
+      );
+    },
+    // Administrators only (the voidMatchElo action is admin-only too), on a
+    // played match whose ELO has not been voided yet.
+    canVoidElo() {
+      const played = [
+        e_match_status_enum.Finished,
+        e_match_status_enum.Forfeit,
+        e_match_status_enum.Tie,
+        e_match_status_enum.Surrendered,
+      ];
+      return (
+        played.includes(this.match?.status) &&
+        !(this.match as any)?.elo_voided &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },
     canDeleteMatch() {

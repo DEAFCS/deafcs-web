@@ -695,6 +695,12 @@ const demoProcessingFields: any = {
 // Same reason: matches.map_veto_sequence (the server's whole map veto, see
 // get_map_veto_sequence) is newer than the generated client. The Overview's
 // veto strip shows its upcoming steps from it.
+// Same reason: matches.elo_voided (admin "Void ELO") is newer than the
+// generated client. MatchActions hides Void ELO once it is set.
+const eloVoidedField: any = {
+  elo_voided: true,
+};
+
 const mapVetoSequenceField: any = {
   map_veto_sequence: true,
 };
@@ -973,6 +979,7 @@ export default {
               winning_lineup_id: true,
               map_veto_type: true,
               ...mapVetoSequenceField,
+              ...eloVoidedField,
               map_veto_picking_lineup_id: true,
               region_veto_picking_lineup_id: true,
               connection_link: true,
