@@ -672,6 +672,8 @@ import { getCaptainPickDraft } from "~/utilities/captainPickDraft";
 import {
   overviewIsDefault,
   overviewStage as deriveOverviewStage,
+  matchServerReady,
+  rememberServerReadyAt,
   scoreboardHandoffAt,
   SCOREBOARD_HANDOFF_MS,
   OVERVIEW_TAB,
@@ -743,6 +745,10 @@ export default {
       // Clock for the Overview's 30 second cooldown. Only bumped when the
       // handoff is due (see the overviewHandoffAt watcher).
       lifecycleNow: Date.now(),
+      // When this device first saw the match's server ready (connect details
+      // usable); the hidden 30 second handoff to the Scoreboard counts from
+      // here. See matchServerReady / rememberServerReadyAt.
+      serverReadyAt: null as number | null,
       lifecycleHandoffTimer: undefined as
         | ReturnType<typeof setTimeout>
         | undefined,
@@ -765,8 +771,19 @@ export default {
     };
   },
   watch: {
-    // Anchored on matches.started_at (stamped by Postgres when the match goes
-    // Live), so a refresh resumes the same cooldown instead of restarting it.
+    // Veto completion alone never starts the handoff: it waits for the server
+    // to be ready (the moment Join Server / Copy IP become usable).
+    serverReadyScope: {
+      immediate: true,
+      handler() {
+        this.serverReadyAt =
+          this.match && matchServerReady(this.match)
+            ? rememberServerReadyAt(this.match.id, Date.now())
+            : null;
+      },
+    },
+    // 30 seconds after serverReadyAt (or right away once a map is in play),
+    // the Scoreboard becomes the default view, silently.
     overviewHandoffAt: {
       immediate: true,
       handler(handoffAt: number | null) {
@@ -1134,13 +1151,23 @@ export default {
         captainPickActive: this.captainPickActive,
       });
     },
-    overviewHandoffAt() {
-      return scoreboardHandoffAt(this.match);
+    serverReadyScope() {
+      return this.match
+        ? `${this.match.id}:${matchServerReady(this.match)}`
+        : null;
     },
-    // The Overview is the default view until the 30 second cooldown after
-    // the match goes Live; then MatchTabs hands over to the Scoreboard once.
+    overviewHandoffAt() {
+      return scoreboardHandoffAt(this.match, this.serverReadyAt);
+    },
+    // The Overview is the default view until 30 seconds after the server is
+    // ready; then MatchTabs hands over to the Scoreboard once.
     overviewDefault() {
-      return overviewIsDefault(this.match, this.overviewStage, this.lifecycleNow);
+      return overviewIsDefault(
+        this.match,
+        this.overviewStage,
+        this.lifecycleNow,
+        this.serverReadyAt,
+      );
     },
     overviewShown() {
       return !!this.overviewStage && this.matchTab === OVERVIEW_TAB;

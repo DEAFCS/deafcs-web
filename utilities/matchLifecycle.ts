@@ -60,42 +60,83 @@ export function overviewStage(
   }
 }
 
+type ServerMatch = LifecycleMatch & {
+  server_id?: string | null;
+  is_server_online?: boolean | null;
+  match_maps?: Array<{ status?: string | null }> | null;
+};
+
 /**
- * When the Scoreboard takes over as the default view, as epoch ms.
- *
- * Anchored on matches.started_at, which Postgres stamps when the match
- * becomes Live (the last veto action, or a server freeing up after
- * WaitingForServer). Every viewer and every refresh sees the same moment.
+ * The match's server is up, so its connect details are usable: the exact
+ * state in which QuickMatchConnect stops showing "Server booting" and
+ * offers Join Server / Copy IP (Live, a server assigned, is_server_online).
+ * Viewer-independent; whether a viewer may see the address is still
+ * Hasura's connection_string.
  */
-export function scoreboardHandoffAt(
-  match: LifecycleMatch | null | undefined,
-): number | null {
-  if (match?.status !== "Live" || !match.started_at) return null;
-  const startedAt = Date.parse(match.started_at);
-  return Number.isNaN(startedAt) ? null : startedAt + SCOREBOARD_HANDOFF_MS;
+export function matchServerReady(match: ServerMatch | null | undefined): boolean {
+  return match?.status === "Live" && !!match.server_id && !!match.is_server_online;
 }
 
-/** Milliseconds of the cooldown left, never more than the full window. */
-export function scoreboardHandoffRemainingMs(
-  match: LifecycleMatch | null | undefined,
-  now: number,
-): number {
-  const handoffAt = scoreboardHandoffAt(match);
-  if (handoffAt === null) return 0;
-  // A client clock running behind the server must not stretch the window.
-  return Math.min(SCOREBOARD_HANDOFF_MS, Math.max(0, handoffAt - now));
+// Map statuses before play starts: everything else means the server is
+// running a map for real (Knife, Live, ... set by the game server).
+const PRE_PLAY_MAP_STATUSES = new Set(["Scheduled", "Warmup"]);
+
+/** A map is already being played: past the point of showing the Overview. */
+export function matchMapInPlay(match: ServerMatch | null | undefined): boolean {
+  return (match?.match_maps ?? []).some(
+    (map) => !!map.status && !PRE_PLAY_MAP_STATUSES.has(map.status),
+  );
+}
+
+/**
+ * When the Scoreboard takes over as the default view, as epoch ms: 30
+ * seconds after the server became ready. There is no server timestamp for
+ * that moment (only the is_server_online boolean), so readyAt is when this
+ * device first saw it, remembered per match so a refresh resumes the same
+ * window (see rememberServerReadyAt). Once a map is in play the handoff is
+ * due for everyone at once, whatever was remembered.
+ */
+export function scoreboardHandoffAt(
+  match: ServerMatch | null | undefined,
+  readyAt: number | null,
+): number | null {
+  if (!matchServerReady(match)) return null;
+  if (matchMapInPlay(match)) return 0;
+  return readyAt === null ? null : readyAt + SCOREBOARD_HANDOFF_MS;
 }
 
 /** Whether the Overview is the match page's default view right now. */
 export function overviewIsDefault(
-  match: LifecycleMatch | null | undefined,
+  match: ServerMatch | null | undefined,
   stage: OverviewStage | null,
   now: number,
+  readyAt: number | null = null,
 ): boolean {
   if (!stage) return false;
   if (stage !== "pre-match") return true;
-  if (match?.status === "WaitingForServer") return true;
-  return scoreboardHandoffRemainingMs(match, now) > 0;
+  // Waiting for a server, or the server still booting: stay on the Overview.
+  if (!matchServerReady(match)) return true;
+  const handoffAt = scoreboardHandoffAt(match, readyAt);
+  return handoffAt === null || handoffAt > now;
+}
+
+const readyKey = (matchId: string) => `deafcs:match-server-ready:${matchId}`;
+
+/**
+ * The moment this device first saw the match's server ready, kept in
+ * localStorage so a refresh continues the hidden 30 seconds instead of
+ * restarting them. Falls back to "now" when storage is unavailable.
+ */
+export function rememberServerReadyAt(matchId: string, now: number): number {
+  try {
+    const stored = Number(window.localStorage.getItem(readyKey(matchId)));
+    // Never later than now (a clock change must not extend the window).
+    if (Number.isFinite(stored) && stored > 0 && stored <= now) return stored;
+    window.localStorage.setItem(readyKey(matchId), String(now));
+  } catch {
+    // Private mode / blocked storage: this page view only.
+  }
+  return now;
 }
 
 /** MatchTabs' default tab: the Overview while it is the default view. */

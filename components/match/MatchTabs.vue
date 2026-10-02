@@ -140,7 +140,7 @@ provide("commander", commander);
               <span v-else>{{ $t("match.tabs.more") }}</span>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem v-if="overviewAvailable && !hideLifecycleTabs" :value="OVERVIEW_TAB">
+              <SelectItem v-if="overviewAvailable && canSeeLifecycleTabs" :value="OVERVIEW_TAB">
                 {{ $t("match.tabs.overview") }}
               </SelectItem>
               <SelectItem v-if="!hideLifecycleTabs" value="scoreboard">
@@ -216,9 +216,9 @@ provide("commander", commander);
           </SelectItem>
         </SelectContent>
       </Select>
-      <div v-if="!hideLifecycleTabs" class="min-w-0 flex-1 overflow-x-auto match-tabs__scroll">
+      <div v-if="!hideTabsRow" class="min-w-0 flex-1 overflow-x-auto match-tabs__scroll">
         <TabsList variant="underline" class="h-auto flex-nowrap">
-          <TabsTrigger v-if="overviewAvailable && !hideLifecycleTabs" :value="OVERVIEW_TAB">
+          <TabsTrigger v-if="overviewAvailable && canSeeLifecycleTabs" :value="OVERVIEW_TAB">
             {{ $t("match.tabs.overview") }}
           </TabsTrigger>
           <TabsTrigger v-if="!hideLifecycleTabs" value="scoreboard">
@@ -1048,14 +1048,22 @@ export default {
     },
   },
   computed: {
+    // The Overview / Scoreboard choice is the lifecycle's, not the viewer's:
+    // only staff (moderator and up, the same staff line as the Admin tab and
+    // RCON) can pick either view by hand. Being this match's organizer, a
+    // captain or a player is not enough.
+    canSeeLifecycleTabs() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
+    },
+    // Non-staff: no Scoreboard tab (and no tab row) while the pre-game
+    // Overview is the lifecycle's view. Once it hands over (Live/finished
+    // stats navigation), Scoreboard is back so Economy, Clutches etc. can
+    // return to it. The Overview tab itself stays staff-only.
     hideLifecycleTabs() {
-      // Keep explicit Scoreboard navigation and organizer/manual controls available.
-      return (
-        this.overviewDefault &&
-        this.activeTab === OVERVIEW_TAB_VALUE &&
-        !this.match.is_organizer &&
-        !this.canViewAdmin
-      );
+      return !this.canSeeLifecycleTabs && this.overviewDefault;
+    },
+    hideTabsRow() {
+      return this.hideLifecycleTabs;
     },
     me() {
       return useAuthStore().me;

@@ -37,8 +37,10 @@ import {
   OVERVIEW_TAB,
   overviewIsDefault,
   overviewStage,
+  matchMapInPlay,
+  matchServerReady,
+  rememberServerReadyAt,
   scoreboardHandoffAt,
-  scoreboardHandoffRemainingMs,
   SCOREBOARD_HANDOFF_MS,
   tabAfterOverviewChange,
   vetoMapStates,
@@ -61,7 +63,8 @@ const NOW = Date.parse("2026-10-01T20:00:00.000Z");
 const iso = (offsetMs: number) => new Date(NOW + offsetMs).toISOString();
 const t = (key: string, args?: Record<string, unknown>) =>
   args && Object.keys(args).length ? `${key}:${JSON.stringify(args)}` : key;
-const ROLES = ["user", "verified_user", "streamer", "match_organizer", "tournament_organizer", "moderator", "administrator"];
+// Same order as AuthStore's roleOrder.
+const ROLES = ["user", "verified_user", "streamer", "moderator", "match_organizer", "tournament_organizer", "administrator"];
 const auth = {
   me: null as null | { steam_id: string },
   role: null as null | string,
@@ -174,20 +177,41 @@ describe("lifecycle stage and cooldown", () => {
     expect(overviewStage(baseMatch({ source: "faceit" }), { captainPickActive: false })).toBeNull();
   });
 
-  it("the 30 second cooldown is anchored on started_at: halfway shows the rest, expired skips it", () => {
+  it("the hidden 30 second handoff starts only when the server is ready, never at veto completion", () => {
     expect(SCOREBOARD_HANDOFF_MS).toBe(30_000);
-    const live = (ago: number) => baseMatch({ status: "Live", started_at: iso(-ago) });
-    expect(scoreboardHandoffAt(live(20_000))).toBe(NOW + 10_000);
-    expect(scoreboardHandoffRemainingMs(live(20_000), NOW)).toBe(10_000);
-    expect(overviewIsDefault(live(20_000), "pre-match", NOW)).toBe(true);
-    // A refresh does not restart it: the same timestamp, the same remainder.
-    expect(scoreboardHandoffRemainingMs(live(20_000), NOW + 5_000)).toBe(5_000);
-    expect(overviewIsDefault(live(31_000), "pre-match", NOW)).toBe(false);
-    expect(overviewIsDefault(baseMatch({ status: "WaitingForServer" }), "pre-match", NOW)).toBe(true);
+    const live = (extra: any = {}) =>
+      baseMatch({ status: "Live", started_at: iso(-600_000), server_id: "s1", is_server_online: false, ...extra });
+    // Veto finished ten minutes ago, server still booting: stays on the Overview.
+    expect(matchServerReady(live())).toBe(false);
+    expect(scoreboardHandoffAt(live(), null)).toBeNull();
+    expect(overviewIsDefault(live(), "pre-match", NOW, null)).toBe(true);
+    expect(overviewIsDefault(baseMatch({ status: "WaitingForServer" }), "pre-match", NOW, null)).toBe(true);
+    expect(overviewIsDefault(live({ server_id: null, is_server_online: true }), "pre-match", NOW, null)).toBe(true);
+    // Server up (Join Server / Copy IP usable): 30 seconds from then.
+    const ready = live({ is_server_online: true });
+    expect(matchServerReady(ready)).toBe(true);
+    expect(scoreboardHandoffAt(ready, NOW - 20_000)).toBe(NOW + 10_000);
+    expect(overviewIsDefault(ready, "pre-match", NOW, NOW - 20_000)).toBe(true);
+    expect(overviewIsDefault(ready, "pre-match", NOW, NOW - 31_000)).toBe(false);
+    // Once a map is being played, everyone is on the Scoreboard.
+    const playing = live({ is_server_online: true, match_maps: [{ id: "mm1", status: "Live" }] });
+    expect(matchMapInPlay(playing)).toBe(true);
+    expect(matchMapInPlay(live({ match_maps: [{ id: "mm1", status: "Warmup" }] }))).toBe(false);
+    expect(overviewIsDefault(playing, "pre-match", NOW, NOW)).toBe(false);
     expect(overviewIsDefault(baseMatch(), "veto", NOW)).toBe(true);
-    expect(overviewIsDefault(baseMatch({ status: "Live", started_at: null }), "pre-match", NOW)).toBe(false);
-    // A client clock behind the server never stretches the window.
-    expect(scoreboardHandoffRemainingMs(baseMatch({ status: "Live", started_at: iso(90_000) }), NOW)).toBe(30_000);
+  });
+
+  it("remembers when the server was first seen ready, so a refresh continues the same 30 seconds", () => {
+    window.localStorage.clear();
+    expect(rememberServerReadyAt("m1", NOW)).toBe(NOW);
+    // A refresh 12 seconds later resumes from the first moment.
+    expect(rememberServerReadyAt("m1", NOW + 12_000)).toBe(NOW);
+    // Per match.
+    expect(rememberServerReadyAt("m2", NOW + 12_000)).toBe(NOW + 12_000);
+    // A stored moment "in the future" (clock change) can't extend the window.
+    window.localStorage.setItem("deafcs:match-server-ready:m3", String(NOW + 60_000));
+    expect(rememberServerReadyAt("m3", NOW)).toBe(NOW);
+    window.localStorage.clear();
   });
 
   it("hands over to the Scoreboard once, and never overrides a tab chosen afterwards", () => {
@@ -450,8 +474,11 @@ describe("veto actions", () => {
     expect(wrapper.get('[data-testid="veto-confirm-question"]').text()).toContain("match.lifecycle.confirm_ban_question");
     expect(wrapper.get('[data-testid="veto-confirm-question"]').text()).toContain("Mirage");
 
-    await wrapper.get('[data-testid="veto-confirm-cancel"]').trigger("click");
+    // A press outside the selected card cancels without submitting.
+    document.body.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    await wrapper.vm.$nextTick();
     expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+    expect(apollo.mutate).not.toHaveBeenCalled();
     // Banned maps can't be chosen.
     await wrapper.get('[data-testid="veto-map-ancient"]').trigger("click");
     expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
@@ -597,10 +624,12 @@ const pageExports: any = {};
 new Function(
   "exports", "$", "order_by", "e_match_status_enum", "e_player_roles_enum", "typedGql", "mapFields", "matchLineups", "playerFields", "matchOptionsFields", "eloFields",
   "deriveOverviewStage", "overviewIsDefault", "scoreboardHandoffAt", "SCOREBOARD_HANDOFF_MS", "OVERVIEW_TAB", "getCaptainPickDraft", "useAuthStore", "useMatchmakingStore",
+  "matchServerReady", "rememberServerReadyAt",
   ts.transpileModule(pageBody, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText,
 )(
   pageExports, $, order_by, e_match_status_enum, e_player_roles_enum, typedGql, mapFields, matchLineups, playerFields, matchOptionsFields, eloFields,
   overviewStage, overviewIsDefault, scoreboardHandoffAt, SCOREBOARD_HANDOFF_MS, OVERVIEW_TAB, getCaptainPickDraft, () => auth, () => matchmaking,
+  matchServerReady, rememberServerReadyAt,
 );
 const page = pageExports.default;
 const pageContext = (state: Record<string, any>) => {
@@ -609,10 +638,11 @@ const pageContext = (state: Record<string, any>) => {
     captainPickMatch: { matchId: null, active: false, participant: false },
     lifecycleNow: NOW,
     lifecycleHandoffTimer: undefined,
+    serverReadyAt: null,
     matchTab: null,
     ...state,
   };
-  for (const name of ["captainPickActive", "overviewStage", "overviewHandoffAt", "overviewDefault", "overviewShown", "participantDraft", "overviewFocus"]) {
+  for (const name of ["captainPickActive", "overviewStage", "serverReadyScope", "overviewHandoffAt", "overviewDefault", "overviewShown", "participantDraft", "overviewFocus"]) {
     Object.defineProperty(ctx, name, { get: () => page.computed[name].call(ctx) });
   }
   return ctx;
@@ -702,21 +732,44 @@ describe("match page", () => {
     expect(pageContext({ match: picking, captainPickMatch: { matchId: "m1", active: true } }).overviewStage).toBe("captain-pick");
   });
 
-  it("the cooldown timer survives refreshes and hands over once", () => {
+  it("stays on the Overview while the server prepares, then hands over silently 30s after it is ready", () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
-    const ctx = pageContext({ match: baseMatch({ status: "Live", started_at: iso(-15_000) }) });
-    page.watch.overviewHandoffAt.handler.call(ctx, ctx.overviewHandoffAt);
+    window.localStorage.clear();
+    const run = (ctx: any) => {
+      page.watch.serverReadyScope.handler.call(ctx);
+      page.watch.overviewHandoffAt.handler.call(ctx, ctx.overviewHandoffAt);
+    };
+    // Veto done long ago, server still booting: no handoff timer at all.
+    const booting = baseMatch({ status: "Live", started_at: iso(-600_000), server_id: "s1", is_server_online: false });
+    const ctx = pageContext({ match: booting });
+    run(ctx);
+    expect(ctx.serverReadyAt).toBeNull();
+    expect(ctx.lifecycleHandoffTimer).toBeUndefined();
     expect(ctx.overviewDefault).toBe(true);
-    vi.advanceTimersByTime(14_000);
+
+    // The server comes up: the hidden 30 seconds start now.
+    ctx.match = { ...booting, is_server_online: true };
+    run(ctx);
+    expect(ctx.serverReadyAt).toBe(NOW);
+    vi.advanceTimersByTime(29_000);
     expect(ctx.overviewDefault).toBe(true);
     vi.advanceTimersByTime(1_000);
     expect(ctx.overviewDefault).toBe(false);
 
-    const late = pageContext({ match: baseMatch({ status: "Live", started_at: iso(-45_000) }) });
-    page.watch.overviewHandoffAt.handler.call(late, late.overviewHandoffAt);
+    // A refresh 10s into the window continues it rather than restarting.
+    vi.setSystemTime(NOW + 10_000);
+    const refreshed = pageContext({ match: { ...booting, is_server_online: true } });
+    run(refreshed);
+    expect(refreshed.serverReadyAt).toBe(NOW);
+    expect(refreshed.overviewDefault).toBe(true);
+    // A refresh after the window: straight to the Scoreboard.
+    vi.setSystemTime(NOW + 45_000);
+    const late = pageContext({ match: { ...booting, is_server_online: true } });
+    run(late);
     expect(late.lifecycleHandoffTimer).toBeUndefined();
     expect(late.overviewDefault).toBe(false);
+    window.localStorage.clear();
   });
 
   it("brings a captain back to the Overview on their veto turn only", () => {
@@ -774,25 +827,69 @@ describe("Overview layout refinement", () => {
     wrapper.unmount();
   });
 
-  it.each(["Ban", "Pick"])("%s confirmation belongs to the selected card, supports Cancel/Escape and submits once", async (type) => {
+  it.each(["Ban", "Pick"])("%s confirmation: one centered Confirm in the selected card, dismissed by any outside press or Escape", async (type) => {
     const wrapper = mountVeto(baseMatch({ map_veto_type: type, is_captain: true, lineup_1: lineup("Alpha", ["11"], { can_pick_map_veto: true }) }), []);
+    const press = async (target: Element) => {
+      target.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+      await wrapper.vm.$nextTick();
+    };
     await wrapper.get('[data-testid="veto-map-inferno"]').trigger("click");
     const card = wrapper.get('[data-testid="veto-map-inferno"]');
     expect(card.classes()).toContain("is-selected");
     expect(card.element.tagName).toBe("DIV"); // Avoid nesting confirm buttons in a button.
     expect(card.get('[data-testid="veto-confirm-question"]').text()).toContain(type.toLowerCase());
-    expect(wrapper.findAll('[data-testid="veto-confirm"]')).toHaveLength(1);
     expect(card.get('[data-testid="veto-confirm"]').attributes("role")).toBe("group");
-    await card.get('[data-testid="veto-confirm-cancel"]').trigger("click");
+    expect(card.get('[data-testid="veto-confirm"]').classes()).toEqual(expect.arrayContaining(["items-center", "justify-center"]));
+    // No Cancel button: Confirm is the only action.
+    expect(wrapper.find('[data-testid="veto-confirm-cancel"]').exists()).toBe(false);
+    expect(card.findAll("button").map((b) => b.attributes("data-testid"))).toEqual(["veto-confirm-submit"]);
+
+    // A press anywhere outside the card cancels, without submitting.
+    await press(document.body);
     expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="veto-map-inferno"]').classes()).not.toContain("is-selected");
+
+    // Clicking the selected card itself (outside Confirm) cancels too.
     await wrapper.get('[data-testid="veto-map-inferno"]').trigger("click");
-    await wrapper.get('[data-testid="veto-confirm"]').trigger("keydown", { key: "Escape" });
+    await press(wrapper.get('[data-testid="veto-map-inferno"]').element);
+    expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(true);
+    await wrapper.get('[data-testid="veto-map-inferno"] [data-testid="veto-confirm"]').trigger("click");
     expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+
+    // Escape cancels.
     await wrapper.get('[data-testid="veto-map-inferno"]').trigger("click");
-    await wrapper.get('[data-testid="veto-map-inferno"] [data-testid="veto-confirm-submit"]').trigger("click");
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await wrapper.vm.$nextTick();
+    expect(wrapper.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+
+    // Another map: the press cancels the first, the click selects the second.
+    await wrapper.get('[data-testid="veto-map-inferno"]').trigger("click");
+    await press(wrapper.get('[data-testid="veto-map-nuke"]').element);
+    await wrapper.get('[data-testid="veto-map-nuke"]').trigger("click");
+    expect(wrapper.find('[data-testid="veto-map-inferno"] [data-testid="veto-confirm"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="veto-map-nuke"] [data-testid="veto-confirm"]').exists()).toBe(true);
+    expect(apollo.mutate).not.toHaveBeenCalled();
+
+    // Only Confirm submits, once.
+    await wrapper.get('[data-testid="veto-map-nuke"] [data-testid="veto-confirm-submit"]').trigger("click");
     expect(apollo.mutate).toHaveBeenCalledTimes(1);
-    expect(apollo.mutate.mock.calls[0][0].variables).toMatchObject({ map_id: "inferno", type });
+    expect(apollo.mutate.mock.calls[0][0].variables).toMatchObject({ map_id: "nuke", type });
     wrapper.unmount();
+  });
+
+  it("CT/T confirmation has no Cancel and is dismissed by an outside press or Escape", async () => {
+    const side = mountVeto(baseMatch({ map_veto_type: "Side", is_captain: true, lineup_2: lineup("Bravo", ["21"], { can_pick_map_veto: true }) }), bo3Picks.slice(0, 3));
+    await side.get('[data-testid="veto-side-CT"]').trigger("click");
+    expect(side.find('[data-testid="veto-confirm-cancel"]').exists()).toBe(false);
+    document.body.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+    await side.vm.$nextTick();
+    expect(side.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+    await side.get('[data-testid="veto-side-T"]').trigger("click");
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    await side.vm.$nextTick();
+    expect(side.find('[data-testid="veto-confirm"]').exists()).toBe(false);
+    expect(apollo.mutate).not.toHaveBeenCalled();
+    side.unmount();
   });
 
   it("override stays outside the centered map grid and side confirmation stays inside its map", async () => {
@@ -827,25 +924,58 @@ describe("Overview layout refinement", () => {
     wrapper.unmount();
   });
 
-  it("hides lifecycle tabs for the default Overview, restores normal and explicit/admin navigation", () => {
+  it("Overview tab is staff-only; non-staff lose Scoreboard only during the pre-game lifecycle", () => {
     const source = readFileSync(path.resolve(__dirname, "../../components/match/MatchTabs.vue"), "utf8");
     const descriptor = parse(source).descriptor;
     const ast = ts.createSourceFile("tabs.ts", descriptor.script!.content, ts.ScriptTarget.Latest, true, ts.ScriptKind.TS);
     const statement = ast.statements.find(ts.isExportAssignment)! as ts.ExportAssignment;
     const object = statement.expression as ts.ObjectLiteralExpression;
     const computed = (object.properties.find((node) => node.name?.getText(ast) === "computed") as ts.PropertyAssignment).initializer as ts.ObjectLiteralExpression;
-    const method = computed.properties.find((node) => node.name?.getText(ast) === "hideLifecycleTabs")!;
-    const hide = new Function("OVERVIEW_TAB_VALUE", "return ({" + method.getText(ast) + "}).hideLifecycleTabs")("lifecycle");
-    const state = { overviewDefault: true, activeTab: "lifecycle", match: { is_organizer: false }, canViewAdmin: false };
-    expect(hide.call(state)).toBe(true);
-    expect(hide.call({ ...state, overviewDefault: false })).toBe(false);
-    expect(hide.call({ ...state, activeTab: "scoreboard" })).toBe(false);
-    expect(hide.call({ ...state, match: { is_organizer: true } })).toBe(false);
-    expect(hide.call({ ...state, canViewAdmin: true })).toBe(false);
-    // Render the real desktop/mobile trigger fragments with the real predicate.
+    const pick = (name: string) => computed.properties.find((node) => node.name?.getText(ast) === name)!.getText(ast);
+    const fns = new Function(
+      "OVERVIEW_TAB_VALUE", "e_player_roles_enum", "useAuthStore",
+      "return ({" + [pick("canSeeLifecycleTabs"), pick("hideLifecycleTabs"), pick("hideTabsRow")].join(",") + "})",
+    )("lifecycle", e_player_roles_enum, () => auth);
+    const viewer = (role: string | null, extra: any = {}) => {
+      auth.role = role;
+      const ctx: any = { activeTab: "lifecycle", overviewDefault: true, match: { is_organizer: false, is_captain: false, is_in_lineup: false }, ...extra };
+      ctx.canSeeLifecycleTabs = fns.canSeeLifecycleTabs.call(ctx);
+      ctx.hideLifecycleTabs = fns.hideLifecycleTabs.call(ctx);
+      ctx.hideTabsRow = fns.hideTabsRow.call(ctx);
+      return ctx;
+    };
+    // Pre-game lifecycle: guest, user, captain, player, own-match organizer, streamer.
+    for (const ctx of [
+      viewer(null),
+      viewer("user", { match: { is_captain: true, is_in_lineup: true } }),
+      viewer("verified_user", { match: { is_organizer: true } }),
+      viewer("streamer"),
+    ]) {
+      expect(ctx.canSeeLifecycleTabs).toBe(false);
+      expect(ctx.hideLifecycleTabs).toBe(true);
+      expect(ctx.hideTabsRow).toBe(true);
+    }
+    // After the handoff / live / finished: Scoreboard and the row are back,
+    // the Overview tab stays hidden.
+    const after = viewer("user", { overviewDefault: false, activeTab: "economy" });
+    expect(after.hideLifecycleTabs).toBe(false);
+    expect(after.hideTabsRow).toBe(false);
+    expect(after.canSeeLifecycleTabs).toBe(false);
+    // Staff (moderator and up) see both tabs throughout.
+    for (const role of ["moderator", "match_organizer", "tournament_organizer", "administrator"]) {
+      expect(viewer(role).canSeeLifecycleTabs).toBe(true);
+      expect(viewer(role).hideLifecycleTabs).toBe(false);
+      expect(viewer(role).hideTabsRow).toBe(false);
+    }
+
+    // The real desktop/mobile trigger markup with those predicates.
     const triggers = descriptor.template!.content.match(/<(?:TabsTrigger|SelectItem)[^>]*(?:OVERVIEW_TAB|value="scoreboard")[^>]*>[\s\S]*?<\/(?:TabsTrigger|SelectItem)>/g)!;
-    const render = (context: any) => mount({ template: '<div>' + triggers.join('') + '</div>', data: () => ({ ...context, overviewAvailable: true, OVERVIEW_TAB: "lifecycle" }), computed: { hideLifecycleTabs: hide } }, { global: { ...globalConfig(), stubs: { TabsTrigger: { template: '<button><slot /></button>' }, SelectItem: { template: '<option><slot /></option>' } } } });
-    const hidden = render(state); expect(hidden.findAll('button,option')).toHaveLength(0); hidden.unmount();
-    const live = render({ ...state, overviewDefault: false }); expect(live.findAll('button,option')).toHaveLength(4); live.unmount();
+    expect(triggers).toHaveLength(4);
+    const render = (ctx: any) => mount({ template: '<div>' + triggers.join('') + '</div>', data: () => ({ overviewAvailable: true, OVERVIEW_TAB: "lifecycle", hideLifecycleTabs: ctx.hideLifecycleTabs, canSeeLifecycleTabs: ctx.canSeeLifecycleTabs }) }, { global: { ...globalConfig(), stubs: { TabsTrigger: { template: '<button><slot /></button>' }, SelectItem: { template: '<option><slot /></option>' } } } });
+    const count = (ctx: any) => { const w = render(ctx); const texts = w.findAll('button,option').map((el) => el.text()); w.unmount(); return texts; };
+    expect(count(viewer("user"))).toEqual([]);
+    expect(count(viewer("user", { overviewDefault: false }))).toEqual(["match.tabs.scoreboard", "match.tabs.scoreboard"]);
+    expect(count(viewer("moderator"))).toEqual(["match.tabs.overview", "match.tabs.scoreboard", "match.tabs.overview", "match.tabs.scoreboard"]);
+    auth.role = null;
   });
 });

@@ -50,7 +50,7 @@ import mapLabel from "~/utilities/mapLabel";
             ]"
             :disabled="isPicking ? submitting : undefined"
             :data-testid="`veto-side-${option.short}`"
-            @click="isPicking && !submitting && (selectedSide = option.value)"
+            @click="isPicking && !submitting && selectSide(option.value)"
           >
             <img :src="option.img" alt="" class="h-12 w-12 drop-shadow-xl" />
             <span class="font-mono text-xs font-bold tracking-[0.18em] text-white">
@@ -66,21 +66,12 @@ import mapLabel from "~/utilities/mapLabel";
         data-testid="veto-confirm"
         role="group"
         :aria-label="confirmation.question"
-        @keydown.esc.stop="!submitting && cancelSelection()"
+        @click.self="!submitting && cancelSelection()"
       >
         <span class="text-xs font-semibold" data-testid="veto-confirm-question">
           {{ confirmation.question }}
         </span>
         <div class="flex w-full flex-wrap justify-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            :disabled="submitting"
-            data-testid="veto-confirm-cancel"
-            @click.stop="cancelSelection"
-          >
-            {{ $t("common.cancel") }}
-          </Button>
           <Button
             size="sm"
             :disabled="submitting"
@@ -115,7 +106,7 @@ import mapLabel from "~/utilities/mapLabel";
         :data-state="row.state"
         :data-team="row.team ?? undefined"
         :data-testid="`veto-map-${row.map.id}`"
-        @click="canSelect(row) && selectMap(row.map.id)"
+        @click="onMapClick(row)"
       >
         <img
           v-if="row.map.poster"
@@ -147,21 +138,11 @@ import mapLabel from "~/utilities/mapLabel";
           data-testid="veto-confirm"
           role="group"
           :aria-label="confirmation.question"
-          @keydown.esc.stop="!submitting && cancelSelection()"
         >
           <span class="text-xs font-semibold" data-testid="veto-confirm-question">
             {{ confirmation.question }}
           </span>
           <div class="flex w-full flex-wrap justify-center gap-1">
-            <Button
-              variant="outline"
-              size="sm"
-              :disabled="submitting"
-              data-testid="veto-confirm-cancel"
-              @click.stop="cancelSelection"
-            >
-              {{ $t("common.cancel") }}
-            </Button>
             <Button
               size="sm"
               :disabled="submitting"
@@ -241,10 +222,14 @@ export default {
     },
   },
   mounted() {
+    document.addEventListener("pointerdown", this.onDocumentPointerDown, true);
+    document.addEventListener("keydown", this.onDocumentKeydown);
     if (this.isPicking) this.sounds.playMatchFoundSound();
     this.countdownInterval = setInterval(this.updateCountdown, 1000);
   },
   beforeUnmount() {
+    document.removeEventListener("pointerdown", this.onDocumentPointerDown, true);
+    document.removeEventListener("keydown", this.onDocumentKeydown);
     if (this.submitTimeout) clearTimeout(this.submitTimeout);
     if (this.countdownInterval) clearInterval(this.countdownInterval);
   },
@@ -268,13 +253,46 @@ export default {
         row.state === "available"
       );
     },
+    onMapClick(row: { state: string; map: { id: string } }) {
+      // A click on the selected card outside its Confirm button cancels;
+      // Confirm stops its own click, so it never lands here.
+      if (this.selectedMapId === row.map.id) {
+        if (!this.submitting) this.cancelSelection();
+        return;
+      }
+      if (this.canSelect(row)) this.selectMap(row.map.id);
+    },
+    // While a confirmation is open: a press anywhere outside the selected
+    // card or side choice, or Escape, cancels it. Nothing here submits.
+    onDocumentPointerDown(event: Event) {
+      if (!this.pending || this.submitting) return;
+      const target = event.target as Node | null;
+      const keep = this.$el?.querySelector(
+        this.selectedMapId
+          ? `[data-testid="veto-map-${this.selectedMapId}"]`
+          : '[data-testid="veto-side-choice"]',
+      );
+      if (target && keep?.contains(target)) return;
+      this.cancelSelection(false);
+    },
+    onDocumentKeydown(event: KeyboardEvent) {
+      if (event.key === "Escape" && this.pending && !this.submitting) {
+        this.cancelSelection();
+      }
+    },
+    selectSide(side: string) {
+      this.selectedSide = side;
+      this.$nextTick(() => this.$el?.querySelector('[data-testid="veto-confirm-submit"]')?.focus());
+    },
     selectMap(mapId: string) {
       this.selectedMapId = mapId;
-      this.$nextTick(() => this.$el.querySelector('[data-testid="veto-confirm-cancel"]')?.focus());
+      this.$nextTick(() => this.$el?.querySelector('[data-testid="veto-confirm-submit"]')?.focus());
     },
-    cancelSelection() {
+    cancelSelection(restoreFocus = true) {
       const previousMapId = this.selectedMapId;
-      if (previousMapId) this.$nextTick(() => this.$el?.querySelector(`[data-testid="veto-map-${previousMapId}"]`)?.focus());
+      // Keyboard users land back on the card they had chosen; a click
+      // elsewhere keeps focus wherever it went.
+      if (previousMapId && restoreFocus) this.$nextTick(() => this.$el?.querySelector(`[data-testid="veto-map-${previousMapId}"]`)?.focus());
       this.selectedMapId = null;
       this.selectedSide = null;
     },
@@ -317,6 +335,9 @@ export default {
     },
   },
   computed: {
+    pending() {
+      return !!this.confirmation;
+    },
     canOverride() {
       return (
         this.match.is_organizer ||
