@@ -1,6 +1,8 @@
 /* eslint-disable */
 
 import { AllTypesProps, ReturnTypes, Ops } from './const';
+
+
 export const HOST = "https://api.deafcs.net/v1/graphql"
 
 
@@ -24466,6 +24468,9 @@ elo_changes_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["v_player_elo_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["v_player_elo_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["v_player_elo_aggregate"]],
+	elo_voided?:boolean | `@${string}`,
+	elo_voided_at?:boolean | `@${string}`,
+	elo_voided_by?:boolean | `@${string}`,
 	ended_at?:boolean | `@${string}`,
 	external_id?:boolean | `@${string}`,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -24513,6 +24518,8 @@ map_veto_picks_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["match_map_veto_picks_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["match_map_veto_picks_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["match_map_veto_picks_aggregate"]],
+map_veto_sequence?: [{	/** JSON select path */
+	path?: string | undefined | null | Variable<any, string>},boolean | `@${string}`],
 	/** A computed field, executes function "get_map_veto_type" */
 	map_veto_type?:boolean | `@${string}`,
 match_maps?: [{	/** distinct select on columns */
@@ -24709,7 +24716,21 @@ tournament_brackets_aggregate?: [{	/** distinct select on columns */
 		__typename?: boolean | `@${string}`
 }>;
 	["matches_aggregate_bool_exp"]: {
+	bool_and?: ValueTypes["matches_aggregate_bool_exp_bool_and"] | undefined | null | Variable<any, string>,
+	bool_or?: ValueTypes["matches_aggregate_bool_exp_bool_or"] | undefined | null | Variable<any, string>,
 	count?: ValueTypes["matches_aggregate_bool_exp_count"] | undefined | null | Variable<any, string>
+};
+	["matches_aggregate_bool_exp_bool_and"]: {
+	arguments: ValueTypes["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"] | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["matches_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Boolean_comparison_exp"] | Variable<any, string>
+};
+	["matches_aggregate_bool_exp_bool_or"]: {
+	arguments: ValueTypes["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"] | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["matches_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Boolean_comparison_exp"] | Variable<any, string>
 };
 	["matches_aggregate_bool_exp_count"]: {
 	arguments?: Array<ValueTypes["matches_select_column"]> | undefined | null | Variable<any, string>,
@@ -24754,6 +24775,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 };
 	/** aggregate avg on columns */
 ["matches_avg_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -24763,6 +24785,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by avg() on columns of table "matches" */
 ["matches_avg_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Boolean expression to filter rows from the table "matches". All fields are combined with a logical 'AND'. */
@@ -24796,6 +24819,9 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	effective_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	elo_changes?: ValueTypes["v_player_elo_bool_exp"] | undefined | null | Variable<any, string>,
 	elo_changes_aggregate?: ValueTypes["v_player_elo_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
+	elo_voided?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
+	elo_voided_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	elo_voided_by?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
 	ended_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	external_id?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	external_timestamp_source?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -24819,6 +24845,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	map_veto_picking_lineup_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	map_veto_picks?: ValueTypes["match_map_veto_picks_bool_exp"] | undefined | null | Variable<any, string>,
 	map_veto_picks_aggregate?: ValueTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
+	map_veto_sequence?: ValueTypes["jsonb_comparison_exp"] | undefined | null | Variable<any, string>,
 	map_veto_type?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	match_maps?: ValueTypes["match_maps_bool_exp"] | undefined | null | Variable<any, string>,
 	match_maps_aggregate?: ValueTypes["match_maps_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
@@ -24873,6 +24900,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 ["matches_constraint"]:matches_constraint;
 	/** input type for incrementing numeric columns in table "matches" */
 ["matches_inc_input"]: {
+	elo_voided_by?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** input type for inserting data into table "matches" */
@@ -24886,6 +24914,9 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	e_match_status?: ValueTypes["e_match_status_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	e_region?: ValueTypes["server_regions_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	elo_changes?: ValueTypes["v_player_elo_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
+	elo_voided?: boolean | undefined | null | Variable<any, string>,
+	elo_voided_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	elo_voided_by?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	ended_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	external_id?: string | undefined | null | Variable<any, string>,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -24937,6 +24968,8 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?:boolean | `@${string}`,
 	effective_at?:boolean | `@${string}`,
+	elo_voided_at?:boolean | `@${string}`,
+	elo_voided_by?:boolean | `@${string}`,
 	ended_at?:boolean | `@${string}`,
 	external_id?:boolean | `@${string}`,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -24983,6 +25016,8 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	cancels_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	effective_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	elo_voided_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	ended_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	external_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -25014,6 +25049,8 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?:boolean | `@${string}`,
 	effective_at?:boolean | `@${string}`,
+	elo_voided_at?:boolean | `@${string}`,
+	elo_voided_by?:boolean | `@${string}`,
 	ended_at?:boolean | `@${string}`,
 	external_id?:boolean | `@${string}`,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -25060,6 +25097,8 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	cancels_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	effective_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	elo_voided_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	ended_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	external_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -25123,6 +25162,9 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	e_region?: ValueTypes["server_regions_order_by"] | undefined | null | Variable<any, string>,
 	effective_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	elo_changes_aggregate?: ValueTypes["v_player_elo_aggregate_order_by"] | undefined | null | Variable<any, string>,
+	elo_voided?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	elo_voided_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	ended_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	external_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	external_timestamp_source?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -25145,6 +25187,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	map_veto_pick_expires_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	map_veto_picking_lineup_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	map_veto_picks_aggregate?: ValueTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null | Variable<any, string>,
+	map_veto_sequence?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	map_veto_type?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	match_maps_aggregate?: ValueTypes["match_maps_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	match_options_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -25189,10 +25232,17 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 };
 	/** select columns of table "matches" */
 ["matches_select_column"]:matches_select_column;
+	/** select "matches_aggregate_bool_exp_bool_and_arguments_columns" columns of table "matches" */
+["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"]:matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "matches_aggregate_bool_exp_bool_or_arguments_columns" columns of table "matches" */
+["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"]:matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "matches" */
 ["matches_set_input"]: {
 	cancels_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	elo_voided?: boolean | undefined | null | Variable<any, string>,
+	elo_voided_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	elo_voided_by?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	ended_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	external_id?: string | undefined | null | Variable<any, string>,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -25216,6 +25266,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 };
 	/** aggregate stddev on columns */
 ["matches_stddev_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -25225,10 +25276,12 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by stddev() on columns of table "matches" */
 ["matches_stddev_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_pop on columns */
 ["matches_stddev_pop_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -25238,10 +25291,12 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by stddev_pop() on columns of table "matches" */
 ["matches_stddev_pop_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_samp on columns */
 ["matches_stddev_samp_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -25251,6 +25306,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by stddev_samp() on columns of table "matches" */
 ["matches_stddev_samp_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Streaming cursor of the table "matches" */
@@ -25265,6 +25321,9 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 	cancels_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	effective_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	elo_voided?: boolean | undefined | null | Variable<any, string>,
+	elo_voided_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	elo_voided_by?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	ended_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	external_id?: string | undefined | null | Variable<any, string>,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -25288,6 +25347,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 };
 	/** aggregate sum on columns */
 ["matches_sum_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -25297,6 +25357,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by sum() on columns of table "matches" */
 ["matches_sum_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** update columns of table "matches" */
@@ -25311,6 +25372,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 };
 	/** aggregate var_pop on columns */
 ["matches_var_pop_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -25320,10 +25382,12 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by var_pop() on columns of table "matches" */
 ["matches_var_pop_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate var_samp on columns */
 ["matches_var_samp_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -25333,10 +25397,12 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by var_samp() on columns of table "matches" */
 ["matches_var_samp_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate variance on columns */
 ["matches_variance_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -25346,6 +25412,7 @@ count?: [{	columns?: Array<ValueTypes["matches_select_column"]> | undefined | nu
 }>;
 	/** order by variance() on columns of table "matches" */
 ["matches_variance_order_by"]: {
+	elo_voided_by?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	organizer_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** columns and relationships of "migration_hashes.hashes" */
@@ -27220,7 +27287,7 @@ resumeClipRenderBatch?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, stri
 retryClipRenderBatch?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, string>,	only_failed?: boolean | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 retryPendingMatchImport?: [{	valve_match_id: string | Variable<any, string>},ValueTypes["PendingMatchImportActionOutput"]],
 revokeAward?: [{	id: ValueTypes["uuid"] | Variable<any, string>,	reason: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
-sanctionServerPlayer?: [{	also_restrict_website?: boolean | undefined | null | Variable<any, string>,	duration?: number | undefined | null | Variable<any, string>,	evidence_message_id?: string | undefined | null | Variable<any, string>,	reason?: string | undefined | null | Variable<any, string>,	serverId?: string | undefined | null | Variable<any, string>,	steam_id: string | Variable<any, string>,	type: string | Variable<any, string>},ValueTypes["SanctionResult"]],
+sanctionServerPlayer?: [{	also_restrict_website?: boolean | undefined | null | Variable<any, string>,	duration?: number | undefined | null | Variable<any, string>,	evidence_message_id?: string | undefined | null | Variable<any, string>,	notify_teammates?: boolean | undefined | null | Variable<any, string>,	reason?: string | undefined | null | Variable<any, string>,	serverId?: string | undefined | null | Variable<any, string>,	steam_id: string | Variable<any, string>,	type: string | Variable<any, string>},ValueTypes["SanctionResult"]],
 saveAward?: [{	allow_multiple?: boolean | undefined | null | Variable<any, string>,	description?: string | undefined | null | Variable<any, string>,	elo_season_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	event_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	league_season_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	name: string | Variable<any, string>,	silhouette?: number | undefined | null | Variable<any, string>,	tier: string | Variable<any, string>,	tournament_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>},ValueTypes["Award"]],
 saveNewsPost?: [{	content_markdown: string | Variable<any, string>,	cover_image_url?: string | undefined | null | Variable<any, string>,	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	teaser?: string | undefined | null | Variable<any, string>,	title: string | Variable<any, string>},ValueTypes["NewsPost"]],
 	/** Scan S3 for objects not referenced in the database (admin only). Runs in the background; results land in the logs and orphanedDemosScanResult. */
@@ -28843,6 +28910,7 @@ update_verification_call_tokens_by_pk?: [{	/** increments the numeric columns wi
 update_verification_call_tokens_many?: [{	/** updates to execute, in order */
 	updates: Array<ValueTypes["verification_call_tokens_updates"]> | Variable<any, string>},ValueTypes["verification_call_tokens_mutation_response"]],
 validateGamedata?: [{	game_server_node_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+voidMatchElo?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 watchDemo?: [{	match_map_demo_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	match_map_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["WatchDemoOutput"]],
 writeServerFile?: [{	content: string | Variable<any, string>,	file_path: string | Variable<any, string>,	node_id: string | Variable<any, string>,	server_id?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 		__typename?: boolean | `@${string}`
@@ -40640,6 +40708,9 @@ count?: [{	columns?: Array<ValueTypes["player_premier_rank_history_select_column
 	e_sanction_type?:ValueTypes["e_sanction_types"],
 	evidence_message_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	/** A computed field, executes function "player_sanction_is_active" */
+	is_active?:boolean | `@${string}`,
+	notify_teammates?:boolean | `@${string}`,
 	/** An object relationship */
 	player?:ValueTypes["players"],
 	player_steam_id?:boolean | `@${string}`,
@@ -40661,7 +40732,21 @@ count?: [{	columns?: Array<ValueTypes["player_premier_rank_history_select_column
 		__typename?: boolean | `@${string}`
 }>;
 	["player_sanctions_aggregate_bool_exp"]: {
+	bool_and?: ValueTypes["player_sanctions_aggregate_bool_exp_bool_and"] | undefined | null | Variable<any, string>,
+	bool_or?: ValueTypes["player_sanctions_aggregate_bool_exp_bool_or"] | undefined | null | Variable<any, string>,
 	count?: ValueTypes["player_sanctions_aggregate_bool_exp_count"] | undefined | null | Variable<any, string>
+};
+	["player_sanctions_aggregate_bool_exp_bool_and"]: {
+	arguments: ValueTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"] | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["player_sanctions_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Boolean_comparison_exp"] | Variable<any, string>
+};
+	["player_sanctions_aggregate_bool_exp_bool_or"]: {
+	arguments: ValueTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"] | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["player_sanctions_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Boolean_comparison_exp"] | Variable<any, string>
 };
 	["player_sanctions_aggregate_bool_exp_count"]: {
 	arguments?: Array<ValueTypes["player_sanctions_select_column"]> | undefined | null | Variable<any, string>,
@@ -40727,6 +40812,8 @@ count?: [{	columns?: Array<ValueTypes["player_sanctions_select_column"]> | undef
 	e_sanction_type?: ValueTypes["e_sanction_types_bool_exp"] | undefined | null | Variable<any, string>,
 	evidence_message_id?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	is_active?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
+	notify_teammates?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
 	reason?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -40752,6 +40839,7 @@ count?: [{	columns?: Array<ValueTypes["player_sanctions_select_column"]> | undef
 	e_sanction_type?: ValueTypes["e_sanction_types_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	evidence_message_id?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	notify_teammates?: boolean | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	reason?: string | undefined | null | Variable<any, string>,
@@ -40833,6 +40921,8 @@ count?: [{	columns?: Array<ValueTypes["player_sanctions_select_column"]> | undef
 	e_sanction_type?: ValueTypes["e_sanction_types_order_by"] | undefined | null | Variable<any, string>,
 	evidence_message_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	is_active?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	notify_teammates?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	reason?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -40850,12 +40940,17 @@ count?: [{	columns?: Array<ValueTypes["player_sanctions_select_column"]> | undef
 };
 	/** select columns of table "player_sanctions" */
 ["player_sanctions_select_column"]:player_sanctions_select_column;
+	/** select "player_sanctions_aggregate_bool_exp_bool_and_arguments_columns" columns of table "player_sanctions" */
+["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"]:player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "player_sanctions_aggregate_bool_exp_bool_or_arguments_columns" columns of table "player_sanctions" */
+["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"]:player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "player_sanctions" */
 ["player_sanctions_set_input"]: {
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	evidence_message_id?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	notify_teammates?: boolean | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	reason?: string | undefined | null | Variable<any, string>,
 	remove_sanction_date?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -40915,6 +41010,7 @@ count?: [{	columns?: Array<ValueTypes["player_sanctions_select_column"]> | undef
 	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	evidence_message_id?: string | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	notify_teammates?: boolean | undefined | null | Variable<any, string>,
 	player_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	reason?: string | undefined | null | Variable<any, string>,
 	remove_sanction_date?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -43256,6 +43352,7 @@ aim_weapon_stats_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["player_aim_weapon_stats_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["player_aim_weapon_stats_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["player_aim_weapon_stats_aggregate"]],
+	api_key_enabled?:boolean | `@${string}`,
 assists?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["player_assists_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -43857,6 +43954,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 	abandoned_matches_aggregate?: ValueTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats?: ValueTypes["player_aim_weapon_stats_bool_exp"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats_aggregate?: ValueTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
+	api_key_enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	assists?: ValueTypes["player_assists_bool_exp"] | undefined | null | Variable<any, string>,
 	assists_aggregate?: ValueTypes["player_assists_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	assited_by_players?: ValueTypes["player_assists_bool_exp"] | undefined | null | Variable<any, string>,
@@ -44007,6 +44105,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 ["players_insert_input"]: {
 	abandoned_matches?: ValueTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats?: ValueTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
+	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	assists?: ValueTypes["player_assists_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	assited_by_players?: ValueTypes["player_assists_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
@@ -44223,6 +44322,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 ["players_order_by"]: {
 	abandoned_matches_aggregate?: ValueTypes["abandoned_matches_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats_aggregate?: ValueTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null | Variable<any, string>,
+	api_key_enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	assists_aggregate?: ValueTypes["player_assists_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	assited_by_players_aggregate?: ValueTypes["player_assists_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -44327,6 +44427,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 ["players_select_column"]:players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
+	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	country?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -44462,6 +44563,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
+	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	country?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -53212,6 +53314,9 @@ verification_call_tokens_stream?: [{	/** maximum number of rows returned in a si
 }>;
 	/** columns and relationships of "support_request_messages" */
 ["support_request_messages"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	is_admin?:boolean | `@${string}`,
@@ -53302,6 +53407,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 	_and?: Array<ValueTypes["support_request_messages_bool_exp"]> | undefined | null | Variable<any, string>,
 	_not?: ValueTypes["support_request_messages_bool_exp"] | undefined | null | Variable<any, string>,
 	_or?: Array<ValueTypes["support_request_messages_bool_exp"]> | undefined | null | Variable<any, string>,
+	attachment_content_type?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	attachment_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	is_admin?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -53319,6 +53427,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 };
 	/** input type for inserting data into table "support_request_messages" */
 ["support_request_messages_insert_input"]: {
+	attachment_content_type?: string | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	attachment_url?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_admin?: boolean | undefined | null | Variable<any, string>,
@@ -53330,6 +53441,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 };
 	/** aggregate max on columns */
 ["support_request_messages_max_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
@@ -53339,6 +53453,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 }>;
 	/** order by max() on columns of table "support_request_messages" */
 ["support_request_messages_max_order_by"]: {
+	attachment_content_type?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -53347,6 +53464,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 };
 	/** aggregate min on columns */
 ["support_request_messages_min_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
@@ -53356,6 +53476,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 }>;
 	/** order by min() on columns of table "support_request_messages" */
 ["support_request_messages_min_order_by"]: {
+	attachment_content_type?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	message?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -53378,6 +53501,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 };
 	/** Ordering options when selecting data from "support_request_messages". */
 ["support_request_messages_order_by"]: {
+	attachment_content_type?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	is_admin?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -53399,6 +53525,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 ["support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns"]:support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "support_request_messages" */
 ["support_request_messages_set_input"]: {
+	attachment_content_type?: string | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	attachment_url?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_admin?: boolean | undefined | null | Variable<any, string>,
@@ -53442,6 +53571,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_request_messages_stream_cursor_value_input"]: {
+	attachment_content_type?: string | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	attachment_url?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_admin?: boolean | undefined | null | Variable<any, string>,
@@ -53497,6 +53629,9 @@ count?: [{	columns?: Array<ValueTypes["support_request_messages_select_column"]>
 };
 	/** columns and relationships of "support_requests" */
 ["support_requests"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	category?:boolean | `@${string}`,
 	closed_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
@@ -53568,6 +53703,9 @@ count?: [{	columns?: Array<ValueTypes["support_requests_select_column"]> | undef
 	_and?: Array<ValueTypes["support_requests_bool_exp"]> | undefined | null | Variable<any, string>,
 	_not?: ValueTypes["support_requests_bool_exp"] | undefined | null | Variable<any, string>,
 	_or?: Array<ValueTypes["support_requests_bool_exp"]> | undefined | null | Variable<any, string>,
+	attachment_content_type?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	attachment_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	category?: ValueTypes["e_support_request_categories_enum_comparison_exp"] | undefined | null | Variable<any, string>,
 	closed_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -53603,6 +53741,9 @@ count?: [{	columns?: Array<ValueTypes["support_requests_select_column"]> | undef
 };
 	/** input type for inserting data into table "support_requests" */
 ["support_requests_insert_input"]: {
+	attachment_content_type?: string | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	attachment_url?: string | undefined | null | Variable<any, string>,
 	category?: ValueTypes["e_support_request_categories_enum"] | undefined | null | Variable<any, string>,
 	closed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -53629,6 +53770,9 @@ count?: [{	columns?: Array<ValueTypes["support_requests_select_column"]> | undef
 };
 	/** aggregate max on columns */
 ["support_requests_max_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	closed_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	handled_by_steam_id?:boolean | `@${string}`,
@@ -53651,6 +53795,9 @@ count?: [{	columns?: Array<ValueTypes["support_requests_select_column"]> | undef
 }>;
 	/** aggregate min on columns */
 ["support_requests_min_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	closed_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	handled_by_steam_id?:boolean | `@${string}`,
@@ -53693,6 +53840,9 @@ count?: [{	columns?: Array<ValueTypes["support_requests_select_column"]> | undef
 };
 	/** Ordering options when selecting data from "support_requests". */
 ["support_requests_order_by"]: {
+	attachment_content_type?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	attachment_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	category?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	closed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -53725,6 +53875,9 @@ count?: [{	columns?: Array<ValueTypes["support_requests_select_column"]> | undef
 ["support_requests_select_column"]:support_requests_select_column;
 	/** input type for updating data in table "support_requests" */
 ["support_requests_set_input"]: {
+	attachment_content_type?: string | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	attachment_url?: string | undefined | null | Variable<any, string>,
 	category?: ValueTypes["e_support_request_categories_enum"] | undefined | null | Variable<any, string>,
 	closed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -53776,6 +53929,9 @@ count?: [{	columns?: Array<ValueTypes["support_requests_select_column"]> | undef
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_requests_stream_cursor_value_input"]: {
+	attachment_content_type?: string | undefined | null | Variable<any, string>,
+	attachment_removed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	attachment_url?: string | undefined | null | Variable<any, string>,
 	category?: ValueTypes["e_support_request_categories_enum"] | undefined | null | Variable<any, string>,
 	closed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
@@ -96474,6 +96630,9 @@ elo_changes_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["v_player_elo_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["v_player_elo_bool_exp"] | undefined | null},ResolverInputTypes["v_player_elo_aggregate"]],
+	elo_voided?:boolean | `@${string}`,
+	elo_voided_at?:boolean | `@${string}`,
+	elo_voided_by?:boolean | `@${string}`,
 	ended_at?:boolean | `@${string}`,
 	external_id?:boolean | `@${string}`,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -96521,6 +96680,8 @@ map_veto_picks_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["match_map_veto_picks_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["match_map_veto_picks_bool_exp"] | undefined | null},ResolverInputTypes["match_map_veto_picks_aggregate"]],
+map_veto_sequence?: [{	/** JSON select path */
+	path?: string | undefined | null},boolean | `@${string}`],
 	/** A computed field, executes function "get_map_veto_type" */
 	map_veto_type?:boolean | `@${string}`,
 match_maps?: [{	/** distinct select on columns */
@@ -96717,7 +96878,21 @@ tournament_brackets_aggregate?: [{	/** distinct select on columns */
 		__typename?: boolean | `@${string}`
 }>;
 	["matches_aggregate_bool_exp"]: {
+	bool_and?: ResolverInputTypes["matches_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: ResolverInputTypes["matches_aggregate_bool_exp_bool_or"] | undefined | null,
 	count?: ResolverInputTypes["matches_aggregate_bool_exp_count"] | undefined | null
+};
+	["matches_aggregate_bool_exp_bool_and"]: {
+	arguments: ResolverInputTypes["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["matches_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Boolean_comparison_exp"]
+};
+	["matches_aggregate_bool_exp_bool_or"]: {
+	arguments: ResolverInputTypes["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["matches_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Boolean_comparison_exp"]
 };
 	["matches_aggregate_bool_exp_count"]: {
 	arguments?: Array<ResolverInputTypes["matches_select_column"]> | undefined | null,
@@ -96762,6 +96937,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 };
 	/** aggregate avg on columns */
 ["matches_avg_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -96771,6 +96947,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by avg() on columns of table "matches" */
 ["matches_avg_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "matches". All fields are combined with a logical 'AND'. */
@@ -96804,6 +96981,9 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	effective_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	elo_changes?: ResolverInputTypes["v_player_elo_bool_exp"] | undefined | null,
 	elo_changes_aggregate?: ResolverInputTypes["v_player_elo_aggregate_bool_exp"] | undefined | null,
+	elo_voided?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
+	elo_voided_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	elo_voided_by?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
 	ended_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	external_id?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	external_timestamp_source?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
@@ -96827,6 +97007,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	map_veto_picking_lineup_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	map_veto_picks?: ResolverInputTypes["match_map_veto_picks_bool_exp"] | undefined | null,
 	map_veto_picks_aggregate?: ResolverInputTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null,
+	map_veto_sequence?: ResolverInputTypes["jsonb_comparison_exp"] | undefined | null,
 	map_veto_type?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	match_maps?: ResolverInputTypes["match_maps_bool_exp"] | undefined | null,
 	match_maps_aggregate?: ResolverInputTypes["match_maps_aggregate_bool_exp"] | undefined | null,
@@ -96881,6 +97062,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 ["matches_constraint"]:matches_constraint;
 	/** input type for incrementing numeric columns in table "matches" */
 ["matches_inc_input"]: {
+	elo_voided_by?: ResolverInputTypes["bigint"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "matches" */
@@ -96894,6 +97076,9 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	e_match_status?: ResolverInputTypes["e_match_status_obj_rel_insert_input"] | undefined | null,
 	e_region?: ResolverInputTypes["server_regions_obj_rel_insert_input"] | undefined | null,
 	elo_changes?: ResolverInputTypes["v_player_elo_arr_rel_insert_input"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ResolverInputTypes["bigint"] | undefined | null,
 	ended_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -96945,6 +97130,8 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?:boolean | `@${string}`,
 	effective_at?:boolean | `@${string}`,
+	elo_voided_at?:boolean | `@${string}`,
+	elo_voided_by?:boolean | `@${string}`,
 	ended_at?:boolean | `@${string}`,
 	external_id?:boolean | `@${string}`,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -96991,6 +97178,8 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	cancels_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	effective_at?: ResolverInputTypes["order_by"] | undefined | null,
+	elo_voided_at?: ResolverInputTypes["order_by"] | undefined | null,
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	ended_at?: ResolverInputTypes["order_by"] | undefined | null,
 	external_id?: ResolverInputTypes["order_by"] | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -97022,6 +97211,8 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?:boolean | `@${string}`,
 	effective_at?:boolean | `@${string}`,
+	elo_voided_at?:boolean | `@${string}`,
+	elo_voided_by?:boolean | `@${string}`,
 	ended_at?:boolean | `@${string}`,
 	external_id?:boolean | `@${string}`,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -97068,6 +97259,8 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	cancels_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	effective_at?: ResolverInputTypes["order_by"] | undefined | null,
+	elo_voided_at?: ResolverInputTypes["order_by"] | undefined | null,
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	ended_at?: ResolverInputTypes["order_by"] | undefined | null,
 	external_id?: ResolverInputTypes["order_by"] | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -97131,6 +97324,9 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	e_region?: ResolverInputTypes["server_regions_order_by"] | undefined | null,
 	effective_at?: ResolverInputTypes["order_by"] | undefined | null,
 	elo_changes_aggregate?: ResolverInputTypes["v_player_elo_aggregate_order_by"] | undefined | null,
+	elo_voided?: ResolverInputTypes["order_by"] | undefined | null,
+	elo_voided_at?: ResolverInputTypes["order_by"] | undefined | null,
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	ended_at?: ResolverInputTypes["order_by"] | undefined | null,
 	external_id?: ResolverInputTypes["order_by"] | undefined | null,
 	external_timestamp_source?: ResolverInputTypes["order_by"] | undefined | null,
@@ -97153,6 +97349,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	map_veto_pick_expires_at?: ResolverInputTypes["order_by"] | undefined | null,
 	map_veto_picking_lineup_id?: ResolverInputTypes["order_by"] | undefined | null,
 	map_veto_picks_aggregate?: ResolverInputTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null,
+	map_veto_sequence?: ResolverInputTypes["order_by"] | undefined | null,
 	map_veto_type?: ResolverInputTypes["order_by"] | undefined | null,
 	match_maps_aggregate?: ResolverInputTypes["match_maps_aggregate_order_by"] | undefined | null,
 	match_options_id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -97197,10 +97394,17 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 };
 	/** select columns of table "matches" */
 ["matches_select_column"]:matches_select_column;
+	/** select "matches_aggregate_bool_exp_bool_and_arguments_columns" columns of table "matches" */
+["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"]:matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "matches_aggregate_bool_exp_bool_or_arguments_columns" columns of table "matches" */
+["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"]:matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "matches" */
 ["matches_set_input"]: {
 	cancels_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ResolverInputTypes["bigint"] | undefined | null,
 	ended_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -97224,6 +97428,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 };
 	/** aggregate stddev on columns */
 ["matches_stddev_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -97233,10 +97438,12 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by stddev() on columns of table "matches" */
 ["matches_stddev_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["matches_stddev_pop_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -97246,10 +97453,12 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by stddev_pop() on columns of table "matches" */
 ["matches_stddev_pop_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["matches_stddev_samp_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -97259,6 +97468,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by stddev_samp() on columns of table "matches" */
 ["matches_stddev_samp_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "matches" */
@@ -97273,6 +97483,9 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 	cancels_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	effective_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ResolverInputTypes["bigint"] | undefined | null,
 	ended_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -97296,6 +97509,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 };
 	/** aggregate sum on columns */
 ["matches_sum_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -97305,6 +97519,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by sum() on columns of table "matches" */
 ["matches_sum_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** update columns of table "matches" */
@@ -97319,6 +97534,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 };
 	/** aggregate var_pop on columns */
 ["matches_var_pop_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -97328,10 +97544,12 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by var_pop() on columns of table "matches" */
 ["matches_var_pop_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["matches_var_samp_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -97341,10 +97559,12 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by var_samp() on columns of table "matches" */
 ["matches_var_samp_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["matches_variance_fields"]: AliasType<{
+	elo_voided_by?:boolean | `@${string}`,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?:boolean | `@${string}`,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -97354,6 +97574,7 @@ count?: [{	columns?: Array<ResolverInputTypes["matches_select_column"]> | undefi
 }>;
 	/** order by variance() on columns of table "matches" */
 ["matches_variance_order_by"]: {
+	elo_voided_by?: ResolverInputTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "migration_hashes.hashes" */
@@ -99228,7 +99449,7 @@ resumeClipRenderBatch?: [{	match_map_id: ResolverInputTypes["uuid"]},ResolverInp
 retryClipRenderBatch?: [{	match_map_id: ResolverInputTypes["uuid"],	only_failed?: boolean | undefined | null},ResolverInputTypes["SuccessOutput"]],
 retryPendingMatchImport?: [{	valve_match_id: string},ResolverInputTypes["PendingMatchImportActionOutput"]],
 revokeAward?: [{	id: ResolverInputTypes["uuid"],	reason: string},ResolverInputTypes["SuccessOutput"]],
-sanctionServerPlayer?: [{	also_restrict_website?: boolean | undefined | null,	duration?: number | undefined | null,	evidence_message_id?: string | undefined | null,	reason?: string | undefined | null,	serverId?: string | undefined | null,	steam_id: string,	type: string},ResolverInputTypes["SanctionResult"]],
+sanctionServerPlayer?: [{	also_restrict_website?: boolean | undefined | null,	duration?: number | undefined | null,	evidence_message_id?: string | undefined | null,	notify_teammates?: boolean | undefined | null,	reason?: string | undefined | null,	serverId?: string | undefined | null,	steam_id: string,	type: string},ResolverInputTypes["SanctionResult"]],
 saveAward?: [{	allow_multiple?: boolean | undefined | null,	description?: string | undefined | null,	elo_season_id?: ResolverInputTypes["uuid"] | undefined | null,	event_id?: ResolverInputTypes["uuid"] | undefined | null,	id?: ResolverInputTypes["uuid"] | undefined | null,	league_season_id?: ResolverInputTypes["uuid"] | undefined | null,	name: string,	silhouette?: number | undefined | null,	tier: string,	tournament_id?: ResolverInputTypes["uuid"] | undefined | null},ResolverInputTypes["Award"]],
 saveNewsPost?: [{	content_markdown: string,	cover_image_url?: string | undefined | null,	id?: ResolverInputTypes["uuid"] | undefined | null,	teaser?: string | undefined | null,	title: string},ResolverInputTypes["NewsPost"]],
 	/** Scan S3 for objects not referenced in the database (admin only). Runs in the background; results land in the logs and orphanedDemosScanResult. */
@@ -100851,6 +101072,7 @@ update_verification_call_tokens_by_pk?: [{	/** increments the numeric columns wi
 update_verification_call_tokens_many?: [{	/** updates to execute, in order */
 	updates: Array<ResolverInputTypes["verification_call_tokens_updates"]>},ResolverInputTypes["verification_call_tokens_mutation_response"]],
 validateGamedata?: [{	game_server_node_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+voidMatchElo?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 watchDemo?: [{	match_map_demo_id?: ResolverInputTypes["uuid"] | undefined | null,	match_map_id: ResolverInputTypes["uuid"]},ResolverInputTypes["WatchDemoOutput"]],
 writeServerFile?: [{	content: string,	file_path: string,	node_id: string,	server_id?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
 		__typename?: boolean | `@${string}`
@@ -112648,6 +112870,9 @@ count?: [{	columns?: Array<ResolverInputTypes["player_premier_rank_history_selec
 	e_sanction_type?:ResolverInputTypes["e_sanction_types"],
 	evidence_message_id?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
+	/** A computed field, executes function "player_sanction_is_active" */
+	is_active?:boolean | `@${string}`,
+	notify_teammates?:boolean | `@${string}`,
 	/** An object relationship */
 	player?:ResolverInputTypes["players"],
 	player_steam_id?:boolean | `@${string}`,
@@ -112669,7 +112894,21 @@ count?: [{	columns?: Array<ResolverInputTypes["player_premier_rank_history_selec
 		__typename?: boolean | `@${string}`
 }>;
 	["player_sanctions_aggregate_bool_exp"]: {
+	bool_and?: ResolverInputTypes["player_sanctions_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: ResolverInputTypes["player_sanctions_aggregate_bool_exp_bool_or"] | undefined | null,
 	count?: ResolverInputTypes["player_sanctions_aggregate_bool_exp_count"] | undefined | null
+};
+	["player_sanctions_aggregate_bool_exp_bool_and"]: {
+	arguments: ResolverInputTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["player_sanctions_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Boolean_comparison_exp"]
+};
+	["player_sanctions_aggregate_bool_exp_bool_or"]: {
+	arguments: ResolverInputTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["player_sanctions_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Boolean_comparison_exp"]
 };
 	["player_sanctions_aggregate_bool_exp_count"]: {
 	arguments?: Array<ResolverInputTypes["player_sanctions_select_column"]> | undefined | null,
@@ -112735,6 +112974,8 @@ count?: [{	columns?: Array<ResolverInputTypes["player_sanctions_select_column"]>
 	e_sanction_type?: ResolverInputTypes["e_sanction_types_bool_exp"] | undefined | null,
 	evidence_message_id?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	is_active?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
+	notify_teammates?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: ResolverInputTypes["players_bool_exp"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
 	reason?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
@@ -112760,6 +113001,7 @@ count?: [{	columns?: Array<ResolverInputTypes["player_sanctions_select_column"]>
 	e_sanction_type?: ResolverInputTypes["e_sanction_types_obj_rel_insert_input"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
@@ -112841,6 +113083,8 @@ count?: [{	columns?: Array<ResolverInputTypes["player_sanctions_select_column"]>
 	e_sanction_type?: ResolverInputTypes["e_sanction_types_order_by"] | undefined | null,
 	evidence_message_id?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
+	is_active?: ResolverInputTypes["order_by"] | undefined | null,
+	notify_teammates?: ResolverInputTypes["order_by"] | undefined | null,
 	player?: ResolverInputTypes["players_order_by"] | undefined | null,
 	player_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	reason?: ResolverInputTypes["order_by"] | undefined | null,
@@ -112858,12 +113102,17 @@ count?: [{	columns?: Array<ResolverInputTypes["player_sanctions_select_column"]>
 };
 	/** select columns of table "player_sanctions" */
 ["player_sanctions_select_column"]:player_sanctions_select_column;
+	/** select "player_sanctions_aggregate_bool_exp_bool_and_arguments_columns" columns of table "player_sanctions" */
+["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"]:player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "player_sanctions_aggregate_bool_exp_bool_or_arguments_columns" columns of table "player_sanctions" */
+["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"]:player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "player_sanctions" */
 ["player_sanctions_set_input"]: {
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
 	remove_sanction_date?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -112923,6 +113172,7 @@ count?: [{	columns?: Array<ResolverInputTypes["player_sanctions_select_column"]>
 	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
 	remove_sanction_date?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -115264,6 +115514,7 @@ aim_weapon_stats_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["player_aim_weapon_stats_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["player_aim_weapon_stats_bool_exp"] | undefined | null},ResolverInputTypes["player_aim_weapon_stats_aggregate"]],
+	api_key_enabled?:boolean | `@${string}`,
 assists?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["player_assists_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -115865,6 +116116,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 	abandoned_matches_aggregate?: ResolverInputTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null,
 	aim_weapon_stats?: ResolverInputTypes["player_aim_weapon_stats_bool_exp"] | undefined | null,
 	aim_weapon_stats_aggregate?: ResolverInputTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null,
+	api_key_enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	assists?: ResolverInputTypes["player_assists_bool_exp"] | undefined | null,
 	assists_aggregate?: ResolverInputTypes["player_assists_aggregate_bool_exp"] | undefined | null,
 	assited_by_players?: ResolverInputTypes["player_assists_bool_exp"] | undefined | null,
@@ -116015,6 +116267,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 ["players_insert_input"]: {
 	abandoned_matches?: ResolverInputTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null,
 	aim_weapon_stats?: ResolverInputTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null,
+	api_key_enabled?: boolean | undefined | null,
 	assists?: ResolverInputTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	assited_by_players?: ResolverInputTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	avatar_url?: string | undefined | null,
@@ -116231,6 +116484,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 ["players_order_by"]: {
 	abandoned_matches_aggregate?: ResolverInputTypes["abandoned_matches_aggregate_order_by"] | undefined | null,
 	aim_weapon_stats_aggregate?: ResolverInputTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null,
+	api_key_enabled?: ResolverInputTypes["order_by"] | undefined | null,
 	assists_aggregate?: ResolverInputTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: ResolverInputTypes["player_assists_aggregate_order_by"] | undefined | null,
 	avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
@@ -116335,6 +116589,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 ["players_select_column"]:players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
+	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -116470,6 +116725,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
+	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -125220,6 +125476,9 @@ verification_call_tokens_stream?: [{	/** maximum number of rows returned in a si
 }>;
 	/** columns and relationships of "support_request_messages" */
 ["support_request_messages"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	is_admin?:boolean | `@${string}`,
@@ -125310,6 +125569,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 	_and?: Array<ResolverInputTypes["support_request_messages_bool_exp"]> | undefined | null,
 	_not?: ResolverInputTypes["support_request_messages_bool_exp"] | undefined | null,
 	_or?: Array<ResolverInputTypes["support_request_messages_bool_exp"]> | undefined | null,
+	attachment_content_type?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	attachment_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	is_admin?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
@@ -125327,6 +125589,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 };
 	/** input type for inserting data into table "support_request_messages" */
 ["support_request_messages_insert_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
@@ -125338,6 +125603,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 };
 	/** aggregate max on columns */
 ["support_request_messages_max_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
@@ -125347,6 +125615,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 }>;
 	/** order by max() on columns of table "support_request_messages" */
 ["support_request_messages_max_order_by"]: {
+	attachment_content_type?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_url?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	message?: ResolverInputTypes["order_by"] | undefined | null,
@@ -125355,6 +125626,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 };
 	/** aggregate min on columns */
 ["support_request_messages_min_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	message?:boolean | `@${string}`,
@@ -125364,6 +125638,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 }>;
 	/** order by min() on columns of table "support_request_messages" */
 ["support_request_messages_min_order_by"]: {
+	attachment_content_type?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_url?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	message?: ResolverInputTypes["order_by"] | undefined | null,
@@ -125386,6 +125663,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 };
 	/** Ordering options when selecting data from "support_request_messages". */
 ["support_request_messages_order_by"]: {
+	attachment_content_type?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_url?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	is_admin?: ResolverInputTypes["order_by"] | undefined | null,
@@ -125407,6 +125687,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 ["support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns"]:support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "support_request_messages" */
 ["support_request_messages_set_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
@@ -125450,6 +125733,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_request_messages_stream_cursor_value_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
@@ -125505,6 +125791,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_request_messages_select_c
 };
 	/** columns and relationships of "support_requests" */
 ["support_requests"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	category?:boolean | `@${string}`,
 	closed_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
@@ -125576,6 +125865,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_requests_select_column"]>
 	_and?: Array<ResolverInputTypes["support_requests_bool_exp"]> | undefined | null,
 	_not?: ResolverInputTypes["support_requests_bool_exp"] | undefined | null,
 	_or?: Array<ResolverInputTypes["support_requests_bool_exp"]> | undefined | null,
+	attachment_content_type?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	attachment_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	category?: ResolverInputTypes["e_support_request_categories_enum_comparison_exp"] | undefined | null,
 	closed_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -125611,6 +125903,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_requests_select_column"]>
 };
 	/** input type for inserting data into table "support_requests" */
 ["support_requests_insert_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	category?: ResolverInputTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -125637,6 +125932,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_requests_select_column"]>
 };
 	/** aggregate max on columns */
 ["support_requests_max_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	closed_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	handled_by_steam_id?:boolean | `@${string}`,
@@ -125659,6 +125957,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_requests_select_column"]>
 }>;
 	/** aggregate min on columns */
 ["support_requests_min_fields"]: AliasType<{
+	attachment_content_type?:boolean | `@${string}`,
+	attachment_removed_at?:boolean | `@${string}`,
+	attachment_url?:boolean | `@${string}`,
 	closed_at?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	handled_by_steam_id?:boolean | `@${string}`,
@@ -125701,6 +126002,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_requests_select_column"]>
 };
 	/** Ordering options when selecting data from "support_requests". */
 ["support_requests_order_by"]: {
+	attachment_content_type?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	attachment_url?: ResolverInputTypes["order_by"] | undefined | null,
 	category?: ResolverInputTypes["order_by"] | undefined | null,
 	closed_at?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
@@ -125733,6 +126037,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_requests_select_column"]>
 ["support_requests_select_column"]:support_requests_select_column;
 	/** input type for updating data in table "support_requests" */
 ["support_requests_set_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	category?: ResolverInputTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -125784,6 +126091,9 @@ count?: [{	columns?: Array<ResolverInputTypes["support_requests_select_column"]>
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_requests_stream_cursor_value_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	category?: ResolverInputTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
@@ -166500,6 +166810,9 @@ export type ModelTypes = {
 	elo_changes: Array<ModelTypes["v_player_elo"]>,
 	/** An aggregate relationship */
 	elo_changes_aggregate: ModelTypes["v_player_elo_aggregate"],
+	elo_voided: boolean,
+	elo_voided_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ModelTypes["bigint"] | undefined | null,
 	ended_at?: ModelTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -166539,6 +166852,8 @@ export type ModelTypes = {
 	map_veto_picks: Array<ModelTypes["match_map_veto_picks"]>,
 	/** An aggregate relationship */
 	map_veto_picks_aggregate: ModelTypes["match_map_veto_picks_aggregate"],
+	/** The full map veto (type and acting team per step), from get_map_veto_pattern and get_map_veto_turn_team. */
+	map_veto_sequence?: ModelTypes["jsonb"] | undefined | null,
 	/** A computed field, executes function "get_map_veto_type" */
 	map_veto_type?: string | undefined | null,
 	/** An array relationship */
@@ -166633,7 +166948,21 @@ export type ModelTypes = {
 	nodes: Array<ModelTypes["matches"]>
 };
 	["matches_aggregate_bool_exp"]: {
+	bool_and?: ModelTypes["matches_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: ModelTypes["matches_aggregate_bool_exp_bool_or"] | undefined | null,
 	count?: ModelTypes["matches_aggregate_bool_exp_count"] | undefined | null
+};
+	["matches_aggregate_bool_exp_bool_and"]: {
+	arguments: ModelTypes["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["matches_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Boolean_comparison_exp"]
+};
+	["matches_aggregate_bool_exp_bool_or"]: {
+	arguments: ModelTypes["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["matches_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Boolean_comparison_exp"]
 };
 	["matches_aggregate_bool_exp_count"]: {
 	arguments?: Array<ModelTypes["matches_select_column"]> | undefined | null,
@@ -166677,7 +167006,8 @@ export type ModelTypes = {
 };
 	/** aggregate avg on columns */
 ["matches_avg_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: number | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -166685,6 +167015,7 @@ export type ModelTypes = {
 };
 	/** order by avg() on columns of table "matches" */
 ["matches_avg_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "matches". All fields are combined with a logical 'AND'. */
@@ -166718,6 +167049,9 @@ export type ModelTypes = {
 	effective_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	elo_changes?: ModelTypes["v_player_elo_bool_exp"] | undefined | null,
 	elo_changes_aggregate?: ModelTypes["v_player_elo_aggregate_bool_exp"] | undefined | null,
+	elo_voided?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
+	elo_voided_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	elo_voided_by?: ModelTypes["bigint_comparison_exp"] | undefined | null,
 	ended_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	external_id?: ModelTypes["String_comparison_exp"] | undefined | null,
 	external_timestamp_source?: ModelTypes["String_comparison_exp"] | undefined | null,
@@ -166741,6 +167075,7 @@ export type ModelTypes = {
 	map_veto_picking_lineup_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	map_veto_picks?: ModelTypes["match_map_veto_picks_bool_exp"] | undefined | null,
 	map_veto_picks_aggregate?: ModelTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null,
+	map_veto_sequence?: ModelTypes["jsonb_comparison_exp"] | undefined | null,
 	map_veto_type?: ModelTypes["String_comparison_exp"] | undefined | null,
 	match_maps?: ModelTypes["match_maps_bool_exp"] | undefined | null,
 	match_maps_aggregate?: ModelTypes["match_maps_aggregate_bool_exp"] | undefined | null,
@@ -166794,6 +167129,7 @@ export type ModelTypes = {
 	["matches_constraint"]:matches_constraint;
 	/** input type for incrementing numeric columns in table "matches" */
 ["matches_inc_input"]: {
+	elo_voided_by?: ModelTypes["bigint"] | undefined | null,
 	organizer_steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "matches" */
@@ -166807,6 +167143,9 @@ export type ModelTypes = {
 	e_match_status?: ModelTypes["e_match_status_obj_rel_insert_input"] | undefined | null,
 	e_region?: ModelTypes["server_regions_obj_rel_insert_input"] | undefined | null,
 	elo_changes?: ModelTypes["v_player_elo_arr_rel_insert_input"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ModelTypes["bigint"] | undefined | null,
 	ended_at?: ModelTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -166858,6 +167197,8 @@ export type ModelTypes = {
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?: ModelTypes["uuid"] | undefined | null,
 	effective_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ModelTypes["bigint"] | undefined | null,
 	ended_at?: ModelTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -166903,6 +167244,8 @@ export type ModelTypes = {
 	cancels_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	effective_at?: ModelTypes["order_by"] | undefined | null,
+	elo_voided_at?: ModelTypes["order_by"] | undefined | null,
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	ended_at?: ModelTypes["order_by"] | undefined | null,
 	external_id?: ModelTypes["order_by"] | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -166934,6 +167277,8 @@ export type ModelTypes = {
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?: ModelTypes["uuid"] | undefined | null,
 	effective_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ModelTypes["bigint"] | undefined | null,
 	ended_at?: ModelTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -166979,6 +167324,8 @@ export type ModelTypes = {
 	cancels_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	effective_at?: ModelTypes["order_by"] | undefined | null,
+	elo_voided_at?: ModelTypes["order_by"] | undefined | null,
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	ended_at?: ModelTypes["order_by"] | undefined | null,
 	external_id?: ModelTypes["order_by"] | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -167041,6 +167388,9 @@ export type ModelTypes = {
 	e_region?: ModelTypes["server_regions_order_by"] | undefined | null,
 	effective_at?: ModelTypes["order_by"] | undefined | null,
 	elo_changes_aggregate?: ModelTypes["v_player_elo_aggregate_order_by"] | undefined | null,
+	elo_voided?: ModelTypes["order_by"] | undefined | null,
+	elo_voided_at?: ModelTypes["order_by"] | undefined | null,
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	ended_at?: ModelTypes["order_by"] | undefined | null,
 	external_id?: ModelTypes["order_by"] | undefined | null,
 	external_timestamp_source?: ModelTypes["order_by"] | undefined | null,
@@ -167063,6 +167413,7 @@ export type ModelTypes = {
 	map_veto_pick_expires_at?: ModelTypes["order_by"] | undefined | null,
 	map_veto_picking_lineup_id?: ModelTypes["order_by"] | undefined | null,
 	map_veto_picks_aggregate?: ModelTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null,
+	map_veto_sequence?: ModelTypes["order_by"] | undefined | null,
 	map_veto_type?: ModelTypes["order_by"] | undefined | null,
 	match_maps_aggregate?: ModelTypes["match_maps_aggregate_order_by"] | undefined | null,
 	match_options_id?: ModelTypes["order_by"] | undefined | null,
@@ -167106,10 +167457,15 @@ export type ModelTypes = {
 	id: ModelTypes["uuid"]
 };
 	["matches_select_column"]:matches_select_column;
+	["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"]:matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns;
+	["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"]:matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "matches" */
 ["matches_set_input"]: {
 	cancels_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ModelTypes["bigint"] | undefined | null,
 	ended_at?: ModelTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -167133,7 +167489,8 @@ export type ModelTypes = {
 };
 	/** aggregate stddev on columns */
 ["matches_stddev_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: number | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -167141,11 +167498,13 @@ export type ModelTypes = {
 };
 	/** order by stddev() on columns of table "matches" */
 ["matches_stddev_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["matches_stddev_pop_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: number | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -167153,11 +167512,13 @@ export type ModelTypes = {
 };
 	/** order by stddev_pop() on columns of table "matches" */
 ["matches_stddev_pop_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["matches_stddev_samp_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: number | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -167165,6 +167526,7 @@ export type ModelTypes = {
 };
 	/** order by stddev_samp() on columns of table "matches" */
 ["matches_stddev_samp_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "matches" */
@@ -167179,6 +167541,9 @@ export type ModelTypes = {
 	cancels_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	effective_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: ModelTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: ModelTypes["bigint"] | undefined | null,
 	ended_at?: ModelTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -167202,7 +167567,8 @@ export type ModelTypes = {
 };
 	/** aggregate sum on columns */
 ["matches_sum_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: ModelTypes["bigint"] | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -167210,6 +167576,7 @@ export type ModelTypes = {
 };
 	/** order by sum() on columns of table "matches" */
 ["matches_sum_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	["matches_update_column"]:matches_update_column;
@@ -167223,7 +167590,8 @@ export type ModelTypes = {
 };
 	/** aggregate var_pop on columns */
 ["matches_var_pop_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: number | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -167231,11 +167599,13 @@ export type ModelTypes = {
 };
 	/** order by var_pop() on columns of table "matches" */
 ["matches_var_pop_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["matches_var_samp_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: number | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -167243,11 +167613,13 @@ export type ModelTypes = {
 };
 	/** order by var_samp() on columns of table "matches" */
 ["matches_var_samp_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["matches_variance_fields"]: {
-		/** A computed field, executes function "match_max_players_per_lineup" */
+		elo_voided_by?: number | undefined | null,
+	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
 	min_players_per_lineup?: number | undefined | null,
@@ -167255,6 +167627,7 @@ export type ModelTypes = {
 };
 	/** order by variance() on columns of table "matches" */
 ["matches_variance_order_by"]: {
+	elo_voided_by?: ModelTypes["order_by"] | undefined | null,
 	organizer_steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "migration_hashes.hashes" */
@@ -170079,6 +170452,8 @@ export type ModelTypes = {
 	update_verification_call_tokens_many?: Array<ModelTypes["verification_call_tokens_mutation_response"] | undefined | null> | undefined | null,
 	/** Validate CS2 gamedata signatures/offsets on a node (5stack.gg test instance only) */
 	validateGamedata?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Void a played match's ELO for every player (score, stats, demos and clips kept) and rebuild ELO so later ratings exclude it (admin only). */
+	voidMatchElo?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Spawn a per-user game-streamer pod to play back a finished match's demo */
 	watchDemo?: ModelTypes["WatchDemoOutput"] | undefined | null,
 	/** Write content to file on game server */
@@ -181465,6 +181840,9 @@ export type ModelTypes = {
 	e_sanction_type: ModelTypes["e_sanction_types"],
 	evidence_message_id?: string | undefined | null,
 	id: ModelTypes["uuid"],
+	/** A computed field, executes function "player_sanction_is_active" */
+	is_active?: boolean | undefined | null,
+	notify_teammates: boolean,
 	/** An object relationship */
 	player: ModelTypes["players"],
 	player_steam_id: ModelTypes["bigint"],
@@ -181484,7 +181862,21 @@ export type ModelTypes = {
 	nodes: Array<ModelTypes["player_sanctions"]>
 };
 	["player_sanctions_aggregate_bool_exp"]: {
+	bool_and?: ModelTypes["player_sanctions_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: ModelTypes["player_sanctions_aggregate_bool_exp_bool_or"] | undefined | null,
 	count?: ModelTypes["player_sanctions_aggregate_bool_exp_count"] | undefined | null
+};
+	["player_sanctions_aggregate_bool_exp_bool_and"]: {
+	arguments: ModelTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["player_sanctions_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Boolean_comparison_exp"]
+};
+	["player_sanctions_aggregate_bool_exp_bool_or"]: {
+	arguments: ModelTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["player_sanctions_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Boolean_comparison_exp"]
 };
 	["player_sanctions_aggregate_bool_exp_count"]: {
 	arguments?: Array<ModelTypes["player_sanctions_select_column"]> | undefined | null,
@@ -181548,6 +181940,8 @@ export type ModelTypes = {
 	e_sanction_type?: ModelTypes["e_sanction_types_bool_exp"] | undefined | null,
 	evidence_message_id?: ModelTypes["String_comparison_exp"] | undefined | null,
 	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	is_active?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
+	notify_teammates?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: ModelTypes["players_bool_exp"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
 	reason?: ModelTypes["String_comparison_exp"] | undefined | null,
@@ -181572,6 +181966,7 @@ export type ModelTypes = {
 	e_sanction_type?: ModelTypes["e_sanction_types_obj_rel_insert_input"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
@@ -181650,6 +182045,8 @@ export type ModelTypes = {
 	e_sanction_type?: ModelTypes["e_sanction_types_order_by"] | undefined | null,
 	evidence_message_id?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
+	is_active?: ModelTypes["order_by"] | undefined | null,
+	notify_teammates?: ModelTypes["order_by"] | undefined | null,
 	player?: ModelTypes["players_order_by"] | undefined | null,
 	player_steam_id?: ModelTypes["order_by"] | undefined | null,
 	reason?: ModelTypes["order_by"] | undefined | null,
@@ -181666,12 +182063,15 @@ export type ModelTypes = {
 	id: ModelTypes["uuid"]
 };
 	["player_sanctions_select_column"]:player_sanctions_select_column;
+	["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"]:player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns;
+	["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"]:player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "player_sanctions" */
 ["player_sanctions_set_input"]: {
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
 	remove_sanction_date?: ModelTypes["timestamptz"] | undefined | null,
@@ -181728,6 +182128,7 @@ export type ModelTypes = {
 	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player_steam_id?: ModelTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
 	remove_sanction_date?: ModelTypes["timestamptz"] | undefined | null,
@@ -183906,6 +184307,7 @@ export type ModelTypes = {
 	aim_weapon_stats: Array<ModelTypes["player_aim_weapon_stats"]>,
 	/** An aggregate relationship */
 	aim_weapon_stats_aggregate: ModelTypes["player_aim_weapon_stats_aggregate"],
+	api_key_enabled: boolean,
 	/** An array relationship */
 	assists: Array<ModelTypes["player_assists"]>,
 	/** An aggregate relationship */
@@ -184199,6 +184601,7 @@ export type ModelTypes = {
 	abandoned_matches_aggregate?: ModelTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null,
 	aim_weapon_stats?: ModelTypes["player_aim_weapon_stats_bool_exp"] | undefined | null,
 	aim_weapon_stats_aggregate?: ModelTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null,
+	api_key_enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	assists?: ModelTypes["player_assists_bool_exp"] | undefined | null,
 	assists_aggregate?: ModelTypes["player_assists_aggregate_bool_exp"] | undefined | null,
 	assited_by_players?: ModelTypes["player_assists_bool_exp"] | undefined | null,
@@ -184348,6 +184751,7 @@ export type ModelTypes = {
 ["players_insert_input"]: {
 	abandoned_matches?: ModelTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null,
 	aim_weapon_stats?: ModelTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null,
+	api_key_enabled?: boolean | undefined | null,
 	assists?: ModelTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	assited_by_players?: ModelTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	avatar_url?: string | undefined | null,
@@ -184561,6 +184965,7 @@ export type ModelTypes = {
 ["players_order_by"]: {
 	abandoned_matches_aggregate?: ModelTypes["abandoned_matches_aggregate_order_by"] | undefined | null,
 	aim_weapon_stats_aggregate?: ModelTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null,
+	api_key_enabled?: ModelTypes["order_by"] | undefined | null,
 	assists_aggregate?: ModelTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: ModelTypes["player_assists_aggregate_order_by"] | undefined | null,
 	avatar_url?: ModelTypes["order_by"] | undefined | null,
@@ -184664,6 +185069,7 @@ export type ModelTypes = {
 	["players_select_column"]:players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
+	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -184796,6 +185202,7 @@ export type ModelTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
+	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -189767,7 +190174,10 @@ export type ModelTypes = {
 };
 	/** columns and relationships of "support_request_messages" */
 ["support_request_messages"]: {
-		created_at: ModelTypes["timestamptz"],
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	created_at: ModelTypes["timestamptz"],
 	id: ModelTypes["uuid"],
 	is_admin: boolean,
 	message: string,
@@ -189853,6 +190263,9 @@ export type ModelTypes = {
 	_and?: Array<ModelTypes["support_request_messages_bool_exp"]> | undefined | null,
 	_not?: ModelTypes["support_request_messages_bool_exp"] | undefined | null,
 	_or?: Array<ModelTypes["support_request_messages_bool_exp"]> | undefined | null,
+	attachment_content_type?: ModelTypes["String_comparison_exp"] | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	attachment_url?: ModelTypes["String_comparison_exp"] | undefined | null,
 	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	is_admin?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
@@ -189869,6 +190282,9 @@ export type ModelTypes = {
 };
 	/** input type for inserting data into table "support_request_messages" */
 ["support_request_messages_insert_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
@@ -189880,7 +190296,10 @@ export type ModelTypes = {
 };
 	/** aggregate max on columns */
 ["support_request_messages_max_fields"]: {
-		created_at?: ModelTypes["timestamptz"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
 	request_id?: ModelTypes["uuid"] | undefined | null,
@@ -189888,6 +190307,9 @@ export type ModelTypes = {
 };
 	/** order by max() on columns of table "support_request_messages" */
 ["support_request_messages_max_order_by"]: {
+	attachment_content_type?: ModelTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ModelTypes["order_by"] | undefined | null,
+	attachment_url?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	message?: ModelTypes["order_by"] | undefined | null,
@@ -189896,7 +190318,10 @@ export type ModelTypes = {
 };
 	/** aggregate min on columns */
 ["support_request_messages_min_fields"]: {
-		created_at?: ModelTypes["timestamptz"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
 	request_id?: ModelTypes["uuid"] | undefined | null,
@@ -189904,6 +190329,9 @@ export type ModelTypes = {
 };
 	/** order by min() on columns of table "support_request_messages" */
 ["support_request_messages_min_order_by"]: {
+	attachment_content_type?: ModelTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ModelTypes["order_by"] | undefined | null,
+	attachment_url?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	message?: ModelTypes["order_by"] | undefined | null,
@@ -189925,6 +190353,9 @@ export type ModelTypes = {
 };
 	/** Ordering options when selecting data from "support_request_messages". */
 ["support_request_messages_order_by"]: {
+	attachment_content_type?: ModelTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ModelTypes["order_by"] | undefined | null,
+	attachment_url?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	is_admin?: ModelTypes["order_by"] | undefined | null,
@@ -189943,6 +190374,9 @@ export type ModelTypes = {
 	["support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns"]:support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "support_request_messages" */
 ["support_request_messages_set_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
@@ -189983,6 +190417,9 @@ export type ModelTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_request_messages_stream_cursor_value_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
@@ -190033,7 +190470,10 @@ export type ModelTypes = {
 };
 	/** columns and relationships of "support_requests" */
 ["support_requests"]: {
-		category: ModelTypes["e_support_request_categories_enum"],
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	category: ModelTypes["e_support_request_categories_enum"],
 	closed_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at: ModelTypes["timestamptz"],
 	/** An object relationship */
@@ -190092,6 +190532,9 @@ export type ModelTypes = {
 	_and?: Array<ModelTypes["support_requests_bool_exp"]> | undefined | null,
 	_not?: ModelTypes["support_requests_bool_exp"] | undefined | null,
 	_or?: Array<ModelTypes["support_requests_bool_exp"]> | undefined | null,
+	attachment_content_type?: ModelTypes["String_comparison_exp"] | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	attachment_url?: ModelTypes["String_comparison_exp"] | undefined | null,
 	category?: ModelTypes["e_support_request_categories_enum_comparison_exp"] | undefined | null,
 	closed_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -190126,6 +190569,9 @@ export type ModelTypes = {
 };
 	/** input type for inserting data into table "support_requests" */
 ["support_requests_insert_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	category?: ModelTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -190152,7 +190598,10 @@ export type ModelTypes = {
 };
 	/** aggregate max on columns */
 ["support_requests_max_fields"]: {
-		closed_at?: ModelTypes["timestamptz"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	closed_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	handled_by_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
@@ -190173,7 +190622,10 @@ export type ModelTypes = {
 };
 	/** aggregate min on columns */
 ["support_requests_min_fields"]: {
-		closed_at?: ModelTypes["timestamptz"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	closed_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	handled_by_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
@@ -190213,6 +190665,9 @@ export type ModelTypes = {
 };
 	/** Ordering options when selecting data from "support_requests". */
 ["support_requests_order_by"]: {
+	attachment_content_type?: ModelTypes["order_by"] | undefined | null,
+	attachment_removed_at?: ModelTypes["order_by"] | undefined | null,
+	attachment_url?: ModelTypes["order_by"] | undefined | null,
 	category?: ModelTypes["order_by"] | undefined | null,
 	closed_at?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
@@ -190244,6 +190699,9 @@ export type ModelTypes = {
 	["support_requests_select_column"]:support_requests_select_column;
 	/** input type for updating data in table "support_requests" */
 ["support_requests_set_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	category?: ModelTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -190292,6 +190750,9 @@ export type ModelTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_requests_stream_cursor_value_input"]: {
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: ModelTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	category?: ModelTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: ModelTypes["timestamptz"] | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
@@ -231152,6 +231613,9 @@ export type GraphQLTypes = {
 	elo_changes: Array<GraphQLTypes["v_player_elo"]>,
 	/** An aggregate relationship */
 	elo_changes_aggregate: GraphQLTypes["v_player_elo_aggregate"],
+	elo_voided: boolean,
+	elo_voided_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
 	ended_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231191,6 +231655,8 @@ export type GraphQLTypes = {
 	map_veto_picks: Array<GraphQLTypes["match_map_veto_picks"]>,
 	/** An aggregate relationship */
 	map_veto_picks_aggregate: GraphQLTypes["match_map_veto_picks_aggregate"],
+	/** The full map veto (type and acting team per step), from get_map_veto_pattern and get_map_veto_turn_team. */
+	map_veto_sequence?: GraphQLTypes["jsonb"] | undefined | null,
 	/** A computed field, executes function "get_map_veto_type" */
 	map_veto_type?: string | undefined | null,
 	/** An array relationship */
@@ -231286,7 +231752,21 @@ export type GraphQLTypes = {
 	nodes: Array<GraphQLTypes["matches"]>
 };
 	["matches_aggregate_bool_exp"]: {
-		count?: GraphQLTypes["matches_aggregate_bool_exp_count"] | undefined | null
+		bool_and?: GraphQLTypes["matches_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: GraphQLTypes["matches_aggregate_bool_exp_bool_or"] | undefined | null,
+	count?: GraphQLTypes["matches_aggregate_bool_exp_count"] | undefined | null
+};
+	["matches_aggregate_bool_exp_bool_and"]: {
+		arguments: GraphQLTypes["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["matches_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Boolean_comparison_exp"]
+};
+	["matches_aggregate_bool_exp_bool_or"]: {
+		arguments: GraphQLTypes["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["matches_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Boolean_comparison_exp"]
 };
 	["matches_aggregate_bool_exp_count"]: {
 		arguments?: Array<GraphQLTypes["matches_select_column"]> | undefined | null,
@@ -231332,6 +231812,7 @@ export type GraphQLTypes = {
 	/** aggregate avg on columns */
 ["matches_avg_fields"]: {
 	__typename: "matches_avg_fields",
+	elo_voided_by?: number | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231340,7 +231821,8 @@ export type GraphQLTypes = {
 };
 	/** order by avg() on columns of table "matches" */
 ["matches_avg_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "matches". All fields are combined with a logical 'AND'. */
 ["matches_bool_exp"]: {
@@ -231373,6 +231855,9 @@ export type GraphQLTypes = {
 	effective_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	elo_changes?: GraphQLTypes["v_player_elo_bool_exp"] | undefined | null,
 	elo_changes_aggregate?: GraphQLTypes["v_player_elo_aggregate_bool_exp"] | undefined | null,
+	elo_voided?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
+	elo_voided_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
 	ended_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	external_id?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	external_timestamp_source?: GraphQLTypes["String_comparison_exp"] | undefined | null,
@@ -231396,6 +231881,7 @@ export type GraphQLTypes = {
 	map_veto_picking_lineup_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	map_veto_picks?: GraphQLTypes["match_map_veto_picks_bool_exp"] | undefined | null,
 	map_veto_picks_aggregate?: GraphQLTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null,
+	map_veto_sequence?: GraphQLTypes["jsonb_comparison_exp"] | undefined | null,
 	map_veto_type?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	match_maps?: GraphQLTypes["match_maps_bool_exp"] | undefined | null,
 	match_maps_aggregate?: GraphQLTypes["match_maps_aggregate_bool_exp"] | undefined | null,
@@ -231450,7 +231936,8 @@ export type GraphQLTypes = {
 ["matches_constraint"]: matches_constraint;
 	/** input type for incrementing numeric columns in table "matches" */
 ["matches_inc_input"]: {
-		organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null
+		elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "matches" */
 ["matches_insert_input"]: {
@@ -231463,6 +231950,9 @@ export type GraphQLTypes = {
 	e_match_status?: GraphQLTypes["e_match_status_obj_rel_insert_input"] | undefined | null,
 	e_region?: GraphQLTypes["server_regions_obj_rel_insert_input"] | undefined | null,
 	elo_changes?: GraphQLTypes["v_player_elo_arr_rel_insert_input"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
 	ended_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231515,6 +232005,8 @@ export type GraphQLTypes = {
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?: GraphQLTypes["uuid"] | undefined | null,
 	effective_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
 	ended_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231560,6 +232052,8 @@ export type GraphQLTypes = {
 		cancels_at?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	effective_at?: GraphQLTypes["order_by"] | undefined | null,
+	elo_voided_at?: GraphQLTypes["order_by"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
 	ended_at?: GraphQLTypes["order_by"] | undefined | null,
 	external_id?: GraphQLTypes["order_by"] | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231592,6 +232086,8 @@ export type GraphQLTypes = {
 	/** A computed field, executes function "get_current_match_map" */
 	current_match_map_id?: GraphQLTypes["uuid"] | undefined | null,
 	effective_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
 	ended_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231637,6 +232133,8 @@ export type GraphQLTypes = {
 		cancels_at?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	effective_at?: GraphQLTypes["order_by"] | undefined | null,
+	elo_voided_at?: GraphQLTypes["order_by"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
 	ended_at?: GraphQLTypes["order_by"] | undefined | null,
 	external_id?: GraphQLTypes["order_by"] | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231700,6 +232198,9 @@ export type GraphQLTypes = {
 	e_region?: GraphQLTypes["server_regions_order_by"] | undefined | null,
 	effective_at?: GraphQLTypes["order_by"] | undefined | null,
 	elo_changes_aggregate?: GraphQLTypes["v_player_elo_aggregate_order_by"] | undefined | null,
+	elo_voided?: GraphQLTypes["order_by"] | undefined | null,
+	elo_voided_at?: GraphQLTypes["order_by"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
 	ended_at?: GraphQLTypes["order_by"] | undefined | null,
 	external_id?: GraphQLTypes["order_by"] | undefined | null,
 	external_timestamp_source?: GraphQLTypes["order_by"] | undefined | null,
@@ -231722,6 +232223,7 @@ export type GraphQLTypes = {
 	map_veto_pick_expires_at?: GraphQLTypes["order_by"] | undefined | null,
 	map_veto_picking_lineup_id?: GraphQLTypes["order_by"] | undefined | null,
 	map_veto_picks_aggregate?: GraphQLTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null,
+	map_veto_sequence?: GraphQLTypes["order_by"] | undefined | null,
 	map_veto_type?: GraphQLTypes["order_by"] | undefined | null,
 	match_maps_aggregate?: GraphQLTypes["match_maps_aggregate_order_by"] | undefined | null,
 	match_options_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -231766,10 +232268,17 @@ export type GraphQLTypes = {
 };
 	/** select columns of table "matches" */
 ["matches_select_column"]: matches_select_column;
+	/** select "matches_aggregate_bool_exp_bool_and_arguments_columns" columns of table "matches" */
+["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"]: matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "matches_aggregate_bool_exp_bool_or_arguments_columns" columns of table "matches" */
+["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"]: matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "matches" */
 ["matches_set_input"]: {
 		cancels_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
 	ended_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231794,6 +232303,7 @@ export type GraphQLTypes = {
 	/** aggregate stddev on columns */
 ["matches_stddev_fields"]: {
 	__typename: "matches_stddev_fields",
+	elo_voided_by?: number | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231802,11 +232312,13 @@ export type GraphQLTypes = {
 };
 	/** order by stddev() on columns of table "matches" */
 ["matches_stddev_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["matches_stddev_pop_fields"]: {
 	__typename: "matches_stddev_pop_fields",
+	elo_voided_by?: number | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231815,11 +232327,13 @@ export type GraphQLTypes = {
 };
 	/** order by stddev_pop() on columns of table "matches" */
 ["matches_stddev_pop_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["matches_stddev_samp_fields"]: {
 	__typename: "matches_stddev_samp_fields",
+	elo_voided_by?: number | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231828,7 +232342,8 @@ export type GraphQLTypes = {
 };
 	/** order by stddev_samp() on columns of table "matches" */
 ["matches_stddev_samp_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "matches" */
 ["matches_stream_cursor_input"]: {
@@ -231842,6 +232357,9 @@ export type GraphQLTypes = {
 		cancels_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	effective_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided?: boolean | undefined | null,
+	elo_voided_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
 	ended_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	external_id?: string | undefined | null,
 	/** Verified provenance for started_at on imported matches. NULL means the timestamp is not suitable for an external last-match claim. */
@@ -231866,6 +232384,7 @@ export type GraphQLTypes = {
 	/** aggregate sum on columns */
 ["matches_sum_fields"]: {
 	__typename: "matches_sum_fields",
+	elo_voided_by?: GraphQLTypes["bigint"] | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231874,7 +232393,8 @@ export type GraphQLTypes = {
 };
 	/** order by sum() on columns of table "matches" */
 ["matches_sum_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** update columns of table "matches" */
 ["matches_update_column"]: matches_update_column;
@@ -231889,6 +232409,7 @@ export type GraphQLTypes = {
 	/** aggregate var_pop on columns */
 ["matches_var_pop_fields"]: {
 	__typename: "matches_var_pop_fields",
+	elo_voided_by?: number | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231897,11 +232418,13 @@ export type GraphQLTypes = {
 };
 	/** order by var_pop() on columns of table "matches" */
 ["matches_var_pop_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["matches_var_samp_fields"]: {
 	__typename: "matches_var_samp_fields",
+	elo_voided_by?: number | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231910,11 +232433,13 @@ export type GraphQLTypes = {
 };
 	/** order by var_samp() on columns of table "matches" */
 ["matches_var_samp_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["matches_variance_fields"]: {
 	__typename: "matches_variance_fields",
+	elo_voided_by?: number | undefined | null,
 	/** A computed field, executes function "match_max_players_per_lineup" */
 	max_players_per_lineup?: number | undefined | null,
 	/** A computed field, executes function "match_min_players_per_lineup" */
@@ -231923,7 +232448,8 @@ export type GraphQLTypes = {
 };
 	/** order by variance() on columns of table "matches" */
 ["matches_variance_order_by"]: {
-		organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
+		elo_voided_by?: GraphQLTypes["order_by"] | undefined | null,
+	organizer_steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "migration_hashes.hashes" */
 ["migration_hashes_hashes"]: {
@@ -234757,6 +235283,8 @@ export type GraphQLTypes = {
 	update_verification_call_tokens_many?: Array<GraphQLTypes["verification_call_tokens_mutation_response"] | undefined | null> | undefined | null,
 	/** Validate CS2 gamedata signatures/offsets on a node (5stack.gg test instance only) */
 	validateGamedata?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Void a played match's ELO for every player (score, stats, demos and clips kept) and rebuild ELO so later ratings exclude it (admin only). */
+	voidMatchElo?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Spawn a per-user game-streamer pod to play back a finished match's demo */
 	watchDemo?: GraphQLTypes["WatchDemoOutput"] | undefined | null,
 	/** Write content to file on game server */
@@ -246545,6 +247073,9 @@ export type GraphQLTypes = {
 	e_sanction_type: GraphQLTypes["e_sanction_types"],
 	evidence_message_id?: string | undefined | null,
 	id: GraphQLTypes["uuid"],
+	/** A computed field, executes function "player_sanction_is_active" */
+	is_active?: boolean | undefined | null,
+	notify_teammates: boolean,
 	/** An object relationship */
 	player: GraphQLTypes["players"],
 	player_steam_id: GraphQLTypes["bigint"],
@@ -246565,7 +247096,21 @@ export type GraphQLTypes = {
 	nodes: Array<GraphQLTypes["player_sanctions"]>
 };
 	["player_sanctions_aggregate_bool_exp"]: {
-		count?: GraphQLTypes["player_sanctions_aggregate_bool_exp_count"] | undefined | null
+		bool_and?: GraphQLTypes["player_sanctions_aggregate_bool_exp_bool_and"] | undefined | null,
+	bool_or?: GraphQLTypes["player_sanctions_aggregate_bool_exp_bool_or"] | undefined | null,
+	count?: GraphQLTypes["player_sanctions_aggregate_bool_exp_count"] | undefined | null
+};
+	["player_sanctions_aggregate_bool_exp_bool_and"]: {
+		arguments: GraphQLTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["player_sanctions_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Boolean_comparison_exp"]
+};
+	["player_sanctions_aggregate_bool_exp_bool_or"]: {
+		arguments: GraphQLTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"],
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["player_sanctions_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Boolean_comparison_exp"]
 };
 	["player_sanctions_aggregate_bool_exp_count"]: {
 		arguments?: Array<GraphQLTypes["player_sanctions_select_column"]> | undefined | null,
@@ -246631,6 +247176,8 @@ export type GraphQLTypes = {
 	e_sanction_type?: GraphQLTypes["e_sanction_types_bool_exp"] | undefined | null,
 	evidence_message_id?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	is_active?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
+	notify_teammates?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: GraphQLTypes["players_bool_exp"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
 	reason?: GraphQLTypes["String_comparison_exp"] | undefined | null,
@@ -246656,6 +247203,7 @@ export type GraphQLTypes = {
 	e_sanction_type?: GraphQLTypes["e_sanction_types_obj_rel_insert_input"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
@@ -246737,6 +247285,8 @@ export type GraphQLTypes = {
 	e_sanction_type?: GraphQLTypes["e_sanction_types_order_by"] | undefined | null,
 	evidence_message_id?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
+	is_active?: GraphQLTypes["order_by"] | undefined | null,
+	notify_teammates?: GraphQLTypes["order_by"] | undefined | null,
 	player?: GraphQLTypes["players_order_by"] | undefined | null,
 	player_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	reason?: GraphQLTypes["order_by"] | undefined | null,
@@ -246754,12 +247304,17 @@ export type GraphQLTypes = {
 };
 	/** select columns of table "player_sanctions" */
 ["player_sanctions_select_column"]: player_sanctions_select_column;
+	/** select "player_sanctions_aggregate_bool_exp_bool_and_arguments_columns" columns of table "player_sanctions" */
+["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"]: player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns;
+	/** select "player_sanctions_aggregate_bool_exp_bool_or_arguments_columns" columns of table "player_sanctions" */
+["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"]: player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "player_sanctions" */
 ["player_sanctions_set_input"]: {
 		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
 	remove_sanction_date?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -246819,6 +247374,7 @@ export type GraphQLTypes = {
 	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	evidence_message_id?: string | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
+	notify_teammates?: boolean | undefined | null,
 	player_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	reason?: string | undefined | null,
 	remove_sanction_date?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -249144,6 +249700,7 @@ export type GraphQLTypes = {
 	aim_weapon_stats: Array<GraphQLTypes["player_aim_weapon_stats"]>,
 	/** An aggregate relationship */
 	aim_weapon_stats_aggregate: GraphQLTypes["player_aim_weapon_stats_aggregate"],
+	api_key_enabled: boolean,
 	/** An array relationship */
 	assists: Array<GraphQLTypes["player_assists"]>,
 	/** An aggregate relationship */
@@ -249440,6 +249997,7 @@ export type GraphQLTypes = {
 	abandoned_matches_aggregate?: GraphQLTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null,
 	aim_weapon_stats?: GraphQLTypes["player_aim_weapon_stats_bool_exp"] | undefined | null,
 	aim_weapon_stats_aggregate?: GraphQLTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null,
+	api_key_enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	assists?: GraphQLTypes["player_assists_bool_exp"] | undefined | null,
 	assists_aggregate?: GraphQLTypes["player_assists_aggregate_bool_exp"] | undefined | null,
 	assited_by_players?: GraphQLTypes["player_assists_bool_exp"] | undefined | null,
@@ -249590,6 +250148,7 @@ export type GraphQLTypes = {
 ["players_insert_input"]: {
 		abandoned_matches?: GraphQLTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null,
 	aim_weapon_stats?: GraphQLTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null,
+	api_key_enabled?: boolean | undefined | null,
 	assists?: GraphQLTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	assited_by_players?: GraphQLTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	avatar_url?: string | undefined | null,
@@ -249806,6 +250365,7 @@ export type GraphQLTypes = {
 ["players_order_by"]: {
 		abandoned_matches_aggregate?: GraphQLTypes["abandoned_matches_aggregate_order_by"] | undefined | null,
 	aim_weapon_stats_aggregate?: GraphQLTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null,
+	api_key_enabled?: GraphQLTypes["order_by"] | undefined | null,
 	assists_aggregate?: GraphQLTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: GraphQLTypes["player_assists_aggregate_order_by"] | undefined | null,
 	avatar_url?: GraphQLTypes["order_by"] | undefined | null,
@@ -249910,7 +250470,8 @@ export type GraphQLTypes = {
 ["players_select_column"]: players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
-		avatar_url?: string | undefined | null,
+		api_key_enabled?: boolean | undefined | null,
+	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
@@ -250045,7 +250606,8 @@ export type GraphQLTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
-		avatar_url?: string | undefined | null,
+		api_key_enabled?: boolean | undefined | null,
+	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
@@ -255163,6 +255725,9 @@ export type GraphQLTypes = {
 	/** columns and relationships of "support_request_messages" */
 ["support_request_messages"]: {
 	__typename: "support_request_messages",
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at: GraphQLTypes["timestamptz"],
 	id: GraphQLTypes["uuid"],
 	is_admin: boolean,
@@ -255252,6 +255817,9 @@ export type GraphQLTypes = {
 		_and?: Array<GraphQLTypes["support_request_messages_bool_exp"]> | undefined | null,
 	_not?: GraphQLTypes["support_request_messages_bool_exp"] | undefined | null,
 	_or?: Array<GraphQLTypes["support_request_messages_bool_exp"]> | undefined | null,
+	attachment_content_type?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	attachment_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	is_admin?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
@@ -255269,7 +255837,10 @@ export type GraphQLTypes = {
 };
 	/** input type for inserting data into table "support_request_messages" */
 ["support_request_messages_insert_input"]: {
-		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -255281,6 +255852,9 @@ export type GraphQLTypes = {
 	/** aggregate max on columns */
 ["support_request_messages_max_fields"]: {
 	__typename: "support_request_messages_max_fields",
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
@@ -255289,7 +255863,10 @@ export type GraphQLTypes = {
 };
 	/** order by max() on columns of table "support_request_messages" */
 ["support_request_messages_max_order_by"]: {
-		created_at?: GraphQLTypes["order_by"] | undefined | null,
+		attachment_content_type?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_removed_at?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_url?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	message?: GraphQLTypes["order_by"] | undefined | null,
 	request_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -255298,6 +255875,9 @@ export type GraphQLTypes = {
 	/** aggregate min on columns */
 ["support_request_messages_min_fields"]: {
 	__typename: "support_request_messages_min_fields",
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	message?: string | undefined | null,
@@ -255306,7 +255886,10 @@ export type GraphQLTypes = {
 };
 	/** order by min() on columns of table "support_request_messages" */
 ["support_request_messages_min_order_by"]: {
-		created_at?: GraphQLTypes["order_by"] | undefined | null,
+		attachment_content_type?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_removed_at?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_url?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	message?: GraphQLTypes["order_by"] | undefined | null,
 	request_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -255328,7 +255911,10 @@ export type GraphQLTypes = {
 };
 	/** Ordering options when selecting data from "support_request_messages". */
 ["support_request_messages_order_by"]: {
-		created_at?: GraphQLTypes["order_by"] | undefined | null,
+		attachment_content_type?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_removed_at?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_url?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	is_admin?: GraphQLTypes["order_by"] | undefined | null,
 	message?: GraphQLTypes["order_by"] | undefined | null,
@@ -255349,7 +255935,10 @@ export type GraphQLTypes = {
 ["support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns"]: support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "support_request_messages" */
 ["support_request_messages_set_input"]: {
-		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -255392,7 +255981,10 @@ export type GraphQLTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_request_messages_stream_cursor_value_input"]: {
-		created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_admin?: boolean | undefined | null,
 	message?: string | undefined | null,
@@ -255448,6 +256040,9 @@ export type GraphQLTypes = {
 	/** columns and relationships of "support_requests" */
 ["support_requests"]: {
 	__typename: "support_requests",
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	category: GraphQLTypes["e_support_request_categories_enum"],
 	closed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at: GraphQLTypes["timestamptz"],
@@ -255510,6 +256105,9 @@ export type GraphQLTypes = {
 		_and?: Array<GraphQLTypes["support_requests_bool_exp"]> | undefined | null,
 	_not?: GraphQLTypes["support_requests_bool_exp"] | undefined | null,
 	_or?: Array<GraphQLTypes["support_requests_bool_exp"]> | undefined | null,
+	attachment_content_type?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	attachment_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	category?: GraphQLTypes["e_support_request_categories_enum_comparison_exp"] | undefined | null,
 	closed_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
@@ -255545,7 +256143,10 @@ export type GraphQLTypes = {
 };
 	/** input type for inserting data into table "support_requests" */
 ["support_requests_insert_input"]: {
-		category?: GraphQLTypes["e_support_request_categories_enum"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	category?: GraphQLTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	handled_by?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
@@ -255572,6 +256173,9 @@ export type GraphQLTypes = {
 	/** aggregate max on columns */
 ["support_requests_max_fields"]: {
 	__typename: "support_requests_max_fields",
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	closed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	handled_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -255594,6 +256198,9 @@ export type GraphQLTypes = {
 	/** aggregate min on columns */
 ["support_requests_min_fields"]: {
 	__typename: "support_requests_min_fields",
+	attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
 	closed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	handled_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -255635,7 +256242,10 @@ export type GraphQLTypes = {
 };
 	/** Ordering options when selecting data from "support_requests". */
 ["support_requests_order_by"]: {
-		category?: GraphQLTypes["order_by"] | undefined | null,
+		attachment_content_type?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_removed_at?: GraphQLTypes["order_by"] | undefined | null,
+	attachment_url?: GraphQLTypes["order_by"] | undefined | null,
+	category?: GraphQLTypes["order_by"] | undefined | null,
 	closed_at?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	handled_by?: GraphQLTypes["players_order_by"] | undefined | null,
@@ -255667,7 +256277,10 @@ export type GraphQLTypes = {
 ["support_requests_select_column"]: support_requests_select_column;
 	/** input type for updating data in table "support_requests" */
 ["support_requests_set_input"]: {
-		category?: GraphQLTypes["e_support_request_categories_enum"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	category?: GraphQLTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	handled_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -255718,7 +256331,10 @@ export type GraphQLTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["support_requests_stream_cursor_value_input"]: {
-		category?: GraphQLTypes["e_support_request_categories_enum"] | undefined | null,
+		attachment_content_type?: string | undefined | null,
+	attachment_removed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	attachment_url?: string | undefined | null,
+	category?: GraphQLTypes["e_support_request_categories_enum"] | undefined | null,
 	closed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	handled_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -275699,6 +276315,7 @@ export enum e_notification_types_enum {
 	OrganizerChatMessage = "OrganizerChatMessage",
 	PlayerReindex = "PlayerReindex",
 	PlayerSanctioned = "PlayerSanctioned",
+	PlayerWarning = "PlayerWarning",
 	ScrimAlertMatch = "ScrimAlertMatch",
 	ScrimMatchCanceled = "ScrimMatchCanceled",
 	ScrimMatchScheduled = "ScrimMatchScheduled",
@@ -275820,6 +276437,7 @@ export enum e_sanction_types_enum {
 	gag = "gag",
 	mute = "mute",
 	silence = "silence",
+	warning = "warning",
 	website_chat_mute = "website_chat_mute",
 	website_restriction = "website_restriction"
 }
@@ -277462,6 +278080,9 @@ export enum matches_select_column {
 	cancels_at = "cancels_at",
 	created_at = "created_at",
 	effective_at = "effective_at",
+	elo_voided = "elo_voided",
+	elo_voided_at = "elo_voided_at",
+	elo_voided_by = "elo_voided_by",
 	ended_at = "ended_at",
 	external_id = "external_id",
 	external_timestamp_source = "external_timestamp_source",
@@ -277482,10 +278103,21 @@ export enum matches_select_column {
 	status = "status",
 	winning_lineup_id = "winning_lineup_id"
 }
+/** select "matches_aggregate_bool_exp_bool_and_arguments_columns" columns of table "matches" */
+export enum matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns {
+	elo_voided = "elo_voided"
+}
+/** select "matches_aggregate_bool_exp_bool_or_arguments_columns" columns of table "matches" */
+export enum matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns {
+	elo_voided = "elo_voided"
+}
 /** update columns of table "matches" */
 export enum matches_update_column {
 	cancels_at = "cancels_at",
 	created_at = "created_at",
+	elo_voided = "elo_voided",
+	elo_voided_at = "elo_voided_at",
+	elo_voided_by = "elo_voided_by",
 	ended_at = "ended_at",
 	external_id = "external_id",
 	external_timestamp_source = "external_timestamp_source",
@@ -278475,6 +279107,7 @@ export enum player_sanctions_select_column {
 	deleted_at = "deleted_at",
 	evidence_message_id = "evidence_message_id",
 	id = "id",
+	notify_teammates = "notify_teammates",
 	player_steam_id = "player_steam_id",
 	reason = "reason",
 	remove_sanction_date = "remove_sanction_date",
@@ -278482,12 +279115,21 @@ export enum player_sanctions_select_column {
 	sanctioned_by_steam_id = "sanctioned_by_steam_id",
 	type = "type"
 }
+/** select "player_sanctions_aggregate_bool_exp_bool_and_arguments_columns" columns of table "player_sanctions" */
+export enum player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns {
+	notify_teammates = "notify_teammates"
+}
+/** select "player_sanctions_aggregate_bool_exp_bool_or_arguments_columns" columns of table "player_sanctions" */
+export enum player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns {
+	notify_teammates = "notify_teammates"
+}
 /** update columns of table "player_sanctions" */
 export enum player_sanctions_update_column {
 	created_at = "created_at",
 	deleted_at = "deleted_at",
 	evidence_message_id = "evidence_message_id",
 	id = "id",
+	notify_teammates = "notify_teammates",
 	player_steam_id = "player_steam_id",
 	reason = "reason",
 	remove_sanction_date = "remove_sanction_date",
@@ -278707,6 +279349,7 @@ export enum players_constraint {
 }
 /** select columns of table "players" */
 export enum players_select_column {
+	api_key_enabled = "api_key_enabled",
 	avatar_url = "avatar_url",
 	country = "country",
 	created_at = "created_at",
@@ -278743,6 +279386,7 @@ export enum players_select_column {
 }
 /** update columns of table "players" */
 export enum players_update_column {
+	api_key_enabled = "api_key_enabled",
 	avatar_url = "avatar_url",
 	country = "country",
 	created_at = "created_at",
@@ -279031,6 +279675,9 @@ export enum support_request_messages_constraint {
 }
 /** select columns of table "support_request_messages" */
 export enum support_request_messages_select_column {
+	attachment_content_type = "attachment_content_type",
+	attachment_removed_at = "attachment_removed_at",
+	attachment_url = "attachment_url",
 	created_at = "created_at",
 	id = "id",
 	is_admin = "is_admin",
@@ -279048,6 +279695,9 @@ export enum support_request_messages_select_column_support_request_messages_aggr
 }
 /** update columns of table "support_request_messages" */
 export enum support_request_messages_update_column {
+	attachment_content_type = "attachment_content_type",
+	attachment_removed_at = "attachment_removed_at",
+	attachment_url = "attachment_url",
 	created_at = "created_at",
 	id = "id",
 	is_admin = "is_admin",
@@ -279061,6 +279711,9 @@ export enum support_requests_constraint {
 }
 /** select columns of table "support_requests" */
 export enum support_requests_select_column {
+	attachment_content_type = "attachment_content_type",
+	attachment_removed_at = "attachment_removed_at",
+	attachment_url = "attachment_url",
 	category = "category",
 	closed_at = "closed_at",
 	created_at = "created_at",
@@ -279084,6 +279737,9 @@ export enum support_requests_select_column {
 }
 /** update columns of table "support_requests" */
 export enum support_requests_update_column {
+	attachment_content_type = "attachment_content_type",
+	attachment_removed_at = "attachment_removed_at",
+	attachment_url = "attachment_url",
 	category = "category",
 	closed_at = "closed_at",
 	created_at = "created_at",
@@ -282819,6 +283475,8 @@ type ZEUS_VARIABLES = {
 	["match_type_cfgs_update_column"]: ValueTypes["match_type_cfgs_update_column"];
 	["match_type_cfgs_updates"]: ValueTypes["match_type_cfgs_updates"];
 	["matches_aggregate_bool_exp"]: ValueTypes["matches_aggregate_bool_exp"];
+	["matches_aggregate_bool_exp_bool_and"]: ValueTypes["matches_aggregate_bool_exp_bool_and"];
+	["matches_aggregate_bool_exp_bool_or"]: ValueTypes["matches_aggregate_bool_exp_bool_or"];
 	["matches_aggregate_bool_exp_count"]: ValueTypes["matches_aggregate_bool_exp_count"];
 	["matches_aggregate_order_by"]: ValueTypes["matches_aggregate_order_by"];
 	["matches_arr_rel_insert_input"]: ValueTypes["matches_arr_rel_insert_input"];
@@ -282834,6 +283492,8 @@ type ZEUS_VARIABLES = {
 	["matches_order_by"]: ValueTypes["matches_order_by"];
 	["matches_pk_columns_input"]: ValueTypes["matches_pk_columns_input"];
 	["matches_select_column"]: ValueTypes["matches_select_column"];
+	["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"]: ValueTypes["matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns"];
+	["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"]: ValueTypes["matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns"];
 	["matches_set_input"]: ValueTypes["matches_set_input"];
 	["matches_stddev_order_by"]: ValueTypes["matches_stddev_order_by"];
 	["matches_stddev_pop_order_by"]: ValueTypes["matches_stddev_pop_order_by"];
@@ -283355,6 +284015,8 @@ type ZEUS_VARIABLES = {
 	["player_premier_rank_history_var_samp_order_by"]: ValueTypes["player_premier_rank_history_var_samp_order_by"];
 	["player_premier_rank_history_variance_order_by"]: ValueTypes["player_premier_rank_history_variance_order_by"];
 	["player_sanctions_aggregate_bool_exp"]: ValueTypes["player_sanctions_aggregate_bool_exp"];
+	["player_sanctions_aggregate_bool_exp_bool_and"]: ValueTypes["player_sanctions_aggregate_bool_exp_bool_and"];
+	["player_sanctions_aggregate_bool_exp_bool_or"]: ValueTypes["player_sanctions_aggregate_bool_exp_bool_or"];
 	["player_sanctions_aggregate_bool_exp_count"]: ValueTypes["player_sanctions_aggregate_bool_exp_count"];
 	["player_sanctions_aggregate_order_by"]: ValueTypes["player_sanctions_aggregate_order_by"];
 	["player_sanctions_arr_rel_insert_input"]: ValueTypes["player_sanctions_arr_rel_insert_input"];
@@ -283369,6 +284031,8 @@ type ZEUS_VARIABLES = {
 	["player_sanctions_order_by"]: ValueTypes["player_sanctions_order_by"];
 	["player_sanctions_pk_columns_input"]: ValueTypes["player_sanctions_pk_columns_input"];
 	["player_sanctions_select_column"]: ValueTypes["player_sanctions_select_column"];
+	["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"]: ValueTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns"];
+	["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"]: ValueTypes["player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns"];
 	["player_sanctions_set_input"]: ValueTypes["player_sanctions_set_input"];
 	["player_sanctions_stddev_order_by"]: ValueTypes["player_sanctions_stddev_order_by"];
 	["player_sanctions_stddev_pop_order_by"]: ValueTypes["player_sanctions_stddev_pop_order_by"];

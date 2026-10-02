@@ -11601,6 +11601,9 @@ export const AllTypesProps: Record<string,any> = {
 			order_by:"match_map_veto_picks_order_by",
 			where:"match_map_veto_picks_bool_exp"
 		},
+		map_veto_sequence:{
+
+		},
 		match_maps:{
 			distinct_on:"match_maps_select_column",
 			order_by:"match_maps_order_by",
@@ -11728,7 +11731,19 @@ export const AllTypesProps: Record<string,any> = {
 		}
 	},
 	matches_aggregate_bool_exp:{
+		bool_and:"matches_aggregate_bool_exp_bool_and",
+		bool_or:"matches_aggregate_bool_exp_bool_or",
 		count:"matches_aggregate_bool_exp_count"
+	},
+	matches_aggregate_bool_exp_bool_and:{
+		arguments:"matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns",
+		filter:"matches_bool_exp",
+		predicate:"Boolean_comparison_exp"
+	},
+	matches_aggregate_bool_exp_bool_or:{
+		arguments:"matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns",
+		filter:"matches_bool_exp",
+		predicate:"Boolean_comparison_exp"
 	},
 	matches_aggregate_bool_exp_count:{
 		arguments:"matches_select_column",
@@ -11758,6 +11773,7 @@ export const AllTypesProps: Record<string,any> = {
 		on_conflict:"matches_on_conflict"
 	},
 	matches_avg_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	matches_bool_exp:{
@@ -11790,6 +11806,9 @@ export const AllTypesProps: Record<string,any> = {
 		effective_at:"timestamptz_comparison_exp",
 		elo_changes:"v_player_elo_bool_exp",
 		elo_changes_aggregate:"v_player_elo_aggregate_bool_exp",
+		elo_voided:"Boolean_comparison_exp",
+		elo_voided_at:"timestamptz_comparison_exp",
+		elo_voided_by:"bigint_comparison_exp",
 		ended_at:"timestamptz_comparison_exp",
 		external_id:"String_comparison_exp",
 		external_timestamp_source:"String_comparison_exp",
@@ -11813,6 +11832,7 @@ export const AllTypesProps: Record<string,any> = {
 		map_veto_picking_lineup_id:"uuid_comparison_exp",
 		map_veto_picks:"match_map_veto_picks_bool_exp",
 		map_veto_picks_aggregate:"match_map_veto_picks_aggregate_bool_exp",
+		map_veto_sequence:"jsonb_comparison_exp",
 		map_veto_type:"String_comparison_exp",
 		match_maps:"match_maps_bool_exp",
 		match_maps_aggregate:"match_maps_aggregate_bool_exp",
@@ -11865,6 +11885,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	matches_constraint: "enum" as const,
 	matches_inc_input:{
+		elo_voided_by:"bigint",
 		organizer_steam_id:"bigint"
 	},
 	matches_insert_input:{
@@ -11877,6 +11898,8 @@ export const AllTypesProps: Record<string,any> = {
 		e_match_status:"e_match_status_obj_rel_insert_input",
 		e_region:"server_regions_obj_rel_insert_input",
 		elo_changes:"v_player_elo_arr_rel_insert_input",
+		elo_voided_at:"timestamptz",
+		elo_voided_by:"bigint",
 		ended_at:"timestamptz",
 		id:"uuid",
 		lineup_1:"match_lineups_obj_rel_insert_input",
@@ -11913,6 +11936,8 @@ export const AllTypesProps: Record<string,any> = {
 		cancels_at:"order_by",
 		created_at:"order_by",
 		effective_at:"order_by",
+		elo_voided_at:"order_by",
+		elo_voided_by:"order_by",
 		ended_at:"order_by",
 		external_id:"order_by",
 		external_timestamp_source:"order_by",
@@ -11936,6 +11961,8 @@ export const AllTypesProps: Record<string,any> = {
 		cancels_at:"order_by",
 		created_at:"order_by",
 		effective_at:"order_by",
+		elo_voided_at:"order_by",
+		elo_voided_by:"order_by",
 		ended_at:"order_by",
 		external_id:"order_by",
 		external_timestamp_source:"order_by",
@@ -11986,6 +12013,9 @@ export const AllTypesProps: Record<string,any> = {
 		e_region:"server_regions_order_by",
 		effective_at:"order_by",
 		elo_changes_aggregate:"v_player_elo_aggregate_order_by",
+		elo_voided:"order_by",
+		elo_voided_at:"order_by",
+		elo_voided_by:"order_by",
 		ended_at:"order_by",
 		external_id:"order_by",
 		external_timestamp_source:"order_by",
@@ -12008,6 +12038,7 @@ export const AllTypesProps: Record<string,any> = {
 		map_veto_pick_expires_at:"order_by",
 		map_veto_picking_lineup_id:"order_by",
 		map_veto_picks_aggregate:"match_map_veto_picks_aggregate_order_by",
+		map_veto_sequence:"order_by",
 		map_veto_type:"order_by",
 		match_maps_aggregate:"match_maps_aggregate_order_by",
 		match_options_id:"order_by",
@@ -12050,9 +12081,13 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid"
 	},
 	matches_select_column: "enum" as const,
+	matches_select_column_matches_aggregate_bool_exp_bool_and_arguments_columns: "enum" as const,
+	matches_select_column_matches_aggregate_bool_exp_bool_or_arguments_columns: "enum" as const,
 	matches_set_input:{
 		cancels_at:"timestamptz",
 		created_at:"timestamptz",
+		elo_voided_at:"timestamptz",
+		elo_voided_by:"bigint",
 		ended_at:"timestamptz",
 		id:"uuid",
 		lineup_1_id:"uuid",
@@ -12067,12 +12102,15 @@ export const AllTypesProps: Record<string,any> = {
 		winning_lineup_id:"uuid"
 	},
 	matches_stddev_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	matches_stddev_pop_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	matches_stddev_samp_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	matches_stream_cursor_input:{
@@ -12083,6 +12121,8 @@ export const AllTypesProps: Record<string,any> = {
 		cancels_at:"timestamptz",
 		created_at:"timestamptz",
 		effective_at:"timestamptz",
+		elo_voided_at:"timestamptz",
+		elo_voided_by:"bigint",
 		ended_at:"timestamptz",
 		id:"uuid",
 		lineup_1_id:"uuid",
@@ -12097,6 +12137,7 @@ export const AllTypesProps: Record<string,any> = {
 		winning_lineup_id:"uuid"
 	},
 	matches_sum_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	matches_update_column: "enum" as const,
@@ -12106,12 +12147,15 @@ export const AllTypesProps: Record<string,any> = {
 		where:"matches_bool_exp"
 	},
 	matches_var_pop_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	matches_var_samp_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	matches_variance_order_by:{
+		elo_voided_by:"order_by",
 		organizer_steam_id:"order_by"
 	},
 	migration_hashes_hashes_aggregate_fields:{
@@ -17367,6 +17411,9 @@ export const AllTypesProps: Record<string,any> = {
 		validateGamedata:{
 			game_server_node_id:"uuid"
 		},
+		voidMatchElo:{
+			match_id:"uuid"
+		},
 		watchDemo:{
 			match_map_demo_id:"uuid",
 			match_map_id:"uuid"
@@ -22501,7 +22548,19 @@ export const AllTypesProps: Record<string,any> = {
 		steam_id:"order_by"
 	},
 	player_sanctions_aggregate_bool_exp:{
+		bool_and:"player_sanctions_aggregate_bool_exp_bool_and",
+		bool_or:"player_sanctions_aggregate_bool_exp_bool_or",
 		count:"player_sanctions_aggregate_bool_exp_count"
+	},
+	player_sanctions_aggregate_bool_exp_bool_and:{
+		arguments:"player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns",
+		filter:"player_sanctions_bool_exp",
+		predicate:"Boolean_comparison_exp"
+	},
+	player_sanctions_aggregate_bool_exp_bool_or:{
+		arguments:"player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns",
+		filter:"player_sanctions_bool_exp",
+		predicate:"Boolean_comparison_exp"
 	},
 	player_sanctions_aggregate_bool_exp_count:{
 		arguments:"player_sanctions_select_column",
@@ -22544,6 +22603,8 @@ export const AllTypesProps: Record<string,any> = {
 		e_sanction_type:"e_sanction_types_bool_exp",
 		evidence_message_id:"String_comparison_exp",
 		id:"uuid_comparison_exp",
+		is_active:"Boolean_comparison_exp",
+		notify_teammates:"Boolean_comparison_exp",
 		player:"players_bool_exp",
 		player_steam_id:"bigint_comparison_exp",
 		reason:"String_comparison_exp",
@@ -22607,6 +22668,8 @@ export const AllTypesProps: Record<string,any> = {
 		e_sanction_type:"e_sanction_types_order_by",
 		evidence_message_id:"order_by",
 		id:"order_by",
+		is_active:"order_by",
+		notify_teammates:"order_by",
 		player:"players_order_by",
 		player_steam_id:"order_by",
 		reason:"order_by",
@@ -22622,6 +22685,8 @@ export const AllTypesProps: Record<string,any> = {
 		id:"uuid"
 	},
 	player_sanctions_select_column: "enum" as const,
+	player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_and_arguments_columns: "enum" as const,
+	player_sanctions_select_column_player_sanctions_aggregate_bool_exp_bool_or_arguments_columns: "enum" as const,
 	player_sanctions_set_input:{
 		created_at:"timestamptz",
 		deleted_at:"timestamptz",
@@ -24164,6 +24229,7 @@ export const AllTypesProps: Record<string,any> = {
 		abandoned_matches_aggregate:"abandoned_matches_aggregate_bool_exp",
 		aim_weapon_stats:"player_aim_weapon_stats_bool_exp",
 		aim_weapon_stats_aggregate:"player_aim_weapon_stats_aggregate_bool_exp",
+		api_key_enabled:"Boolean_comparison_exp",
 		assists:"player_assists_bool_exp",
 		assists_aggregate:"player_assists_aggregate_bool_exp",
 		assited_by_players:"player_assists_bool_exp",
@@ -24367,6 +24433,7 @@ export const AllTypesProps: Record<string,any> = {
 	players_order_by:{
 		abandoned_matches_aggregate:"abandoned_matches_aggregate_order_by",
 		aim_weapon_stats_aggregate:"player_aim_weapon_stats_aggregate_order_by",
+		api_key_enabled:"order_by",
 		assists_aggregate:"player_assists_aggregate_order_by",
 		assited_by_players_aggregate:"player_assists_aggregate_order_by",
 		avatar_url:"order_by",
@@ -31832,6 +31899,9 @@ export const AllTypesProps: Record<string,any> = {
 		_and:"support_request_messages_bool_exp",
 		_not:"support_request_messages_bool_exp",
 		_or:"support_request_messages_bool_exp",
+		attachment_content_type:"String_comparison_exp",
+		attachment_removed_at:"timestamptz_comparison_exp",
+		attachment_url:"String_comparison_exp",
 		created_at:"timestamptz_comparison_exp",
 		id:"uuid_comparison_exp",
 		is_admin:"Boolean_comparison_exp",
@@ -31846,6 +31916,7 @@ export const AllTypesProps: Record<string,any> = {
 		sender_steam_id:"bigint"
 	},
 	support_request_messages_insert_input:{
+		attachment_removed_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		request:"support_requests_obj_rel_insert_input",
@@ -31854,6 +31925,9 @@ export const AllTypesProps: Record<string,any> = {
 		sender_steam_id:"bigint"
 	},
 	support_request_messages_max_order_by:{
+		attachment_content_type:"order_by",
+		attachment_removed_at:"order_by",
+		attachment_url:"order_by",
 		created_at:"order_by",
 		id:"order_by",
 		message:"order_by",
@@ -31861,6 +31935,9 @@ export const AllTypesProps: Record<string,any> = {
 		sender_steam_id:"order_by"
 	},
 	support_request_messages_min_order_by:{
+		attachment_content_type:"order_by",
+		attachment_removed_at:"order_by",
+		attachment_url:"order_by",
 		created_at:"order_by",
 		id:"order_by",
 		message:"order_by",
@@ -31873,6 +31950,9 @@ export const AllTypesProps: Record<string,any> = {
 		where:"support_request_messages_bool_exp"
 	},
 	support_request_messages_order_by:{
+		attachment_content_type:"order_by",
+		attachment_removed_at:"order_by",
+		attachment_url:"order_by",
 		created_at:"order_by",
 		id:"order_by",
 		is_admin:"order_by",
@@ -31889,6 +31969,7 @@ export const AllTypesProps: Record<string,any> = {
 	support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_and_arguments_columns: "enum" as const,
 	support_request_messages_select_column_support_request_messages_aggregate_bool_exp_bool_or_arguments_columns: "enum" as const,
 	support_request_messages_set_input:{
+		attachment_removed_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		request_id:"uuid",
@@ -31908,6 +31989,7 @@ export const AllTypesProps: Record<string,any> = {
 		ordering:"cursor_ordering"
 	},
 	support_request_messages_stream_cursor_value_input:{
+		attachment_removed_at:"timestamptz",
 		created_at:"timestamptz",
 		id:"uuid",
 		request_id:"uuid",
@@ -31952,6 +32034,9 @@ export const AllTypesProps: Record<string,any> = {
 		_and:"support_requests_bool_exp",
 		_not:"support_requests_bool_exp",
 		_or:"support_requests_bool_exp",
+		attachment_content_type:"String_comparison_exp",
+		attachment_removed_at:"timestamptz_comparison_exp",
+		attachment_url:"String_comparison_exp",
 		category:"e_support_request_categories_enum_comparison_exp",
 		closed_at:"timestamptz_comparison_exp",
 		created_at:"timestamptz_comparison_exp",
@@ -31984,6 +32069,7 @@ export const AllTypesProps: Record<string,any> = {
 		reported_player_steam_id:"bigint"
 	},
 	support_requests_insert_input:{
+		attachment_removed_at:"timestamptz",
 		category:"e_support_request_categories_enum",
 		closed_at:"timestamptz",
 		created_at:"timestamptz",
@@ -32007,6 +32093,9 @@ export const AllTypesProps: Record<string,any> = {
 		where:"support_requests_bool_exp"
 	},
 	support_requests_order_by:{
+		attachment_content_type:"order_by",
+		attachment_removed_at:"order_by",
+		attachment_url:"order_by",
 		category:"order_by",
 		closed_at:"order_by",
 		created_at:"order_by",
@@ -32036,6 +32125,7 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	support_requests_select_column: "enum" as const,
 	support_requests_set_input:{
+		attachment_removed_at:"timestamptz",
 		category:"e_support_request_categories_enum",
 		closed_at:"timestamptz",
 		created_at:"timestamptz",
@@ -32051,6 +32141,7 @@ export const AllTypesProps: Record<string,any> = {
 		ordering:"cursor_ordering"
 	},
 	support_requests_stream_cursor_value_input:{
+		attachment_removed_at:"timestamptz",
 		category:"e_support_request_categories_enum",
 		closed_at:"timestamptz",
 		created_at:"timestamptz",
@@ -47524,6 +47615,9 @@ export const ReturnTypes: Record<string,any> = {
 		effective_at:"timestamptz",
 		elo_changes:"v_player_elo",
 		elo_changes_aggregate:"v_player_elo_aggregate",
+		elo_voided:"Boolean",
+		elo_voided_at:"timestamptz",
+		elo_voided_by:"bigint",
 		ended_at:"timestamptz",
 		external_id:"String",
 		external_timestamp_source:"String",
@@ -47547,6 +47641,7 @@ export const ReturnTypes: Record<string,any> = {
 		map_veto_picking_lineup_id:"uuid",
 		map_veto_picks:"match_map_veto_picks",
 		map_veto_picks_aggregate:"match_map_veto_picks_aggregate",
+		map_veto_sequence:"jsonb",
 		map_veto_type:"String",
 		match_maps:"match_maps",
 		match_maps_aggregate:"match_maps_aggregate",
@@ -47615,6 +47710,7 @@ export const ReturnTypes: Record<string,any> = {
 		variance:"matches_variance_fields"
 	},
 	matches_avg_fields:{
+		elo_voided_by:"Float",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"Float"
@@ -47626,6 +47722,8 @@ export const ReturnTypes: Record<string,any> = {
 		created_at:"timestamptz",
 		current_match_map_id:"uuid",
 		effective_at:"timestamptz",
+		elo_voided_at:"timestamptz",
+		elo_voided_by:"bigint",
 		ended_at:"timestamptz",
 		external_id:"String",
 		external_timestamp_source:"String",
@@ -47662,6 +47760,8 @@ export const ReturnTypes: Record<string,any> = {
 		created_at:"timestamptz",
 		current_match_map_id:"uuid",
 		effective_at:"timestamptz",
+		elo_voided_at:"timestamptz",
+		elo_voided_by:"bigint",
 		ended_at:"timestamptz",
 		external_id:"String",
 		external_timestamp_source:"String",
@@ -47696,36 +47796,43 @@ export const ReturnTypes: Record<string,any> = {
 		returning:"matches"
 	},
 	matches_stddev_fields:{
+		elo_voided_by:"Float",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"Float"
 	},
 	matches_stddev_pop_fields:{
+		elo_voided_by:"Float",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"Float"
 	},
 	matches_stddev_samp_fields:{
+		elo_voided_by:"Float",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"Float"
 	},
 	matches_sum_fields:{
+		elo_voided_by:"bigint",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"bigint"
 	},
 	matches_var_pop_fields:{
+		elo_voided_by:"Float",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"Float"
 	},
 	matches_var_samp_fields:{
+		elo_voided_by:"Float",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"Float"
 	},
 	matches_variance_fields:{
+		elo_voided_by:"Float",
 		max_players_per_lineup:"Int",
 		min_players_per_lineup:"Int",
 		organizer_steam_id:"Float"
@@ -49148,6 +49255,7 @@ export const ReturnTypes: Record<string,any> = {
 		update_verification_call_tokens_by_pk:"verification_call_tokens",
 		update_verification_call_tokens_many:"verification_call_tokens_mutation_response",
 		validateGamedata:"SuccessOutput",
+		voidMatchElo:"SuccessOutput",
 		watchDemo:"WatchDemoOutput",
 		writeServerFile:"SuccessOutput"
 	},
@@ -53796,6 +53904,8 @@ export const ReturnTypes: Record<string,any> = {
 		e_sanction_type:"e_sanction_types",
 		evidence_message_id:"String",
 		id:"uuid",
+		is_active:"Boolean",
+		notify_teammates:"Boolean",
 		player:"players",
 		player_steam_id:"bigint",
 		reason:"String",
@@ -54628,6 +54738,7 @@ export const ReturnTypes: Record<string,any> = {
 		abandoned_matches_aggregate:"abandoned_matches_aggregate",
 		aim_weapon_stats:"player_aim_weapon_stats",
 		aim_weapon_stats_aggregate:"player_aim_weapon_stats_aggregate",
+		api_key_enabled:"Boolean",
 		assists:"player_assists",
 		assists_aggregate:"player_assists_aggregate",
 		assited_by_players:"player_assists",
@@ -57138,6 +57249,9 @@ export const ReturnTypes: Record<string,any> = {
 		verification_call_tokens_stream:"verification_call_tokens"
 	},
 	support_request_messages:{
+		attachment_content_type:"String",
+		attachment_removed_at:"timestamptz",
+		attachment_url:"String",
 		created_at:"timestamptz",
 		id:"uuid",
 		is_admin:"Boolean",
@@ -57168,6 +57282,9 @@ export const ReturnTypes: Record<string,any> = {
 		sender_steam_id:"Float"
 	},
 	support_request_messages_max_fields:{
+		attachment_content_type:"String",
+		attachment_removed_at:"timestamptz",
+		attachment_url:"String",
 		created_at:"timestamptz",
 		id:"uuid",
 		message:"String",
@@ -57175,6 +57292,9 @@ export const ReturnTypes: Record<string,any> = {
 		sender_steam_id:"bigint"
 	},
 	support_request_messages_min_fields:{
+		attachment_content_type:"String",
+		attachment_removed_at:"timestamptz",
+		attachment_url:"String",
 		created_at:"timestamptz",
 		id:"uuid",
 		message:"String",
@@ -57207,6 +57327,9 @@ export const ReturnTypes: Record<string,any> = {
 		sender_steam_id:"Float"
 	},
 	support_requests:{
+		attachment_content_type:"String",
+		attachment_removed_at:"timestamptz",
+		attachment_url:"String",
 		category:"e_support_request_categories_enum",
 		closed_at:"timestamptz",
 		created_at:"timestamptz",
@@ -57255,6 +57378,9 @@ export const ReturnTypes: Record<string,any> = {
 		reported_player_steam_id:"Float"
 	},
 	support_requests_max_fields:{
+		attachment_content_type:"String",
+		attachment_removed_at:"timestamptz",
+		attachment_url:"String",
 		closed_at:"timestamptz",
 		created_at:"timestamptz",
 		handled_by_steam_id:"bigint",
@@ -57275,6 +57401,9 @@ export const ReturnTypes: Record<string,any> = {
 		updated_at:"timestamptz"
 	},
 	support_requests_min_fields:{
+		attachment_content_type:"String",
+		attachment_removed_at:"timestamptz",
+		attachment_url:"String",
 		closed_at:"timestamptz",
 		created_at:"timestamptz",
 		handled_by_steam_id:"bigint",
