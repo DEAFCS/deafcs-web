@@ -35,6 +35,17 @@ import { e_player_roles_enum } from "~/generated/zeus";
     </div>
 
     <div>
+      <!-- The react button sits just left of "..." (right-6, 16px wide),
+           i.e. inside this column's first line, while "..." itself fits in
+           the row's pr-6. Reserve that spot on the first line only, so a
+           full-width first line (an emoji at its end included) wraps before
+           the controls instead of running underneath them. -->
+      <span
+        v-if="showReactionControls && !isEditing"
+        aria-hidden="true"
+        class="float-right h-[1lh] w-5"
+        data-testid="chat-message-actions-spacer"
+      ></span>
       <div
         v-if="showMeta"
         class="flex items-center space-x-1.5 text-muted-foreground text-[10px]"
