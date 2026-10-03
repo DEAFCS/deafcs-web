@@ -2925,6 +2925,17 @@
       "delete_confirm_title": "Delete this application?",
       "delete_confirm_description": "This permanently deletes the application and its full message thread. This cannot be undone.",
       "thread": "Conversation",
+      "templates": {
+        "open": "Saved replies",
+        "title": "Saved replies",
+        "description": "Pick a saved reply to insert into the message box.",
+        "empty": "Empty slot",
+        "empty_hint": "This slot is empty. Press Edit to write a reply.",
+        "edit": "Edit",
+        "insert": "Insert",
+        "title_placeholder": "Short title",
+        "body_placeholder": "Message text"
+      },
       "no_messages": "No messages yet.",
       "account_declaration": "Account declaration",
       "declared": "Declared",

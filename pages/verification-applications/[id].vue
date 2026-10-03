@@ -5,6 +5,7 @@ import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
+import ReplyTemplatesDialog from "~/components/verification/ReplyTemplatesDialog.vue";
 
 definePageMeta({
   middleware: "moderator",
@@ -231,6 +232,19 @@ useHead({
         </p>
 
         <form @submit.prevent="sendReply" class="flex flex-col gap-2">
+          <div class="flex justify-end">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              class="h-7 gap-1.5 text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
+              :title="$t('pages.verification_applications.templates.open', 'Saved replies')"
+              @click="templatesOpen = true"
+            >
+              <ListChecks class="h-4 w-4" />
+              {{ $t("pages.verification_applications.templates.open", "Saved replies") }}
+            </Button>
+          </div>
           <Textarea
             v-model="reply"
             :placeholder="$t('pages.verify.status.reply_placeholder')"
@@ -242,6 +256,8 @@ useHead({
         </form>
       </Card>
     </div>
+
+    <ReplyTemplatesDialog v-model:open="templatesOpen" @insert="insertTemplate" />
 
     <Dialog v-model:open="rejectDialogOpen">
       <DialogContent>
@@ -283,7 +299,7 @@ useHead({
 
 <script lang="ts">
 import { getAllCountries } from "countries-and-timezones";
-import { Trash2, Video } from "lucide-vue-next";
+import { ListChecks, Trash2, Video } from "lucide-vue-next";
 import { generateMutation } from "~/graphql/graphqlGen";
 import gql from "graphql-tag";
 import { toast } from "@/components/ui/toast";
@@ -362,6 +378,7 @@ export default {
       calling: false,
       rejectDialogOpen: false,
       deleteDialogOpen: false,
+      templatesOpen: false,
       rejectReason: "",
       reply: "",
       application: null as any,
@@ -547,6 +564,12 @@ export default {
       } finally {
         this.deleting = false;
       }
+    },
+    // Fills the reply box with a saved text. Anything already typed is kept:
+    // the text goes on a new line below it.
+    insertTemplate(text: string) {
+      const current = this.reply.trimEnd();
+      this.reply = current ? `${current}\n${text}` : text;
     },
     async sendReply() {
       if (!this.reply.trim() || this.sending) return;
