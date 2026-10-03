@@ -18,7 +18,7 @@ import {
     <form class="flex items-center gap-2" @submit.prevent="save">
       <Input
         v-model="name"
-        maxlength="32"
+        maxlength="15"
         :placeholder="$t('player.change_name.name_label')"
         class="flex-1 min-w-0"
       />
@@ -127,7 +127,7 @@ export default {
       const trimmed = (this.name || "").trim();
       return (
         trimmed.length >= 3 &&
-        trimmed.length <= 32 &&
+        trimmed.length <= 15 &&
         /^[A-Za-z0-9_-]+$/.test(trimmed)
       );
     },

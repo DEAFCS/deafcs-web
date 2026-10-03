@@ -65,7 +65,7 @@ import {
   PLAYER_NAME_TAKEN_FALLBACK,
 } from "~/utilities/isPlayerNameAvailable";
 
-const NAME_FORMAT = /^[A-Za-z0-9_-]{3,32}$/;
+const NAME_FORMAT = /^[A-Za-z0-9_-]{3,15}$/;
 
 export default {
   data() {
@@ -79,7 +79,7 @@ export default {
             player_name: z
               .string()
               .min(3)
-              .max(32)
+              .max(15)
               .regex(
                 /^[A-Za-z0-9_-]+$/,
                 "Name can only contain letters, numbers, - and _",
