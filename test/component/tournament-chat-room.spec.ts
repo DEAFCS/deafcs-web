@@ -47,8 +47,8 @@ describe("tournament Chat Room tab", () => {
     expect(formatChatRoomUnread(undefined)).toBe("");
     expect(formatChatRoomUnread(1)).toBe("1");
     expect(formatChatRoomUnread(5)).toBe("5");
-    expect(formatChatRoomUnread(100)).toBe("100");
-    expect(formatChatRoomUnread(101)).toBe("100+");
+    expect(formatChatRoomUnread(99)).toBe("99");
+    expect(formatChatRoomUnread(100)).toBe("99+");
   });
 
   it("reads the existing Chat Hub unread count (no second counter)", () => {

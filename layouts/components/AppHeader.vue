@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatBadgeCount } from "~/utilities/formatBadgeCount";
 import { SidebarTrigger } from "~/components/ui/sidebar";
 import { Separator } from "~/components/ui/separator";
 import BreadCrumbs from "~/components/BreadCrumbs.vue";
@@ -19,7 +20,7 @@ const totalUnreadMessages = computed(() =>
   Object.values(unreadCounts.value).reduce((sum, n) => sum + (n || 0), 0),
 );
 const chatBadgeLabel = computed(() =>
-  totalUnreadMessages.value > 100 ? "100+" : String(totalUnreadMessages.value),
+  formatBadgeCount(totalUnreadMessages.value),
 );
 </script>
 

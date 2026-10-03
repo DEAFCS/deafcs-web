@@ -4,6 +4,7 @@ import { computed, nextTick, onMounted, ref, watch } from "vue";
 import ChatMessage from "../../components/chat/ChatMessage.vue";
 import ChatInput from "../../components/chat/ChatInput.vue";
 import { useChatTabs } from "../../composables/useChatTabs";
+import { formatBadgeCount } from "../../utilities/formatBadgeCount";
 
 vi.mock("@/components/ui/toast", () => ({ toast: vi.fn() }));
 
@@ -89,6 +90,15 @@ describe("@mention highlighting in ChatMessage", () => {
       "@a.b(c)",
     ]);
     wrapper.unmount();
+  });
+});
+
+describe("badge count cap", () => {
+  it("shows exact counts up to 99 and 99+ beyond", () => {
+    expect(formatBadgeCount(0)).toBe("0");
+    expect(formatBadgeCount(99)).toBe("99");
+    expect(formatBadgeCount(100)).toBe("99+");
+    expect(formatBadgeCount(2500)).toBe("99+");
   });
 });
 

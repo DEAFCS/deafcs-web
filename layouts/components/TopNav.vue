@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { formatBadgeCount } from "~/utilities/formatBadgeCount";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -89,7 +90,7 @@ const totalUnreadMessages = computed(() =>
   Object.values(unreadCounts.value).reduce((sum, n) => sum + (n || 0), 0),
 );
 const chatBadgeLabel = computed(() =>
-  totalUnreadMessages.value > 100 ? "100+" : String(totalUnreadMessages.value),
+  formatBadgeCount(totalUnreadMessages.value),
 );
 // Genuine matchmaking ready-check only. Active matches (Veto/Live/etc.) are
 // already surfaced by the lineup pills in <MatchLobbies>, so we don't duplicate

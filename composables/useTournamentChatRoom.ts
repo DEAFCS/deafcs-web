@@ -1,3 +1,5 @@
+import { formatBadgeCount } from "~/utilities/formatBadgeCount";
+
 // The tournament page's "Chat Room" tab. It is not a page of its own: it
 // opens this tournament's existing Chat Hub room and reuses the Chat Hub's
 // own eligibility list, tab and unread count, so there is exactly one
@@ -32,12 +34,12 @@ export function findChatTournament(
   );
 }
 
-// Same cap as the Chat Hub icon badge (RightHub.vue's formatBadgeCount).
+// Same cap as the Chat Hub icon badge (formatBadgeCount).
 // Empty when there is nothing unread, so the tab reads just "Chat Room".
 export function formatChatRoomUnread(count: number | null | undefined): string {
   const n = Number(count) || 0;
   if (n <= 0) return "";
-  return n > 100 ? "100+" : String(n);
+  return formatBadgeCount(n);
 }
 
 export function openTournamentChatRoom(tournament: ChatTournament) {

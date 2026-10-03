@@ -32,6 +32,7 @@ import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
 import TooltipTrigger from "~/components/ui/tooltip/TooltipTrigger.vue";
 import TooltipContent from "~/components/ui/tooltip/TooltipContent.vue";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
+import { formatBadgeCount } from "~/utilities/formatBadgeCount";
 import { e_player_roles_enum } from "~/generated/zeus";
 
 const props = defineProps<{
@@ -754,14 +755,14 @@ function openTournamentWebcamWindow() {
                     v-if="draggedTabId !== tab.id && unreadCounts[tab.id]"
                     class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] text-black text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
                   >
-                    {{ unreadCounts[tab.id] }}
+                    {{ formatBadgeCount(unreadCounts[tab.id]) }}
                   </span>
                   <span
                     v-if="draggedTabId !== tab.id && mentionCounts[tab.id]"
                     class="absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
                     :title="$t('chat.mentions_badge', 'You were mentioned')"
                   >
-                    @{{ mentionCounts[tab.id] }}
+                    @{{ formatBadgeCount(mentionCounts[tab.id]) }}
                   </span>
                   <button
                     v-if="!tab.pinned"

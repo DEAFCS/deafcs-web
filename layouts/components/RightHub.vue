@@ -18,6 +18,7 @@ import { useRightSidebar } from "@/composables/useRightSidebar";
 import { useHubState } from "@/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
 import { useNotificationBadge } from "~/composables/useNotificationBadge";
+import { formatBadgeCount } from "~/utilities/formatBadgeCount";
 import { useInvites } from "@/composables/useInvites";
 import { useMediaQuery } from "@vueuse/core";
 import MiniDisplay from "~/components/matchmaking-lobby/MiniDisplay.vue";
@@ -166,8 +167,6 @@ const totalMentions = computed(() =>
 );
 const lobbyInviteCount = computed(() => lobbyInvites.value?.length ?? 0);
 const socialInviteCount = computed(() => pendingFriends.value?.length ?? 0);
-const formatBadgeCount = (count: number) =>
-  count > 100 ? "100+" : String(count);
 const notificationBadgeLabel = computed(() =>
   formatBadgeCount(unreadNotificationCount.value),
 );
