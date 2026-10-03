@@ -7157,6 +7157,7 @@
       "game_banned": "Game banned on Steam",
       "game_banned_count": "{count} game ban(s) on Steam"
     },
+    "name_taken": "That name is already taken",
     "change_name": {
       "name_label": "Name",
       "success": "Changed Players Name",

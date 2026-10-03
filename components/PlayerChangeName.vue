@@ -27,12 +27,15 @@ import {
         type="submit"
         size="sm"
         :loading="saving"
-        :disabled="saving || !isValid || name === player.name"
+        :disabled="saving || !isValid || name === player.name || nameTaken"
       >
         <Spinner v-if="saving" class="mr-1 h-4 w-4" />
         {{ $t("common.save") }}
       </Button>
     </form>
+    <p v-if="nameTaken" class="text-xs text-destructive" role="alert">
+      {{ $t("player.name_taken", PLAYER_NAME_TAKEN_FALLBACK) }}
+    </p>
     <p v-if="mustRequestNameChange" class="text-xs text-muted-foreground">
       {{ $t("player.change_name.approval_hint") }}
     </p>
@@ -62,6 +65,11 @@ import { generateMutation } from "~/graphql/graphqlGen";
 import { $ } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 import { e_player_roles_enum } from "~/generated/zeus";
+import {
+  isNameTakenError,
+  isPlayerNameAvailable,
+  PLAYER_NAME_TAKEN_FALLBACK,
+} from "~/utilities/isPlayerNameAvailable";
 
 export default {
   inheritAttrs: false,
@@ -76,7 +84,14 @@ export default {
       name: "",
       saving: false,
       showRequestedDialog: false,
+      nameTaken: false,
+      nameCheckId: 0,
+      nameCheckTimer: undefined as ReturnType<typeof setTimeout> | undefined,
+      PLAYER_NAME_TAKEN_FALLBACK,
     };
+  },
+  beforeUnmount() {
+    clearTimeout(this.nameCheckTimer);
   },
   watch: {
     player: {
@@ -84,6 +99,15 @@ export default {
       handler(player) {
         if (player) this.name = player.name;
       },
+    },
+    // Live "already taken" feedback while typing -- only for a name that
+    // passes the format rule and differs from the player's current one.
+    name() {
+      clearTimeout(this.nameCheckTimer);
+      this.nameTaken = false;
+      this.nameCheckId++;
+      if (!this.isValid || this.name === this.player?.name) return;
+      this.nameCheckTimer = setTimeout(() => this.refreshNameTaken(), 300);
     },
   },
   computed: {
@@ -109,10 +133,34 @@ export default {
     },
   },
   methods: {
+    async refreshNameTaken() {
+      const checkId = ++this.nameCheckId;
+      const available = await isPlayerNameAvailable(
+        this.$apollo,
+        this.name.trim(),
+        this.player.steam_id,
+      );
+      // A newer keystroke superseded this lookup.
+      if (checkId === this.nameCheckId) this.nameTaken = !available;
+    },
     async save() {
       if (!this.isValid || this.saving) return;
       this.saving = true;
       try {
+        // Authoritative check right before submitting, so a name that was
+        // taken after the last keystroke is stopped here rather than only
+        // by the API's rejection.
+        if (
+          !(await isPlayerNameAvailable(
+            this.$apollo,
+            this.name.trim(),
+            this.player.steam_id,
+          ))
+        ) {
+          this.nameTaken = true;
+          return;
+        }
+
         if (this.mustRequestNameChange) {
           await this.$apollo.mutate({
             variables: { player_name: this.name },
@@ -141,6 +189,14 @@ export default {
             }),
           });
           toast({ title: this.$t("player.change_name.success") });
+        }
+      } catch (error) {
+        // Lost a race with another player (API check or unique index):
+        // show it inline like the live check does instead of a bare error.
+        if (isNameTakenError(error)) {
+          this.nameTaken = true;
+        } else {
+          throw error;
         }
       } finally {
         this.saving = false;
