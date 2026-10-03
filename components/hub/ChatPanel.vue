@@ -33,6 +33,7 @@ import TooltipTrigger from "~/components/ui/tooltip/TooltipTrigger.vue";
 import TooltipContent from "~/components/ui/tooltip/TooltipContent.vue";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 import { formatBadgeCount } from "~/utilities/formatBadgeCount";
+import { isUrgentChatType, splitTabBadge } from "~/utilities/chatBadgeCounts";
 import { e_player_roles_enum } from "~/generated/zeus";
 
 const props = defineProps<{
@@ -56,6 +57,15 @@ const {
   manualOrder,
   reorderTab,
 } = useChatTabs();
+
+// Amber = calm unread; red = private messages, announcements and @-mentions.
+function tabBadge(tab: { id: string; type: string }) {
+  return splitTabBadge(
+    unreadCounts.value[tab.id],
+    mentionCounts.value[tab.id],
+    tab.type,
+  );
+}
 
 // Tabs silently registered by an incoming chat:new-message ping (see
 // Socket.ts) haven't actually been opened yet -- mounting a live
@@ -752,13 +762,20 @@ function openTournamentWebcamWindow() {
                     </div>
                   </template>
                   <span
-                    v-if="draggedTabId !== tab.id && unreadCounts[tab.id]"
+                    v-if="draggedTabId !== tab.id && tabBadge(tab).calm"
                     class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] text-black text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
                   >
-                    {{ formatBadgeCount(unreadCounts[tab.id]) }}
+                    {{ formatBadgeCount(tabBadge(tab).calm) }}
                   </span>
                   <span
-                    v-if="draggedTabId !== tab.id && mentionCounts[tab.id]"
+                    v-if="draggedTabId !== tab.id && isUrgentChatType(tab.type) && tabBadge(tab).urgent"
+                    class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
+                    :title="$t('chat.urgent_badge', 'Private messages, announcements and mentions')"
+                  >
+                    {{ formatBadgeCount(tabBadge(tab).urgent) }}
+                  </span>
+                  <span
+                    v-if="draggedTabId !== tab.id && !isUrgentChatType(tab.type) && mentionCounts[tab.id]"
                     class="absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
                     :title="$t('chat.mentions_badge', 'You were mentioned')"
                   >

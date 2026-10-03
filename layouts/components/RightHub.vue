@@ -19,6 +19,7 @@ import { useHubState } from "@/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
 import { useNotificationBadge } from "~/composables/useNotificationBadge";
 import { formatBadgeCount } from "~/utilities/formatBadgeCount";
+import { totalBadgeCounts } from "~/utilities/chatBadgeCounts";
 import { useInvites } from "@/composables/useInvites";
 import { useMediaQuery } from "@vueuse/core";
 import MiniDisplay from "~/components/matchmaking-lobby/MiniDisplay.vue";
@@ -38,7 +39,7 @@ const {
   togglePin,
 } = useRightSidebar();
 const { activeHub, selectHub } = useHubState();
-const { unreadCounts, mentionCounts } = useChatTabs();
+const { unreadCounts, mentionCounts, tabs: chatTabs } = useChatTabs();
 const { hasNotifications, unreadNotificationCount } = useNotificationBadge();
 const { hasSocialInvites, hasLobbyInvites, lobbyInvites, pendingFriends } =
   useInvites();
@@ -158,13 +159,19 @@ watch(hoverCloseSuspended, (suspended) => {
   }
 });
 
-const totalUnread = computed(() =>
-  Object.values(unreadCounts.value).reduce((sum, n) => sum + (n || 0), 0),
+// Each unread message is counted once: private messages, announcements and
+// @-mentions are urgent (red); everything else is calm (amber).
+const chatBadges = computed(() =>
+  totalBadgeCounts(
+    unreadCounts.value,
+    mentionCounts.value,
+    (tabId) =>
+      chatTabs.value.find((tab) => tab.id === tabId)?.type ??
+      (tabId.startsWith("direct:") ? "direct" : undefined),
+  ),
 );
-// Unread messages that @-tag me -- always a subset of totalUnread.
-const totalMentions = computed(() =>
-  Object.values(mentionCounts.value).reduce((sum, n) => sum + (n || 0), 0),
-);
+const totalUnread = computed(() => chatBadges.value.calm);
+const totalMentions = computed(() => chatBadges.value.urgent);
 const lobbyInviteCount = computed(() => lobbyInvites.value?.length ?? 0);
 const socialInviteCount = computed(() => pendingFriends.value?.length ?? 0);
 const notificationBadgeLabel = computed(() =>
@@ -433,7 +440,7 @@ function onHubTouchEnd(e: TouchEvent) {
               <span
                 v-if="totalMentions > 0"
                 class="absolute -top-1.5 -left-2 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[0.55rem] font-bold leading-none text-white shadow-sm ring-1 ring-background origin-center"
-                :title="$t('chat.mentions_badge', 'You were mentioned')"
+                :title="$t('chat.urgent_badge', 'Private messages, announcements and mentions')"
               >
                 <AnimatedStat :value="mentionBadgeLabel" />
               </span>
