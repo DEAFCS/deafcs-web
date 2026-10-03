@@ -617,6 +617,7 @@ export default {
       message: string;
       attachment?: { url: string; contentType: string };
       gifUrl?: string;
+      mentions?: string[];
     }) {
       if (!this.effectiveCanSend) {
         return;
@@ -627,6 +628,7 @@ export default {
         payload.message,
         payload.attachment,
         payload.gifUrl,
+        payload.mentions,
       );
       // Snap to latest after sending.
       this.safeScrollToBottom(true);

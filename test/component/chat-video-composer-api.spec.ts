@@ -103,7 +103,9 @@ describe("Short Video API routing and local recording startup", () => {
 
   it("keeps text rendering intact and uses the custom player only for video media", () => {
     expect(chatMessage).toContain('v-if="message.message"');
-    expect(chatMessage).toContain("{{ message.message }}");
+    // The text renders through messageSegments (plain text split around
+    // @mentions); behavior is covered in chat-mentions.spec.ts.
+    expect(chatMessage).toContain("{{ segment.text }}");
     expect(chatMessage).toContain(
       "<ChatVideoPlayer\n        v-if=\"message.media?.type === 'video' && !message.blocked\"",
     );

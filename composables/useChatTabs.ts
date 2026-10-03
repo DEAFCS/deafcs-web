@@ -135,9 +135,51 @@ function persistUnreadCounts(counts: Record<string, number>) {
   }
 }
 
+// Unread messages that @-tag this player. Always a subset of the unread
+// count for the same tab (every increment happens right next to an unread
+// increment), shown as the red badge beside the orange total on the chat
+// icon. Browser-only like the unread counts themselves, and nulled out
+// together with them -- see resetUnread/clearUnread/closeTab below.
+const MENTION_COUNTS_STORAGE_KEY = "chat-mention-counts";
+
+function loadPersistedMentionCounts(): Record<string, number> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(MENTION_COUNTS_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : {};
+    if (!parsed || typeof parsed !== "object") return {};
+    const result: Record<string, number> = {};
+    for (const [id, count] of Object.entries(parsed)) {
+      if (typeof count === "number" && count > 0) result[id] = count;
+    }
+    return result;
+  } catch {
+    return {};
+  }
+}
+
+function persistMentionCounts(counts: Record<string, number>) {
+  if (typeof window === "undefined") return;
+  try {
+    const toPersist: Record<string, number> = {};
+    for (const [id, count] of Object.entries(counts)) {
+      if (count > 0) toPersist[id] = count;
+    }
+    window.localStorage.setItem(
+      MENTION_COUNTS_STORAGE_KEY,
+      JSON.stringify(toPersist),
+    );
+  } catch {
+    // best-effort
+  }
+}
+
 const tabsRef = ref<ChatTab[]>(loadPersistedDmTabs());
 const unreadCountsRef = ref<Record<string, number>>(
   loadPersistedUnreadCounts(),
+);
+const mentionCountsRef = ref<Record<string, number>>(
+  loadPersistedMentionCounts(),
 );
 const activeTabIdRef = ref<string | null>(null);
 
@@ -173,6 +215,7 @@ const manualOrderRef = ref<string[]>(loadManualOrder());
 export function useChatTabs() {
   const tabs = computed(() => tabsRef.value);
   const unreadCounts = computed(() => unreadCountsRef.value);
+  const mentionCounts = computed(() => mentionCountsRef.value);
   const activeTabId = computed(() => activeTabIdRef.value);
 
   function findTabIndex(id: string) {
@@ -265,6 +308,10 @@ export function useChatTabs() {
       delete unreadCountsRef.value[removed.id];
       persistUnreadCounts(unreadCountsRef.value);
     }
+    if (removed.id in mentionCountsRef.value) {
+      delete mentionCountsRef.value[removed.id];
+      persistMentionCounts(mentionCountsRef.value);
+    }
     persistDmTabs(tabsRef.value);
 
     if (activeTabIdRef.value === removed.id) {
@@ -309,16 +356,32 @@ export function useChatTabs() {
     persistUnreadCounts(unreadCountsRef.value);
   }
 
+  function incrementMention(id: string) {
+    mentionCountsRef.value[id] = (mentionCountsRef.value[id] || 0) + 1;
+    persistMentionCounts(mentionCountsRef.value);
+  }
+
+  function resetMention(id: string) {
+    if (mentionCountsRef.value[id]) {
+      mentionCountsRef.value[id] = 0;
+      persistMentionCounts(mentionCountsRef.value);
+    }
+  }
+
   function resetUnread(id: string) {
     if (unreadCountsRef.value[id]) {
       unreadCountsRef.value[id] = 0;
       persistUnreadCounts(unreadCountsRef.value);
     }
+    resetMention(id);
   }
 
   function setUnread(id: string, value: number) {
     unreadCountsRef.value[id] = value;
     persistUnreadCounts(unreadCountsRef.value);
+    if (value <= 0) {
+      resetMention(id);
+    }
   }
 
   // Clears a stale unread count that has no corresponding tab at all --
@@ -333,15 +396,21 @@ export function useChatTabs() {
       delete unreadCountsRef.value[id];
       persistUnreadCounts(unreadCountsRef.value);
     }
+    if (id in mentionCountsRef.value) {
+      delete mentionCountsRef.value[id];
+      persistMentionCounts(mentionCountsRef.value);
+    }
   }
 
   function clearAll() {
     tabsRef.value = [];
     unreadCountsRef.value = {};
+    mentionCountsRef.value = {};
     activeTabIdRef.value = null;
     if (typeof window !== "undefined") {
       try {
         window.localStorage.removeItem(UNREAD_COUNTS_STORAGE_KEY);
+        window.localStorage.removeItem(MENTION_COUNTS_STORAGE_KEY);
       } catch {
         // best-effort
       }
@@ -385,6 +454,7 @@ export function useChatTabs() {
   return {
     tabs,
     unreadCounts,
+    mentionCounts,
     activeTabId,
     manualOrder,
     openTab,
@@ -393,6 +463,7 @@ export function useChatTabs() {
     setActiveTab,
     setPinned,
     incrementUnread,
+    incrementMention,
     resetUnread,
     setUnread,
     clearUnread,

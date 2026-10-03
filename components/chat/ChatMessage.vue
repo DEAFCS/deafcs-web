@@ -106,7 +106,18 @@ import { e_player_roles_enum } from "~/generated/zeus";
         class="text-[11px] leading-snug break-words whitespace-pre-wrap"
         :class="{ 'italic text-muted-foreground': message.blocked }"
       >
-        {{ message.message }}
+        <template v-for="(segment, index) in messageSegments" :key="index"
+          ><span
+            v-if="segment.mention"
+            class="rounded px-0.5 font-semibold"
+            :class="
+              segment.self
+                ? 'bg-red-500/25 text-red-300'
+                : 'bg-primary/15 text-primary'
+            "
+            >{{ segment.text }}</span
+          ><template v-else>{{ segment.text }}</template></template
+        >
       </p>
       <ChatVideoPlayer
         v-if="message.media?.type === 'video' && !message.blocked"
@@ -371,6 +382,43 @@ export default {
     clearTimeout(this.selfServiceTimer);
   },
   computed: {
+    // The text split around @Name tags the API accepted for this message
+    // (message.mentions, see ChatService.resolveMentions), so those can be
+    // highlighted -- red when it's me. Without mentions it's one plain
+    // segment, rendered exactly as before.
+    messageSegments(): Array<{
+      text: string;
+      mention: boolean;
+      self: boolean;
+    }> {
+      const text: string = this.message.message ?? "";
+      const mentions: Array<{ steam_id: string; name: string }> = (
+        this.message.mentions ?? []
+      ).filter((mention: { name?: string }) => mention?.name);
+      if (!text || !mentions.length) {
+        return [{ text, mention: false, self: false }];
+      }
+
+      const mySteamId = String(useAuthStore().me?.steam_id ?? "");
+      const byTag = new Map<string, boolean>();
+      for (const mention of mentions) {
+        byTag.set(`@${mention.name}`, String(mention.steam_id) === mySteamId);
+      }
+
+      const escaped = [...byTag.keys()]
+        .sort((a, b) => b.length - a.length)
+        .map((tag) => tag.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+      const pattern = new RegExp(`(${escaped.join("|")})`, "g");
+
+      return text
+        .split(pattern)
+        .filter((part) => part !== "")
+        .map((part) => ({
+          text: part,
+          mention: byTag.has(part),
+          self: byTag.get(part) === true,
+        }));
+    },
     liveVideoUrl() {
       return `https://${useRuntimeConfig().public.apiDomain}/matches/chat-video/media/${this.message.media.id}`;
     },

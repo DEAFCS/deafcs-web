@@ -376,6 +376,7 @@ class Socket extends EventEmitter {
     message: string,
     attachment?: { url: string; contentType: string },
     gifUrl?: string,
+    mentions?: string[],
   ) {
     this.event(`lobby:chat`, {
       id,
@@ -383,6 +384,7 @@ class Socket extends EventEmitter {
       message,
       attachment,
       gifUrl,
+      mentions,
       clientId: this.sessionId,
     });
   }
@@ -867,6 +869,9 @@ socket.listen(
     senderName: string;
     senderAvatarUrl?: string;
     message: string;
+    // steam_ids @-tagged in this message (already narrowed to people who
+    // can read the room, see ChatService.resolveMentions).
+    mentions?: string[];
   }) => {
     const { type, id } = data;
 
@@ -910,7 +915,7 @@ socket.listen(
       tabId = `${type}:${id}`;
     }
 
-    const { registerTabIfMissing, incrementUnread, activeTabId } =
+    const { registerTabIfMissing, incrementUnread, incrementMention, activeTabId } =
       useChatTabs();
 
     // Reported bug: unread count kept climbing (2, then 3-4...) for a
@@ -975,6 +980,13 @@ socket.listen(
     }
 
     incrementUnread(tabId);
+    const mySteamId = useAuthStore().me?.steam_id;
+    if (
+      mySteamId &&
+      (data.mentions ?? []).some((steamId) => String(steamId) === String(mySteamId))
+    ) {
+      incrementMention(tabId);
+    }
     useSound().playNotificationSound();
   },
 );

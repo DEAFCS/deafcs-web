@@ -37,7 +37,7 @@ const {
   togglePin,
 } = useRightSidebar();
 const { activeHub, selectHub } = useHubState();
-const { unreadCounts } = useChatTabs();
+const { unreadCounts, mentionCounts } = useChatTabs();
 const { hasNotifications, unreadNotificationCount } = useNotificationBadge();
 const { hasSocialInvites, hasLobbyInvites, lobbyInvites, pendingFriends } =
   useInvites();
@@ -160,6 +160,10 @@ watch(hoverCloseSuspended, (suspended) => {
 const totalUnread = computed(() =>
   Object.values(unreadCounts.value).reduce((sum, n) => sum + (n || 0), 0),
 );
+// Unread messages that @-tag me -- always a subset of totalUnread.
+const totalMentions = computed(() =>
+  Object.values(mentionCounts.value).reduce((sum, n) => sum + (n || 0), 0),
+);
 const lobbyInviteCount = computed(() => lobbyInvites.value?.length ?? 0);
 const socialInviteCount = computed(() => pendingFriends.value?.length ?? 0);
 const formatBadgeCount = (count: number) =>
@@ -179,6 +183,7 @@ const lobbyMemberLabel = computed(() =>
   formatBadgeCount(lobbyMemberCount.value),
 );
 const chatBadgeLabel = computed(() => formatBadgeCount(totalUnread.value));
+const mentionBadgeLabel = computed(() => formatBadgeCount(totalMentions.value));
 
 // Pop-in/out for the count circles (bouncy enter, quick fade-shrink leave)
 const badgePopTransition = {
@@ -415,12 +420,23 @@ function onHubTouchEnd(e: TouchEvent) {
         >
           <span class="relative inline-flex">
             <MessageSquare class="w-5 h-5" />
+            <!-- Unread messages (amber, top-right) -->
             <Transition v-bind="badgePopTransition">
               <span
                 v-if="totalUnread > 0"
-                class="absolute -top-1.5 -right-2 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[0.55rem] font-bold leading-none text-white shadow-sm ring-1 ring-background origin-center"
+                class="absolute -top-1.5 -right-2 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] px-0.5 text-[0.55rem] font-bold leading-none text-black tabular-nums shadow-sm ring-1 ring-background origin-center"
               >
                 <AnimatedStat :value="chatBadgeLabel" />
+              </span>
+            </Transition>
+            <!-- Messages that @-tag me (red, top-left so it never collides with the count) -->
+            <Transition v-bind="badgePopTransition">
+              <span
+                v-if="totalMentions > 0"
+                class="absolute -top-1.5 -left-2 inline-flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-red-500 px-0.5 text-[0.55rem] font-bold leading-none text-white shadow-sm ring-1 ring-background origin-center"
+                :title="$t('chat.mentions_badge', 'You were mentioned')"
+              >
+                <AnimatedStat :value="mentionBadgeLabel" />
               </span>
             </Transition>
           </span>

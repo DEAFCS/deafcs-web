@@ -75,6 +75,14 @@ function autoResize(event: Event) {
         </button>
       </div>
     </div>
+    <ChatMentionList
+      v-if="mentionOpen"
+      :results="mentionResults"
+      :active-index="mentionIndex"
+      :loading="mentionLoading"
+      @select="selectMention"
+      @hover="mentionIndex = $event"
+    />
     <FormField v-slot="{ componentField }" name="message">
       <FormItem>
         <FormControl>
@@ -98,9 +106,26 @@ function autoResize(event: Event) {
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none transition-all duration-200"
-              @keydown="handleKeydown($event, sendMessage)"
+              @keydown="
+                (event) => {
+                  if (!mentionKeydown(event)) handleKeydown(event, sendMessage);
+                }
+              "
+              @keyup="
+                (event) => {
+                  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key))
+                    updateMention(event);
+                }
+              "
+              @click="updateMention"
               @paste="onPaste"
-              @input="autoResize"
+              @input="
+                (event) => {
+                  autoResize(event);
+                  updateMention(event);
+                }
+              "
+              @blur="closeMention"
             />
             <Button
               type="submit"
@@ -169,6 +194,14 @@ function autoResize(event: Event) {
         </button>
       </div>
     </div>
+    <ChatMentionList
+      v-if="mentionOpen"
+      :results="mentionResults"
+      :active-index="mentionIndex"
+      :loading="mentionLoading"
+      @select="selectMention"
+      @hover="mentionIndex = $event"
+    />
     <FormField v-slot="{ componentField }" name="message">
       <FormItem>
         <FormControl>
@@ -192,9 +225,26 @@ function autoResize(event: Event) {
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
-              @keydown="handleKeydown($event, sendMessage)"
+              @keydown="
+                (event) => {
+                  if (!mentionKeydown(event)) handleKeydown(event, sendMessage);
+                }
+              "
+              @keyup="
+                (event) => {
+                  if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key))
+                    updateMention(event);
+                }
+              "
+              @click="updateMention"
               @paste="onPaste"
-              @input="autoResize"
+              @input="
+                (event) => {
+                  autoResize(event);
+                  updateMention(event);
+                }
+              "
+              @blur="closeMention"
             />
             <Button
               type="submit"
@@ -225,6 +275,7 @@ function autoResize(event: Event) {
 import { FormControl, FormField, FormItem } from "~/components/ui/form";
 import ChatVideoComposer from "~/components/chat/ChatVideoComposer.vue";
 import ChatComposerMenu from "~/components/chat/ChatComposerMenu.vue";
+import ChatMentionList from "~/components/chat/ChatMentionList.vue";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
@@ -242,8 +293,34 @@ import {
   validateChatAttachment,
 } from "~/utilities/chatAttachmentValidation";
 
+// Rooms where @-tagging works -- must match ChatService.MENTION_ENABLED_TYPES
+// on the API (which re-checks it). Not match/match_team/draft/direct.
+const MENTION_ROOM_TYPES = [
+  "global",
+  "organizers",
+  "tournament",
+  "team",
+  "matchmaking",
+];
+
+// Global is verified_user+ and Organizer is match_organizer+, so the list
+// only offers people who can actually read the room there.
+const GLOBAL_MENTION_ROLES = [
+  "verified_user",
+  "streamer",
+  "moderator",
+  "match_organizer",
+  "tournament_organizer",
+  "administrator",
+];
+const ORGANIZER_MENTION_ROLES = [
+  "match_organizer",
+  "tournament_organizer",
+  "administrator",
+];
+
 export default {
-  components: { ChatComposerMenu, ChatVideoComposer },
+  components: { ChatComposerMenu, ChatVideoComposer, ChatMentionList },
   props: {
     variant: {
       type: String,
@@ -274,6 +351,23 @@ export default {
       uploadProgress: null as number | null,
       uploadFailed: false,
       isDraggingOver: false,
+      mentionOpen: false,
+      mentionLoading: false,
+      mentionQuery: "",
+      mentionResults: [] as Array<{
+        steam_id: string;
+        name: string;
+        avatar_url?: string;
+      }>,
+      mentionIndex: 0,
+      // Where the "@query" being typed sits in the text, so picking a
+      // player replaces exactly that span.
+      mentionRange: null as { start: number; end: number } | null,
+      // steam_id -> name for everyone picked from the list; only those whose
+      // "@name" is still in the text when sending are submitted.
+      mentionPicks: {} as Record<string, string>,
+      mentionFetchId: 0,
+      mentionTimer: undefined as ReturnType<typeof setTimeout> | undefined,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
@@ -302,6 +396,9 @@ export default {
     },
   },
   beforeUnmount() {
+    if (this.mentionTimer) {
+      clearTimeout(this.mentionTimer);
+    }
     if (this.sendTimer) {
       clearTimeout(this.sendTimer);
     }
@@ -310,6 +407,9 @@ export default {
     }
   },
   computed: {
+    mentionEnabled(): boolean {
+      return !!this.roomId && MENTION_ROOM_TYPES.includes(this.chatType);
+    },
     liveVideoEnabled() {
       return this.attachmentEnabled && !!this.roomId && !!this.chatType &&
         !["match", "match_team", "announcement"].includes(this.chatType);
@@ -325,6 +425,135 @@ export default {
     },
   },
   methods: {
+    closeMention() {
+      this.mentionOpen = false;
+      this.mentionRange = null;
+      this.mentionResults = [];
+      this.mentionIndex = 0;
+      this.mentionFetchId++;
+      if (this.mentionTimer) {
+        clearTimeout(this.mentionTimer);
+        this.mentionTimer = undefined;
+      }
+    },
+    // Opens/updates the list while the caret sits right after an "@word"
+    // that starts the text or follows whitespace.
+    updateMention(event: Event) {
+      if (!this.mentionEnabled || this.isWebsiteRestricted) return;
+      const el = event.target as HTMLTextAreaElement | null;
+      if (!el || typeof el.selectionStart !== "number") return;
+
+      const caret = el.selectionStart;
+      const match = /(^|\s)@([^\s@]{0,32})$/.exec(el.value.slice(0, caret));
+      if (!match) {
+        this.closeMention();
+        return;
+      }
+
+      const query = match[2];
+      this.mentionRange = { start: caret - query.length - 1, end: caret };
+      this.mentionOpen = true;
+      if (query === this.mentionQuery && this.mentionResults.length) return;
+      this.mentionQuery = query;
+      this.mentionIndex = 0;
+
+      if (this.mentionTimer) clearTimeout(this.mentionTimer);
+      this.mentionTimer = setTimeout(() => this.fetchMentionResults(), 120);
+    },
+    async fetchMentionResults() {
+      const fetchId = ++this.mentionFetchId;
+      this.mentionLoading = true;
+      try {
+        const roles =
+          this.chatType === "global"
+            ? GLOBAL_MENTION_ROLES
+            : this.chatType === "organizers"
+              ? ORGANIZER_MENTION_ROLES
+              : undefined;
+        const mySteamId = useAuthStore().me?.steam_id;
+        const response = (await $fetch("/api/players-search", {
+          method: "post",
+          body: {
+            query: this.mentionQuery || undefined,
+            registeredOnly: true,
+            exclude: mySteamId ? [String(mySteamId)] : [],
+            roles,
+            per_page: 8,
+          },
+        })) as {
+          hits?: Array<{
+            document: { steam_id: string; name: string; avatar_url?: string };
+          }>;
+        };
+        // A newer keystroke (or closing the list) superseded this request.
+        if (fetchId !== this.mentionFetchId) return;
+        this.mentionResults = (response.hits ?? []).map((hit) => ({
+          steam_id: String(hit.document.steam_id),
+          name: hit.document.name,
+          avatar_url: hit.document.avatar_url,
+        }));
+        this.mentionIndex = 0;
+      } catch (error) {
+        if (fetchId === this.mentionFetchId) this.mentionResults = [];
+        console.error("[chat] mention search failed", error);
+      } finally {
+        if (fetchId === this.mentionFetchId) this.mentionLoading = false;
+      }
+    },
+    // Returns true when the key was consumed by the open list, so Enter
+    // picks a player instead of sending the message.
+    mentionKeydown(event: KeyboardEvent): boolean {
+      if (!this.mentionOpen) return false;
+
+      if (event.key === "Escape") {
+        event.preventDefault();
+        this.closeMention();
+        return true;
+      }
+
+      if (!this.mentionResults.length) return false;
+
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        this.mentionIndex = (this.mentionIndex + 1) % this.mentionResults.length;
+        return true;
+      }
+      if (event.key === "ArrowUp") {
+        event.preventDefault();
+        this.mentionIndex =
+          (this.mentionIndex - 1 + this.mentionResults.length) %
+          this.mentionResults.length;
+        return true;
+      }
+      if (event.key === "Enter" || event.key === "Tab") {
+        event.preventDefault();
+        this.selectMention(this.mentionResults[this.mentionIndex]);
+        return true;
+      }
+      return false;
+    },
+    selectMention(player: { steam_id: string; name: string }) {
+      const range = this.mentionRange;
+      if (!range || !player) return;
+
+      const text: string = this.form.values.message ?? "";
+      const insert = `@${player.name} `;
+      const next = text.slice(0, range.start) + insert + text.slice(range.end);
+      const caret = range.start + insert.length;
+
+      this.mentionPicks[player.steam_id] = player.name;
+      this.form.setFieldValue("message", next);
+      this.closeMention();
+
+      this.$nextTick(() => {
+        const el = (this.$refs.inputRef as any)?.$el as
+          | HTMLTextAreaElement
+          | undefined;
+        if (!el) return;
+        el.focus();
+        el.setSelectionRange(caret, caret);
+      });
+    },
     openLiveVideo() {
       if (this.liveVideoEnabled && !this.isWebsiteRestricted) {
         (this.$refs.liveVideoRecorder as any)?.openRecorder();
@@ -442,10 +671,21 @@ export default {
         return;
       }
 
+      // Only players whose "@name" is still in the final text; the API
+      // re-validates who may actually be tagged in this room.
+      const mentions = this.mentionEnabled
+        ? Object.entries(this.mentionPicks)
+            .filter(([, name]) => normalizedMessage.includes(`@${name}`))
+            .map(([steamId]) => steamId)
+        : [];
+
       this.$emit("sendMessage", {
         message: normalizedMessage,
         attachment: this.uploadedAttachment ?? undefined,
+        mentions: mentions.length ? mentions : undefined,
       });
+      this.mentionPicks = {};
+      this.closeMention();
       this.pendingAttachment = null;
       this.uploadedAttachment = null;
       this.uploadFailed = false;
