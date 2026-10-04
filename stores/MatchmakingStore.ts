@@ -51,6 +51,11 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
       // Only present for 5v5 Captain Pick.
       variant?: MatchmakingQueueVariant;
       regions: Array<string>;
+      // When the lobby joined the queue, on the server clock, plus that clock
+      // at send time and this device's clock on arrival (see matchmakingDeadline).
+      joinedAt?: string;
+      serverNow?: string;
+      receivedAt?: number;
     };
     confirmation?: {
       matchId: string;

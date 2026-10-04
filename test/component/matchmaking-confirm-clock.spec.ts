@@ -71,3 +71,53 @@ describe("accept popup wiring", () => {
     expect(socket).toContain("received.confirmation.receivedAt = Date.now();");
   });
 });
+
+import { localServerTime } from "../../utilities/matchmakingDeadline";
+
+describe("search timer clock correction", () => {
+  const JOINED = iso(SERVER_NOW - 1_000);
+
+  // The timer shows (device now - local join time); a device whose clock is
+  // off by `offset` must still read the same elapsed time as the server does.
+  const elapsedMs = (offset: number, afterMs = 0) => {
+    const receivedAt = SERVER_NOW + offset;
+    const joined = localServerTime(JOINED, { serverNow: iso(SERVER_NOW), receivedAt })!;
+    return receivedAt + afterMs - joined;
+  };
+
+  it("starts at the real elapsed time on a correct clock", () => {
+    expect(elapsedMs(0)).toBe(1_000);
+  });
+
+  it("does not start at 55 seconds on a clock a minute ahead", () => {
+    expect(elapsedMs(60_000)).toBe(1_000);
+  });
+
+  it("does not start at a negative time on a clock behind", () => {
+    expect(elapsedMs(-20_000)).toBe(1_000);
+  });
+
+  it("keeps counting at normal speed", () => {
+    expect(elapsedMs(60_000, 5_000)).toBe(6_000);
+  });
+
+  it("falls back to the plain time when the server sent no clock", () => {
+    expect(localServerTime(JOINED, undefined)).toBe(Date.parse(JOINED));
+    expect(localServerTime(undefined, undefined)).toBeUndefined();
+  });
+});
+
+describe("search timer wiring", () => {
+  const read = (file: string) => readFileSync(path.resolve(__dirname, "../..", file), "utf8");
+
+  it("the search timer and wait text use the corrected join time", () => {
+    const view = read("components/matchmaking/Matchmaking.vue");
+    expect(view).toContain("localServerTime(details?.joinedAt, details)");
+    expect(view).toContain("Math.min(new Date().getTime(), localJoinedAt)");
+    expect(view).not.toContain("new Date(this.matchMakingQueueDetails.joinedAt)");
+  });
+
+  it("each queue details update is stamped with its arrival time", () => {
+    expect(read("web-sockets/Socket.ts")).toContain("received.details.receivedAt = Date.now();");
+  });
+});

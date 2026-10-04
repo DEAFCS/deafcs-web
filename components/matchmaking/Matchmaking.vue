@@ -115,10 +115,7 @@ const mmCardBase =
               <TimeAgo
                 v-if="matchMakingQueueDetails.joinedAt"
                 :date="
-                  Math.min(
-                    new Date().getTime(),
-                    new Date(matchMakingQueueDetails.joinedAt).getTime(),
-                  )
+                  Math.min(new Date().getTime(), localJoinedAt)
                 "
                 :seconds="true"
               />
@@ -416,6 +413,7 @@ import { generateQuery } from "~/graphql/graphqlGen";
 import { e_match_types_enum, e_match_status_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 import { EXPECTED_PLAYERS } from "~/utilities/matchmakingPartySize";
+import { localServerTime } from "~/utilities/matchmakingDeadline";
 import {
   CAPTAIN_PICK_MODE_KEY,
   buildMatchmakingModes,
@@ -445,6 +443,8 @@ interface QueueDetails {
   variant?: MatchmakingQueueVariant;
   regions: string[];
   joinedAt?: string;
+  serverNow?: string;
+  receivedAt?: number;
 }
 
 interface ConfirmationDetails {
@@ -775,6 +775,14 @@ export default {
     regionStats() {
       return useMatchmakingStore().regionStats;
     },
+    // When the lobby joined the queue on this device's clock, so a wrong PC
+    // clock can't make the search timer start at the wrong number.
+    localJoinedAt(): number {
+      const details = this.matchMakingQueueDetails;
+      return (
+        localServerTime(details?.joinedAt, details) ?? new Date().getTime()
+      );
+    },
     matchMakingQueueDetails(): QueueDetails | undefined {
       if (this.isQueuePreview) {
         return {
@@ -830,10 +838,9 @@ export default {
       if (!this.matchMakingQueueDetails?.joinedAt)
         return this.$t("matchmaking.queue_wait.zero");
 
-      const joinedAt = new Date(this.matchMakingQueueDetails.joinedAt);
-      const now = new Date();
-      const diffInSeconds = Math.floor(
-        (now.getTime() - joinedAt.getTime()) / 1000,
+      const diffInSeconds = Math.max(
+        0,
+        Math.floor((new Date().getTime() - this.localJoinedAt) / 1000),
       );
 
       if (diffInSeconds < 60) {

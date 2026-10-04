@@ -844,6 +844,9 @@ socket.listen(
     if (received?.confirmation) {
       received.confirmation.receivedAt = Date.now();
     }
+    if (received?.details) {
+      received.details.receivedAt = Date.now();
+    }
     useMatchmakingStore().joinedMatchmakingQueues = data;
   },
 );
