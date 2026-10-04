@@ -6,6 +6,7 @@ import PlayerIntroDashboard from "~/components/player/PlayerIntroDashboard.vue";
 import PlayerMapsGrid from "~/components/player/PlayerMapsGrid.vue";
 import PlayerWeaponsTable from "~/components/player/PlayerWeaponsTable.vue";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
+import PlayerTwitchLink from "~/components/player/PlayerTwitchLink.vue";
 import PlayerPreferredRoles from "~/components/player/PlayerPreferredRoles.vue";
 import PlayerRoleRadar from "~/components/player/PlayerRoleRadar.vue";
 import PlayerPerformanceRating from "~/components/player/PlayerPerformanceRating.vue";
@@ -1981,6 +1982,20 @@ const playerHeroTeamChipDotClasses =
                   </a>
                 </template>
 
+                <!-- Twitch: only when the player set a channel; the green
+                     dot means the channel is live right now (any game). -->
+                <template v-if="twitch.channel">
+                  <span
+                    :class="playerHeroMetaDividerClasses"
+                    aria-hidden="true"
+                  ></span>
+                  <PlayerTwitchLink
+                    :channel="twitch.channel"
+                    :live="twitch.live"
+                    :link-class="playerHeroSteamLinkClasses"
+                  />
+                </template>
+
                 <template v-if="canEditRole || player.role">
                   <span
                     :class="playerHeroMetaDividerClasses"
@@ -3254,6 +3269,7 @@ import {
   classifyFriendRequestError,
 } from "~/composables/useFriendActions";
 import { toast } from "@/components/ui/toast";
+import { fetchPlayerTwitch } from "~/composables/useTwitchApi";
 
 export default {
   apollo: {
@@ -3420,12 +3436,33 @@ export default {
       },
     },
   },
+  watch: {
+    // The Twitch icon/dot: read from the API (Twitch is only ever asked
+    // server-side, cached), refreshed every minute while the page is open.
+    playerId: {
+      immediate: true,
+      handler(id) {
+        this.stopTwitchPolling();
+        this.twitch = { channel: null, live: false };
+        if (!id || typeof window === "undefined") return;
+        const load = async () => {
+          const data = await fetchPlayerTwitch(id);
+          if (String(this.playerId) === String(id)) {
+            this.twitch = { channel: data.channel, live: data.live };
+          }
+        };
+        void load();
+        this.twitchTimer = window.setInterval(load, 60_000);
+      },
+    },
+  },
   mounted() {
     this.pageContentTimeout = window.setTimeout(() => {
       this.pageContentTimedOut = true;
     }, 800);
   },
   unmounted() {
+    this.stopTwitchPolling();
     usePlayerContext().value = null;
     if (this.pageContentTimeout) {
       window.clearTimeout(this.pageContentTimeout);
@@ -3434,6 +3471,8 @@ export default {
   data() {
     return {
       player: undefined,
+      twitch: { channel: null as string | null, live: false },
+      twitchTimer: undefined as number | undefined,
       playerAwardRecipients: undefined as any[] | undefined,
       playerAwardSlots: [] as any[],
       highlightsResolved: false,
@@ -3720,6 +3759,12 @@ export default {
     },
   },
   methods: {
+    stopTwitchPolling() {
+      if (this.twitchTimer) {
+        window.clearInterval(this.twitchTimer);
+        this.twitchTimer = undefined;
+      }
+    },
     messagePlayer() {
       if (!this.player?.steam_id) return;
       openDirectMessage(this.player);

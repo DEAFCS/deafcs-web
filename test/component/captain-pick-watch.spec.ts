@@ -30,19 +30,21 @@ const statusesIn = (source: string, marker: string) => {
 };
 
 describe("Captain Pick matches while players are picked", () => {
-  it("/watch lists PickingPlayers in the active (Live) row, not Upcoming", () => {
-    const watch = read("pages/watch/index.vue");
-    const live = statusesIn(watch, `:statuses="[\n        e_match_status_enum.Live`);
-    expect(live).toEqual([
-      "Live",
-      "WaitingForCheckIn",
-      "WaitingForServer",
-      "Veto",
-      "PickingPlayers",
-    ]);
-    expect(statusesIn(watch, `:statuses="[e_match_status_enum.Scheduled]`)).toEqual([
-      "Scheduled",
-    ]);
+  it("/watch lists PickingPlayers in the active (Live) row, not Upcoming", async () => {
+    // The /watch match rail (components/watch): the live subscription takes
+    // the same five statuses as before (and as the Watch badge below), the
+    // upcoming one only Scheduled.
+    const { TICKER_LIVE_STATUSES, tickerKind } = await import(
+      "../../components/watch/watchTicker"
+    );
+    expect([...TICKER_LIVE_STATUSES].sort()).toEqual(
+      ["Live", "WaitingForCheckIn", "WaitingForServer", "Veto", "PickingPlayers"].sort(),
+    );
+    expect(tickerKind({ status: "PickingPlayers" })).toBe("pre");
+    const rail = read("components/watch/WatchMatchRail.vue");
+    expect(rail).toContain("variables: { statuses: [...TICKER_LIVE_STATUSES] }");
+    expect(rail).toContain('{ query: upcomingQuery, variables: { status: "Scheduled" } }');
+    expect(read("pages/watch/index.vue")).toContain("<WatchMatchRail");
   });
 
   it("counts PickingPlayers in the Watch badge (same live subscription)", () => {

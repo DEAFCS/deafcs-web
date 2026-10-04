@@ -1463,6 +1463,13 @@
             "confirm": "Unlink"
           },
           "unlinked": "Discord account unlinked successfully"
+        },
+        "twitch": {
+          "label": "Twitch channel",
+          "placeholder": "your-channel",
+          "help": "Used to show your stream automatically when you are live in a DEAFCS match.",
+          "invalid": "Enter your Twitch channel name or a twitch.tv/your-channel link.",
+          "save_failed": "Your Twitch channel could not be saved. Check the name and try again."
         }
       },
       "notification_preferences": {
@@ -2376,6 +2383,74 @@
         "channel_tournaments": "Tournaments",
         "channel_highlights": "Highlights",
         "channel_status": "Awaiting signal"
+      },
+      "ticker": {
+        "label": "Matches",
+        "filters_label": "Show matches",
+        "filter_all": "All",
+        "filter_live": "Live",
+        "filter_upcoming": "Upcoming",
+        "filter_results": "Results",
+        "up_next": "Up next",
+        "match_count": "{count} match | {count} matches",
+        "results": "Results",
+        "today": "Today",
+        "yesterday": "Yesterday",
+        "final": "Final",
+        "final_overtime": "Final · OT",
+        "final_best_of": "Final · Bo{count}",
+        "scheduled": "Scheduled",
+        "check_in": "Check-in {checked}/{total}",
+        "going_live": "About to go live",
+        "step_check_in": "Check-in",
+        "step_veto": "Map veto",
+        "step_picking": "Captain pick",
+        "step_server": "Server setup",
+        "warmup": "Warmup",
+        "knife": "Knife round",
+        "paused": "Paused",
+        "map_over": "Map over",
+        "round_short": "R{round}",
+        "overtime_short": "OT",
+        "you": "You",
+        "tbd": "To be decided",
+        "nothing_live": "Nothing live right now",
+        "nothing_live_next": "Nothing live right now · next match {time}",
+        "nothing_upcoming": "Nothing scheduled",
+        "no_results": "No results yet",
+        "end": "No older results",
+        "loading_older": "Loading older matches",
+        "ghost_caption": "Matches show here as they're played, live first, then results."
+      },
+      "stream_indicator_one": "Live · 1 stream",
+      "stream_indicator_other": "Live · {count} streams",
+      "highlights": {
+        "title": "Highlights",
+        "kinds": {
+          "label": "Show plays",
+          "all": "All",
+          "aces": "Aces",
+          "fourks": "4Ks"
+        },
+        "range": {
+          "label": "Time range",
+          "today": "Today",
+          "week": "This week",
+          "all": "All time"
+        },
+        "tag": {
+          "today": "Play of the day",
+          "week": "Top play this week",
+          "all": "Top play"
+        },
+        "empty": "No plays match these filters yet.",
+        "show_all_time": "Show all time",
+        "ghost": "Clips show up here once a match's demo is processed."
+      },
+      "tournaments": {
+        "title": "Tournaments",
+        "upcoming": "Upcoming",
+        "recent": "Recent"
       }
     },
     "highlights": {
@@ -7187,7 +7262,11 @@
       "title": "Pending CS2 imports",
       "importing": "Importing…"
     },
-    "all_time_peak": "ALL-TIME PEAK"
+    "all_time_peak": "ALL-TIME PEAK",
+    "twitch": {
+      "title": "Twitch: {channel}",
+      "live_title": "Live on Twitch: {channel}"
+    }
   },
   "account_restriction": {
     "short": "Your account is restricted."
@@ -7691,7 +7770,8 @@
     "live_badge": "LIVE",
     "booting_badge": "BOOTING",
     "mode_live": "Direct",
-    "mode_tv": "TV"
+    "mode_tv": "TV",
+    "player_pov": "{name} POV"
   },
   "stream_deck": {
     "match_status_wait": "match is {status} — wait for it to go live",

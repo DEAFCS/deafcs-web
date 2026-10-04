@@ -11,10 +11,14 @@ const props = withDefaults(
   defineProps<{
     type?: string | null;
     size?: MatchTypeBadgeSize;
+    // Display text only (e.g. "5V5" on the compact /watch cards); the
+    // colour always follows `type`.
+    label?: string | null;
   }>(),
   {
     type: null,
     size: "default",
+    label: null,
   },
 );
 
@@ -49,6 +53,6 @@ const badgeClasses = computed(() => {
     ]"
     :style="hasKnownColor ? matchTypeColorStyle(type) : undefined"
   >
-    {{ type }}
+    {{ label || type }}
   </span>
 </template>

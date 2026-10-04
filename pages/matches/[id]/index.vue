@@ -675,6 +675,12 @@ import {
 } from "~/composables/useCaptainPickMatchStatus";
 import { computed as computedRef } from "vue";
 import { getCaptainPickDraft } from "~/utilities/captainPickDraft";
+import { fetchMatchAutoStreams } from "~/composables/useTwitchApi";
+import {
+  autoPovEligible,
+  matchStreamBlockVisible,
+  mergeMatchStreams,
+} from "~/utilities/matchStreams";
 import socket from "~/web-sockets/Socket";
 import type { CaptainPickRequest } from "~/composables/useCaptainPickActions";
 import {
@@ -755,6 +761,7 @@ export default {
     if (this.autoCancelInterval) {
       clearInterval(this.autoCancelInterval);
     }
+    this.stopAutoStreams();
   },
   data() {
     return {
@@ -791,9 +798,33 @@ export default {
         active: false,
         participant: false,
       },
+      // Live CS2 Twitch streams of this match's seated players (see
+      // autoStreamsKey). Not stored anywhere: polled while the match is
+      // live, merged after the manual streams in embeddableStreams.
+      autoStreams: [] as any[],
+      autoStreamsTimer: undefined as ReturnType<typeof setInterval> | undefined,
     };
   },
   watch: {
+    // Automatic player POV streams: only once gameplay is live and only for
+    // viewers who neither play nor coach in it (the API enforces the same
+    // rules). They come and go with the players' Twitch status and stop as
+    // soon as the match is no longer live -- no reload needed.
+    autoStreamsKey: {
+      immediate: true,
+      handler(key) {
+        this.stopAutoStreams();
+        this.autoStreams = [];
+        if (!key) return;
+        const matchId = this.match.id;
+        const load = async () => {
+          const streams = await fetchMatchAutoStreams([matchId]);
+          if (this.autoStreamsKey === key) this.autoStreams = streams[matchId] ?? [];
+        };
+        void load();
+        this.autoStreamsTimer = setInterval(load, 45_000);
+      },
+    },
     // The server put the match (back) before its server stage: a ready
     // moment remembered from an earlier run of this same match must not
     // hand the new run over to the Scoreboard. Viewers who were already
@@ -873,6 +904,12 @@ export default {
     },
   },
   methods: {
+    stopAutoStreams() {
+      if (this.autoStreamsTimer) {
+        clearInterval(this.autoStreamsTimer);
+        this.autoStreamsTimer = undefined;
+      }
+    },
     pickCaptainPlayer(request: CaptainPickRequest) {
       socket.event("matchmaking:captain-pick", request);
     },
@@ -1561,40 +1598,30 @@ export default {
     hasGameStreamer() {
       return (this.match?.streams || []).some((s) => s.is_game_streamer);
     },
+    // Manual streams first (staff order, custom titles), then automatic
+    // player POVs; a POV staff already attached by hand appears once.
     embeddableStreams() {
-      return (this.match?.streams || []).filter((s) => !s.is_game_streamer);
-    },
-    showLiveStreamBlock() {
-      return (
-        this.showLiveStreams &&
-        (this.match?.streams?.length || 0) > 0 &&
-        !this.match?.is_in_lineup &&
-        !this.match?.is_coach
+      return mergeMatchStreams(
+        (this.match?.streams || []).filter((s) => !s.is_game_streamer),
+        this.autoStreams,
+        (key, values) => this.$t(key, values),
       );
     },
-    showLiveStreams() {
-      if (
-        [
-          e_match_status_enum.Finished,
-          e_match_status_enum.Forfeit,
-          e_match_status_enum.Surrendered,
-          e_match_status_enum.Tie,
-          e_match_status_enum.Canceled,
-        ].includes(this.match?.status)
-      ) {
-        if (this.match?.ended_at) {
-          const allowExtraTime = new Date(this.match.ended_at);
-          allowExtraTime.setMinutes(allowExtraTime.getMinutes() + 10);
-
-          if (allowExtraTime > new Date()) {
-            return true;
-          }
-        }
-
-        return false;
-      }
-
-      return true;
+    // Polling key for automatic POVs: set only once gameplay is live (Live
+    // with its server up; ready check, Captain Pick, veto and server boot
+    // show manual streams only) and the viewer may watch its streams
+    // (anti-cheat: never its own players or coaches).
+    autoStreamsKey() {
+      return autoPovEligible(this.match) ? this.match.id : null;
+    },
+    // Manual streams from the first pre-match stage on; automatic POVs only
+    // join once gameplay is live (autoStreamsKey). Never for the match's
+    // own players or coaches.
+    showLiveStreamBlock() {
+      return matchStreamBlockVisible(
+        this.match,
+        (this.match?.streams?.length || 0) > 0 || this.autoStreams.length > 0,
+      );
     },
   },
 };
