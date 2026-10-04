@@ -4,6 +4,8 @@ import { Button } from "~/components/ui/button";
 import { Video } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
 import { respondToVerificationRing } from "~/composables/useVerificationCallApi";
+import FixedPartyCall from "~/components/calls/FixedPartyCall.vue";
+import { verificationCallAdapter } from "~/components/calls/fixedPartyCallAdapters";
 import { startCallFlash, stopCallFlash } from "~/composables/useTabFlash";
 
 // Full-screen "Admin is calling…" overlay for the verification-application
@@ -56,32 +58,16 @@ function decline() {
   void respondToVerificationRing(applicationId, false);
 }
 
+// The accepted call, shown inline on the page the applicant is already on
+// (no popup window or new tab; only the calling admin uses a popout).
+const activeCall = ref<{ applicationId: string } | null>(null);
+
 function accept() {
   const applicationId = incomingCall.value?.applicationId;
   closeOverlay();
   if (!applicationId) return;
   void respondToVerificationRing(applicationId, true);
-
-  const w = 960;
-  const h = 720;
-  const left = Math.max(0, (window.screen.width - w) / 2);
-  const top = Math.max(0, (window.screen.height - h) / 2);
-  const features = [
-    `width=${w}`,
-    `height=${h}`,
-    `left=${left}`,
-    `top=${top}`,
-    "scrollbars=yes",
-    "location=no",
-    "menubar=no",
-    "toolbar=no",
-    "status=no",
-  ].join(",");
-  window.open(
-    `/verification-applications/call/${applicationId}`,
-    "verification-call",
-    features,
-  );
+  activeCall.value = { applicationId };
 }
 
 let unlisten: (() => void) | null = null;
@@ -140,6 +126,14 @@ onBeforeUnmount(() => {
       </div>
     </div>
   </Transition>
+  <FixedPartyCall
+    v-if="activeCall"
+    :key="activeCall.applicationId"
+    inline
+    :adapter="verificationCallAdapter(activeCall.applicationId)"
+    :title="$t('pages.verification_applications.call.title', 'Verification call')"
+    @close="activeCall = null"
+  />
 </template>
 
 <style scoped>

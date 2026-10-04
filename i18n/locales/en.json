@@ -2801,7 +2801,10 @@
         "start": "Start webcam call",
         "title": "Admin call",
         "ringing": "Calling…",
+        "waiting": "Waiting for the player…",
+        "declined_title": "Call declined",
         "declined": "The player declined the call.",
+        "no_answer_title": "No answer",
         "no_answer": "The player did not answer."
       }
     },
@@ -2957,7 +2960,10 @@
         "start": "Start webcam call",
         "title": "Verification call",
         "ringing": "Calling…",
+        "waiting": "Waiting for the applicant…",
+        "declined_title": "Call declined",
         "declined": "The applicant declined the call.",
+        "no_answer_title": "No answer",
         "no_answer": "The applicant did not answer."
       }
     },
