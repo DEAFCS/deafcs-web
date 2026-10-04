@@ -16,7 +16,9 @@ import {
   oneToOneLayout,
   useElementSize,
   usePhoneCallLayout,
+  usePipDrag,
   useVideoTileDimensions,
+  type PipInsets,
 } from "~/composables/useCallVideoLayout";
 import type {
   FixedPartyCallAdapter,
@@ -434,6 +436,36 @@ const stageEl = ref<HTMLElement | null>(null);
 const stageSize = useElementSize(stageEl);
 
 const phoneLayout = usePhoneCallLayout();
+
+// --- Fullscreen: the whole call area, not just the other person's video ---
+// WhepPlayer's own fullscreen button used to fullscreen only its own tile,
+// so my camera (a sibling tile) vanished. It now targets this call area
+// (both tiles + Leave); while it is fullscreen the other person is the
+// main video and my camera stays visible as a picture-in-picture.
+// Leaving fullscreen restores the normal layout; the call is untouched.
+const callAreaEl = ref<HTMLElement | null>(null);
+const isCallFullscreen = ref(false);
+function onFullscreenChange() {
+  const doc = document as Document & { webkitFullscreenElement?: Element | null };
+  const el = doc.fullscreenElement ?? doc.webkitFullscreenElement ?? null;
+  isCallFullscreen.value = !!el && el === callAreaEl.value;
+}
+onMounted(() => {
+  document.addEventListener("fullscreenchange", onFullscreenChange);
+  document.addEventListener("webkitfullscreenchange", onFullscreenChange);
+});
+onBeforeUnmount(() => {
+  document.removeEventListener("fullscreenchange", onFullscreenChange);
+  document.removeEventListener("webkitfullscreenchange", onFullscreenChange);
+});
+
+// My picture-in-picture can be dragged to any corner (bottom-right by
+// default) and keeps that corner for this call. When the other person is
+// the main video, WhepPlayer's buttons run along its bottom edge and
+// their name sits top-left, so the PiP keeps clear of both.
+const pipDrag = usePipDrag(stageEl);
+const PIP_INSETS: PipInsets = { top: 32, right: 0, bottom: 40, left: 0 };
+
 const callLayout = computed(() =>
   oneToOneLayout({
     keys: tileKeys.value,
@@ -441,6 +473,9 @@ const callLayout = computed(() =>
     localKey: publishingLocally.value ? "local" : null,
     aspects: Object.fromEntries(tileKeys.value.map((key) => [key, tileAspect(key)])),
     phone: phoneLayout.value,
+    fullscreen: isCallFullscreen.value,
+    pipCorner: pipDrag.corner.value,
+    pipInsets: PIP_INSETS,
     stageWidth: stageSize.value.width,
     stageHeight: stageSize.value.height,
     gap: TILE_GAP,
@@ -448,7 +483,8 @@ const callLayout = computed(() =>
 );
 
 function tileStyle(key: string) {
-  return callLayout.value.styles[key] ?? {};
+  const style = callLayout.value.styles[key] ?? {};
+  return tileRole(key) === "pip" ? { ...style, ...pipDrag.dragStyle() } : style;
 }
 function tileRole(key: string) {
   return callLayout.value.roles[key] ?? "cell";
@@ -473,7 +509,7 @@ function tileRole(key: string) {
       class="flex w-full flex-col rounded-lg border bg-background p-4 text-foreground shadow-xl"
       :class="
         visibleTileCount > 0
-          ? 'h-full max-w-5xl'
+          ? 'h-full max-w-none'
           : 'max-h-full max-w-md overflow-y-auto'
       "
     >
@@ -510,10 +546,19 @@ function tileRole(key: string) {
         {{ joinError }}
       </p>
 
-      <template v-if="visibleTileCount > 0">
+      <!-- The call area fills the window between the header and Leave,
+           and is what goes fullscreen (both tiles + Leave). -->
+      <div
+        v-if="visibleTileCount > 0"
+        ref="callAreaEl"
+        class="flex min-h-0 flex-1 flex-col"
+        :class="isCallFullscreen ? 'bg-black p-3' : ''"
+        data-testid="fixed-party-call-area"
+        :data-fullscreen="isCallFullscreen ? 'true' : 'false'"
+      >
         <!-- Equal cells on desktop, other person + my picture-in-picture
-             on a phone (see callLayout); every video is shown whole
-             (contain), any spare space is dark. -->
+             on a phone or in fullscreen (see callLayout); every video is
+             shown whole (contain), any spare space is dark. -->
         <div
           ref="stageEl"
           class="relative flex min-h-0 flex-1 flex-wrap content-center items-center justify-center gap-3 overflow-hidden"
@@ -535,9 +580,11 @@ function tileRole(key: string) {
               :whep-url="adapter.peerWhepUrl(p.steamId)"
               :muted="false"
               object-fit="contain"
+              :fullscreen-target="callAreaEl"
             />
             <span
-              class="absolute bottom-2 left-2 max-w-[80%] truncate rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white"
+              class="absolute left-2 max-w-[80%] truncate rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white"
+              :class="tileRole(p.steamId) === 'main' ? 'top-2' : 'bottom-2'"
             >
               {{
                 p.steamId === myId
@@ -550,11 +597,14 @@ function tileRole(key: string) {
             v-if="publishingLocally"
             :ref="tileRef('local')"
             class="relative shrink-0 overflow-hidden rounded-lg border border-primary bg-black transition-[width,height] duration-200"
+            :class="tileRole('local') === 'pip' ? 'touch-none select-none shadow-lg cursor-grab active:cursor-grabbing' : ''"
             :style="tileStyle('local')"
             data-testid="fixed-party-call-tile"
             data-key="local"
             :data-shape="tileShape('local')"
             :data-role="tileRole('local')"
+            :data-corner="tileRole('local') === 'pip' ? pipDrag.corner.value : undefined"
+            v-on="tileRole('local') === 'pip' ? pipDrag.handlers : {}"
           >
             <video
               ref="previewEl"
@@ -584,7 +634,7 @@ function tileRole(key: string) {
             {{ $t("common.leave", "Leave call") }}
           </Button>
         </div>
-      </template>
+      </div>
 
       <div
         v-else-if="step === 'ringing'"

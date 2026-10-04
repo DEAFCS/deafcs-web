@@ -263,11 +263,16 @@ export function splitCell(stageWidth: number, stageHeight: number, gap = 12): Ti
 // The picture-in-picture box for my own camera: about 28% of the width on
 // a phone held upright, 22% sideways, between 88px and 200px wide, in my
 // camera's own shape (contained), never taller than 40% of the call area.
-export function pipBox(stageWidth: number, stageHeight: number, localAspect: number): TileBox | null {
+export function pipBox(
+  stageWidth: number,
+  stageHeight: number,
+  localAspect: number,
+  maxWidth = 200,
+): TileBox | null {
   if (!(stageWidth > 0) || !(stageHeight > 0)) return null;
   const aspect = clamp(localAspect, GROUP_CELL_MIN_ASPECT, GROUP_CELL_MAX_ASPECT);
   const share = stageWidth > stageHeight ? 0.22 : 0.28;
-  let width = clamp(stageWidth * share, 88, 200);
+  let width = clamp(stageWidth * share, 88, maxWidth);
   let height = width / aspect;
   const maxHeight = stageHeight * 0.4;
   if (height > maxHeight) {
@@ -277,6 +282,33 @@ export function pipBox(stageWidth: number, stageHeight: number, localAspect: num
   return { width, height };
 }
 
+// --- Picture-in-picture corner ---------------------------------------------
+// The PiP snaps to one of four corners (bottom-right by default). Its place
+// is a logical corner, not pixels, so a rotation or resize keeps it in the
+// same corner and the browser recomputes the exact position. Each view
+// passes how far its own controls reach into the call area (e.g. the video
+// player's buttons along the bottom), so the PiP never sits on top of them;
+// phone notches/home bars are respected through the safe-area insets.
+export type PipCorner = "top-left" | "top-right" | "bottom-left" | "bottom-right";
+export const PIP_CORNERS: PipCorner[] = ["top-left", "top-right", "bottom-left", "bottom-right"];
+export const DEFAULT_PIP_CORNER: PipCorner = "bottom-right";
+export type PipInsets = { top: number; right: number; bottom: number; left: number };
+export const NO_PIP_INSETS: PipInsets = { top: 0, right: 0, bottom: 0, left: 0 };
+
+export function pipCornerPosition(corner: PipCorner, insets: PipInsets = NO_PIP_INSETS): TileCss {
+  const vertical = corner.startsWith("top") ? "top" : "bottom";
+  const horizontal = corner.endsWith("left") ? "left" : "right";
+  return {
+    [vertical]: `calc(env(safe-area-inset-${vertical}, 0px) + ${PIP_MARGIN + insets[vertical]}px)`,
+    [horizontal]: `calc(env(safe-area-inset-${horizontal}, 0px) + ${PIP_MARGIN + insets[horizontal]}px)`,
+  };
+}
+
+// Corner whose quadrant contains the point (x, y) inside a stage of w x h.
+export function nearestPipCorner(x: number, y: number, width: number, height: number): PipCorner {
+  return `${y < height / 2 ? "top" : "bottom"}-${x < width / 2 ? "left" : "right"}` as PipCorner;
+}
+
 // Layout for the fixed two-party calls. `localKey` is MY tile (never
 // inferred from order); every other key is the other side.
 export function oneToOneLayout(input: {
@@ -284,11 +316,17 @@ export function oneToOneLayout(input: {
   localKey: string | null;
   aspects: Record<string, number>;
   phone: boolean;
+  // The call area is fullscreen: the other person is the main video and
+  // my camera stays visible as a picture-in-picture, also on desktop.
+  fullscreen?: boolean;
+  pipCorner?: PipCorner;
+  pipInsets?: PipInsets;
   stageWidth: number;
   stageHeight: number;
   gap?: number;
 }): OneToOneLayout {
   const { keys, localKey, aspects, phone, stageWidth, stageHeight } = input;
+  const fullscreen = !!input.fullscreen;
   const gap = input.gap ?? 12;
   const aspect = (k: string) => aspects[k] ?? FALLBACK_ASPECT;
   const styles: Record<string, TileCss> = {};
@@ -305,15 +343,15 @@ export function oneToOneLayout(input: {
   }
 
   const hasLocal = !!localKey && keys.includes(localKey);
-  if (keys.length === 2 && phone && hasLocal) {
+  if (keys.length === 2 && (phone || fullscreen) && hasLocal) {
     const remote = keys.find((k) => k !== localKey)!;
     styles[remote] = { width: "100%", height: "100%" };
     roles[remote] = "main";
-    const box = pipBox(stageWidth, stageHeight, aspect(localKey!));
+    // A larger PiP in desktop fullscreen, the usual small one on a phone.
+    const box = pipBox(stageWidth, stageHeight, aspect(localKey!), phone ? 200 : 320);
     styles[localKey!] = {
       position: "absolute",
-      right: px(PIP_MARGIN),
-      bottom: px(PIP_MARGIN),
+      ...pipCornerPosition(input.pipCorner ?? DEFAULT_PIP_CORNER, input.pipInsets),
       zIndex: "10",
       ...(box
         ? { width: px(box.width), height: px(box.height) }
@@ -421,4 +459,109 @@ export function useElementSize(target: Ref<HTMLElement | null>) {
   });
   if (getCurrentInstance()) onBeforeUnmount(() => stopObserving());
   return size;
+}
+
+// Drag the picture-in-picture with a finger, mouse or pen, then snap it to
+// the nearest corner on release. Dragging only starts after a few pixels of
+// movement, so a plain tap (e.g. a button inside the PiP) still works, and
+// the click that ends a drag is swallowed. Pointer capture keeps the drag
+// going outside the PiP; touch-action: none on the PiP (set by the view)
+// stops the page from scrolling meanwhile. The corner lives in memory only,
+// for this call.
+export const PIP_DRAG_THRESHOLD = 4;
+
+export function usePipDrag(stage: Ref<HTMLElement | null>) {
+  const corner = ref<PipCorner>(DEFAULT_PIP_CORNER);
+  const dragging = ref(false);
+  const offset = ref({ x: 0, y: 0 });
+  let pointerId: number | null = null;
+  let start = { x: 0, y: 0 };
+  let startRect: DOMRect | null = null;
+  let stageRect: DOMRect | null = null;
+  let pip: HTMLElement | null = null;
+
+  function clampDelta(dx: number, dy: number) {
+    if (!startRect || !stageRect) return { x: dx, y: dy };
+    return {
+      x: clamp(dx, stageRect.left - startRect.left, stageRect.right - startRect.right),
+      y: clamp(dy, stageRect.top - startRect.top, stageRect.bottom - startRect.bottom),
+    };
+  }
+
+  function onPointerDown(e: PointerEvent) {
+    if (e.button > 0 || pointerId !== null) return;
+    pip = e.currentTarget as HTMLElement;
+    pointerId = e.pointerId;
+    start = { x: e.clientX, y: e.clientY };
+    startRect = pip.getBoundingClientRect();
+    stageRect = stage.value?.getBoundingClientRect() ?? null;
+  }
+
+  function onPointerMove(e: PointerEvent) {
+    if (e.pointerId !== pointerId) return;
+    const dx = e.clientX - start.x;
+    const dy = e.clientY - start.y;
+    if (!dragging.value) {
+      if (Math.abs(dx) + Math.abs(dy) < PIP_DRAG_THRESHOLD) return;
+      dragging.value = true;
+      try {
+        pip?.setPointerCapture?.(e.pointerId);
+      } catch {
+        // capture is a nicety; the drag still works without it
+      }
+    }
+    e.preventDefault();
+    offset.value = clampDelta(dx, dy);
+  }
+
+  function finish(e: PointerEvent, snap: boolean) {
+    if (e.pointerId !== pointerId) return;
+    if (dragging.value && snap && startRect && stageRect) {
+      const centerX = startRect.left + offset.value.x + startRect.width / 2 - stageRect.left;
+      const centerY = startRect.top + offset.value.y + startRect.height / 2 - stageRect.top;
+      corner.value = nearestPipCorner(centerX, centerY, stageRect.width, stageRect.height);
+      // Swallow the click the browser fires at the end of the drag.
+      const swallow = (ev: Event) => {
+        ev.stopPropagation();
+        ev.preventDefault();
+      };
+      pip?.addEventListener("click", swallow, { capture: true, once: true });
+      setTimeout(() => pip?.removeEventListener("click", swallow, { capture: true }), 0);
+    }
+    try {
+      if (dragging.value) pip?.releasePointerCapture?.(e.pointerId);
+    } catch {
+      // already released
+    }
+    dragging.value = false;
+    offset.value = { x: 0, y: 0 };
+    pointerId = null;
+    startRect = null;
+    stageRect = null;
+  }
+
+  const onPointerUp = (e: PointerEvent) => finish(e, true);
+  const onPointerCancel = (e: PointerEvent) => finish(e, false);
+
+  // Extra style while dragging: follow the pointer, no size animation.
+  const dragStyle = (): TileCss =>
+    dragging.value
+      ? {
+          transform: `translate(${offset.value.x}px, ${offset.value.y}px)`,
+          transition: "none",
+        }
+      : {};
+
+  return {
+    corner,
+    dragging,
+    dragStyle,
+    // Plain event names, for v-on="pipDrag.handlers" in a template.
+    handlers: {
+      pointerdown: onPointerDown,
+      pointermove: onPointerMove,
+      pointerup: onPointerUp,
+      pointercancel: onPointerCancel,
+    },
+  };
 }

@@ -15,7 +15,9 @@ import {
   oneToOneLayout,
   useElementSize,
   usePhoneCallLayout,
+  usePipDrag,
   useVideoTileDimensions,
+  type PipInsets,
 } from "~/composables/useCallVideoLayout";
 
 // targetSteamId isn't needed for the token-gated participants lookup
@@ -284,6 +286,11 @@ const { tileRef, shape: tileShape, aspect: tileAspect } = useVideoTileDimensions
 const stageEl = ref<HTMLElement | null>(null);
 const stageSize = useElementSize(stageEl);
 const phoneLayout = usePhoneCallLayout();
+// My picture-in-picture can be dragged to any corner (bottom-right by
+// default) and keeps that corner for this call; it stays clear of the
+// other person's name along the bottom.
+const pipDrag = usePipDrag(stageEl);
+const PIP_INSETS: PipInsets = { top: 0, right: 0, bottom: 24, left: 0 };
 const callLayout = computed(() =>
   oneToOneLayout({
     keys: tileKeys.value,
@@ -291,13 +298,16 @@ const callLayout = computed(() =>
     localKey: "local",
     aspects: Object.fromEntries(tileKeys.value.map((key) => [key, tileAspect(key)])),
     phone: phoneLayout.value,
+    pipCorner: pipDrag.corner.value,
+    pipInsets: PIP_INSETS,
     stageWidth: stageSize.value.width,
     stageHeight: stageSize.value.height,
     gap: TILE_GAP,
   }),
 );
 function tileStyle(key: string) {
-  return callLayout.value.styles[key] ?? {};
+  const style = callLayout.value.styles[key] ?? {};
+  return tileRole(key) === "pip" ? { ...style, ...pipDrag.dragStyle() } : style;
 }
 function tileRole(key: string) {
   return callLayout.value.roles[key] ?? "cell";
@@ -351,11 +361,14 @@ onBeforeUnmount(() => {
       <div
         :ref="tileRef('local')"
         class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-border transition-[width,height] duration-200"
+        :class="tileRole('local') === 'pip' ? 'touch-none select-none shadow-lg' : ''"
         :style="tileStyle('local')"
         data-testid="call-tile"
         data-key="local"
         :data-shape="tileShape('local')"
         :data-role="tileRole('local')"
+        :data-corner="tileRole('local') === 'pip' ? pipDrag.corner.value : undefined"
+        v-on="tileRole('local') === 'pip' ? pipDrag.handlers : {}"
       >
         <video
           ref="previewEl"

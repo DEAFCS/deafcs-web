@@ -459,7 +459,8 @@ describe("1-to-1 phone page (verification call QR page)", () => {
     const main = (callTile(w, ADMIN).element as HTMLElement).style;
     expect([main.width, main.height]).toEqual(["100%", "100%"]);
     const pip = (callTile(w, "local").element as HTMLElement).style;
-    expect([pip.position, pip.right, pip.bottom]).toEqual(["absolute", "12px", "12px"]);
+    expect(pip.position).toBe("absolute");
+    expect(callTile(w, "local").attributes("data-corner")).toBe("bottom-right");
 
     // Admin's PC webcam (landscape) and this phone upright (portrait).
     const remote = videoOf(callTile(w, ADMIN).element);

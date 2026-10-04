@@ -217,7 +217,11 @@ describe("1-to-1 layout rules (oneToOneLayout)", () => {
       expect(out.mode).toBe("pip");
       expect(out.roles).toEqual({ them: "main", me: "pip" });
       expect(out.styles.them).toEqual({ width: "100%", height: "100%" });
-      expect(out.styles.me).toMatchObject({ position: "absolute", right: "12px", bottom: "12px" });
+      expect(out.styles.me).toMatchObject({
+        position: "absolute",
+        right: "calc(env(safe-area-inset-right, 0px) + 12px)",
+        bottom: "calc(env(safe-area-inset-bottom, 0px) + 12px)",
+      });
     }
   });
 
@@ -437,8 +441,10 @@ describe("active call tiles (FixedPartyCall)", () => {
       expect([mainStyle.width, mainStyle.height]).toEqual(["100%", "100%"]);
       const pipStyle = (pip.element as HTMLElement).style;
       expect(pipStyle.position).toBe("absolute");
-      expect(pipStyle.right).toBe(`${PIP_MARGIN}px`);
-      expect(pipStyle.bottom).toBe(`${PIP_MARGIN}px`);
+      // Corner CSS uses env(safe-area-inset-*), which happy-dom drops; the
+      // exact values are covered by the pipCornerPosition unit tests.
+      expect(pip.attributes("data-corner")).toBe("bottom-right");
+      expect(PIP_MARGIN).toBe(12);
       expect(Number(pipStyle.zIndex)).toBeGreaterThan(0);
 
       // My landscape webcam: a small landscape PiP (~28% of the width).

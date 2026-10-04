@@ -34,6 +34,12 @@ const props = defineProps<{
   // renders the already-received video; doesn't touch the publisher's
   // capture settings at all.
   objectFit?: "contain" | "cover";
+  // Opt-in: element to put in fullscreen instead of this player's parent.
+  // The 1-to-1 webcam call passes its whole call area so the caller's
+  // own camera (a sibling tile) stays visible as a picture-in-picture.
+  // Unset everywhere else, so streams, the deck and camera admin keep
+  // their current fullscreen exactly as before.
+  fullscreenTarget?: HTMLElement | null;
 }>();
 
 const videoRef = ref<HTMLVideoElement | null>(null);
@@ -103,7 +109,8 @@ async function toggleFullscreen() {
   // wrapper) so siblings like the scoreboard pulldown, corner markers,
   // and any HUD overlays remain visible in fullscreen. Falls back to
   // our own container when we're mounted at the top level.
-  const target = (containerRef.value?.parentElement ??
+  const target = (props.fullscreenTarget ??
+    containerRef.value?.parentElement ??
     containerRef.value) as FullscreenEl | null;
   const doc = document as FullscreenDoc;
   const fsElement = doc.fullscreenElement ?? doc.webkitFullscreenElement;
@@ -137,6 +144,8 @@ async function toggleFullscreen() {
       target.webkitRequestFullscreen?.bind(target);
     await Promise.resolve(request?.()).catch(() => undefined);
     // Streams are landscape; lock rotates Android into it, rejects elsewhere.
+    // Not for a call area (fullscreenTarget): a call follows the phone.
+    if (props.fullscreenTarget) return;
     try {
       await (
         screen.orientation as ScreenOrientation & {
