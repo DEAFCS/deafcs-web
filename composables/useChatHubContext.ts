@@ -179,6 +179,17 @@ export function draftChatHubContext(input: {
   };
 }
 
+// On the mobile layout the open Hub covers the whole page, so a match page
+// offers its rooms without opening the Hub: the match is shown first and the
+// chat icon/badge stays one tap away. Rooms, focus and permissions are
+// unchanged; only the automatic open is skipped.
+export function withoutMobileAutoOpen(
+  context: ChatHubContext | null,
+  mobile: boolean,
+): ChatHubContext | null {
+  return context && mobile ? { ...context, autoOpen: false } : context;
+}
+
 // Mirrors useChatNotificationNavigation / Socket.ts: the fixed channels use
 // their type as id, every other room is "${type}:${lobbyId}".
 export function chatHubTabId(type: ChatTab["type"], lobbyId: string) {

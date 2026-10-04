@@ -664,7 +664,9 @@ import {
   matchChatHubContext,
   captainPickChatHubContext,
   useChatHubContext,
+  withoutMobileAutoOpen,
 } from "~/composables/useChatHubContext";
+import { isMobileChatHubLayout } from "~/composables/useRightSidebar";
 import {
   CAPTAIN_PICK_LINEUP_LOCK,
   createCaptainPickMatchStatus,
@@ -737,6 +739,9 @@ export default {
     // Opens the Chat Hub on this match's Match Chat (plus the viewer's own
     // Team Chat, if any) while this page is open. Options API: not inside
     // setup(), so it's disposed in unmounted() below.
+    // Read once on entering the page (not reactive), so on a phone the Hub
+    // never opens by itself here, even after rotating past the breakpoint.
+    this.chatHubMobileLayout = isMobileChatHubLayout();
     this.chatHub = useChatHubContext(() => this.chatHubContext);
   },
   unmounted() {
@@ -1336,20 +1341,23 @@ export default {
     },
     // Before final seating, team privacy still uses the existing draft room.
     // Finalization hands the same Match Chat to the normal match context.
+    // On the mobile layout the rooms are offered without auto-opening the
+    // Hub (see withoutMobileAutoOpen), for every viewer role.
     chatHubContext() {
-      if (this.participantDraft &&
-          ["Drafting", "CreatingMatch"].includes(this.participantDraft.phase)) {
-        return captainPickChatHubContext(
-          this.participantDraft, useAuthStore().me?.steam_id ?? null,
-          (key, params) => this.$t(key, params),
-        );
-      }
-      return matchChatHubContext(
-        this.match,
-        this.canUseMatchChat,
-        this.myLineup,
-        (key, params) => this.$t(key, params),
-      );
+      const context =
+        this.participantDraft &&
+        ["Drafting", "CreatingMatch"].includes(this.participantDraft.phase)
+          ? captainPickChatHubContext(
+              this.participantDraft, useAuthStore().me?.steam_id ?? null,
+              (key, params) => this.$t(key, params),
+            )
+          : matchChatHubContext(
+              this.match,
+              this.canUseMatchChat,
+              this.myLineup,
+              (key, params) => this.$t(key, params),
+            );
+      return withoutMobileAutoOpen(context, !!this.chatHubMobileLayout);
     },
     // Deliberately stricter than myLineup: is_on_lineup is only true
     // for an actual rostered player row (see is_on_lineup.sql), not a

@@ -3,10 +3,9 @@ import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from "vue"
 import QRCode from "qrcode";
 import { Button } from "~/components/ui/button";
 import WhepPlayer from "~/components/match/WhepPlayer.vue";
+import CallDevicePicker from "~/components/calls/CallDevicePicker.vue";
 import {
   LucideX,
-  LucideSmartphone,
-  LucideMonitor,
   LucideArrowLeft,
   LucideVideo,
   LucideCamera,
@@ -323,6 +322,18 @@ function backToChoose() {
   step.value = "choose";
 }
 
+// Phone-first picker (see CallDevicePicker.vue): Back from the QR step
+// returns to the picker, Back from the picker closes it. While the
+// picker or webcam preview is open it takes the centre of the page
+// instead of floating under a separate "No active call" message.
+const pickerOpen = computed(
+  () => step.value === "choose" || step.value === "mobile" || step.value === "preview",
+);
+function pickerBack() {
+  if (step.value === "mobile") backToChoose();
+  else step.value = "idle";
+}
+
 function pollParticipants() {
   participantsPollTimer = setTimeout(async () => {
     await refreshParticipants();
@@ -433,13 +444,11 @@ const gridColumns = computed(() => {
         <LucideVideo class="w-4 h-4" />
         {{ $t("pages.players.call.title", "Admin call") }}
       </h1>
-      <span class="text-xs text-muted-foreground">
+      <span v-if="totalCount" class="text-xs text-muted-foreground">
         {{
-          totalCount
-            ? $t("matchmaking.lobby_call.in_call", "{count} in call", {
-                count: totalCount,
-              })
-            : $t("matchmaking.lobby_call.no_call", "No active call")
+          $t("matchmaking.lobby_call.in_call", "{count} in call", {
+            count: totalCount,
+          })
         }}
       </span>
     </div>
@@ -506,7 +515,7 @@ const gridColumns = computed(() => {
       </p>
     </div>
     <div
-      v-else-if="!isInCall"
+      v-else-if="!isInCall && !pickerOpen"
       class="flex-1 flex items-center justify-center text-sm text-muted-foreground text-center px-6"
     >
       {{
@@ -517,7 +526,10 @@ const gridColumns = computed(() => {
     </div>
 
     <!-- Join controls -->
-    <div class="mx-auto w-full max-w-sm shrink-0">
+    <div
+      class="mx-auto w-full max-w-sm"
+      :class="pickerOpen ? 'flex-1 min-h-0 overflow-y-auto flex flex-col [justify-content:safe_center]' : 'shrink-0'"
+    >
       <Button
         v-if="step === 'idle' && !isInCall"
         class="w-full gap-2"
@@ -547,55 +559,15 @@ const gridColumns = computed(() => {
         {{ joinError }}
       </p>
 
-      <div v-if="step === 'choose'" class="rounded-lg border border-zinc-800 p-4 space-y-3 mt-2">
-        <div class="flex items-center justify-between">
-          <span class="text-sm font-medium">
-            {{ $t("matchmaking.lobby_call.choose_device", "Connect with…") }}
-          </span>
-          <button type="button" class="text-muted-foreground hover:text-foreground" @click="step = 'idle'">
-            <LucideArrowLeft class="w-4 h-4" />
-          </button>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            class="flex flex-col items-center gap-2 rounded-md border border-zinc-800 p-4 hover:border-primary hover:bg-accent transition-colors"
-            @click="chooseMobile"
-          >
-            <LucideSmartphone class="w-5 h-5" />
-            <span class="text-xs font-medium">Mobile</span>
-          </button>
-          <button
-            type="button"
-            class="flex flex-col items-center gap-2 rounded-md border border-zinc-800 p-4 hover:border-primary hover:bg-accent transition-colors"
-            @click="chooseThisComputer"
-          >
-            <LucideMonitor class="w-5 h-5" />
-            <span class="text-xs font-medium">This computer</span>
-          </button>
-        </div>
-      </div>
-
-      <div v-if="step === 'mobile'" class="rounded-lg border border-zinc-800 p-4 flex flex-col items-center gap-3 mt-2">
-        <button
-          type="button"
-          class="self-start inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
-          @click="backToChoose"
-        >
-          <LucideArrowLeft class="w-3.5 h-3.5" /> Back
-        </button>
-        <img
-          v-if="qrDataUrl"
-          :src="qrDataUrl"
-          alt="QR code"
-          width="200"
-          height="200"
-          class="rounded-lg border border-border bg-white p-2"
-        />
-        <p class="text-xs text-muted-foreground text-center">
-          Scan with your phone's camera app to join with your phone's camera.
-        </p>
-      </div>
+      <CallDevicePicker
+        v-if="step === 'choose' || step === 'mobile'"
+        class="mt-2"
+        :mode="step"
+        :qr-data-url="qrDataUrl"
+        @use-phone="chooseMobile"
+        @use-computer="chooseThisComputer"
+        @back="pickerBack"
+      />
 
       <div
         v-if="step === 'preview'"

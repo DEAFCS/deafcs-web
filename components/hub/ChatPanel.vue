@@ -20,6 +20,7 @@ import ChatLobby from "~/components/chat/ChatLobby.vue";
 import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
+import ChatDirectProfileLink from "~/components/chat/ChatDirectProfileLink.vue";
 import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
 import { useTournamentWebcamStatus } from "~/composables/useTournamentWebcamStatus";
 import {
@@ -856,7 +857,14 @@ function openTournamentWebcamWindow() {
           class="flex items-center justify-between px-3 py-3 border-b border-border bg-card/30"
         >
           <div class="min-w-0 flex items-center gap-3">
-            <div class="min-w-0">
+            <ChatDirectProfileLink
+              v-if="activeTab?.type === 'direct' && activeTab.otherSteamId"
+              :steam-id="activeTab.otherSteamId"
+              :name="activeTab.label"
+              :avatar-url="activeTab.avatarUrl"
+              :subtitle="getRoomSubtitle(activeTab)"
+            />
+            <div v-else class="min-w-0">
               <div class="text-xs font-semibold text-foreground truncate">
                 {{ activeTab?.label || $t("layouts.chat_panel.default_title") }}
               </div>

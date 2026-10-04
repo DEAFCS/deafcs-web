@@ -19,6 +19,20 @@ if (typeof window !== "undefined") {
   }
 }
 
+// Same breakpoint as the Chat Hub's own mobile layout (RightHub.vue,
+// ChatPanel.vue, useHubState.ts), where the open Hub covers the page.
+export const MOBILE_CHAT_HUB_QUERY = "(max-width: 768px)";
+
+// One-off read (not a reactive ref) for decisions taken at a single moment,
+// e.g. a click or entering a page.
+export function isMobileChatHubLayout() {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia(MOBILE_CHAT_HUB_QUERY).matches
+  );
+}
+
 function persistOpen(value: boolean) {
   if (typeof window === "undefined") return;
   if (value) {
