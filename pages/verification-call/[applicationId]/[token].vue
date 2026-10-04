@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, computed, onBeforeUnmount, nextTick } from "vue";
 import { LucideX, LucideRefreshCw } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import {
@@ -11,6 +11,11 @@ import {
   fetchVerificationCallParticipantsForToken,
   type VerificationCallParticipant,
 } from "~/composables/useVerificationCallApi";
+import {
+  layoutTiles,
+  useElementSize,
+  useVideoTileDimensions,
+} from "~/composables/useCallVideoLayout";
 
 // applicationId isn't needed for the token-gated participants lookup
 // (the token alone resolves it server-side), but the route still
@@ -266,33 +271,41 @@ function stopParticipantsPolling() {
   participants.value = [];
 }
 
-// Grid layout -- identical to pages/lobby-call/[lobbyId]/[token].vue's
-// orientation-aware column logic, even though this call is always at
-// most 2 tiles: column count adapts to orientation (more columns fit
-// in landscape) so a phone held normally (portrait) stacks tiles
-// instead of cramming them side by side.
-const isPortrait = ref(true);
-function updateOrientation() {
-  isPortrait.value =
-    typeof window !== "undefined" &&
-    window.matchMedia("(orientation: portrait)").matches;
+// Layout -- same as the desktop side of this call (FixedPartyCall.vue):
+// each tile takes the REAL shape of the video it shows (re-read when a
+// phone rotates or reports its size late, see useCallVideoLayout.ts) and
+// the screen is shared out by layoutTiles, side by side or stacked,
+// whichever shows more. The video is shown whole (object-contain), so a
+// landscape webcam is no longer cropped into a zoomed face.
+const TILE_GAP = 8;
+const tileKeys = computed(() => [
+  ...otherParticipants.value.map((p) => p.steamId),
+  "local",
+]);
+const { tileRef, shape: tileShape, aspect: tileAspect } = useVideoTileDimensions();
+const stageEl = ref<HTMLElement | null>(null);
+const stageSize = useElementSize(stageEl);
+const tileLayout = computed(() =>
+  layoutTiles(
+    tileKeys.value.map((key) => tileAspect(key)),
+    stageSize.value.width,
+    stageSize.value.height,
+    TILE_GAP,
+  ),
+);
+function tileStyle(key: string) {
+  const box = tileLayout.value.tiles[tileKeys.value.indexOf(key)];
+  if (box) {
+    return { width: `${Math.floor(box.width)}px`, height: `${Math.floor(box.height)}px` };
+  }
+  return {
+    aspectRatio: String(tileAspect(key)),
+    width: `calc((100% - ${(tileKeys.value.length - 1) * TILE_GAP}px) / ${tileKeys.value.length})`,
+    maxHeight: "100%",
+  };
 }
 
-const totalTileCount = computed(() => otherParticipants.value.length + 1);
-const gridColumns = computed(() => {
-  if (totalTileCount.value <= 2) return isPortrait.value ? 1 : 2;
-  return isPortrait.value ? 2 : 3;
-});
-
-onMounted(() => {
-  updateOrientation();
-  window.addEventListener("resize", updateOrientation);
-  window.addEventListener("orientationchange", updateOrientation);
-});
-
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateOrientation);
-  window.removeEventListener("orientationchange", updateOrientation);
   teardownStream();
 });
 </script>
@@ -308,19 +321,27 @@ onBeforeUnmount(() => {
 
     <div
       v-if="phase === 'connected'"
-      class="grid gap-2 auto-rows-fr overflow-y-auto flex-1 min-h-0"
-      :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
+      ref="stageEl"
+      class="flex flex-1 min-h-0 items-center justify-center gap-2 overflow-hidden"
+      :class="tileLayout.direction === 'column' ? 'flex-col' : 'flex-row'"
+      data-testid="call-stage"
+      :data-direction="tileLayout.direction"
     >
       <div
         v-for="p in otherParticipants"
         :key="p.steamId"
-        class="relative rounded-lg overflow-hidden bg-black border border-border"
+        :ref="tileRef(p.steamId)"
+        class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-border transition-[width,height] duration-200"
+        :style="tileStyle(p.steamId)"
+        data-testid="call-tile"
+        :data-key="p.steamId"
+        :data-shape="tileShape(p.steamId)"
       >
         <video
           :ref="setTileRef(p.steamId)"
           autoplay
           playsinline
-          class="w-full h-full object-cover"
+          class="w-full h-full bg-black object-contain"
         />
         <span
           class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
@@ -329,13 +350,20 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <div class="relative rounded-lg overflow-hidden bg-black border border-border">
+      <div
+        :ref="tileRef('local')"
+        class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-border transition-[width,height] duration-200"
+        :style="tileStyle('local')"
+        data-testid="call-tile"
+        data-key="local"
+        :data-shape="tileShape('local')"
+      >
         <video
           ref="previewEl"
           autoplay
           playsinline
           muted
-          class="w-full h-full object-cover"
+          class="w-full h-full bg-black object-contain"
         />
         <button
           type="button"
@@ -363,7 +391,7 @@ onBeforeUnmount(() => {
         autoplay
         playsinline
         muted
-        class="w-full h-full object-cover"
+        class="w-full h-full object-contain"
       />
       <button
         type="button"

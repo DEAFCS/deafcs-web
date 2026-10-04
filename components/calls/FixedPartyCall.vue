@@ -12,6 +12,11 @@ import {
   LucideChevronDown,
 } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
+import {
+  layoutTiles,
+  useElementSize,
+  useVideoTileDimensions,
+} from "~/composables/useCallVideoLayout";
 import type {
   FixedPartyCallAdapter,
   FixedPartyCallParticipant,
@@ -341,10 +346,6 @@ function pollParticipants() {
 let responseListener: { stop: () => void } | null = null;
 
 onMounted(async () => {
-  updateOrientation();
-  window.addEventListener("resize", updateOrientation);
-  window.addEventListener("orientationchange", updateOrientation);
-
   await refreshParticipants();
   pollParticipants();
 
@@ -378,8 +379,6 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateOrientation);
-  window.removeEventListener("orientationchange", updateOrientation);
   if (participantsPollTimer) clearTimeout(participantsPollTimer);
   responseListener?.stop();
   if (step.value === "in-call" || step.value === "connecting") teardownStream();
@@ -413,18 +412,49 @@ const visibleTileCount = computed(() =>
     : 0,
 );
 
-// Orientation-aware column count: a fixed two-column grid produced tall,
-// narrow, squashed tiles in portrait (reported from the mobile app).
-const isPortrait = ref(true);
-function updateOrientation() {
-  isPortrait.value =
-    typeof window !== "undefined" &&
-    window.matchMedia("(orientation: portrait)").matches;
+// --- Active call layout from each feed's real shape ---
+// Equal tall grid cells + object-cover cropped a landscape webcam into a
+// giant zoomed face next to a portrait phone. Each tile now takes the
+// aspect ratio of the video it really shows (re-read whenever it can
+// change, see useCallVideoLayout.ts), so the video is shown whole with
+// object-contain, and the stage is shared out by layoutTiles.
+const TILE_GAP = 12;
+const tileKeys = computed(() => [
+  ...tileParticipants.value.map((p) => p.steamId),
+  ...(publishingLocally.value ? ["local"] : []),
+]);
+// Real per-feed dimensions (see useVideoTileDimensions) and stage size.
+const {
+  tileRef,
+  shape: tileShape,
+  aspect: tileAspect,
+} = useVideoTileDimensions();
+const stageEl = ref<HTMLElement | null>(null);
+const stageSize = useElementSize(stageEl);
+
+const tileLayout = computed(() =>
+  layoutTiles(
+    tileKeys.value.map((key) => tileAspect(key)),
+    stageSize.value.width,
+    stageSize.value.height,
+    TILE_GAP,
+  ),
+);
+
+// Exact size when the stage is measured; before that (or if it cannot be
+// measured) a stable fallback in the feed's own ratio.
+function tileStyle(key: string) {
+  const index = tileKeys.value.indexOf(key);
+  const box = tileLayout.value.tiles[index];
+  if (box) {
+    return { width: `${Math.floor(box.width)}px`, height: `${Math.floor(box.height)}px` };
+  }
+  return {
+    aspectRatio: String(tileAspect(key)),
+    width: `calc((100% - ${(tileKeys.value.length - 1) * TILE_GAP}px) / ${Math.max(1, tileKeys.value.length)})`,
+    maxHeight: "100%",
+  };
 }
-const gridColumns = computed(() => {
-  if (visibleTileCount.value <= 2) return isPortrait.value ? 1 : 2;
-  return isPortrait.value ? 2 : 3;
-});
 </script>
 
 <template>
@@ -483,20 +513,29 @@ const gridColumns = computed(() => {
       </p>
 
       <template v-if="visibleTileCount > 0">
+        <!-- Tiles keep each feed's real shape (sized by layoutTiles); the
+             video is shown whole (contain), any spare stage is dark. -->
         <div
-          class="grid min-h-0 flex-1 auto-rows-fr gap-3 overflow-y-auto"
-          :class="visibleTileCount === 1 ? 'mx-auto w-full max-w-2xl' : ''"
-          :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
+          ref="stageEl"
+          class="flex min-h-0 flex-1 items-center justify-center gap-3 overflow-hidden"
+          :class="tileLayout.direction === 'column' ? 'flex-col' : 'flex-row'"
+          data-testid="fixed-party-call-stage"
+          :data-direction="tileLayout.direction"
         >
           <div
             v-for="p in tileParticipants"
             :key="p.steamId"
-            class="relative overflow-hidden rounded-lg border border-zinc-800 bg-black"
+            :ref="tileRef(p.steamId)"
+            class="relative shrink-0 overflow-hidden rounded-lg border border-zinc-800 bg-black transition-[width,height] duration-200"
+            :style="tileStyle(p.steamId)"
+            data-testid="fixed-party-call-tile"
+            :data-key="p.steamId"
+            :data-shape="tileShape(p.steamId)"
           >
             <WhepPlayer
               :whep-url="adapter.peerWhepUrl(p.steamId)"
               :muted="false"
-              object-fit="cover"
+              object-fit="contain"
             />
             <span
               class="absolute bottom-2 left-2 max-w-[80%] truncate rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white"
@@ -510,14 +549,19 @@ const gridColumns = computed(() => {
           </div>
           <div
             v-if="publishingLocally"
-            class="relative overflow-hidden rounded-lg border border-primary bg-black"
+            :ref="tileRef('local')"
+            class="relative shrink-0 overflow-hidden rounded-lg border border-primary bg-black transition-[width,height] duration-200"
+            :style="tileStyle('local')"
+            data-testid="fixed-party-call-tile"
+            data-key="local"
+            :data-shape="tileShape('local')"
           >
             <video
               ref="previewEl"
               autoplay
               playsinline
               muted
-              class="h-full w-full object-cover"
+              class="h-full w-full bg-black object-contain"
             />
             <span
               class="absolute bottom-2 left-2 rounded bg-black/60 px-2 py-0.5 text-xs font-medium text-white"
@@ -618,7 +662,7 @@ const gridColumns = computed(() => {
             autoplay
             playsinline
             muted
-            class="h-full w-full object-cover"
+            class="h-full w-full object-contain"
           />
         </div>
 

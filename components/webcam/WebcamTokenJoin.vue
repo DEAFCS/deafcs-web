@@ -1,8 +1,15 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { ref, computed, onBeforeUnmount, nextTick } from "vue";
 import { LucideX, LucideRefreshCw } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { fetchLobbyCallStatus } from "~/composables/useLobbyCallApi";
+import {
+  groupGridFallbackStyle,
+  groupGridLayout,
+  layoutTiles,
+  useElementSize,
+  useVideoTileDimensions,
+} from "~/composables/useCallVideoLayout";
 import type {
   WebcamTokenRoom,
   WebcamRoomParticipant as LobbyCallParticipant,
@@ -48,8 +55,9 @@ let statusPollTimer: ReturnType<typeof setTimeout> | null = null;
 //    cameras' native orientation, which reduces (though may not fully
 //    eliminate -- some of it is a genuine front-camera field-of-view
 //    difference between phone models) that crop.
-// object-cover on the grid tiles below still fills the tile completely
-// either way, so this doesn't reintroduce the old letterboxing bug.
+// The grid tiles below show each feed whole (object-contain) in stable
+// cells, so whatever shape the camera really delivers is letterboxed
+// rather than cropped.
 function videoConstraints(mode: "user" | "environment"): MediaTrackConstraints {
   return {
     facingMode: { ideal: mode },
@@ -274,41 +282,66 @@ function stopParticipantsPolling() {
   participants.value = [];
 }
 
-// --- Grid layout: every tile (including my own camera) the same size,
-// none overlapping -- replaces the old "big self + small floating PiP"
-// layout, which looked broken in portrait and covered another tile in
-// landscape. Column count adapts to both orientation (more columns
-// fit in landscape) and headcount (fewer people => fewer columns =>
-// bigger tiles, same idea as the required-webcam admin grid but tuned
-// per-orientation for a phone).
-const isPortrait = ref(true);
-function updateOrientation() {
-  isPortrait.value =
-    typeof window !== "undefined" &&
-    window.matchMedia("(orientation: portrait)").matches;
+// --- Grid layout (see useCallVideoLayout.ts) ---
+// Every tile (including my own camera) is an equal cell, none
+// overlapping, laid out from the measured screen space: 2 people stack
+// on a phone held upright and sit side by side in landscape, 3-4 are a
+// 2x2 grid, 5 are 2+2+1 (portrait) or 3+2 (landscape). Each feed is
+// shown whole inside its cell (object-contain), so a landscape webcam is
+// letterboxed rather than cropped into a zoomed face, and rotating any
+// phone just re-letterboxes it. On my own, my camera takes its real ratio.
+const TILE_GAP = 8;
+const tileKeys = computed(() => [
+  ...otherParticipants.value.map((p) => p.steamId),
+  "local",
+]);
+const { tileRef, shape: tileShape, aspect: tileAspect } = useVideoTileDimensions();
+const stageEl = ref<HTMLElement | null>(null);
+const stageSize = useElementSize(stageEl);
+
+const groupGrid = computed(() =>
+  groupGridLayout(
+    tileKeys.value.length,
+    stageSize.value.width,
+    stageSize.value.height,
+    TILE_GAP,
+  ),
+);
+const singleTile = computed(() =>
+  tileKeys.value.length === 1
+    ? (layoutTiles(
+        [tileAspect("local")],
+        stageSize.value.width,
+        stageSize.value.height,
+      ).tiles[0] ?? null)
+    : null,
+);
+
+// Exactly N cells wide, so rows always break the same way (last row centred).
+const gridWrapperStyle = computed(() => {
+  if (tileKeys.value.length === 1 && singleTile.value) {
+    return { width: `${Math.floor(singleTile.value.width)}px` };
+  }
+  const { cell, columns } = groupGrid.value;
+  if (!cell) return { width: "100%", height: "100%" };
+  return {
+    width: `${Math.floor(cell.width * columns + TILE_GAP * (columns - 1))}px`,
+  };
+});
+
+function tileStyle(key: string) {
+  if (tileKeys.value.length === 1) {
+    const box = singleTile.value;
+    return box
+      ? { width: `${Math.floor(box.width)}px`, height: `${Math.floor(box.height)}px` }
+      : { width: "100%", aspectRatio: String(tileAspect(key)), maxHeight: "100%" };
+  }
+  const { cell } = groupGrid.value;
+  return cell
+    ? { width: `${Math.floor(cell.width)}px`, height: `${Math.floor(cell.height)}px` }
+    : groupGridFallbackStyle(groupGrid.value, TILE_GAP);
 }
-
-const totalTileCount = computed(() => otherParticipants.value.length + 1);
-const gridColumns = computed(() => {
-  // 2 tiles is orientation-aware too, not just a flat "1 column":
-  // stacked (1 col) makes sense in portrait (narrow, tall screen), but
-  // the same 1-column stack in landscape turns each tile into a very
-  // wide, short box -- object-cover then has to crop hard vertically
-  // to fill that shape, cutting off foreheads/chins. Side-by-side (2
-  // col) in landscape keeps each tile a reasonable shape instead.
-  if (totalTileCount.value <= 2) return isPortrait.value ? 1 : 2;
-  return isPortrait.value ? 2 : 3;
-});
-
-onMounted(() => {
-  updateOrientation();
-  window.addEventListener("resize", updateOrientation);
-  window.addEventListener("orientationchange", updateOrientation);
-});
-
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateOrientation);
-  window.removeEventListener("orientationchange", updateOrientation);
   teardownStream();
 });
 </script>
@@ -326,71 +359,79 @@ onBeforeUnmount(() => {
       Lobby webcam call
     </h1>
 
-    <!-- Video area -- everyone else + my own camera as EQUAL grid
-         tiles, none overlapping (replaces the old "big self + small
-         floating PiP" layout, which looked broken in portrait and
-         covered another tile in landscape). Column count adapts to
-         orientation (more columns fit in landscape) and headcount
-         (fewer people => fewer columns => bigger tiles). My own tile
-         is always in the DOM (never v-if'd) so the srcObject
-         assignment above never silently no-ops against a not-yet-
-         mounted element -- it's just one more grid cell now instead
-         of a specially-positioned box. -->
+    <!-- Video area -- everyone else + my own camera as equal cells, none
+         overlapping, laid out from the measured space (see tileStyle).
+         Each feed is shown whole (object-contain) on black, so nothing
+         is cropped whatever shape a camera delivers or however a phone
+         is turned. My own tile is always in the DOM while connected so
+         the srcObject assignment above never no-ops against a
+         not-yet-mounted element. -->
     <div
       v-if="phase === 'connected'"
-      class="grid gap-2 auto-rows-fr overflow-y-auto flex-1 min-h-0"
-      :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
+      ref="stageEl"
+      class="flex flex-1 min-h-0 items-center justify-center overflow-hidden"
+      data-testid="webcam-stage"
     >
-      <!-- auto-rows-fr so tiles stretch to fill whatever space is
-           available (fewer tiles = bigger, not stuck at a fixed size
-           with empty space left over below). object-cover fills the
-           tile completely from whatever shape the camera actually
-           returns (portrait or landscape) -- no letterbox bars, same
-           as every other video-call app's grid. Trades full-frame
-           visibility for a filled tile, which is the right tradeoff
-           here: object-contain's letterboxing was the actual bug
-           being fixed (see videoConstraints above for the capture
-           side of this fix). -->
       <div
-        v-for="p in otherParticipants"
-        :key="p.steamId"
-        class="relative rounded-lg overflow-hidden bg-black border border-border"
+        class="flex max-h-full flex-wrap content-center justify-center gap-2"
+        :style="gridWrapperStyle"
+        data-testid="webcam-grid"
+        :data-columns="groupGrid.columns"
+        :data-rows="groupGrid.rows"
       >
-        <video
-          :ref="setTileRef(p.steamId)"
-          autoplay
-          playsinline
-          class="w-full h-full object-cover"
-        />
-        <span
-          class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
+        <div
+          v-for="p in otherParticipants"
+          :key="p.steamId"
+          :ref="tileRef(p.steamId)"
+          class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-border transition-[width,height] duration-200"
+          :style="tileStyle(p.steamId)"
+          data-testid="webcam-tile"
+          :data-key="p.steamId"
+          :data-shape="tileShape(p.steamId)"
         >
-          {{ p.name || p.steamId }}
-        </span>
-      </div>
+          <video
+            :ref="setTileRef(p.steamId)"
+            autoplay
+            playsinline
+            class="w-full h-full bg-black object-contain"
+          />
+          <span
+            class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5 truncate max-w-[85%]"
+          >
+            {{ p.name || p.steamId }}
+          </span>
+        </div>
 
-      <div class="relative rounded-lg overflow-hidden bg-black border border-border">
-        <video
-          ref="previewEl"
-          autoplay
-          playsinline
-          muted
-          class="w-full h-full object-cover"
-        />
-        <button
-          type="button"
-          title="Switch camera"
-          aria-label="Switch camera"
-          class="absolute top-1 left-1 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
-          @click="flipCamera"
+        <div
+          :ref="tileRef('local')"
+          class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-border transition-[width,height] duration-200"
+          :style="tileStyle('local')"
+          data-testid="webcam-tile"
+          data-key="local"
+          :data-shape="tileShape('local')"
         >
-          <LucideRefreshCw class="w-3 h-3" />
-        </button>
-        <span
-          class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5"
-        >
-          You
-        </span>
+          <video
+            ref="previewEl"
+            autoplay
+            playsinline
+            muted
+            class="w-full h-full bg-black object-contain"
+          />
+          <button
+            type="button"
+            title="Switch camera"
+            aria-label="Switch camera"
+            class="absolute top-1 left-1 z-10 flex items-center justify-center w-6 h-6 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors"
+            @click="flipCamera"
+          >
+            <LucideRefreshCw class="w-3 h-3" />
+          </button>
+          <span
+            class="absolute bottom-1.5 left-1.5 text-[10px] font-medium text-white bg-black/60 rounded px-1.5 py-0.5"
+          >
+            You
+          </span>
+        </div>
       </div>
     </div>
 
@@ -405,7 +446,7 @@ onBeforeUnmount(() => {
         autoplay
         playsinline
         muted
-        class="w-full h-full object-cover"
+        class="w-full h-full object-contain"
       />
       <button
         type="button"

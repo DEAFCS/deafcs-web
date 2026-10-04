@@ -15,6 +15,13 @@ import {
   LucideUserX,
 } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
+import {
+  groupGridFallbackStyle,
+  groupGridLayout,
+  layoutTiles,
+  useElementSize,
+  useVideoTileDimensions,
+} from "~/composables/useCallVideoLayout";
 import { fetchLobbyCallStatus } from "~/composables/useLobbyCallApi";
 import type {
   WebcamRoom,
@@ -359,10 +366,6 @@ let unlistenLeft: (() => void) | null = null;
 let unlistenJoining: (() => void) | null = null;
 
 onMounted(async () => {
-  updateOrientation();
-  window.addEventListener("resize", updateOrientation);
-  window.addEventListener("orientationchange", updateOrientation);
-
   await refreshParticipants();
 
   // Clicking the webcam icon in ChatPanel.vue is the "start/join call"
@@ -435,8 +438,6 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  window.removeEventListener("resize", updateOrientation);
-  window.removeEventListener("orientationchange", updateOrientation);
   unlistenJoined?.();
   unlistenLeft?.();
   unlistenJoining?.();
@@ -481,22 +482,66 @@ const visibleTileCount = computed(() =>
     : 0,
 );
 
-// Orientation-aware column count -- mirrors
-// pages/lobby-call/[lobbyId]/[token].vue's grid (the page opened by
-// scanning the QR code), which this popup lacked entirely: a fixed
-// grid-cols-2 forced two tiles side by side even in portrait, producing
-// tall, narrow, squashed tiles when accepting a call from inside the
-// DEAFCS mobile app instead of via the QR/browser path.
-const isPortrait = ref(true);
-function updateOrientation() {
-  isPortrait.value =
-    typeof window !== "undefined" &&
-    window.matchMedia("(orientation: portrait)").matches;
-}
-const gridColumns = computed(() => {
-  if (visibleTileCount.value <= 2) return isPortrait.value ? 1 : 2;
-  return isPortrait.value ? 2 : 3;
+// --- Group grid (see useCallVideoLayout.ts) ---
+// Stable, equal outer cells sized from the measured stage (2 side by side,
+// 2x2 for 3-4, 3+2 for 5; stacked/2-wide on a phone held upright), never
+// from one feed's shape. Each feed is shown whole inside its cell
+// (object-contain): a portrait phone gets dark bars left/right, a
+// landscape webcam top/bottom, and a rotation just re-letterboxes. A lone
+// tile takes its feed's own ratio instead of a big empty box.
+const TILE_GAP = 12;
+const tileKeys = computed(() => [
+  ...tileParticipants.value.map((p) => p.steamId),
+  ...joiningList.value.map((p) => `joining-${p.steamId}`),
+  ...(publishingLocally.value ? ["local"] : []),
+]);
+const { tileRef, shape: tileShape, aspect: tileAspect } = useVideoTileDimensions();
+const stageEl = ref<HTMLElement | null>(null);
+const stageSize = useElementSize(stageEl);
+
+const groupGrid = computed(() =>
+  groupGridLayout(
+    tileKeys.value.length,
+    stageSize.value.width,
+    stageSize.value.height,
+    TILE_GAP,
+  ),
+);
+const singleTile = computed(() =>
+  tileKeys.value.length === 1
+    ? (layoutTiles(
+        [tileAspect(tileKeys.value[0])],
+        stageSize.value.width,
+        stageSize.value.height,
+      ).tiles[0] ?? null)
+    : null,
+);
+
+// The wrapper is exactly N cells wide, so rows always break the same way
+// (last row centred) even when cells are size-capped on very wide screens.
+const gridWrapperStyle = computed(() => {
+  if (tileKeys.value.length === 1 && singleTile.value) {
+    return { width: `${Math.floor(singleTile.value.width)}px` };
+  }
+  const { cell, columns } = groupGrid.value;
+  if (!cell) return { width: "100%", height: "100%" };
+  return {
+    width: `${Math.floor(cell.width * columns + TILE_GAP * (columns - 1))}px`,
+  };
 });
+
+function tileStyle(key: string) {
+  if (tileKeys.value.length === 1) {
+    const box = singleTile.value;
+    return box
+      ? { width: `${Math.floor(box.width)}px`, height: `${Math.floor(box.height)}px` }
+      : { width: "100%", aspectRatio: String(tileAspect(key)), maxHeight: "100%" };
+  }
+  const { cell } = groupGrid.value;
+  return cell
+    ? { width: `${Math.floor(cell.width)}px`, height: `${Math.floor(cell.height)}px` }
+    : groupGridFallbackStyle(groupGrid.value, TILE_GAP);
+}
 </script>
 
 <template>
@@ -529,19 +574,31 @@ const gridColumns = computed(() => {
          opened this window and are just sitting on the device picker. -->
     <div
       v-if="visibleTileCount > 0"
-      class="grid gap-3 flex-1 min-h-0 auto-rows-fr overflow-y-auto"
-      :class="visibleTileCount === 1 ? 'max-w-2xl mx-auto w-full' : ''"
-      :style="{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }"
+      ref="stageEl"
+      class="flex flex-1 min-h-0 items-center justify-center overflow-hidden"
+      data-testid="webcam-stage"
     >
+     <div
+      class="flex max-h-full flex-wrap content-center justify-center gap-3"
+      :style="gridWrapperStyle"
+      data-testid="webcam-grid"
+      :data-columns="groupGrid.columns"
+      :data-rows="groupGrid.rows"
+     >
       <div
         v-for="p in tileParticipants"
         :key="p.steamId"
-        class="relative rounded-lg overflow-hidden bg-black border border-zinc-800"
+        :ref="tileRef(p.steamId)"
+        class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-zinc-800 transition-[width,height] duration-200"
+        :style="tileStyle(p.steamId)"
+        data-testid="webcam-tile"
+        :data-key="p.steamId"
+        :data-shape="tileShape(p.steamId)"
       >
         <WhepPlayer
           :whep-url="room.peerWhepUrl(p.steamId)"
           :muted="false"
-          object-fit="cover"
+          object-fit="contain"
         />
         <span
           class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5 truncate max-w-[80%]"
@@ -567,7 +624,10 @@ const gridColumns = computed(() => {
       <div
         v-for="p in joiningList"
         :key="`joining-${p.steamId}`"
-        class="relative rounded-lg overflow-hidden bg-zinc-900 border border-dashed border-zinc-700 flex flex-col items-center justify-center gap-2"
+        class="relative shrink-0 rounded-lg overflow-hidden bg-zinc-900 border border-dashed border-zinc-700 flex flex-col items-center justify-center gap-2"
+        :style="tileStyle(`joining-${p.steamId}`)"
+        data-testid="webcam-tile"
+        :data-key="`joining-${p.steamId}`"
       >
         <LucideLoaderCircle class="w-5 h-5 text-muted-foreground animate-spin" />
         <span class="text-xs text-muted-foreground">Waiting for camera…</span>
@@ -582,13 +642,19 @@ const gridColumns = computed(() => {
            box below, same as the mobile page and Discord treat "you". -->
       <div
         v-if="publishingLocally"
-        class="relative rounded-lg overflow-hidden bg-black border border-primary"
+        :ref="tileRef('local')"
+        class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-primary transition-[width,height] duration-200"
+        :style="tileStyle('local')"
+        data-testid="webcam-tile"
+        data-key="local"
+        :data-shape="tileShape('local')"
       >
-        <video ref="previewEl" autoplay playsinline muted class="w-full h-full object-cover" />
+        <video ref="previewEl" autoplay playsinline muted class="w-full h-full bg-black object-contain" />
         <span class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5">
           {{ $t("matchmaking.lobby_call.you", "You") }}
         </span>
       </div>
+     </div>
     </div>
     <div
       v-else-if="!isInCall"
@@ -696,7 +762,7 @@ const gridColumns = computed(() => {
         class="rounded-lg border border-zinc-800 bg-zinc-900 p-4 flex flex-col gap-4 mt-2 w-full"
       >
         <div class="relative w-full aspect-video rounded-lg overflow-hidden bg-black">
-          <video ref="previewEl" autoplay playsinline muted class="w-full h-full object-cover" />
+          <video ref="previewEl" autoplay playsinline muted class="w-full h-full object-contain" />
         </div>
 
         <div class="space-y-2">
