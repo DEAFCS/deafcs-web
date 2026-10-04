@@ -840,6 +840,10 @@ socket.listen(
       region: string;
     }>,
   ) => {
+    const received = data as any;
+    if (received?.confirmation) {
+      received.confirmation.receivedAt = Date.now();
+    }
     useMatchmakingStore().joinedMatchmakingQueues = data;
   },
 );

@@ -56,6 +56,10 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
       matchId: string;
       isReady: boolean;
       expiresAt: string;
+      // The server clock at send time and when this device received it, so
+      // the deadline can be shown on a device whose own clock is off.
+      serverNow?: string;
+      receivedAt?: number;
       confirmed: number;
       confirmationId: string;
       type: e_match_types_enum;

@@ -159,6 +159,7 @@ import { useSound } from "~/composables/useSound";
 import { startTabFlash, stopTabFlash } from "~/composables/useTabFlash";
 import { useTabFlashSettings } from "~/composables/useTabFlashSettings";
 import { isCaptainPickInProgress } from "~/utilities/captainPickDraft";
+import { localConfirmationExpiry } from "~/utilities/matchmakingDeadline";
 
 // routedConfirmedId was in-memory only, so a hard reload (F5) forgot that
 // this exact match had already triggered the one-time "match found, go to
@@ -215,10 +216,12 @@ export default {
     confirmation() {
       return useMatchmakingStore().joinedMatchmakingQueues?.confirmation;
     },
+    // The server's deadline on this device's clock (see matchmakingDeadline).
+    localExpiresAt(): number | undefined {
+      return localConfirmationExpiry(this.confirmation);
+    },
     timerExpired(): boolean {
-      const expiresAt = this.confirmation?.expiresAt
-        ? new Date(this.confirmation.expiresAt).getTime()
-        : undefined;
+      const expiresAt = this.localExpiresAt;
 
       return Boolean(
         expiresAt !== undefined &&
@@ -364,8 +367,8 @@ export default {
         this.confirmation?.expiresAt &&
         this.confirmation.confirmed !== this.confirmation.players
       ) {
-        const expiresAt = new Date(this.confirmation.expiresAt).getTime();
-        if (!Number.isFinite(expiresAt)) {
+        const expiresAt = this.localExpiresAt;
+        if (expiresAt === undefined) {
           return;
         }
 
