@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   DIMENSION_RECHECK_MS,
+  PHONE_CALL_QUERY,
   groupGridFallbackStyle,
   groupGridLayout,
 } from "../../composables/useCallVideoLayout";
@@ -419,9 +420,20 @@ describe("lobby/tournament phone page (WebcamTokenJoin)", () => {
 });
 
 describe("1-to-1 phone page (verification call QR page)", () => {
-  it("keeps the adaptive 1-to-1 layout from the desktop side, whole frames", async () => {
+  function stubPhone(phone: boolean) {
+    vi.stubGlobal(
+      "matchMedia",
+      vi.fn((query: string) => ({
+        matches: query === PHONE_CALL_QUERY ? phone : false,
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      })),
+    );
+  }
+
+  async function joinPhonePage() {
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    stage = { width: 740, height: 320 };
     const { default: Page } = await import("../../pages/verification-call/[applicationId]/[token].vue");
     const w = mount(Page, { attachTo: document.body, global: { mocks } });
     wrappers.push(w);
@@ -430,25 +442,70 @@ describe("1-to-1 phone page (verification call QR page)", () => {
     await flushPromises();
     await vi.advanceTimersByTimeAsync(2600);
     await flushPromises();
+    return w;
+  }
+  const callTile = (w: VueWrapper, key: string) =>
+    w.get(`[data-testid="call-tile"][data-key="${key}"]`);
+  const ADMIN = "76561190000000002";
 
-    const callTiles = w.findAll('[data-testid="call-tile"]');
-    expect(callTiles).toHaveLength(2);
-    const remote = videoOf(callTiles[0].element);
-    const local = videoOf(callTiles[1].element);
-    setVideoSize(remote, 1280, 720); // admin's PC webcam
-    setVideoSize(local, 720, 1280); // this phone, upright
+  it("on the phone: the admin fills the screen, my camera is a bottom-right PiP, upright and sideways", async () => {
+    stubPhone(true);
+    stage = { ...PHONE_PORTRAIT };
+    const w = await joinPhonePage();
+    expect(w.findAll('[data-testid="call-tile"]')).toHaveLength(2);
+    expect(w.get('[data-testid="call-stage"]').attributes("data-layout")).toBe("pip");
+    expect(callTile(w, ADMIN).attributes("data-role")).toBe("main");
+    expect(callTile(w, "local").attributes("data-role")).toBe("pip");
+    const main = (callTile(w, ADMIN).element as HTMLElement).style;
+    expect([main.width, main.height]).toEqual(["100%", "100%"]);
+    const pip = (callTile(w, "local").element as HTMLElement).style;
+    expect([pip.position, pip.right, pip.bottom]).toEqual(["absolute", "12px", "12px"]);
+
+    // Admin's PC webcam (landscape) and this phone upright (portrait).
+    const remote = videoOf(callTile(w, ADMIN).element);
+    const local = videoOf(callTile(w, "local").element);
+    setVideoSize(remote, 1280, 720);
+    setVideoSize(local, 720, 1280);
     remote.dispatchEvent(new Event("loadedmetadata"));
     local.dispatchEvent(new Event("loadedmetadata"));
     await flushPromises();
+    const p = sizeOf(callTile(w, "local").element);
+    expect(p.width / p.height).toBeCloseTo(9 / 16, 1);
+    expect(p.width).toBeLessThan(PHONE_PORTRAIT.width / 3);
 
-    const [r, l] = w.findAll('[data-testid="call-tile"]').map((t) => sizeOf(t.element));
-    expect(r.width / r.height).toBeCloseTo(16 / 9, 1);
-    expect(l.width / l.height).toBeCloseTo(9 / 16, 1);
-    expect(r.width).toBeGreaterThan(l.width);
+    // Phone turned sideways: still admin main + my PiP (no switch to 50/50).
+    setVideoSize(local, 1280, 720);
+    window.dispatchEvent(new Event("orientationchange"));
+    await flushPromises();
+    expect(w.get('[data-testid="call-stage"]').attributes("data-layout")).toBe("pip");
+    expect(callTile(w, "local").attributes("data-shape")).toBe("landscape");
+    expect(callTile(w, ADMIN).attributes("data-role")).toBe("main");
+
+    // The Leave button is outside the call area, so the PiP cannot cover it.
+    const leave = w.get('button[aria-label="Leave call"]').element;
+    expect(w.get('[data-testid="call-stage"]').element.contains(leave)).toBe(false);
     w.findAll('[data-testid="call-tile"] video').forEach((v) =>
       expect(v.classes()).toContain("object-contain"),
     );
     expect(w.find(".object-cover").exists()).toBe(false);
+  });
+
+  it("on a tablet/desktop screen: two equal cells side by side", async () => {
+    stubPhone(false);
+    stage = { width: 1000, height: 600 };
+    const w = await joinPhonePage();
+    expect(w.get('[data-testid="call-stage"]').attributes("data-layout")).toBe("split");
+    const remote = videoOf(callTile(w, ADMIN).element);
+    const local = videoOf(callTile(w, "local").element);
+    setVideoSize(remote, 1280, 720);
+    setVideoSize(local, 720, 1280);
+    remote.dispatchEvent(new Event("loadedmetadata"));
+    local.dispatchEvent(new Event("loadedmetadata"));
+    await flushPromises();
+    const r = sizeOf(callTile(w, ADMIN).element);
+    const l = sizeOf(callTile(w, "local").element);
+    expect(r).toEqual(l);
+    expect(r.width).toBe(Math.floor((1000 - 8) / 2));
   });
 });
 

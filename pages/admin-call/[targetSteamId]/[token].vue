@@ -12,8 +12,9 @@ import {
   type AdminCallParticipant,
 } from "~/composables/useAdminCallApi";
 import {
-  layoutTiles,
+  oneToOneLayout,
   useElementSize,
+  usePhoneCallLayout,
   useVideoTileDimensions,
 } from "~/composables/useCallVideoLayout";
 
@@ -268,12 +269,12 @@ function stopParticipantsPolling() {
   participants.value = [];
 }
 
-// Layout -- same as the desktop side of this call (FixedPartyCall.vue):
-// each tile takes the REAL shape of the video it shows (re-read when a
-// phone rotates or reports its size late, see useCallVideoLayout.ts) and
-// the screen is shared out by layoutTiles, side by side or stacked,
-// whichever shows more. The video is shown whole (object-contain), so a
-// landscape webcam is no longer cropped into a zoomed face.
+// Layout -- same rules as the desktop side of this call (FixedPartyCall.vue,
+// oneToOneLayout in useCallVideoLayout.ts): on a phone the other person
+// fills the screen and my own camera is a small picture-in-picture in the
+// bottom-right corner, also when turned sideways; on a bigger screen two
+// equal cells side by side. Every video is shown whole (object-contain);
+// its real shape is re-read when a phone rotates or reports it late.
 const TILE_GAP = 8;
 const tileKeys = computed(() => [
   ...otherParticipants.value.map((p) => p.steamId),
@@ -282,24 +283,24 @@ const tileKeys = computed(() => [
 const { tileRef, shape: tileShape, aspect: tileAspect } = useVideoTileDimensions();
 const stageEl = ref<HTMLElement | null>(null);
 const stageSize = useElementSize(stageEl);
-const tileLayout = computed(() =>
-  layoutTiles(
-    tileKeys.value.map((key) => tileAspect(key)),
-    stageSize.value.width,
-    stageSize.value.height,
-    TILE_GAP,
-  ),
+const phoneLayout = usePhoneCallLayout();
+const callLayout = computed(() =>
+  oneToOneLayout({
+    keys: tileKeys.value,
+    // My own camera tile, never guessed from list order.
+    localKey: "local",
+    aspects: Object.fromEntries(tileKeys.value.map((key) => [key, tileAspect(key)])),
+    phone: phoneLayout.value,
+    stageWidth: stageSize.value.width,
+    stageHeight: stageSize.value.height,
+    gap: TILE_GAP,
+  }),
 );
 function tileStyle(key: string) {
-  const box = tileLayout.value.tiles[tileKeys.value.indexOf(key)];
-  if (box) {
-    return { width: `${Math.floor(box.width)}px`, height: `${Math.floor(box.height)}px` };
-  }
-  return {
-    aspectRatio: String(tileAspect(key)),
-    width: `calc((100% - ${(tileKeys.value.length - 1) * TILE_GAP}px) / ${tileKeys.value.length})`,
-    maxHeight: "100%",
-  };
+  return callLayout.value.styles[key] ?? {};
+}
+function tileRole(key: string) {
+  return callLayout.value.roles[key] ?? "cell";
 }
 
 onBeforeUnmount(() => {
@@ -319,10 +320,9 @@ onBeforeUnmount(() => {
     <div
       v-if="phase === 'connected'"
       ref="stageEl"
-      class="flex flex-1 min-h-0 items-center justify-center gap-2 overflow-hidden"
-      :class="tileLayout.direction === 'column' ? 'flex-col' : 'flex-row'"
+      class="relative flex flex-1 min-h-0 flex-wrap content-center items-center justify-center gap-2 overflow-hidden"
       data-testid="call-stage"
-      :data-direction="tileLayout.direction"
+      :data-layout="callLayout.mode"
     >
       <div
         v-for="p in otherParticipants"
@@ -333,6 +333,7 @@ onBeforeUnmount(() => {
         data-testid="call-tile"
         :data-key="p.steamId"
         :data-shape="tileShape(p.steamId)"
+        :data-role="tileRole(p.steamId)"
       >
         <video
           :ref="setTileRef(p.steamId)"
@@ -354,6 +355,7 @@ onBeforeUnmount(() => {
         data-testid="call-tile"
         data-key="local"
         :data-shape="tileShape('local')"
+        :data-role="tileRole('local')"
       >
         <video
           ref="previewEl"

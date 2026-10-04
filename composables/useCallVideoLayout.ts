@@ -98,9 +98,10 @@ export type TileLayout = { direction: "row" | "column"; tiles: TileBox[] };
 //  - row: all tiles share one height, so a landscape feed gets more width
 //    than a portrait one;
 //  - column: all tiles share one width, stacked.
-// Whichever shows more video wins. Two landscape feeds on a wide screen
-// end up side by side, two portrait phones on a desktop side by side as
-// narrow tiles, a landscape pair on a phone in portrait stacked.
+// Whichever shows more video wins. Only used for a LONE tile now (a feed
+// at its own ratio): sizing two people from their cameras made a portrait
+// phone huge next to a small landscape webcam, so 1-to-1 calls use
+// oneToOneLayout and group rooms groupGridLayout below.
 export function layoutTiles(
   aspects: number[],
   stageWidth: number,
@@ -134,7 +135,7 @@ export function layoutTiles(
 }
 
 // --- Group / lobby webcam grid --------------------------------------------
-// Unlike the 1-to-1 call above, a group call keeps a STABLE grid of equal
+// A group call keeps a STABLE grid of equal
 // outer cells (Discord-style): nobody's tile grows because their camera is
 // landscape. Each feed is shown whole inside its cell (object-contain), so
 // a portrait phone gets dark bars left/right and a landscape webcam dark
@@ -186,6 +187,163 @@ export function groupGridFallbackStyle(grid: GroupGrid, gap = 12) {
     width: `calc((100% - ${(grid.columns - 1) * gap}px) / ${grid.columns})`,
     height: `calc((100% - ${(grid.rows - 1) * gap}px) / ${grid.rows})`,
   };
+}
+
+// --- 1-to-1 calls ----------------------------------------------------------
+// Both people matter equally, whatever their camera's shape:
+//  - desktop/tablet ("split"): two EQUAL cells side by side, each feed shown
+//    whole inside its cell (object-contain, dark bars);
+//  - phone ("pip"), Facebook/WhatsApp style: the OTHER person fills the call
+//    area, my own camera is a small picture-in-picture in the bottom-right
+//    corner, also while the phone is turned sideways.
+// Sizing the cells from the feeds' shapes (layoutTiles) gave a portrait
+// phone a huge tile and a landscape webcam a small one; layoutTiles is now
+// only used for a lone tile, at its feed's own ratio.
+
+// Same phone breakpoint as the Chat Hub (MOBILE_CHAT_HUB_QUERY, 768px wide),
+// plus a phone turned sideways (short, touch screen), which is wider than
+// 768px but must stay in the phone layout.
+export const PHONE_CALL_QUERY =
+  "(max-width: 768px), (orientation: landscape) and (max-height: 500px) and (pointer: coarse)";
+
+export function isPhoneCallLayout(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    typeof window.matchMedia === "function" &&
+    window.matchMedia(PHONE_CALL_QUERY).matches
+  );
+}
+
+// Reactive version, re-evaluated on resize, rotation and media query change.
+export function usePhoneCallLayout() {
+  const phone = ref(isPhoneCallLayout());
+  if (typeof window === "undefined") return phone;
+  const update = () => {
+    phone.value = isPhoneCallLayout();
+  };
+  const mql =
+    typeof window.matchMedia === "function" ? window.matchMedia(PHONE_CALL_QUERY) : null;
+  window.addEventListener("resize", update);
+  window.addEventListener("orientationchange", update);
+  mql?.addEventListener?.("change", update);
+  if (getCurrentInstance()) {
+    onBeforeUnmount(() => {
+      window.removeEventListener("resize", update);
+      window.removeEventListener("orientationchange", update);
+      mql?.removeEventListener?.("change", update);
+    });
+  }
+  return phone;
+}
+
+export type OneToOneMode = "single" | "split" | "pip" | "grid";
+export type TileCss = Record<string, string>;
+export type OneToOneLayout = {
+  mode: OneToOneMode;
+  styles: Record<string, TileCss>;
+  roles: Record<string, "main" | "pip" | "cell">;
+};
+
+export const PIP_MARGIN = 12;
+const px = (n: number) => `${Math.floor(n)}px`;
+const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
+
+// Two equal cells side by side (never stacked on desktop/tablet), kept
+// between 9:16 and 16:9 so a very wide or very tall window does not turn
+// them into slivers.
+export function splitCell(stageWidth: number, stageHeight: number, gap = 12): TileBox | null {
+  if (!(stageWidth > 0) || !(stageHeight > 0)) return null;
+  let width = Math.max(0, (stageWidth - gap) / 2);
+  let height = stageHeight;
+  if (width / height > GROUP_CELL_MAX_ASPECT) width = height * GROUP_CELL_MAX_ASPECT;
+  if (width / height < GROUP_CELL_MIN_ASPECT) height = width / GROUP_CELL_MIN_ASPECT;
+  return { width, height };
+}
+
+// The picture-in-picture box for my own camera: about 28% of the width on
+// a phone held upright, 22% sideways, between 88px and 200px wide, in my
+// camera's own shape (contained), never taller than 40% of the call area.
+export function pipBox(stageWidth: number, stageHeight: number, localAspect: number): TileBox | null {
+  if (!(stageWidth > 0) || !(stageHeight > 0)) return null;
+  const aspect = clamp(localAspect, GROUP_CELL_MIN_ASPECT, GROUP_CELL_MAX_ASPECT);
+  const share = stageWidth > stageHeight ? 0.22 : 0.28;
+  let width = clamp(stageWidth * share, 88, 200);
+  let height = width / aspect;
+  const maxHeight = stageHeight * 0.4;
+  if (height > maxHeight) {
+    height = maxHeight;
+    width = height * aspect;
+  }
+  return { width, height };
+}
+
+// Layout for the fixed two-party calls. `localKey` is MY tile (never
+// inferred from order); every other key is the other side.
+export function oneToOneLayout(input: {
+  keys: string[];
+  localKey: string | null;
+  aspects: Record<string, number>;
+  phone: boolean;
+  stageWidth: number;
+  stageHeight: number;
+  gap?: number;
+}): OneToOneLayout {
+  const { keys, localKey, aspects, phone, stageWidth, stageHeight } = input;
+  const gap = input.gap ?? 12;
+  const aspect = (k: string) => aspects[k] ?? FALLBACK_ASPECT;
+  const styles: Record<string, TileCss> = {};
+  const roles: Record<string, "main" | "pip" | "cell"> = {};
+
+  if (keys.length === 1) {
+    const key = keys[0];
+    const box = layoutTiles([aspect(key)], stageWidth, stageHeight, gap).tiles[0];
+    styles[key] = box
+      ? { width: px(box.width), height: px(box.height) }
+      : { width: "100%", aspectRatio: String(aspect(key)), maxHeight: "100%" };
+    roles[key] = "main";
+    return { mode: "single", styles, roles };
+  }
+
+  const hasLocal = !!localKey && keys.includes(localKey);
+  if (keys.length === 2 && phone && hasLocal) {
+    const remote = keys.find((k) => k !== localKey)!;
+    styles[remote] = { width: "100%", height: "100%" };
+    roles[remote] = "main";
+    const box = pipBox(stageWidth, stageHeight, aspect(localKey!));
+    styles[localKey!] = {
+      position: "absolute",
+      right: px(PIP_MARGIN),
+      bottom: px(PIP_MARGIN),
+      zIndex: "10",
+      ...(box
+        ? { width: px(box.width), height: px(box.height) }
+        : { width: "28%", aspectRatio: String(clamp(aspect(localKey!), 9 / 16, 16 / 9)) }),
+    };
+    roles[localKey!] = "pip";
+    return { mode: "pip", styles, roles };
+  }
+
+  if (keys.length === 2) {
+    const cell = splitCell(stageWidth, stageHeight, gap);
+    for (const key of keys) {
+      styles[key] = cell
+        ? { width: px(cell.width), height: px(cell.height) }
+        : { width: `calc((100% - ${gap}px) / 2)`, height: "100%" };
+      roles[key] = "cell";
+    }
+    return { mode: "split", styles, roles };
+  }
+
+  // More than two tiles (only ever transient in a two-party call): the
+  // same equal grid as the group rooms.
+  const grid = groupGridLayout(keys.length, stageWidth, stageHeight, gap);
+  for (const key of keys) {
+    styles[key] = grid.cell
+      ? { width: px(grid.cell.width), height: px(grid.cell.height) }
+      : (groupGridFallbackStyle(grid, gap) as TileCss);
+    roles[key] = "cell";
+  }
+  return { mode: "grid", styles, roles };
 }
 
 // --- Vue helpers shared by the call views ----------------------------------

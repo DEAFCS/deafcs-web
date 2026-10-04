@@ -9,6 +9,9 @@ import {
   DIMENSION_RECHECK_MS,
   FALLBACK_ASPECT,
   layoutTiles,
+  oneToOneLayout,
+  PHONE_CALL_QUERY,
+  PIP_MARGIN,
   readVideoDimensions,
   watchVideoDimensions,
 } from "../../composables/useCallVideoLayout";
@@ -189,6 +192,57 @@ describe("layout from real shapes", () => {
   });
 });
 
+describe("1-to-1 layout rules (oneToOneLayout)", () => {
+  const L = 16 / 9;
+  const P = 9 / 16;
+  const base = { stageWidth: 1200, stageHeight: 600, gap: 12 };
+
+  it("desktop: equal 50/50 cells whatever the cameras' shapes", () => {
+    for (const aspects of [
+      { me: L, them: L },
+      { me: L, them: P },
+      { me: P, them: P },
+    ]) {
+      const out = oneToOneLayout({ ...base, keys: ["them", "me"], localKey: "me", aspects, phone: false });
+      expect(out.mode).toBe("split");
+      expect(out.styles.them).toEqual(out.styles.me);
+      expect(out.styles.me).toEqual({ width: "594px", height: "600px" });
+    }
+  });
+
+  it("phone: other person main, me as PiP, regardless of list order", () => {
+    const a = oneToOneLayout({ ...base, stageWidth: 360, stageHeight: 640, keys: ["me", "them"], localKey: "me", aspects: { me: P, them: L }, phone: true });
+    const b = oneToOneLayout({ ...base, stageWidth: 360, stageHeight: 640, keys: ["them", "me"], localKey: "me", aspects: { me: P, them: L }, phone: true });
+    for (const out of [a, b]) {
+      expect(out.mode).toBe("pip");
+      expect(out.roles).toEqual({ them: "main", me: "pip" });
+      expect(out.styles.them).toEqual({ width: "100%", height: "100%" });
+      expect(out.styles.me).toMatchObject({ position: "absolute", right: "12px", bottom: "12px" });
+    }
+  });
+
+  it("phone sideways keeps PiP and shrinks it to fit the short screen", () => {
+    const out = oneToOneLayout({ ...base, stageWidth: 740, stageHeight: 320, keys: ["them", "me"], localKey: "me", aspects: { me: P, them: L }, phone: true });
+    expect(out.mode).toBe("pip");
+    const h = Number(out.styles.me.height.replace("px", ""));
+    expect(h).toBeLessThanOrEqual(320 * 0.4);
+  });
+
+  it("no camera of my own: no PiP, the other person is shown alone", () => {
+    const alone = oneToOneLayout({ ...base, keys: ["them"], localKey: null, aspects: { them: L }, phone: true });
+    expect(alone.mode).toBe("single");
+    expect(alone.roles).toEqual({ them: "main" });
+    expect(Object.values(alone.styles).some((st) => st.position === "absolute")).toBe(false);
+  });
+
+  it("before the stage is measured: stable CSS fallbacks", () => {
+    const split = oneToOneLayout({ keys: ["a", "me"], localKey: "me", aspects: {}, phone: false, stageWidth: 0, stageHeight: 0 });
+    expect(split.styles.a).toEqual({ width: "calc((100% - 12px) / 2)", height: "100%" });
+    const pip = oneToOneLayout({ keys: ["a", "me"], localKey: "me", aspects: {}, phone: true, stageWidth: 0, stageHeight: 0 });
+    expect(pip.styles.me).toMatchObject({ position: "absolute", width: "28%" });
+  });
+});
+
 // --- the real call component in an active call --------------------------
 vi.mock("~/web-sockets/Socket", () => ({
   default: { listen: () => ({ stop: () => {} }) },
@@ -326,48 +380,115 @@ const size = (w: VueWrapper, key: string) => {
 const videoIn = (w: VueWrapper, key: string) => tile(w, key).element.querySelector("video") as HTMLVideoElement;
 
 describe("active call tiles (FixedPartyCall)", () => {
-  it("starts on a stable fallback, then follows each feed's real and changing shape", async () => {
+  it("desktop: two EQUAL cells side by side; camera shape and rotation never change them", async () => {
     vi.useFakeTimers({ shouldAdvanceTime: true });
+    stubPhone(false);
     const wrapper = await joinWithWebcam();
 
     const stage = wrapper.get('[data-testid="fixed-party-call-stage"]');
     expect(call(wrapper)).toBe("in-call");
-    // Unknown sizes: both on the 16:9 fallback, side by side, equal.
-    expect(tile(wrapper, OTHER).attributes("data-shape")).toBe("unknown");
-    expect(tile(wrapper, "local").attributes("data-shape")).toBe("unknown");
-    expect(stage.attributes("data-direction")).toBe("row");
-    expect(size(wrapper, OTHER).width).toBe(size(wrapper, "local").width);
+    expect(stage.attributes("data-layout")).toBe("split");
+    const before = { remote: size(wrapper, OTHER), local: size(wrapper, "local") };
+    expect(before.remote).toEqual(before.local);
+    expect(before.remote.width).toBe(Math.floor((STAGE.width - 12) / 2));
+    expect(before.remote.height).toBe(STAGE.height);
+    expect(tile(wrapper, OTHER).attributes("data-role")).toBe("cell");
+    expect(tile(wrapper, "local").attributes("data-role")).toBe("cell");
 
-    // Local PC webcam reports landscape; the Android phone reports portrait late.
+    // PC landscape here, Android portrait there (reported late).
     setVideoSize(videoIn(wrapper, "local"), 1280, 720);
     videoIn(wrapper, "local").dispatchEvent(new Event("loadedmetadata"));
     setVideoSize(videoIn(wrapper, OTHER), 720, 1280);
     videoIn(wrapper, OTHER).dispatchEvent(new Event("loadedmetadata"));
     await flushPromises();
-
     expect(tile(wrapper, OTHER).attributes("data-shape")).toBe("portrait");
     expect(tile(wrapper, "local").attributes("data-shape")).toBe("landscape");
-    const phone = size(wrapper, OTHER);
-    const pc = size(wrapper, "local");
-    expect(pc.width).toBeGreaterThan(phone.width * 2.5);
-    expect(Math.abs(pc.height - phone.height)).toBeLessThanOrEqual(1);
-    expect(phone.width / phone.height).toBeCloseTo(720 / 1280, 1);
-    expect(pc.width / pc.height).toBeCloseTo(1280 / 720, 1);
-    expect(pc.width + phone.width + 12).toBeLessThanOrEqual(STAGE.width);
+    // Same 50/50 cells: the portrait feed is letterboxed, not given a bigger tile.
+    expect(size(wrapper, OTHER)).toEqual(before.remote);
+    expect(size(wrapper, "local")).toEqual(before.local);
 
-    // The phone is rotated after joining (video resize event).
+    // The phone rotates (resize event), then back with no event at all.
     setVideoSize(videoIn(wrapper, OTHER), 1280, 720);
     videoIn(wrapper, OTHER).dispatchEvent(new Event("resize"));
     await flushPromises();
     expect(tile(wrapper, OTHER).attributes("data-shape")).toBe("landscape");
-    expect(size(wrapper, OTHER).width).toBe(size(wrapper, "local").width);
-
-    // And back, with no event at all: the recheck timer catches it.
     setVideoSize(videoIn(wrapper, OTHER), 720, 1280);
     await vi.advanceTimersByTimeAsync(DIMENSION_RECHECK_MS + 50);
     await flushPromises();
     expect(tile(wrapper, OTHER).attributes("data-shape")).toBe("portrait");
-    expect(size(wrapper, OTHER).width).toBeLessThan(size(wrapper, "local").width);
+    expect(size(wrapper, OTHER)).toEqual(before.remote);
+    expect(size(wrapper, "local")).toEqual(before.local);
+  });
+
+  it("phone: the other person fills the call, my camera is a bottom-right picture-in-picture", async () => {
+    stubPhone(true);
+    STAGE.width = 360;
+    STAGE.height = 640;
+    try {
+      const wrapper = await joinWithWebcam();
+      const stage = wrapper.get('[data-testid="fixed-party-call-stage"]');
+      expect(stage.attributes("data-layout")).toBe("pip");
+
+      const main = tile(wrapper, OTHER);
+      const pip = tile(wrapper, "local");
+      expect(main.attributes("data-role")).toBe("main");
+      expect(pip.attributes("data-role")).toBe("pip");
+      const mainStyle = (main.element as HTMLElement).style;
+      expect([mainStyle.width, mainStyle.height]).toEqual(["100%", "100%"]);
+      const pipStyle = (pip.element as HTMLElement).style;
+      expect(pipStyle.position).toBe("absolute");
+      expect(pipStyle.right).toBe(`${PIP_MARGIN}px`);
+      expect(pipStyle.bottom).toBe(`${PIP_MARGIN}px`);
+      expect(Number(pipStyle.zIndex)).toBeGreaterThan(0);
+
+      // My landscape webcam: a small landscape PiP (~28% of the width).
+      setVideoSize(videoIn(wrapper, "local"), 1280, 720);
+      videoIn(wrapper, "local").dispatchEvent(new Event("loadedmetadata"));
+      await flushPromises();
+      let p = size(wrapper, "local");
+      expect(p.width).toBe(100);
+      expect(p.width / p.height).toBeCloseTo(16 / 9, 1);
+
+      // My phone camera upright: a portrait PiP of the same width.
+      setVideoSize(videoIn(wrapper, "local"), 720, 1280);
+      videoIn(wrapper, "local").dispatchEvent(new Event("resize"));
+      await flushPromises();
+      p = size(wrapper, "local");
+      expect(p.width).toBe(100);
+      expect(p.width / p.height).toBeCloseTo(9 / 16, 1);
+
+      // The other side's shape changes only how their video is letterboxed.
+      setVideoSize(videoIn(wrapper, OTHER), 1280, 720);
+      videoIn(wrapper, OTHER).dispatchEvent(new Event("loadedmetadata"));
+      await flushPromises();
+      expect(tile(wrapper, OTHER).attributes("data-role")).toBe("main");
+      expect([mainStyle.width, mainStyle.height]).toEqual(["100%", "100%"]);
+
+      // Phone turned sideways: still other-main + my-PiP, PiP resized to fit.
+      STAGE.width = 740;
+      STAGE.height = 320;
+      window.dispatchEvent(new Event("resize"));
+      (wrapper.vm as any).$forceUpdate?.();
+      await flushPromises();
+      expect(stage.attributes("data-layout")).toBe("pip");
+      expect(tile(wrapper, OTHER).attributes("data-role")).toBe("main");
+      expect(tile(wrapper, "local").attributes("data-role")).toBe("pip");
+    } finally {
+      STAGE.width = 1200;
+      STAGE.height = 600;
+    }
+  });
+
+  it("phone: the PiP sits inside the call area, never over the Leave button", async () => {
+    stubPhone(true);
+    const wrapper = await joinWithWebcam();
+    const stage = wrapper.get('[data-testid="fixed-party-call-stage"]').element;
+    const leave = wrapper.get('[data-testid="fixed-party-call-leave"]').element;
+    const pip = tile(wrapper, "local").element;
+    expect(stage.contains(pip)).toBe(true);
+    expect(stage.contains(leave)).toBe(false);
+    expect(stage.className).toContain("relative");
+    expect(stage.className).toContain("overflow-hidden");
   });
 
   it("main tiles show the whole frame (contain), labels intact, leave still works", async () => {
@@ -388,6 +509,18 @@ describe("active call tiles (FixedPartyCall)", () => {
   });
 });
 
+function stubPhone(phone: boolean) {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query: string) => ({
+      matches: query === PHONE_CALL_QUERY ? phone : false,
+      media: query,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+    })),
+  );
+}
+
 function call(w: VueWrapper) {
   return w.get('[data-testid="fixed-party-call"]').attributes("data-step");
 }
@@ -399,6 +532,9 @@ describe("scope", () => {
     expect(comp).not.toContain("(orientation: portrait)");
     expect(comp).not.toMatch(/class="[^"]*object-cover/);
     expect(comp).not.toContain('object-fit="cover"');
+    // Two people are never sized from their camera shapes again.
+    expect(comp).not.toContain("layoutTiles(");
+    expect(comp).toContain("oneToOneLayout(");
     // Detection is from the media, never from the user agent.
     expect(read("composables/useCallVideoLayout.ts")).not.toContain("userAgent");
   });

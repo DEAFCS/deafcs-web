@@ -13,8 +13,9 @@ import {
 } from "lucide-vue-next";
 import socket from "~/web-sockets/Socket";
 import {
-  layoutTiles,
+  oneToOneLayout,
   useElementSize,
+  usePhoneCallLayout,
   useVideoTileDimensions,
 } from "~/composables/useCallVideoLayout";
 import type {
@@ -412,12 +413,12 @@ const visibleTileCount = computed(() =>
     : 0,
 );
 
-// --- Active call layout from each feed's real shape ---
-// Equal tall grid cells + object-cover cropped a landscape webcam into a
-// giant zoomed face next to a portrait phone. Each tile now takes the
-// aspect ratio of the video it really shows (re-read whenever it can
-// change, see useCallVideoLayout.ts), so the video is shown whole with
-// object-contain, and the stage is shared out by layoutTiles.
+// --- Active call layout (oneToOneLayout in useCallVideoLayout.ts) ---
+// Desktop/tablet: two EQUAL cells side by side. Phone: the other person
+// fills the call area and my own camera is a small picture-in-picture in
+// the bottom-right corner (also when the phone is turned sideways). Every
+// feed is shown whole (object-contain, dark bars); its real shape is
+// re-read whenever it can change, so rotation only re-letterboxes.
 const TILE_GAP = 12;
 const tileKeys = computed(() => [
   ...tileParticipants.value.map((p) => p.steamId),
@@ -432,28 +433,25 @@ const {
 const stageEl = ref<HTMLElement | null>(null);
 const stageSize = useElementSize(stageEl);
 
-const tileLayout = computed(() =>
-  layoutTiles(
-    tileKeys.value.map((key) => tileAspect(key)),
-    stageSize.value.width,
-    stageSize.value.height,
-    TILE_GAP,
-  ),
+const phoneLayout = usePhoneCallLayout();
+const callLayout = computed(() =>
+  oneToOneLayout({
+    keys: tileKeys.value,
+    // My own tile is the local preview, never guessed from list order.
+    localKey: publishingLocally.value ? "local" : null,
+    aspects: Object.fromEntries(tileKeys.value.map((key) => [key, tileAspect(key)])),
+    phone: phoneLayout.value,
+    stageWidth: stageSize.value.width,
+    stageHeight: stageSize.value.height,
+    gap: TILE_GAP,
+  }),
 );
 
-// Exact size when the stage is measured; before that (or if it cannot be
-// measured) a stable fallback in the feed's own ratio.
 function tileStyle(key: string) {
-  const index = tileKeys.value.indexOf(key);
-  const box = tileLayout.value.tiles[index];
-  if (box) {
-    return { width: `${Math.floor(box.width)}px`, height: `${Math.floor(box.height)}px` };
-  }
-  return {
-    aspectRatio: String(tileAspect(key)),
-    width: `calc((100% - ${(tileKeys.value.length - 1) * TILE_GAP}px) / ${Math.max(1, tileKeys.value.length)})`,
-    maxHeight: "100%",
-  };
+  return callLayout.value.styles[key] ?? {};
+}
+function tileRole(key: string) {
+  return callLayout.value.roles[key] ?? "cell";
 }
 </script>
 
@@ -513,14 +511,14 @@ function tileStyle(key: string) {
       </p>
 
       <template v-if="visibleTileCount > 0">
-        <!-- Tiles keep each feed's real shape (sized by layoutTiles); the
-             video is shown whole (contain), any spare stage is dark. -->
+        <!-- Equal cells on desktop, other person + my picture-in-picture
+             on a phone (see callLayout); every video is shown whole
+             (contain), any spare space is dark. -->
         <div
           ref="stageEl"
-          class="flex min-h-0 flex-1 items-center justify-center gap-3 overflow-hidden"
-          :class="tileLayout.direction === 'column' ? 'flex-col' : 'flex-row'"
+          class="relative flex min-h-0 flex-1 flex-wrap content-center items-center justify-center gap-3 overflow-hidden"
           data-testid="fixed-party-call-stage"
-          :data-direction="tileLayout.direction"
+          :data-layout="callLayout.mode"
         >
           <div
             v-for="p in tileParticipants"
@@ -531,6 +529,7 @@ function tileStyle(key: string) {
             data-testid="fixed-party-call-tile"
             :data-key="p.steamId"
             :data-shape="tileShape(p.steamId)"
+            :data-role="tileRole(p.steamId)"
           >
             <WhepPlayer
               :whep-url="adapter.peerWhepUrl(p.steamId)"
@@ -555,6 +554,7 @@ function tileStyle(key: string) {
             data-testid="fixed-party-call-tile"
             data-key="local"
             :data-shape="tileShape('local')"
+            :data-role="tileRole('local')"
           >
             <video
               ref="previewEl"
