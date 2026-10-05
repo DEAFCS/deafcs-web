@@ -24,7 +24,7 @@ import PlayerTwitchLink from "../../components/player/PlayerTwitchLink.vue";
 const read = (p: string) =>
   fs.readFileSync(path.resolve(__dirname, "../..", p), "utf8").replace(/\r\n/g, "\n");
 
-describe("Twitch channel normalization (Profile Settings)", () => {
+describe("Twitch channel normalization (Linked Accounts)", () => {
   it.each([
     ["tricoN", "tricon"],
     ["https://twitch.tv/tricon", "tricon"],
@@ -317,28 +317,32 @@ describe("profile Twitch icon", () => {
   });
 });
 
-describe("Profile Settings Twitch field", () => {
+describe("Twitch is configured in Linked Accounts, not Profile Settings", () => {
   const settings = read("pages/settings/index.vue");
-  it("is optional, validated, saved through the API only when changed", () => {
-    expect(settings).toContain('name="twitch_channel"');
-    expect(settings).toContain('pages.settings.account.twitch.help');
-    expect(settings).toContain(".refine((value) => normalizeTwitchChannel(value).ok");
-    expect(settings).toContain("if (twitch.ok && twitch.channel !== (this.savedTwitchChannel ?? null)) {");
-    expect(settings).toContain("const saved = await saveMyTwitchChannel(twitch.channel);");
-    // Not through Hasura: the players update mutation is unchanged.
-    expect(settings).not.toMatch(/_set: \{[^}]*twitch/);
+  const linked = read("pages/settings/linked-accounts.vue");
+
+  it("Profile Settings no longer has a Twitch field or Twitch save logic", () => {
+    expect(settings.toLowerCase()).not.toContain("twitch");
+    // Name, country and language still go through the players update.
+    expect(settings).toContain("<PlayerChangeName");
+    expect(settings).toContain('name="country"');
+    expect(settings).toContain("country: this.form.values.country,");
+    expect(settings).toContain("language: this.form.values.language,");
+    expect(settings).toContain("<SettingsSaveBar");
   });
 
-  it("binds the native input with vee-validate's `field`, so loaded/normalized values show", () => {
-    // `componentField` (modelValue) on a native <input> only became a stray
-    // modelvalue attribute: a saved channel looked empty after a reload.
-    const start = settings.indexOf('<FormField v-slot="{ field }" name="twitch_channel">');
-    expect(start).toBeGreaterThan(-1);
-    const block = settings.slice(start, settings.indexOf('data-testid="settings-twitch-channel"'));
-    expect(block).toContain('v-bind="field"');
-    expect(block).not.toContain("componentField");
-    // Loaded on mount, and the normalized channel written back after saving.
-    expect(settings).toContain('this.form.setFieldValue("twitch_channel", channel ?? "");');
-    expect(settings).toContain('this.form.setFieldValue("twitch_channel", saved.channel ?? "");');
+  it("Linked Accounts groups Steam under Game Accounts and Twitch under Streaming & Social", () => {
+    const game = linked.indexOf("pages.settings.linked_accounts.group_game_accounts");
+    const streaming = linked.indexOf("pages.settings.linked_accounts.group_streaming_social");
+    expect(game).toBeGreaterThan(-1);
+    expect(streaming).toBeGreaterThan(game);
+    // Steam linking, the Steam bot and Pending Imports stay in Game Accounts.
+    for (const marker of ["submitLink", "presence_title", "pending_imports"]) {
+      const at = linked.indexOf(marker, linked.indexOf("<template>"));
+      expect(at, marker).toBeGreaterThan(game);
+      expect(at, marker).toBeLessThan(streaming);
+    }
+    expect(linked.slice(streaming)).toContain('<TwitchChannelCard :steam-id="me?.steam_id" />');
+    expect(linked.match(/<TwitchChannelCard/g)).toHaveLength(1);
   });
 });

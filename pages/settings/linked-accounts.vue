@@ -20,6 +20,11 @@ import {
 import { Spinner } from "~/components/ui/spinner";
 import { Skeleton } from "~/components/ui/skeleton";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
+import TwitchChannelCard from "~/components/settings/TwitchChannelCard.vue";
+import {
+  tacticalSectionLabelClasses,
+  tacticalSectionTickClasses,
+} from "~/utilities/tacticalClasses";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -517,6 +522,16 @@ function formatPendingDate(date: string): string {
 </script>
 
 <template>
+  <!-- Grouped by kind so later integrations have a home. Game accounts: Steam
+       match history, the Steam bot and its pending imports. -->
+  <h2
+    :class="tacticalSectionLabelClasses"
+    data-testid="linked-accounts-group-game"
+  >
+    <span :class="tacticalSectionTickClasses"></span>
+    {{ $t("pages.settings.linked_accounts.group_game_accounts") }}
+  </h2>
+
   <PageTransition v-if="!linkedAccountsEnabled" :delay="0">
     <div
       class="max-w-xl rounded-lg border border-border bg-card/50 px-4 py-3 text-sm text-muted-foreground"
@@ -995,6 +1010,22 @@ function formatPendingDate(date: string): string {
         </button>
       </div>
     </div>
+  </PageTransition>
+
+  <!-- Streaming & social: channels a player tells us about (no OAuth). One
+       card per service; only Twitch for now. Shown even when Steam match
+       imports are turned off, since it does not depend on them. -->
+  <PageTransition :delay="180">
+    <section
+      class="grid gap-4 max-w-xl mt-8"
+      data-testid="linked-accounts-group-streaming"
+    >
+      <h2 :class="[tacticalSectionLabelClasses, 'mb-0']">
+        <span :class="tacticalSectionTickClasses"></span>
+        {{ $t("pages.settings.linked_accounts.group_streaming_social") }}
+      </h2>
+      <TwitchChannelCard :steam-id="me?.steam_id" />
+    </section>
   </PageTransition>
 </template>
 

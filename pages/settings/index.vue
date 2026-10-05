@@ -18,7 +18,6 @@ import {
 import { useI18n } from "vue-i18n";
 import { toast } from "@/components/ui/toast";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
-import TwitchIcon from "~/components/icons/TwitchIcon.vue";
 const { locale, locales, setLocale } = useI18n();
 
 const availableLocales = computed(() => {
@@ -193,44 +192,6 @@ const handleLocaleChange = (
         </FormItem>
       </FormField>
 
-      <!-- Native input: bind vee-validate's `field` (value/onInput), not
-           `componentField` (modelValue, for components), so the loaded and
-           the normalized saved channel actually show in the box. -->
-      <FormField v-slot="{ field }" name="twitch_channel">
-        <FormItem>
-          <FormLabel>{{ $t("pages.settings.account.twitch.label") }}</FormLabel>
-          <FormControl>
-            <div
-              class="flex h-10 w-full items-center overflow-hidden rounded-md border border-input bg-background text-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background"
-            >
-              <span
-                class="flex h-full shrink-0 items-center gap-1.5 border-r border-input bg-muted/40 px-3 text-muted-foreground"
-                aria-hidden="true"
-              >
-                <TwitchIcon class="size-3.5 fill-current" />
-                twitch.tv/
-              </span>
-              <input
-                v-bind="field"
-                type="text"
-                inputmode="url"
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-                data-testid="settings-twitch-channel"
-                class="h-full min-w-0 flex-1 bg-transparent px-3 outline-none placeholder:text-muted-foreground"
-                :placeholder="$t('pages.settings.account.twitch.placeholder')"
-                :aria-label="$t('pages.settings.account.twitch.label')"
-              />
-            </div>
-          </FormControl>
-          <FormDescription>
-            {{ $t("pages.settings.account.twitch.help") }}
-          </FormDescription>
-          <FormMessage />
-        </FormItem>
-      </FormField>
-
       <div class="pb-24"></div>
 
       <SettingsSaveBar
@@ -251,8 +212,6 @@ import { getAllCountries } from "countries-and-timezones";
 import TimezoneFlag from "~/components/TimezoneFlag.vue";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { toast } from "@/components/ui/toast";
-import { normalizeTwitchChannel } from "~/utilities/twitchChannel";
-import { fetchMyTwitchChannel, saveMyTwitchChannel } from "~/composables/useTwitchApi";
 
 export default {
   data() {
@@ -263,24 +222,12 @@ export default {
       submitting: false,
       baseline: null as string | null,
       isDirty: false,
-      // The saved Twitch channel (normalized login), read from the API;
-      // undefined until loaded so a slow load never clears the field.
-      savedTwitchChannel: undefined as string | null | undefined,
       form: useForm({
         validationSchema: toTypedSchema(
           z.object({
             name: z.string().min(1),
             country: z.string().min(1),
             language: z.string().optional(),
-            // Optional; checked here for a quick hint, normalized and
-            // validated again by the API when saved.
-            twitch_channel: z
-              .string()
-              .optional()
-              .nullable()
-              .refine((value) => normalizeTwitchChannel(value).ok, {
-                message: this.$t("pages.settings.account.twitch.invalid"),
-              }),
           }),
         ),
       }),
@@ -305,21 +252,12 @@ export default {
       },
     },
   },
-  async mounted() {
-    const channel = await fetchMyTwitchChannel();
-    this.savedTwitchChannel = channel;
-    if (!this.isDirty) {
-      this.form.setFieldValue("twitch_channel", channel ?? "");
-      this.takeSnapshot();
-    }
-  },
   methods: {
     populateForm() {
       this.form.setValues({
         steam_id: this.me.steam_id,
         name: this.me.name,
         country: this.me.country,
-        twitch_channel: this.savedTwitchChannel ?? "",
       });
       this.takeSnapshot();
     },
@@ -363,22 +301,6 @@ export default {
             ],
           }),
         });
-
-        // Twitch is saved through the API (it only ever updates the
-        // signed-in player's own channel), and only when it changed.
-        const twitch = normalizeTwitchChannel(this.form.values.twitch_channel);
-        if (twitch.ok && twitch.channel !== (this.savedTwitchChannel ?? null)) {
-          const saved = await saveMyTwitchChannel(twitch.channel);
-          if (!saved.ok) {
-            toast({
-              variant: "destructive",
-              title: this.$t("pages.settings.account.twitch.save_failed"),
-            });
-            return;
-          }
-          this.savedTwitchChannel = saved.channel;
-          this.form.setFieldValue("twitch_channel", saved.channel ?? "");
-        }
 
         toast({
           title: this.$t("pages.settings.account.update_success"),

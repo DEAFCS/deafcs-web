@@ -1463,13 +1463,6 @@
             "confirm": "Unlink"
           },
           "unlinked": "Discord account unlinked successfully"
-        },
-        "twitch": {
-          "label": "Twitch channel",
-          "placeholder": "your-channel",
-          "help": "Used to show your stream automatically when you are live in a DEAFCS match.",
-          "invalid": "Enter your Twitch channel name or a twitch.tv/your-channel link.",
-          "save_failed": "Your Twitch channel could not be saved. Check the name and try again."
         }
       },
       "notification_preferences": {
@@ -2293,6 +2286,24 @@
         }
       },
       "linked_accounts": {
+        "group_game_accounts": "Game Accounts",
+        "group_streaming_social": "Streaming & Social",
+        "twitch": {
+          "title": "Twitch Channel",
+          "placeholder": "your-channel",
+          "help": "Used to show your stream automatically when you are live in a DEAFCS match.",
+          "invalid": "Enter your Twitch channel name or a twitch.tv/your-channel link.",
+          "save": "Save",
+          "remove": "Remove",
+          "saved": "Twitch channel saved",
+          "removed": "Twitch channel removed",
+          "save_failed": "Your Twitch channel could not be saved. Check the name and try again.",
+          "open_channel": "Open channel",
+          "status_configured": "Configured",
+          "status_not_configured": "Not configured",
+          "status_offline": "Offline",
+          "status_live": "Live"
+        },
         "presence_title": "DEAFCS Steam bot",
         "presence_description": "Add the bot as a Steam friend to auto-import your Competitive & Premier matches the moment they end.",
         "presence_connect": "Add bot as friend",
