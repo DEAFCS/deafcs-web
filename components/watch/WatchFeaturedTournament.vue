@@ -9,11 +9,12 @@ import { useApolloClient } from "@vue/apollo-composable";
 import { e_tournament_status_enum, order_by } from "~/generated/zeus";
 import { generateSubscription } from "~/graphql/graphqlGen";
 import { NOT_LEAGUE_TOURNAMENT } from "~/graphql/tournamentFilters";
-import { simpleTournamentFields } from "~/graphql/simpleTournamentFields";
+import { tournamentCardFields } from "~/graphql/tournamentCardFields";
 import { seededSubscribe } from "~/utilities/seededSubscribe";
-import TournamentFeatureCard from "~/components/tournament/TournamentFeatureCard.vue";
+import TournamentLiveFeature from "~/components/tournament/TournamentLiveFeature.vue";
 
 const { client } = useApolloClient();
+const emit = defineEmits<{ ids: [string[]] }>();
 const liveTournaments = ref<any[]>([]);
 let liveSub: { unsubscribe: () => void } | undefined;
 
@@ -25,18 +26,19 @@ onMounted(() => {
         tournaments: [
           {
             where: {
-              status: { _eq: e_tournament_status_enum.Live },
+              status: { _in: [e_tournament_status_enum.Live, e_tournament_status_enum.Paused] },
               _and: [NOT_LEAGUE_TOURNAMENT],
             },
             order_by: [{ start: order_by.asc }],
           },
-          simpleTournamentFields,
+          tournamentCardFields,
         ],
       } as any),
     },
     {
       next: ({ data }: any) => {
         liveTournaments.value = data?.tournaments ?? [];
+        emit("ids", liveTournaments.value.map(t => t.id));
       },
       error: (err: any) => console.error("[watch] live tournaments error", err),
     },
@@ -51,12 +53,10 @@ onBeforeUnmount(() => liveSub?.unsubscribe());
     class="mt-8 space-y-3"
     data-testid="watch-featured-tournament"
   >
-    <TournamentFeatureCard
+    <TournamentLiveFeature
       v-for="tournament in liveTournaments"
       :key="tournament.id"
       :tournament="tournament"
-      status-variant="live"
-      :status-label="$t('common.live')"
     />
   </section>
 </template>

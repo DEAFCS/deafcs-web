@@ -86,6 +86,10 @@ export const tacticalCtaButtonClasses =
 export const tacticalHeaderActionClasses =
   "!py-0 h-[clamp(1.75rem,4.2vw,3rem)]";
 
+// Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg.
+export const createButtonClasses = "h-8 bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.9)]";
+export const listCreateButtonClasses = `${createButtonClasses} max-md:w-8 max-md:px-0`;
+
 // Tactical veto tile — rounded frame for map/region pick-ban tiles.
 // Combine the base with hover + active + disabled as needed.
 export const vetoTileClasses =

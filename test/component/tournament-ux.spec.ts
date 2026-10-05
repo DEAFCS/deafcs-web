@@ -107,6 +107,7 @@ describe("tournament progress", () => {
 
   it("the strip shows stage, round, matches, live count and links to Bracket/Matches", async () => {
     const tournament = {
+      status: "Live",
       stages: [stage(1, [b(1, "Finished"), b(1, "Live"), b(2, null)])],
     };
     const w = mount(TournamentProgress, {
@@ -128,6 +129,14 @@ describe("tournament progress", () => {
       global: { mocks: { $t }, stubs: { TimeAgo: true } },
     });
     expect(w.find('[data-testid="tournament-progress-matches-link"]').exists()).toBe(false);
+  });
+
+  it("does not announce competition rounds during registration", () => {
+    const w = mount(TournamentProgress, {
+      props: { tournament: { status: "RegistrationOpen", stages: [stage(1, [b(1, "Scheduled")])] } },
+      global: { mocks: { $t }, stubs: { TimeAgo: true } },
+    });
+    expect(w.find('[data-testid="tournament-progress"]').exists()).toBe(false);
   });
 });
 

@@ -272,6 +272,12 @@ const stubs = {
     props: ["sectionLabel", "statuses"],
     setup: (p) => () => h("div", { "data-testid": "recent-tournaments", "data-label": p.sectionLabel }),
   }),
+  TournamentLiveFeature: defineComponent({
+    props: ["tournament"], setup: p => () => h("div", {"data-testid":"tournament-live-feature", "data-id":p.tournament.id}),
+  }),
+  WatchTournamentCard: defineComponent({
+    props: ["tournament"], setup: p => () => h("div", {"data-testid":"watch-tournament-card", "data-id":p.tournament.id}),
+  }),
   TournamentFeatureCard: defineComponent({
     props: ["tournament", "statusVariant", "statusLabel"],
     setup: (p) => () =>
@@ -302,10 +308,11 @@ afterEach(() => {
 
 vi.setConfig({ testTimeout: 30_000 });
 
-async function mountComp(file: string, props: Record<string, any> = {}) {
+async function mountComp(file: string, props: Record<string, any> = {}, data: Record<string, any> = {}) {
   const mod = await import(/* @vite-ignore */ path.resolve(__dirname, "../..", file));
   const w = mount(mod.default, {
     props,
+    data: () => data,
     global: { stubs, mocks: { $t: (k: string, v?: any) => (v && typeof v === "object" ? `${k}(${Object.values(v).join(",")})` : k) } },
   });
   wrappers.push(w);
@@ -557,18 +564,12 @@ describe("page structure", () => {
     }
   });
 
-  it("bottom tournaments: Upcoming, then Recent, See all; never the live one (featured above)", async () => {
-    apollo.liveTournaments = [{ id: "t-live", name: "Autumn Cup" }];
-    const w = await mountComp("components/watch/WatchTournaments.vue");
-    expect(w.findAll('[data-testid="recent-tournaments"]').map((n) => n.attributes("data-label"))).toEqual([
-      "pages.watch.tournaments.upcoming",
-      "pages.watch.tournaments.recent",
-    ]);
+  it("bottom tournaments mix states, exclude featured IDs, and omit the top See all link", async () => {
+    const w = await mountComp("components/watch/WatchTournaments.vue", { excludeIds: ["t-live"] }, {live:[{id:"t-live",status:"Live"}],upcoming:[{id:"t-upcoming",status:"RegistrationOpen"}],finished:[{id:"t-finished",status:"Finished"}]});
+    await flushPromises();
+    expect(w.findAll('[data-testid="watch-tournament-card"]').map(n => n.attributes("data-id"))).toEqual(["t-upcoming", "t-finished"]);
     expect(w.text()).toContain("pages.watch.tournaments.title");
-    expect(w.findAll("a").map((a) => a.attributes("href"))).toContain("/tournaments");
-    expect(w.find('[data-testid="tournament-feature-card"]').exists()).toBe(false);
-    expect(read("components/watch/WatchTournaments.vue")).not.toContain("TournamentFeatureCard");
-    expect(read("components/watch/WatchTournaments.vue")).not.toContain("e_tournament_status_enum.Live");
+    expect(w.findAll("a").map(a => a.attributes("href"))).not.toContain("/tournaments");
   });
 
   it("featured live tournament: the large card per live tournament, after the rail", async () => {
@@ -577,13 +578,12 @@ describe("page structure", () => {
       { id: "t-2", name: "Night Cup" },
     ];
     const w = await mountComp("components/watch/WatchFeaturedTournament.vue");
-    const cards = w.findAll('[data-testid="tournament-feature-card"]');
+    const cards = w.findAll('[data-testid="tournament-live-feature"]');
     expect(cards.map((c) => c.attributes("data-id"))).toEqual(["t-1", "t-2"]);
-    expect(cards.every((c) => c.attributes("data-variant") === "live")).toBe(true);
-    expect(cards[0].text()).toBe("common.live");
+    expect(w.emitted("ids")?.at(-1)).toEqual([["t-1", "t-2"]]);
     // Live tournaments only (league tournaments excluded, as before).
     const src = read("components/watch/WatchFeaturedTournament.vue");
-    expect(src).toContain("status: { _eq: e_tournament_status_enum.Live }");
+    expect(src).toContain("status: { _in: [e_tournament_status_enum.Live, e_tournament_status_enum.Paused] }");
     expect(src).toContain("_and: [NOT_LEAGUE_TOURNAMENT]");
   });
 
@@ -594,7 +594,7 @@ describe("page structure", () => {
     expect(w.text()).toBe("");
     // No placeholder spacing either: the margin lives on the component's
     // own (absent) root, not on the page wrapper.
-    expect(page).toMatch(/<PageTransition v-if="!feedIsEmpty" :delay="75">\s*<WatchFeaturedTournament \/>/);
+    expect(page).toMatch(/<PageTransition v-if="!feedIsEmpty" :delay="75">\s*<WatchFeaturedTournament @ids="featuredTournamentIds = \$event" \/>/);
   });
 
   it("credits 5Stack (MIT) where its code was adapted", () => {

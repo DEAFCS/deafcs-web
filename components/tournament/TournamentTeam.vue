@@ -230,6 +230,7 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
       </div>
 
       <div class="flex items-center gap-3 flex-shrink-0">
+        <Button variant="ghost" size="sm" :aria-expanded="membersExpanded" @click="membersExpanded = !membersExpanded">{{ membersExpanded ? 'Hide roster' : 'Show roster' }}</Button>
         <div
           class="inline-flex items-baseline gap-[0.2rem] px-[0.7rem] py-[0.35rem] font-mono tabular-nums border border-border rounded bg-muted/20"
         >
@@ -313,7 +314,7 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
       </AlertDialogContent>
     </AlertDialog>
 
-    <div v-if="team.roster" class="flex flex-col gap-[0.85rem]">
+    <div v-if="team.roster" v-show="membersExpanded" class="flex flex-col gap-[0.85rem]">
       <div
         class="inline-flex items-center gap-2 font-mono text-[0.65rem] tracking-[0.24em] uppercase text-muted-foreground"
       >
@@ -424,6 +425,7 @@ export default {
   },
   data() {
     return {
+      membersExpanded: true,
       isEditingIdentity: false,
       editName: "",
       editShortName: "",
@@ -533,6 +535,7 @@ export default {
       ).has(String(this.team.id));
     },
     showTeamCheckIn() {
+      if (this.tournament.registration_version === 2) return false;
       return (
         !this.isGeneratedTeam &&
         this.team.can_manage &&
@@ -543,6 +546,7 @@ export default {
     // Public: every viewer sees every registered team's attendance state,
     // not just their own. Lifecycle lives in the shared helper.
     showAttendanceStatus() {
+      if (this.tournament.registration_version === 2) return this.tournament.check_in_required;
       if (this.isGeneratedTeam) {
         return false;
       }

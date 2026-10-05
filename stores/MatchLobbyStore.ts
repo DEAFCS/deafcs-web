@@ -178,6 +178,7 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
                       e_tournament_status_enum.Setup,
                       e_tournament_status_enum.RegistrationOpen,
                       e_tournament_status_enum.RegistrationClosed,
+                      "CheckInReview" as e_tournament_status_enum,
                       e_tournament_status_enum.Live,
                       e_tournament_status_enum.Paused,
                     ],

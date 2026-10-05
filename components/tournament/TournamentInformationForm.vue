@@ -8,6 +8,7 @@ import AddressSearch from "~/components/AddressSearch.vue";
 import CategorySelect from "~/components/tournament/CategorySelect.vue";
 import DateTimePicker from "~/components/tournament/DateTimePicker.vue";
 import { ExternalLink } from "lucide-vue-next";
+import TournamentRegistrationForm from "~/components/tournament/TournamentRegistrationForm.vue";
 import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
 
 import {
@@ -124,7 +125,7 @@ import {
         </FormItem>
       </FormField>
 
-      <div class="grid gap-4 sm:grid-cols-2">
+      <div v-if="tournament.registration_version !== 2" class="grid gap-4 sm:grid-cols-2">
         <FormField v-slot="{ componentField }" name="attendance_open_before">
           <FormItem>
             <FormLabel>{{
@@ -169,7 +170,7 @@ import {
       </div>
 
       <p
-        v-if="attendanceWindowPreview"
+        v-if="tournament.registration_version !== 2 && attendanceWindowPreview"
         class="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground"
       >
         {{
@@ -188,6 +189,8 @@ import {
         {{ $t("tournament.form.attendance.locked") }}
       </p>
     </section>
+
+    <TournamentRegistrationForm v-if="tournament.registration_version === 2" :form="form" :tournament="tournament" :min-players-per-lineup="tournament.min_players_per_lineup" />
 
     <!-- Classification & Venue -->
     <section class="grid gap-4">
@@ -239,6 +242,8 @@ import {
 </template>
 
 <script lang="ts">
+import { registrationSchemaShape, registrationColumns, registrationFormValues } from "~/utilities/tournamentRegistration";
+import { isTournamentScheduleFrozen } from "~/utilities/tournamentCheckIn";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import { generateMutation } from "~/graphql/graphqlGen";
@@ -266,6 +271,7 @@ export default {
         keepValuesOnUnmount: true,
         validationSchema: toTypedSchema(
           z.object({
+            ...registrationSchemaShape(this),
             name: z.string().min(1),
             start: z.date(),
             description: z.string().nullable().default(null),
@@ -349,7 +355,7 @@ export default {
     // Not keyed off individual_registration_enabled -- this is about tournament
     // attendance, which normal team tournaments use too.
     scheduleFrozen() {
-      return isAttendanceScheduleFrozen(this.tournament as any);
+      return this.tournament.registration_version === 2 ? isTournamentScheduleFrozen(this.tournament) : isAttendanceScheduleFrozen(this.tournament as any);
     },
     // Uses live form values (not the saved tournament), so it updates as the
     // organizer types. Suppressed while the values are out of range, rather
@@ -377,6 +383,8 @@ export default {
   methods: {
     populate() {
       this.form.setValues({
+        ...registrationFormValues(this.tournament),
+        individual_registration_enabled: !!this.tournament.options?.individual_registration_enabled,
         name: this.tournament.name,
         start: new Date(this.tournament.start),
         description: this.tournament.description,
@@ -512,6 +520,7 @@ export default {
               {
                 pk_columns: { id: this.tournament.id },
                 _set: {
+                  ...(this.tournament.registration_version === 2 ? registrationColumns(this.form.values) : {}),
                   name: $("name", "String!"),
                   start: $("start", "timestamptz!"),
                   description: $("description", "String"),
@@ -519,14 +528,10 @@ export default {
                   location: $("location", "String"),
                   latitude: $("latitude", "float8"),
                   longitude: $("longitude", "float8"),
-                  attendance_check_in_open_before_minutes: $(
-                    "attendance_open_before",
-                    "Int",
-                  ),
-                  attendance_check_in_close_before_minutes: $(
-                    "attendance_close_before",
-                    "Int",
-                  ),
+                  ...(this.tournament.registration_version !== 2 ? {
+                    attendance_check_in_open_before_minutes: $("attendance_open_before", "Int"),
+                    attendance_check_in_close_before_minutes: $("attendance_close_before", "Int"),
+                  } : {}),
                 },
               },
               { __typename: true },

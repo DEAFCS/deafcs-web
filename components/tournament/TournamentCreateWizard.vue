@@ -23,6 +23,7 @@ import DateTimePicker from "~/components/tournament/DateTimePicker.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import PrizeRowsEditor from "~/components/tournament/PrizeRowsEditor.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
+import TournamentRegistrationForm from "~/components/tournament/TournamentRegistrationForm.vue";
 </script>
 
 <template>
@@ -152,48 +153,6 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
           </FormItem>
         </FormField>
 
-        <div class="grid gap-4 sm:grid-cols-2">
-          <FormField v-slot="{ componentField }" name="attendance_open_before">
-            <FormItem>
-              <FormLabel>{{
-                $t("tournament.form.attendance.open_before")
-              }}</FormLabel>
-              <FormControl>
-                <Input type="number" min="15" max="240" v-bind="componentField" />
-              </FormControl>
-              <FormDescription>{{
-                $t("tournament.form.attendance.open_before_description")
-              }}</FormDescription>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-
-          <FormField v-slot="{ componentField }" name="attendance_close_before">
-            <FormItem>
-              <FormLabel>{{
-                $t("tournament.form.attendance.close_before")
-              }}</FormLabel>
-              <FormControl>
-                <Input type="number" min="5" max="60" v-bind="componentField" />
-              </FormControl>
-              <FormDescription>{{
-                $t("tournament.form.attendance.close_before_description")
-              }}</FormDescription>
-              <FormMessage />
-            </FormItem>
-          </FormField>
-        </div>
-
-        <p
-          v-if="attendanceWindowPreview"
-          class="font-mono text-[0.7rem] uppercase tracking-[0.14em] text-muted-foreground"
-        >
-          {{
-            $t("tournament.form.attendance.preview", {
-              window: attendanceWindowPreview,
-            })
-          }}
-        </p>
       </div>
     </div>
 
@@ -316,8 +275,12 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
       </MatchOptions>
     </div>
 
-    <!-- Step 4: Prizes -->
     <div v-show="currentStep === 3" class="grid gap-4">
+      <TournamentRegistrationForm :form="form" :min-players-per-lineup="form.values.type === 'Duel' ? 1 : form.values.type === 'Wingman' ? 2 : 5" />
+    </div>
+
+    <!-- Prizes -->
+    <div v-show="currentStep === 4" class="grid gap-4">
       <p class="text-sm text-muted-foreground">
         {{ $t("tournament.prizes.manage_hint") }}
       </p>
@@ -330,7 +293,7 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
     </div>
 
     <!-- Step 5: Awards -->
-    <div v-show="currentStep === 4" class="grid gap-4">
+    <div v-show="currentStep === 5" class="grid gap-4">
       <TournamentAwardPicker
         ref="awardPicker"
         v-model="awardSelections"
@@ -383,7 +346,7 @@ import {
   setupOptionsSetMutation,
 } from "~/utilities/setupOptions";
 import { requiresLocation } from "~/utilities/tournamentCategories";
-import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
+import { registrationColumns, registrationSchemaShape, REGISTRATION_FIELD } from "~/utilities/tournamentRegistration";
 
 export default {
   data() {
@@ -425,32 +388,10 @@ export default {
               auto_start: z.boolean().default(true),
               substitutes_enabled: z.boolean().default(true),
               negotiated_scheduling: z.boolean().default(false),
-              min_role: z.string().nullable().default(null),
-              // Mirrors TournamentInformationForm.vue and the backend CHECK
-              // constraints on tournaments (tournaments_attendance_*):
-              // 15-240 / 5-60, and at least a 5-minute gap between them.
-              attendance_open_before: z.coerce
-                .number()
-                .int()
-                .min(15)
-                .max(240)
-                .default(60),
-              attendance_close_before: z.coerce
-                .number()
-                .int()
-                .min(5)
-                .max(60)
-                .default(15),
+              ...registrationSchemaShape(this),
+              min_role: z.string().nullable().default("verified_user"),
             },
             useApplicationSettingsStore().settings,
-          ).refine(
-            (values) =>
-              values.attendance_open_before - values.attendance_close_before >=
-              5,
-            {
-              message: this.$t("tournament.form.attendance.invalid_window"),
-              path: ["attendance_open_before"],
-            },
           ),
         ),
       }),
@@ -475,31 +416,10 @@ export default {
           key: "match_options",
           label: this.$t("tournament.wizard.match_options"),
         },
+        { key: "registration", label: this.$t("tournament.registration.section") },
         { key: "prizes", label: this.$t("tournament.wizard.prizes") },
         { key: "awards", label: "Awards" },
       ];
-    },
-    // Same live preview as TournamentInformationForm.vue's schedule section,
-    // driven by the form's current values so it updates as the organizer
-    // types. Suppressed while the values are out of range.
-    attendanceWindowPreview() {
-      const start = this.form.values.start;
-      const openBefore = Number(this.form.values.attendance_open_before);
-      const closeBefore = Number(this.form.values.attendance_close_before);
-      if (
-        !(start instanceof Date) ||
-        Number.isNaN(start.getTime()) ||
-        !Number.isFinite(openBefore) ||
-        !Number.isFinite(closeBefore) ||
-        openBefore - closeBefore < 5
-      ) {
-        return null;
-      }
-      return formatAttendanceWindowRange({
-        start: start.toISOString(),
-        attendance_check_in_open_before_minutes: openBefore,
-        attendance_check_in_close_before_minutes: closeBefore,
-      });
     },
   },
   methods: {
@@ -569,6 +489,10 @@ export default {
       });
     },
     async validateStep(step: number): Promise<boolean> {
+      if (step === 3) {
+        const results = await Promise.all(Object.values(REGISTRATION_FIELD).map((name) => this.form.validateField(name)));
+        return results.every((result) => result.valid);
+      }
       // Only the Information step has required fields; the rest have defaults.
       if (step !== 0) {
         return true;
@@ -576,8 +500,6 @@ export default {
       const results = await Promise.all([
         this.form.validateField("name"),
         this.form.validateField("start"),
-        this.form.validateField("attendance_open_before"),
-        this.form.validateField("attendance_close_before"),
       ]);
       return results.every((result) => result.valid);
     },
@@ -675,7 +597,7 @@ export default {
                   location: locationEnabled ? form.location || null : null,
                   latitude: locationEnabled ? form.latitude ?? null : null,
                   longitude: locationEnabled ? form.longitude ?? null : null,
-                  min_role: form.min_role ?? null,
+                  ...registrationColumns(form),
                   substitutes_enabled: form.substitutes_enabled ?? true,
                   auto_start: form.negotiated_scheduling
                     ? false
@@ -703,17 +625,6 @@ export default {
             variant: "destructive",
             title: this.$t("common.error"),
             description: error?.message,
-          });
-        }
-        try {
-          await this.persistAttendanceSchedule(tournamentId);
-        } catch (error: any) {
-          toast({
-            variant: "destructive",
-            title: "Tournament created, but registration/check-in timing needs attention",
-            description:
-              error?.message ||
-              "Open Settings to review and save the schedule.",
           });
         }
         let awardMappingsFailed = false;
@@ -779,43 +690,6 @@ export default {
           result.status === "rejected",
       );
       if (failure) throw failure.reason;
-    },
-    // Same field names, bounds, and update mutation shape as
-    // TournamentInformationForm.vue's save() -- attendance_check_in_*_minutes
-    // aren't insertable on tournaments (see insert_permissions), so this
-    // applies them as a follow-up update, exactly like the edit screen would.
-    // A no-op when the organizer left both fields at their defaults, since
-    // those already match the columns' own DB defaults.
-    async persistAttendanceSchedule(tournamentId: string) {
-      const openBefore = Number(this.form.values.attendance_open_before);
-      const closeBefore = Number(this.form.values.attendance_close_before);
-      if (openBefore === 60 && closeBefore === 15) {
-        return;
-      }
-      await this.$apollo.mutate({
-        variables: {
-          attendance_open_before: openBefore,
-          attendance_close_before: closeBefore,
-        },
-        mutation: generateMutation({
-          update_tournaments_by_pk: [
-            {
-              pk_columns: { id: tournamentId },
-              _set: {
-                attendance_check_in_open_before_minutes: $(
-                  "attendance_open_before",
-                  "Int",
-                ),
-                attendance_check_in_close_before_minutes: $(
-                  "attendance_close_before",
-                  "Int",
-                ),
-              },
-            },
-            { __typename: true },
-          ],
-        }),
-      });
     },
     async persistCategoriesAndPrizes(tournamentId: string) {
       const categories: string[] = this.form.values.categories ?? [];

@@ -1,7 +1,32 @@
+// Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE.
 import { playerFields } from "~/graphql/playerFields";
 import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
 
+/**
+ * `tournament_teams.checked_in_at` is the ONE check-in signal anything
+ * downstream reads — nothing outside the feature has to know which
+ * `check_in_setting` mode produced it. `checked_in` is its computed companion,
+ * and the roster's own stamp only ever matters in `Players` mode.
+ *
+ * Both chunks are spread as untyped objects on purpose: these columns land with
+ * the API migration, and until `yarn codegen` runs against a migrated stack the
+ * generated Zeus selection type maps every unrecognised key to `never` — which
+ * would be a compile error not just here but at every call site that reuses
+ * this selector. Fold the keys into the literals and delete the casts once
+ * codegen has run.
+ */
+const pendingTeamFields = {
+  checked_in_at: true,
+  checked_in: true,
+} as {};
+
+const pendingRosterFields = {
+  checked_in_at: true,
+  target_eligible: true,
+} as {};
+
 export default {
+  ...pendingTeamFields,
   id: true,
   name: true,
   short_name: true,
@@ -9,34 +34,28 @@ export default {
   seed: true,
   eligible_at: true,
   can_manage: true,
-  checked_in_at: true,
-  created_at: true,
+  // captain_steam_id is the only captain signal anything reads -- the roster
+  // row it points at is already in `roster` below. A `captain: playerFields`
+  // here would re-fetch that player, elo and sanction lookups included, once
+  // per team on every poll, for nothing.
   captain_steam_id: true,
   owner_steam_id: true,
+  created_at: true,
   captain: playerFields,
   team: {
     id: true,
     name: true,
     short_name: true,
     avatar_url: true,
-    // The real team's roster -- the only place a team-specific roster image
-    // lives (tournament_team_roster has no roster_image_url column). Used
-    // to resolve the team-specific tier of the pre-lock portrait priority;
-    // locked tournaments use the persisted tournament-roster snapshot.
-    roster: [
-      {},
-      {
-        player_steam_id: true,
-        roster_image_url: true,
-      },
-    ],
+    roster: [{}, { player_steam_id: true, roster_image_url: true }],
   },
   roster: [
     {},
     {
+      ...pendingRosterFields,
       player_steam_id: true,
-      role: true,
       ...rosterImageSnapshotField,
+      role: true,
       player: playerFields,
     },
   ],

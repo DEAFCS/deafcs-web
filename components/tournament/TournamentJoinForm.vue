@@ -15,9 +15,17 @@ import TeamSearch from "~/components/teams/TeamSearch.vue";
 import { Card } from "~/components/ui/card";
 import { Checkbox } from "~/components/ui/checkbox";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import TournamentFreeAgentSignUp from "~/components/tournament/TournamentFreeAgentSignUp.vue";
 </script>
 
 <template>
+  <TournamentFreeAgentSignUp
+    v-if="tournament.registration_version === 2 && ['free_agents', 'both'].includes(tournament.registration_type)"
+    :tournament="tournament"
+    :pool="tournament.free_agents ?? []"
+    :my-entry="(tournament.free_agents ?? []).find((agent: any) => String(agent.player_steam_id) === String(me?.steam_id) && agent.status !== 'withdrawn') ?? null"
+  />
+  <template v-if="tournament.registration_version !== 2 || tournament.registration_type !== 'free_agents'">
   <div
     v-if="joinRestrictionMessage"
     class="rounded-lg border border-border/60 bg-card/40 p-4 text-sm text-muted-foreground"
@@ -283,6 +291,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
       {{ $t("tournament.join.title") }}
     </Button>
   </form>
+  </template>
 </template>
 
 <script lang="ts">
@@ -420,7 +429,7 @@ export default {
       return null;
     },
     isIndividualRegistration() {
-      return !!(this.tournament as any)?.options?.individual_registration_enabled;
+      return (this.tournament as any)?.registration_version !== 2 && !!(this.tournament as any)?.options?.individual_registration_enabled;
     },
     myIndividualSignup() {
       const steamId = String(this.me?.steam_id ?? "");

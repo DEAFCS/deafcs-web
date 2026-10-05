@@ -1,4 +1,5 @@
 <script setup lang="ts">
+const featuredTournamentIds = ref<string[]>([]);
 import { useI18n } from "vue-i18n";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
@@ -40,7 +41,7 @@ useHead({
   <!-- Only while a tournament is live; renders nothing (and no spacing)
        otherwise, so the component owns its own top margin. -->
   <PageTransition v-if="!feedIsEmpty" :delay="75">
-    <WatchFeaturedTournament />
+    <WatchFeaturedTournament @ids="featuredTournamentIds = $event" />
   </PageTransition>
 
   <PageTransition :delay="100" class="mt-8">
@@ -48,7 +49,7 @@ useHead({
   </PageTransition>
 
   <PageTransition v-if="!feedIsEmpty" :delay="150" class="mt-8">
-    <WatchTournaments />
+    <WatchTournaments :exclude-ids="featuredTournamentIds" />
   </PageTransition>
 </template>
 

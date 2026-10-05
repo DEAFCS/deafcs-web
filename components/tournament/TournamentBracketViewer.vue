@@ -213,10 +213,16 @@ const needsVerticalScroll = computed(
   () => scaledContentHeight.value > availableSize.value.height + 1,
 );
 
+let redrawFrame: number | null = null;
+let bracketDisposed = false;
 const redrawLines = () => {
+  if (bracketDisposed) return;
+  if (redrawFrame !== null) cancelAnimationFrame(redrawFrame);
   clearConnectingLines();
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
+  redrawFrame = requestAnimationFrame(() => {
+    redrawFrame = requestAnimationFrame(() => {
+      redrawFrame = null;
+      if (bracketDisposed) return;
       drawConnectingLines();
     });
   });
@@ -312,6 +318,9 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  bracketDisposed = true;
+  if (redrawFrame !== null) cancelAnimationFrame(redrawFrame);
+  redrawFrame = null;
   if (bracketContainer.value) {
     bracketContainer.value.removeEventListener("wheel", handleWheel);
     window.removeEventListener("resize", measureSizes);

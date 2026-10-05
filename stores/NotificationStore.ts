@@ -1,7 +1,7 @@
 import { ref, computed, watch } from "vue";
 import { defineStore, acceptHMRUpdate } from "pinia";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
-import { $, order_by } from "~/generated/zeus";
+import { $, order_by, e_team_roles_enum } from "~/generated/zeus";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateMutation } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
@@ -73,6 +73,7 @@ export type NotificationStackItem =
 export const useNotificationStore = defineStore("notifaicationStore", () => {
   const team_invites = ref<any[]>([]);
   const tournament_team_invites = ref<any[]>([]);
+  const tournament_registration_invites = ref<any[]>([]);
   const draft_invites = ref<any[]>([]);
   // Unfiltered subscription result; `notifications` below is the
   // per-type-preference-filtered view actually exposed. Kept separate
@@ -288,6 +289,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     () =>
       !!unreadNewsArticle.value ||
       team_invites.value.length > 0 ||
+      tournament_registration_invites.value.length +
       tournament_team_invites.value.length > 0 ||
       draft_invites.value.length > 0 ||
       scheduleTasks.value.length > 0 ||
@@ -300,6 +302,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     () =>
       (unreadNewsArticle.value ? 1 : 0) +
       team_invites.value.length +
+      tournament_registration_invites.value.length +
       tournament_team_invites.value.length +
       draft_invites.value.length +
       scheduleTasks.value.length +
@@ -392,6 +395,24 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
             team_invites.value = data.team_invites;
           },
         }),
+    );
+
+    subscribe(
+      "notifications:tournament_registration_invites",
+      getGraphqlClient().subscribe({
+        query: typedGql("subscription")({ tournament_invites: [{
+          order_by: [{ created_at: order_by.desc }],
+          where: { _or: [
+            { steam_id: { _eq: $("steam_id", "bigint!") } },
+            { team: { owner_steam_id: { _eq: $("steam_id", "bigint!") } } },
+            { team: { captain_steam_id: { _eq: $("steam_id", "bigint!") } } },
+            { team: { roster: { role: { _eq: e_team_roles_enum.Admin }, player_steam_id: { _eq: $("steam_id", "bigint!") } } } },
+          ] },
+        }, {
+          id: true, tournament: { id: true, name: true }, team: { id: true, name: true }, invited_by: playerFields, created_at: true,
+        }] }),
+        variables: { steam_id },
+      }).subscribe({ next: ({ data }) => { tournament_registration_invites.value = data?.tournament_invites ?? []; } }),
     );
 
     subscribe(
@@ -630,6 +651,8 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
       } else {
         const { unsubscribe } = useSubscriptionManager();
         unsubscribe("notifications:team_invites");
+        unsubscribe("notifications:tournament_registration_invites");
+        tournament_registration_invites.value = [];
         unsubscribe("notifications:tournament_team_invites");
         unsubscribe("notifications:draft_invites");
         unsubscribe("notifications:notifications");
@@ -649,6 +672,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
   return {
     team_invites,
     tournament_team_invites,
+    tournament_registration_invites,
     draft_invites,
     notifications: allNotifications,
     seasonRebuildCount,

@@ -13,7 +13,11 @@ const props = defineProps<{
 
 const emit = defineEmits<{ (e: "open-tab", tab: "bracket" | "matches"): void }>();
 
-const progress = computed(() => tournamentProgress(props.tournament?.stages));
+const progress = computed(() =>
+  ["Live", "Paused", "Finished", "RegistrationClosed"].includes(props.tournament?.status)
+    ? tournamentProgress(props.tournament?.stages)
+    : null,
+);
 const percent = computed(() =>
   progress.value?.total
     ? Math.round((progress.value.decided / progress.value.total) * 100)

@@ -2,6 +2,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import TournamentStageBuilder from "~/components/tournament/TournamentStageBuilder.vue";
 import TournamentJoinForm from "~/components/tournament/TournamentJoinForm.vue";
+import TournamentEntryGate from "~/components/tournament/TournamentEntryGate.vue";
+import TournamentCheckInPanel from "~/components/tournament/TournamentCheckInPanel.vue";
+import TournamentCheckInReview from "~/components/tournament/TournamentCheckInReview.vue";
+import TournamentFreeAgents from "~/components/tournament/TournamentFreeAgents.vue";
+import TournamentInviteLinks from "~/components/tournament/TournamentInviteLinks.vue";
+import TournamentInviteAccept from "~/components/tournament/TournamentInviteAccept.vue";
+import TournamentInvites from "~/components/tournament/TournamentInvites.vue";
 import TournamentIndividualPlayers from "~/components/tournament/TournamentIndividualPlayers.vue";
 import TournamentTeam from "~/components/tournament/TournamentTeam.vue";
 import TournamentInformationForm from "~/components/tournament/TournamentInformationForm.vue";
@@ -103,7 +110,7 @@ const chatRoomTabBaseClasses =
   "relative z-[1] inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:text-foreground";
 
 const tournamentHeroClasses =
-  "relative isolate overflow-hidden rounded-lg border border-border px-7 py-6 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
+  "relative isolate min-h-[24rem] overflow-hidden rounded-lg border border-border px-7 py-8 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
 const tournamentHeroToplineClasses =
   "order-2 flex shrink-0 flex-wrap items-start gap-2 max-sm:w-full";
 const tournamentHeroBodyClasses =
@@ -212,7 +219,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           >
             <img
               :src="tournamentBannerSrc"
-              class="h-full w-full object-cover opacity-[0.38]"
+              class="h-full w-full object-cover opacity-[0.85]"
             />
             <div
               class="absolute inset-0 [background:radial-gradient(600px_300px_at_88%_12%,hsl(var(--tac-amber)/0.1),transparent_62%)]"
@@ -527,7 +534,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           <div :class="tournamentHeroTabsClasses">
             <TabsList
               variant="underline"
-              :class="[tacticalTabsListClasses, 'h-auto flex-wrap']"
+              :class="[tacticalTabsListClasses, 'h-auto !justify-start flex-nowrap overflow-x-auto max-w-full']"
             >
               <TabsTrigger value="overview" :class="tacticalTabsTriggerClasses">
                 {{ $t("tournament.overview") }}
@@ -654,6 +661,8 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   ({{ chatRoomUnreadLabel }})
                 </span>
               </button>
+              <TabsTrigger v-if="isUnifiedRegistration && tournament.registration_type !== 'teams'" value="free-agents" :class="tacticalTabsTriggerClasses">Free Agents</TabsTrigger>
+              <TabsTrigger v-if="isUnifiedRegistration && tournament.is_organizer" value="invites" :class="tacticalTabsTriggerClasses">Invites</TabsTrigger>
             </TabsList>
           </div>
         </header>
@@ -688,7 +697,12 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                    that flips to false once Solo Random teams have been
                    generated, which would swap this panel to the normal-team
                    rules for a tournament that never used them. -->
+              <TournamentInviteAccept v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" />
+              <TournamentEntryGate v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :already-entered="!!myTeam || !!myFreeAgent" />
+              <TournamentCheckInPanel v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :teams="tournament.teams" :my-team-id="myTeam?.id" :my-free-agent="myFreeAgent" @register="joinSheetOpen = true" />
+              <TournamentCheckInReview v-if="isUnifiedRegistration && tournament.is_organizer && tournament.status === 'CheckInReview'" :tournament="tournament" :registration="tournament" :teams="tournament.teams" />
               <TournamentCheckInInfo
+                v-if="!isUnifiedRegistration"
                 :tournament="tournament"
                 :is-individual-registration="
                   !!tournament.options?.individual_registration_enabled
@@ -801,6 +815,12 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
             </div>
           </div>
         </TabsContent>
+        <TabsContent v-if="isUnifiedRegistration && tournament.registration_type !== 'teams'" value="free-agents">
+          <TournamentFreeAgents :tournament="tournament" />
+        </TabsContent>
+        <TabsContent v-if="isUnifiedRegistration && tournament.is_organizer" value="invites">
+          <div class="grid gap-8"><TournamentInviteLinks :tournament="tournament" /><TournamentInvites :tournament="tournament" :registration="tournament" /></div>
+        </TabsContent>
         <TabsContent value="teams">
           <TournamentIndividualPlayers
             v-if="isIndividualRegistration"
@@ -846,11 +866,12 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                    selected pool. Renders itself only once Solo Random teams
                    exist, so a normal team tournament never shows it. -->
               <TournamentNotSelectedSection
+                v-if="!isUnifiedRegistration"
                 :tournament="tournament"
               ></TournamentNotSelectedSection>
             </div>
 
-            <div v-if="tournament.is_organizer" class="lg:sticky lg:top-6">
+            <div v-if="tournament.is_organizer && (!isUnifiedRegistration || tournament.registration_type !== 'free_agents')" class="lg:sticky lg:top-6">
               <div>
                 <aside :class="tournamentAdminPanelClasses">
                   <div
@@ -1170,6 +1191,15 @@ export default {
               start: true,
               status: true,
               auto_start: true,
+              ...{
+                registration_version: true, registration_type: true, min_elo: true, max_elo: true,
+                invite_only: true, check_in_required: true, check_in_setting: true,
+                check_in_opens_before_minutes: true, check_in_closes_before_minutes: true,
+                check_in_ends_at: true, check_in_open: true, check_in_started: true,
+                missed_check_in_count: true, registration_unlocked: true,
+                free_agents: [{}, { id: true, party_id: true, player_steam_id: true, status: true, checked_in_at: true,
+                  tournament_team_id: true, player: { steam_id: true, name: true } }],
+              } as {},
               substitutes_enabled: true,
               scheduling_mode: true,
               // A league's division tournament: its fixtures are negotiated
@@ -1625,8 +1655,13 @@ export default {
     // this off after already having teams, whenever any exist), fall back
     // to the normal team grid -- individual sign-up is purely a
     // registration-time mechanism, not an ongoing display mode.
+    isUnifiedRegistration() { return this.tournament?.registration_version === 2; },
+    myFreeAgent() {
+      return (this.tournament?.free_agents ?? []).find((agent: any) => String(agent.player_steam_id) === String(this.me?.steam_id) && agent.status !== 'withdrawn') ?? null;
+    },
     isIndividualRegistration() {
       return (
+        !this.isUnifiedRegistration &&
         !!this.tournament?.options?.individual_registration_enabled &&
         (this.tournament?.teams_aggregate?.aggregate?.count || 0) === 0
       );
@@ -1661,6 +1696,7 @@ export default {
     },
     canGenerateTeams() {
       return (
+        !this.isUnifiedRegistration &&
         this.tournament?.is_organizer &&
         !!this.tournament?.options?.individual_registration_enabled &&
         this.tournament?.status === e_tournament_status_enum.RegistrationClosed

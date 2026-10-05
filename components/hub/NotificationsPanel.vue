@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { CheckCheck, Trash2 } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
+import TournamentRegistrationInvite from "~/components/tournament/TournamentRegistrationInvite.vue";
 import TeamInviteNotification from "~/components/TeamInviteNotification.vue";
 import DraftInviteNotification from "~/components/notification/DraftInviteNotification.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
@@ -26,6 +27,7 @@ import LeagueScheduleStack from "~/components/notification/LeagueScheduleStack.v
         v-if="
           scheduleTasks.length > 0 ||
           team_invites.length > 0 ||
+          tournament_registration_invites.length > 0 ||
           tournament_team_invites.length > 0 ||
           draft_invites.length > 0 ||
           notifications.length > 0
@@ -79,6 +81,9 @@ import LeagueScheduleStack from "~/components/notification/LeagueScheduleStack.v
           <Separator v-if="notifications.length > 0" />
         </div>
 
+        <div v-if="tournament_registration_invites.length" class="mb-3 grid gap-3">
+          <TournamentRegistrationInvite v-for="invite of tournament_registration_invites" :key="invite.id" :invite="invite" />
+        </div>
         <template
           v-for="item of stackedNotifications"
           :key="item.kind === 'single' ? item.notification.id : item.entityId"
@@ -151,6 +156,7 @@ export default {
     team_invites() {
       return useNotificationStore().team_invites;
     },
+    tournament_registration_invites() { return useNotificationStore().tournament_registration_invites; },
     tournament_team_invites() {
       return useNotificationStore().tournament_team_invites;
     },
