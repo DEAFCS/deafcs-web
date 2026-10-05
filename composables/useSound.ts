@@ -2,13 +2,9 @@ import { computed, readonly, ref } from "vue";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 
 const isEnabled = ref(true);
-// Separate from the master `isEnabled` switch so a player can mute chat
-// message pings specifically while keeping match-found/ready-up/countdown
-// sounds on -- reported: turning off "chat sound" left the match-accept
-// sound untouched, which is the desired split, but there was no way to keep
-// chat muted independently once the master switch fix (below) made the
-// master switch actually mute chat too.
-const isChatSoundEnabled = ref(true);
+// Chat is always visual-only for fairness/accessibility. Keep the legacy
+// API, but never let stored preferences re-enable chat notification audio.
+const isChatSoundEnabled = ref(false);
 const volume = ref(0.7);
 let settingsLoaded = false;
 
@@ -35,16 +31,10 @@ export const useSound = () => {
     }
 
     const savedEnabled = localStorage.getItem("chat-sound-enabled");
-    const savedChatEnabled = localStorage.getItem(
-      "chat-message-sound-enabled",
-    );
     const savedVolume = localStorage.getItem("chat-sound-volume");
 
     if (savedEnabled !== null) {
       isEnabled.value = savedEnabled === "true";
-    }
-    if (savedChatEnabled !== null) {
-      isChatSoundEnabled.value = savedChatEnabled === "true";
     }
     if (savedVolume !== null) {
       volume.value = parseFloat(savedVolume);
@@ -73,62 +63,9 @@ export const useSound = () => {
     }
   };
 
-  const generateBeepSound = (
-    frequency: number = 800,
-    duration: number = 200,
-  ) => {
-    if (!import.meta.client) {
-      return;
-    }
-
-    const audioContext = new (window.AudioContext ||
-      (window as any).webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-
-    oscillator.frequency.value = frequency;
-    oscillator.type = "sine";
-
-    gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(
-      volume.value * 0.3,
-      audioContext.currentTime + 0.01,
-    );
-    gainNode.gain.exponentialRampToValueAtTime(
-      0.001,
-      audioContext.currentTime + duration / 1000,
-    );
-
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + duration / 1000);
-
-    return audioContext;
-  };
-
-  const playNotificationSound = () => {
-    // Reported bug: turning off "chat sound" in Settings did nothing --
-    // this never checked any enabled flag at all. Deliberately independent
-    // of isEnabled (which now only gates match-found/tick/countdown) so
-    // the two toggles read as two separate things, not a master/sub-switch
-    // pair -- explicit request after the first version's wording (and
-    // isEnabled also gating chat) confused people.
-    if (!import.meta.client || !isChatSoundEnabled.value) {
-      return;
-    }
-    if (isInGame()) {
-      return;
-    }
-
-    generateBeepSound(800, 200);
-
-    // Add a second beep for a more distinctive notification
-    setTimeout(() => {
-      generateBeepSound(600, 150);
-    }, 100);
-  };
+  // Compatibility entry point: chat notifications are always visual-only.
+  // Never create audio, even for legacy callers requesting a sound.
+  const playNotificationSound = () => {};
 
   const playMatchFoundSound = () => {
     if (!import.meta.client || !isEnabled.value || isInGame()) {
@@ -477,8 +414,8 @@ export const useSound = () => {
     saveSettings();
   };
 
-  const updateChatSoundSetting = (enabled: boolean) => {
-    isChatSoundEnabled.value = enabled;
+  const updateChatSoundSetting = (_enabled: boolean) => {
+    isChatSoundEnabled.value = false;
     saveSettings();
   };
 

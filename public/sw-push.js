@@ -22,6 +22,19 @@ self.addEventListener("push", (event) => {
     data: { type: data.type, entity_id: data.entity_id },
   };
 
+  // Chat push notifications must also be visual-only. Matchmaking alerts
+  // use separate notification types and keep their existing sound behavior.
+  const isChatMessage = [
+    "ChatMessage",
+    "MatchChatMessage",
+    "GlobalChatMessage",
+    "OrganizerChatMessage",
+    "AnnouncementChatMessage",
+  ].includes(data.type);
+  if (isChatMessage) {
+    options.silent = true;
+  }
+
   // A time-boxed event needing an immediate response (an incoming call
   // ring, or a matchmaking ready-check -- see PushNotificationsService's
   // sendCallRing/sendMatchFound) is only actionable for a short window,
@@ -31,7 +44,9 @@ self.addEventListener("push", (event) => {
   // replace any earlier one of the same kind (via its own tag) rather
   // than stacking duplicates.
   if (data.urgent) {
-    options.vibrate = [300, 150, 300, 150, 300];
+    if (!isChatMessage) {
+      options.vibrate = [300, 150, 300, 150, 300];
+    }
     options.requireInteraction = true;
     options.tag = data.tag || "urgent";
     options.renotify = true;

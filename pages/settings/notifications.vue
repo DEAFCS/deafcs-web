@@ -5,7 +5,6 @@ import {
   Volume2,
   VolumeX,
   Play,
-  MessageSquare,
   Swords,
   Keyboard,
   Timer,
@@ -14,11 +13,8 @@ import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 
 const {
   isEnabled,
-  isChatSoundEnabled,
   volume,
   updateSettings,
-  updateChatSoundSetting,
-  playNotificationSound,
   playMatchFoundSound,
   playTickSound,
   playCountdownSound,
@@ -26,10 +22,6 @@ const {
 
 const handleSoundToggle = (enabled: boolean) => {
   updateSettings(enabled);
-};
-
-const handleChatSoundToggle = (enabled: boolean) => {
-  updateChatSoundSetting(enabled);
 };
 
 const handleVolumeChange = (event: Event) => {
@@ -51,7 +43,6 @@ const isAdmin = computed(() => useAuthStore().isAdmin);
 
 const sounds = computed(() => {
   const list = [
-    { key: "chat", icon: MessageSquare, play: playNotificationSound },
     { key: "match_found", icon: Swords, play: playMatchFoundSound },
   ];
 
@@ -97,34 +88,6 @@ const sounds = computed(() => {
         <Switch
           :model-value="isEnabled"
           @update:model-value="handleSoundToggle"
-        />
-      </div>
-
-      <!-- Chat message sound -- deliberately its own row at the same level
-           as the match-found toggle above, not nested under it, so the two
-           read as separate, independent switches rather than a
-           master/sub-switch pair. -->
-      <div
-        class="flex items-center justify-between gap-4 rounded-lg border border-border/60 bg-card/40 p-4"
-      >
-        <div class="flex items-start gap-3">
-          <div
-            class="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-[hsl(var(--tac-amber))]/10 ring-1 ring-inset ring-[hsl(var(--tac-amber))]/20"
-          >
-            <MessageSquare class="h-5 w-5 text-[hsl(var(--tac-amber))]" />
-          </div>
-          <div class="space-y-0.5">
-            <h4 class="font-medium">
-              {{ $t("pages.settings.notifications.chat_enabled.title") }}
-            </h4>
-            <p class="text-sm text-muted-foreground">
-              {{ $t("pages.settings.notifications.chat_enabled.description") }}
-            </p>
-          </div>
-        </div>
-        <Switch
-          :model-value="isChatSoundEnabled"
-          @update:model-value="handleChatSoundToggle"
         />
       </div>
 
