@@ -2,20 +2,19 @@
 // /watch highlights: kind filter (All / Aces / 4Ks), time range, and a bento
 // grid with one large lead play.
 //
-// Structure adapted from 5Stack web (https://github.com/5stackgg/web,
-// components/watch/WatchHighlights.vue), MIT License, Copyright (c) 2025
-// 5Stack.gg -- see LICENSE. DEAFCS changes: every tile is the existing DEAFCS
-// HighlightCard (same clip modal, share and visibility controls as
-// elsewhere), and Aces/4Ks use the clip's real kills_count on single-round
-// clips only -- nothing is classified that the data doesn't say.
-import { computed, ref, watch } from "vue";
+// Adapted from current 5Stack WatchHighlights/ClipTile (ea7f305).
+// MIT License, Copyright (c) 2025 5Stack.gg — see LICENSE.
+// DEAFCS keeps its section placement, filters, and tactical styling.
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { ArrowRight } from "lucide-vue-next";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
-import { matchClipFields } from "~/graphql/matchClip";
-import { $, order_by } from "~/generated/zeus";
-import HighlightCard from "~/components/clips/HighlightCard.vue";
+import { clipTileFields, topPlayOrderBy } from "~/graphql/matchClip";
+import { $ } from "~/generated/zeus";
+import ClipTile from "~/components/clips/ClipTile.vue";
+import { highlightCells, clipRoundKills } from "~/utilities/clipDisplay";
+import { useClipModal } from "~/composables/useClipModal";
 import WatchSegmented from "~/components/watch/WatchSegmented.vue";
 import { Button } from "~/components/ui/button";
 import { Skeleton } from "~/components/ui/skeleton";
@@ -60,17 +59,14 @@ const loading = ref(true);
 // Lead play plus up to six.
 const LIMIT = 7;
 
-// Biggest round first, then most watched, then newest.
-const TOP_PLAY_ORDER = [
-  { kills_count: order_by.desc_nulls_last },
-  { views_count: order_by.desc_nulls_last },
-  { created_at: order_by.desc },
-];
+const cells = computed(() => highlightCells(clips.value));
+const { clearClipQueue } = useClipModal();
+onBeforeUnmount(() => { requestId++; clearClipQueue("watch-highlights"); });
 
 let requestId = 0;
 async function fetchClips() {
-  if (props.ghost) return;
   const id = ++requestId;
+  if (props.ghost) return;
   loading.value = clips.value.length === 0;
   try {
     const { data } = await getGraphqlClient().query({
@@ -78,19 +74,21 @@ async function fetchClips() {
         match_clips: [
           {
             where: $("where", "match_clips_bool_exp!"),
-            order_by: TOP_PLAY_ORDER,
+            order_by: topPlayOrderBy,
             limit: $("limit", "Int!"),
           },
-          matchClipFields,
+          clipTileFields,
         ],
       } as any),
       variables: { where: highlightsWhere(kind.value, range.value), limit: LIMIT },
       fetchPolicy: "network-only",
     });
     if (id !== requestId) return;
-    clips.value = ((data as any)?.match_clips ?? []) as Clip[];
+    clips.value = (((data as any)?.match_clips ?? []) as Clip[]).filter(clip =>
+      kind.value === "all" || clipRoundKills(clip) === (kind.value === "ace" ? 5 : 4),
+    );
   } catch (error) {
-    console.error("[watch] highlights fetch error:", error);
+    if (id === requestId) console.error("[watch] highlights fetch error:", error);
   } finally {
     if (id === requestId) loading.value = false;
   }
@@ -144,17 +142,17 @@ function leadTag() {
     </div>
 
     <div v-if="ghost" class="watch-bento">
-      <div class="watch-bento-hero relative flex items-end rounded-lg border border-dashed border-border p-5">
+      <div class="watch-bento-cell watch-bento-hero relative flex items-end rounded-lg border border-dashed border-border p-5">
         <p class="max-w-[36ch] text-sm text-muted-foreground [text-wrap:balance]">
           {{ $t("pages.watch.highlights.ghost") }}
         </p>
       </div>
-      <div v-for="index in 4" :key="index" aria-hidden="true" class="aspect-video rounded-lg border border-dashed border-border/70"></div>
+      <div v-for="index in 4" :key="index" aria-hidden="true" class="watch-bento-cell rounded-lg border border-dashed border-border/70"></div>
     </div>
 
     <div v-else-if="loading" class="watch-bento">
-      <Skeleton class="watch-bento-hero rounded-lg" />
-      <Skeleton v-for="index in 4" :key="index" class="aspect-video rounded-lg" />
+      <Skeleton class="watch-bento-cell watch-bento-hero rounded-lg" />
+      <Skeleton v-for="index in 4" :key="index" class="watch-bento-cell rounded-lg" />
     </div>
 
     <div
@@ -170,55 +168,33 @@ function leadTag() {
 
     <div v-else class="watch-bento" data-testid="watch-highlights-grid">
       <div
-        v-for="(clip, index) in clips"
-        :key="clip.id"
-        class="relative min-w-0"
-        :class="{ 'watch-bento-hero': index === 0 }"
+        v-for="(cell, index) in cells"
+        :key="cell.clip.id"
+        class="watch-bento-cell"
+        :class="{ 'watch-bento-hero': cell.hero }"
+        :style="{ '--cols': cell.cols, '--rows': cell.rows }"
         :data-testid="index === 0 ? 'watch-highlight-lead' : 'watch-highlight-tile'"
       >
-        <span
-          v-if="index === 0"
-          class="pointer-events-none absolute left-2 top-2 z-20 inline-flex items-center rounded border border-[hsl(var(--tac-amber)/0.6)] bg-black/70 px-2 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))]"
-          >{{ leadTag() }}</span
-        >
-        <HighlightCard :clip="clip" />
+        <ClipTile :clip="cell.clip" :variant="cell.hero ? 'hero' : 'tile'"
+          :tag="cell.hero ? leadTag() : undefined" :queue="clips" queue-scope="watch-highlights" fill
+          @visibility-changed="(id, visibility) => { if (visibility !== 'public') clips = clips.filter(c => c.id !== id); }" />
       </div>
     </div>
   </section>
 </template>
 
 <style scoped>
-/* Desktop: the lead play spans half the width and two rows; the rest fill
-   the other half two by two, then whole rows. Tablet: two columns. Phone:
-   one column, so no tile gets too small to read. */
-.watch-bento {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  grid-auto-flow: row dense;
-  align-items: start;
-  gap: 12px;
-}
-
-.watch-bento-hero {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-
+.watch-bento { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); grid-auto-rows: 190px; grid-auto-flow: row dense; gap: 12px; }
+.watch-bento-cell { grid-column: span var(--cols, 3); grid-row: span var(--rows, 1); min-width: 0; }
+.watch-bento-hero { --cols: 6; --rows: 2; }
 @media (max-width: 900px) {
-  .watch-bento {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .watch-bento-hero {
-    grid-row: span 1;
-  }
+  .watch-bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: auto; }
+  .watch-bento-cell { grid-column: span 1; grid-row: auto; aspect-ratio: 16 / 11; }
+  .watch-bento-hero { grid-column: span 2; aspect-ratio: 16 / 8; }
 }
-
 @media (max-width: 600px) {
-  .watch-bento {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .watch-bento-hero {
-    grid-column: span 1;
-  }
+  .watch-bento { grid-template-columns: minmax(0, 1fr); }
+  .watch-bento-cell, .watch-bento-hero { grid-column: span 1; aspect-ratio: 16 / 11; }
+  .watch-bento-hero { aspect-ratio: 4 / 3.4; }
 }
 </style>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, watch, watchEffect } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
@@ -19,7 +19,7 @@ import {
 import { useAuthStore } from "~/stores/AuthStore";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
-import { matchClipFields } from "~/graphql/matchClip";
+import { clipTileFields } from "~/graphql/matchClip";
 import { order_by, $ } from "~/generated/zeus";
 import {
   Select,
@@ -49,12 +49,11 @@ import {
   SheetDescription,
   SheetTrigger,
 } from "~/components/ui/sheet";
-import HighlightCard from "~/components/clips/HighlightCard.vue";
-import MatchClipsGroupCard from "~/components/clips/MatchClipsGroupCard.vue";
+import ClipTile from "~/components/clips/ClipTile.vue";
 import RenderQueuePanel from "~/components/clips/RenderQueuePanel.vue";
 import Pagination from "~/components/Pagination.vue";
 import type { Clip } from "~/types/clip";
-import { useClipModal, type ClipQueueItem } from "~/composables/useClipModal";
+import { useClipModal } from "~/composables/useClipModal";
 import FilterBar from "~/components/common/FilterBar.vue";
 import FilterMenu from "~/components/common/FilterMenu.vue";
 import {
@@ -70,7 +69,7 @@ definePageMeta({
 
 const { t } = useI18n();
 const clipQueueScope = "highlights-index";
-const { activeClipId, clearClipQueue, setClipQueue } = useClipModal();
+const { activeClipId, clearClipQueue } = useClipModal();
 
 useHead({
   title: () => t("pages.highlights.title"),
@@ -371,7 +370,7 @@ async function fetchData() {
               limit: perPage,
               offset: (page.value - 1) * perPage,
             } as any,
-            matchClipFields,
+            clipTileFields,
           ],
         } as any),
         fetchPolicy: "network-only",
@@ -411,7 +410,7 @@ async function fetchData() {
                 where: filterIsEmpty ? {} : filter,
                 order_by: $("clips_order_by", "[match_clips_order_by!]!"),
               },
-              matchClipFields,
+              clipTileFields,
             ],
           },
         ],
@@ -524,35 +523,14 @@ watch(
 watch(page, () => fetchData());
 
 onBeforeUnmount(() => {
+  dataFetchId++;
+  aggregateFetchId++;
   pendingSub?.unsubscribe();
   clearClipQueue(clipQueueScope);
 });
 
-const showMap = computed(() => {
-  const seen = new Set<string>();
-  for (const c of flatClips.value) {
-    const name = c.match_map?.map?.name;
-    if (name) seen.add(name);
-    if (seen.size > 1) return true;
-  }
-  return false;
-});
-
-function clipQueueItem(c: Clip): ClipQueueItem {
-  return {
-    id: c.id,
-    title: c.title,
-    playerName: c.target?.name ?? null,
-    teamName: null,
-    durationMs: c.duration_ms,
-    thumbnailUrl: c.thumbnail_download_url,
-    posterUrl: c.match_map?.map?.poster ?? null,
-  };
-}
-
-watchEffect(() => {
-  setClipQueue(flatClips.value.map(clipQueueItem), clipQueueScope);
-});
+// Tile clicks seed the playlist. Preserve the active queue during filters/page changes.
+function onVisibilityChanged() { void fetchData(); void fetchAggregate(); }
 
 const hasClips = computed(() => groups.value.length > 0);
 
@@ -948,18 +926,11 @@ const viewModeOptions = computed<
         class="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3"
       >
         <template v-for="item in gridItems">
-          <MatchClipsGroupCard
-            v-if="item.kind === 'group'"
-            :key="`group-${item.matchId}`"
-            :match-id="item.matchId"
-            :clips="item.clips"
-          />
-          <HighlightCard
-            v-else
-            :key="`single-${item.clip.id}`"
-            :clip="item.clip"
-            :show-map="showMap"
-          />
+          <ClipTile v-if="item.kind === 'group'" :key="`group-${item.matchId}`"
+            :clip="item.clips[0]" :group="item.clips" :queue="flatClips" :queue-scope="clipQueueScope"
+            @visibility-changed="onVisibilityChanged" />
+          <ClipTile v-else :key="`single-${item.clip.id}`" :clip="item.clip"
+            :queue="flatClips" :queue-scope="clipQueueScope" @visibility-changed="onVisibilityChanged" />
         </template>
       </div>
     </Transition>

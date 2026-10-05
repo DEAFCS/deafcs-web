@@ -64,6 +64,7 @@ import {
 } from "~/utilities/clipDownloadName";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { useClipModal } from "~/composables/useClipModal";
+import { useClipFrameReveal } from "~/composables/useClipFrameReveal";
 import { useClipShare } from "~/composables/useClipShare";
 import { Spinner } from "~/components/ui/spinner";
 
@@ -96,9 +97,19 @@ const linkCopied = computed(() =>
 );
 const modalPlayerRef = ref<InstanceType<typeof ClipPlayer> | null>(null);
 const modalAutoAdvanced = ref(false);
+const advanceCancelled = ref(false);
+const remaining = ref<number | null>(null);
+const { revealed, onPlaying, onLoadedData } = useClipFrameReveal(
+  () => props.clipId,
+  () => clip.value?.id === props.clipId ? clip.value?.download_url : null,
+);
+const snapshotSrc = computed(() => {
+  const item = clipQueue.value.find(item => item.id === props.clipId);
+  return item?.thumbnailUrl ?? item?.posterUrl ?? clip.value?.thumbnail_download_url ?? clip.value?.match_map?.map?.poster;
+});
 
 const isOwner = computed(
-  () => !!clip.value && clip.value.user_steam_id === auth.me?.steam_id,
+  () => !!clip.value && String(clip.value.user_steam_id) === String(auth.me?.steam_id),
 );
 const canDelete = computed(() => isOwner.value || auth.isAdmin);
 
@@ -184,6 +195,7 @@ async function fetchFileSize(url: string) {
   try {
     const res = await fetch(url, { method: "HEAD" });
     const len = res.headers.get("content-length");
+    if (lastSizeUrl !== url || clip.value?.download_url !== url) return;
     if (len) {
       const n = Number(len);
       if (Number.isFinite(n) && n > 0) fileSizeBytes.value = n;
@@ -209,9 +221,13 @@ function formatBytes(b: number | null): string | null {
 // hidden <video> preloader (see preloadSrc).
 const prefetchedClip = ref<Clip | null>(null);
 const prefetchingId = ref<string | null>(null);
+let lastPrefetchAttempt: string | null = null;
 
+let subscriptionGeneration = 0;
+let prefetchGeneration = 0;
 let activeSub: { unsubscribe: () => void } | null = null;
 function subscribe(id: string) {
+  const generation = ++subscriptionGeneration;
   activeSub?.unsubscribe();
   notFound.value = false;
   // If we prefetched this clip near the previous one's end, show it
@@ -233,14 +249,17 @@ function subscribe(id: string) {
   });
   activeSub = obs.subscribe({
     next: ({ data }: any) => {
+      if (generation !== subscriptionGeneration || props.clipId !== id) return;
       const row = data?.match_clips?.[0] ?? null;
       clip.value = row;
       loading.value = false;
       if (!row) notFound.value = true;
     },
     error: (err: any) => {
+      if (generation !== subscriptionGeneration || props.clipId !== id) return;
       console.error("[clip-modal] subscription error:", err);
       loading.value = false;
+      notFound.value = true;
     },
   });
 }
@@ -248,9 +267,18 @@ function subscribe(id: string) {
 watch(
   () => props.clipId,
   (id) => {
+    prefetchGeneration++;
+    lastPrefetchAttempt = null;
+    prefetchingId.value = null;
+    advanceCancelled.value = false;
+    remaining.value = null;
+    modalAutoAdvanced.value = false;
+    editing.value = false;
+    showDelete.value = false;
     if (id) {
       subscribe(id);
     } else {
+      subscriptionGeneration++;
       activeSub?.unsubscribe();
       activeSub = null;
       clip.value = null;
@@ -271,6 +299,8 @@ watch(
   },
 );
 onBeforeUnmount(() => {
+  subscriptionGeneration++;
+  prefetchGeneration++;
   activeSub?.unsubscribe();
   activeSub = null;
   window.removeEventListener("keydown", onModalKeydown);
@@ -406,7 +436,7 @@ const PRELOAD_REMAINING_S = 6;
 // it's genuinely the *next* clip (not the one already on screen).
 const preloadSrc = computed(() => {
   const p = prefetchedClip.value;
-  if (!p?.download_url) return null;
+  if (!props.clipId || !p?.download_url || p.id !== nextClip.value?.id || switching.value) return null;
   if (clip.value && p.id === clip.value.id) return null;
   return p.download_url;
 });
@@ -415,10 +445,15 @@ const preloadSrc = computed(() => {
 // switching to it is instant. Idempotent per id; safe to call every tick.
 async function prefetchNextClip() {
   const next = nextClip.value;
-  if (!next) return;
+  if (!props.clipId || switching.value || !next) return;
   if (prefetchedClip.value?.id === next.id || prefetchingId.value === next.id) {
     return;
   }
+  const attempt = `${props.clipId}:${next.id}`;
+  if (lastPrefetchAttempt === attempt) return;
+  lastPrefetchAttempt = attempt;
+  const generation = prefetchGeneration;
+  const currentId = props.clipId;
   prefetchingId.value = next.id;
   try {
     const { data } = await getGraphqlClient().query({
@@ -432,11 +467,11 @@ async function prefetchNextClip() {
     });
     const row = (data as any)?.match_clips?.[0] ?? null;
     // Guard against the queue having moved on while the query was in flight.
-    if (row && nextClip.value?.id === row.id) prefetchedClip.value = row;
+    if (generation === prefetchGeneration && currentId === props.clipId && row && nextClip.value?.id === row.id) prefetchedClip.value = row;
   } catch {
     // best-effort — a missed prefetch just falls back to the live fetch
   } finally {
-    if (prefetchingId.value === next.id) prefetchingId.value = null;
+    if (generation === prefetchGeneration && prefetchingId.value === next.id) prefetchingId.value = null;
   }
 }
 
@@ -449,18 +484,19 @@ function onModalProgress({
   duration: number;
 }) {
   if (!Number.isFinite(duration) || duration <= 0) return;
-  const remaining = duration - currentTime;
-  if (nextClip.value && remaining <= PRELOAD_REMAINING_S) {
+  if (switching.value || !props.clipId) return;
+  remaining.value = Math.max(0, duration - currentTime);
+  if (nextClip.value && remaining.value <= PRELOAD_REMAINING_S) {
     void prefetchNextClip();
   }
-  if (nextClip.value && remaining <= 0.35 && !modalAutoAdvanced.value) {
+  if (nextClip.value && remaining.value <= 0.35 && !advanceCancelled.value && !modalAutoAdvanced.value) {
     modalAutoAdvanced.value = true;
     openNextClip();
   }
 }
 
 function onModalEnded() {
-  if (nextClip.value && !modalAutoAdvanced.value) {
+  if (!switching.value && props.clipId && nextClip.value && !advanceCancelled.value && !modalAutoAdvanced.value) {
     modalAutoAdvanced.value = true;
     openNextClip();
   }
@@ -737,7 +773,7 @@ onMounted(() => {
             class="flex flex-col gap-3 min-w-0"
             :class="clipQueue.length > 1 ? 'justify-start' : 'justify-center'"
           >
-            <div class="group/video relative">
+            <div class="group/video relative" @playing.capture="onPlaying" @loadeddata.capture="onLoadedData">
               <ClipPlayer
                 ref="modalPlayerRef"
                 :src="clip.download_url"
@@ -914,6 +950,21 @@ onMounted(() => {
                 <ChevronRight class="h-5 w-5" />
               </button>
 
+              <!-- Adapted first-frame cover and cancelable countdown from 5Stack (MIT, see LICENSE). -->
+              <Transition leave-active-class="transition-opacity duration-200 motion-reduce:transition-none" leave-to-class="opacity-0">
+                <div v-if="!revealed && (clip.download_url || switching)" class="pointer-events-none absolute inset-0 z-[5] overflow-hidden rounded-md bg-black" data-testid="clip-frame-cover">
+                  <NuxtImg v-if="snapshotSrc" :src="snapshotSrc" alt="" class="h-full w-full object-cover" />
+                  <div class="absolute inset-0 grid place-items-center bg-black/20"><Spinner class="h-8 w-8 text-white/80" /></div>
+                </div>
+              </Transition>
+              <div v-if="nextClip && remaining != null && remaining <= PRELOAD_REMAINING_S && !advanceCancelled && !switching"
+                class="absolute right-3 top-3 z-[7] flex max-w-[calc(100%-1.5rem)] items-center gap-3 rounded-lg border border-white/15 bg-black/80 p-2 text-white backdrop-blur-md" data-testid="clip-auto-advance">
+                <button type="button" class="min-w-0 truncate rounded px-2 text-xs font-semibold focus-visible:ring-2 focus-visible:ring-ring" :aria-label="$t('ui_extras.next_clip')" @click="openNextClip">
+                  {{ $t('ui_extras.next_clip') }} · {{ Math.max(1, Math.ceil(remaining)) }}s
+                </button>
+                <button type="button" class="rounded px-2 py-2 text-xs hover:text-[hsl(var(--tac-amber))] focus-visible:ring-2 focus-visible:ring-ring" @click="advanceCancelled = true">{{ $t('common.cancel') }}</button>
+              </div>
+
               <!-- Instant "loading next clip" feedback while the new clip's
                    data is in flight, over the still-visible previous clip. -->
               <Transition
@@ -938,6 +989,7 @@ onMounted(() => {
                 v-if="preloadSrc"
                 :key="preloadSrc"
                 :src="preloadSrc"
+                data-preload
                 preload="auto"
                 muted
                 playsinline

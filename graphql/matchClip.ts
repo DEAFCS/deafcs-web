@@ -1,3 +1,14 @@
+import { order_by } from "~/generated/zeus";
+
+// Current 5Stack top-play ranking: shorter clips break kill-count ties.
+// MIT License, Copyright (c) 2025 5Stack.gg — see LICENSE.
+export const topPlayOrderBy = [
+  { kills_count: order_by.desc_nulls_last },
+  { duration_ms: order_by.asc_nulls_last },
+  { views_count: order_by.desc_nulls_last },
+  { created_at: order_by.desc },
+];
+
 const clipLineupWithPlayersFields = {
   id: true,
   name: true,
@@ -101,6 +112,28 @@ export const matchClipFieldsWithLineups = {
       ...matchClipFields.match_map.match,
       lineup_1: clipLineupWithPlayersFields,
       lineup_2: clipLineupWithPlayersFields,
+    },
+  },
+} as const;
+
+// Discovery tiles need metadata and thumbnails, never video URLs or full
+// match/lineup detail. Playback resolves those only for the active/next clip.
+export const clipTileFields = {
+  id: true, user_steam_id: true, target_steam_id: true, match_map_id: true,
+  title: true, duration_ms: true, thumbnail_download_url: true,
+  kills_count: true, round: true, views_count: true, visibility: true, created_at: true,
+  user: matchClipFields.user, target: matchClipFields.target,
+  match_map: {
+    id: true,
+    lineup_1_score: true, lineup_2_score: true, winning_lineup_id: true,
+    map: matchClipFields.match_map.map,
+    match: {
+      id: true, is_tournament_match: true, winning_lineup_id: true,
+      lineup_1_id: true, lineup_2_id: true,
+      lineup_1: matchClipFields.match_map.match.lineup_1,
+      lineup_2: matchClipFields.match_map.match.lineup_2,
+      options: { best_of: true },
+      match_maps: matchClipFields.match_map.match.match_maps,
     },
   },
 } as const;

@@ -175,10 +175,10 @@ describe("highlights filters use real clip data only", () => {
     expect(highlightsWhere("ace", "week", NOW)).toEqual({
       visibility: { _eq: "public" },
       created_at: { _gte: new Date(NOW.getTime() - 7 * 86_400_000).toISOString() },
-      kills_count: { _eq: 5 },
+      _or: [{ kills_count: { _eq: 5 } }, { kills_count: { _gte: 5 }, title: { _iregex: "Best Round \\(5K\\)" } }],
       round: { _is_null: false },
     });
-    expect(highlightsWhere("4k", "all", NOW)).toMatchObject({ kills_count: { _eq: 4 }, round: { _is_null: false } });
+    expect(highlightsWhere("4k", "all", NOW)).toMatchObject({ _or: [{ kills_count: { _eq: 4 } }, { kills_count: { _gte: 4 }, title: { _iregex: "Best Round \\(4K\\)" } }], round: { _is_null: false } });
     expect(highlightsWhere("all", "today", NOW).created_at._gte).toBeDefined();
   });
 });
@@ -253,6 +253,8 @@ const MapDisplay = defineComponent({
     return () => h("div", { ...attrs, "data-map": props.map?.name });
   },
 });
+vi.mock("~/composables/useClipModal", () => ({ useClipModal: () => ({ clearClipQueue: vi.fn() }) }));
+
 const HighlightCard = defineComponent({
   props: ["clip"],
   setup(props) {
@@ -261,10 +263,11 @@ const HighlightCard = defineComponent({
 });
 
 const stubs = {
+  Button: true,
   NuxtLink,
   NuxtImg: defineComponent({ setup: (_, { attrs }) => () => h("img", { ...attrs, "data-default-bg": "true" }) }),
   MapDisplay,
-  HighlightCard,
+  ClipTile: HighlightCard,
   RecentTournaments: defineComponent({
     props: ["sectionLabel", "statuses"],
     setup: (p) => () => h("div", { "data-testid": "recent-tournaments", "data-label": p.sectionLabel }),
@@ -517,7 +520,7 @@ describe("WatchMatchRail", () => {
 });
 
 describe("WatchHighlights", () => {
-  it("lead play plus tiles, existing HighlightCard, Aces filter queries real metadata", async () => {
+  it("lead play plus tiles, shared ClipTile, Aces filter queries real metadata", async () => {
     apollo.clips = Array.from({ length: 5 }, (_, i) => ({ id: `c${i}`, title: `Clip ${i}`, created_at: NOW.toISOString() }));
     const w = await mountComp("components/watch/WatchHighlights.vue", { ghost: false });
     expect(w.findAll('[data-testid="watch-highlight-lead"]')).toHaveLength(1);
@@ -528,7 +531,7 @@ describe("WatchHighlights", () => {
 
     (w.vm as any).$?.setupState && ((w.vm as any).kind = "ace");
     await flushPromises();
-    expect(apollo.clipVars.at(-1).where).toMatchObject({ kills_count: { _eq: 5 }, round: { _is_null: false } });
+    expect(apollo.clipVars.at(-1).where).toMatchObject({ _or: [{ kills_count: { _eq: 5 } }, { kills_count: { _gte: 5 }, title: { _iregex: "Best Round \\(5K\\)" } }], round: { _is_null: false } });
   });
 });
 

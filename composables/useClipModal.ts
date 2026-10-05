@@ -1,6 +1,8 @@
 import { computed } from "vue";
 import { useRoute } from "vue-router";
 import { useState } from "#app";
+import type { Clip } from "~/types/clip";
+import { clipQueueItem } from "~/utilities/clipDisplay";
 
 export type ClipQueueItem = {
   id: string;
@@ -135,6 +137,14 @@ export function useClipModal() {
     clipQueueScope.value = null;
   }
 
+  // Adapted from current 5Stack useClipModal (MIT, see LICENSE).
+  // Capture the selected surface's queue on click, rather than allowing
+  // unrelated mounted lists to overwrite the active playlist.
+  function playClips(clips: Clip[], startId: string, scope: string | null = null) {
+    setClipQueue(clips.map(clipQueueItem), scope);
+    openClip(startId);
+  }
+
   return {
     activeClipId,
     activeClipIndex,
@@ -143,6 +153,7 @@ export function useClipModal() {
     previousClip,
     setClipQueue,
     clearClipQueue,
+    playClips,
     openClip,
     showClip,
     closeClip,
