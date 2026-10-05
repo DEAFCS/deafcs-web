@@ -5262,6 +5262,44 @@
       "information_tab": "Information",
       "about_section": "About",
       "match_settings": "Tournament Settings",
+      "bracket_tab": "Bracket",
+      "matches_tab": "Matches",
+      "matches": {
+        "filter": {
+          "all": "All",
+          "live": "Live",
+          "upcoming": "Upcoming",
+          "results": "Results"
+        },
+        "empty": "No matches here yet."
+      },
+      "progress": {
+        "stage": "Stage",
+        "stage_of": "{number} of {count}",
+        "round": "Round",
+        "round_of": "{number} of {count}",
+        "matches": "Matches",
+        "decided": "{decided} / {total} played",
+        "now": "Now",
+        "live": "{count} live",
+        "next": "Next match"
+      },
+      "match_setup": {
+        "title": "Match Setup",
+        "mode": "Mode",
+        "format": "Format",
+        "best_of": "Best of",
+        "decider": "Decider BO{best_of}",
+        "map_veto": "Map veto",
+        "maps": "{count} map | {count} maps",
+        "on": "On",
+        "off": "Off",
+        "substitutes": "Substitutes",
+        "enabled": "Enabled",
+        "disabled": "Off",
+        "stage": "Stage {number}",
+        "own_map_pool": "Own map pool ({count} maps)"
+      },
       "read_more": "Read more",
       "read_less": "Read less",
       "view_tournament_rules": "View Tournament Rules",
@@ -5413,6 +5451,11 @@
         "label": "Negotiated Scheduling",
         "description": "Team captains propose and agree on match times (with optional per-stage windows), instead of matches starting automatically."
       },
+      "substitutes_enabled": {
+        "label": "Substitutes Enabled",
+        "description": "When enabled, teams may roster and field substitutes using the configured team substitute allowance. When disabled, rosters and matches are limited to the starting lineup.",
+        "locked": "Substitutes can't be turned off once registration has closed."
+      },
       "create_bar": {
         "ready": "Ready to create",
         "ready_hint": "Everything looks good — create your tournament",
@@ -5523,6 +5566,8 @@
       }
     },
     "bracket": {
+      "follow_team": "Follow team",
+      "follow_none": "Stop following",
       "schedule_title": "Schedule Match",
       "currently_scheduled": "Currently scheduled",
       "save_schedule": "Save Schedule",

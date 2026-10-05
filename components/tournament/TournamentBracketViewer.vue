@@ -131,7 +131,8 @@ const MOMENTUM_MIN_VELOCITY = 0.5;
 const bracketContent = ref<HTMLElement | null>(null);
 const bracketContentWrapper = ref<HTMLElement | null>(null);
 
-const { autoFit, manualZoom, currentFitZoom, isFullscreen } = useBracketView();
+const { autoFit, manualZoom, currentFitZoom, isFullscreen, followTeamId } =
+  useBracketView();
 
 const MAX_FIT_ZOOM = 1.0;
 const MIN_FIT_ZOOM = 0.55;
@@ -335,7 +336,7 @@ watch(
   { deep: true, immediate: true },
 );
 
-watch(effectiveZoom, () => {
+watch([effectiveZoom, followTeamId], () => {
   nextTick(redrawLines);
 });
 
@@ -458,12 +459,25 @@ const drawLine = (
     `M ${sourceX} ${adjustedSourceY} H ${midX} V ${adjustedTargetY} H ${targetX}`,
   );
 
+  // "Follow team" (adapted from 5Stack): the followed team's winner path in
+  // amber, thicker; every other line keeps its usual colour.
+  const following = followTeamId.value;
+  const onPath =
+    type === "winner" &&
+    !!following &&
+    (sourceEl.dataset.teams || "").split(" ").includes(following) &&
+    (targetEl.dataset.teams || "").split(" ").includes(following);
+
   path.setAttribute("fill", "none");
   path.setAttribute(
     "stroke",
-    type === "winner" ? "white" : "rgba(255, 100, 100, 0.7)",
+    onPath
+      ? "hsl(var(--tac-amber))"
+      : type === "winner"
+        ? "white"
+        : "rgba(255, 100, 100, 0.7)",
   );
-  path.setAttribute("stroke-width", "2");
+  path.setAttribute("stroke-width", onPath ? "3" : "2");
 
   svg.appendChild(path);
 };

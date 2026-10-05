@@ -67,6 +67,42 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
           </div>
         </FormItem>
       </FormField>
+
+      <!-- Per-tournament switch for the global team substitute allowance
+           (adapted from 5Stack). Duel tournaments never take substitutes. -->
+      <FormField
+        v-if="form.values.type !== 'Duel'"
+        v-slot="{ value, handleChange }"
+        name="substitutes_enabled"
+      >
+        <FormItem>
+          <div
+            class="flex flex-row items-center justify-between"
+            :class="substitutesLocked ? 'cursor-not-allowed' : 'cursor-pointer'"
+            data-testid="tournament-substitutes-enabled"
+            @click="!substitutesLocked && handleChange(!value)"
+          >
+            <div class="space-y-0.5">
+              <SettingHeader>{{
+                $t("tournament.form.substitutes_enabled.label")
+              }}</SettingHeader>
+              <FormDescription>{{
+                substitutesLocked
+                  ? $t("tournament.form.substitutes_enabled.locked")
+                  : $t("tournament.form.substitutes_enabled.description")
+              }}</FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                class="pointer-events-none"
+                :model-value="value"
+                :disabled="substitutesLocked"
+                @update:model-value="handleChange"
+              />
+            </FormControl>
+          </div>
+        </FormItem>
+      </FormField>
     </MatchOptions>
 
     <div class="pb-24"></div>
@@ -84,7 +120,11 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
 import { useForm } from "vee-validate";
 import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import { mapFields } from "~/graphql/mapGraphql";
-import { $, e_map_pool_types_enum } from "~/generated/zeus";
+import {
+  $,
+  e_map_pool_types_enum,
+  e_tournament_status_enum,
+} from "~/generated/zeus";
 import matchOptionsValidator from "~/utilities/match-options-validator";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
@@ -133,6 +173,7 @@ export default {
             this,
             {
               auto_start: z.boolean().default(true),
+              substitutes_enabled: z.boolean().default(true),
               negotiated_scheduling: z.boolean().default(false),
               min_role: z.string().nullable().default(null),
             },
@@ -179,6 +220,17 @@ export default {
     },
   },
   computed: {
+    // Same rule as the API trigger: once registration has closed, substitutes
+    // can be turned back on but not off (a seeded roster would be stranded).
+    substitutesLocked() {
+      return (
+        this.tournament.substitutes_enabled !== false &&
+        ![
+          e_tournament_status_enum.Setup,
+          e_tournament_status_enum.RegistrationOpen,
+        ].includes(this.tournament.status)
+      );
+    },
     defaultMapPool() {
       return this.map_pools?.find((pool) => {
         return pool.type === this.form.values.type;
@@ -196,6 +248,7 @@ export default {
       this.form.setValues({
         map_veto: true,
         auto_start: this.tournament.auto_start,
+        substitutes_enabled: this.tournament.substitutes_enabled ?? true,
         negotiated_scheduling: this.tournament.scheduling_mode === "negotiated",
         min_role: this.tournament.min_role ?? null,
       });
@@ -258,6 +311,7 @@ export default {
             auto_start: form.negotiated_scheduling ? false : form.auto_start,
             scheduling_mode: form.negotiated_scheduling ? "negotiated" : "auto",
             min_role: form.min_role ?? null,
+            substitutes_enabled: form.substitutes_enabled ?? true,
           },
           mutation: generateMutation({
             update_tournaments_by_pk: [
@@ -267,6 +321,7 @@ export default {
                   auto_start: $("auto_start", "Boolean!"),
                   scheduling_mode: $("scheduling_mode", "String!"),
                   min_role: $("min_role", "e_player_roles_enum"),
+                  substitutes_enabled: $("substitutes_enabled", "Boolean!"),
                 },
               },
               { __typename: true },

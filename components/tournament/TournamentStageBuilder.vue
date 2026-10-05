@@ -35,6 +35,7 @@ import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import ShareBracketDialog from "~/components/tournament/ShareBracketDialog.vue";
 import BracketFullscreenBar from "~/components/tournament/BracketFullscreenBar.vue";
+import BracketFollowSelect from "~/components/tournament/BracketFollowSelect.vue";
 import { ref } from "vue";
 import { e_tournament_status_enum as StatusEnum } from "~/generated/zeus";
 import { useBracketView } from "~/composables/useBracketView";
@@ -240,6 +241,10 @@ import {
             </template>
           </TabsList>
           <div class="ml-auto flex gap-1.5 mt-1 items-center">
+            <BracketFollowSelect
+              v-if="followable"
+              :teams="tournament.teams || []"
+            />
             <template v-if="viewMode === 'split'">
               <button
                 type="button"
@@ -434,6 +439,10 @@ import {
       <!-- Show stages directly without tabs if single stage and not organizer -->
       <div v-else class="space-y-6">
         <div class="flex justify-end gap-1.5 items-center">
+          <BracketFollowSelect
+            v-if="followable"
+            :teams="tournament.teams || []"
+          />
           <template v-if="viewMode === 'split'">
             <button
               type="button"
@@ -701,6 +710,14 @@ export default {
     };
   },
   computed: {
+    // "Follow team" only makes sense once teams sit in the bracket.
+    followable(): boolean {
+      return (this.tournament.stages || []).some((stage: any) =>
+        (stage.brackets || []).some(
+          (b: any) => b.team_1?.id || b.team_2?.id,
+        ),
+      );
+    },
     stageNumbers(): Array<number> {
       const orders = new Set<number>(
         (this.tournament.stages || []).map((s: any) => s.order || 1),

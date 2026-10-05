@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { useI18n } from "vue-i18n";
 import { computed, ref, watch } from "vue";
+import { useBracketView } from "~/composables/useBracketView";
 import gql from "graphql-tag";
 import {
   MoreVertical,
@@ -716,6 +717,16 @@ const shouldShowCrossBracketDestination = (
   if (!dest?.id) return false;
   return !isSameViewerGroup(dest.group, bracket.group);
 };
+
+// "Follow team" (adapted from 5Stack): the card carries both team ids so the
+// bracket viewer can draw the followed team's path, and rings itself.
+const { followTeamId } = useBracketView();
+const bracketTeamIds = (bracket: any) =>
+  [bracket.team_1?.id, bracket.team_2?.id].filter(Boolean).join(" ");
+const isFollowed = (bracket: any) =>
+  !!followTeamId.value &&
+  (bracket.team_1?.id === followTeamId.value ||
+    bracket.team_2?.id === followTeamId.value);
 </script>
 
 <template>
@@ -730,6 +741,8 @@ const shouldShowCrossBracketDestination = (
       :id="`bracket-${bracket.id}`"
       class="tournament-match cursor-pointer border-2 rounded-lg p-1 transition-all duration-200 hover:shadow-lg hover:shadow-blue-500/20 bg-gray-800/50 backdrop-blur-sm relative flex flex-col gap-2"
       :class="{
+        'ring-2 ring-[hsl(var(--tac-amber))] ring-offset-2 ring-offset-background':
+          isFollowed(bracket),
         'border-green-500 hover:border-green-400': isActiveMatch(bracket),
         'border-amber-500 hover:border-amber-400': isWaitingForCheckIn(bracket),
         'border-red-500 hover:border-red-400': hasProblemStatus(bracket),
@@ -739,6 +752,8 @@ const shouldShowCrossBracketDestination = (
           !hasProblemStatus(bracket),
       }"
       :data-bracket-id="bracket.id"
+      :data-teams="bracketTeamIds(bracket)"
+      :data-following="isFollowed(bracket) ? 'true' : undefined"
       :data-round="props.round"
       @click="handleClick($event, bracket)"
     >

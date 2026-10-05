@@ -241,7 +241,7 @@ const BooleanPill = defineComponent({
                   $t("match.options.substitutes")
                 }}</dt>
                 <dd class="settings-row__value tabular-nums">{{
-                  options.number_of_substitutes
+                  substitutes ?? options.number_of_substitutes
                 }}</dd>
               </div>
               <div v-if="minRole !== undefined" class="settings-row">
@@ -301,6 +301,12 @@ export default {
     minRole: {
       type: String,
       default: undefined,
+    },
+    // Tournaments can override options.number_of_substitutes (substitutes
+    // turned off, or a Duel): pass the effective count. Adapted from 5Stack.
+    substitutes: {
+      type: Number,
+      default: null,
     },
   },
   data() {

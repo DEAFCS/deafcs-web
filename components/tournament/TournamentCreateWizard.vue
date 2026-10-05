@@ -281,6 +281,38 @@ import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker
             </div>
           </FormItem>
         </FormField>
+
+        <!-- Per-tournament switch for the global team substitute allowance
+             (adapted from 5Stack). Duel tournaments never take substitutes. -->
+        <FormField
+          v-if="form.values.type !== 'Duel'"
+          v-slot="{ value, handleChange }"
+          name="substitutes_enabled"
+        >
+          <FormItem>
+            <div
+              class="flex flex-row items-center justify-between cursor-pointer"
+              data-testid="tournament-substitutes-enabled"
+              @click="handleChange(!value)"
+            >
+              <div class="space-y-0.5">
+                <SettingHeader>{{
+                  $t("tournament.form.substitutes_enabled.label")
+                }}</SettingHeader>
+                <FormDescription>{{
+                  $t("tournament.form.substitutes_enabled.description")
+                }}</FormDescription>
+              </div>
+              <FormControl>
+                <Switch
+                  class="pointer-events-none"
+                  :model-value="value"
+                  @update:model-value="handleChange"
+                />
+              </FormControl>
+            </div>
+          </FormItem>
+        </FormField>
       </MatchOptions>
     </div>
 
@@ -391,6 +423,7 @@ export default {
               longitude: z.number().nullable().default(null),
               categories: z.string().array().default([]),
               auto_start: z.boolean().default(true),
+              substitutes_enabled: z.boolean().default(true),
               negotiated_scheduling: z.boolean().default(false),
               min_role: z.string().nullable().default(null),
               // Mirrors TournamentInformationForm.vue and the backend CHECK
@@ -643,6 +676,7 @@ export default {
                   latitude: locationEnabled ? form.latitude ?? null : null,
                   longitude: locationEnabled ? form.longitude ?? null : null,
                   min_role: form.min_role ?? null,
+                  substitutes_enabled: form.substitutes_enabled ?? true,
                   auto_start: form.negotiated_scheduling
                     ? false
                     : form.auto_start,

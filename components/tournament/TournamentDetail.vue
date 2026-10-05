@@ -12,6 +12,9 @@ import TournamentPrizesManage from "~/components/tournament/TournamentPrizesMana
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
 import TournamentCheckInInfo from "~/components/tournament/TournamentCheckInInfo.vue";
+import TournamentMatchSetup from "~/components/tournament/TournamentMatchSetup.vue";
+import TournamentMatches from "~/components/tournament/TournamentMatches.vue";
+import TournamentProgress from "~/components/tournament/TournamentProgress.vue";
 import TournamentNotSelectedSection from "~/components/tournament/TournamentNotSelectedSection.vue";
 import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
 import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
@@ -536,6 +539,21 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               >
                 {{ $t("tournament.teams.my_teams") }}
               </TabsTrigger>
+              <TabsTrigger
+                value="bracket"
+                :class="tacticalTabsTriggerClasses"
+                data-testid="tournament-tab-bracket"
+              >
+                {{ $t("tournament.page.bracket_tab") }}
+              </TabsTrigger>
+              <TabsTrigger
+                v-if="matchesTabVisible"
+                value="matches"
+                :class="tacticalTabsTriggerClasses"
+                data-testid="tournament-tab-matches"
+              >
+                {{ $t("tournament.page.matches_tab") }}
+              </TabsTrigger>
               <TabsTrigger value="teams" :class="tacticalTabsTriggerClasses">
                 {{
                   isIndividualRegistration
@@ -660,6 +678,12 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :location="shortLocation"
               ></TournamentStatRibbon>
 
+              <TournamentProgress
+                :tournament="tournament"
+                :show-matches-link="matchesTabVisible"
+                @open-tab="(tab) => (activeTab = tab)"
+              ></TournamentProgress>
+
               <!-- Keyed off the raw option, not isIndividualRegistration:
                    that flips to false once Solo Random teams have been
                    generated, which would swap this panel to the normal-team
@@ -670,6 +694,16 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   !!tournament.options?.individual_registration_enabled
                 "
               ></TournamentCheckInInfo>
+
+              <ManageSection
+                v-if="tournament.options"
+                :label="$t('tournament.page.match_setup.title')"
+              >
+                <TournamentMatchSetup
+                  :tournament="tournament"
+                  :format="formatLabel"
+                ></TournamentMatchSetup>
+              </ManageSection>
 
               <TournamentRewards
                 :prizes="tournament.prizes"
@@ -704,13 +738,20 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   </button>
                 </div>
               </ManageSection>
-
-              <TournamentStageBuilder
-                class="w-full"
-                :tournament="tournament"
-              ></TournamentStageBuilder>
             </div>
           </div>
+        </TabsContent>
+        <!-- Bracket on its own tab, as on 5Stack's 2026-10-04 tournament
+             page: the Overview stays readable and the progress strip links
+             here. Same TournamentStageBuilder as before, unchanged. -->
+        <TabsContent value="bracket">
+          <TournamentStageBuilder
+            class="w-full"
+            :tournament="tournament"
+          ></TournamentStageBuilder>
+        </TabsContent>
+        <TabsContent v-if="matchesTabVisible" value="matches">
+          <TournamentMatches :tournament-id="tournament.id"></TournamentMatches>
         </TabsContent>
         <TabsContent
           value="match-settings"
@@ -722,6 +763,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 :show-details-by-default="true"
                 :options="tournament.options"
                 :min-role="tournament.min_role"
+                :substitutes="tournamentEffectiveSubstitutes"
               ></MatchOptionsDisplay>
               <div class="grid gap-1">
                 <NuxtLink
@@ -1128,6 +1170,7 @@ export default {
               start: true,
               status: true,
               auto_start: true,
+              substitutes_enabled: true,
               scheduling_mode: true,
               // A league's division tournament: its fixtures are negotiated
               // on the league schedule, not on the bracket cards.
@@ -1736,6 +1779,26 @@ export default {
     descLong() {
       return (this.tournament?.description?.length ?? 0) > 280;
     },
+    // Effective substitute slots (0 when turned off or for a Duel), from the
+    // same capacity the API enforces.
+    // Matches exist once the draw is published (RegistrationClosed) and
+    // stay listed through Live, Paused and Finished (5Stack shows the tab
+    // from Live; DEAFCS also publishes the draw before the start).
+    matchesTabVisible() {
+      const status = this.tournament?.status;
+      return [
+        e_tournament_status_enum.RegistrationClosed,
+        e_tournament_status_enum.Live,
+        e_tournament_status_enum.Paused,
+        e_tournament_status_enum.Finished,
+      ].includes(status);
+    },
+    tournamentEffectiveSubstitutes() {
+      const max = this.tournament?.max_players_per_lineup;
+      const min = this.tournament?.min_players_per_lineup;
+      if (typeof max !== "number" || typeof min !== "number") return null;
+      return Math.max(0, max - min);
+    },
     teamsCount() {
       return this.tournament?.teams_aggregate?.aggregate?.count ?? 0;
     },
@@ -1790,6 +1853,12 @@ export default {
 
       if (this.myTeam) {
         tabs.push("my-team");
+      }
+
+      tabs.push("bracket");
+
+      if (this.matchesTabVisible) {
+        tabs.push("matches");
       }
 
       tabs.push("teams");
