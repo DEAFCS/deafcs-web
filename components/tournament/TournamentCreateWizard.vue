@@ -37,31 +37,29 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
         <li v-for="(step, index) in steps" :key="step.key" class="shrink-0 lg:shrink">
           <button
             type="button"
-            class="flex w-full items-center gap-2.5 whitespace-nowrap rounded-sm border px-3 py-2 text-left font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors lg:whitespace-normal"
+            class="flex w-full items-center gap-3 whitespace-nowrap rounded-lg border px-4 py-3 text-left text-sm font-bold transition-colors lg:whitespace-normal"
             :class="
               step.disabled
-                ? 'cursor-not-allowed border-border/40 bg-background/20 text-muted-foreground/40'
+                ? 'cursor-not-allowed border-transparent bg-transparent text-muted-foreground/40'
                 : index === currentStep
-                  ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)_/_0.12)] text-[hsl(var(--tac-amber))]'
-                  : index < currentStep
-                    ? 'border-border bg-muted/30 text-foreground'
-                    : 'border-border bg-background/40 text-muted-foreground'
+                  ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.14)] text-foreground'
+                  : 'border-transparent bg-transparent text-muted-foreground hover:text-foreground'
             "
             :disabled="step.disabled || index > furthestStep"
             :aria-disabled="step.disabled"
             @click="goTo(index)"
           >
             <span
-              class="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border text-[0.62rem]"
+              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold"
               :class="
                 step.disabled
-                  ? 'border-border/40'
+                  ? 'bg-muted/40 text-muted-foreground/40'
                   : index === currentStep
-                    ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber))] text-background'
-                    : 'border-border'
+                    ? 'bg-[hsl(var(--tac-amber))] text-background'
+                    : 'bg-muted text-muted-foreground'
               "
             >
-              <Check v-if="!step.disabled && index < currentStep" class="h-3 w-3" />
+              <Check v-if="!step.disabled && index < currentStep" class="h-3.5 w-3.5" />
               <span v-else>{{ index + 1 }}</span>
             </span>
             {{ step.label }}
