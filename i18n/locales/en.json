@@ -8336,6 +8336,7 @@
     "link_copied": "Link copied!",
     "share_clip": "Share clip",
     "open_details": "Open {title} details",
+    "player": "Player",
     "open_player_profile": "Open {name}'s profile",
     "kills_in_clip": "{count} kill in clip | {count} kills in clip",
     "plays_count": "{count} play | {count} plays",
@@ -8348,6 +8349,23 @@
       "private_hint": "Hidden from feeds — file URL still plays if shared"
     },
     "no_highlights_from_map": "No highlights from this map.",
+    "tile": {
+      "kills": {
+        "ace": "Ace",
+        "multi": "{n}K",
+        "one": "1 kill",
+        "total": "{count} kill | {count} kills"
+      },
+      "round": "Round {round}",
+      "group_plays": "{count} play | {count} plays",
+      "views": "{count} view | {count} views",
+      "clipped_by": "Clipped by {name}",
+      "open_match": "Open match",
+      "play": "Play {title}",
+      "play_by": "Play {title} by {player}",
+      "visibility": "Visibility: {value}",
+      "visibility_match": "Match only"
+    },
     "render_dialog": {
       "title": "Render highlight",
       "description": "Queue a one-click highlight from a demo on this match.",
