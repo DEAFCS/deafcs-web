@@ -27,40 +27,50 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
 </script>
 
 <template>
-  <div class="grid gap-6">
-    <!-- Step indicator -->
-    <ol class="flex flex-wrap items-center gap-2">
-      <li
-        v-for="(step, index) in steps"
-        :key="step.key"
-        class="flex items-center gap-2"
+  <div class="grid gap-6 lg:grid-cols-[220px_1fr] lg:items-start lg:gap-8">
+    <!-- Step indicator: a horizontal scroller on phones, a sticky left
+         sidebar from lg up (matches 5stack's wizard layout). -->
+    <nav class="lg:sticky lg:top-6">
+      <ol
+        class="flex gap-2 overflow-x-auto pb-1 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0"
       >
-        <button
-          type="button"
-          class="flex items-center gap-2 rounded-sm border px-3 py-1.5 font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors"
-          :class="
-            step.disabled
-              ? 'cursor-not-allowed border-border/40 bg-background/20 text-muted-foreground/40'
-              : index === currentStep
-                ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)_/_0.12)] text-[hsl(var(--tac-amber))]'
-                : index < currentStep
-                  ? 'border-border bg-muted/30 text-foreground'
-                  : 'border-border bg-background/40 text-muted-foreground'
-          "
-          :disabled="step.disabled || index > furthestStep"
-          :aria-disabled="step.disabled"
-          @click="goTo(index)"
-        >
-          <Check v-if="!step.disabled && index < currentStep" class="h-3 w-3" />
-          <span v-else>{{ index + 1 }}</span>
-          {{ step.label }}
-        </button>
-        <ChevronRight
-          v-if="index < steps.length - 1"
-          class="h-3 w-3 text-muted-foreground/40"
-        />
-      </li>
-    </ol>
+        <li v-for="(step, index) in steps" :key="step.key" class="shrink-0 lg:shrink">
+          <button
+            type="button"
+            class="flex w-full items-center gap-2.5 whitespace-nowrap rounded-sm border px-3 py-2 text-left font-mono text-[0.65rem] uppercase tracking-[0.16em] transition-colors lg:whitespace-normal"
+            :class="
+              step.disabled
+                ? 'cursor-not-allowed border-border/40 bg-background/20 text-muted-foreground/40'
+                : index === currentStep
+                  ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)_/_0.12)] text-[hsl(var(--tac-amber))]'
+                  : index < currentStep
+                    ? 'border-border bg-muted/30 text-foreground'
+                    : 'border-border bg-background/40 text-muted-foreground'
+            "
+            :disabled="step.disabled || index > furthestStep"
+            :aria-disabled="step.disabled"
+            @click="goTo(index)"
+          >
+            <span
+              class="flex h-5 w-5 shrink-0 items-center justify-center rounded-sm border text-[0.62rem]"
+              :class="
+                step.disabled
+                  ? 'border-border/40'
+                  : index === currentStep
+                    ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber))] text-background'
+                    : 'border-border'
+              "
+            >
+              <Check v-if="!step.disabled && index < currentStep" class="h-3 w-3" />
+              <span v-else>{{ index + 1 }}</span>
+            </span>
+            {{ step.label }}
+          </button>
+        </li>
+      </ol>
+    </nav>
+
+    <div class="grid gap-6">
 
     <!-- Step 1: Information -->
     <div v-show="currentStep === 0" class="grid gap-4">
@@ -177,6 +187,10 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
 
     <!-- Step 3: Match Options -->
     <div v-show="currentStep === 2" class="grid gap-4">
+      <TournamentRegistrationForm :form="form" :min-players-per-lineup="form.values.type === 'Duel' ? 1 : form.values.type === 'Wingman' ? 2 : 5" />
+    </div>
+
+    <div v-show="currentStep === 3" class="grid gap-4">
       <MatchOptions
         :form="form"
         :force-veto="true"
@@ -275,10 +289,6 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
       </MatchOptions>
     </div>
 
-    <div v-show="currentStep === 3" class="grid gap-4">
-      <TournamentRegistrationForm :form="form" :min-players-per-lineup="form.values.type === 'Duel' ? 1 : form.values.type === 'Wingman' ? 2 : 5" />
-    </div>
-
     <!-- Prizes -->
     <div v-show="currentStep === 4" class="grid gap-4">
       <p class="text-sm text-muted-foreground">
@@ -328,6 +338,7 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
       >
         {{ $t("tournament.form.create") }}
       </Button>
+    </div>
     </div>
   </div>
 </template>
@@ -412,11 +423,11 @@ export default {
           label: this.$t("tournament.wizard.location"),
           disabled: !this.locationRequired,
         },
+        { key: "registration", label: this.$t("tournament.registration.section") },
         {
           key: "match_options",
           label: this.$t("tournament.wizard.match_options"),
         },
-        { key: "registration", label: this.$t("tournament.registration.section") },
         { key: "prizes", label: this.$t("tournament.wizard.prizes") },
         { key: "awards", label: "Awards" },
       ];
@@ -489,7 +500,7 @@ export default {
       });
     },
     async validateStep(step: number): Promise<boolean> {
-      if (step === 3) {
+      if (step === 2) {
         const results = await Promise.all(Object.values(REGISTRATION_FIELD).map((name) => this.form.validateField(name)));
         return results.every((result) => result.valid);
       }

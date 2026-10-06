@@ -104,9 +104,13 @@ test("step numbering is fixed -- steps are never re-indexed or removed when disa
     wizard.indexOf("steps() {"),
     wizard.indexOf("attendanceWindowPreview()"),
   );
-  // All five steps are always present in this fixed order.
+  // All six steps are always present in this fixed order. Registration
+  // comes before Match Options -- matching 5stack's wizard ordering -- since
+  // who may register (teams/free agents/both) frames what match settings
+  // even apply (e.g. substitutes never apply to a free-agent draft pool).
   assert.match(stepsFn, /key: "information"/);
   assert.match(stepsFn, /key: "location"/);
+  assert.match(stepsFn, /key: "registration"/);
   assert.match(stepsFn, /key: "match_options"/);
   assert.match(stepsFn, /key: "prizes"/);
   assert.match(stepsFn, /key: "awards"/);
@@ -114,6 +118,7 @@ test("step numbering is fixed -- steps are never re-indexed or removed when disa
   assert.deepEqual(order, [
     "information",
     "location",
+    "registration",
     "match_options",
     "prizes",
     "awards",
@@ -166,9 +171,9 @@ test("next() and back() both skip a disabled Location step", () => {
     while (step > 0 && steps[step].disabled) step--;
     return step;
   }
-  // Information (0) -> Next -> skips Location (1) -> lands on Match Options (2).
+  // Information (0) -> Next -> skips Location (1) -> lands on Registration (2).
   assert.equal(nextEnabledStep(1), 2);
-  // Match Options (2) -> Back -> skips Location (1) -> lands on Information (0).
+  // Registration (2) -> Back -> skips Location (1) -> lands on Information (0).
   assert.equal(previousEnabledStep(1), 0);
 
   // With Location enabled, neither skip fires.
