@@ -1,8 +1,6 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
 import { tournamentRegistrationCount } from "~/utilities/tournamentRegistrationCount";
-import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
-import TournamentProgress from "~/components/tournament/TournamentProgress.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { CalendarDays, Eye, MapPin, Trophy, Users } from "lucide-vue-next";
@@ -275,9 +273,6 @@ const primaryClasses =
           </li>
         </ul>
 
-        <MatchTypeBadge :type="tournament.options?.type" />
-        <span v-if="tournament.options?.individual_registration_enabled" class="text-xs font-semibold text-muted-foreground">Random</span>
-        <TournamentProgress v-if="state === 'live'" :tournament="tournament" @open-tab="(tab) => navigateTo(path + '?tab=' + tab)" />
         <!-- Only once a team is in: an empty bar reads as still loading. -->
         <div
           v-if="state === 'upcoming' && maxTeams > 0 && teams > 0"

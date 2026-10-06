@@ -1,6 +1,5 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
-import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import { computed } from "vue";
 import { NuxtLink } from "#components";
 import { ChevronRight, Trophy } from "lucide-vue-next";

@@ -1,6 +1,5 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
-import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { MapPin, Trophy, Users } from "lucide-vue-next";
@@ -110,7 +109,6 @@ function signIn() {
         >
           {{ tournament.name }}
         </h2>
-        <div class="flex flex-wrap items-center gap-2"><MatchTypeBadge :type="tournament.options?.type" /><span v-if="tournament.options?.individual_registration_enabled" class="text-xs font-semibold">Random</span></div>
         <p class="m-0 text-[0.8125rem] text-foreground/75">{{ sub }}</p>
       </div>
     </NuxtLink>

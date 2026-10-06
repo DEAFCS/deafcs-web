@@ -1,8 +1,6 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
 import { computed } from "vue";
-import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
-import TournamentProgress from "~/components/tournament/TournamentProgress.vue";
 import { Button } from "~/components/ui/button";
 import TournamentBracketPreview from "~/components/tournament/TournamentBracketPreview.vue";
 import TournamentFactList from "~/components/tournament/TournamentFactList.vue";
@@ -69,7 +67,6 @@ const path = computed(() => `/tournaments/${props.tournament.id}`);
           {{ tournament.name }}
         </h2>
         <p class="m-0 text-[0.8125rem] text-foreground/70">{{ sub }}</p>
-        <MatchTypeBadge :type="tournament.options?.type" />
       </div>
 
       <Button
@@ -86,7 +83,6 @@ const path = computed(() => `/tournaments/${props.tournament.id}`);
       class="grid border-t border-border lg:grid-cols-[minmax(0,1fr)_18rem]"
     >
       <div class="min-w-0 p-4 sm:p-5">
-        <TournamentProgress :tournament="tournament" @open-tab="(tab) => navigateTo(path + '?tab=' + tab)" />
         <p class="m-0 mb-3 text-xs text-muted-foreground">
           {{
             paused
