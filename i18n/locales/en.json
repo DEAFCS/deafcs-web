@@ -5287,8 +5287,31 @@
     "not_open_description": "Open it from the hub sidebar first, then pop it out again."
   },
   "tournament": {
+    "entry": {
+      "title": "Entry requirements",
+      "requirements_hint": "Every player being added is checked, not only the one who registers. Registration is refused if anyone fails.",
+      "locked_title": "This tournament is invite only",
+      "invite_hint": "Ask an organizer to invite your team, or to send you an invite link.",
+      "ok_chip": "eligible",
+      "blocked_chip": "not eligible",
+      "locked_chip": "locked",
+      "requirement_met": "met",
+      "requirement_failed": "not met",
+      "min_role": "Minimum role: {role}",
+      "elo_between": "ELO between {min} and {max}",
+      "elo_min": "ELO {min} or higher",
+      "elo_max": "ELO {max} or lower",
+      "elo_yours": "yours: {elo}"
+    },
     "manage": {
       "title": "Manage tournament",
+      "button": "Manage",
+      "back": "Back to the page",
+      "sections_menu": "Manage sections",
+      "status_actions": "Tournament status",
+      "no_status_actions": "Nothing to change right now.",
+      "no_permission": "You do not have permission to manage this tournament.",
+      "view_tournament": "View tournament",
       "details": "Details & branding",
       "registration": "Registration",
       "teams": "Teams & invites",
@@ -5633,6 +5656,10 @@
       }
     },
     "bracket": {
+      "match_short": "Match {match}",
+      "round_number": "Round {round}",
+      "walkover_win": "W",
+      "forfeit_short": "FF",
       "follow_team": "Follow team",
       "follow_none": "Stop following",
       "schedule_title": "Schedule Match",

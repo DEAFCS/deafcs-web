@@ -6,6 +6,9 @@ import {
   formatCopenhagenTournamentTime,
   formatLocalTournamentClock,
   formatLocalTournamentDateTime,
+  formatLocalTournamentZoneTime,
+  isCopenhagenTimeZone,
+  localTimeZoneName,
   type TournamentTimeInput,
 } from "~/utilities/tournamentTime";
 
@@ -36,11 +39,20 @@ const localLabel = computed(() =>
     ? formatLocalTournamentClock(date.value)
     : formatLocalTournamentDateTime(date.value),
 );
+// The timezone lives in the tooltip only (hover, focus or tap), never as an
+// always-visible line: "10 Oct 14:00 CEST", from the viewer's own zone.
+const localZoneLabel = computed(() =>
+  formatLocalTournamentZoneTime(date.value),
+);
+const localNotice = computed(() =>
+  t("common.time.local_notice", { timezone: localTimeZoneName() }),
+);
+const showCopenhagen = computed(() => !isCopenhagenTimeZone());
 const copenhagenLabel = computed(() =>
   formatCopenhagenTournamentTime(date.value),
 );
 const localAriaLabel = computed(
-  () => `${localLabel.value}. ${t("common.time.local_time")}`,
+  () => `${localZoneLabel.value}. ${t("common.time.local_time")}`,
 );
 </script>
 
@@ -55,7 +67,15 @@ const localAriaLabel = computed(
         <time :datetime="date.toISOString()">{{ localLabel }}</time>
       </button>
     </template>
-    <span class="font-semibold">{{ t("common.time.copenhagen") }}:</span>
-    <span class="ml-1 tabular-nums">{{ copenhagenLabel }}</span>
+    <span class="grid gap-0.5">
+      <span class="font-semibold tabular-nums" data-testid="tournament-time-zone">
+        {{ localZoneLabel }}
+      </span>
+      <span class="text-muted-foreground">{{ localNotice }}</span>
+      <span v-if="showCopenhagen">
+        <span class="font-semibold">{{ t("common.time.copenhagen") }}:</span>
+        <span class="ml-1 tabular-nums">{{ copenhagenLabel }}</span>
+      </span>
+    </span>
   </FiveStackToolTip>
 </template>

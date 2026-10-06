@@ -119,16 +119,22 @@ describe("tournament Chat Room tab", () => {
     );
   });
 
-  it("the tournament page renders Chat Room in the tab bar, gated by Chat Hub eligibility", () => {
+  it("the tournament page renders Chat Room as a header action, gated by Chat Hub eligibility", () => {
     const detail = read("components/tournament/TournamentDetail.vue");
+    // As on 5Stack: a button beside Join/Manage, not a tab.
+    const actions = detail.slice(
+      detail.indexOf(':class="tournamentHeroActionsClasses"'),
+      detail.indexOf("<TabsList"),
+    );
+    expect(actions).toContain('data-testid="tournament-chat-room-tab"');
+    expect(actions).toContain('v-if="chatRoomTournament"');
+    expect(actions).toContain('@click="openChatRoom"');
+    expect(actions).toContain("{{ chatRoomUnreadLabel }}");
     const list = detail.slice(
       detail.indexOf("<TabsList"),
       detail.indexOf("</TabsList>"),
     );
-    expect(list).toContain('data-testid="tournament-chat-room-tab"');
-    expect(list).toContain('v-if="chatRoomTournament"');
-    expect(list).toContain('@click="openChatRoom"');
-    expect(list).toContain("({{ chatRoomUnreadLabel }})");
+    expect(list).not.toContain("openChatRoom");
     expect(detail).toMatch(
       /findChatTournament\(\s*useMatchLobbyStore\(\)\.chatTournaments,\s*this\.tournament\?\.id,\s*\)/,
     );

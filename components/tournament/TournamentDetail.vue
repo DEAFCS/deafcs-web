@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import TournamentManage from "~/components/tournament/TournamentManage.vue";
-import { legacyTournamentManageSections, tournamentManageSection } from "~/utilities/tournamentManage";
+import { legacyTournamentManageSections, tournamentManageSection, tournamentManageSections } from "~/utilities/tournamentManage";
 import TournamentStageBuilder from "~/components/tournament/TournamentStageBuilder.vue";
 import TournamentJoinForm from "~/components/tournament/TournamentJoinForm.vue";
 import TournamentEntryGate from "~/components/tournament/TournamentEntryGate.vue";
@@ -42,7 +42,12 @@ import {
   Shuffle,
   UserMinus,
   AlertTriangle,
+  CalendarDays,
+  Layers,
+  MessageSquare,
+  ChevronDown,
 } from "lucide-vue-next";
+import { ButtonGroup } from "@/components/ui/button-group";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -62,6 +67,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -91,62 +97,42 @@ import {
   tacticalSectionDescriptionClasses,
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
-  tacticalTabsListClasses,
   tacticalTabsTriggerClasses,
 } from "~/utilities/tacticalClasses";
 import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 import { canLeaveIndividualTournament } from "~/utilities/tournamentAttendance";
 
-// The Chat Room entry is a plain button, not a TabsTrigger (it opens the
-// Chat Hub rather than a panel), so it borrows TabsTrigger's base look.
-const chatRoomTabBaseClasses =
-  "relative z-[1] inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:text-foreground";
-
-// One surface: the banner as a band on top (never text over the image, so
-// any artwork works), identity and actions under it, the tab row at the
-// foot. Matches 5stack's layout -- content no longer sits on top of the
-// banner image, so it doesn't need the legibility gradients/min-height a
-// text-over-image hero required.
+// Hero adapted from 5Stack WEB 25dbf95d (TournamentDetail.vue); MIT
+// Copyright (c) 2025 5Stack.gg. One surface: the banner as a band on top
+// (never text over the image, so any artwork works), badges, name and meta
+// under it, actions on the right, the tab row at the foot.
 const tournamentHeroClasses =
-  "overflow-hidden rounded-lg border border-border bg-card/40";
+  "overflow-hidden rounded-xl border border-border bg-card/40";
 const tournamentBannerClasses =
   "aspect-[5/2] max-h-[18.75rem] w-full bg-muted/40 sm:aspect-[4/1]";
-const tournamentHeroBodyWrapClasses =
-  "flex flex-wrap items-start justify-between gap-4 px-6 pt-5 max-md:px-4 max-md:pt-4";
-const tournamentHeroToplineClasses =
-  "order-2 flex shrink-0 flex-wrap items-start gap-2 max-sm:w-full";
 const tournamentHeroBodyClasses =
-  "order-1 flex min-w-0 flex-1 items-start gap-4";
+  "flex flex-wrap items-end justify-between gap-x-6 gap-y-4 px-5 pt-5 max-sm:px-4 max-sm:pt-4";
 const tournamentHeroLogoClasses =
-  "h-16 w-16 shrink-0 rounded border border-border bg-muted/30 object-contain sm:h-20 sm:w-20";
-const tournamentHeroIdentityClasses =
-  "flex min-w-0 flex-1 flex-col gap-[0.65rem]";
-const tournamentHeroNameRowClasses = "flex min-w-0 items-center";
+  "h-11 w-11 shrink-0 rounded-md border border-border bg-muted/30 object-contain sm:row-span-3 sm:h-16 sm:w-16";
 const tournamentHeroNameClasses =
-  "relative m-0 min-w-0 font-sans text-[clamp(1.75rem,4vw,3rem)] font-bold uppercase leading-[0.95] tracking-[0.02em] [font-stretch:80%]";
-const tournamentHeroNameMainClasses = "relative text-foreground";
-const tournamentHeroNameGhostClasses =
-  "pointer-events-none absolute left-[5px] top-[5px] right-[-5px] overflow-hidden whitespace-nowrap text-transparent select-none [-webkit-text-stroke:1px_hsl(var(--tac-amber)_/_0.35)]";
-const tournamentHeroBadgesClasses = "flex flex-wrap gap-1.5";
+  "m-0 min-w-0 break-words text-[clamp(1.5rem,3.4vw,2.25rem)] font-extrabold leading-[1.05] [text-wrap:balance]";
 const tournamentHeroTagClasses =
-  "inline-flex items-center rounded border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] px-[0.55rem] py-[0.2rem] font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-[hsl(var(--tac-amber))]";
+  "inline-flex h-6 items-center rounded-md border border-border bg-muted/30 px-2 text-xs font-semibold text-muted-foreground";
+// DEAFCS keeps its own mode colours (Competitive / Wingman / Duel) on the
+// 5Stack tag geometry.
 const tournamentHeroModeTagClasses =
-  "inline-flex items-center rounded border border-[rgb(var(--mode-rgb)_/_0.4)] bg-[rgb(var(--mode-rgb)_/_0.12)] px-[0.55rem] py-[0.2rem] font-mono text-[0.65rem] font-bold uppercase tracking-[0.18em] text-[rgb(var(--mode-rgb))]";
-const tournamentHeroMutedTagClasses =
-  "border-border bg-muted/30 text-muted-foreground";
+  "inline-flex h-6 items-center rounded-md border border-[rgb(var(--mode-rgb)_/_0.45)] bg-[rgb(var(--mode-rgb)_/_0.14)] px-2 text-xs font-semibold text-[rgb(var(--mode-rgb))]";
 const tournamentHeroMetaClasses =
-  "inline-flex flex-wrap items-center gap-[0.55rem] text-xs text-muted-foreground";
-const tournamentHeroMetaDotClasses = "opacity-40";
-const tournamentHeroMetaLabelClasses =
-  "font-mono text-[0.65rem] uppercase tracking-[0.22em]";
-const tournamentHeroOrganizersClasses = "inline-flex items-center gap-[0.3rem]";
+  "flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-[0.8rem] text-muted-foreground";
+// Compact avatar row in the meta line (5Stack treatment); no separate
+// "Organized by" label in the hero any more.
+const tournamentHeroOrganizersClasses = "inline-flex items-center gap-1";
 const tournamentHeroOrganizerClasses =
-  "inline-flex cursor-pointer transition-[opacity,transform] duration-150 hover:-translate-y-px hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.5)]";
+  "inline-flex cursor-pointer rounded-md transition-[opacity,transform] duration-150 hover:-translate-y-px hover:opacity-85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.5)]";
 const tournamentHeroActionsClasses =
-  "flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-2 max-sm:w-full max-sm:justify-start";
+  "flex flex-wrap items-center gap-2 max-sm:w-full";
 const tournamentHeroStatusClasses =
-  "inline-flex h-9 items-center gap-2 whitespace-nowrap rounded border border-border bg-muted/30 px-[0.7rem] py-[0.3rem] font-mono text-[0.68rem] font-bold uppercase tracking-[0.2em] text-muted-foreground max-sm:flex-1 max-sm:justify-center";
-const tournamentHeroStatusDotClasses = "h-1.5 w-1.5 rounded-full bg-current";
+  "inline-flex h-6 items-center gap-1.5 whitespace-nowrap rounded-md border px-2 text-xs font-semibold";
 const tournamentHeroStatusTierClasses: Record<string, string> = {
   live: "border-destructive/55 bg-destructive/15 text-destructive",
   open: "border-success/55 bg-success/15 text-success",
@@ -159,15 +145,14 @@ const tournamentHeroStatusTierClasses: Record<string, string> = {
 };
 const tournamentHeroJoinButtonClasses = [
   tacticalCtaButtonClasses,
-  "h-9 px-4 py-2 text-[0.68rem] tracking-[0.14em] max-sm:flex-1 max-sm:px-3",
+  "h-9 px-4 py-2 text-[0.68rem] tracking-[0.14em] max-sm:flex-1",
 ];
-const tournamentHeroLeaveButtonClasses = [
-  "h-9 px-4 py-2 text-[0.68rem] tracking-[0.14em] max-sm:flex-1 max-sm:px-3 inline-flex items-center gap-1.5 rounded-md border border-destructive/50 bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
-];
-const tournamentHeroSettingsButtonClasses =
-  "h-9 w-9 border-[hsl(var(--tac-amber)_/_0.45)] bg-background/45 text-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.12)] hover:text-[hsl(var(--tac-amber))]";
-const tournamentHeroTabsClasses =
-  "mt-5 border-t border-border px-6 pb-5 pt-4 max-md:px-4 max-md:pb-4";
+const tournamentHeroLeaveButtonClasses =
+  "h-9 gap-1.5 border border-destructive/50 bg-destructive/10 px-4 text-destructive hover:bg-destructive/20 max-sm:flex-1";
+const tournamentHeroTabsClasses = "mt-4 border-t border-border px-2 sm:px-3";
+const tournamentTabTriggerClasses = [tacticalTabsTriggerClasses, "h-11 shrink-0"];
+const tournamentChatRoomUnreadClasses =
+  "inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 font-sans text-[0.6rem] font-bold leading-none tracking-normal text-white tabular-nums";
 const tacticalSectionCountClasses =
   "rounded-full border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] px-[0.45rem] py-[0.05rem] text-[0.62rem] tracking-[0.08em] text-[hsl(var(--tac-amber))]";
 const tournamentTeamCardClasses =
@@ -184,8 +169,8 @@ const tacticalCornerCardClasses =
 <template>
   <div v-if="tournament" class="min-w-0">
     <div v-if="manageMode && !tournament.is_organizer" role="alert" class="rounded-lg border border-border p-6">
-      You do not have permission to manage this tournament.
-      <NuxtLink :to="`/tournaments/${tournament.id}`" class="block mt-3 text-[hsl(var(--tac-amber))]">View tournament</NuxtLink>
+      {{ $t("tournament.manage.no_permission") }}
+      <NuxtLink :to="`/tournaments/${tournament.id}`" class="block mt-3 text-[hsl(var(--tac-amber))]">{{ $t("tournament.manage.view_tournament") }}</NuxtLink>
     </div>
     <template v-else>
     <NuxtLink
@@ -201,6 +186,11 @@ const tacticalCornerCardClasses =
     </NuxtLink>
     <Tabs v-model="activeTab" default-value="overview">
       <PageTransition>
+        <!-- Header adapted from 5Stack WEB 25dbf95d (TournamentDetail.vue);
+             MIT Copyright (c) 2025 5Stack.gg. One surface: banner band on top,
+             badges, name and meta under it, actions on the right, tab row at
+             the foot. DEAFCS keeps its mode colours, Join/Leave rules, Chat
+             Room access and the separate Manage console. -->
         <header
           :class="tournamentHeroClasses"
           :style="matchTypeColorStyle(tournament.options?.type)"
@@ -209,82 +199,308 @@ const tacticalCornerCardClasses =
             <img
               :src="tournamentBannerSrc"
               alt=""
-              class="h-full w-full object-cover"
+              class="h-full w-full object-cover object-[50%_40%]"
             />
           </div>
 
-          <div :class="tournamentHeroBodyWrapClasses">
-            <div :class="tournamentHeroToplineClasses">
-              <div :class="tournamentHeroActionsClasses">
-                <!-- Same rule as the player-row Leave action. It used to be
-                     disabled for the whole attendance window, so a checked-in
-                     player saw an enabled Leave in their row and a disabled one
-                     up here. Being checked in never blocks leaving. -->
-                <Button
-                  v-if="isIndividualRegistration && myIndividualSignup"
-                  size="sm"
-                  :class="tournamentHeroLeaveButtonClasses"
-                  :disabled="individualActionBusy || !canLeaveIndividually"
-                  @click="leaveIndividually"
-                >
-                  <UserMinus class="h-3.5 w-3.5" />
-                  {{ $t("tournament.join.individual.leave") }}
-                </Button>
-                <Button
-                  v-else-if="
-                    isIndividualRegistration &&
-                    tournament.status === e_tournament_status_enum.RegistrationOpen
-                  "
-                  participation
-                  size="sm"
-                  :class="tournamentHeroJoinButtonClasses"
-                  :disabled="individualActionBusy"
-                  @click="handleJoinTournament"
-                >
-                  <UserPlus class="h-3.5 w-3.5" />
-                  {{ $t("tournament.join.title") }}
-                </Button>
-                <Button
-                  v-else-if="
-                    !isIndividualRegistration &&
-                    tournament.status ===
-                      e_tournament_status_enum.RegistrationOpen &&
-                    tournament.can_join
-                  "
-                  participation
-                  size="sm"
-                  :class="tournamentHeroJoinButtonClasses"
-                  @click="handleJoinTournament"
-                >
-                  <UserPlus class="h-3.5 w-3.5" />
-                  {{ $t("tournament.join.title") }}
-                </Button>
-
+          <div :class="tournamentHeroBodyClasses">
+            <!-- Phones: the logo sits beside the badges so the name and meta
+                 run the full width; from sm it spans all three rows. -->
+            <div
+              class="grid min-w-0 gap-2"
+              :class="
+                tournamentLogoSrc &&
+                'grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 sm:items-start sm:gap-x-4'
+              "
+            >
+              <img
+                v-if="tournamentLogoSrc"
+                :src="tournamentLogoSrc"
+                :alt="tournament.name"
+                :class="tournamentHeroLogoClasses"
+              />
+              <div
+                class="flex flex-wrap items-center gap-1.5"
+                data-testid="tournament-hero-badges"
+              >
                 <span
                   :class="[
                     tournamentHeroStatusClasses,
                     tournamentHeroStatusTierClasses[statusTier] ??
                       tournamentHeroStatusTierClasses.ended,
                   ]"
+                  data-testid="tournament-status-badge"
                 >
-                  <span :class="tournamentHeroStatusDotClasses"></span>
+                  <span class="h-1.5 w-1.5 rounded-full bg-current"></span>
                   {{ tournament.e_tournament_status.description }}
                 </span>
+                <span
+                  :class="tournamentHeroModeTagClasses"
+                  data-testid="tournament-mode-badge"
+                >
+                  {{ tournament.options.type }}
+                </span>
+                <!-- Same shared badge the listing card uses. -->
+                <TournamentSoloRandomBadge
+                  v-if="isIndividualRegistration"
+                  :match-type="tournament.options?.type"
+                  size="detail"
+                />
+                <span
+                  v-for="category in tournamentCategories"
+                  :key="category"
+                  :class="tournamentHeroTagClasses"
+                >
+                  {{ category }}
+                </span>
+              </div>
+              <h1
+                :class="[
+                  tournamentHeroNameClasses,
+                  tournamentLogoSrc && 'col-span-2 sm:col-span-1',
+                ]"
+              >
+                {{ tournament.name }}
+              </h1>
+              <div
+                :class="[
+                  tournamentHeroMetaClasses,
+                  tournamentLogoSrc && 'col-span-2 sm:col-span-1',
+                ]"
+              >
+                <span
+                  class="inline-flex items-center gap-1.5"
+                  data-testid="tournament-hero-start"
+                >
+                  <CalendarDays class="h-3.5 w-3.5" />
+                  <TimeAgo :date="tournament.start" hide-icon />
+                </span>
+                <span
+                  v-if="shortLocation"
+                  class="inline-flex min-w-0 items-center gap-1.5"
+                >
+                  <MapPin class="h-3.5 w-3.5 shrink-0" />
+                  <span class="truncate">{{ shortLocation }}</span>
+                </span>
+                <!-- Before any stage exists the format falls back to the mode,
+                     which the mode badge already shows. -->
+                <span
+                  v-if="formatLabel && formatLabel !== tournament.options?.type"
+                  class="inline-flex items-center gap-1.5"
+                >
+                  <Layers class="h-3.5 w-3.5" />
+                  {{ formatLabel }}
+                </span>
+                <a
+                  v-if="tournamentHomepage"
+                  :href="tournamentHomepage"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="inline-flex items-center gap-1.5 underline decoration-muted-foreground/40 underline-offset-[3px] transition-colors hover:text-foreground"
+                  data-testid="tournament-homepage-link"
+                >
+                  <Globe class="h-3.5 w-3.5" />
+                  {{ $t("tournament.form.homepage.link") }}
+                </a>
+                <span
+                  v-if="organizersList.length"
+                  :class="tournamentHeroOrganizersClasses"
+                  :aria-label="$t('tournament.organizer.organized_by')"
+                >
+                  <template
+                    v-for="organizer in organizersList.slice(0, 6)"
+                    :key="organizer.steam_id"
+                  >
+                    <HoverCard :open-delay="80" :close-delay="140">
+                      <HoverCardTrigger as-child>
+                        <NuxtLink
+                          :to="{
+                            name: 'players-id',
+                            params: { id: organizer.steam_id },
+                          }"
+                          :class="tournamentHeroOrganizerClasses"
+                          :aria-label="organizer.name"
+                        >
+                          <Avatar shape="square" class="h-6 w-6">
+                            <AvatarImage
+                              v-if="organizerAvatarSrc(organizer)"
+                              :src="organizerAvatarSrc(organizer)"
+                              :alt="organizer.name"
+                            />
+                            <AvatarFallback class="text-[0.6rem]">
+                              {{ organizer?.name.slice(0, 2) }}
+                            </AvatarFallback>
+                          </Avatar>
+                        </NuxtLink>
+                      </HoverCardTrigger>
+                      <HoverCardContent class="w-64 p-0">
+                        <div class="p-4">
+                          <PlayerDisplay
+                            :player="organizer"
+                            :linkable="true"
+                            :tooltip="false"
+                            :match-type="tournament.options?.type || null"
+                            :elo-interactive="false"
+                          />
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                  </template>
+                  <span
+                    v-if="organizersList.length > 6"
+                    class="ml-1 text-xs tabular-nums"
+                  >
+                    +{{ organizersList.length - 6 }}
+                  </span>
+                </span>
+              </div>
+            </div>
 
-                <NuxtLink v-if="tournament.is_organizer && !manageMode" :to="`/tournaments/${tournament.id}/manage`" class="inline-flex h-9 items-center rounded-md border border-[hsl(var(--tac-amber)/0.45)] px-3 text-sm text-[hsl(var(--tac-amber))]">Manage</NuxtLink>
-                <NuxtLink v-if="manageMode" :to="`/tournaments/${tournament.id}`" class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm">View tournament</NuxtLink>
-                <DropdownMenu v-if="tournament?.is_organizer && manageMode">
+            <div :class="tournamentHeroActionsClasses">
+              <!-- Same rule as the player-row Leave action: being checked in
+                   never blocks leaving. -->
+              <Button
+                v-if="!manageMode && isIndividualRegistration && myIndividualSignup"
+                :class="tournamentHeroLeaveButtonClasses"
+                :disabled="individualActionBusy || !canLeaveIndividually"
+                @click="leaveIndividually"
+              >
+                <UserMinus class="h-4 w-4" />
+                {{ $t("tournament.join.individual.leave") }}
+              </Button>
+              <Button
+                v-else-if="
+                  !manageMode &&
+                  isIndividualRegistration &&
+                  tournament.status === e_tournament_status_enum.RegistrationOpen
+                "
+                participation
+                :class="tournamentHeroJoinButtonClasses"
+                :disabled="individualActionBusy"
+                @click="handleJoinTournament"
+              >
+                <UserPlus class="h-4 w-4" />
+                {{ $t("tournament.join.title") }}
+              </Button>
+              <Button
+                v-else-if="
+                  !manageMode &&
+                  !isIndividualRegistration &&
+                  tournament.status ===
+                    e_tournament_status_enum.RegistrationOpen &&
+                  tournament.can_join
+                "
+                participation
+                :class="tournamentHeroJoinButtonClasses"
+                @click="handleJoinTournament"
+              >
+                <UserPlus class="h-4 w-4" />
+                {{ $t("tournament.join.title") }}
+              </Button>
+
+              <!-- Not a tab: opens this tournament's room in the Chat Hub.
+                   Shown only while the Chat Hub itself lists this tournament
+                   (participants, assigned organizers, administrators; 24h
+                   after finishing). -->
+              <Button
+                v-if="chatRoomTournament"
+                variant="outline"
+                class="relative max-sm:w-9 max-sm:px-0"
+                :title="$t('tournament.page.chat_room_tab')"
+                data-testid="tournament-chat-room-tab"
+                @click="openChatRoom"
+              >
+                <MessageSquare class="h-4 w-4 shrink-0" />
+                <span class="max-sm:sr-only">
+                  {{ $t("tournament.page.chat_room_tab") }}
+                </span>
+                <span
+                  v-if="chatRoomUnreadLabel"
+                  :class="tournamentChatRoomUnreadClasses"
+                >
+                  {{ chatRoomUnreadLabel }}
+                </span>
+              </Button>
+
+              <!-- Public page: Manage opens the console, its menu jumps to a
+                   section. Inside the console: back to the page, and the menu
+                   holds the status actions. -->
+              <ButtonGroup v-if="tournament?.is_organizer">
+                <Button
+                  v-if="!manageMode"
+                  as-child
+                  variant="outline"
+                  class="max-sm:w-9 max-sm:px-0"
+                >
+                  <NuxtLink
+                    :to="`/tournaments/${tournament.id}/manage`"
+                    :title="$t('tournament.manage.button')"
+                    data-testid="tournament-manage-link"
+                  >
+                    <Settings class="h-4 w-4" />
+                    <span class="max-sm:sr-only">{{
+                      $t("tournament.manage.button")
+                    }}</span>
+                  </NuxtLink>
+                </Button>
+                <Button
+                  v-else
+                  as-child
+                  variant="outline"
+                  class="border-[hsl(var(--tac-amber)/0.6)] bg-[hsl(var(--tac-amber)/0.1)] text-foreground max-sm:w-9 max-sm:px-0"
+                >
+                  <NuxtLink
+                    :to="`/tournaments/${tournament.id}`"
+                    :title="$t('tournament.manage.view_tournament')"
+                  >
+                    <Settings class="h-4 w-4" />
+                    <span class="max-sm:sr-only">{{
+                      $t("tournament.manage.button")
+                    }}</span>
+                  </NuxtLink>
+                </Button>
+                <DropdownMenu>
                   <DropdownMenuTrigger as-child>
                     <Button
                       variant="outline"
                       size="icon"
-                      :class="tournamentHeroSettingsButtonClasses"
-                      :title="$t('tournament.settings')"
+                      :aria-label="
+                        manageMode
+                          ? $t('tournament.manage.status_actions')
+                          : $t('tournament.manage.sections_menu')
+                      "
+                      data-testid="tournament-manage-menu"
                     >
-                      <Settings class="h-5 w-5" />
+                      <ChevronDown class="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent class="w-56" align="end">
+                  <DropdownMenuContent
+                    v-if="!manageMode"
+                    class="w-60"
+                    align="end"
+                  >
+                    <DropdownMenuLabel>
+                      {{ $t("tournament.manage.title") }}
+                    </DropdownMenuLabel>
+                    <DropdownMenuItem
+                      v-for="item in tournamentManageSections"
+                      :key="item.key"
+                      as-child
+                    >
+                      <NuxtLink
+                        :to="{
+                          path: `/tournaments/${tournament.id}/manage`,
+                          query: { section: item.key },
+                        }"
+                      >
+                        {{ item.label }}
+                      </NuxtLink>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                  <DropdownMenuContent v-else class="w-60" align="end">
+                    <DropdownMenuLabel>
+                      {{ $t("tournament.manage.status_actions") }}
+                    </DropdownMenuLabel>
                     <DropdownMenuItem
                       v-if="tournament.can_open_registration"
                       @click="openRegistration"
@@ -338,269 +554,93 @@ const tacticalCornerCardClasses =
                       <RotateCcw />
                       <span>{{ $t("tournament.actions.reset_to_setup") }}</span>
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator
-                      v-if="
-                        (tournament.can_open_registration ||
-                          tournament.can_close_registration ||
-                          tournament.can_start ||
-                          (tournament.can_setup && !leagueSeasonId)) &&
-                        (tournament.can_cancel || tournament.is_organizer) &&
-                        !leagueSeasonId
-                      "
-                    />
-                    <DropdownMenuItem
-                      v-if="tournament.can_cancel && !leagueSeasonId"
-                      @click="cancelTournament"
-                      class="text-destructive"
+                    <template v-if="!leagueSeasonId">
+                      <DropdownMenuSeparator
+                        v-if="
+                          tournament.can_cancel ||
+                          (canDeleteTournament &&
+                            tournament.status !== e_tournament_status_enum.Live)
+                        "
+                      />
+                      <DropdownMenuItem
+                        v-if="tournament.can_cancel"
+                        class="text-destructive"
+                        @click="cancelTournament"
+                      >
+                        <Ban />
+                        <span>{{ $t("tournament.actions.cancel") }}</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        v-if="
+                          canDeleteTournament &&
+                          tournament.status !== e_tournament_status_enum.Live
+                        "
+                        class="text-destructive"
+                        @click="deleteDialogOpen = true"
+                      >
+                        <Trash2 />
+                        <span>{{ $t("tournament.actions.delete") }}</span>
+                      </DropdownMenuItem>
+                    </template>
+                    <p
+                      v-if="!hasStatusActions"
+                      class="px-2 py-1.5 text-xs text-muted-foreground"
                     >
-                      <Ban />
-                      <span>{{ $t("tournament.actions.cancel") }}</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator
-                      v-if="
-                        tournament.can_cancel &&
-                        canDeleteTournament &&
-                        tournament.status !== e_tournament_status_enum.Live
-                      "
-                    />
-                    <DropdownMenuItem
-                      v-if="
-                        canDeleteTournament &&
-                        tournament.status !== e_tournament_status_enum.Live &&
-                        !leagueSeasonId
-                      "
-                      @click="deleteDialogOpen = true"
-                      class="text-destructive"
-                    >
-                      <Trash2 />
-                      <span>{{ $t("tournament.actions.delete") }}</span>
-                    </DropdownMenuItem>
+                      {{ $t("tournament.manage.no_status_actions") }}
+                    </p>
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </div>
-            </div>
-
-            <div :class="tournamentHeroBodyClasses">
-              <img
-                v-if="tournamentLogoSrc"
-                :src="tournamentLogoSrc"
-                :alt="tournament.name"
-                :class="tournamentHeroLogoClasses"
-              />
-              <div :class="tournamentHeroIdentityClasses">
-                <div :class="tournamentHeroNameRowClasses">
-                  <h1 :class="tournamentHeroNameClasses">
-                    <span
-                      :class="tournamentHeroNameGhostClasses"
-                      aria-hidden="true"
-                    >
-                      {{ tournament.name }}
-                    </span>
-                    <span :class="tournamentHeroNameMainClasses">
-                      {{ tournament.name }}
-                    </span>
-                  </h1>
-                </div>
-
-                <div :class="tournamentHeroBadgesClasses">
-                  <span :class="tournamentHeroModeTagClasses">
-                    {{ tournament.options.type }}
-                  </span>
-                  <!-- Same shared badge the listing card uses, so the two
-                       cannot drift apart again. Class set is identical to
-                       tournamentHeroModeTagClasses, which this replaced. -->
-                  <TournamentSoloRandomBadge
-                    v-if="isIndividualRegistration"
-                    :match-type="tournament.options?.type"
-                    size="detail"
-                  />
-                  <span
-                    v-if="stageCount > 1"
-                    :class="[
-                      tournamentHeroTagClasses,
-                      tournamentHeroMutedTagClasses,
-                    ]"
-                  >
-                    {{ stageCount }} {{ $t("tournament.stage.stages") }}
-                  </span>
-                  <span
-                    v-if="singleStageType"
-                    :class="[
-                      tournamentHeroTagClasses,
-                      tournamentHeroMutedTagClasses,
-                    ]"
-                  >
-                    {{ singleStageTypeWithBestOf }}
-                  </span>
-                  <span
-                    v-for="category in tournamentCategories"
-                    :key="category"
-                    :class="[
-                      tournamentHeroTagClasses,
-                      tournamentHeroMutedTagClasses,
-                    ]"
-                  >
-                    {{ category }}
-                  </span>
-                  <a
-                    v-if="tournamentHomepage"
-                    :href="tournamentHomepage"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    :class="[
-                      tournamentHeroTagClasses,
-                      'gap-1 no-underline transition-opacity hover:opacity-80',
-                    ]"
-                  >
-                    <Globe class="h-3 w-3" />
-                    {{ $t("tournament.form.homepage.link") }}
-                  </a>
-                </div>
-
-                <div :class="tournamentHeroMetaClasses">
-                  <TimeAgo :date="tournament.start" />
-                  <span :class="tournamentHeroMetaDotClasses">·</span>
-                  <span :class="tournamentHeroMetaLabelClasses">
-                    {{ $t("tournament.organizer.organized_by") }}
-                  </span>
-                  <div :class="tournamentHeroOrganizersClasses">
-                    <template
-                      v-for="organizer in organizersList"
-                      :key="organizer.steam_id"
-                    >
-                      <HoverCard :open-delay="80" :close-delay="140">
-                        <HoverCardTrigger as-child>
-                          <NuxtLink
-                            :to="{
-                              name: 'players-id',
-                              params: { id: organizer.steam_id },
-                            }"
-                            :class="tournamentHeroOrganizerClasses"
-                          >
-                            <Avatar shape="square" class="h-6 w-6">
-                              <AvatarImage
-                                :src="organizerAvatarSrc(organizer)"
-                                :alt="organizer.name"
-                                v-if="organizerAvatarSrc(organizer)"
-                              />
-                              <AvatarFallback class="text-[0.6rem]">
-                                {{ organizer?.name.slice(0, 2) }}
-                              </AvatarFallback>
-                            </Avatar>
-                          </NuxtLink>
-                        </HoverCardTrigger>
-                        <HoverCardContent class="w-64 p-0">
-                          <div class="p-4">
-                            <PlayerDisplay
-                              :player="organizer"
-                              :linkable="true"
-                              :tooltip="false"
-                              :match-type="tournament.options?.type || null"
-                              :elo-interactive="false"
-                            />
-                          </div>
-                        </HoverCardContent>
-                      </HoverCard>
-                    </template>
-                  </div>
-                </div>
-              </div>
+              </ButtonGroup>
             </div>
           </div>
 
-          <div v-if="!manageMode" :class="tournamentHeroTabsClasses">
-            <TabsList
-              variant="underline"
-              :class="[tacticalTabsListClasses, 'h-auto !justify-start flex-nowrap overflow-x-auto max-w-full']"
+          <div :class="tournamentHeroTabsClasses">
+            <div
+              v-if="manageMode"
+              class="flex min-h-11 flex-wrap items-center justify-between gap-2 py-1.5"
             >
-              <TabsTrigger value="overview" :class="tacticalTabsTriggerClasses">
-                {{ $t("tournament.overview") }}
-              </TabsTrigger>
+              <span class="px-1 text-sm font-semibold">
+                {{ $t("tournament.manage.title") }}
+              </span>
+              <Button variant="ghost" size="sm" as-child>
+                <NuxtLink :to="`/tournaments/${tournament.id}`">
+                  <ArrowLeft class="h-4 w-4" />
+                  {{ $t("tournament.manage.back") }}
+                </NuxtLink>
+              </Button>
+            </div>
+            <TabsList
+              v-else
+              variant="underline"
+              class="h-auto w-full min-w-0 flex-nowrap !justify-start overflow-x-auto bg-transparent p-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              data-testid="tournament-public-tabs"
+            >
               <TabsTrigger
-                v-if="myTeam"
-                value="my-team"
-                :class="tacticalTabsTriggerClasses"
+                v-for="tab in publicTabs"
+                :key="tab.value"
+                :value="tab.value"
+                :class="tournamentTabTriggerClasses"
+                :data-testid="`tournament-tab-${tab.value}`"
               >
-                {{ $t("tournament.teams.my_teams") }}
+                {{ tab.label }}
               </TabsTrigger>
-              <TabsTrigger
-                value="bracket"
-                :class="tacticalTabsTriggerClasses"
-                data-testid="tournament-tab-bracket"
-              >
-                {{ $t("tournament.page.bracket_tab") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="matchesTabVisible"
-                value="matches"
-                :class="tacticalTabsTriggerClasses"
-                data-testid="tournament-tab-matches"
-              >
-                {{ $t("tournament.page.matches_tab") }}
-              </TabsTrigger>
-              <TabsTrigger value="teams" :class="tacticalTabsTriggerClasses">
-                {{
-                  isIndividualRegistration
-                    ? $t("tournament.players.count", {
-                        count: registeredIndividualSignups.length,
-                      })
-                    : $t("tournament.teams.count", {
-                        count: tournament?.teams_aggregate?.aggregate?.count || 0,
-                      })
-                }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="tournament.options"
-                value="match-settings"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.page.match_settings") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="standingsTabVisible"
-                value="standings"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.standings.title") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="statsTabVisible"
-                value="stats"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.stats_tab.title") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="
-                  tournament.status === e_tournament_status_enum.Live ||
-                  tournament.status === e_tournament_status_enum.Finished
-                "
-                value="results"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.results.title") }}
-              </TabsTrigger>
-              <!-- Not a tab panel: opens this tournament's room in the Chat
-                   Hub. Shown only while the Chat Hub itself lists this
-                   tournament (participants, assigned organizers,
-                   administrators; 24h after finishing). -->
-              <button
-                v-if="chatRoomTournament"
-                type="button"
-                data-testid="tournament-chat-room-tab"
-                :class="[chatRoomTabBaseClasses, tacticalTabsTriggerClasses]"
-                @click="openChatRoom"
-              >
-                {{ $t("tournament.page.chat_room_tab") }}
-                <span v-if="chatRoomUnreadLabel" class="ml-1 tabular-nums">
-                  ({{ chatRoomUnreadLabel }})
-                </span>
-              </button>
-              <TabsTrigger v-if="isUnifiedRegistration && tournament.registration_type !== 'teams'" value="free-agents" :class="tacticalTabsTriggerClasses">Free Agents</TabsTrigger>
             </TabsList>
           </div>
         </header>
       </PageTransition>
+
+      <!-- As on 5Stack: directly under the header, above every tab. Whether
+           the viewer can enter at all (and which gate stops them), then
+           registration/check-in, so a deadline is never scrolled past.
+           The entry gate only displays backend-computed fields (min_role +
+           meets_min_role, ELO bounds, invite_only + registration_unlocked)
+           that every registration version has. Invites and the check-in panel
+           are version-2 only; v1 keeps its Overview check-in card. -->
+      <div v-if="!manageMode" data-testid="tournament-entry-area">
+        <TournamentInviteAccept v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" />
+        <TournamentEntryGate :tournament="tournament" :registration="tournament" :already-entered="!!myTeam || !!myFreeAgent || !!myIndividualSignup" />
+        <TournamentCheckInPanel v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :teams="tournament.teams" :my-team-id="myTeam?.id" :my-free-agent="myFreeAgent" @register="handleJoinTournament" />
+      </div>
 
       <div
         v-if="tournament.status === e_tournament_status_enum.Paused"
@@ -637,9 +677,6 @@ const tacticalCornerCardClasses =
                    that flips to false once Solo Random teams have been
                    generated, which would swap this panel to the normal-team
                    rules for a tournament that never used them. -->
-              <TournamentInviteAccept v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" />
-              <TournamentEntryGate v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :already-entered="!!myTeam || !!myFreeAgent" />
-              <TournamentCheckInPanel v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :teams="tournament.teams" :my-team-id="myTeam?.id" :my-free-agent="myFreeAgent" @register="joinSheetOpen = true" />
               <TournamentCheckInInfo
                 v-if="!isUnifiedRegistration"
                 :tournament="tournament"
@@ -656,6 +693,19 @@ const tacticalCornerCardClasses =
                   :tournament="tournament"
                   :format="formatLabel"
                 ></TournamentMatchSetup>
+                <!-- Was on the removed public "Tournament Settings" tab; the
+                     full match settings are already in Match Setup above. -->
+                <div class="grid gap-1" data-testid="tournament-overview-rules">
+                  <NuxtLink
+                    to="/tournament-rules"
+                    class="inline-flex w-fit items-center text-xs text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
+                  >
+                    {{ $t("tournament.page.view_tournament_rules") }}
+                  </NuxtLink>
+                  <p class="text-xs text-muted-foreground/70">
+                    {{ $t("tournament.page.tournament_rules_hint") }}
+                  </p>
+                </div>
               </ManageSection>
 
               <TournamentRewards
@@ -680,7 +730,7 @@ const tacticalCornerCardClasses =
                   <button
                     v-if="descLong"
                     type="button"
-                    class="self-start font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[hsl(var(--tac-amber))] transition-opacity hover:opacity-80"
+                    class="self-start text-xs font-semibold text-[hsl(var(--tac-amber))] transition-opacity hover:opacity-80"
                     @click="descExpanded = !descExpanded"
                   >
                     {{
@@ -702,36 +752,29 @@ const tacticalCornerCardClasses =
             class="w-full"
             :tournament="tournament"
             :read-only="true"
-          ></TournamentStageBuilder>
+          >
+            <template #empty-action>
+              <Button
+                v-if="tournament.is_organizer"
+                variant="outline"
+                size="sm"
+                as-child
+              >
+                <NuxtLink
+                  :to="{
+                    path: `/tournaments/${tournament.id}/manage`,
+                    query: { section: 'stages' },
+                  }"
+                >
+                  <Layers class="h-4 w-4" />
+                  {{ $t("tournament.manage.stages") }}
+                </NuxtLink>
+              </Button>
+            </template>
+          </TournamentStageBuilder>
         </TabsContent>
         <TabsContent v-if="matchesTabVisible" value="matches">
           <TournamentMatches :tournament-id="tournament.id"></TournamentMatches>
-        </TabsContent>
-        <TabsContent
-          value="match-settings"
-          v-if="!tournament?.is_organizer && tournament.options"
-        >
-          <div>
-            <ManageSection :label="$t('tournament.page.match_settings')">
-              <MatchOptionsDisplay
-                :show-details-by-default="true"
-                :options="tournament.options"
-                :min-role="tournament.min_role"
-                :substitutes="tournamentEffectiveSubstitutes"
-              ></MatchOptionsDisplay>
-              <div class="grid gap-1">
-                <NuxtLink
-                  to="/tournament-rules"
-                  class="inline-flex w-fit items-center text-xs text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
-                >
-                  {{ $t("tournament.page.view_tournament_rules") }}
-                </NuxtLink>
-                <p class="text-xs text-muted-foreground/70">
-                  {{ $t("tournament.page.tournament_rules_hint") }}
-                </p>
-              </div>
-            </ManageSection>
-          </div>
         </TabsContent>
         <TabsContent value="my-team" v-if="myTeam">
           <div>
@@ -973,6 +1016,7 @@ import { toast } from "@/components/ui/toast";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { formatPrizePool } from "~/utilities/prizePool";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
+import { externalTournamentHomepage } from "~/utilities/tournamentHomepage";
 import {
   getRequestedRouteTab,
   getRouteTabValue,
@@ -1575,12 +1619,13 @@ export default {
         return category.e_tournament_category?.description ?? category.category;
       });
     },
+    // Only a meaningful external site: never deafcs.net (or this site)
+    // itself, and never a non-http(s) or credential-carrying URL.
     tournamentHomepage() {
-      const homepage = this.tournament?.homepage;
-      if (!homepage) {
-        return null;
-      }
-      return /^https?:\/\//.test(homepage) ? homepage : `https://${homepage}`;
+      return externalTournamentHomepage(
+        this.tournament?.homepage,
+        import.meta.client ? window.location.hostname : null,
+      );
     },
     showSeparators() {
       return useApplicationSettingsStore().showSeparators;
@@ -1758,9 +1803,9 @@ export default {
         tabs.push("free-agents");
       }
 
-      if (this.tournament?.options) {
-        tabs.push("match-settings");
-      }
+      // No public "Tournament Settings" tab: its panel was blank for
+      // organizers, and the rules already sit in Overview (Match Setup).
+      // Administrative settings live in Manage.
 
       if (this.standingsTabVisible) {
         tabs.push("standings");
@@ -1779,6 +1824,46 @@ export default {
 
 
       return tabs;
+    },
+    publicTabs() {
+      const labels: Record<string, string> = {
+        overview: this.$t("tournament.overview"),
+        "my-team": this.$t("tournament.teams.my_teams"),
+        bracket: this.$t("tournament.page.bracket_tab"),
+        matches: this.$t("tournament.page.matches_tab"),
+        teams: this.isIndividualRegistration
+          ? this.$t("tournament.players.count", {
+              count: this.registeredIndividualSignups.length,
+            })
+          : this.$t("tournament.teams.count", {
+              count: this.tournament?.teams_aggregate?.aggregate?.count || 0,
+            }),
+        "free-agents": this.$t("tournament.free_agents.title"),
+        standings: this.$t("tournament.standings.title"),
+        stats: this.$t("tournament.stats_tab.title"),
+        results: this.$t("tournament.results.title"),
+      };
+      return this.availableTournamentTabs.map((tab: string) => ({
+        value: tab,
+        label: labels[tab] ?? tab,
+      }));
+    },
+    hasStatusActions() {
+      const t = this.tournament;
+      if (!t) return false;
+      return !!(
+        t.can_open_registration ||
+        t.can_close_registration ||
+        this.canGenerateTeams ||
+        t.can_start ||
+        t.can_pause ||
+        t.can_resume ||
+        (t.can_setup && !this.leagueSeasonId) ||
+        (!this.leagueSeasonId &&
+          (t.can_cancel ||
+            (this.canDeleteTournament &&
+              t.status !== e_tournament_status_enum.Live)))
+      );
     },
     standingsTabVisible() {
       const status = this.tournament?.status;
@@ -1802,8 +1887,13 @@ export default {
     },
   },
   methods: {
+    // A history entry per section so Back/Forward walk the console. The page
+    // key ignores ?section= (manage.vue persistQueryKeys), so this only swaps
+    // the section content; the shell and sidebar stay mounted.
     setManageSection(section: string) {
-      void this.$router.replace({ query: { ...this.$route.query, section: tournamentManageSection(section) } });
+      const next = tournamentManageSection(section);
+      if (this.$route.query.section === next) return;
+      void this.$router.push({ query: { ...this.$route.query, section: next } });
     },
     openChatRoom() {
       if (!this.chatRoomTournament) return;

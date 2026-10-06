@@ -4,7 +4,6 @@ import { useI18n } from "vue-i18n";
 import { CalendarClock } from "lucide-vue-next";
 import { attendanceWindow } from "~/utilities/tournamentAttendance";
 import TournamentTime from "~/components/tournament/TournamentTime.vue";
-import { localTimeZoneName } from "~/utilities/tournamentTime";
 
 // Public explanation of the tournament's attendance rules, in real clock
 // times rather than the organizer's raw "60 / 15" offsets. Normal and
@@ -36,11 +35,6 @@ const visible = computed(
     RELEVANT_STATUSES.includes(props.tournament?.status as string),
 );
 
-const localZone = localTimeZoneName();
-const localNotice = computed(() =>
-  t("common.time.local_notice", { timezone: localZone }),
-);
-
 const ruleClasses = "flex gap-2";
 const bulletClasses = "mt-[0.5em] h-[2px] w-2 shrink-0 bg-muted-foreground/50";
 </script>
@@ -56,9 +50,6 @@ const bulletClasses = "mt-[0.5em] h-[2px] w-2 shrink-0 bg-muted-foreground/50";
       <CalendarClock class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
       {{ t("tournament.attendance.info.title") }}
     </div>
-    <p class="mt-1 text-[0.68rem] text-muted-foreground">
-      {{ localNotice }}
-    </p>
 
     <dl
       class="mt-2.5 flex flex-wrap gap-x-8 gap-y-1.5 font-mono text-[0.78rem] tabular-nums"

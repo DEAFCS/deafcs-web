@@ -669,7 +669,10 @@ import {
       </AlertDialog>
     </div>
 
-    <template v-if="tournament.is_organizer">
+    <!-- The public Bracket tab (readOnly) never shows stage editing; that
+         lives in Manage > Stages. Empty state adapted from 5Stack WEB 25dbf95d;
+         MIT Copyright (c) 2025 5Stack.gg. -->
+    <template v-if="tournament.is_organizer && !readOnly">
       <Card
         class="bg-gradient-to-br from-muted/50 to-muted/30 border-border/50 p-4 max-w-2xl mx-auto"
         v-if="tournament.stages.length === 0"
@@ -682,10 +685,14 @@ import {
       </Card>
     </template>
     <template v-else>
-      <div v-if="tournament.stages.length === 0" class="text-center p-8">
-        <h2 class="text-2xl font-bold mb-4">
+      <div
+        v-if="tournament.stages.length === 0"
+        class="grid justify-items-start gap-2 rounded-lg border border-dashed border-border p-6 text-sm text-muted-foreground"
+      >
+        <span class="text-base font-semibold text-foreground">
           {{ $t("tournament.stage.not_setup") }}
-        </h2>
+        </span>
+        <slot name="empty-action"></slot>
       </div>
     </template>
   </div>

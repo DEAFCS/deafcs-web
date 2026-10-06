@@ -4,6 +4,9 @@ import test from "node:test";
 import {
   formatCopenhagenTournamentTime,
   formatLocalTournamentDateTime,
+  formatLocalTournamentZoneTime,
+  isCopenhagenTimeZone,
+  tournamentZoneAbbreviation,
 } from "../utilities/tournamentTime.ts";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
@@ -66,10 +69,12 @@ test("the local and Copenhagen labels are available to the shared component", ()
   assert.equal(enLocale.common.time.copenhagen, "Copenhagen");
 });
 
-test("the STARTS card uses date-time and identifies the local timezone", () => {
+test("the STARTS card shows date and clock, with the zone only in the tooltip", () => {
   assert.match(statRibbon, /kind: "start"/);
   assert.match(statRibbon, /<TournamentTime[^>]+display="date-time"/);
-  assert.match(statRibbon, /common\.time\.local_notice/);
+  // No always-visible "Shown in your local timezone (...)" line any more.
+  assert.doesNotMatch(statRibbon, /local_notice/);
+  assert.doesNotMatch(statRibbon, /localTimeZoneName/);
 });
 
 test("check-in opening, closing, and registration closing use the tooltip", () => {
@@ -78,5 +83,41 @@ test("check-in opening, closing, and registration closing use the tooltip", () =
     (checkInInfo.match(/:value="attendanceTimes\?\.closesAt"/g) ?? []).length >=
       2,
   );
-  assert.match(checkInInfo, /common\.time\.local_notice/);
+  assert.doesNotMatch(checkInInfo, /local_notice/);
+});
+
+test("the tooltip carries the viewer's own zone abbreviation", () => {
+  assert.match(timeComponent, /formatLocalTournamentZoneTime\(date\.value\)/);
+  assert.match(timeComponent, /common\.time\.local_notice/);
+  assert.match(timeComponent, /v-if="showCopenhagen"/);
+});
+
+test("the zone abbreviation follows daylight saving, never hardcoded", () => {
+  assert.equal(
+    formatLocalTournamentZoneTime(
+      "2026-10-10T12:00:00.000Z",
+      "en-GB",
+      "Europe/Copenhagen",
+    ),
+    "10 Oct 14:00 CEST",
+  );
+  assert.equal(
+    formatLocalTournamentZoneTime(
+      "2026-12-10T13:00:00.000Z",
+      "en-GB",
+      "Europe/Copenhagen",
+    ),
+    "10 Dec 14:00 CET",
+  );
+  assert.equal(
+    tournamentZoneAbbreviation("2026-07-01T12:00:00.000Z", "America/New_York"),
+    "EDT",
+  );
+  // No common abbreviation: falls back to the offset rather than inventing one.
+  assert.match(
+    tournamentZoneAbbreviation("2026-07-01T12:00:00.000Z", "Asia/Dubai"),
+    /^(GMT|UTC)\+4$|^GST$/,
+  );
+  assert.equal(isCopenhagenTimeZone("Europe/Copenhagen"), true);
+  assert.equal(isCopenhagenTimeZone("Europe/London"), false);
 });

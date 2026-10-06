@@ -99,7 +99,13 @@ test("statsTabVisible reuses the exact same gate as Standings (Live | Paused | F
 });
 
 test("the Stats tab trigger and content are both gated on statsTabVisible", () => {
-  assert.match(detailSource, /v-if="statsTabVisible"\s*\n\s*value="stats"/);
+  // Triggers are rendered from publicTabs, which is built from
+  // availableTournamentTabs; "stats" is only pushed behind statsTabVisible.
+  assert.match(
+    detailSource,
+    /if \(this\.statsTabVisible\) \{\s*\n\s*tabs\.push\("stats"\);/,
+  );
+  assert.match(detailSource, /v-for="tab in publicTabs"/);
   assert.match(
     detailSource,
     /<TabsContent v-if="statsTabVisible" value="stats">/,

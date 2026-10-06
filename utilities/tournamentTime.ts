@@ -112,3 +112,55 @@ export function formatCopenhagenTournamentTime(
 export function localTimeZoneName(): string {
   return Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
 }
+
+function shortZoneName(date: Date, locale: string, timeZone?: string): string {
+  return (
+    new Intl.DateTimeFormat(locale, {
+      ...zoneOptions(timeZone),
+      timeZoneName: "short",
+    })
+      .formatToParts(date)
+      .find((part) => part.type === "timeZoneName")?.value ?? ""
+  );
+}
+
+/**
+ * The abbreviation the viewer's zone uses at that instant ("CEST" in summer,
+ * "CET" in winter, "EDT", ...). Falls back to the GMT offset ("GMT+9") where
+ * no common abbreviation exists, so it is never hardcoded per season.
+ */
+export function tournamentZoneAbbreviation(
+  value: TournamentTimeInput,
+  localTimeZone?: string,
+): string {
+  const date = parseTime(value);
+  if (!date) return "";
+  const candidates = ["en-US", "en-GB"].map((locale) =>
+    shortZoneName(date, locale, localTimeZone),
+  );
+  return (
+    candidates.find((name) => name && !/^(GMT|UTC)[+-]/.test(name)) ??
+    candidates.find(Boolean) ??
+    ""
+  );
+}
+
+/** "10 Oct 14:00 CEST": the viewer's own time with its zone, for tooltips. */
+export function formatLocalTournamentZoneTime(
+  value: TournamentTimeInput,
+  locale?: Intl.LocalesArgument,
+  localTimeZone?: string,
+): string {
+  const date = parseTime(value);
+  if (!date) return "";
+  const zone = tournamentZoneAbbreviation(date, localTimeZone);
+  const label = formatDateTime(date, locale, localTimeZone);
+  return zone ? `${label} ${zone}` : label;
+}
+
+/** Whether the viewer is already on Copenhagen time (no second line needed). */
+export function isCopenhagenTimeZone(localTimeZone?: string): boolean {
+  const zone =
+    localTimeZone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return zone === COPENHAGEN_TIME_ZONE;
+}

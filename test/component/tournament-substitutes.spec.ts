@@ -130,7 +130,11 @@ describe("Substitutes Enabled wiring", () => {
 
   it("settings show the effective substitutes, falling back to the match options outside tournaments", () => {
     expect(display).toContain("substitutes ?? options.number_of_substitutes");
-    expect(detail).toContain(':substitutes="tournamentEffectiveSubstitutes"');
+    // The public settings live in Overview > Match Setup (the separate
+    // "Tournament Settings" tab was removed); it passes the effective count.
+    const setup = read("components/tournament/TournamentMatchSetup.vue");
+    expect(setup).toContain(':substitutes="isDuel ? 0 : effectiveSubstitutes"');
+    expect(detail).not.toContain('value="match-settings"');
     expect(detail).toContain("substitutes_enabled: true,");
     expect(detail.match(/<TournamentMatchSetup/g)).toHaveLength(1);
   });

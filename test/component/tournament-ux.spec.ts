@@ -194,12 +194,21 @@ describe("follow a team through the bracket", () => {
   it("cards carry their team ids and ring when followed", () => {
     expect(match).toContain(':data-teams="bracketTeamIds(bracket)"');
     expect(match).toContain("'ring-2 ring-[hsl(var(--tac-amber))] ring-offset-2 ring-offset-background':\n          isFollowed(bracket),");
-    // Existing status borders are untouched.
-    expect(match).toContain("'border-green-500 hover:border-green-400': isActiveMatch(bracket),");
+    // 5Stack card treatment: state is a border on a flat charcoal card, the
+    // followed path is amber and everything off it dims.
+    expect(match).toContain('"border-emerald-500/70 shadow-[0_0_0_1px_rgb(16_185_129/0.25)]"');
+    expect(match).toContain('? "border-[hsl(var(--tac-amber))]"');
+    expect(match).toContain('following && !onPath && "opacity-30"');
+    // The followed team's own row is tinted, and rows are tagged for the
+    // connector lines to land on.
+    expect(match).toContain(":data-feed=\"getFeedForSlot(bracket, slot)?.id\"");
   });
 
   it("only the followed team's winner path changes colour; lines redraw on change", () => {
     expect(viewer).toContain("watch([effectiveZoom, followTeamId], () => {");
-    expect(viewer).toMatch(/onPath\n\s+\? "hsl\(var\(--tac-amber\)\)"\n\s+: type === "winner"\n\s+\? "white"\n\s+: "rgba\(255, 100, 100, 0\.7\)",/);
+    expect(viewer).toMatch(/onPath\n\s+\? "hsl\(var\(--tac-amber\)\)"\n\s+: type === "winner"\n\s+\? "hsl\(var\(--muted-foreground\) \/ 0\.35\)"\n\s+: "hsl\(0 72% 64% \/ 0\.35\)",/);
+    // Loser drops are dashed; lines land on the team's slot row.
+    expect(viewer).toContain('if (type === "loser") path.setAttribute("stroke-dasharray", "4 4");');
+    expect(viewer).toContain("const targetY = slotCenterY(targetEl, sourceEl.dataset.bracketId || \"\");");
   });
 });

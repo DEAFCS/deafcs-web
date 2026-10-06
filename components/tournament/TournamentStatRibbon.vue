@@ -3,7 +3,6 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { MapPin } from "lucide-vue-next";
 import TournamentTime from "~/components/tournament/TournamentTime.vue";
-import { localTimeZoneName } from "~/utilities/tournamentTime";
 
 const props = defineProps<{
   prizePool?: string | null;
@@ -25,11 +24,6 @@ const startLabel = computed(() => {
   }
   return date;
 });
-
-const localZone = localTimeZoneName();
-const localNotice = computed(() =>
-  t("common.time.local_notice", { timezone: localZone }),
-);
 
 // Only render cells that actually have a value; the grid sizes itself to the
 // number of live cells so it never leaves an empty slot.
@@ -111,13 +105,13 @@ const cells = computed(() => {
         <span class="line-clamp-2">{{ cell.value }}</span>
       </div>
 
-      <div v-else-if="cell.kind === 'start'" class="mt-1">
-        <div class="font-sans text-xl font-bold leading-tight text-foreground">
-          <TournamentTime :value="cell.value" display="date-time" />
-        </div>
-        <div class="mt-1 text-[0.65rem] text-muted-foreground">
-          {{ localNotice }}
-        </div>
+      <!-- Date and clock in the viewer's zone. The zone itself (CEST, CET,
+           ...) is in the hover/focus tooltip, not an always-visible line. -->
+      <div
+        v-else-if="cell.kind === 'start'"
+        class="mt-1 truncate font-sans text-xl font-bold leading-tight text-foreground"
+      >
+        <TournamentTime :value="cell.value" display="date-time" />
       </div>
 
       <div
