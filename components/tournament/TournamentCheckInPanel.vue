@@ -7,6 +7,7 @@ import { CheckCircle2, ShieldAlert } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import CheckInDeadline from "~/components/match/CheckInDeadline.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import TournamentCheckInBefore from "~/components/tournament/TournamentCheckInBefore.vue";
 import TournamentChip from "~/components/tournament/TournamentChip.vue";
 import { toast } from "~/components/ui/toast";
 import { e_tournament_status_enum } from "~/generated/zeus";
@@ -581,40 +582,11 @@ async function checkIn(teamId?: string | null) {
   >
     <!-- BEFORE REGISTERING -->
     <template v-if="state === 'before'">
-      <div
-        class="rounded-md border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.08)] px-4 py-3 text-sm leading-relaxed text-muted-foreground"
-      >
-        <strong class="text-foreground">
-          {{ $t("tournament.check_in.required_title") }}
-        </strong>
-        {{
-          $t("tournament.check_in.required_window", {
-            opens: opensAtLabel,
-            closes: closesAtLabel,
-          })
-        }}
-      </div>
-
-      <div
-        class="mt-4 flex flex-wrap items-center justify-between gap-5 max-sm:flex-col max-sm:items-start"
-      >
-        <div class="min-w-0">
-          <h3
-            class="m-0 font-sans text-[1.05rem] font-bold tracking-[0.01em] text-foreground"
-          >
-            {{ $t("tournament.check_in.register_heading") }}
-          </h3>
-          <p class="mt-1 text-[0.8rem] text-muted-foreground">
-            {{ $t("tournament.check_in.register_hint") }}
-          </p>
-        </div>
-        <Button
-          :class="[tacticalCtaButtonClasses, 'shrink-0 max-sm:w-full']"
-          @click="emit('register')"
-        >
-          {{ $t("tournament.check_in.register_cta") }}
-        </Button>
-      </div>
+      <TournamentCheckInBefore
+        :opens-at="opensAtIso"
+        :closes-at="closesAtIso"
+        @register="emit('register')"
+      />
     </template>
 
     <!-- WINDOW NOT OPEN YET -->

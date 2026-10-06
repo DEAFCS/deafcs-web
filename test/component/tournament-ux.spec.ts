@@ -154,9 +154,11 @@ describe("tournament page navigation (adapted from 5Stack's five-tab page)", () 
     expect(overview).toContain("<TournamentProgress");
     expect(overview).toContain("<TournamentMatchSetup");
     // Existing DEAFCS Overview sections stay.
-    for (const keep of ["<TournamentStatRibbon", "<TournamentCheckInInfo", "<TournamentRewards"]) {
+    for (const keep of ["<TournamentStatRibbon", "<TournamentRewards"]) {
       expect(overview).toContain(keep);
     }
+    const entryArea = detail.slice(detail.indexOf('data-testid="tournament-entry-area"'), detail.indexOf('<TabsContent value="overview">'));
+    expect(entryArea).toContain("<TournamentCheckInInfo");
   });
 
   it("tab order puts Bracket and Matches right after Overview / My Team", () => {

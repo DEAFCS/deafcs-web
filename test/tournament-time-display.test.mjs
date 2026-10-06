@@ -77,19 +77,18 @@ test("the STARTS card shows date and clock, with the zone only in the tooltip", 
   assert.doesNotMatch(statRibbon, /localTimeZoneName/);
 });
 
-test("check-in opening, closing, and registration closing use the tooltip", () => {
-  assert.match(checkInInfo, /:value="attendanceTimes\?\.opensAt"/);
-  assert.ok(
-    (checkInInfo.match(/:value="attendanceTimes\?\.closesAt"/g) ?? []).length >=
-      2,
-  );
+test("the shared check-in strip uses the tooltip for opening and closing", async () => {
+  assert.match(checkInInfo, /:opens-at="attendanceTimes\?\.opensAt"/);
+  assert.match(checkInInfo, /:closes-at="attendanceTimes\?\.closesAt"/);
+  const before = await read("../components/tournament/TournamentCheckInBefore.vue");
+  assert.equal((before.match(/display="time" compact-tooltip/g) ?? []).length, 2);
   assert.doesNotMatch(checkInInfo, /local_notice/);
 });
 
 test("the tooltip carries the viewer's own zone abbreviation", () => {
   assert.match(timeComponent, /formatLocalTournamentZoneTime\(date\.value\)/);
   assert.match(timeComponent, /common\.time\.local_notice/);
-  assert.match(timeComponent, /v-if="showCopenhagen"/);
+  assert.match(timeComponent, /v-if="!compactTooltip && showCopenhagen"/);
 });
 
 test("the zone abbreviation follows daylight saving, never hardcoded", () => {

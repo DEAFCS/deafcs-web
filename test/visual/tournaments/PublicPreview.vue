@@ -19,6 +19,16 @@ const details = ref<any[]>([]);
 onMounted(async () => {
   for (const [index, variant] of variants.entries()) {
     const fixture = publicTournament(variant);
+    if (params.has("eligibility")) {
+      fixture.meets_min_role = params.get("eligibility") !== "user";
+      fixture.can_join = fixture.meets_min_role;
+      fixture.registration_version = Number(params.get("version") || 1);
+      fixture.registration_type = params.get("registration") || "teams";
+      fixture.check_in_required = true;
+      fixture.check_in_opens_before_minutes = 60;
+      fixture.check_in_closes_before_minutes = 15;
+      fixture.start = params.has("winter") ? "2026-12-10T13:00:00Z" : "2026-10-10T12:00:00Z";
+    }
     // <script setup> components expose a closed proxy; $data is the options
     // API state the page renders from.
     const vm = details.value[index].$data;

@@ -19,7 +19,7 @@ export const NuxtLink = {
 };
 export const useApplicationSettingsStore = () => ({ availableRegions: [], teamMaxSubs: 2, settings: [], showSeparators: false });
 export const tryUseNuxtApp = () => ({ $i18n: { locale: { value: "en" } } });
-export const useAuthStore = () => ({ isAdmin: true, isRoleAbove: () => true, me: { steam_id: "1", name: "Local player", role: "verified_user", elo: { competitive: 6500, wingman: 5200, duel: 7000 } } });
+export const useAuthStore = () => ({ isAdmin: !new URLSearchParams(location.search).has("eligibility"), isRoleAbove: () => !new URLSearchParams(location.search).has("eligibility"), me: { steam_id: "1", name: "Local player", role: new URLSearchParams(location.search).get("eligibility") === "user" ? "user" : "verified_user", elo: { competitive: 6500, wingman: 5200, duel: 7000 } } });
 export const useApolloClient = () => ({ client: {
   mutate: async () => ({ data: {} }),
   query: async () => ({ data: {} }),

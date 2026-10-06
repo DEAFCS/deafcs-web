@@ -635,10 +635,18 @@ const tacticalCornerCardClasses =
            The entry gate only displays backend-computed fields (min_role +
            meets_min_role, ELO bounds, invite_only + registration_unlocked)
            that every registration version has. Invites and the check-in panel
-           are version-2 only; v1 keeps its Overview check-in card. -->
+           are version-2 only; v1 uses the same before-registration design. -->
       <div v-if="!manageMode" data-testid="tournament-entry-area">
         <TournamentInviteAccept v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" />
         <TournamentEntryGate :tournament="tournament" :registration="tournament" :already-entered="!!myTeam || !!myFreeAgent || !!myIndividualSignup" />
+        <!-- Legacy timing/actions remain separate from unified registration. -->
+        <TournamentCheckInInfo
+          v-if="!isUnifiedRegistration"
+          :tournament="tournament"
+          :is-individual-registration="!!tournament.options?.individual_registration_enabled"
+          :already-entered="!!myTeam || !!myIndividualSignup"
+          @register="handleJoinTournament"
+        />
         <TournamentCheckInPanel v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :teams="tournament.teams" :my-team-id="myTeam?.id" :my-free-agent="myFreeAgent" @register="handleJoinTournament" />
       </div>
 
@@ -672,18 +680,6 @@ const tacticalCornerCardClasses =
                 :show-matches-link="matchesTabVisible"
                 @open-tab="(tab) => (activeTab = tab)"
               ></TournamentProgress>
-
-              <!-- Keyed off the raw option, not isIndividualRegistration:
-                   that flips to false once Solo Random teams have been
-                   generated, which would swap this panel to the normal-team
-                   rules for a tournament that never used them. -->
-              <TournamentCheckInInfo
-                v-if="!isUnifiedRegistration"
-                :tournament="tournament"
-                :is-individual-registration="
-                  !!tournament.options?.individual_registration_enabled
-                "
-              ></TournamentCheckInInfo>
 
               <ManageSection
                 v-if="tournament.options"
@@ -1119,6 +1115,7 @@ export default {
               organizer_steam_id: true,
               is_organizer: true,
               can_join: true,
+              meets_min_role: true,
               can_start: true,
               can_cancel: true,
               can_open_registration: true,

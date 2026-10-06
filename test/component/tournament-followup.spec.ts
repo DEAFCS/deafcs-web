@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount, shallowMount } from "@vue/test-utils";
 import { reactive } from "vue";
+import fs from "node:fs";
+import path from "node:path";
 
 const auth = reactive({ me: { steam_id: "p", role: "verified_user", elo: { competitive: 6000 } }, isAdmin: false });
 vi.mock("~/stores/AuthStore", () => ({ useAuthStore: () => auth }));
@@ -17,6 +19,26 @@ const cup = { id: "cup", status: "RegistrationOpen", is_organizer: false, option
 const gate = (extra: any = {}) => mount(EntryGate, { props: { tournament: cup, registration: { ...registration, ...extra } }, global: { mocks: { $t: t }, stubs: { TournamentChip: { template: "<span><slot /></span>" } } } });
 
 describe("entry requirements follow the server verdict", () => {
+  it("requests the stored-role verdict in the actual live detail subscription", () => {
+    const detail = fs.readFileSync(path.resolve(__dirname, "../../components/tournament/TournamentDetail.vue"), "utf8");
+    const subscription = detail.slice(detail.indexOf("$subscribe:"));
+    expect(subscription).toMatch(/can_join: true,\s+meets_min_role: true,/);
+    expect(detail).toContain(':registration="tournament"');
+  });
+  it.each([1, 2].flatMap(version => ["teams", "free_agents", "both"].map(type => [version, type])))
+    ("shows Dosia's failed stored role in v%i %s, then hides after a passing subscription update", async (version, type) => {
+      auth.me.role = "user";
+      const tournament = { ...cup, registration_version: version, registration_type: type };
+      const w = gate({ meets_min_role: false });
+      await w.setProps({ tournament });
+      expect(w.text()).toContain("tournament.entry.blocked_chip");
+      expect(w.text()).toContain('"role":"roles.verified_user"');
+      expect(w.text()).toContain("tournament.entry.requirement_failed");
+      expect(w.text()).not.toContain("tournament.entry.requirement_met");
+      await w.setProps({ registration: { ...registration, meets_min_role: true } });
+      expect(w.find("section").exists()).toBe(false);
+      auth.me.role = "verified_user";
+    });
   it("hides the whole panel when every requirement passes", () => {
     expect(gate().find("section").exists()).toBe(false);
   });
