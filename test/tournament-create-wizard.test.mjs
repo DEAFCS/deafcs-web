@@ -140,11 +140,14 @@ test("goTo refuses to navigate directly into a disabled step", () => {
 });
 
 test("next() and back() both skip a disabled Location step", () => {
-  const nextFn = wizard.slice(
-    wizard.indexOf("async next() {"),
+  // next() itself is sync on purpose (void this.advance()) so ui/Button
+  // never sees a promise and flashes its auto-spinner on every step
+  // advance; the actual skip-a-disabled-step logic lives in advance().
+  const advanceFn = wizard.slice(
+    wizard.indexOf("async advance() {"),
     wizard.indexOf("back() {"),
   );
-  assert.match(nextFn, /nextEnabledStep\(/);
+  assert.match(advanceFn, /nextEnabledStep\(/);
 
   const backFn = wizard.slice(
     wizard.indexOf("back() {"),

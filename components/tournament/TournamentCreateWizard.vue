@@ -546,7 +546,15 @@ export default {
       }
       return step;
     },
-    async next() {
+    // Sync on purpose -- returning a promise from the click handler makes
+    // ui/Button flash its auto-spinner (and lock the button for its 2s
+    // minLoadingMs) on every step advance, even though validateStep now
+    // resolves almost instantly. void this.advance() keeps the real work
+    // async without handing Button a promise to react to.
+    next() {
+      void this.advance();
+    },
+    async advance() {
       if (!(await this.validateStep(this.currentStep))) {
         return;
       }

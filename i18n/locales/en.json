@@ -1336,6 +1336,8 @@
       },
       "sections": {
         "next_lan": "Next LAN",
+        "next_online": "Next Online",
+        "next_location_event": "Next Event",
         "live": "Live",
         "open": "Open for registration",
         "upcoming": "Upcoming",

@@ -30,6 +30,27 @@ const {
   prizePool,
 } = useTournamentDisplay(() => props.tournament);
 
+// This strip/hero isn't LAN-only (the page shows whichever upcoming
+// tournament is soonest, any category), so the label has to match whatever
+// that tournament actually is rather than always claiming LAN.
+const rawCategories = computed(
+  () =>
+    (props.tournament?.categories || []).map(
+      (category: any) => category.category,
+    ) as string[],
+);
+const sectionLabel = computed(() => {
+  if (rawCategories.value.includes("LAN")) {
+    return t("pages.tournaments.sections.next_lan");
+  }
+  if (rawCategories.value.includes("LocationEvent")) {
+    return t("pages.tournaments.sections.next_location_event");
+  }
+  // OnlineEvent, League, or no category chosen at all -- Online is the
+  // default assumption for a tournament that isn't tied to a physical venue.
+  return t("pages.tournaments.sections.next_online");
+});
+
 // Always English, regardless of the viewer's UI language -- the moment
 // itself still renders in their own local timezone.
 const longDay = computed(() =>
@@ -95,7 +116,7 @@ function signIn() {
           class="m-0 flex flex-wrap items-center gap-x-1.5 text-[0.8125rem] text-foreground/80"
         >
           <span class="font-semibold text-[hsl(var(--tac-amber))]">
-            {{ $t("pages.tournaments.sections.next_lan") }}
+            {{ sectionLabel }}
           </span>
           <template v-if="statusLabel">
             <span aria-hidden="true">·</span>
@@ -251,7 +272,7 @@ function signIn() {
           class="m-0 flex flex-wrap items-center gap-x-1.5 text-xs text-foreground/75"
         >
           <span class="font-semibold text-[hsl(var(--tac-amber))]">
-            {{ $t("pages.tournaments.sections.next_lan") }}
+            {{ sectionLabel }}
           </span>
           <span aria-hidden="true">·</span>
           <span>{{ startDay }} · {{ startTime }}</span>
