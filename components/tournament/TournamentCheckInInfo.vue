@@ -35,20 +35,20 @@ const visible = computed(
     RELEVANT_STATUSES.includes(props.tournament?.status as string),
 );
 
-const ruleClasses = "flex gap-2";
-const bulletClasses = "mt-[0.5em] h-[2px] w-2 shrink-0 bg-muted-foreground/50";
+const ruleClasses = "inline";
+const bulletClasses = "hidden";
 </script>
 
 <template>
   <div
     v-if="visible"
-    class="rounded-lg border border-border/60 bg-card/40 px-4 py-3"
+    class="rounded-md border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.08)] px-4 py-3"
   >
     <div
       class="flex items-center gap-2 font-mono text-[0.62rem] font-bold uppercase tracking-[0.2em] text-muted-foreground"
     >
       <CalendarClock class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
-      {{ t("tournament.attendance.info.title") }}
+      {{ t("tournament.check_in.required_title") }}
     </div>
 
     <dl
@@ -81,7 +81,7 @@ const bulletClasses = "mt-[0.5em] h-[2px] w-2 shrink-0 bg-muted-foreground/50";
     <!-- Spelled out per registration type rather than looped over a key
          list, so every string stays statically greppable for the translation
          tooling. -->
-    <ul class="mt-2.5 grid gap-1 text-xs leading-relaxed text-muted-foreground">
+    <ul class="mt-2 flex flex-wrap gap-x-1 gap-y-0.5 text-xs leading-relaxed text-muted-foreground">
       <template v-if="isIndividualRegistration">
         <li :class="ruleClasses">
           <span :class="bulletClasses"></span>

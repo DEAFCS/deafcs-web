@@ -43,8 +43,8 @@ const maxElo = computed<number | null>(() => {
   return value == null ? null : Number(value);
 });
 
-// meets_min_role gates the acting SESSION and is evaluated by the same
-// is_above_role the insert trigger uses — server truth, not a re-derivation.
+// The backend reads the viewer's stored role, including changes made while
+// their session is still open. Never derive a pass from a cached profile role.
 const roleBlocked = computed(
   () => !!minRole.value && props.registration?.meets_min_role === false,
 );
@@ -114,7 +114,8 @@ const requirements = computed(() => {
 // arrive from outside this panel. All it can do is say so.
 const needsInvite = computed(() => inviteOnly.value && !unlocked.value);
 
-const blocked = computed(() => roleBlocked.value || eloBlocked.value);
+const blocked = computed(() => roleBlocked.value || eloBlocked.value || needsInvite.value);
+const failedRequirements = computed(() => requirements.value.filter(row => row.blocked));
 
 const chipTone = computed(() => {
   if (blocked.value) {
@@ -141,7 +142,7 @@ const visible = computed(() => {
   if (props.tournament?.status !== e_tournament_status_enum.RegistrationOpen) {
     return false;
   }
-  return needsInvite.value || requirements.value.length > 0;
+  return blocked.value;
 });
 </script>
 
@@ -180,9 +181,9 @@ const visible = computed(() => {
       </TournamentChip>
     </div>
 
-    <div v-if="requirements.length > 0" class="mt-4 flex flex-col gap-1.5">
+    <div v-if="failedRequirements.length > 0" class="mt-4 flex flex-col gap-1.5">
       <div
-        v-for="requirement in requirements"
+        v-for="requirement in failedRequirements"
         :key="requirement.key"
         class="flex items-center justify-between gap-3 rounded-md border px-3 py-2 text-[0.82rem]"
         :class="

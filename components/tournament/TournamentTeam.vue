@@ -10,7 +10,7 @@ import {
   PopoverTrigger,
 } from "~/components/ui/popover";
 import { Label } from "~/components/ui/label";
-import { LogOut, Trash2, UserMinus, UserPlus, Pencil } from "lucide-vue-next";
+import { LogOut, Trash2, UserMinus, UserPlus, Pencil, Minimize, Maximize } from "lucide-vue-next";
 import { Spinner } from "~/components/ui/spinner";
 import {
   AlertDialog,
@@ -197,9 +197,9 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
               </template>
               <template v-else>
                 {{
-                  $t("tournament.team.not_eligible", {
-                    count: requiredPlayers - team.roster.length,
-                  })
+                  team.roster.length < minPlayers
+                    ? $t("tournament.team.not_eligible", { count: minPlayers - team.roster.length })
+                    : $t("tournament.entry.blocked_chip")
                 }}
               </template>
             </span>
@@ -230,7 +230,6 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
       </div>
 
       <div class="flex items-center gap-3 flex-shrink-0">
-        <Button variant="ghost" size="sm" :aria-expanded="membersExpanded" @click="membersExpanded = !membersExpanded">{{ membersExpanded ? 'Hide roster' : 'Show roster' }}</Button>
         <div
           class="inline-flex items-baseline gap-[0.2rem] px-[0.7rem] py-[0.35rem] font-mono tabular-nums border border-border rounded bg-muted/20"
         >
@@ -270,6 +269,19 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
         >
           <LogOut class="mr-1.5 h-4 w-4" />
           {{ $t("tournament.team.leave_tournament") }}
+        </Button>
+
+        <Button
+          variant="outline"
+          size="icon"
+          class="h-8 w-8"
+          :aria-expanded="membersExpanded"
+          :aria-label="$t(membersExpanded ? 'tournament.teams_filter.collapse' : 'tournament.teams_filter.expand')"
+          :title="$t(membersExpanded ? 'tournament.teams_filter.collapse' : 'tournament.teams_filter.expand')"
+          @click="membersExpanded = !membersExpanded"
+        >
+          <Minimize v-if="membersExpanded" class="h-4 w-4" />
+          <Maximize v-else class="h-4 w-4" />
         </Button>
 
         <Button
@@ -335,40 +347,28 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
           @leave="leaveTeam"
         />
 
-        <div
-          v-for="slot of Math.max(0, requiredPlayers - team.roster.length)"
-          :key="`slot-${slot}`"
-          class="flex items-center justify-between gap-3 px-[0.85rem] py-[0.65rem] border border-dashed border-border rounded-md bg-muted/10"
-        >
-          <div
-            class="flex items-center gap-[0.65rem] min-w-0 text-muted-foreground"
+        <!-- Current 5Stack roster slot presentation; DEAFCS role/mode gates retained. -->
+        <div v-for="slot of Math.max(0, requiredPlayers - team.roster.length)" :key="`slot-${slot}`">
+          <PlayerSearch
+            v-if="slot === 1 && team.can_manage"
+            :label="$t('tournament.team.add_player')"
+            :self="true"
+            :exclude="team.roster?.map((member) => member.player.steam_id) || []"
+            :team-id="team.team_id"
+            :registeredOnly="true"
+            :match-type="tournament?.options?.type"
+            :min-role="tournament?.min_role"
+            @selected="addMember"
           >
-            <span
-              class="font-mono text-[0.75rem] font-bold tracking-[0.1em] text-muted-foreground/55"
-            >
-              {{ (slot + team.roster.length).toString().padStart(2, "0") }}
-            </span>
-            <span class="text-[0.85rem]">
-              {{
-                $t("tournament.team.slot", {
-                  number: slot + team.roster.length,
-                })
-              }}
-            </span>
-          </div>
-          <div v-if="slot === 1 && team.can_manage" class="flex-shrink-0">
-            <PlayerSearch
-              :label="$t('tournament.team.add_player')"
-              :self="true"
-              :exclude="
-                team.roster?.map((member) => member.player.steam_id) || []
-              "
-              :team-id="team.team_id"
-              :registeredOnly="true"
-              :match-type="tournament?.options?.type"
-              :min-role="tournament?.min_role"
-              @selected="addMember"
-            />
+            <button type="button" class="roster-slot roster-slot--open">
+              <span class="roster-slot__index font-mono">{{ (slot + team.roster.length).toString().padStart(2, '0') }}</span>
+              <span class="roster-slot__avatar"><UserPlus class="h-4 w-4" /></span>
+              <span class="roster-slot__label">{{ $t('tournament.team.add_player') }}</span>
+            </button>
+          </PlayerSearch>
+          <div v-else class="roster-slot">
+            <span class="roster-slot__index font-mono">{{ (slot + team.roster.length).toString().padStart(2, '0') }}</span>
+            <span class="roster-slot__label">{{ $t('tournament.team.slot', { number: slot + team.roster.length }) }}</span>
           </div>
         </div>
       </div>
@@ -909,3 +909,57 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+.roster-slot {
+  display: flex;
+  width: 100%;
+  min-height: calc(50px + 1.3rem + 2px);
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 0.375rem;
+  background: hsl(var(--muted) / 0.1);
+  color: hsl(var(--muted-foreground));
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease;
+}
+.roster-slot--open {
+  cursor: pointer;
+  text-align: left;
+}
+.roster-slot--open:hover {
+  border-color: hsl(var(--tac-amber) / 0.55);
+  background: hsl(var(--tac-amber) / 0.06);
+  color: hsl(var(--tac-amber));
+}
+.roster-slot__index {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: hsl(var(--muted-foreground) / 0.55);
+}
+.roster-slot--open:hover .roster-slot__index {
+  color: hsl(var(--tac-amber) / 0.7);
+}
+.roster-slot__avatar {
+  display: grid;
+  place-items: center;
+  height: 2.25rem;
+  width: 2.25rem;
+  flex-shrink: 0;
+  border: 1px dashed hsl(var(--border));
+  border-radius: 0.375rem;
+  transition: border-color 0.16s ease;
+}
+.roster-slot--open:hover .roster-slot__avatar {
+  border-color: hsl(var(--tac-amber) / 0.5);
+}
+.roster-slot__label {
+  font-size: 0.85rem;
+}
+
+</style>

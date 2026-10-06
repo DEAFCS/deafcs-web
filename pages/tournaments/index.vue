@@ -869,7 +869,7 @@ const agendaMonthLabelClasses =
           </PageTransition>
 
           <PageTransition :delay="150">
-            <section v-if="recent.length" :class="sectionClasses">
+            <section v-if="recent.length" :class="sectionClasses" class="pt-[5px]">
               <div
                 :class="[
                   tacticalSectionLabelClasses,
