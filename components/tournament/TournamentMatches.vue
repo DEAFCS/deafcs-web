@@ -4,9 +4,11 @@ import { useSubscription } from "@vue/apollo-composable";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $, order_by } from "~/generated/zeus";
 import { simpleMatchFields } from "~/graphql/simpleMatchFields";
-import MatchesTable from "~/components/MatchesTable.vue";
+import PlayerMatchesTable from "~/components/player/PlayerMatchesTable.vue";
 import Pagination from "~/components/Pagination.vue";
 import { Skeleton } from "~/components/ui/skeleton";
+import { usePerPage } from "~/composables/usePerPage";
+import { useMatchRowStats } from "~/composables/useMatchRowStats";
 import {
   TOURNAMENT_MATCH_FILTERS,
   filterTournamentMatches,
@@ -15,12 +17,10 @@ import {
   type TournamentMatchFilter,
 } from "~/utilities/tournamentMatches";
 
-// Every match of the tournament as full DEAFCS match rows (mode badge, map
-// background, score), live. Adapted from 5Stack's tournament Matches tab
-// (MIT), using the DEAFCS MatchesTable instead of 5Stack's player table.
+// Current 5Stack tournament architecture: the shared responsive match-row
+// table, paginated locally, with MVP/stats enrichment limited to this page.
+// DEAFCS keeps its live/result filter chips and server subscription.
 const props = defineProps<{ tournamentId: string }>();
-
-const PER_PAGE = 20;
 
 const { result, loading } = useSubscription(
   typedGql("subscription")({
@@ -48,10 +48,19 @@ const filter = ref<TournamentMatchFilter>("all");
 const filtered = computed(() => filterTournamentMatches(matches.value, filter.value));
 
 const page = ref(1);
-watch(filter, () => (page.value = 1));
+const perPage = usePerPage("tournament-matches");
+watch([filter, perPage], () => (page.value = 1));
+const setPerPage = (value: number) => {
+  perPage.value = value;
+};
 const pageMatches = computed(() =>
-  filtered.value.slice((page.value - 1) * PER_PAGE, page.value * PER_PAGE),
+  filtered.value.slice(
+    (page.value - 1) * perPage.value,
+    page.value * perPage.value,
+  ),
 );
+const { topPlayerByMatch, statsByMatch, ratingByMatch } =
+  useMatchRowStats(pageMatches);
 </script>
 
 <template>
@@ -89,13 +98,21 @@ const pageMatches = computed(() =>
     </p>
 
     <template v-else>
-      <MatchesTable :matches="pageMatches" />
+      <PlayerMatchesTable
+        :matches="pageMatches"
+        neutral
+        tournament-times
+        :top-player-by-match="topPlayerByMatch"
+        :stats-by-match="statsByMatch"
+        :rating-by-match="ratingByMatch"
+      />
       <Pagination
-        v-if="filtered.length > PER_PAGE"
         :page="page"
-        :per-page="PER_PAGE"
+        :per-page="perPage"
         :total="filtered.length"
+        show-per-page-selector
         @page="(p: number) => (page = p)"
+        @update:per-page="setPerPage"
       />
     </template>
   </div>

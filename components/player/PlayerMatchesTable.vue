@@ -19,6 +19,11 @@ defineProps<{
   // match_id -> focus player's aggregate stats, batched by the page so each
   // collapsed row doesn't fire its own matches_by_pk query.
   statsByMatch?: Map<string, any> | null;
+  // Neutral rows represent both lineups (tournament/team contexts) instead
+  // of orienting result and stats around one profile player.
+  neutral?: boolean;
+  tournamentTimes?: boolean;
+  topPlayerByMatch?: Map<string, any> | null;
 }>();
 
 // Below md the dense table can't fit its tracks — fall back to the
@@ -48,6 +53,9 @@ const wideGrid =
         :rank-by-match="rankByMatch"
         :canonical-rating="ratingByMatch?.get(String(match.id)) ?? null"
         :collapsed-agg="statsByMatch?.get(String(match.id)) ?? null"
+        :neutral="neutral"
+        :tournament-time="tournamentTimes"
+        :top-player="topPlayerByMatch?.get(String(match.id)) ?? null"
         compact
         :style="{ animationDelay: `${index * 40}ms` }"
         class="animate-in fade-in slide-in-from-bottom-2"
@@ -80,7 +88,13 @@ const wideGrid =
           <span>K / D / A</span>
           <span><StatLabel stat="kd" header label="K/D" /></span>
           <span><StatLabel stat="adr" header label="ADR" /></span>
-          <span class="text-right">{{ $t("player_match.headers.elo") }}</span>
+          <span class="text-right">
+            {{
+              neutral
+                ? $t("trophies.mvp")
+                : $t("player_match.headers.elo")
+            }}
+          </span>
           <span />
         </div>
 
@@ -93,6 +107,9 @@ const wideGrid =
             :rank-by-match="rankByMatch"
             :canonical-rating="ratingByMatch?.get(String(match.id)) ?? null"
             :collapsed-agg="statsByMatch?.get(String(match.id)) ?? null"
+            :neutral="neutral"
+            :tournament-time="tournamentTimes"
+            :top-player="topPlayerByMatch?.get(String(match.id)) ?? null"
             :style="{ animationDelay: `${index * 40}ms` }"
             class="animate-in fade-in slide-in-from-bottom-2"
           />

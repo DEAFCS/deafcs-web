@@ -14,7 +14,13 @@ import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
 import MatchStatus from "~/components/match/MatchStatus.vue";
 import MatchPlayerDetailsPanel from "~/components/match/MatchPlayerDetailsPanel.vue";
 import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
+import TournamentTime from "~/components/tournament/TournamentTime.vue";
 import { kdColor, hltvColor } from "~/utils/statTiers";
+import { matchSeriesLabel } from "~/utilities/matchSeriesLabel";
+import {
+  supportsTournamentMvp,
+  tournamentMatchScores,
+} from "~/utilities/tournamentMatchRow";
 import {
   MATCH_TYPE_RGB,
   matchTypeColorStyle,
@@ -66,7 +72,13 @@ const wideGrid =
       </NuxtLink>
 
       <!-- DATE -->
-      <div class="flex flex-col leading-tight">
+      <div
+        v-if="neutral && tournamentTime"
+        class="text-[0.7rem] leading-tight"
+      >
+        <TournamentTime :value="matchDate" display="date-time" />
+      </div>
+      <div v-else class="flex flex-col leading-tight">
         <span class="text-[0.7rem] font-medium text-foreground/90">
           {{ dateLabel }}
         </span>
@@ -82,36 +94,70 @@ const wideGrid =
            sub-badge so it reads as "comp, but from Valve" without competing
            for column width. -->
       <div class="flex min-w-0 items-center justify-center">
-        <span
+        <div
           v-if="matchTypeLabel"
-          class="relative inline-flex max-w-full items-center rounded border px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.08em]"
-          :class="
-            matchType && matchType in MATCH_TYPE_RGB
-              ? 'border-[rgb(var(--mode-rgb)/0.45)] bg-[rgb(var(--mode-rgb)/0.09)] text-[rgb(var(--mode-rgb))]'
-              : 'border-border/70 bg-muted/40 text-foreground/80'
-          "
-          :style="matchTypeBadgeStyle(matchType)"
-          :title="
-            isExternal
-              ? `${matchType} · imported from ${sourceLabel}`
-              : matchType
-          "
+          class="flex min-w-0 flex-col items-center gap-0.5"
         >
-          <span class="truncate">{{ matchTypeLabel }}</span>
           <span
-            v-if="isExternal"
-            class="pointer-events-none absolute -right-1.5 -top-1.5 inline-flex items-center rounded-sm border border-[hsl(200_95%_55%/0.5)] bg-[hsl(200_95%_55%/0.18)] px-1 py-px font-mono text-[0.42rem] font-bold uppercase leading-none tracking-[0.06em] text-[hsl(200_95%_72%)] [text-shadow:0_1px_2px_hsl(var(--background)),0_0_2px_hsl(var(--background))]"
+            class="relative inline-flex max-w-full items-center rounded border px-1.5 py-0.5 font-mono text-[0.58rem] font-semibold uppercase tracking-[0.08em]"
+            :class="
+              matchType && matchType in MATCH_TYPE_RGB
+                ? 'border-[rgb(var(--mode-rgb)/0.45)] bg-[rgb(var(--mode-rgb)/0.09)] text-[rgb(var(--mode-rgb))]'
+                : 'border-border/70 bg-muted/40 text-foreground/80'
+            "
+            :style="matchTypeBadgeStyle(matchType)"
+            :title="
+              isExternal
+                ? `${matchType} · imported from ${sourceLabel}`
+                : matchType
+            "
           >
-            {{ sourceLabel }}
+            <span class="truncate">{{ matchTypeLabel }}</span>
+            <span
+              v-if="isExternal"
+              class="pointer-events-none absolute -right-1.5 -top-1.5 inline-flex items-center rounded-sm border border-[hsl(200_95%_55%/0.5)] bg-[hsl(200_95%_55%/0.18)] px-1 py-px font-mono text-[0.42rem] font-bold uppercase leading-none tracking-[0.06em] text-[hsl(200_95%_72%)] [text-shadow:0_1px_2px_hsl(var(--background)),0_0_2px_hsl(var(--background))]"
+            >
+              {{ sourceLabel }}
+            </span>
           </span>
-        </span>
+          <span
+            v-if="neutral"
+            class="max-w-full truncate font-mono text-[0.5rem] uppercase tracking-[0.08em] text-muted-foreground"
+          >
+            {{ seriesLabel
+            }}<template v-if="stageLabel"> · {{ stageLabel }}</template>
+          </span>
+        </div>
         <span v-else class="text-muted-foreground">—</span>
       </div>
 
       <!-- RESULT + SCORE — finished matches show the W/L/T badge + score;
            anything else (scheduled/cancelled/live) shows only the status. The
            opponent TEAM (real teams only — never pugs) tucks under the score. -->
-      <div class="flex min-w-0 flex-col justify-center gap-0.5">
+      <div v-if="neutral" class="flex min-w-0 flex-col justify-center gap-1">
+        <template v-if="isFinished">
+          <div
+            v-for="team in neutralTeams"
+            :key="team.id"
+            class="flex min-w-0 items-center gap-1.5 text-[0.65rem] leading-none"
+            :class="team.outcomeClass"
+          >
+            <img
+              v-if="team.avatarSrc"
+              :src="team.avatarSrc"
+              alt=""
+              class="h-4 w-4 shrink-0 rounded-sm object-cover"
+              @error="($event.target as HTMLImageElement).style.display = 'none'"
+            />
+            <span class="min-w-0 flex-1 truncate">{{ team.name }}</span>
+            <span class="font-mono font-bold tabular-nums">{{
+              team.score ?? "—"
+            }}</span>
+          </div>
+        </template>
+        <MatchStatus v-else :match="match" class="self-start" />
+      </div>
+      <div v-else class="flex min-w-0 flex-col justify-center gap-0.5">
         <span
           v-if="isFinished"
           class="font-mono text-sm font-bold leading-none tabular-nums"
@@ -233,7 +279,21 @@ const wideGrid =
       <span v-else class="text-muted-foreground">—</span>
 
       <!-- Δ ELO (5stack) / Valve rank (external: Premier rating or skill group) -->
-      <div class="flex items-center justify-end">
+      <div v-if="neutral" class="flex min-w-0 items-center justify-end gap-1">
+        <Trophy
+          v-if="showMvp && topPlayer"
+          class="h-3 w-3 shrink-0 text-[hsl(var(--tac-amber))]"
+        />
+        <span
+          v-if="showMvp && topPlayer"
+          class="truncate text-right text-[0.65rem] font-medium"
+          :title="topPlayer.name"
+        >
+          {{ topPlayer.name }}
+        </span>
+        <span v-else class="text-muted-foreground">—</span>
+      </div>
+      <div v-else class="flex items-center justify-end">
         <EloChangeBadge v-if="hasElo" :elo-change="eloChange" size="sm" />
         <!-- Premier: canonical CS2 rating badge. The change floats as a
              superscript overlapping the pill's top-right corner so it never
@@ -307,7 +367,110 @@ const wideGrid =
 
     <!-- ===================== COMPACT ===================== -->
     <div v-else class="px-3 py-2.5">
-      <div class="flex items-center gap-2">
+      <template v-if="neutral">
+        <div class="flex min-w-0 items-start gap-2">
+          <div class="min-w-0 flex-1 space-y-1.5">
+            <div
+              v-for="team in neutralTeams"
+              :key="team.id"
+              class="flex min-w-0 items-center gap-2"
+              :class="team.outcomeClass"
+            >
+              <img
+                v-if="team.avatarSrc"
+                :src="team.avatarSrc"
+                alt=""
+                class="h-5 w-5 shrink-0 rounded-sm object-cover"
+                @error="($event.target as HTMLImageElement).style.display = 'none'"
+              />
+              <span class="min-w-0 flex-1 truncate text-sm font-medium">{{
+                team.name
+              }}</span>
+              <span
+                v-if="isFinished"
+                class="font-mono text-sm font-bold tabular-nums"
+                >{{ team.score ?? "—" }}</span
+              >
+            </div>
+            <MatchStatus v-if="!isFinished" :match="match" />
+          </div>
+          <NuxtLink
+            :to="`/matches/${match.id}`"
+            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:text-[hsl(var(--tac-amber))]"
+            :title="$t('match.open_match')"
+            @click.stop
+          >
+            <ExternalLink class="h-4 w-4" />
+          </NuxtLink>
+        </div>
+
+        <div
+          class="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.65rem] text-muted-foreground"
+        >
+          <span
+            class="rounded border px-1.5 py-0.5 font-mono font-semibold uppercase tracking-[0.08em]"
+            :class="
+              matchType && matchType in MATCH_TYPE_RGB
+                ? 'border-[rgb(var(--mode-rgb)/0.45)] text-[rgb(var(--mode-rgb))]'
+                : 'border-border/70'
+            "
+            :style="matchTypeBadgeStyle(matchType)"
+          >
+            {{ matchTypeLabel }}
+          </span>
+          <span class="font-mono uppercase">{{ seriesLabel }}</span>
+          <span v-if="stageLabel" class="truncate">{{ stageLabel }}</span>
+          <TournamentTime
+            v-if="tournamentTime"
+            class="ml-auto"
+            :value="matchDate"
+            display="date-time"
+          />
+        </div>
+
+        <div class="mt-2 flex min-w-0 items-center gap-2">
+          <img
+            v-if="mapInfo.patch"
+            :src="mapInfo.patch"
+            :alt="mapInfo.name"
+            class="h-5 w-5 shrink-0"
+            @error="($event.target as HTMLImageElement).style.display = 'none'"
+          />
+          <span class="min-w-0 flex-1 truncate text-xs text-foreground/85">{{
+            mapInfo.label
+          }}</span>
+          <span
+            v-if="showMvp && topPlayer"
+            class="inline-flex min-w-0 items-center gap-1 text-[0.65rem] text-foreground/80"
+          >
+            <Trophy class="h-3 w-3 shrink-0 text-[hsl(var(--tac-amber))]" />
+            <span class="truncate">{{ topPlayer.name }}</span>
+          </span>
+        </div>
+
+        <div
+          v-if="isFinished && stats"
+          class="mt-2.5 grid grid-cols-4 gap-px overflow-hidden rounded-md border border-border/50 bg-border/40"
+        >
+          <div
+            v-for="item in compactStats"
+            :key="item.label"
+            class="flex flex-col items-center bg-card/60 py-1.5"
+          >
+            <span
+              class="font-mono text-[0.5rem] uppercase tracking-[0.12em] text-muted-foreground/60"
+              >{{ item.label }}</span
+            >
+            <span
+              class="font-mono text-sm font-bold tabular-nums text-foreground/90"
+              >{{ item.value }}</span
+            >
+          </div>
+        </div>
+      </template>
+
+      <template v-else>
+        <div class="flex items-center gap-2">
         <template v-if="isFinished">
           <span class="font-mono text-base font-bold leading-none tabular-nums">
             <span :class="scoreClass">{{ score.player }}</span>
@@ -524,7 +687,8 @@ const wideGrid =
           <ExternalLink class="h-3.5 w-3.5" />
           {{ $t("match.open_match") }}
         </NuxtLink>
-      </div>
+        </div>
+      </template>
     </div>
 
     <!-- ===================== EXPANDED DETAIL ===================== -->
@@ -610,6 +774,9 @@ export default {
     // Focus player's aggregate stats for this match, batched by the parent
     // page. Powers the collapsed row without a per-row matches_by_pk query.
     collapsedAgg: { type: Object, required: false, default: null },
+    neutral: { type: Boolean, default: false },
+    tournamentTime: { type: Boolean, default: false },
+    topPlayer: { type: Object, required: false, default: null },
   },
   data() {
     return {
@@ -717,6 +884,70 @@ export default {
     },
     apiDomain(): string {
       return useRuntimeConfig().public.apiDomain as string;
+    },
+    seriesLabel(): string {
+      return matchSeriesLabel(this.match?.options?.best_of);
+    },
+    stageLabel(): string {
+      return (
+        this.match?.tournament_brackets?.[0]?.stage?.e_tournament_stage_type
+          ?.description ?? ""
+      );
+    },
+    showMvp(): boolean {
+      return this.neutral && this.isFinished && supportsTournamentMvp(this.match);
+    },
+    neutralTeams(): Array<{
+      id: string;
+      name: string;
+      avatarSrc: string | null;
+      score: number | null;
+      outcomeClass: string;
+    }> {
+      const scores = tournamentMatchScores(this.match);
+      return [this.match?.lineup_1, this.match?.lineup_2].map(
+        (lineup: any, index: number) => {
+          const id = String(lineup?.id ?? `lineup-${index + 1}`);
+          const avatar = lineup?.team?.avatar_url;
+          const winner = this.match?.winning_lineup_id;
+          return {
+            id,
+            name:
+              lineup?.team?.name ||
+              lineup?.name ||
+              this.$t("pages.watch.ticker.tbd"),
+            avatarSrc: avatar ? `https://${this.apiDomain}/${avatar}` : null,
+            score: scores[index],
+            outcomeClass: winner
+              ? winner === id
+                ? "text-[hsl(142_71%_60%)] font-semibold"
+                : "text-muted-foreground"
+              : "text-foreground/85",
+          };
+        },
+      );
+    },
+    compactStats(): Array<{ label: string; value: string }> {
+      return [
+        {
+          label: "RTG",
+          value: this.rating !== null ? this.rating.toFixed(2) : "—",
+        },
+        {
+          label: "K/D/A",
+          value: this.stats
+            ? `${this.stats.kills}/${this.stats.deaths}/${this.stats.assists}`
+            : "—",
+        },
+        {
+          label: "K/D",
+          value: this.kd !== null ? this.kd.toFixed(2) : "—",
+        },
+        {
+          label: "ADR",
+          value: this.adr !== null ? this.adr.toFixed(0) : "—",
+        },
+      ];
     },
     // The lineup the focus player is NOT on. Mirrors the score's orientation
     // (player defaults to lineup_1) when their lineup can't be resolved.

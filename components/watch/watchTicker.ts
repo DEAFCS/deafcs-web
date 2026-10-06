@@ -8,6 +8,7 @@
 
 import { autoPovEligible } from "~/utilities/matchStreams";
 import cleanMapName from "~/utilities/cleanMapName";
+import { matchSeriesLabel } from "~/utilities/matchSeriesLabel";
 
 type Translate = (key: string, values?: Record<string, unknown>) => string;
 
@@ -190,19 +191,10 @@ function statusLine(
 ): TickerCellModel["status"] {
   if (kind === "result") {
     const bestOf: number = match?.options?.best_of ?? 1;
-    if (bestOf > 1) {
-      return {
-        dot: null,
-        text: t("pages.watch.ticker.final_best_of", { count: bestOf }),
-        detail: null,
-      };
-    }
     return {
       dot: null,
-      text: hasOvertime(match)
-        ? t("pages.watch.ticker.final_overtime")
-        : t("pages.watch.ticker.final"),
-      detail: null,
+      text: matchSeriesLabel(bestOf),
+      detail: hasOvertime(match) ? t("pages.watch.ticker.overtime_short") : null,
     };
   }
 

@@ -128,8 +128,18 @@ describe("rail model", () => {
       makeMatch({ status: "Finished", winning_lineup_id: "l1", options: { best_of: 3, type: "Competitive" }, match_maps: bo3Maps() }),
       ctx,
     );
-    expect(bo3.status.text).toBe("pages.watch.ticker.final_best_of(count=3)");
+    expect(bo3.status.text).toBe("BO3");
     expect(bo3.teams.map((tm) => tm.score)).toEqual([1, 0]);
+  });
+
+  it("finished cards label the series BO1/BO3 instead of calling BO1 Final", () => {
+    expect(tickerCell(makeMatch({ status: "Finished" }), ctx).status.text).toBe("BO1");
+    expect(
+      tickerCell(
+        makeMatch({ status: "Finished", options: { best_of: 5, type: "Competitive" } }),
+        ctx,
+      ).status.text,
+    ).toBe("BO5");
   });
 
   it("stream indicator: in game and pre-match (a caster can be on air), never on the viewer's own match", () => {

@@ -174,11 +174,25 @@ describe("tournament page navigation (adapted from 5Stack's five-tab page)", () 
     expect(block).not.toContain("RegistrationOpen");
   });
 
-  it("the Matches tab reuses DEAFCS match rows (mode badges, map backgrounds)", () => {
+  it("the Matches tab follows the current 5Stack paginated neutral-row architecture", () => {
     const matches = read("components/tournament/TournamentMatches.vue");
-    expect(matches).toContain('import MatchesTable from "~/components/MatchesTable.vue";');
+    expect(matches).toContain('import PlayerMatchesTable from "~/components/player/PlayerMatchesTable.vue";');
     expect(matches).toContain("simpleMatchFields");
+    expect(matches).toContain("useMatchRowStats(pageMatches)");
+    expect(matches).toContain('usePerPage("tournament-matches")');
+    expect(matches).toContain("neutral");
+    expect(matches).toContain("tournament-times");
+    expect(matches).toContain("show-per-page-selector");
     expect(matches).toMatch(/tournament_brackets: \{\n\s+stage: \{ tournament_id: \{ _eq: \$\("tournamentId", "uuid!"\) \} \},/);
+  });
+
+  it("neutral rows preserve DEAFCS labels, timezone UI and unknown historical scores", () => {
+    const row = read("components/player/PlayerMatchRow.vue");
+    expect(row).toContain("<TournamentTime");
+    expect(row).toContain("matchSeriesLabel(this.match?.options?.best_of)");
+    expect(row).toContain("cleanMapName(m.label || m.name || \"\")");
+    expect(row).toContain('team.score ?? "—"');
+    expect(row).toContain("supportsTournamentMvp(this.match)");
   });
 });
 
