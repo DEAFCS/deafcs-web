@@ -39,16 +39,18 @@ const day = computed(() =>
     ? new Intl.DateTimeFormat(undefined, { day: "numeric" }).format(start.value)
     : "—",
 );
-const weekdayMonth = computed(() =>
+// The month is already in the agenda's own group heading ("September
+// 2026") right above this row, so repeating it here is redundant -- just
+// the weekday. Always English regardless of the viewer's UI language (the
+// surrounding date/time itself stays in the viewer's own timezone): "en-GB"
+// rather than "en-US" because it also defaults to a 24-hour clock, which
+// matters for the other time-of-day labels this same pattern is used for
+// elsewhere -- DEAFCS doesn't use AM/PM anywhere.
+const weekday = computed(() =>
   start.value
-    ? [
-        new Intl.DateTimeFormat(undefined, { weekday: "short" }).format(
-          start.value,
-        ),
-        new Intl.DateTimeFormat(undefined, { month: "short" }).format(
-          start.value,
-        ),
-      ].join(" · ")
+    ? new Intl.DateTimeFormat("en-GB", { weekday: "short" }).format(
+        start.value,
+      )
     : "",
 );
 
@@ -79,7 +81,7 @@ const meta = computed(() =>
       <b class="text-[1.35rem] font-extrabold tabular-nums">{{ day }}</b>
       <span
         class="mt-1 whitespace-nowrap font-mono text-[0.55rem] uppercase tracking-[0.14em] text-muted-foreground"
-        >{{ weekdayMonth }}</span
+        >{{ weekday }}</span
       >
     </span>
 

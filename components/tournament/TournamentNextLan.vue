@@ -30,9 +30,11 @@ const {
   prizePool,
 } = useTournamentDisplay(() => props.tournament);
 
+// Always English, regardless of the viewer's UI language -- the moment
+// itself still renders in their own local timezone.
 const longDay = computed(() =>
   start.value
-    ? new Intl.DateTimeFormat(undefined, {
+    ? new Intl.DateTimeFormat("en-GB", {
         weekday: "long",
         month: "long",
         day: "numeric",
@@ -60,7 +62,7 @@ const until = computed(() => {
 
 const month = computed(() =>
   start.value
-    ? new Intl.DateTimeFormat(undefined, { month: "short" }).format(start.value)
+    ? new Intl.DateTimeFormat("en-GB", { month: "short" }).format(start.value)
     : null,
 );
 

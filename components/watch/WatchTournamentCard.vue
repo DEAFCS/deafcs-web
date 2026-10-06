@@ -102,12 +102,14 @@ const sub = computed(() => {
 const startsAt = computed(() => {
   if (!props.tournament.start) return null;
   const start = new Date(props.tournament.start);
-  const day = new Intl.DateTimeFormat(undefined, {
+  // "en-GB": English weekday/month text, 24-hour time, still the viewer's
+  // own local timezone.
+  const day = new Intl.DateTimeFormat("en-GB", {
     weekday: "short",
     month: "short",
     day: "numeric",
   }).format(start);
-  const time = new Intl.DateTimeFormat(undefined, {
+  const time = new Intl.DateTimeFormat("en-GB", {
     hour: "numeric",
     minute: "2-digit",
   }).format(start);
