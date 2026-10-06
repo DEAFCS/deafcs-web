@@ -6,7 +6,7 @@ import Legacy from "../../components/tournament/TournamentCheckInInfo.vue";
 import Panel from "../../components/tournament/TournamentCheckInPanel.vue";
 import Time from "../../components/tournament/TournamentTime.vue";
 import * as tooltipComponents from "../../components/ui/tooltip";
-import { formatLocalTournamentClock, tournamentZoneAbbreviation } from "../../utilities/tournamentTime";
+import { formatLocalTournamentZoneTime } from "../../utilities/tournamentTime";
 import en from "../../i18n/locales/en.json";
 
 vi.mock("#app", () => ({ tryUseNuxtApp: () => undefined }));
@@ -18,14 +18,46 @@ const global = () => ({ plugins: [createI18n({ legacy: false, locale: "en", mess
     FiveStackToolTip: { template: '<div><slot name="trigger" /></div>' } } });
 
 describe("upstream before-registration presentation", () => {
-  it("exposes the compact timezone tooltip on mouse hover", async () => {
+  it.each([
+    ["Europe/London", "2026-10-10T12:00:00Z", "BST", "CEST"],
+    ["Europe/London", "2026-12-10T13:00:00Z", "GMT", "CET"],
+    ["Europe/Copenhagen", "2026-10-10T12:00:00Z", "CEST", "CEST"],
+    ["Europe/Copenhagen", "2026-12-10T13:00:00Z", "CET", "CET"],
+  ])("uses full date-correct tooltip lines in %s at %s", (zone, value, localZone, referenceZone) => {
+    vi.stubEnv("TZ", zone);
+    try {
+      const w = mount(Time, { props: { value, display: "time" }, global: {
+        plugins: global().plugins,
+        stubs: { FiveStackToolTip: { template: '<div><slot name="trigger" /><aside><slot /></aside></div>' } },
+      } });
+      expect(w.get('[data-testid="tournament-time-zone"]').text()).toBe(formatLocalTournamentZoneTime(value));
+      expect(w.get('aside').text()).toContain(`Shown in your local timezone (${zone})`);
+      expect(w.get('button').attributes('aria-label')).toContain(localZone);
+      expect(w.get('time').text()).not.toMatch(/BST|GMT|CEST|CET/);
+      if (zone === "Europe/Copenhagen") expect(w.get('aside').text()).not.toContain("Copenhagen:");
+      else expect(w.get('aside').text()).toMatch(new RegExp(`Copenhagen:.*${referenceZone}`));
+      w.unmount();
+    } finally { vi.unstubAllEnvs(); }
+  });
+  it("opens the same full tooltip from keyboard focus", async () => {
+    const w = mount(Time, { attachTo: document.body, props: { value: "2026-10-10T12:00:00Z" },
+      global: { plugins: global().plugins, components: tooltipComponents } });
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", bubbles: true }));
+    w.get('button').element.focus();
+    await flushPromises();
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(document.body.querySelector('[role="tooltip"]')?.textContent).toContain("Shown in your local timezone");
+    w.unmount();
+  });
+  it("exposes the full local date/time tooltip on mouse hover", async () => {
     const value = "2026-10-10T11:00:00Z";
-    const w = mount(Time, { attachTo: document.body, props: { value, display: "time", compactTooltip: true },
+    const w = mount(Time, { attachTo: document.body, props: { value, display: "time" },
       global: { plugins: global().plugins, components: tooltipComponents } });
     await w.find("button").trigger("pointermove", { pointerType: "mouse" });
     await flushPromises();
     await new Promise(resolve => setTimeout(resolve, 20));
-    expect(document.body.querySelector('[role="tooltip"]')?.textContent).toContain(`${formatLocalTournamentClock(value)} ${tournamentZoneAbbreviation(value)}`);
+    expect(document.body.querySelector('[role="tooltip"]')?.textContent).toContain(formatLocalTournamentZoneTime(value));
+    expect(document.body.querySelector('[role="tooltip"]')?.textContent).toContain("Shown in your local timezone");
     w.unmount();
   });
   it("renders the inline title, window, heading and register CTA, forwarding the action", async () => {

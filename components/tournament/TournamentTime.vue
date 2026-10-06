@@ -9,7 +9,6 @@ import {
   formatLocalTournamentZoneTime,
   isCopenhagenTimeZone,
   localTimeZoneName,
-  tournamentZoneAbbreviation,
   type TournamentTimeInput,
 } from "~/utilities/tournamentTime";
 
@@ -17,7 +16,6 @@ const props = withDefaults(
   defineProps<{
     value: TournamentTimeInput;
     display?: "date-time" | "time";
-    compactTooltip?: boolean;
   }>(),
   {
     display: "date-time",
@@ -44,9 +42,7 @@ const localLabel = computed(() =>
 // The timezone lives in the tooltip only (hover, focus or tap), never as an
 // always-visible line: "10 Oct 14:00 CEST", from the viewer's own zone.
 const localZoneLabel = computed(() =>
-  props.compactTooltip
-    ? `${localLabel.value} ${tournamentZoneAbbreviation(date.value)}`
-    : formatLocalTournamentZoneTime(date.value),
+  formatLocalTournamentZoneTime(date.value),
 );
 const localNotice = computed(() =>
   t("common.time.local_notice", { timezone: localTimeZoneName() }),
@@ -75,8 +71,8 @@ const localAriaLabel = computed(
       <span class="font-semibold tabular-nums" data-testid="tournament-time-zone">
         {{ localZoneLabel }}
       </span>
-      <span v-if="!compactTooltip" class="text-muted-foreground">{{ localNotice }}</span>
-      <span v-if="!compactTooltip && showCopenhagen">
+      <span class="text-muted-foreground">{{ localNotice }}</span>
+      <span v-if="showCopenhagen">
         <span class="font-semibold">{{ t("common.time.copenhagen") }}:</span>
         <span class="ml-1 tabular-nums">{{ copenhagenLabel }}</span>
       </span>

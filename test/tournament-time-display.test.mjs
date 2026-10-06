@@ -81,14 +81,15 @@ test("the shared check-in strip uses the tooltip for opening and closing", async
   assert.match(checkInInfo, /:opens-at="attendanceTimes\?\.opensAt"/);
   assert.match(checkInInfo, /:closes-at="attendanceTimes\?\.closesAt"/);
   const before = await read("../components/tournament/TournamentCheckInBefore.vue");
-  assert.equal((before.match(/display="time" compact-tooltip/g) ?? []).length, 2);
+  assert.equal((before.match(/display="time"/g) ?? []).length, 2);
+  assert.doesNotMatch(before, /compact-tooltip/);
   assert.doesNotMatch(checkInInfo, /local_notice/);
 });
 
 test("the tooltip carries the viewer's own zone abbreviation", () => {
   assert.match(timeComponent, /formatLocalTournamentZoneTime\(date\.value\)/);
   assert.match(timeComponent, /common\.time\.local_notice/);
-  assert.match(timeComponent, /v-if="!compactTooltip && showCopenhagen"/);
+  assert.match(timeComponent, /v-if="showCopenhagen"/);
 });
 
 test("the zone abbreviation follows daylight saving, never hardcoded", () => {
@@ -119,4 +120,6 @@ test("the zone abbreviation follows daylight saving, never hardcoded", () => {
   );
   assert.equal(isCopenhagenTimeZone("Europe/Copenhagen"), true);
   assert.equal(isCopenhagenTimeZone("Europe/London"), false);
+  assert.equal(formatLocalTournamentZoneTime("2026-10-10T12:00:00Z", "en-GB", "Europe/London"), "10 Oct 13:00 BST");
+  assert.equal(formatLocalTournamentZoneTime("2026-12-10T13:00:00Z", "en-GB", "Europe/London"), "10 Dec 13:00 GMT");
 });

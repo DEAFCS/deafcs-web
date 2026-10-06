@@ -17,8 +17,8 @@ const emit = defineEmits<{ (e: "register"): void }>();
   <div class="rounded-md border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.08)] px-4 py-3 text-sm leading-relaxed text-muted-foreground">
     <strong class="text-foreground">{{ $t("tournament.check_in.required_title") }}</strong>{{ " " }}
     <i18n-t keypath="tournament.check_in.required_window" tag="span">
-      <template #opens><TournamentTime :value="opensAt" display="time" compact-tooltip /></template>
-      <template #closes><TournamentTime :value="closesAt" display="time" compact-tooltip /></template>
+      <template #opens><TournamentTime :value="opensAt" display="time" /></template>
+      <template #closes><TournamentTime :value="closesAt" display="time" /></template>
     </i18n-t>
   </div>
   <div v-if="canRegister" class="mt-4 flex flex-wrap items-center justify-between gap-5 max-sm:flex-col max-sm:items-start">
