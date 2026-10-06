@@ -13,6 +13,7 @@ import TournamentMatch from "~/components/tournament/TournamentMatch.vue";
 import BracketScheduleDialog from "~/components/tournament/BracketScheduleDialog.vue";
 import { getRoundLabel } from "~/utilities/tournamentRoundLabels";
 import { useBracketView } from "~/composables/useBracketView";
+import { visibleBracketRounds, visibleBracketTarget } from "~/utilities/bracketVisibleRounds";
 import type { Bracket } from "~/types/tournament";
 
 interface TournamentRound {
@@ -87,14 +88,15 @@ const isRoundFinished = (round: any): boolean => {
   });
 };
 
+const visibleRounds = computed(() => visibleBracketRounds(props.rounds));
 const displayRounds = computed(() => {
-  if (!props.hideFinishedRounds) return props.rounds;
+  if (!props.hideFinishedRounds) return visibleRounds.value;
   const filtered = new Map<number, any>();
-  for (const [k, v] of props.rounds.entries()) {
+  for (const [k, v] of visibleRounds.value.entries()) {
     if (!isRoundFinished(v)) filtered.set(k, v);
   }
   // If filtering removes everything, fall back to all rounds so we don't render empty
-  if (filtered.size === 0) return props.rounds;
+  if (filtered.size === 0) return visibleRounds.value;
   return filtered;
 });
 
@@ -416,18 +418,20 @@ const drawConnectingLines = () => {
       ) as HTMLElement;
       if (!sourceMatchEl) continue;
 
-      if (bracket.parent_bracket?.id) {
+      const winnerTargetId = visibleBracketTarget(bracket.parent_bracket?.id, props.rounds);
+      if (winnerTargetId) {
         const targetMatchEl = wrapper.querySelector(
-          `#bracket-${bracket.parent_bracket.id}`,
+          `#bracket-${winnerTargetId}`,
         ) as HTMLElement;
         if (targetMatchEl) {
           drawLine(svg, sourceMatchEl, targetMatchEl, "winner");
         }
       }
 
-      if (bracket.loser_bracket?.id) {
+      const loserTargetId = visibleBracketTarget(bracket.loser_bracket?.id, props.rounds);
+      if (loserTargetId) {
         const targetMatchEl = wrapper.querySelector(
-          `#bracket-${bracket.loser_bracket.id}`,
+          `#bracket-${loserTargetId}`,
         ) as HTMLElement;
         if (targetMatchEl) {
           drawLine(svg, sourceMatchEl, targetMatchEl, "loser");

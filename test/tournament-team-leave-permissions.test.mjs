@@ -13,6 +13,10 @@ const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 
 const teamSource = await read("../components/tournament/TournamentTeam.vue");
 
+test("public team cards suppress organizer actions while Manage retains them", () => {
+  assert.match(teamSource, /organizerControls\(\) \{ return !this\.readOnlyAdmin && !!this\.tournament\?\.is_organizer;/);
+});
+
 function computed(name) {
   const start = teamSource.indexOf(`${name}() {`);
   assert.notEqual(start, -1, `${name}() not found`);
@@ -25,7 +29,7 @@ function computed(name) {
 
 test("canLeaveTournament narrows the non-organizer window to Setup/RegistrationOpen", () => {
   const block = computed("canLeaveTournament");
-  assert.match(block, /if \(!this\.tournament\.is_organizer\)/);
+  assert.match(block, /if \(!this\.organizerControls\)/);
   assert.match(
     block,
     /restrictedStatuses\.push\(\s*e_tournament_status_enum\.RegistrationClosed,\s*e_tournament_status_enum\.Live,\s*e_tournament_status_enum\.Paused,?\s*\);/,
@@ -34,7 +38,7 @@ test("canLeaveTournament narrows the non-organizer window to Setup/RegistrationO
 
 test("canLeaveTeam narrows the same non-organizer window", () => {
   const block = computed("canLeaveTeam");
-  assert.match(block, /if \(!this\.tournament\.is_organizer\)/);
+  assert.match(block, /if \(!this\.organizerControls\)/);
   assert.match(
     block,
     /restrictedStatuses\.push\(\s*e_tournament_status_enum\.RegistrationClosed,\s*e_tournament_status_enum\.Live,\s*e_tournament_status_enum\.Paused,?\s*\);/,
@@ -68,7 +72,7 @@ test("canLeaveTournament's can_manage gate is unchanged", () => {
 
 test("canRemoveTeam (organizer's own removal control) is untouched by this fix", () => {
   const block = computed("canRemoveTeam");
-  assert.match(block, /if \(!this\.tournament\.is_organizer\) return false;/);
+  assert.match(block, /if \(!this\.organizerControls\) return false;/);
   assert.doesNotMatch(block, /RegistrationClosed/);
   assert.doesNotMatch(block, /Live/);
   assert.doesNotMatch(block, /Paused/);
@@ -81,9 +85,9 @@ test("canRemoveTeam (organizer's own removal control) is untouched by this fix",
 test("button/template wiring is unchanged: organizer sees Remove Team, others see Leave Tournament", () => {
   assert.match(
     teamSource,
-    /v-if="!tournament\.is_organizer && canLeaveTournament"/,
+    /v-if="!organizerControls && canLeaveTournament"/,
   );
-  assert.match(teamSource, /v-if="tournament\.is_organizer && canRemoveTeam"/);
+  assert.match(teamSource, /v-if="organizerControls && canRemoveTeam"/);
   assert.match(teamSource, /:can-leave="canLeaveTeam"/);
   assert.match(teamSource, /:roster-locked-at-min="rosterLockedAtMin"/);
 });

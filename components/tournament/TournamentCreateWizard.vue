@@ -669,14 +669,14 @@ export default {
             variant: "destructive",
             title: "Tournament created, but award mappings need attention",
             description:
-              "Open the Awards tab to review and save the mappings. Some selections may already have been saved.",
+              "Open Manage > Awards to review and save the mappings. Some selections may already have been saved.",
           });
         }
         await this.uploadBanner(tournamentId);
 
         await this.$router.push({
-          path: `/tournaments/${tournamentId}`,
-          query: awardMappingsFailed ? { tab: "trophies" } : undefined,
+          path: `/tournaments/${tournamentId}/manage`,
+          query: { section: awardMappingsFailed ? "awards" : "stages" },
         });
       } catch (error: any) {
         toast({

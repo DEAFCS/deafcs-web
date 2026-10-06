@@ -33,6 +33,7 @@ import {
 
 const props = defineProps<{
   tournament: Record<string, any>;
+  readOnlyAdmin?: boolean;
 }>();
 
 const { t } = useI18n();
@@ -700,7 +701,7 @@ async function draftTeams() {
       </div>
     </template>
 
-    <template v-if="tournament.is_organizer">
+    <template v-if="tournament.is_organizer && !readOnlyAdmin">
       <div class="h-px bg-border"></div>
 
       <div class="flex flex-wrap items-center justify-between gap-3">

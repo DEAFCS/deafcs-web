@@ -1,21 +1,16 @@
 <script lang="ts" setup>
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
+import TournamentManage from "~/components/tournament/TournamentManage.vue";
+import { legacyTournamentManageSections, tournamentManageSection } from "~/utilities/tournamentManage";
 import TournamentStageBuilder from "~/components/tournament/TournamentStageBuilder.vue";
 import TournamentJoinForm from "~/components/tournament/TournamentJoinForm.vue";
 import TournamentEntryGate from "~/components/tournament/TournamentEntryGate.vue";
 import TournamentCheckInPanel from "~/components/tournament/TournamentCheckInPanel.vue";
-import TournamentCheckInReview from "~/components/tournament/TournamentCheckInReview.vue";
 import TournamentFreeAgents from "~/components/tournament/TournamentFreeAgents.vue";
-import TournamentInviteLinks from "~/components/tournament/TournamentInviteLinks.vue";
 import TournamentInviteAccept from "~/components/tournament/TournamentInviteAccept.vue";
-import TournamentInvites from "~/components/tournament/TournamentInvites.vue";
 import TournamentIndividualPlayers from "~/components/tournament/TournamentIndividualPlayers.vue";
 import TournamentTeam from "~/components/tournament/TournamentTeam.vue";
-import TournamentInformationForm from "~/components/tournament/TournamentInformationForm.vue";
-import TournamentMatchOptionsForm from "~/components/tournament/TournamentMatchOptionsForm.vue";
-import TournamentOrganizers from "~/components/tournament/TournamentOrganizers.vue";
 import TournamentRewards from "~/components/tournament/TournamentRewards.vue";
-import TournamentPrizesManage from "~/components/tournament/TournamentPrizesManage.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
 import TournamentCheckInInfo from "~/components/tournament/TournamentCheckInInfo.vue";
@@ -24,10 +19,8 @@ import TournamentMatches from "~/components/tournament/TournamentMatches.vue";
 import TournamentProgress from "~/components/tournament/TournamentProgress.vue";
 import TournamentNotSelectedSection from "~/components/tournament/TournamentNotSelectedSection.vue";
 import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
-import TournamentNotifications from "~/components/tournament/TournamentNotifications.vue";
 import TournamentResults from "~/components/tournament/TournamentResults.vue";
 import TournamentStats from "~/components/tournament/TournamentStats.vue";
-import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
 import Separator from "~/components/ui/separator/Separator.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import MatchOptionsDisplay from "~/components/match/MatchOptionsDisplay.vue";
@@ -186,25 +179,15 @@ const myTeamLabelClasses =
 const myTeamHintClasses = "text-[0.8rem] text-muted-foreground/80";
 const tacticalCornerCardClasses =
   "relative rounded-lg border border-border px-6 py-5 [background:linear-gradient(180deg,hsl(var(--card)_/_0.65)_0%,hsl(var(--card)_/_0.35)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:-left-px before:-top-px before:h-3 before:w-3 before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:-bottom-px after:-right-px after:h-3 after:w-3 after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-['']";
-const tournamentAdminPanelClasses =
-  "relative border border-border p-5 [background:linear-gradient(180deg,hsl(var(--card)_/_0.65)_0%,hsl(var(--card)_/_0.35)_100%)] [backdrop-filter:blur(6px)]";
-const tournamentAdminCornerClasses =
-  "pointer-events-none absolute h-3 w-3 border-[hsl(var(--tac-amber))]";
-const tournamentAdminHeaderClasses =
-  "mb-[0.4rem] inline-flex items-center gap-2";
-const tournamentAdminTickClasses =
-  "h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]";
-const tournamentAdminLabelClasses =
-  "font-mono text-[0.65rem] font-bold uppercase tracking-[0.24em] text-[hsl(var(--tac-amber))]";
-const tournamentAdminTitleClasses =
-  "mb-[0.35rem] font-sans text-[1.1rem] font-bold uppercase tracking-[0.05em] text-foreground";
-const tournamentAdminDescClasses =
-  "mb-4 text-[0.8rem] leading-[1.4] text-muted-foreground";
-const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
 </script>
 
 <template>
-  <div v-if="tournament">
+  <div v-if="tournament" class="min-w-0">
+    <div v-if="manageMode && !tournament.is_organizer" role="alert" class="rounded-lg border border-border p-6">
+      You do not have permission to manage this tournament.
+      <NuxtLink :to="`/tournaments/${tournament.id}`" class="block mt-3 text-[hsl(var(--tac-amber))]">View tournament</NuxtLink>
+    </div>
+    <template v-else>
     <NuxtLink
       v-if="leagueSeasonId"
       :to="{
@@ -288,7 +271,9 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   {{ tournament.e_tournament_status.description }}
                 </span>
 
-                <DropdownMenu v-if="tournament?.is_organizer">
+                <NuxtLink v-if="tournament.is_organizer && !manageMode" :to="`/tournaments/${tournament.id}/manage`" class="inline-flex h-9 items-center rounded-md border border-[hsl(var(--tac-amber)/0.45)] px-3 text-sm text-[hsl(var(--tac-amber))]">Manage</NuxtLink>
+                <NuxtLink v-if="manageMode" :to="`/tournaments/${tournament.id}`" class="inline-flex h-9 items-center rounded-md border border-border px-3 text-sm">View tournament</NuxtLink>
+                <DropdownMenu v-if="tournament?.is_organizer && manageMode">
                   <DropdownMenuTrigger as-child>
                     <Button
                       variant="outline"
@@ -523,7 +508,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
             </div>
           </div>
 
-          <div :class="tournamentHeroTabsClasses">
+          <div v-if="!manageMode" :class="tournamentHeroTabsClasses">
             <TabsList
               variant="underline"
               :class="[tacticalTabsListClasses, 'h-auto !justify-start flex-nowrap overflow-x-auto max-w-full']"
@@ -565,7 +550,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 }}
               </TabsTrigger>
               <TabsTrigger
-                v-if="!tournament?.is_organizer && tournament.options"
+                v-if="tournament.options"
                 value="match-settings"
                 :class="tacticalTabsTriggerClasses"
               >
@@ -595,48 +580,6 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               >
                 {{ $t("tournament.results.title") }}
               </TabsTrigger>
-              <TabsTrigger
-                v-if="tournament?.is_organizer"
-                value="information"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.page.information_tab") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="tournament?.is_organizer"
-                value="prizes"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.prizes.title") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="tournament?.is_organizer"
-                value="match-options"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.page.match_options_tab") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="tournament?.is_organizer"
-                value="organizers"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.page.organizers_tab") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="tournament?.is_organizer"
-                value="trophies"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("trophies.title") }}
-              </TabsTrigger>
-              <TabsTrigger
-                v-if="tournament?.is_organizer"
-                value="notifications"
-                :class="tacticalTabsTriggerClasses"
-              >
-                {{ $t("tournament.notifications.title") }}
-              </TabsTrigger>
               <!-- Not a tab panel: opens this tournament's room in the Chat
                    Hub. Shown only while the Chat Hub itself lists this
                    tournament (participants, assigned organizers,
@@ -654,7 +597,6 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                 </span>
               </button>
               <TabsTrigger v-if="isUnifiedRegistration && tournament.registration_type !== 'teams'" value="free-agents" :class="tacticalTabsTriggerClasses">Free Agents</TabsTrigger>
-              <TabsTrigger v-if="isUnifiedRegistration && tournament.is_organizer" value="invites" :class="tacticalTabsTriggerClasses">Invites</TabsTrigger>
             </TabsList>
           </div>
         </header>
@@ -668,6 +610,12 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
       </div>
 
       <div class="mt-6">
+        <TournamentManage class="mt-6" v-if="manageMode && tournament.is_organizer"
+          :tournament="tournament" :registration="tournament"
+          :check-in-teams="tournament.teams || []"
+          :check-in-review-visible="isUnifiedRegistration && tournament.status === 'CheckInReview'"
+          :section="manageSection" @update:section="setManageSection" />
+        <div v-if="!manageMode">
         <TabsContent value="overview">
           <div>
             <div class="flex flex-col gap-6">
@@ -692,7 +640,6 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               <TournamentInviteAccept v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" />
               <TournamentEntryGate v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :already-entered="!!myTeam || !!myFreeAgent" />
               <TournamentCheckInPanel v-if="isUnifiedRegistration" :tournament="tournament" :registration="tournament" :teams="tournament.teams" :my-team-id="myTeam?.id" :my-free-agent="myFreeAgent" @register="joinSheetOpen = true" />
-              <TournamentCheckInReview v-if="isUnifiedRegistration && tournament.is_organizer && tournament.status === 'CheckInReview'" :tournament="tournament" :registration="tournament" :teams="tournament.teams" />
               <TournamentCheckInInfo
                 v-if="!isUnifiedRegistration"
                 :tournament="tournament"
@@ -754,6 +701,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           <TournamentStageBuilder
             class="w-full"
             :tournament="tournament"
+            :read-only="true"
           ></TournamentStageBuilder>
         </TabsContent>
         <TabsContent v-if="matchesTabVisible" value="matches">
@@ -801,31 +749,24 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               <div :class="tacticalCornerCardClasses">
                 <TournamentTeam
                   :tournament="tournament"
-                  :team="myTeam"
+                  :team="myTeam" :read-only-admin="true"
                 ></TournamentTeam>
               </div>
             </div>
           </div>
         </TabsContent>
         <TabsContent v-if="isUnifiedRegistration && tournament.registration_type !== 'teams'" value="free-agents">
-          <TournamentFreeAgents :tournament="tournament" />
-        </TabsContent>
-        <TabsContent v-if="isUnifiedRegistration && tournament.is_organizer" value="invites">
-          <div class="grid gap-8"><TournamentInviteLinks :tournament="tournament" /><TournamentInvites :tournament="tournament" :registration="tournament" /></div>
+          <TournamentFreeAgents :tournament="tournament" :read-only-admin="true" />
         </TabsContent>
         <TabsContent value="teams">
           <TournamentIndividualPlayers
             v-if="isIndividualRegistration"
             :tournament="tournament"
+            :read-only-admin="true"
           />
           <div
             v-else
             class="grid gap-6 items-start"
-            :class="
-              tournament.is_organizer
-                ? 'lg:grid-cols-[minmax(0,1fr)_360px]'
-                : 'grid-cols-1'
-            "
           >
             <div class="min-w-0">
               <div :class="[tacticalSectionLabelClasses, 'mb-[0.85rem]']">
@@ -848,7 +789,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
                   <div :class="tournamentTeamCardClasses">
                     <TournamentTeam
                       :tournament="tournament"
-                      :team="team"
+                      :team="team" :read-only-admin="true"
                     ></TournamentTeam>
                   </div>
                 </div>
@@ -863,42 +804,6 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
               ></TournamentNotSelectedSection>
             </div>
 
-            <div v-if="tournament.is_organizer && (!isUnifiedRegistration || tournament.registration_type !== 'free_agents')" class="lg:sticky lg:top-6">
-              <div>
-                <aside :class="tournamentAdminPanelClasses">
-                  <div
-                    :class="[
-                      tournamentAdminCornerClasses,
-                      '-left-px -top-px border-l-2 border-t-2',
-                    ]"
-                  ></div>
-                  <div
-                    :class="[
-                      tournamentAdminCornerClasses,
-                      '-bottom-px -right-px border-b-2 border-r-2',
-                    ]"
-                  ></div>
-
-                  <div :class="tournamentAdminHeaderClasses">
-                    <span :class="tournamentAdminTickClasses"></span>
-                    <span :class="tournamentAdminLabelClasses">{{
-                      $t("tournament.admin_label")
-                    }}</span>
-                  </div>
-                  <h3 :class="tournamentAdminTitleClasses">
-                    {{ $t("tournament.add_team.title") }}
-                  </h3>
-                  <p :class="tournamentAdminDescClasses">
-                    {{ $t("tournament.add_team.description") }}
-                  </p>
-                  <div :class="tournamentAdminBodyClasses">
-                    <TournamentJoinForm
-                      :tournament="tournament"
-                    ></TournamentJoinForm>
-                  </div>
-                </aside>
-              </div>
-            </div>
           </div>
         </TabsContent>
         <TabsContent v-if="standingsTabVisible" value="standings">
@@ -933,49 +838,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
             />
           </div>
         </TabsContent>
-        <TabsContent value="information" v-if="tournament?.is_organizer">
-          <div>
-            <TournamentInformationForm :tournament="tournament" />
-          </div>
-        </TabsContent>
-        <TabsContent value="match-options" v-if="tournament?.is_organizer">
-          <div>
-            <TournamentMatchOptionsForm :tournament="tournament" />
-          </div>
-        </TabsContent>
-        <TabsContent value="prizes" v-if="tournament?.is_organizer">
-          <div>
-            <TournamentPrizesManage :tournament="tournament" />
-          </div>
-        </TabsContent>
-        <TabsContent value="organizers" v-if="tournament?.is_organizer">
-          <div>
-            <TournamentOrganizers
-              :tournament="tournament"
-            ></TournamentOrganizers>
-          </div>
-        </TabsContent>
-        <TabsContent value="trophies" v-if="tournament?.is_organizer">
-          <div>
-            <div class="flex flex-col gap-4">
-              <TournamentAwardPicker
-                v-model="tournamentAwardSelection"
-                :tournament-id="tournament.id"
-                :match-type="tournament.options?.type || null"
-                :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
-                :finished="tournament.status === 'Finished'"
-                :trophies-enabled="tournament.trophies_enabled ?? false"
-              />
-            </div>
-          </div>
-        </TabsContent>
-        <TabsContent value="notifications" v-if="tournament?.is_organizer">
-          <div>
-            <TournamentNotifications
-              :tournament="tournament"
-            ></TournamentNotifications>
-          </div>
-        </TabsContent>
+        </div>
       </div>
     </Tabs>
 
@@ -1086,6 +949,7 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+    </template>
   </div>
   <div v-else-if="tournamentLoadError" class="mx-auto max-w-lg py-16">
     <Alert variant="destructive">
@@ -1109,7 +973,6 @@ import { toast } from "@/components/ui/toast";
 import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { formatPrizePool } from "~/utilities/prizePool";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
-import type { TournamentAwardSelection } from "~/utilities/tournamentAwardPicker";
 import {
   getRequestedRouteTab,
   getRouteTabValue,
@@ -1126,6 +989,7 @@ import {
 } from "~/composables/useTournamentChatRoom";
 
 export default {
+  props: { manageMode: { type: Boolean, default: false } },
   data() {
     return {
       myTeam: undefined,
@@ -1141,7 +1005,6 @@ export default {
       pauseDialogOpen: false,
       resumeDialogOpen: false,
       activeTab: "overview",
-      tournamentAwardSelection: {} as TournamentAwardSelection,
       myTeamLoaded: false,
       e_match_types: [],
       individualActionBusy: false,
@@ -1620,6 +1483,7 @@ export default {
     },
   },
   computed: {
+    manageSection() { return tournamentManageSection(this.$route.query.section); },
     // Chat Hub's own list of tournaments this viewer may chat in; the
     // Chat Room tab only exists while this tournament is in it.
     chatRoomTournament() {
@@ -1890,8 +1754,11 @@ export default {
       }
 
       tabs.push("teams");
+      if (this.isUnifiedRegistration && this.tournament.registration_type !== "teams") {
+        tabs.push("free-agents");
+      }
 
-      if (!this.tournament?.is_organizer && this.tournament?.options) {
+      if (this.tournament?.options) {
         tabs.push("match-settings");
       }
 
@@ -1910,16 +1777,6 @@ export default {
         tabs.push("results");
       }
 
-      if (this.tournament?.is_organizer) {
-        tabs.push(
-          "information",
-          "prizes",
-          "match-options",
-          "organizers",
-          "trophies",
-          "notifications",
-        );
-      }
 
       return tabs;
     },
@@ -1945,6 +1802,9 @@ export default {
     },
   },
   methods: {
+    setManageSection(section: string) {
+      void this.$router.replace({ query: { ...this.$route.query, section: tournamentManageSection(section) } });
+    },
     openChatRoom() {
       if (!this.chatRoomTournament) return;
       openTournamentChatRoom(this.chatRoomTournament);
@@ -1966,7 +1826,13 @@ export default {
         return;
       }
 
+      if (this.manageMode) return;
       const requestedTab = getRequestedRouteTab(this.$route.query);
+      const section = legacyTournamentManageSections[requestedTab as string];
+      if (section && this.tournament.is_organizer) {
+        void this.$router.replace({ path: `/tournaments/${this.tournament.id}/manage`, query: { section } });
+        return;
+      }
       if (requestedTab === "my-team" && this.me && !this.myTeamLoaded) {
         return;
       }
@@ -2140,7 +2006,7 @@ export default {
   },
   watch: {
     activeTab(newTab) {
-      if (!this.tournament || !this.availableTournamentTabs.includes(newTab)) {
+      if (this.manageMode || !this.tournament || !this.availableTournamentTabs.includes(newTab)) {
         return;
       }
 

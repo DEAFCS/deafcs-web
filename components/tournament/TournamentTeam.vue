@@ -262,7 +262,7 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
         />
 
         <Button
-          v-if="!tournament.is_organizer && canLeaveTournament"
+          v-if="!organizerControls && canLeaveTournament"
           variant="outline"
           size="sm"
           class="h-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
@@ -273,7 +273,7 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
         </Button>
 
         <Button
-          v-if="tournament.is_organizer && canRemoveTeam"
+          v-if="organizerControls && canRemoveTeam"
           variant="outline"
           size="icon"
           class="h-8 w-8 border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
@@ -414,6 +414,7 @@ import {
 
 export default {
   props: {
+    readOnlyAdmin: { type: Boolean, default: false },
     team: {
       type: Object,
       required: true,
@@ -455,6 +456,7 @@ export default {
     },
   },
   computed: {
+    organizerControls() { return !this.readOnlyAdmin && !!this.tournament?.is_organizer; },
     apiDomain() {
       return useRuntimeConfig().public.apiDomain;
     },
@@ -478,10 +480,10 @@ export default {
         e_tournament_status_enum.CancelledMinTeams,
       ];
       if (blocked.includes(status)) return false;
-      return this.tournament.is_organizer || this.team.can_manage;
+      return this.organizerControls || this.team.can_manage;
     },
     canEditSeed() {
-      if (!this.tournament?.is_organizer) return false;
+      if (!this.organizerControls) return false;
       const status = this.tournament.status;
       return ![
         e_tournament_status_enum.Live,
@@ -504,7 +506,7 @@ export default {
       // matches the narrowed tournament_teams delete_permissions (Setup/
       // RegistrationOpen only for a non-organizer). Organizers keep the
       // existing wider window via canRemoveTeam.
-      if (!this.tournament.is_organizer) {
+      if (!this.organizerControls) {
         restrictedStatuses.push(
           e_tournament_status_enum.RegistrationClosed,
           e_tournament_status_enum.Live,
@@ -609,7 +611,7 @@ export default {
       ];
 
       // Same narrowed window as canLeaveTournament -- see its comment.
-      if (!this.tournament.is_organizer) {
+      if (!this.organizerControls) {
         restrictedStatuses.push(
           e_tournament_status_enum.RegistrationClosed,
           e_tournament_status_enum.Live,
@@ -620,7 +622,7 @@ export default {
       return !restrictedStatuses.includes(status);
     },
     canRemoveTeam() {
-      if (!this.tournament.is_organizer) return false;
+      if (!this.organizerControls) return false;
       const status = this.tournament.status;
       return ![
         e_tournament_status_enum.Cancelled,

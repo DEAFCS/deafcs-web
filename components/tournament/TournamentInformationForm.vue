@@ -20,7 +20,7 @@ import {
 <template>
   <form @submit.prevent="save" class="mx-auto grid max-w-3xl gap-8">
     <!-- Branding -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration'" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.branding") }}
@@ -55,7 +55,7 @@ import {
     </section>
 
     <!-- Details -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration'" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.details") }}
@@ -105,7 +105,7 @@ import {
     </section>
 
     <!-- Schedule -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration' || tournament.registration_version !== 2" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.schedule") }}
@@ -190,10 +190,10 @@ import {
       </p>
     </section>
 
-    <TournamentRegistrationForm v-if="tournament.registration_version === 2" :form="form" :tournament="tournament" :min-players-per-lineup="tournament.min_players_per_lineup" />
+    <TournamentRegistrationForm v-if="tournament.registration_version === 2 && part !== 'details'" :form="form" :tournament="tournament" :min-players-per-lineup="tournament.min_players_per_lineup" />
 
     <!-- Classification & Venue -->
-    <section class="grid gap-4">
+    <section v-if="part !== 'registration'" class="grid gap-4">
       <div :class="[sectionLabelClasses, 'mb-0']">
         <span :class="sectionTickClasses"></span>
         {{ $t("tournament.form.section.classification") }}
@@ -257,6 +257,7 @@ import {
 
 export default {
   props: {
+    part: { type: String, default: "all" },
     tournament: {
       type: Object,
       required: true,

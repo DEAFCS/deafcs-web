@@ -8,6 +8,7 @@ const root = path.resolve(__dirname,"../../..");
 export default defineConfig({ root, plugins:[vue()], resolve:{alias:[
   {find:"#app",replacement:path.join(__dirname,"providers.ts")},
   {find:"~/stores/AuthStore",replacement:path.join(__dirname,"providers.ts")},
+  {find:"~/stores/ApplicationSettings",replacement:path.join(__dirname,"providers.ts")},
   {find:"@vue/apollo-composable",replacement:path.join(__dirname,"providers.ts")},
   {find:"~/components/PlayerDisplay.vue",replacement:path.join(__dirname,"Player.vue")},
   {find:"~",replacement:root},{find:"@",replacement:root},

@@ -6,6 +6,7 @@ import test from "node:test";
 register("./resolve-aliases-loader.mjs", import.meta.url);
 
 const { requiresLocation } = await import("~/utilities/tournamentCategories");
+const { registrationSchemaShape, registrationColumns } = await import("~/utilities/tournamentRegistration");
 
 const wizard = await readFile(
   new URL(
@@ -37,7 +38,10 @@ const matchOptionsEditForm = await readFile(
 // ---------------------------------------------------------------------
 
 test("min_role is part of the wizard's form schema, not left undeclared", () => {
-  assert.match(wizard, /min_role: z\.string\(\)\.nullable\(\)\.default\(null\)/);
+  assert.match(wizard, /\.\.\.registrationSchemaShape\(this\)/);
+  const shape = registrationSchemaShape({ form: { values: {} }, $t: (key) => key });
+  assert.equal(shape.min_role.parse(undefined), null);
+  assert.equal(shape.min_role.parse("user"), "user");
 });
 
 test("the create mutation sends min_role instead of omitting the column", () => {
@@ -46,7 +50,9 @@ test("the create mutation sends min_role instead of omitting the column", () => 
     wizard.indexOf("async persistAwardConfiguration"),
   );
   assert.match(createFn, /insert_tournaments_one: \[/);
-  assert.match(createFn, /min_role: form\.min_role \?\? null,/);
+  assert.match(createFn, /\.\.\.registrationColumns\(form\)/);
+  assert.equal(registrationColumns({ min_role: "user" }).min_role, "user");
+  assert.equal(registrationColumns({}).min_role, null);
 });
 
 test("min_role uses the same nullable/no-fallback semantics as the edit form", () => {
@@ -230,132 +236,37 @@ test("create() nulls the location payload when it isn't required, without touchi
 });
 
 // ---------------------------------------------------------------------
-// 3. Registration / check-in schedule in the create wizard.
+// 3. Unified registration/check-in schedule. Theft's current wizard shares
+// this schema and serializer with Manage; v1 attendance stays in the editor.
 // ---------------------------------------------------------------------
-
-test("the wizard exposes the same two canonical attendance fields as the edit form, not a new model", () => {
-  // Edit form's canonical shape.
-  assert.match(
-    editForm,
-    /attendance_open_before: z\.coerce\s*\.number\(\)\s*\.int\(\)\s*\.min\(15\)\s*\.max\(240\)\s*\.default\(60\)/,
-  );
-  assert.match(
-    editForm,
-    /attendance_close_before: z\.coerce\s*\.number\(\)\s*\.int\(\)\s*\.min\(5\)\s*\.max\(60\)\s*\.default\(15\)/,
-  );
-  // Wizard: identical bounds and defaults, same field names.
-  assert.match(
-    wizard,
-    /attendance_open_before: z\.coerce\s*\.number\(\)\s*\.int\(\)\s*\.min\(15\)\s*\.max\(240\)\s*\.default\(60\)/,
-  );
-  assert.match(
-    wizard,
-    /attendance_close_before: z\.coerce\s*\.number\(\)\s*\.int\(\)\s*\.min\(5\)\s*\.max\(60\)\s*\.default\(15\)/,
-  );
-  // No parallel "registration_closes_at" or similar invented timestamp.
-  assert.doesNotMatch(wizard, /registration_clos/);
-  assert.doesNotMatch(wizard, /registration_end/);
-});
-
-test("the wizard reuses the edit form's exact gap validation and translation keys", () => {
-  assert.match(
-    editForm,
-    /values\.attendance_open_before - values\.attendance_close_before >= 5/,
-  );
-  assert.match(
-    wizard,
-    /values\.attendance_open_before - values\.attendance_close_before >=\s*5/,
-  );
-  assert.match(
-    wizard,
-    /this\.\$t\("tournament\.form\.attendance\.invalid_window"\)/,
-  );
-  for (const key of [
-    "tournament.form.attendance.open_before",
-    "tournament.form.attendance.open_before_description",
-    "tournament.form.attendance.close_before",
-    "tournament.form.attendance.close_before_description",
-    "tournament.form.attendance.preview",
-  ]) {
-    const needle = `$t("${key}"`;
-    assert.ok(
-      editForm.includes(needle),
-      `edit form should use ${key}`,
-    );
-    assert.ok(wizard.includes(needle), `wizard should reuse ${key}`);
+test("create and Manage use the shared v2 registration schema and controls", () => {
+  for (const source of [wizard, editForm]) {
+    assert.match(source, /registrationSchemaShape\(this\)/);
+    assert.match(source, /<TournamentRegistrationForm/);
+    assert.match(source, /registrationColumns\((?:form|this.form.values)\)/);
   }
 });
-
-test("the schedule inputs share the edit form's bounds/name attributes (name=attendance_open_before etc.)", () => {
-  assert.match(wizard, /name="attendance_open_before"/);
-  assert.match(wizard, /name="attendance_close_before"/);
-  assert.match(wizard, /min="15" max="240"/);
-  assert.match(wizard, /min="5" max="60"/);
+test("historical v1 attendance remains available in the editor", () => {
+  assert.match(editForm, /attendance_check_in_open_before_minutes/);
+  assert.match(editForm, /attendance_check_in_close_before_minutes/);
+  assert.match(editForm, /tournament.registration_version !== 2/);
 });
-
-test("Next from Information validates the schedule window before advancing", () => {
-  const validateFn = wizard.slice(
-    wizard.indexOf("async validateStep(step: number)"),
-    wizard.indexOf("nextEnabledStep("),
-  );
-  assert.match(validateFn, /validateField\("attendance_open_before"\)/);
-  assert.match(validateFn, /validateField\("attendance_close_before"\)/);
+test("the shared schedule rejects short windows and out-of-range offsets", () => {
+  const component = { form: { values: { check_in_required: true, check_in_closes_before_minutes: 15 } }, $t: (key) => key };
+  const shape = registrationSchemaShape(component);
+  assert.equal(shape.check_in_opens_before_minutes.safeParse(16).success, false);
+  assert.equal(shape.check_in_opens_before_minutes.safeParse(60).success, true);
+  assert.equal(shape.check_in_opens_before_minutes.safeParse(100000).success, false);
+  assert.equal(shape.check_in_closes_before_minutes.safeParse(-1).success, false);
 });
-
-test("create() persists the schedule as a follow-up update, mirroring the edit form's own save mutation", () => {
-  assert.match(
-    wizard,
-    /async persistAttendanceSchedule\(tournamentId: string\)/,
-  );
-  const scheduleFn = wizard.slice(
-    wizard.indexOf("async persistAttendanceSchedule"),
-    wizard.indexOf("async persistCategoriesAndPrizes"),
-  );
-  assert.match(scheduleFn, /update_tournaments_by_pk: \[/);
-  assert.match(scheduleFn, /pk_columns: \{ id: tournamentId \}/);
-  assert.match(
-    scheduleFn,
-    /attendance_check_in_open_before_minutes: \$\(\s*"attendance_open_before",\s*"Int",?\s*\)/,
-  );
-  assert.match(
-    scheduleFn,
-    /attendance_check_in_close_before_minutes: \$\(\s*"attendance_close_before",\s*"Int",?\s*\)/,
-  );
-  // Same column/field names as the edit form's save mutation -- no
-  // duplicated scheduling model.
-  assert.match(
-    editForm,
-    /attendance_check_in_open_before_minutes: \$\(\s*"attendance_open_before",\s*"Int",?\s*\)/,
-  );
-  assert.match(
-    editForm,
-    /attendance_check_in_close_before_minutes: \$\(\s*"attendance_close_before",\s*"Int",?\s*\)/,
-  );
-  // A no-op when the organizer left both fields at their defaults -- those
-  // already match the columns' own DB defaults, so there's nothing to send.
-  assert.match(
-    scheduleFn,
-    /if \(openBefore === 60 && closeBefore === 15\) \{\s*return;/,
-  );
+test("tournament check-in serialization does not overwrite match-ready settings", () => {
+  const columns = registrationColumns({ check_in_setting: "Captains", team_check_in_setting: "Players", check_in_opens_before_minutes: 90, check_in_closes_before_minutes: 20 });
+  assert.equal(columns.check_in_setting, "Players");
+  assert.equal(columns.check_in_opens_before_minutes, 90);
+  assert.equal(columns.check_in_closes_before_minutes, 20);
 });
-
-test("a failed schedule follow-up is surfaced, not silently dropped, and still allows navigation to the created tournament", () => {
-  const createFn = wizard.slice(
-    wizard.indexOf("async create()"),
-    wizard.indexOf("async persistAwardConfiguration"),
-  );
-  assert.match(createFn, /await this\.persistAttendanceSchedule\(tournamentId\);/);
-  assert.match(
-    createFn,
-    /registration\/check-in timing needs attention/,
-  );
-  // The row already exists by this point (documented above this block), so
-  // the existing "must still navigate, not duplicate" comment covers this
-  // too -- confirm the try/catch doesn't return early or throw further.
-  assert.match(
-    createFn,
-    /follow-up failures must\s*\n\s*\/\/ still navigate to it, or a retried Create inserts a duplicate\./,
-  );
+test("successful creation and award recovery both lead to the created Manage route", () => {
+  assert.match(wizard, /path: `\/tournaments\/\$\{tournamentId\}\/manage`/);
+  assert.match(wizard, /section: awardMappingsFailed \? "awards" : "stages"/);
+  assert.match(wizard, /still navigate to it, or a retried Create inserts a duplicate/);
 });
-
-console.log("tournament create wizard checks passed");

@@ -234,6 +234,7 @@ import {
 
 export default {
   props: {
+    readOnlyAdmin: { type: Boolean, default: false },
     tournament: {
       type: Object,
       required: true,
@@ -285,7 +286,7 @@ export default {
       return showAttendanceStatuses(this.tournament as any);
     },
     isOrganizer() {
-      return !!this.tournament?.is_organizer;
+      return !this.readOnlyAdmin && !!this.tournament?.is_organizer;
     },
     // The registration/check-in cutoff is exactly the RegistrationOpen ->
     // RegistrationClosed transition, so participant edits track the status --

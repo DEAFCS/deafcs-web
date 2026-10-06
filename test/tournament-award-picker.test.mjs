@@ -17,10 +17,11 @@ const picker = await readFile(
   ),
   "utf8",
 );
-const detail = await readFile(
+const publicDetail = await readFile(
   new URL("../components/tournament/TournamentDetail.vue", import.meta.url),
   "utf8",
 );
+const detail = await readFile(new URL("../components/tournament/TournamentManage.vue", import.meta.url), "utf8");
 const wizard = await readFile(
   new URL(
     "../components/tournament/TournamentCreateWizard.vue",
@@ -93,9 +94,10 @@ const awards = [
   },
 ];
 
-test("organizers see the picker in the existing Trophies tab", () => {
-  assert.match(detail, /value="trophies" v-if="tournament\?\.is_organizer"/);
-  assert.match(detail, /<TournamentAwardPicker[\s\S]*v-model="tournamentAwardSelection"/);
+test("organizers see the existing picker in Manage Awards", () => {
+  assert.match(detail, /v-if="tournament.is_organizer"/);
+  assert.doesNotMatch(publicDetail, /<TournamentAwardPicker/);
+  assert.match(detail, /<TournamentAwardPicker[\s\S]*v-model="awardSelection"/);
   assert.match(detail, /:tournament-id="tournament\.id"/);
   assert.match(detail, /:match-type="tournament\.options\?\.type \|\| null"/);
   assert.match(detail, /:min-players-per-lineup="tournament\.min_players_per_lineup \?\? null"/);
@@ -139,14 +141,14 @@ test("Manual Award management is no longer reachable from tournament management"
   assert.doesNotMatch(detail, /revokeAward\(id: \$id, reason: \$reason\)/);
 });
 
-test("automatic placement mapping (Champion, Runner-up, Third place, MVP) remains the only control in the Trophies tab", () => {
+test("automatic placement mapping remains the only control in Manage Awards", () => {
   // TournamentAwardPicker is still mounted and is the sole child of the
   // Trophies tab content -- the configured/calculated award workflow is
   // preserved even though the manual grant/revoke workflow is gone.
   const trophiesTab = detail.match(
-    /<TabsContent value="trophies"[\s\S]*?<\/TabsContent>/,
+    /<TournamentAwardPicker\s+v-else-if="current.key === 'awards'"[\s\S]*?\/>/,
   );
-  assert.ok(trophiesTab, "trophies tab content is present");
+  assert.ok(trophiesTab, "Manage Awards picker is present");
   assert.match(trophiesTab[0], /<TournamentAwardPicker/);
   assert.doesNotMatch(trophiesTab[0], /<TournamentAwardsManage/);
   assert.match(picker, /placementForTournamentAwardSlot|TOURNAMENT_AWARD_PLACEMENTS/);
@@ -275,7 +277,8 @@ test("partial creation failures direct organizers to recovery without recreating
     /Tournament created, but award mappings need attention/,
   );
   assert.match(wizard, /Some selections may already have been saved/);
-  assert.match(wizard, /awardMappingsFailed \? \{ tab: "trophies" \}/);
+  assert.match(wizard, /section: awardMappingsFailed \? "awards" : "stages"/);
+  assert.match(wizard, /path: `\/tournaments\/\$\{tournamentId\}\/manage`/);
 });
 
 // The switch that controls whether awards are actually granted used to be

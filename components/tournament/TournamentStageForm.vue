@@ -64,6 +64,19 @@ import { $ } from "~/generated/zeus";
 
 <template>
   <form @submit.prevent="updateCreateStage" class="grid gap-4">
+    <FormField v-slot="{ value, handleChange }" name="map_pool_id">
+      <FormItem>
+        <FormLabel>Stage map pool</FormLabel>
+        <Select :model-value="value" @update:model-value="handleChange">
+          <FormControl><SelectTrigger><SelectValue placeholder="Tournament map pool" /></SelectTrigger></FormControl>
+          <SelectContent>
+            <SelectItem v-for="pool in stageMapPools" :key="pool.id" :value="pool.id">{{ pool.maps.map((map: any) => map.name).join(', ') }}</SelectItem>
+          </SelectContent>
+        </Select>
+        <FormDescription>Uses tournament map veto rules. Choose a map pool for this stage or keep the tournament pool.</FormDescription>
+        <FormMessage />
+      </FormItem>
+    </FormField>
     <FormField v-slot="{ value, handleChange }" name="stage_type">
       <FormItem>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -906,6 +919,9 @@ export default {
     },
   },
   apollo: {
+    map_pools: {
+      query: generateQuery({ map_pools: [{ where: { enabled: { _eq: true } } }, { id: true, type: true, maps: [{}, { id: true, name: true }] }] }),
+    },
     e_tournament_stage_types: {
       fetchPolicy: "cache-first",
       query: generateQuery({
@@ -950,16 +966,17 @@ export default {
           z
             .object({
               groups: z.number().default(1),
-              stage_type: z.string(),
+              stage_type: z.enum(["SingleElimination", "DoubleElimination", "RoundRobin", "Swiss"]),
+              map_pool_id: z.string().uuid().optional(),
               min_teams: z.string().refine((val) => !isNaN(parseInt(val)), {
                 message: this.$t("validation_extras.min_teams_number"),
               }),
               max_teams: z.string().refine((val) => !isNaN(parseInt(val)), {
                 message: this.$t("validation_extras.max_teams_number"),
               }),
-              default_best_of: z.string().default("1"),
+              default_best_of: z.enum(["1", "3", "5"]).default("1"),
               third_place_match: z.boolean().default(false),
-              decider_best_of: z.string().nullable().default(null),
+              decider_best_of: z.enum(["1", "3", "5"]).nullable().default(null),
               max_rounds: z.number().nullable().default(null),
               swiss_no_elimination: z.boolean().default(false),
               final_map_advantage: z.number().min(0).default(0),
@@ -1077,6 +1094,13 @@ export default {
     },
   },
   computed: {
+    stageMapPools() {
+      const pools = new Map<string, any>();
+      for (const pool of [this.tournament?.options?.map_pool, this.stage?.options?.map_pool, ...(this.map_pools || [])]) {
+        if (pool?.id && (!pool.type || pool.type === this.tournament?.options?.type)) pools.set(pool.id, pool);
+      }
+      return [...pools.values()];
+    },
     sortedStageTypes() {
       const order = [
         e_tournament_stage_types_enum.SingleElimination,
@@ -1273,6 +1297,7 @@ export default {
         const options = stage.options || this.tournament?.options;
         if (options) {
           this.form.setValues({
+            map_pool_id: options.map_pool?.id,
             tv_delay:
               stage.options?.tv_delay ??
               this.tournament?.options?.tv_delay ??
@@ -1371,6 +1396,7 @@ export default {
       }
       const options = this.tournament.options;
       this.form.setValues({
+        map_pool_id: options.map_pool?.id,
         tv_delay: options.tv_delay ?? 115,
         region_veto: options.region_veto ?? true,
         regions: options.regions ?? [],
@@ -1402,6 +1428,7 @@ export default {
       const tournamentOptions = this.tournament.options;
 
       if (
+        form.map_pool_id !== tournamentOptions.map_pool?.id ||
         form.tv_delay !== tournamentOptions.tv_delay ||
         form.region_veto !== tournamentOptions.region_veto ||
         form.check_in_setting !== tournamentOptions.check_in_setting ||
@@ -1454,7 +1481,7 @@ export default {
           coaches: tournamentOptions.coaches,
           number_of_substitutes: tournamentOptions.number_of_substitutes,
           timeout_setting: tournamentOptions.timeout_setting,
-          map_pool_id: tournamentOptions.map_pool.id,
+          map_pool_id: form.map_pool_id || tournamentOptions.map_pool.id,
         },
         mutation: generateMutation({
           update_match_options_by_pk: [
@@ -1524,7 +1551,7 @@ export default {
           coaches: tournamentOptions.coaches,
           number_of_substitutes: tournamentOptions.number_of_substitutes,
           timeout_setting: tournamentOptions.timeout_setting,
-          map_pool_id: tournamentOptions.map_pool.id,
+          map_pool_id: form.map_pool_id || tournamentOptions.map_pool.id,
         },
         mutation: generateMutation({
           insert_match_options_one: [
@@ -1751,7 +1778,7 @@ export default {
                       : 0,
                   settings: $("settings", "jsonb"),
                   tournament_id:
-                    (this as any).$route.params.tournamentId ||
+                    this.tournament?.id || (this as any).$route.params.tournamentId ||
                     (this as any).$route.params.id,
                 },
               },

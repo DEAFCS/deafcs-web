@@ -5287,6 +5287,24 @@
     "not_open_description": "Open it from the hub sidebar first, then pop it out again."
   },
   "tournament": {
+    "manage": {
+      "title": "Manage tournament",
+      "details": "Details & branding",
+      "registration": "Registration",
+      "teams": "Teams & invites",
+      "stages": "Stages",
+      "match_rules": "Match rules",
+      "prizes_awards": "Prizes & awards",
+      "organizers": "Organizers",
+      "discord": "Discord",
+      "needs_attention": "Check-in needs attention",
+      "stages_locked": "Stage structure is locked after registration closes or teams are drawn. Existing brackets and matches are preserved.",
+      "stage_summary": "{min} to {max} teams",
+      "groups": "{count} groups",
+      "no_stages": "No stages configured",
+      "no_stages_hint": "Add a stage before opening registration. The bracket is sized and seeded when registration closes.",
+      "add_first_stage": "Add first stage"
+    },
     "admin_label": "Admin",
     "team_invite": {
       "pending": "Pending"

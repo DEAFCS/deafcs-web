@@ -1,21 +1,6 @@
 <script setup lang="ts">
-definePageMeta({
-  middleware(to) {
-    return navigateTo(
-      {
-        path: `/tournaments/${String(to.params.tournamentId)}`,
-        query: {
-          ...to.query,
-          tab: "match-options",
-        },
-        hash: to.hash,
-      },
-      { replace: true },
-    );
-  },
-});
+const route = useRoute();
+await navigateTo({ path: `/tournaments/${route.params.tournamentId}/manage`, query: { section: "match-rules" } }, { replace: true });
 </script>
 
-<template>
-  <div />
-</template>
+<template><div /></template>

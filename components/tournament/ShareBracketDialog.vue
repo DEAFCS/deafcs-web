@@ -20,6 +20,7 @@ const { t } = useI18n();
 const props = defineProps<{
   open: boolean;
   tournament: any;
+  stageOrder?: number;
 }>();
 
 const emit = defineEmits<{
@@ -41,6 +42,10 @@ watch(
   () => props.open,
   (isOpen) => {
     if (isOpen) {
+      if (props.stageOrder && orderedStages.value.some((s: any) => s.order === props.stageOrder)) {
+        selectedStageOrder.value = props.stageOrder;
+        activeTab.value = "specific";
+      }
       const firstStage = orderedStages.value[0];
       if (
         firstStage &&

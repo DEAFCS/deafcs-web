@@ -82,10 +82,10 @@ const iconToggleClass = (active: boolean) =>
       : "border-border bg-card/40 text-muted-foreground hover:border-[hsl(var(--tac-amber)/0.45)] hover:text-foreground",
   ].join(" ");
 
-const popoutBracket = (tournamentId: string) => {
+const popoutBracket = (tournamentId: string, stageOrder: number) => {
   if (typeof window === "undefined") return;
   window.open(
-    `${window.location.origin}/embed/tournaments/${tournamentId}/bracket?stage=current`,
+    `${window.location.origin}/embed/tournaments/${tournamentId}/bracket?stage=${stageOrder}`,
     `tournament-bracket-${tournamentId}`,
     "width=1280,height=720,menubar=no,toolbar=no,location=no",
   );
@@ -240,7 +240,7 @@ import {
               </FiveStackToolTip>
             </template>
           </TabsList>
-          <div class="ml-auto flex gap-1.5 mt-1 items-center">
+          <div class="ml-auto flex max-w-full flex-wrap justify-end gap-1.5 mt-1 items-center">
             <BracketFollowSelect
               v-if="followable"
               :teams="tournament.teams || []"
@@ -334,7 +334,7 @@ import {
             <button
               type="button"
               :class="iconToggleClass(false)"
-              @click="popoutBracket(tournament.id)"
+              @click="popoutBracket(tournament.id, activeStageNumber)"
               :title="$t('tournament.bracket.popout_button')"
             >
               <ExternalLink class="h-4 w-4" />
@@ -438,7 +438,7 @@ import {
 
       <!-- Show stages directly without tabs if single stage and not organizer -->
       <div v-else class="space-y-6">
-        <div class="flex justify-end gap-1.5 items-center">
+        <div class="flex max-w-full flex-wrap justify-end gap-1.5 items-center">
           <BracketFollowSelect
             v-if="followable"
             :teams="tournament.teams || []"
@@ -532,7 +532,7 @@ import {
           <button
             type="button"
             :class="iconToggleClass(false)"
-            @click="popoutBracket(tournament.id)"
+            @click="popoutBracket(tournament.id, stageNumbers[0])"
             :title="$t('tournament.bracket.popout_button')"
           >
             <ExternalLink class="h-4 w-4" />
@@ -605,6 +605,7 @@ import {
       <ShareBracketDialog
         :open="shareDialogOpen"
         :tournament="tournament"
+        :stage-order="activeStageNumber"
         @update:open="(v) => (shareDialogOpen = v)"
       />
 
@@ -696,6 +697,7 @@ import { toast } from "@/components/ui/toast";
 
 export default {
   props: {
+    readOnly: { type: Boolean, default: false },
     tournament: {
       type: Object,
       required: true,
@@ -733,7 +735,7 @@ export default {
     },
     canEditStages() {
       return (
-        this.tournament.is_organizer &&
+        !this.readOnly && this.tournament.is_organizer &&
         this.tournament.status !== e_tournament_status_enum.Live &&
         this.tournament.status !== e_tournament_status_enum.Finished
       );
