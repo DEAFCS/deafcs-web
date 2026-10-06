@@ -284,15 +284,9 @@ const coming = computed<any[]>(
   () => (comingResult.value as any)?.tournaments ?? [],
 );
 
-// One LAN gets the strip on top: the soonest one that hasn't started.
-const nextLan = computed(
-  () =>
-    coming.value.find((tournament) =>
-      (tournament.categories || []).some(
-        (category: any) => category.category === "LAN",
-      ),
-    ) ?? null,
-);
+// The soonest upcoming tournament gets the strip on top, regardless of
+// category -- not just LAN ones. `coming` is already ordered soonest-first.
+const nextLan = computed(() => coming.value[0] ?? null);
 
 const featured = computed(() => live.value[0] ?? null);
 const liveRest = computed(() => live.value.slice(1));

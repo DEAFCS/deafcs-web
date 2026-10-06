@@ -497,19 +497,35 @@ export default {
         longitude: null,
       });
     },
+    // Only Information and Registration have fields worth gating Next on; the
+    // rest have defaults for everything.
     async validateStep(step: number): Promise<boolean> {
-      if (step === 2) {
-        const results = await Promise.all(Object.values(REGISTRATION_FIELD).map((name) => this.form.validateField(name)));
-        return results.every((result) => result.valid);
-      }
-      // Only the Information step has required fields; the rest have defaults.
-      if (step !== 0) {
+      if (step !== 0 && step !== 2) {
         return true;
       }
-      const results = await Promise.all([
-        this.form.validateField("name"),
-        this.form.validateField("start"),
-      ]);
+      const fields =
+        step === 2 ? Object.values(REGISTRATION_FIELD) : ["name", "start"];
+
+      // vee-validate's zod adapter re-parses the WHOLE schema on every
+      // validateField() call (there's no per-field zod validator to run in
+      // isolation), so checking 9 registration fields in parallel used to
+      // mean 9 redundant full-schema parses on every Next click -- visible as
+      // a beat of lag even though the data was already valid. One silent
+      // pass (no touched/error UI) covers the overwhelmingly common case --
+      // everything already filled in correctly -- in a single parse.
+      const { errors } = await this.form.validate({ mode: "silent" });
+      if (fields.every((name) => !errors[name])) {
+        return true;
+      }
+
+      // Something is actually invalid: fall back to per-field validation so
+      // the normal touched/error styling shows up on exactly those fields.
+      // The redundant re-parsing here doesn't matter -- Next is already
+      // blocked, so a few extra milliseconds while showing the user what's
+      // wrong isn't something they'll perceive as lag.
+      const results = await Promise.all(
+        fields.map((name) => this.form.validateField(name)),
+      );
       return results.every((result) => result.valid);
     },
     // Location (step 1) is skipped in both directions when the selected
