@@ -12,8 +12,9 @@ vi.mock("~/stores/NotificationStore", () => ({
   useNotificationStore: () => ({ draft_invites: [], team_invites: [], tournament_team_invites: [] }),
 }));
 vi.mock("~/stores/DraftGamesStore", () => ({ useDraftGamesStore: () => ({ respondInvite: vi.fn() }) }));
+const pendingFriends = ref<any[]>([]);
 vi.mock("~/composables/useInvites", () => ({
-  useInvites: () => ({ pendingFriends: ref([]), lobbyInvites: ref([]) }),
+  useInvites: () => ({ pendingFriends, lobbyInvites: ref([]) }),
 }));
 vi.mock("~/composables/useRightSidebar", () => ({ useRightSidebar: () => ({ rightSidebarOpen: ref(false) }) }));
 const auth = { me: null as null | { steam_id: string } };
@@ -30,6 +31,7 @@ const navigateTo = vi.fn();
 beforeEach(() => {
   auth.me = { steam_id: "11" };
   lobbyStore.myMatches = [];
+  pendingFriends.value = [];
   route.path = "/";
   navigateTo.mockClear();
   window.localStorage.clear();
@@ -172,6 +174,36 @@ describe("ActionToasts", () => {
     lobbyStore.myMatches = [withLineup(1, { can_pick_map_veto: true }, { status: "Veto" })];
     await flushPromises();
     expect(toasts(wrapper)).toHaveLength(1);
+  });
+
+  it("a dismissed friend request stays dismissed even when another notification source loads later", async () => {
+    // Friend request arrives and gets dismissed before any other source has
+    // loaded -- the realistic order on a fresh page load.
+    pendingFriends.value = [{ steam_id: "77", name: "NOBOXEEE" }];
+    const wrapper = mountToasts();
+    await flushPromises();
+    await wrapper.get('[data-testid="action-toast-friend:77"] .toast-dismiss').trigger("click");
+    expect(toasts(wrapper)).toHaveLength(0);
+
+    // A completely unrelated notification source (a match check-in) now
+    // loads. This must not resurrect the already-dismissed friend request:
+    // the friend item never left `items`, so there was nothing to clear.
+    lobbyStore.myMatches = [match()];
+    await flushPromises();
+    expect(toasts(wrapper).map((w: any) => w.attributes("data-testid"))).toEqual([
+      "action-toast-match-check_in:m1",
+    ]);
+
+    // The friend request is actually resolved elsewhere: now it's fine to
+    // forget the dismissal, so a later re-request from the same person
+    // shows up again instead of being silently suppressed forever.
+    pendingFriends.value = [];
+    await flushPromises();
+    pendingFriends.value = [{ steam_id: "77", name: "NOBOXEEE" }];
+    await flushPromises();
+    expect(toasts(wrapper).map((w: any) => w.attributes("data-testid"))).toEqual(
+      expect.arrayContaining(["action-toast-friend:77", "action-toast-match-check_in:m1"]),
+    );
   });
 
   it("the existing invite toasts keep their Accept/Decline and stay desktop-only", () => {

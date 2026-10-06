@@ -222,11 +222,23 @@ onMounted(() => {
 // elsewhere), drop its id from the dismissed set -- otherwise a genuinely
 // new request from the same person later would reuse the same id (e.g.
 // `friend:${steam_id}`) and get silently suppressed forever.
-watch(items, (current) => {
+//
+// `items` aggregates several independent async sources (friends
+// subscription, draft/team/tournament invites, lobby invites, match
+// actions) that each populate on their own schedule. Comparing a
+// dismissed id against only the *current* snapshot is wrong: if one
+// source hasn't loaded yet while another just changed, every item from
+// the not-yet-loaded source looks "gone" even though it never actually
+// disappeared, and gets un-dismissed for good. Only clear an id when it
+// was actually present a moment ago and has since dropped out -- a real
+// present-to-absent transition -- never just because it's absent from
+// whatever partial snapshot triggered this run.
+watch(items, (current, previous) => {
   const currentIds = new Set(current.map((item) => item.id));
+  const previousIds = new Set((previous ?? []).map((item) => item.id));
   let changed = false;
   for (const id of dismissed.value) {
-    if (!currentIds.has(id)) {
+    if (previousIds.has(id) && !currentIds.has(id)) {
       dismissed.value.delete(id);
       changed = true;
     }
