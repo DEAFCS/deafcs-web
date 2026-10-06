@@ -888,35 +888,6 @@ import SettingHeader from "~/components/match/SettingHeader.vue";
                   </FormItem>
                 </FormField>
 
-                <FormField
-                  v-if="canSetIndividualRegistration"
-                  v-slot="{ value, handleChange }"
-                  name="individual_registration_enabled"
-                >
-                  <FormItem>
-                    <div
-                      class="flex flex-row items-center justify-between cursor-pointer"
-                      @click="handleChange(!value)"
-                    >
-                      <div class="space-y-0.5">
-                        <SettingHeader>{{
-                          $t("match.options.advanced.individual_registration_enabled.label")
-                        }}</SettingHeader>
-                        <FormDescription>{{
-                          $t("match.options.advanced.individual_registration_enabled.description")
-                        }}</FormDescription>
-                      </div>
-                      <FormControl>
-                        <Switch
-                          class="pointer-events-none"
-                          :model-value="value"
-                          @update:model-value="handleChange"
-                        />
-                      </FormControl>
-                    </div>
-                  </FormItem>
-                </FormField>
-
                 <FormField v-if="canSetMinRole" v-slot="{ value }" name="min_role">
                   <FormItem>
                     <SettingHeader>{{
@@ -1768,18 +1739,9 @@ export default {
     canSetCameraRequired() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
     },
-    // Only makes sense at tournament scope (a standalone match/draft has
-    // no registration/waitlist of its own) -- lockSubstitutes is only ever
-    // passed true from TournamentCreateWizard/TournamentMatchOptionsForm,
-    // so it doubles as the "this is a tournament" signal here.
-    canSetIndividualRegistration() {
-      return (
-        this.lockSubstitutes &&
-        useAuthStore().isRoleAbove(e_player_roles_enum.tournament_organizer)
-      );
-    },
-    // Same tournament-scope signal as canSetIndividualRegistration -- min_role
-    // is a tournaments column, not a match_options one, but it's edited from
+    // Same tournament-scope signal the old individual-registration toggle
+    // used -- min_role is a tournaments column, not a match_options one, but
+    // it's edited from
     // this shared form alongside the other tournament-only registration
     // settings.
     canSetMinRole() {
