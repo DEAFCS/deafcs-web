@@ -109,8 +109,17 @@ import { canLeaveIndividualTournament } from "~/utilities/tournamentAttendance";
 const chatRoomTabBaseClasses =
   "relative z-[1] inline-flex items-center justify-center whitespace-nowrap rounded-md font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:text-foreground";
 
+// One surface: the banner as a band on top (never text over the image, so
+// any artwork works), identity and actions under it, the tab row at the
+// foot. Matches 5stack's layout -- content no longer sits on top of the
+// banner image, so it doesn't need the legibility gradients/min-height a
+// text-over-image hero required.
 const tournamentHeroClasses =
-  "relative isolate min-h-[24rem] overflow-hidden rounded-lg border border-border px-7 py-8 [background:linear-gradient(180deg,hsl(var(--card)_/_0.55)_0%,hsl(var(--card)_/_0.25)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
+  "overflow-hidden rounded-lg border border-border bg-card/40";
+const tournamentBannerClasses =
+  "aspect-[5/2] max-h-[18.75rem] w-full bg-muted/40 sm:aspect-[4/1]";
+const tournamentHeroBodyWrapClasses =
+  "flex flex-wrap items-start justify-between gap-4 px-6 pt-5 max-md:px-4 max-md:pt-4";
 const tournamentHeroToplineClasses =
   "order-2 flex shrink-0 flex-wrap items-start gap-2 max-sm:w-full";
 const tournamentHeroBodyClasses =
@@ -164,7 +173,8 @@ const tournamentHeroLeaveButtonClasses = [
 ];
 const tournamentHeroSettingsButtonClasses =
   "h-9 w-9 border-[hsl(var(--tac-amber)_/_0.45)] bg-background/45 text-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.12)] hover:text-[hsl(var(--tac-amber))]";
-const tournamentHeroTabsClasses = "mt-5 border-t border-border pt-4";
+const tournamentHeroTabsClasses =
+  "mt-5 border-t border-border px-6 pb-5 pt-4 max-md:px-4 max-md:pb-4";
 const tacticalSectionCountClasses =
   "rounded-full border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] px-[0.45rem] py-[0.05rem] text-[0.62rem] tracking-[0.08em] text-[hsl(var(--tac-amber))]";
 const tournamentTeamCardClasses =
@@ -212,33 +222,15 @@ const tournamentAdminBodyClasses = "border-t border-border pt-[0.85rem]";
           :class="tournamentHeroClasses"
           :style="matchTypeColorStyle(tournament.options?.type)"
         >
-          <div
-            v-if="tournamentBannerSrc"
-            aria-hidden="true"
-            class="absolute inset-0 -z-10"
-          >
+          <div v-if="tournamentBannerSrc" :class="tournamentBannerClasses">
             <img
               :src="tournamentBannerSrc"
-              class="h-full w-full object-cover opacity-[0.85]"
+              alt=""
+              class="h-full w-full object-cover"
             />
-            <div
-              class="absolute inset-0 [background:radial-gradient(600px_300px_at_88%_12%,hsl(var(--tac-amber)/0.1),transparent_62%)]"
-            ></div>
-            <!-- Top fade keeps the status/settings row legible over busy artwork. -->
-            <div
-              class="absolute inset-0 [background:linear-gradient(180deg,hsl(var(--card)/0.6)_0%,transparent_34%)]"
-            ></div>
-            <!-- Left-anchored fade keeps the title/badges/meta column legible over any banner while the artwork breathes on the right. -->
-            <div
-              class="absolute inset-0 [background:linear-gradient(90deg,hsl(var(--card)/0.92)_0%,hsl(var(--card)/0.5)_44%,hsl(var(--card)/0.1)_80%)]"
-            ></div>
-            <!-- Bottom fade protects the tab row. -->
-            <div
-              class="absolute inset-0 [background:linear-gradient(180deg,transparent_0%,hsl(var(--card)/0.4)_64%,hsl(var(--card)/0.88)_100%)]"
-            ></div>
           </div>
 
-          <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+          <div :class="tournamentHeroBodyWrapClasses">
             <div :class="tournamentHeroToplineClasses">
               <div :class="tournamentHeroActionsClasses">
                 <!-- Same rule as the player-row Leave action. It used to be
