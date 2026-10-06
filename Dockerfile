@@ -15,8 +15,12 @@ WORKDIR /opt/5stack
 COPY --from=deps /opt/5stack/node_modules ./node_modules
 COPY . .
 
-RUN corepack enable && corepack prepare 
+RUN corepack enable && corepack prepare
 
+# The theater-mode clip bundle pushes the Vite client build past Node's
+# default old-space heap limit inside the container; without this the
+# build OOMs partway through.
+ENV NODE_OPTIONS=--max-old-space-size=6144
 RUN yarn build
 
 FROM node:22-alpine
