@@ -37,7 +37,7 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
         <li v-for="(step, index) in steps" :key="step.key" class="shrink-0 lg:shrink">
           <button
             type="button"
-            class="flex w-full items-center gap-3 whitespace-nowrap rounded-lg border px-4 py-3 text-left text-sm font-bold transition-colors lg:whitespace-normal"
+            class="flex w-full items-center gap-2.5 whitespace-nowrap rounded-lg border px-3 py-2 text-left text-[0.8rem] font-bold transition-colors lg:whitespace-normal"
             :class="
               step.disabled
                 ? 'cursor-not-allowed border-transparent bg-transparent text-muted-foreground/40'
@@ -50,7 +50,7 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
             @click="goTo(index)"
           >
             <span
-              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-bold"
+              class="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[0.7rem] font-bold"
               :class="
                 step.disabled
                   ? 'bg-muted/40 text-muted-foreground/40'
@@ -59,7 +59,7 @@ import TournamentRegistrationForm from "~/components/tournament/TournamentRegist
                     : 'bg-muted text-muted-foreground'
               "
             >
-              <Check v-if="!step.disabled && index < currentStep" class="h-3.5 w-3.5" />
+              <Check v-if="!step.disabled && index < currentStep" class="h-3 w-3" />
               <span v-else>{{ index + 1 }}</span>
             </span>
             {{ step.label }}
