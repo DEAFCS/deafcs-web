@@ -7,6 +7,7 @@
 // DEAFCS card shows (mode, best-of, map backgrounds, stream count).
 
 import { autoPovEligible } from "~/utilities/matchStreams";
+import cleanMapName from "~/utilities/cleanMapName";
 
 type Translate = (key: string, values?: Record<string, unknown>) => string;
 
@@ -84,8 +85,12 @@ function mapsWon(match: any, lineupId: string | null | undefined) {
   ).length;
 }
 
+// Same display rule as MapDisplay: the configured label (workshop maps such
+// as "Mini Dust2" keep theirs), otherwise the cleaned source name
+// ("de_ancient" -> "Ancient"). Never the raw de_* id.
 function mapLabel(mm: any): string {
-  return mm?.map?.label || mm?.map?.name || "";
+  if (mm?.map?.label) return mm.map.label;
+  return mm?.map?.name ? cleanMapName(mm.map.name) : "";
 }
 
 export function teamMonogram(name: string, shortName?: string | null) {
@@ -380,18 +385,6 @@ export function tickerFilterTabs(
     },
     { key: "results", label: t("pages.watch.ticker.filter_results"), count: null },
   ];
-}
-
-// Compact mode text for the /watch cards, so the status/map line keeps its
-// room. Display only: the badge colour still comes from the real type.
-export const WATCH_MODE_LABELS: Record<string, string> = {
-  Competitive: "5V5",
-  Wingman: "2V2",
-  Duel: "1V1",
-};
-
-export function watchModeLabel(type: string | null | undefined): string | null {
-  return type ? (WATCH_MODE_LABELS[type] ?? type) : null;
 }
 
 // "LIVE · 1 STREAM" / "LIVE · 2 STREAMS" on an active card (in game or a

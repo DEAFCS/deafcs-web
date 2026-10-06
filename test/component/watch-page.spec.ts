@@ -10,7 +10,6 @@ import {
   tickerCell,
   tickerFilterTabs,
   tickerKind,
-  watchModeLabel,
 } from "../../components/watch/watchTicker";
 import { highlightsWhere } from "../../components/watch/watchHighlights";
 
@@ -158,14 +157,23 @@ describe("rail model", () => {
     expect(tickerCell(makeMatch({ is_coach: true }), ctx).autoPov).toBe(false);
   });
 
-  it("compact mode labels: 5V5 / 2V2 / 1V1, display only", () => {
-    expect(watchModeLabel("Competitive")).toBe("5V5");
-    expect(watchModeLabel("Wingman")).toBe("2V2");
-    expect(watchModeLabel("Duel")).toBe("1V1");
-    // Other modes keep their own name; the cell keeps the real type.
-    expect(watchModeLabel("Premier")).toBe("Premier");
-    expect(watchModeLabel(null)).toBeNull();
+  it("the cell keeps the real mode type; the card shows the full DEAFCS badge", () => {
     expect(tickerCell(makeMatch(), ctx).mode).toBe("Competitive");
+    expect(tickerCell(makeMatch({ options: { best_of: 1, type: "Wingman" } }), ctx).mode).toBe("Wingman");
+  });
+
+  it("map names are display names, never raw de_* ids", () => {
+    const unlabeled = makeMatch({
+      match_maps: [{ id: "mm1", order: 1, status: "Live", is_current_map: true, lineup_1_score: 3, lineup_2_score: 2, winning_lineup_id: null, map: { id: "m", name: "de_ancient", label: null, poster: null, patch: null } }],
+    });
+    const status = tickerCell(unlabeled, ctx).status.text;
+    expect(status).toContain("Ancient");
+    expect(status).not.toContain("de_ancient");
+    // A configured workshop label is kept as-is.
+    const workshop = makeMatch({
+      match_maps: [{ id: "mm1", order: 1, status: "Live", is_current_map: true, lineup_1_score: 3, lineup_2_score: 2, winning_lineup_id: null, map: { id: "w", name: "workshop/3070212801/mini_dust2", label: "Mini Dust2", poster: null, patch: null } }],
+    });
+    expect(tickerCell(workshop, ctx).status.text).toContain("Mini Dust2");
   });
 });
 
@@ -342,29 +350,37 @@ describe("WatchMatchCard (DEAFCS identity)", () => {
       "de_inferno",
       "de_ancient",
     ]);
-    expect(bo3.text()).toContain("BO3");
+    // Best of: 5Stack series pips on each team row.
+    expect(bo3.findAll("i").length).toBe(4);
 
     const none = await card(makeMatch({ status: "Scheduled", match_maps: [] }));
     expect(none.find('[data-testid="watch-card-map"]').exists()).toBe(false);
     expect(none.find('[data-default-bg="true"]').exists()).toBe(true);
   });
 
-  it("shows 5V5 / 2V2 / 1V1 in the existing mode badge colours", async () => {
-    for (const [type, label, rgb] of [
-      ["Competitive", "5V5", "249 158 47"],
-      ["Wingman", "2V2", "217 70 239"],
-      ["Duel", "1V1", "34 211 238"],
+  it("shows the full DEAFCS mode badge (Competitive / Wingman / Duel), never 5v5 / 2v2 / 1v1", async () => {
+    for (const [type, rgb] of [
+      ["Competitive", "249 158 47"],
+      ["Wingman", "217 70 239"],
+      ["Duel", "34 211 238"],
     ]) {
       const w = await card(makeMatch({ options: { best_of: 1, type } }));
       const badge = w.get('[data-testid="watch-card-mode"]');
-      expect(badge.text()).toBe(label);
-      expect(w.text()).not.toContain(type);
+      expect(badge.text()).toBe(type);
+      expect(w.text()).not.toMatch(/[521]v[521]/i);
       expect(badge.attributes("style")).toContain(`--mode-rgb: ${rgb}`);
       expect(badge.classes().join(" ")).toContain("text-[rgb(var(--mode-rgb))]");
     }
-    // Card size unchanged.
+    // 5Stack ticker cell dimensions.
     const w = await card(makeMatch());
-    expect(w.get('[data-testid="watch-match-card"]').classes()).toEqual(expect.arrayContaining(["w-60", "h-[7.75rem]"]));
+    expect(w.get('[data-testid="watch-match-card"]').classes()).toEqual(expect.arrayContaining(["w-56", "h-[6.875rem]"]));
+  });
+
+  it("a tournament match shows the tournament name in place of the mode badge", async () => {
+    const w = await card(makeMatch({ tournament_brackets: [{ stage: { tournament: { id: "t1", name: "5v5 Cup #1" } } }] }));
+    expect(w.get('[data-testid="watch-card-tag"]').text()).toBe("5v5 Cup #1");
+    expect(w.find('[data-testid="watch-card-mode"]').exists()).toBe(false);
+    expect(w.text()).not.toContain("Competitive");
   });
 
   it("the shared MatchTypeBadge still shows the full type everywhere else", async () => {
