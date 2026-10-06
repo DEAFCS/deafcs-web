@@ -3,6 +3,7 @@ import { ArrowRight, UsersIcon } from "lucide-vue-next";
 import TimeAgo from "~/components/TimeAgo.vue";
 import MapDisplay from "~/components/MapDisplay.vue";
 import { tournamentCardCount } from "~/utilities/tournamentCardCount";
+import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 </script>
 
 <template>
@@ -35,17 +36,38 @@ import { tournamentCardCount } from "~/utilities/tournamentCardCount";
     >
       <div class="flex flex-col gap-2 w-full">
         <!-- Status on top row -->
+        <!-- Player rank chip and current stage adapted from 5Stack WEB
+             b4b83f23 (SimpleTournamentDisplay.vue); MIT Copyright (c) 2025
+             5Stack.gg. The rank only resolves on a player profile, where the
+             query scopes rosters to that player. -->
         <div class="flex justify-between items-start w-full">
-          <Badge class="text-xs">{{
-            tournament.e_tournament_status.description
-          }}</Badge>
+          <div class="flex items-center gap-1.5">
+            <Badge class="text-xs">{{
+              tournament.e_tournament_status.description
+            }}</Badge>
+            <span
+              v-if="playerRankLabel"
+              class="inline-flex items-center rounded-full border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.18)] px-2 py-0.5 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] backdrop-blur-sm"
+              :title="
+                $t('tournament.compact_card.player_finished', {
+                  rank: playerRankLabel,
+                })
+              "
+              data-testid="simple-tournament-player-rank"
+            >
+              {{ playerRankLabel }}
+            </span>
+          </div>
           <ArrowRight></ArrowRight>
         </div>
-        <!-- Type and Stage on second row -->
+        <!-- Type and Stage on second row. DEAFCS keeps its mode colours
+             (Competitive / Wingman / Duel) on the mode badge. -->
         <div class="flex flex-wrap gap-1.5">
           <Badge
             variant="secondary"
-            class="text-xs bg-black/70 text-white border-0 backdrop-blur-sm"
+            class="text-xs border border-[rgb(var(--mode-rgb)_/_0.45)] bg-black/70 text-[rgb(var(--mode-rgb))] backdrop-blur-sm"
+            :style="matchTypeColorStyle(tournament.options?.type)"
+            data-testid="simple-tournament-mode"
           >
             {{ tournament.options?.type }}
           </Badge>
@@ -54,7 +76,14 @@ import { tournamentCardCount } from "~/utilities/tournamentCardCount";
             variant="outline"
             class="text-xs bg-black/70 text-white border-white/30 backdrop-blur-sm"
           >
-            {{ stageCount }} {{ $t("tournament.stage.stages") }}
+            <template v-if="currentStage">
+              {{
+                $t("tournament.stage.stage_tab", { stage: currentStage.order })
+              }}
+            </template>
+            <template v-else>
+              {{ stageCount }} {{ $t("tournament.stage.stages") }}
+            </template>
           </Badge>
           <Badge
             v-if="singleStageType"
@@ -74,12 +103,12 @@ import { tournamentCardCount } from "~/utilities/tournamentCardCount";
           <div class="flex items-center space-x-2">
             <TimeAgo
               :date="tournament.start"
-              class="text-sm text-gray-600 dark:text-gray-400"
+              class="text-sm text-gray-400"
             ></TimeAgo>
           </div>
           <div
             v-if="tournament.teams_aggregate?.aggregate?.count !== undefined"
-            class="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400"
+            class="flex items-center gap-1.5 text-xs text-gray-400"
           >
             <UsersIcon class="h-3.5 w-3.5" />
             <span v-if="tournamentCardCount(tournament).unit === 'players'">
@@ -104,6 +133,8 @@ import { tournamentCardCount } from "~/utilities/tournamentCardCount";
 
 <script lang="ts">
 import { generateQuery } from "~/graphql/graphqlGen";
+import { tournamentPlayerRankLabel } from "~/utilities/tournamentPlayerRank";
+import { tournamentCurrentStage } from "~/utilities/tournamentCurrentStage";
 
 export default {
   props: {
@@ -153,6 +184,12 @@ export default {
         return this.tournament.stages[0].e_tournament_stage_type.description;
       }
       return null;
+    },
+    currentStage() {
+      return tournamentCurrentStage(this.tournament);
+    },
+    playerRankLabel() {
+      return tournamentPlayerRankLabel(this.tournament);
     },
   },
 };

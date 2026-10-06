@@ -2738,6 +2738,8 @@
       },
       "detail": {
         "all_short": "All",
+        "tournaments_section_label": "TOURNAMENTS",
+        "tournaments_description": "Tournaments this player has competed in.",
         "settings_changed": "Custom settings active",
         "source_all_unavailable_elo": "\"All\" isn't available on the ELO tab — showing DEAFCS ELO only.",
         "external_warning": {

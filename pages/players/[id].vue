@@ -3066,18 +3066,26 @@ const playerHeroTeamChipDotClasses =
       <Separator />
 
       <PageTransition v-if="playerId">
+        <!-- As on 5Stack WEB b4b83f23: the simple 320px tiles in a scroll
+             row, with "See all" opening the player's full list in a dialog. -->
         <RecentTournaments
-          section-label="TOURNAMENTS"
+          :section-label="$t('pages.players.detail.tournaments_section_label')"
+          :section-description="
+            $t('pages.players.detail.tournaments_description')
+          "
           :statuses="[
             e_tournament_status_enum.Finished,
             e_tournament_status_enum.Live,
             e_tournament_status_enum.RegistrationOpen,
             e_tournament_status_enum.RegistrationClosed,
             e_tournament_status_enum.Setup,
+            e_tournament_status_enum.CheckInReview,
           ]"
           status-variant="finished"
           order-direction="desc"
+          card="simple"
           horizontal
+          see-all-as-modal
           hide-when-empty
           :player-steam-id="playerId"
           :limit="8"

@@ -9,11 +9,22 @@ import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { $, order_by, e_tournament_status_enum } from "~/generated/zeus";
 import { Skeleton } from "~/components/ui/skeleton";
-import TournamentFeatureCard from "~/components/tournament/TournamentFeatureCard.vue";
-import TournamentCompactCard from "~/components/tournament/TournamentCompactCard.vue";
+import {
+  Dialog,
+  DialogDescription,
+  DialogHeader,
+  DialogScrollContent,
+  DialogTitle,
+} from "~/components/ui/dialog";
+// Card variants, "see all" dialog and section description adapted from 5Stack
+// WEB b4b83f23 (components/tournament/RecentTournaments.vue); MIT Copyright
+// (c) 2025 5Stack.gg. DEAFCS keeps its Awards-system podium data below.
+import TournamentCard from "~/components/tournament/TournamentCard.vue";
+import type { TournamentCardVariant } from "~/components/tournament/tournamentCard";
 import HorizontalScrollRow from "~/components/common/HorizontalScrollRow.vue";
 import ScrollArrows from "~/components/common/ScrollArrows.vue";
 import {
+  tacticalSectionDescriptionClasses,
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
@@ -26,11 +37,15 @@ const props = withDefaults(
   defineProps<{
     limit?: number;
     sectionLabel?: string;
+    sectionDescription?: string;
     statuses?: e_tournament_status_enum[];
     statusVariant?: StatusVariant;
     statusLabel?: string;
     orderDirection?: "asc" | "desc";
     compact?: boolean;
+    // Which card to render. Falls back to `compact` / `feature` for callers
+    // that predate this prop.
+    card?: TournamentCardVariant;
     horizontal?: boolean;
     hideWhenEmpty?: boolean;
     emptyLabel?: string;
@@ -40,10 +55,17 @@ const props = withDefaults(
     // Override the "See all" destination. Pass null to hide the link
     // (useful when this component is rendered on /tournaments itself).
     seeAllTo?: string | Record<string, any> | null;
+    // Open the full list in a dialog instead of navigating to `seeAllTo`,
+    // for sections whose filters (a single player's tournaments) have no
+    // equivalent on the destination page.
+    seeAllAsModal?: boolean;
   }>(),
   {
     limit: 8,
     sectionLabel: "RECENT.TOURNAMENTS",
+    sectionDescription: "",
+    card: undefined,
+    seeAllAsModal: false,
     statuses: () => [e_tournament_status_enum.Finished],
     statusVariant: "finished",
     statusLabel: undefined,
@@ -75,9 +97,16 @@ const extendedLimit = ref(props.limit);
 const reachedEnd = ref(false);
 const inFlight = ref(false);
 
-async function fetchData() {
-  if (tournaments.value.length === 0) loading.value = true;
-  try {
+const cardVariant = computed<TournamentCardVariant>(
+  () => props.card ?? (props.compact ? "compact" : "feature"),
+);
+
+const SEE_ALL_LIMIT = 60;
+const seeAllOpen = ref(false);
+const seeAllTournaments = ref<any[]>([]);
+const seeAllLoading = ref(false);
+
+async function fetchTournaments(limit: number): Promise<any[]> {
     const { data } = await getGraphqlClient().query({
       query: generateQuery({
         tournaments: [
@@ -88,6 +117,9 @@ async function fetchData() {
           } as any,
           {
             ...simpleTournamentFields,
+            // Which stage a running multi-stage tournament is on (computed
+            // field, readable by every role), for the simple card.
+            current_stage: true,
             stages: [
               { order_by: [{ order: order_by.asc }] } as any,
               {
@@ -149,14 +181,20 @@ async function fetchData() {
               props.orderDirection === "asc" ? order_by.asc : order_by.desc,
           },
         ],
-        limit: extendedLimit.value,
+        limit,
       },
       fetchPolicy: "network-only",
     });
-    tournaments.value = ((data as any)?.tournaments ?? []) as any[];
+    return ((data as any)?.tournaments ?? []) as any[];
+}
+
+async function fetchData() {
+  if (tournaments.value.length === 0) loading.value = true;
+  try {
+    tournaments.value = await fetchTournaments(extendedLimit.value);
     // Heuristic — fewer rows than requested = we've hit the end.
     reachedEnd.value = tournaments.value.length < extendedLimit.value;
-    await fetchAwardData(tournaments.value.map((t: any) => t.id).filter(Boolean));
+    await fetchAwardData(awardTournamentIds());
   } catch (err) {
     console.error("[recent-tournaments] fetch error:", err);
   } finally {
@@ -238,6 +276,17 @@ async function fetchAwardData(tournamentIds: string[]) {
   }
 }
 
+// Award artwork covers both the row and the "see all" dialog.
+function awardTournamentIds(): string[] {
+  return [
+    ...new Set(
+      [...tournaments.value, ...seeAllTournaments.value]
+        .map((t: any) => t.id)
+        .filter(Boolean),
+    ),
+  ];
+}
+
 async function loadMore() {
   if (reachedEnd.value || inFlight.value) return;
   inFlight.value = true;
@@ -258,10 +307,43 @@ watch(
     // Reset paging state when filter inputs change.
     extendedLimit.value = props.limit;
     reachedEnd.value = false;
+    seeAllTournaments.value = [];
     fetchData();
   },
   { deep: true },
 );
+
+// The "see all" dialog re-runs the same query without the row's display
+// limit, so it can show the whole filtered set rather than dropping the
+// filters on the floor by navigating to /tournaments. (5Stack WEB b4b83f23.)
+async function openSeeAll() {
+  seeAllOpen.value = true;
+  if (seeAllTournaments.value.length > 0) {
+    return;
+  }
+
+  seeAllLoading.value = true;
+  try {
+    seeAllTournaments.value = await fetchTournaments(SEE_ALL_LIMIT);
+    await fetchAwardData(awardTournamentIds());
+  } catch (err) {
+    console.error("[recent-tournaments] see-all fetch error:", err);
+  } finally {
+    seeAllLoading.value = false;
+  }
+}
+
+// The simple card is a fixed 320px tile, so it wraps rather than stretching
+// into a grid track.
+const seeAllLayoutClasses = computed(() => {
+  if (cardVariant.value === "simple") {
+    return "flex flex-wrap justify-center gap-3";
+  }
+  if (cardVariant.value === "compact") {
+    return "grid gap-3 sm:grid-cols-2";
+  }
+  return "space-y-4";
+});
 
 const occurrencesByTournamentId = computed(() => {
   const map: Record<string, any[]> = {};
@@ -298,8 +380,17 @@ const shouldRender = computed(() => {
           <span :class="tacticalSectionTickClasses"></span>
           {{ sectionLabel }}
         </span>
+        <button
+          v-if="seeAllAsModal"
+          type="button"
+          class="inline-flex items-center gap-1 font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground hover:text-foreground transition-colors normal-case"
+          @click="openSeeAll"
+        >
+          {{ $t("tournament.recent.see_all") }}
+          <ArrowRight class="h-3 w-3" />
+        </button>
         <NuxtLink
-          v-if="seeAllTo"
+          v-else-if="seeAllTo"
           :to="seeAllTo"
           class="inline-flex items-center gap-1 font-mono text-[0.65rem] tracking-[0.16em] text-muted-foreground hover:text-foreground transition-colors normal-case"
         >
@@ -320,6 +411,10 @@ const shouldRender = computed(() => {
       />
     </div>
 
+    <div v-if="sectionDescription" :class="tacticalSectionDescriptionClasses">
+      {{ sectionDescription }}
+    </div>
+
     <div
       v-if="loading && horizontal"
       class="flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
@@ -327,7 +422,10 @@ const shouldRender = computed(() => {
       <Skeleton
         v-for="i in 4"
         :key="i"
-        class="min-h-[236px] w-96 shrink-0 rounded-md"
+        :class="[
+          'shrink-0 rounded-md',
+          cardVariant === 'simple' ? 'h-48 w-80' : 'aspect-video w-96',
+        ]"
       />
     </div>
 
@@ -335,7 +433,13 @@ const shouldRender = computed(() => {
       <Skeleton
         v-for="i in Math.min(limit, 3)"
         :key="i"
-        :class="compact ? 'h-16 w-full rounded-md' : 'h-32 w-full rounded-md'"
+        :class="
+          cardVariant === 'compact'
+            ? 'h-16 w-full rounded-md'
+            : cardVariant === 'simple'
+              ? 'h-48 w-80 rounded-lg'
+              : 'h-[220px] w-full rounded-xl sm:h-[250px] lg:h-[290px]'
+        "
       />
     </div>
 
@@ -344,38 +448,36 @@ const shouldRender = computed(() => {
       ref="scrollRef"
       @approaching-end="loadMore"
     >
-      <TournamentCompactCard
+      <TournamentCard
         v-for="tournament in tournaments"
         :key="tournament.id"
         :tournament="tournament"
-        :status-variant="statusVariant"
-        :status-label="statusLabel"
         :award-occurrences="occurrencesByTournamentId[tournament.id] || []"
         :award-slots="tournamentAwardSlots"
-        class="min-h-[236px] w-96 shrink-0 snap-start"
+        :variant="cardVariant"
+        :status-variant="statusVariant"
+        :status-label="statusLabel"
+        :class="[
+          'shrink-0 snap-start',
+          cardVariant === 'simple' ? '' : 'aspect-video w-96',
+        ]"
       />
     </HorizontalScrollRow>
 
     <div
       v-else-if="hasTournaments"
-      :class="compact ? 'space-y-2' : 'space-y-3'"
+      :class="cardVariant === 'compact' ? 'space-y-2' : 'space-y-4'"
     >
-      <template v-for="tournament in tournaments" :key="tournament.id">
-        <TournamentCompactCard
-          v-if="compact"
-          :tournament="tournament"
-          :status-variant="statusVariant"
-          :status-label="statusLabel"
-          :award-occurrences="occurrencesByTournamentId[tournament.id] || []"
-          :award-slots="tournamentAwardSlots"
-        />
-        <TournamentFeatureCard
-          v-else
-          :tournament="tournament"
-          :status-variant="statusVariant"
-          :status-label="statusLabel"
-        />
-      </template>
+      <TournamentCard
+        v-for="tournament in tournaments"
+        :key="tournament.id"
+        :tournament="tournament"
+        :award-occurrences="occurrencesByTournamentId[tournament.id] || []"
+        :award-slots="tournamentAwardSlots"
+        :variant="cardVariant"
+        :status-variant="statusVariant"
+        :status-label="statusLabel"
+      />
     </div>
 
     <div
@@ -398,5 +500,52 @@ const shouldRender = computed(() => {
         {{ emptyDescription }}
       </p>
     </div>
+
+    <Dialog v-if="seeAllAsModal" v-model:open="seeAllOpen">
+      <DialogScrollContent class="max-w-4xl">
+        <DialogHeader>
+          <DialogTitle
+            class="font-mono text-sm uppercase tracking-[0.24em] text-muted-foreground"
+          >
+            {{ sectionLabel }}
+          </DialogTitle>
+          <DialogDescription v-if="sectionDescription">
+            {{ sectionDescription }}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div v-if="seeAllLoading" :class="seeAllLayoutClasses">
+          <Skeleton
+            v-for="i in 4"
+            :key="i"
+            :class="
+              cardVariant === 'simple'
+                ? 'h-48 w-80 rounded-lg'
+                : 'h-24 w-full rounded-md'
+            "
+          />
+        </div>
+
+        <div v-else-if="seeAllTournaments.length" :class="seeAllLayoutClasses">
+          <TournamentCard
+            v-for="tournament in seeAllTournaments"
+            :key="tournament.id"
+            :tournament="tournament"
+            :award-occurrences="occurrencesByTournamentId[tournament.id] || []"
+            :award-slots="tournamentAwardSlots"
+            :variant="cardVariant"
+            :status-variant="statusVariant"
+            :status-label="statusLabel"
+          />
+        </div>
+
+        <div
+          v-else
+          class="py-8 text-center font-mono text-[0.62rem] uppercase tracking-[0.24em] text-muted-foreground/80"
+        >
+          {{ emptyLabel || $t("tournament.recent.standby_no_tournaments") }}
+        </div>
+      </DialogScrollContent>
+    </Dialog>
   </div>
 </template>

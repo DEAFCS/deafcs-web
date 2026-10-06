@@ -128,11 +128,6 @@ const champion = computed(() =>
   state.value === "finished" ? tournamentChampion(props.tournament) : null,
 );
 
-const podium = computed(() => {
-  if (state.value !== "finished") return [];
-  const stage = [...(props.tournament.stages || [])].sort((a, b) => Number(b.order) - Number(a.order))[0];
-  return (stage?.results || []).filter((r: any) => [2, 3].includes(Number(r.rank))).sort((a: any, b: any) => Number(a.rank) - Number(b.rank));
-});
 function signIn() {
   window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(
     window.location.toString(),
@@ -240,7 +235,8 @@ const primaryClasses =
         <ul
           class="m-0 flex list-none flex-wrap gap-x-4 gap-y-1.5 p-0 text-[0.8125rem] text-foreground/85"
         >
-          <li v-for="result in podium" :key="result.rank" class="text-sm text-muted-foreground">{{ result.rank }}. {{ result.team?.name || result.team?.team?.name }}</li>
+          <!-- As on 5Stack: a finished card names only the champion. 2nd and
+               3rd stay on the tournament page (Results, Standings, Bracket). -->
           <li v-if="champion" class="flex items-center gap-1.5 font-semibold">
             <Trophy class="h-3.5 w-3.5 text-[hsl(var(--tac-amber))]" />
             {{ $t("pages.watch.tournaments.champion", { name: champion }) }}
@@ -313,11 +309,15 @@ const primaryClasses =
             </NuxtLink>
           </Button>
         </template>
+        <!-- Dark-grey secondary action (same Button variant as the
+             /tournaments hero Details) so it reads as clickable without
+             competing with the amber Register action. -->
         <Button
           as-child
           size="sm"
-          variant="ghost"
-          class="hit h-8 text-muted-foreground hover:text-foreground"
+          variant="secondary"
+          class="hit h-8"
+          data-testid="watch-tournament-secondary-action"
         >
           <NuxtLink :to="state === 'finished' ? `${path}?tab=standings` : path">
             {{
