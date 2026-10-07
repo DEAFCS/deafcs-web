@@ -60,7 +60,7 @@ afterEach(() => { wrappers.splice(0).forEach(w => w.unmount()); viewport.mobile 
 
 describe("shared match expansion", () => {
   it.each([true, false].flatMap(neutral => [true, false].flatMap(compact => [true, false].map(mobile => [neutral, compact, mobile]))))(
-    "only compact/mobile neutral lists opt out of grid intrinsic minimum width (neutral %s, compact %s, mobile %s)",
+    "every list opts out of grid intrinsic minimum width (neutral %s, compact %s, mobile %s)",
     (neutral, compact, mobile) => {
       viewport.mobile = mobile;
       const w = shallowMount(PlayerMatchesTable, {
@@ -68,11 +68,22 @@ describe("shared match expansion", () => {
         global: { config: { globalProperties: { $t: (k: string) => k } } },
       });
       wrappers.push(w);
-      expect(w.get("div").classes().includes("min-w-0")).toBe(neutral && (compact || mobile));
+      expect(w.get("div").classes().includes("min-w-0")).toBe(true);
       expect(w.get("div").classes()).not.toContain("overflow-hidden");
       expect(w.findComponent(PlayerMatchRow).props("compact")).toBe(compact || mobile);
     },
   );
+  it("keeps the scoreboard and every tab panel constrained so wide tables scroll inside", () => {
+    const w = render();
+    const fixed = ["w-full", "min-w-0", "max-w-full"];
+    expect(w.get("[data-testid=player-match-scoreboard]").classes()).toEqual(expect.arrayContaining(fixed));
+    const panels = w.findAll("[role=tabpanel]");
+    expect(panels.some(p => p.find(".overflow-x-auto").exists())).toBe(true);
+    panels.filter(p => p.find(".overflow-x-auto").exists()).forEach(p => {
+      expect(p.classes()).toEqual(expect.arrayContaining(fixed));
+      expect(p.find(".overflow-x-auto").classes()).toEqual(expect.arrayContaining(fixed));
+    });
+  });
   it("neutral full stats show both teams without highlighting the viewer", () => {
     const w = render();
     expect(w.findAll("[data-team]").map(x => x.attributes("data-team"))).toEqual(["Alpha", "Beta"]);

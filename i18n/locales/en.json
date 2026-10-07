@@ -3156,6 +3156,10 @@
       "lineup_only": "Only matches I'm in",
       "include_external": "Include external matches",
       "standby_no_matches": "STANDBY · NO MATCHES FOUND",
+      "empty": {
+        "title": "No matches yet",
+        "description": "Matches show up here as soon as they are scheduled or played."
+      },
       "create_page": {
         "pick_up_game": "Pick Up Game",
         "pick_up_game_description": "A Pick up game does not require selection of teams.",
@@ -4999,6 +5003,10 @@
     "none": "No players available"
   },
   "common": {
+    "empty_filtered": {
+      "title": "No matches for these filters",
+      "description": "Try changing or resetting the filters."
+    },
     "close": "Close",
     "last_updated": "Last updated: {date}",
     "loading": "Loading...",

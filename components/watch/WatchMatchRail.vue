@@ -35,10 +35,6 @@ import {
   type TickerCellModel,
   type TickerFilter,
 } from "~/components/watch/watchTicker";
-import {
-  tacticalSectionLabelClasses,
-  tacticalSectionTickClasses,
-} from "~/utilities/tacticalClasses";
 
 const props = defineProps<{ ghost?: boolean }>();
 
@@ -360,24 +356,9 @@ defineExpose({ filter, items, tabs, autoStreams });
 
 <template>
   <section aria-labelledby="watch-rail-label" data-testid="watch-match-rail">
-    <div :class="[tacticalSectionLabelClasses, '!flex w-full items-center justify-between']">
-      <span class="inline-flex items-center gap-3">
-        <span id="watch-rail-label" class="inline-flex items-center gap-2">
-          <span :class="tacticalSectionTickClasses"></span>
-          {{ $t("pages.watch.ticker.label") }}
-        </span>
-        <!-- Same "See all →" as Highlights: the full Matches page. -->
-        <NuxtLink
-          v-if="!ghost"
-          to="/matches"
-          data-testid="watch-matches-see-all"
-          class="inline-flex items-center gap-1 font-mono text-[0.65rem] normal-case tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"
-        >
-          {{ $t("common.see_all") }}
-          <ArrowRight class="h-3 w-3" />
-        </NuxtLink>
-      </span>
-    </div>
+    <h2 id="watch-rail-label" class="sr-only">
+      {{ $t("pages.watch.ticker.label") }}
+    </h2>
 
     <template v-if="ghost">
       <div class="flex gap-3 overflow-hidden">
@@ -403,7 +384,17 @@ defineExpose({ filter, items, tabs, autoStreams });
       <div class="mb-2.5 flex items-center justify-between gap-3">
         <WatchSegmented v-model="filter" :options="tabs" :label="$t('pages.watch.ticker.filters_label')" />
 
-        <div class="flex shrink-0 gap-1.5 max-sm:hidden">
+        <div class="flex shrink-0 items-center gap-3">
+          <!-- Same "See all →" as Highlights: the full Matches page. -->
+          <NuxtLink
+            to="/matches"
+            data-testid="watch-matches-see-all"
+            class="inline-flex items-center gap-1 whitespace-nowrap text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            {{ $t("common.see_all") }}
+            <ArrowRight class="h-3 w-3" />
+          </NuxtLink>
+          <div class="flex gap-1.5 max-sm:hidden">
           <button
             type="button"
             :aria-label="$t('ui.scroll.left')"
@@ -422,6 +413,7 @@ defineExpose({ filter, items, tabs, autoStreams });
           >
             <ChevronRight class="size-4" />
           </button>
+          </div>
         </div>
       </div>
 

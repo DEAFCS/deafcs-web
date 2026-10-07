@@ -525,19 +525,20 @@ describe("WatchMatchRail", () => {
     expect(w.find('[data-testid="watch-stream-indicator"]').exists()).toBe(false);
   });
 
-  it("MATCHES has the same See all link as HIGHLIGHTS, to the full Matches page", async () => {
+  it("See all sits with the arrows on the right, in 5Stack's plain style, with no MATCHES banner", async () => {
     const rail = await mountComp("components/watch/WatchMatchRail.vue", { ghost: false });
     const link = rail.get('[data-testid="watch-matches-see-all"]');
     expect(link.attributes("href")).toBe("/matches");
     expect(link.text()).toContain("common.see_all");
-    // Same look as the Highlights link, and only one Matches heading.
-    const railSrc = read("components/watch/WatchMatchRail.vue");
+    expect(link.classes()).toContain("text-xs");
+    expect(link.classes()).not.toContain("font-mono");
+    // Same group as the scroll arrows, after the filters.
+    expect(link.element.parentElement!.querySelector('button[aria-label="ui.scroll.right"]')).not.toBeNull();
+    // The heading stays for assistive tech only.
+    expect(rail.get("#watch-rail-label").classes()).toContain("sr-only");
+    expect(read("pages/watch/index.vue")).not.toContain("TacticalPageHeader");
     const highlightsSrc = read("components/watch/WatchHighlights.vue");
-    const linkClass =
-      'class="inline-flex items-center gap-1 font-mono text-[0.65rem] normal-case tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"';
-    expect(railSrc).toContain(linkClass);
-    expect(highlightsSrc).toContain(linkClass);
-    expect(railSrc.match(/pages\.watch\.ticker\.label/g)).toHaveLength(1);
+    expect(highlightsSrc).toContain("normal-case tracking-[0.16em]");
 
     apollo.clips = [{ id: "c1", title: "Clip", created_at: NOW.toISOString() }];
     const highlights = await mountComp("components/watch/WatchHighlights.vue", { ghost: false });

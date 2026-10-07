@@ -116,9 +116,11 @@ test("homepage, Play, and Tournaments retain their header titles", () => {
 });
 
 test("Watch, Awards, and award management retain shared header content", () => {
+  // Watch follows 5Stack: no banner, the title stays for assistive tech.
+  assert.doesNotMatch(watch, /TacticalPageHeader/);
   assert.match(
     watch,
-    /<TacticalPageHeader>[\s\S]*<template #title>\{\{ \$t\("pages\.watch\.title"\) \}\}<\/template>/,
+    /<h1 class="sr-only">\{\{ \$t\("pages\.watch\.title"\) \}\}<\/h1>/,
   );
   assert.match(
     awards,

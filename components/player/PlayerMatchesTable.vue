@@ -36,9 +36,10 @@ const wideGrid =
 </script>
 
 <template>
-  <!-- Neutral mobile lists may be grid items (TournamentMatches). Allow the
-       list to shrink so the scoreboard's own table scroll area can do its job. -->
-  <div :class="{ 'min-w-0': neutral && (compact || isMobile) }">
+  <!-- Lists may be grid items (TournamentMatches). Always allow the list to
+       shrink so a wide stats table scrolls inside its own area instead of
+       widening the scoreboard or the page. -->
+  <div class="min-w-0 max-w-full">
     <Empty v-if="matches.length === 0">
       <slot name="none-found">
         {{ $t("match.options.table.no_matches_found") }}

@@ -304,7 +304,7 @@ const actionClasses =
 </script>
 
 <template>
-  <div class="min-w-0 space-y-3" data-testid="player-match-scoreboard">
+  <div class="w-full min-w-0 max-w-full space-y-3" data-testid="player-match-scoreboard">
     <!-- MATCH STRIP — map (or series), score, and this player's rank move. -->
     <div
       class="sb-rise relative overflow-hidden rounded-lg border border-border bg-[hsl(240_8%_6%)]"
@@ -468,6 +468,7 @@ const actionClasses =
 
       <div v-else :class="fadeContent && 'sb-fade'">
         <Tabs
+          class="w-full min-w-0 max-w-full"
           :model-value="activeTab"
           @update:model-value="(v) => emit('update:active-tab', v as string)"
         >
@@ -488,7 +489,7 @@ const actionClasses =
             v-for="tab in tabs"
             :key="tab.value"
             :value="tab.value"
-            class="tab-panel-in pt-2"
+            class="tab-panel-in w-full min-w-0 max-w-full pt-2"
           >
             <template v-if="compact && focusLineup">
               <div class="overflow-hidden rounded-md border border-border bg-card">
@@ -502,7 +503,7 @@ const actionClasses =
                   />
                 </StackedTable>
               </div>
-              <div v-if="showLobby" class="mt-3 overflow-x-auto">
+              <div v-if="showLobby" class="mt-3 w-full min-w-0 max-w-full overflow-x-auto">
                 <component
                   :is="tab.component"
                   :match="match"
@@ -512,7 +513,7 @@ const actionClasses =
                 />
               </div>
             </template>
-            <div v-else class="overflow-x-auto">
+            <div v-else class="w-full min-w-0 max-w-full overflow-x-auto">
               <component
                 :is="tab.component"
                 :match="match"

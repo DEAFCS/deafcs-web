@@ -2,7 +2,6 @@
 const featuredTournamentIds = ref<string[]>([]);
 import { useI18n } from "vue-i18n";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
-import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import WatchColdStart from "~/components/watch/WatchColdStart.vue";
 import WatchMatchRail from "~/components/watch/WatchMatchRail.vue";
 import WatchHighlights from "~/components/watch/WatchHighlights.vue";
@@ -24,13 +23,9 @@ useHead({
 </script>
 
 <template>
-  <PageTransition>
-    <TacticalPageHeader>
-      <template #title>{{ $t("pages.watch.title") }}</template>
-    </TacticalPageHeader>
-  </PageTransition>
+  <h1 class="sr-only">{{ $t("pages.watch.title") }}</h1>
 
-  <PageTransition :delay="50" class="mt-6">
+  <PageTransition>
     <WatchMatchRail :ghost="feedIsEmpty" />
   </PageTransition>
 
