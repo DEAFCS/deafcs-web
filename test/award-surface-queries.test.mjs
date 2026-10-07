@@ -9,7 +9,10 @@ const teamSource = await read("pages/teams/[id].vue");
 const playerSource = await read("pages/players/[id].vue");
 const podiumSource = await read("components/tournament/TournamentResults.vue");
 const detailSource = await read("components/tournament/TournamentDetail.vue");
-const teamsListSource = await read("pages/teams/index.vue");
+// The teams list reads its awards through TeamsDirectory + teamAwards.ts.
+const teamsListSource =
+  (await read("components/teams/TeamsDirectory.vue")) +
+  (await read("components/teams/teamAwards.ts"));
 const recentTournamentsSource = await read(
   "components/tournament/RecentTournaments.vue",
 );
@@ -88,7 +91,7 @@ for (const [label, source, blockPattern] of [
 // same mapAwardRecipientToTrophy/resolveAwardArtwork chain as the team
 // profile and podium surfaces.
 assert.match(teamsListSource, /award_recipients: \[/);
-assert.match(teamsListSource, /awardFields/);
+assert.match(teamsListSource, /teamAwardRecipientFields/);
 assert.match(teamsListSource, /tournament_award_slots: \[/);
 assert.match(teamsListSource, /mapAwardRecipientToTrophy/);
 assert.doesNotMatch(teamsListSource, /tournament_trophies/);
@@ -104,7 +107,7 @@ assert.match(
 // exactly one of player_steam_id/team_id is non-null per
 // award_recipients_exactly_one_recipient), not the legacy
 // tournament_team.team_id hop.
-assert.match(teamsListSource, /const teamId = t\.team_id;/);
+assert.match(teamsListSource, /grant\.team_id/);
 
 // Recent tournaments (/watch, /tournaments): reads award_occurrences (with
 // recipients) + tournament_award_slots directly, batched across the
@@ -139,13 +142,15 @@ assert.doesNotMatch(compactCardSource, /tournament_trophies/);
 // its uploaded artwork show up wherever the grant does.
 const awardCaseSource = await read("components/award/AwardCase.vue");
 const awardModalSource = await read("components/award/AwardModal.vue");
-const teamsTableSource = await read("components/TeamsTable.vue");
+const teamAwardShelfSource = await read("components/teams/TeamsAwardShelf.vue");
+const teamHeroSource = await read("components/team/TeamHero.vue");
 const eventStandingsSource = await read("components/events/EventStandings.vue");
 
 for (const [label, source] of [
   ["AwardCase", awardCaseSource],
   ["AwardModal", awardModalSource],
-  ["TeamsTable", teamsTableSource],
+  ["TeamsAwardShelf", teamAwardShelfSource],
+  ["TeamHero", teamHeroSource],
   ["TournamentCompactCard", compactCardSource],
   ["TournamentResults", podiumSource],
   ["EventStandings", eventStandingsSource],

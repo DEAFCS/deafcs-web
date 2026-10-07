@@ -145,7 +145,7 @@ export interface AwardRecipientRow {
 
 /**
  * Flattens a live award_recipients row (award_recipients -> award_occurrences
- * -> awards) into the shape AwardCase/AwardModal/TeamsTable consume. `award`
+ * -> awards) into the shape AwardCase/AwardModal/TeamsAwardShelf consume. `award`
  * carries the artwork definition for AwardArtwork; `trophy_config` carries the
  * nameplate text those components already print. Both are resolved fresh on
  * every read.

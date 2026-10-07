@@ -1437,6 +1437,83 @@
         "col_first_pick": "1st Pick",
         "col_decider": "Decider",
         "based_on": "Based on {n} veto records"
+      },
+      "veto_sim": {
+        "section": "Veto Simulation",
+        "description": "Estimate the likely veto outcome and map win chances against a chosen opponent, based on both teams' veto history.",
+        "opponent": "Opponent",
+        "select_opponent": "Select opponent team",
+        "estimate_notice": "Estimate only, derived from historical veto tendencies, not a guaranteed outcome.",
+        "no_self_title": "No veto history for this team",
+        "no_self_description": "Simulation needs this team to have recorded map vetos first.",
+        "pick_opponent_title": "Choose an opponent",
+        "pick_opponent_description": "Select an opponent team to simulate the map veto.",
+        "loading": "Loading opponent veto history…",
+        "no_opp_title": "No veto history for opponent",
+        "no_opp_description": "The selected opponent has no recorded map vetos to simulate against.",
+        "confidence_self": "This team: {n} records",
+        "confidence_opp": "Opponent: {n} records",
+        "col_map": "Map",
+        "col_ban": "Ban Likelihood",
+        "col_pick": "Pick Likelihood",
+        "col_play": "Play Likelihood",
+        "col_predicted_win": "Predicted Win%"
+      },
+      "directory": {
+        "sort_active": "Recently active",
+        "sort_rating": "Rating",
+        "sort_name": "Name",
+        "title": "All teams",
+        "sort_label": "Sort teams",
+        "search_label": "Search teams",
+        "clear_search": "Clear search",
+        "col_roster": "Roster",
+        "col_elo": "Avg ELO",
+        "col_form": "Form",
+        "col_last": "Last played",
+        "col_awards": "Awards",
+        "no_match": "Nothing matches your search or filters.",
+        "clear_filters": "Clear filters",
+        "org": "Org",
+        "playing_now": "Playing now",
+        "never_played": "No matches yet"
+      },
+      "players": "{count} player | {count} players",
+      "form": {
+        "label": "Recent form: {results}",
+        "none": "No results yet",
+        "result_W": "win",
+        "result_L": "loss",
+        "result_T": "tie"
+      },
+      "scrims": {
+        "today": "Today {from}–{to}",
+        "any_time": "Takes requests any time",
+        "title": "Looking for scrims",
+        "subtitle": "Teams taking challenges",
+        "need_team": "You need a team you own or run to request a scrim.",
+        "see_all": "See all in the Scrim finder",
+        "sign_in_to_request": "Sign in to request"
+      },
+      "playing_now": {
+        "title": "Playing now",
+        "live_count": "{count} live",
+        "all_live": "All live matches",
+        "more_on_watch": "more live on Watch"
+      },
+      "your_teams": {
+        "playing_now": "Playing now",
+        "check_in": "Check in",
+        "scrim_replies": "{count} scrim reply needed | {count} scrim replies needed",
+        "invite_starter": "Invite a starter",
+        "next": "Next",
+        "nothing_scheduled": "Nothing scheduled",
+        "last": "Last",
+        "no_matches": "No matches yet",
+        "title": "Your teams",
+        "result_W": "Won",
+        "result_L": "Lost",
+        "result_T": "Tied"
       }
     },
     "settings": {
@@ -2511,6 +2588,9 @@
       "events": {
         "in_prizes": "{amount} in prizes",
         "count_teams": "team | teams"
+      },
+      "stage": {
+        "watch": "Watch"
       }
     },
     "highlights": {
@@ -2964,6 +3044,19 @@
       "draft_games": {
         "section_label": "OPEN.MATCHES",
         "description": "Browse open pick-up games or create one — captains draft the teams."
+      },
+      "schedule": {
+        "best_of": "Best of {count}",
+        "vs": "vs",
+        "in_minutes": "in {count} min",
+        "in_hours": "in {count} h",
+        "tomorrow": "tomorrow",
+        "in_days": "in {count} days"
+      },
+      "more_ways": {
+        "scrims": {
+          "find": "Find a scrim"
+        }
       }
     },
     "verify": {
@@ -6380,6 +6473,90 @@
       "link_copied": "Calendar link copied",
       "subscription_help": "Subscribe to this URL in your calendar app to see every match this team plays — scrims, league fixtures and tournaments.",
       "link_error": "Could not get calendar link"
+    },
+    "activity": {
+      "this_week": "This week",
+      "earlier": "Earlier",
+      "tournament": "Tournament",
+      "promoted": "Promoted to {division}",
+      "relegated": "Relegated to {division}",
+      "finished": "Finished #{rank} in {division}",
+      "stayed": "Stayed in {division}",
+      "started": "Started {season}",
+      "title": "Activity",
+      "empty": "Results, clips and awards show up here as {team} plays.",
+      "open_match": "Open match",
+      "invited": "{name} was invited",
+      "invited_by": "Invited by {name}",
+      "created": "{team} was created",
+      "show_older": "Show older activity",
+      "beat": "Beat {opponent}",
+      "lost_to": "Lost to {opponent}",
+      "drew_with": "Drew with {opponent}",
+      "won": "Won {name}",
+      "second_at": "2nd at {name}",
+      "third_at": "3rd at {name}",
+      "placed_at": "{placement} at {name}",
+      "received": "Received {name}"
+    },
+    "pulse": {
+      "hero": {
+        "players": "{count} player | {count} players",
+        "matches": "{count} match | {count} matches",
+        "no_matches": "No matches yet",
+        "founded": "Founded {date}",
+        "all_awards": "Show all awards",
+        "team_actions": "Team actions"
+      },
+      "results": {
+        "hint": "Newest first, scroll for older",
+        "all_matches": "All matches"
+      },
+      "stage": {
+        "open_to_scrims": "Open {name} to scrims so other teams can challenge you.",
+        "set_up_scrims": "Set up scrims",
+        "never_played": "{name} hasn't played a match yet.",
+        "live": "Live now",
+        "next_up": "Next up",
+        "upcoming": "{count} upcoming",
+        "then": "Then",
+        "none_scheduled_member": "No matches scheduled yet.",
+        "none_scheduled": "Nothing scheduled right now."
+      },
+      "tabs": {
+        "matches": "Matches",
+        "scrim_waiting": "{count} waiting on you"
+      },
+      "needs": {
+        "title": "Needs you",
+        "to_do": "{count} to do",
+        "check_in_title": "Check in for the match vs {name}",
+        "scrim_title": "wants to scrim",
+        "counter_title": "proposed a new time",
+        "best_of_short": "Bo{count}",
+        "roster_title": "{count} of 5 starters",
+        "roster_meta": "Invite players to field a full team.",
+        "waiting_on": "Waiting on",
+        "waiting_check_in": "{names} to check in",
+        "waiting_scrim": "{name} to answer your scrim request",
+        "waiting_invites": "{names} to accept their invites",
+        "counter_dialog_title": "Propose another time",
+        "counter_dialog_description": "{name} still has to accept the new time.",
+        "send_new_time": "Send new time"
+      }
+    },
+    "starting_five": {
+      "captain": "Captain: {name}",
+      "substitutes": "{count} substitute | {count} substitutes",
+      "bench": "{count} on the bench",
+      "coaches": "{count} coach | {count} coaches",
+      "full_roster": "Full roster",
+      "starters_only": "Starting five only",
+      "title": "Starting five",
+      "players": "{count} player | {count} players",
+      "manage_roster": "Manage roster",
+      "open_slot": "Open starter slot",
+      "invite": "Invite"
     }
   },
   "match": {
@@ -6433,7 +6610,10 @@
       "signal_lost": "Signal lost",
       "idle": "Idle",
       "access_denied": "Stream unavailable",
-      "access_denied_hint": "You don't have access to this live stream — players can't watch a match they're in."
+      "access_denied_hint": "You don't have access to this live stream — players can't watch a match they're in.",
+      "card": {
+        "scheduled": "Scheduled"
+      }
     },
     "elo_details": {
       "title": "Elo Change Details",
@@ -6939,7 +7119,7 @@
     "time_to_connect": "Time to connect",
     "stats_ready_in": "Stats ready in",
     "actions": {
-    "call_support": "Contact Support",
+      "call_support": "Contact Support",
       "start_veto": "Start Veto",
       "skip_checkin": "Skip Check In",
       "cancel": "Cancel Match",
@@ -7458,7 +7638,8 @@
     "click_to_view_tournament": "Click to view tournament",
     "auto_clip": "Auto clip",
     "create_clip": "Create clip",
-    "reload_demo": "Reload demo"
+    "reload_demo": "Reload demo",
+    "click_to_view_award": "Click to view award"
   },
   "player": {
     "performance": {
@@ -9416,9 +9597,46 @@
       "axis_assist": "Assist"
     }
   },
-  "awards": {"title":"Awards","mvp":"MVP","first_place":"1st Place","second_place":"2nd Place","third_place":"3rd Place","tournament":"Tournament","placement":"Placement","no_awards":"No Awards Yet","no_awards_description":"Finish in the top 3 of a tournament, or be granted an award, to fill this case.","granted":"Granted","composer":{"title":"Create \u0026 assign award","award":"Award","new":"New","existing":"Existing","choose":"Choose an award�","assign":"Assign","artwork_needs_award":"Artwork attaches to the award, so save it first.","create_to_upload":"Create award to add artwork","team_fans_out":"Granting to a team also gives the award to everyone on its roster.","scope_global":"Not tied to a tournament, season or event.","scope_tournament":"Belongs to this tournament.","scope_season":"Belongs to this season.","scope_event":"Belongs to this event.","scope_league_season":"Belongs to this league season.","grant_here":"Grant award","load_existing":"Load an existing award�","editing":"Editing: {name}"}},
-  "awards_modal": {"view_tournament":"VIEW TOURNAMENT"},
-  "awards_manage_form": {"team":"Team","player":"Player","award":"Award","recipient":"Recipient"},
+  "awards": {
+    "title": "Awards",
+    "mvp": "MVP",
+    "first_place": "1st Place",
+    "second_place": "2nd Place",
+    "third_place": "3rd Place",
+    "tournament": "Tournament",
+    "placement": "Placement",
+    "no_awards": "No Awards Yet",
+    "no_awards_description": "Finish in the top 3 of a tournament, or be granted an award, to fill this case.",
+    "granted": "Granted",
+    "composer": {
+      "title": "Create & assign award",
+      "award": "Award",
+      "new": "New",
+      "existing": "Existing",
+      "choose": "Choose an award�",
+      "assign": "Assign",
+      "artwork_needs_award": "Artwork attaches to the award, so save it first.",
+      "create_to_upload": "Create award to add artwork",
+      "team_fans_out": "Granting to a team also gives the award to everyone on its roster.",
+      "scope_global": "Not tied to a tournament, season or event.",
+      "scope_tournament": "Belongs to this tournament.",
+      "scope_season": "Belongs to this season.",
+      "scope_event": "Belongs to this event.",
+      "scope_league_season": "Belongs to this league season.",
+      "grant_here": "Grant award",
+      "load_existing": "Load an existing award�",
+      "editing": "Editing: {name}"
+    }
+  },
+  "awards_modal": {
+    "view_tournament": "VIEW TOURNAMENT"
+  },
+  "awards_manage_form": {
+    "team": "Team",
+    "player": "Player",
+    "award": "Award",
+    "recipient": "Recipient"
+  },
   "quick_look": {
     "title": "Quick look",
     "at": "Quick look at {name}",

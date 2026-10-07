@@ -64,3 +64,20 @@ export function placementToTier(placement: number): AwardTier {
   if (placement === 2) return "silver";
   return "bronze";
 }
+
+// A tournament placement always wins the palette so medals stay readable even
+// when an organizer maps an off-tier award onto a placement. DEAFCS has no
+// "special" palette, so an award without a placement or a known tier reads as
+// bronze.
+export function resolveAwardTier(
+  placement?: number | null,
+  awardTier?: string | null,
+): AwardTier {
+  if (placement !== null && placement !== undefined) {
+    return placementToTier(placement);
+  }
+  if (awardTier && awardTier in TIER_PALETTES) {
+    return awardTier as AwardTier;
+  }
+  return "bronze";
+}

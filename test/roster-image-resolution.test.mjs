@@ -76,7 +76,8 @@ const MUST_OPT_IN = [
   "components/tournament/TournamentTeamInvite.vue",
   "components/tournament/TournamentTeamMemberRow.vue",
   "components/tournament/TournamentJoinForm.vue",
-  "pages/teams/[id].vue",
+  // The team page header (captain) lives in TeamHero since the 5Stack redesign.
+  "components/team/TeamHero.vue",
 ];
 
 const MUST_STAY_AVATAR_ONLY = [
@@ -305,7 +306,7 @@ for (const path of MATCH_CONTEXT_GATED) {
 const UNCONDITIONAL_TRUE = [
   "components/teams/TeamMember.vue",
   "components/team/TeamCareerStats.vue",
-  "pages/teams/[id].vue",
+  "components/team/TeamHero.vue",
   "components/tournament/TournamentTeamInvite.vue",
 ];
 for (const path of UNCONDITIONAL_TRUE) {
@@ -378,51 +379,47 @@ for (const path of [
 }
 
 // ---------------------------------------------------------------------------
-// TeamsTable (the /teams list-page cards) is a real team context, so roster
-// images are allowed -- rosterPlayerImage() must resolve the full 4-tier
-// priority: team-specific roster image -> player's general roster image ->
-// custom avatar -> Steam avatar, mirroring PlayerDisplay's
-// allow-roster-image branch instead of jumping straight from the
-// team-specific override to the Steam avatar.
+// The /teams directory rows are a real team context, so roster images are
+// allowed -- faceSrc() must resolve the full 4-tier priority: team-specific
+// roster image -> player's general roster image -> custom avatar -> Steam
+// avatar, mirroring PlayerDisplay's allow-roster-image branch instead of
+// jumping straight from the team-specific override to the Steam avatar.
 // ---------------------------------------------------------------------------
 {
-  const src = await read("components/TeamsTable.vue");
-
-  const methodMatch = src.match(
-    /rosterPlayerImage\(rosterItem: RosterEntry\): string \| null \{([\s\S]*?)\n {4}\},/,
-  );
-  assert.ok(methodMatch, "rosterPlayerImage method not found");
-  const body = methodMatch[1];
+  const src = await read("components/teams/TeamsDirectoryRow.vue");
+  const match = src.match(/function faceSrc\(member: any\) \{([\s\S]*?)\n\}/);
+  assert.ok(match, "faceSrc not found");
+  const body = match[1];
 
   const teamSpecificIdx = body.indexOf("resolveRosterImageUrl(");
-  const generalRosterIdx = body.indexOf("rosterItem.player?.roster_image_url");
-  const customAvatarIdx = body.indexOf("rosterItem.player?.custom_avatar_url");
-  const steamAvatarIdx = body.indexOf("rosterItem.player?.avatar_url");
-
+  const generalRosterIdx = body.indexOf("member.player?.roster_image_url");
+  const customAvatarIdx = body.indexOf("member.player?.custom_avatar_url");
+  const steamAvatarIdx = body.indexOf("member.player?.avatar_url");
   assert.ok(
     teamSpecificIdx >= 0 &&
       generalRosterIdx >= 0 &&
       customAvatarIdx >= 0 &&
       steamAvatarIdx >= 0,
-    "rosterPlayerImage must reference all four fallback tiers",
+    "faceSrc must reference all four fallback tiers",
   );
   assert.ok(
     teamSpecificIdx < generalRosterIdx &&
       generalRosterIdx < customAvatarIdx &&
       customAvatarIdx < steamAvatarIdx,
-    "rosterPlayerImage must resolve team-specific -> general roster image -> custom avatar -> Steam avatar, in that order",
+    "faceSrc must resolve team-specific -> general roster image -> custom avatar -> Steam avatar, in that order",
   );
-
-  // The team-specific tier stays delegated to the shared, narrowly-scoped
-  // resolveRosterImageUrl helper (its own "no personal-roster-image
-  // fallback" contract is unchanged) -- only the later tiers were added.
   assert.match(
     body,
-    /resolveRosterImageUrl\(\s*rosterItem,\s*rosterItem\.player \?\? null,\s*this\.apiDomain,?\s*\)/,
+    /resolveRosterImageUrl\(member, member\.player \?\? null, apiDomain\)/,
   );
 
-  // PlayerDisplay.vue and utilities/rosterImage.ts's contracts are untouched
-  // by this fix -- TeamsTable owns its own resolution, same as before.
+  // The directory query selects every field those tiers read.
+  const directory = await read("components/teams/TeamsDirectory.vue");
+  for (const field of ["avatar_url", "custom_avatar_url", "roster_image_url"]) {
+    assert.match(directory, new RegExp(`\\b${field}: true`));
+  }
+
+  // resolveRosterImageUrl keeps its narrow team-specific-only contract.
   const rosterImageUtilSrc = await read("utilities/rosterImage.ts");
   assert.match(
     rosterImageUtilSrc,

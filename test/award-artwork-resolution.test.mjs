@@ -170,7 +170,7 @@ assert.equal(placementForTournamentAwardSlot("third_place"), 3);
 }
 
 // mapAwardRecipientToTrophy flattens a live award_recipients row into the
-// shape AwardCase/AwardModal/TeamsTable consume: `award` drives AwardArtwork,
+// shape AwardCase/AwardModal/TeamsAwardShelf consume: `award` drives AwardArtwork,
 // `trophy_config` still drives the nameplate text those components print.
 {
   const recipient = {

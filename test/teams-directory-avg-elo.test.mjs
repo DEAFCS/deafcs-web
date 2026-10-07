@@ -2,99 +2,72 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-// /teams independently recalculated its AVG ELO card from
-// roster[].player.elo.competitive -- a raw field that can fall back to a
-// player's lifetime ELO outside the active season (the same class of bug
-// v_team_ranks was fixed for). The team detail page already correctly
-// reads teams.ranks.avg_elo (v_team_ranks via _team_rank_competitive_elo).
-// This fix makes /teams read that same source instead of recomputing.
+// /teams follows current 5Stack's directory (TeamsDirectory + rows). The
+// original intent of this file still holds: the AVG ELO shown for a team comes
+// from the API's teams.ranks.avg_elo (v_team_ranks), never recomputed from the
+// raw roster[].player.elo values, which can fall back to a lifetime ELO outside
+// the active season.
 
-const pageSource = await readFile(
-  new URL("../pages/teams/index.vue", import.meta.url),
-  "utf8",
-);
-const tableSource = await readFile(
-  new URL("../components/TeamsTable.vue", import.meta.url),
-  "utf8",
-);
+const read = (path) =>
+  readFile(new URL(`../${path}`, import.meta.url), "utf8");
 
-test("the main teams list query requests ranks.avg_elo", () => {
-  const teamsBlock = pageSource.slice(
-    pageSource.indexOf("teams: ["),
-    pageSource.indexOf("teams: [") + 1200,
-  );
-  assert.match(teamsBlock, /ranks:\s*\{\s*avg_elo:\s*true,?\s*\}/);
+const pageSource = await read("pages/teams/index.vue");
+const directory = await read("components/teams/TeamsDirectory.vue");
+const row = await read("components/teams/TeamsDirectoryRow.vue");
+
+test("the /teams page composes the current 5Stack sections", () => {
+  for (const component of [
+    "TeamsYourTeams",
+    "TeamsPlayingNow",
+    "TeamsLookingForScrims",
+    "TeamsDirectory",
+  ]) {
+    assert.match(pageSource, new RegExp(`<${component}\\b`));
+  }
+  // The old table page is gone, and so is its TacticalPageHeader banner.
+  assert.doesNotMatch(pageSource, /TeamsTable|TacticalPageHeader/);
+  assert.match(pageSource, /<h1 class="sr-only">\{\{ \$t\("pages\.teams\.title"\) \}\}<\/h1>/);
 });
 
-test("the 'My Teams Only' query also requests ranks.avg_elo, so that filter shows the same corrected average", () => {
-  const myTeamsBlock = pageSource.slice(
-    pageSource.indexOf("myTeams: {"),
-    pageSource.indexOf("myTeams: {") + 900,
-  );
-  assert.match(myTeamsBlock, /teams:\s*\[/);
-  assert.match(myTeamsBlock, /ranks:\s*\{\s*avg_elo:\s*true,?\s*\}/);
+test("the directory query requests ranks.avg_elo and sorts by it", () => {
+  assert.match(directory, /ranks:\s*\{\s*avg_elo:\s*true\s*\}/);
+  assert.match(directory, /rating:\s*\[\{\s*ranks:\s*\{\s*avg_elo:\s*"desc_nulls_last"/);
 });
 
-test("TeamsTable.avgElo reads team.ranks.avg_elo directly", () => {
-  assert.match(
-    tableSource,
-    /avgElo\(team: \{ ranks\?: \{ avg_elo\?: number \| null \} \| null \}\): number \| null \{\s*\n\s*return team\.ranks\?\.avg_elo \?\? null;\s*\n\s*\},/,
-  );
+test("the row reads team.ranks.avg_elo directly, never the raw roster ELO", () => {
+  assert.match(row, /props\.team\.ranks\?\.avg_elo/);
+  assert.doesNotMatch(row, /player\?\.elo\?\.competitive/);
+  assert.doesNotMatch(row, /values\.reduce\(/);
 });
 
-test("raw roster player.elo is no longer used to compute the average ELO", () => {
-  // topStarters() (avatar selection) is allowed to keep reading
-  // player.elo.competitive -- that's a separate, unrelated concern this
-  // fix explicitly leaves alone. What must NOT exist anymore is any
-  // averaging/reduce over those values.
-  assert.doesNotMatch(
-    tableSource,
-    /roster\s*\.map\(\(r\) => r\.player\?\.elo\?\.competitive\)/,
-  );
-  assert.doesNotMatch(
-    tableSource,
-    /values\.reduce\(\(a, b\) => a \+ b, 0\) \/ values\.length/,
-  );
+test("search, My Teams, tournament winners, scrims and pagination are wired", () => {
+  assert.match(directory, /const search = ref\(""\)/);
+  assert.match(directory, /const mine = ref\(false\)/);
+  assert.match(directory, /const winnersOnly = ref\(false\)/);
+  assert.match(directory, /const scrimsOnly = ref\(false\)/);
+  assert.match(directory, /teams_aggregate/);
+  assert.match(directory, /<Pagination/);
 });
 
-test("topStarters (featured roster avatars) is untouched -- still sorts by player.elo.competitive, unrelated to the avg-ELO fix", () => {
-  assert.match(
-    tableSource,
-    /topStarters\(team: \{ roster\?: RosterEntry\[\] \}\): RosterEntry\[\] \{/,
-  );
-  assert.match(
-    tableSource,
-    /const aElo = a\.player\?\.elo\?\.competitive \?\? 0;/,
-  );
-  assert.match(
-    tableSource,
-    /const bElo = b\.player\?\.elo\?\.competitive \?\? 0;/,
-  );
-  assert.match(tableSource, /\.slice\(0, 5\);/);
+test("DEAFCS drops what its API does not serve yet", async () => {
+  // Guarded by an introspection check (the sort falls back to rating).
+  assert.match(directory, /schemaHasField\(client, "teams", "last_match_at"\)/);
+  // Neither exists in the DEAFCS schema (checked against the live API).
+  for (const file of [
+    "components/teams/TeamsLookingForScrims.vue",
+    "components/teams/TeamsDirectory.vue",
+    "composables/useLiveTeamMatches.ts",
+    "pages/teams/[id].vue",
+  ]) {
+    const source = await read(file);
+    assert.doesNotMatch(source, /avg_rush_elo/, `${file} must not select avg_rush_elo`);
+    assert.doesNotMatch(source, /is_league: true/, `${file} must not select tournaments.is_league`);
+  }
 });
 
-test("the avg-ELO badge template is unchanged in shape -- still guarded by avgElo(team) !== null", () => {
-  assert.match(tableSource, /v-if="avgElo\(team\) !== null"/);
-  assert.match(tableSource, /\{\{ avgElo\(team\) \}\}/);
-});
-
-test("other team-card data (roster count, FACEIT/Premier via playerFields, trophies, avatar) is untouched", () => {
-  assert.match(tableSource, /rosterCount\(team: \{ roster\?: RosterEntry\[\] \}\): number \{/);
-  assert.match(tableSource, /teamAvatarSrc\(team: \{ avatar_url\?: string \| null \}\): string \| null \{/);
-  assert.match(tableSource, /teamTrophies\(team: \{ id: string \}\): TrophyEntry\[\] \{/);
-  assert.match(pageSource, /player: playerFields/);
-});
-
-test("search, My Teams Only, tournament-winner and scrim filters, and pagination wiring are unchanged", () => {
-  assert.match(pageSource, /form\.values\.teamQuery/);
-  assert.match(pageSource, /showOnlyMyTeams/);
-  assert.match(pageSource, /tournamentWinnersOnly/);
-  assert.match(pageSource, /scrimsOnly/);
-  assert.match(pageSource, /teams_aggregate:/);
-  assert.match(pageSource, /onPageChange\(newPage: number\)/);
-});
-
-test("team card and 'view top team' navigation still target the team page route", () => {
-  assert.match(pageSource, /this\.\$router\.push\(`\/teams\/\$\{team\.id\}`\)/);
-  assert.match(tableSource, /:to="\{ name: 'teams-id', params: \{ id: team\.id \} \}"/);
+test("team rows navigate client-side to the team page route", () => {
+  assert.match(row, /<NuxtLink\s+:to="\{ name: 'teams-id', params: \{ id: team\.id \} \}"/);
+  for (const source of [pageSource, directory, row]) {
+    assert.doesNotMatch(source, /window\.location|location\.href/);
+  }
 });
