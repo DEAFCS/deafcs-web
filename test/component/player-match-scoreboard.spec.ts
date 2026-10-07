@@ -5,6 +5,12 @@ import { readFileSync } from "node:fs";
 import { print } from "graphql";
 import { scoreboardFixture } from "./fixtures/matchScoreboard";
 
+const viewport = vi.hoisted(() => ({ mobile: false }));
+vi.mock("@vueuse/core", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@vueuse/core")>();
+  const { ref } = await import("vue");
+  return { ...actual, useMediaQuery: () => ref(viewport.mobile) };
+});
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 // Leaf rendering substitute: keep the actual context providers, sorting,
 // tab activation and narrowed data. Full lineup tables are tested separately.
@@ -37,6 +43,7 @@ vi.mock("~/components/PlayerPremierRank.vue", () => ({ default: { template: "<sp
 vi.mock("~/components/PlayerSkillGroupRank.vue", () => ({ default: { template: "<span />" } }));
 import PlayerMatchScoreboard from "../../components/player/PlayerMatchScoreboard.vue";
 import PlayerMatchRow from "../../components/player/PlayerMatchRow.vue";
+import PlayerMatchesTable from "../../components/player/PlayerMatchesTable.vue";
 
 const wrappers: ReturnType<typeof mount>[] = [];
 function render(extra: Record<string, any> = {}) {
@@ -49,9 +56,23 @@ function render(extra: Record<string, any> = {}) {
   wrappers.push(wrapper);
   return wrapper;
 }
-afterEach(() => { wrappers.splice(0).forEach(w => w.unmount()); vi.useRealTimers(); vi.unstubAllGlobals(); });
+afterEach(() => { wrappers.splice(0).forEach(w => w.unmount()); viewport.mobile = false; vi.useRealTimers(); vi.unstubAllGlobals(); });
 
 describe("shared match expansion", () => {
+  it.each([true, false].flatMap(neutral => [true, false].flatMap(compact => [true, false].map(mobile => [neutral, compact, mobile]))))(
+    "only compact/mobile neutral lists opt out of grid intrinsic minimum width (neutral %s, compact %s, mobile %s)",
+    (neutral, compact, mobile) => {
+      viewport.mobile = mobile;
+      const w = shallowMount(PlayerMatchesTable, {
+        props: { matches: [scoreboardFixture()], neutral, compact },
+        global: { config: { globalProperties: { $t: (k: string) => k } } },
+      });
+      wrappers.push(w);
+      expect(w.get("div").classes().includes("min-w-0")).toBe(neutral && (compact || mobile));
+      expect(w.get("div").classes()).not.toContain("overflow-hidden");
+      expect(w.findComponent(PlayerMatchRow).props("compact")).toBe(compact || mobile);
+    },
+  );
   it("neutral full stats show both teams without highlighting the viewer", () => {
     const w = render();
     expect(w.findAll("[data-team]").map(x => x.attributes("data-team"))).toEqual(["Alpha", "Beta"]);

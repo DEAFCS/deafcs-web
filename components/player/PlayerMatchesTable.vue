@@ -36,7 +36,9 @@ const wideGrid =
 </script>
 
 <template>
-  <div>
+  <!-- Neutral mobile lists may be grid items (TournamentMatches). Allow the
+       list to shrink so the scoreboard's own table scroll area can do its job. -->
+  <div :class="{ 'min-w-0': neutral && (compact || isMobile) }">
     <Empty v-if="matches.length === 0">
       <slot name="none-found">
         {{ $t("match.options.table.no_matches_found") }}
