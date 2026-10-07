@@ -340,7 +340,7 @@ describe("Captain Pick overview", () => {
     expect(history.map((h) => [h.lineup, h.captain.name, h.picked.name])).toEqual([
       [1, "Player 2", "Player 3"],
       [2, "Player 1", "Player 4"],
-      [2, "Player 1", "Player 5"],
+      [1, "Player 2", "Player 5"],
     ]);
     // The auto-placed last player is not a pick.
     const done = draftAfter(["3", "4", "5", "6", "7", "8", "9"].map((steam_id) => ({ steam_id })));

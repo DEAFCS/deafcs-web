@@ -144,11 +144,31 @@ describe("Captain Pick draft view helpers", () => {
     expect(entries.filter((entry) => entry.auto_picked)).toHaveLength(1);
     expect(entries[3]).toMatchObject({
       id: "pick-3",
-      lineup: 1,
+      lineup: 2,
       auto_picked: true,
-      captain: { steam_id: "2" },
+      captain: { steam_id: "1" },
       picked: { steam_id: "6" },
     });
+    // Strict alternating: A B A B A B A, never the same captain twice in a row.
+    expect(entries.map((entry) => entry.lineup)).toEqual([1, 2, 1, 2, 1, 2, 1]);
+  });
+
+  it("shows the strict alternating turn order: the other captain is up after every pick", () => {
+    const picks = ["3", "4", "5", "6", "7", "8", "9"];
+    const expectedLineups = [1, 2, 1, 2, 1, 2, 1];
+    const expectedCaptains = ["2", "1", "2", "1", "2", "1", "2"]; // lower captain (#2) first
+    expect(makeDraft().pickOrder).toEqual(expectedLineups);
+    for (let made = 0; made < 7; made++) {
+      const draft = draftAfter(picks.slice(0, made).map((steam_id) => ({ steam_id })));
+      expect(draft.pickingLineup).toBe(expectedLineups[made]);
+      expect(draft.pickingCaptainSteamId).toBe(expectedCaptains[made]);
+      const current = captainPickTimeline(draft).findIndex((slot) => slot.state === "current");
+      expect(current).toBe(made);
+    }
+    // The leftover player is B's, completing the eighth alternating slot.
+    const done = draftAfter(picks.map((steam_id) => ({ steam_id })));
+    expect(done.lineups[1]).toEqual(["2", "3", "5", "7", "9"]);
+    expect(done.lineups[2]).toEqual(["1", "4", "6", "8", "10"]);
   });
 });
 

@@ -210,7 +210,7 @@ export function captainPickTimeline(
 
 /**
  * The server's pick history in the Draft Games log shape. Only real picks
- * (manual or timed-out): the last player the server places on Team A is not
+ * (manual or timed-out): the last player the server places on Team B is not
  * a captain's pick and is not listed as one.
  */
 export function captainPickLogEntries(

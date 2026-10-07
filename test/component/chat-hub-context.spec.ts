@@ -309,9 +309,10 @@ describe("Captain Pick", () => {
     const draft = withMatch(
       draftAfter(["3", "4", "5", "6", "7", "8", "9"].map((steam_id) => ({ steam_id }))),
     );
+    // The leftover player goes to B (lineup 2), the eighth alternating slot.
     expect(ids(captainPickChatHubContext(draft, "10", t))).toEqual([
       MATCH_ROOM,
-      "captain_pick_team:draft-1:1",
+      "captain_pick_team:draft-1:2",
     ]);
   });
 

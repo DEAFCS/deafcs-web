@@ -23,7 +23,7 @@ export function makeDraft(
     phase: "Drafting",
     region: "EU",
     serverNow: "2026-09-29T20:00:00.000Z",
-    pickOrder: [1, 2, 2, 1, 1, 2, 2],
+    pickOrder: [1, 2, 1, 2, 1, 2, 1],
     pickIndex: 0,
     pickingLineup: 1,
     pickingCaptainSteamId: "2",
@@ -48,7 +48,7 @@ export function makeDraft(
 
 /**
  * The draft after the given selections, the way the server would report it
- * (A B B A A B B, last player to A once all seven are made).
+ * (A B A B A B A, last player to B once all seven are made).
  */
 export function draftAfter(
   selections: Array<{ steam_id: string; auto?: boolean }>,
@@ -72,7 +72,7 @@ export function draftAfter(
   );
   const done = selections.length >= base.pickOrder.length;
   if (done) {
-    lineups[1].push(...available);
+    lineups[2].push(...available);
     available = [];
   }
   const pickIndex = done ? null : selections.length;
