@@ -180,7 +180,7 @@ export default {
           };
         },
         skip: function (): boolean {
-          return !useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer);
+          return !useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
         },
         result: function ({ data }: { data: any }) {
           (this as any).abandonedMatches = data?.abandoned_matches ?? [];

@@ -1,13 +1,14 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "default",
-  middleware: ["admin"],
+  // Staff (moderator and above), same as the API's post-match chat access.
+  middleware: ["moderator"],
 });
 </script>
 
 <template>
   <PageTransition :delay="0">
-    <div v-if="match" class="space-y-6">
+    <div v-if="match" class="flex flex-col gap-6">
       <div class="flex flex-col gap-1">
         <NuxtLink
           :to="`/matches/${match.id}`"
@@ -51,8 +52,12 @@ definePageMeta({
           </Button>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 lg:grid-cols-3">
-          <div class="flex flex-col gap-2">
+        <!-- Panels take the remaining page height on desktop and a tall
+             share of the screen when stacked on smaller widths. -->
+        <div
+          class="grid grid-cols-1 gap-4 lg:h-[calc(100dvh-15rem)] lg:min-h-[32rem] lg:grid-cols-3"
+        >
+          <div class="flex h-[70dvh] min-h-[24rem] flex-col gap-2 lg:h-auto lg:min-h-0">
             <span class="text-sm font-medium text-muted-foreground">
               {{ $t("chat.global_chat") }}
             </span>
@@ -66,10 +71,12 @@ definePageMeta({
               :play-notification-sound="false"
               absolute-timestamps
               hide-participants-summary
+              fill-height
+              class="min-h-0 flex-1"
             />
           </div>
 
-          <div class="flex flex-col gap-2">
+          <div class="flex h-[70dvh] min-h-[24rem] flex-col gap-2 lg:h-auto lg:min-h-0">
             <span class="text-sm font-medium text-muted-foreground">
               {{ match.lineup_1?.name || $t("match.lineup.lineup_1") }}
             </span>
@@ -83,10 +90,12 @@ definePageMeta({
               :play-notification-sound="false"
               absolute-timestamps
               hide-participants-summary
+              fill-height
+              class="min-h-0 flex-1"
             />
           </div>
 
-          <div class="flex flex-col gap-2">
+          <div class="flex h-[70dvh] min-h-[24rem] flex-col gap-2 lg:h-auto lg:min-h-0">
             <span class="text-sm font-medium text-muted-foreground">
               {{ match.lineup_2?.name || $t("match.lineup.lineup_2") }}
             </span>
@@ -100,6 +109,8 @@ definePageMeta({
               :play-notification-sound="false"
               absolute-timestamps
               hide-participants-summary
+              fill-height
+              class="min-h-0 flex-1"
             />
           </div>
         </div>

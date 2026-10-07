@@ -367,7 +367,81 @@ const APPLICATION_DETAIL_QUERY = gql`
   }
 `;
 
+// Same selection as the detail query, kept live: a new applicant reply or a
+// status change by another reviewer shows up without a manual refresh.
+const APPLICATION_DETAIL_SUBSCRIPTION = gql`
+  subscription VerificationApplicationDetailLive($id: uuid!) {
+    verification_applications_by_pk(id: $id) {
+      id
+      status
+      is_deaf
+      country
+      found_via
+      knows_deaf_player
+      deaf_player_steam_url
+      deaf_player_nickname
+      known_players(order_by: { sort_order: asc }) {
+        id
+        nickname
+        steam_profile_url
+        sort_order
+      }
+      social_instagram_url
+      social_facebook_url
+      social_vk_url
+      additional_info
+      account_declaration_accepted_at
+      created_at
+      reviewed_at
+      player {
+        steam_id
+        name
+        avatar_url
+        custom_avatar_url
+        country
+        role
+      }
+      reviewed_by {
+        steam_id
+        name
+        avatar_url
+        custom_avatar_url
+        country
+        role
+      }
+      messages(order_by: { created_at: asc }) {
+        id
+        is_admin
+        message
+        created_at
+        sender {
+          steam_id
+          name
+          avatar_url
+          custom_avatar_url
+          country
+          role
+        }
+      }
+    }
+  }
+`;
+
 export default {
+  apollo: {
+    $subscribe: {
+      verificationApplicationLive: {
+        query: APPLICATION_DETAIL_SUBSCRIPTION,
+        variables(this: any) {
+          return { id: this.$route.params.id };
+        },
+        result(this: any, { data }: { data: any }) {
+          this.application = data?.verification_applications_by_pk ?? null;
+          this.loading = false;
+        },
+      },
+    },
+  },
   data() {
     return {
       loading: true,
@@ -422,7 +496,9 @@ export default {
       return value;
     },
     async fetchApplication() {
-      this.loading = true;
+      // The live subscription keeps the page current; this is the immediate
+      // refresh after an action, so only show the spinner on the first load.
+      this.loading = !this.application;
       try {
         const { data } = await (this.$apollo as any).query({
           query: APPLICATION_DETAIL_QUERY,

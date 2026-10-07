@@ -1141,13 +1141,13 @@ export default {
         e_match_status_enum.Canceled,
       ].includes(this.match.status);
     },
-    // Site-admin only, and only once the match is actually over -- see
-    // chat.service.ts's joinMatchLobby for the matching server-side gate
-    // that lets an admin open either team's private chat post-match.
+    // Staff (moderator and above) only, and only once the match is actually
+    // over -- see chat.service.ts's canStaffReadFinishedMatchChat for the
+    // matching server-side gate for the match and both team chats.
     canViewChatLog() {
       return (
         this.matchHasEnded &&
-        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
       );
     },
     hasMinimumLineupPlayers() {

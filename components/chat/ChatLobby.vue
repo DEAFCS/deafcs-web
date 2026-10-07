@@ -340,6 +340,13 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Stretch the embedded card to its parent's height (the parent supplies
+    // a definite height) instead of the fixed match-page card height. Used
+    // by the post-match chat log page.
+    fillHeight: {
+      type: Boolean,
+      default: false,
+    },
     allowChatAttachments: {
       type: Boolean,
       default: true,
@@ -524,6 +531,9 @@ export default {
       // this size and the message list is the only thing that scrolls.
       // 307px = 96 (384px) sized down ~20%, per feedback that h-96 read
       // too tall for the match-page chats specifically.
+      if (this.fillHeight) {
+        return "relative flex min-h-0 flex-col rounded-xl bg-muted/50 p-4";
+      }
       return "relative flex h-[307px] flex-col rounded-xl bg-muted/50 p-4";
     },
   },

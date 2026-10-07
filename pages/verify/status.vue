@@ -118,7 +118,45 @@ const MY_APPLICATION_QUERY = gql`
   }
 `;
 
+// Live copy of the same selection: a reviewer's reply or decision appears
+// (and the status badge and text change) without reloading the page.
+const MY_APPLICATION_SUBSCRIPTION = gql`
+  subscription MyVerificationApplicationLive($steamId: bigint!) {
+    verification_applications(
+      where: { player_steam_id: { _eq: $steamId } }
+      order_by: { created_at: desc }
+      limit: 1
+    ) {
+      id
+      status
+      messages(order_by: { created_at: asc }) {
+        id
+        is_admin
+        message
+        created_at
+      }
+    }
+  }
+`;
+
 export default {
+  apollo: {
+    $subscribe: {
+      myVerificationApplicationLive: {
+        query: MY_APPLICATION_SUBSCRIPTION,
+        variables(this: any) {
+          return { steamId: this.me?.steam_id };
+        },
+        skip(this: any) {
+          return !this.me?.steam_id;
+        },
+        result(this: any, { data }: { data: any }) {
+          this.application = data?.verification_applications?.[0] ?? null;
+          this.loading = false;
+        },
+      },
+    },
+  },
   data() {
     return {
       loading: true,
@@ -142,7 +180,8 @@ export default {
   },
   methods: {
     async fetchApplication() {
-      this.loading = true;
+      // Live subscription keeps the page current; spinner only on first load.
+      this.loading = !this.application;
       try {
         const { data } = await (this.$apollo as any).query({
           query: MY_APPLICATION_QUERY,
