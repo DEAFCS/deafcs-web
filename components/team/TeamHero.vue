@@ -8,7 +8,6 @@ import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import AwardModal from "~/components/award/AwardModal.vue";
 import AwardCase from "~/components/award/AwardCase.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
-import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import TeamRankSummary from "~/components/team/TeamRankSummary.vue";
 import {
   Dialog,
@@ -20,7 +19,6 @@ import {
 import { resolveAwardTier, type AwardTier } from "~/utilities/awardSeed";
 import { schemaHasField } from "~/utilities/schemaHasType";
 import { dateLocale } from "~/utilities/dateLocale";
-import { resolveRosterImageUrl } from "~/utilities/rosterImage";
 
 const props = defineProps<{
   team: any;
@@ -69,17 +67,6 @@ watch(
   },
   { immediate: true },
 );
-
-// DEAFCS keeps the captain in the hero (the team's face on the roster): the
-// captain, else the owner, with their roster image where they have one.
-const captain = computed(() => props.team?.captain || props.team?.owner || null);
-const captainImage = computed(() => {
-  if (!captain.value) return null;
-  const entry = props.team?.roster?.find(
-    (member: any) => member.player?.steam_id === captain.value.steam_id,
-  );
-  return resolveRosterImageUrl(entry, captain.value, apiDomain);
-});
 
 const founded = computed(() =>
   createdAt.value
@@ -215,19 +202,6 @@ function openAward(grant: any) {
         <span v-if="founded">{{
           $t("team.pulse.hero.founded", { date: founded })
         }}</span>
-        <span v-if="captain" class="inline-flex items-center gap-2">
-          <span
-            class="font-mono text-[0.65rem] uppercase tracking-[0.18em] text-muted-foreground"
-            >{{ $t("team.roles.captain") }}</span
-          >
-          <PlayerDisplay
-            :player="captain"
-            :linkable="true"
-            size="sm"
-            :avatar-override="captainImage"
-            :allow-roster-image="true"
-          />
-        </span>
 
         <span
           v-if="sortedAwards.length"

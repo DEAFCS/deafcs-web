@@ -38,6 +38,7 @@ vi.mock("~/components/teams/TeamMember.vue", async () => {
           "data-steam": props.member?.player?.steam_id,
           "data-role": props.member?.role,
           "data-last-admin": String(!!props.isLastAdmin),
+          "data-captain": String(!!props.isCaptain),
         }),
     }),
   };
@@ -117,6 +118,22 @@ async function feedFullRoster(wrapper: any) {
 }
 
 describe("Starting Five -> Full roster -> Starting Five", () => {
+  it("refreshes captain badges from the existing roster subscription after removal", async () => {
+    const wrapper = mountFive();
+    await flushPromises();
+    await wrapper.get("[data-roster-toggle]").trigger("click");
+    await flushPromises();
+    const members = await feedFullRoster(wrapper);
+    expect(wrapper.get('[data-steam="1"][data-testid="roster-member"]').attributes("data-captain")).toBe("true");
+    const refreshedTeam = { ...team, captain_steam_id: "2", roster: roster.filter(row => row.player.steam_id !== "1") };
+    (TeamMembers as any).apollo.$subscribe.teams_by_pk.result.call(members.vm, { data: { teams_by_pk: refreshedTeam } });
+    await nextTick();
+    expect(wrapper.find('[data-steam="1"][data-testid="roster-member"]').exists()).toBe(false);
+    expect(wrapper.get('[data-steam="2"][data-testid="roster-member"]').attributes("data-captain")).toBe("true");
+    expect(mutate).not.toHaveBeenCalled();
+    expect(apolloMutate).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
   it("shows the five, with the captain marked and a coach kept out of the slots", async () => {
     const wrapper = mountFive();
     await flushPromises();

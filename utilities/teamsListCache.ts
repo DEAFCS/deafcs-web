@@ -15,3 +15,23 @@ export const lastDirectoryResults = new Map<
 
 // Rows on the last directory page shown, to size its loading skeleton.
 export const lastDirectoryRowCount = { value: 0 };
+
+// A team was deleted: evict it from Apollo's cache and forget every cached list
+// that could still show it, so the Teams page refetches instead of seeding
+// itself with a stale row (and Back onto it can't resurrect the card).
+export function forgetDeletedTeam(
+  teamId: string,
+  apolloCache?: {
+    identify: (obj: Record<string, unknown>) => string | undefined;
+    evict: (options: { id?: string }) => boolean;
+    gc: () => unknown;
+  } | null,
+) {
+  lastDirectoryResults.clear();
+  lastYourTeams.clear();
+  lastDirectoryRowCount.value = 0;
+  if (!apolloCache) return;
+  const id = apolloCache.identify({ __typename: "teams", id: teamId });
+  if (id) apolloCache.evict({ id });
+  apolloCache.gc();
+}

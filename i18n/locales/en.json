@@ -1438,27 +1438,6 @@
         "col_decider": "Decider",
         "based_on": "Based on {n} veto records"
       },
-      "veto_sim": {
-        "section": "Veto Simulation",
-        "description": "Estimate the likely veto outcome and map win chances against a chosen opponent, based on both teams' veto history.",
-        "opponent": "Opponent",
-        "select_opponent": "Select opponent team",
-        "estimate_notice": "Estimate only, derived from historical veto tendencies, not a guaranteed outcome.",
-        "no_self_title": "No veto history for this team",
-        "no_self_description": "Simulation needs this team to have recorded map vetos first.",
-        "pick_opponent_title": "Choose an opponent",
-        "pick_opponent_description": "Select an opponent team to simulate the map veto.",
-        "loading": "Loading opponent veto history…",
-        "no_opp_title": "No veto history for opponent",
-        "no_opp_description": "The selected opponent has no recorded map vetos to simulate against.",
-        "confidence_self": "This team: {n} records",
-        "confidence_opp": "Opponent: {n} records",
-        "col_map": "Map",
-        "col_ban": "Ban Likelihood",
-        "col_pick": "Pick Likelihood",
-        "col_play": "Play Likelihood",
-        "col_predicted_win": "Predicted Win%"
-      },
       "directory": {
         "sort_active": "Recently active",
         "sort_rating": "Rating",
@@ -6400,7 +6379,12 @@
       "leave_confirmation": "You will lose team-management permissions when you leave this team.",
       "operation_failed": "The team changed while you were making this update. Refresh and try again.",
       "starter_cap_reached": "Only {max} starters are allowed; bench a starter first.",
-      "substitute_cap_reached": "Only {max} substitutes are allowed; bench a substitute first."
+      "substitute_cap_reached": "Only {max} substitutes are allowed; bench a substitute first.",
+      "last_admin_remove": "This member is the team's last administrator. Assign another administrator before removing them.",
+      "remove_not_permitted": "You don't have permission to remove this member from the team.",
+      "delete_not_permitted": "Only the team owner or a site administrator can delete this team.",
+      "delete_blocked": "This team can't be deleted while other records, such as awards, still depend on it.",
+      "change_not_permitted": "You don't have permission to change this member's roster details."
     },
     "leave": "Leave Team",
     "management": {
@@ -6557,6 +6541,11 @@
       "manage_roster": "Manage roster",
       "open_slot": "Open starter slot",
       "invite": "Invite"
+    },
+    "not_found": {
+      "title": "Team not found",
+      "description": "This team doesn't exist or has been deleted.",
+      "back": "Back to teams"
     }
   },
   "match": {

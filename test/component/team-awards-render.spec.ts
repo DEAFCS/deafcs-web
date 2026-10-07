@@ -185,14 +185,11 @@ describe("team hero award row", () => {
     const wrapper = mount(TeamHero, {
       props: { team, awards: grants().reverse(), matchesCount: 3 },
       ...mountOpts,
-      global: { ...mountOpts.global, stubs: { ...mountOpts.global.stubs, PlayerDisplay: { props: ["player"], template: "<span data-testid='captain'>{{ player.name }}</span>" } } },
     });
     await flushPromises();
     expect(badgesOutsideArtwork(wrapper)).toHaveLength(0);
     const buttons = wrapper.findAll('[role="group"] button');
     expect(buttons.map((b) => b.attributes("aria-label"))).toEqual(["Grand Champions", "Finalists", "1v1 Cup (Beta #2)"]);
-    // The recipient (captain) is shown in the header.
-    expect(wrapper.get('[data-testid="captain"]').text()).toBe("Captain Bod");
 
     await buttons[0].trigger("click");
     await flushPromises();

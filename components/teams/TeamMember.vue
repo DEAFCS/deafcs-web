@@ -258,7 +258,9 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
             {{ $t("match.overview.promote_captain") }}
           </DropdownMenuItem>
 
-          <DropdownMenuSeparator v-if="canSetCaptain && canRemoveMember" />
+          <DropdownMenuSeparator
+            v-if="canSetCaptain && (canRemoveMember || removeBlockedAsLastAdmin)"
+          />
 
           <DropdownMenuItem
             v-if="canRemoveMember"
@@ -268,6 +270,18 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
             <UserMinus />
             {{ $t("team.member.remove") }}
           </DropdownMenuItem>
+          <template v-else-if="removeBlockedAsLastAdmin">
+            <DropdownMenuItem disabled>
+              <UserMinus />
+              {{ $t("team.member.remove") }}
+            </DropdownMenuItem>
+            <p
+              class="px-2 py-1.5 text-xs leading-relaxed text-muted-foreground"
+              data-testid="remove-blocked-reason"
+            >
+              {{ $t("team.admin.last_admin_remove") }}
+            </p>
+          </template>
         </DropdownMenuContent>
       </DropdownMenu>
     </template>
@@ -440,6 +454,11 @@ export default {
     canRemoveMember(): boolean {
       return !!this.team.can_remove && !this.isSelf && !this.isLastAdmin;
     },
+    // Allowed to remove people, but this member is the team's last Admin: shown
+    // as a blocked action with the reason instead of vanishing from the menu.
+    removeBlockedAsLastAdmin(): boolean {
+      return !!this.team.can_remove && !this.isSelf && this.isLastAdmin;
+    },
     // Site staff (tournament_organizer+) can edit any team's roster images,
     // team.can_change_role (team owner or a team_roster 'Admin' row -- see
     // can_change_team_role.sql) can edit anyone on their own team, and a
@@ -464,6 +483,7 @@ export default {
       return !!(
         this.team.can_change_role ||
         this.canRemoveMember ||
+        this.removeBlockedAsLastAdmin ||
         this.canEditRosterImage
       );
     },
@@ -518,7 +538,7 @@ export default {
         // update -- otherwise a former coach keeps showing under Coaches
         // (which filters on `coach`, not `status`) and their stale status
         // keeps consuming a Starter/Substitute slot (see tbiu_team_roster_status).
-        await (this as any).$apollo.mutate({
+        const { data } = await (this as any).$apollo.mutate({
           mutation: generateMutation({
             update_team_roster_by_pk: [
               {
@@ -537,6 +557,9 @@ export default {
             ],
           }),
         });
+        if (!data?.update_team_roster_by_pk) {
+          this.showRosterChangeNotPermitted();
+        }
       } catch (error) {
         this.showStatusChangeError(error);
       } finally {
@@ -550,7 +573,7 @@ export default {
       this.removingMember = true;
       try {
         this.removeMemberDialog = false;
-        await (this as any).$apollo.mutate({
+        const { data } = await (this as any).$apollo.mutate({
           mutation: generateMutation({
             delete_team_roster_by_pk: [
               {
@@ -563,6 +586,15 @@ export default {
             ],
           }),
         });
+        // Hasura answers null, not an error, when its permission filter hides
+        // the row. Say so instead of leaving the member in place silently.
+        if (!data?.delete_team_roster_by_pk) {
+          toast({
+            variant: "destructive",
+            title: this.$t("common.error"),
+            description: this.$t("team.admin.remove_not_permitted"),
+          });
+        }
       } catch (error) {
         this.showTeamAdminError(error);
       } finally {
@@ -623,7 +655,7 @@ export default {
     },
     async publishRole(roleValue: string) {
       try {
-        await (this as any).$apollo.mutate({
+        const { data } = await (this as any).$apollo.mutate({
           mutation: generateMutation({
             update_team_roster_by_pk: [
               {
@@ -641,9 +673,21 @@ export default {
             ],
           }),
         });
+        // Hasura answers null, not an error, when its permission filter hides
+        // the row: say so instead of leaving the role unchanged silently.
+        if (!data?.update_team_roster_by_pk) {
+          this.showRosterChangeNotPermitted();
+        }
       } catch (error) {
         this.showTeamAdminError(error);
       }
+    },
+    showRosterChangeNotPermitted() {
+      toast({
+        variant: "destructive",
+        title: this.$t("common.error"),
+        description: this.$t("team.admin.change_not_permitted"),
+      });
     },
     showLastAdminError() {
       toast({
@@ -683,24 +727,31 @@ export default {
       });
     },
     async toggleCoach() {
-      await (this as any).$apollo.mutate({
-        mutation: generateMutation({
-          update_team_roster_by_pk: [
-            {
-              _set: {
-                coach: !this.member.coach,
+      try {
+        const { data } = await (this as any).$apollo.mutate({
+          mutation: generateMutation({
+            update_team_roster_by_pk: [
+              {
+                _set: {
+                  coach: !this.member.coach,
+                },
+                pk_columns: {
+                  team_id: this.member.team_id,
+                  player_steam_id: this.member.player.steam_id,
+                },
               },
-              pk_columns: {
-                team_id: this.member.team_id,
-                player_steam_id: this.member.player.steam_id,
+              {
+                __typename: true,
               },
-            },
-            {
-              __typename: true,
-            },
-          ],
-        }),
-      });
+            ],
+          }),
+        });
+        if (!data?.update_team_roster_by_pk) {
+          this.showRosterChangeNotPermitted();
+        }
+      } catch (error) {
+        this.showTeamAdminError(error);
+      }
     },
     async setCaptain() {
       if (this.settingCaptain) {

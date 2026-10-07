@@ -58,8 +58,11 @@ test("last-admin protection is intact on every path the page exposes", () => {
   assert.match(detail, /message\.includes\("last team Admin"\)/);
   // Admin leaving still gets the stronger confirmation text.
   assert.match(detail, /team\.admin\.leave_confirmation/);
-  // Deleting stays limited to site admins and the team owner.
-  assert.match(detail, /v-if="isAdmin \|\| team\.owner\.steam_id === me\?\.steam_id"/);
+  // Existing editing stays unchanged; owner/site-admin deletion now matches
+  // the local Hasura permissions.
+  assert.match(detail, /<template v-if="isAdmin \|\| isTeamOwner">/);
+  assert.match(detail, /<template v-if="canDeleteTeam">\s*<DropdownMenuSeparator \/>/);
+  assert.match(detail, /canDeleteTeam\(\)\s*\{\s*return this\.isTeamOwner \|\| this\.isAdmin;/);
   assert.match(detail, /@click="deleteTeamAlertDialog = true"/);
 });
 
@@ -108,7 +111,11 @@ test("navigation is client-side", () => {
     assert.doesNotMatch(source, /location\.(assign|replace|reload)\(|location\.href\s*=/);
   }
   assert.match(detail, /window\.history\.replaceState\(window\.history\.state/);
-  assert.match(hero, /:linkable="true"/);
+  // The hero summary no longer carries the captain (5Stack): players, matches,
+  // founded. The captain stays in the Starting Five and the roster.
+  assert.doesNotMatch(hero, /captain|PlayerDisplay/i);
+  assert.match(hero, /team\.pulse\.hero\.founded/);
+  assert.match(startingFive, /team\.roles\.captain/);
   assert.match(detail, /this\.\$router\.push\("\/teams"\)/);
 });
 
@@ -122,4 +129,33 @@ test("fields the DEAFCS API does not have are not selected", async () => {
     const source = await read(file);
     assert.doesNotMatch(source, /avg_rush_elo|is_league: true/, file);
   }
+});
+
+test("the veto simulator stays removed; real veto stats stay", async () => {
+  // Intentional DEAFCS deviation: 5Stack's TeamVetoSimulator does not return.
+  assert.doesNotMatch(detail, /TeamVetoSimulator/);
+  await assert.rejects(read("components/team/TeamVetoSimulator.vue"));
+  const en = JSON.parse(await read("i18n/locales/en.json"));
+  assert.equal(en.pages.teams.veto_sim, undefined);
+  // The Map Veto tab is the real historical stats.
+  assert.match(detail, /<TabsTrigger value="veto">/);
+  assert.match(detail, /<TeamVetoStats\s+v-if="visitedTabs\.includes\('veto'\)"/);
+  assert.match(await read("components/team/TeamVetoStats.vue"), /teamVetoStatsQuery/);
+});
+
+test("team highlights are the shared ClipTile, ordered by top play", async () => {
+  const highlights = await read("components/team/TeamHighlights.vue");
+  assert.match(highlights, /import ClipTile from "~\/components\/clips\/ClipTile\.vue"/);
+  assert.doesNotMatch(highlights, /HighlightCard/);
+  assert.match(highlights, /order_by: topPlayOrderBy/);
+});
+
+test("removal tells the admin why it is blocked or ignored", async () => {
+  assert.match(teamMember, /removeBlockedAsLastAdmin/);
+  assert.match(teamMember, /data-testid="remove-blocked-reason"/);
+  assert.match(teamMember, /team\.admin\.last_admin_remove/);
+  assert.match(teamMember, /!data\?\.delete_team_roster_by_pk/);
+  assert.match(teamMember, /team\.admin\.remove_not_permitted/);
+  // The guard itself is unchanged: a last Admin is never offered Remove.
+  assert.match(teamMember, /this\.team\.can_remove && !this\.isSelf && !this\.isLastAdmin/);
 });

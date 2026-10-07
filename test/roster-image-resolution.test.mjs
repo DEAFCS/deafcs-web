@@ -76,8 +76,8 @@ const MUST_OPT_IN = [
   "components/tournament/TournamentTeamInvite.vue",
   "components/tournament/TournamentTeamMemberRow.vue",
   "components/tournament/TournamentJoinForm.vue",
-  // The team page header (captain) lives in TeamHero since the 5Stack redesign.
-  "components/team/TeamHero.vue",
+  // The team page roster faces live in the Starting Five since the 5Stack redesign.
+  "components/team/TeamStartingFive.vue",
 ];
 
 const MUST_STAY_AVATAR_ONLY = [
@@ -306,7 +306,7 @@ for (const path of MATCH_CONTEXT_GATED) {
 const UNCONDITIONAL_TRUE = [
   "components/teams/TeamMember.vue",
   "components/team/TeamCareerStats.vue",
-  "components/team/TeamHero.vue",
+  "components/team/TeamStartingFive.vue",
   "components/tournament/TournamentTeamInvite.vue",
 ];
 for (const path of UNCONDITIONAL_TRUE) {

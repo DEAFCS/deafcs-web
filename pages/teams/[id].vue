@@ -33,10 +33,10 @@ import HeightGlide from "~/components/ui/transitions/HeightGlide.vue";
 import MobileTabSelect from "~/components/common/MobileTabSelect.vue";
 import TeamForm from "~/components/teams/TeamForm.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import SectionEmpty from "~/components/common/SectionEmpty.vue";
 import ImageUploadTile from "~/components/ImageUploadTile.vue";
 import TeamCareerStats from "~/components/team/TeamCareerStats.vue";
 import TeamVetoStats from "~/components/team/TeamVetoStats.vue";
-import TeamVetoSimulator from "~/components/team/TeamVetoSimulator.vue";
 import TeamRankSummary from "~/components/team/TeamRankSummary.vue";
 import TeamHighlights from "~/components/team/TeamHighlights.vue";
 import TeamScrimManager from "~/components/team/TeamScrimManager.vue";
@@ -83,6 +83,16 @@ const scrimNeedsCount = computed(
 </script>
 
 <template>
+  <SectionEmpty
+    v-if="teamLoaded && !team && !deleting"
+    :title="$t('team.not_found.title')"
+    :description="$t('team.not_found.description')"
+  >
+    <Button as-child variant="outline" size="sm" class="h-8">
+      <NuxtLink to="/teams">{{ $t("team.not_found.back") }}</NuxtLink>
+    </Button>
+  </SectionEmpty>
+
   <PageTransition v-if="team">
     <div
       class="grid gap-4 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:items-stretch"
@@ -117,21 +127,21 @@ const scrimNeedsCount = computed(
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" class="w-[200px]">
               <DropdownMenuGroup>
-                <template
-                  v-if="isAdmin || team.owner.steam_id === me?.steam_id"
-                >
+                <template v-if="isAdmin || isTeamOwner">
                   <DropdownMenuItem @click="editTeamSheet = true">
                     <Pencil />
                     {{ $t("common.actions.edit") }}
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    class="text-destructive focus:text-destructive"
-                    @click="deleteTeamAlertDialog = true"
-                  >
-                    <Trash2 />
-                    {{ $t("common.actions.delete") }}
-                  </DropdownMenuItem>
+                  <template v-if="canDeleteTeam">
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      class="text-destructive focus:text-destructive"
+                      @click="deleteTeamAlertDialog = true"
+                    >
+                      <Trash2 />
+                      {{ $t("common.actions.delete") }}
+                    </DropdownMenuItem>
+                  </template>
                 </template>
                 <template v-if="isOnTeam">
                   <DropdownMenuItem
@@ -222,10 +232,11 @@ const scrimNeedsCount = computed(
       </TabsContent>
 
       <TabsContent value="veto" class="tab-panel-in mt-0">
-        <div v-if="visitedTabs.includes('veto')" class="space-y-6">
-          <TeamVetoStats :team-id="String($route.params.id)" />
-          <TeamVetoSimulator :team-id="String($route.params.id)" />
-        </div>
+        <!-- DEAFCS keeps real veto history only: no interactive simulator. -->
+        <TeamVetoStats
+          v-if="visitedTabs.includes('veto')"
+          :team-id="String($route.params.id)"
+        />
       </TabsContent>
 
       <TabsContent value="highlights" class="tab-panel-in mt-0">
@@ -405,6 +416,7 @@ import { playerFields } from "~/graphql/playerFields";
 import { awardFields } from "~/graphql/awardFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { recipientToGrant } from "~/components/teams/teamAwards";
+import { forgetDeletedTeam } from "~/utilities/teamsListCache";
 
 const VALID_TABS = [
   "overview",
@@ -419,6 +431,9 @@ export default {
   data() {
     return {
       team: undefined,
+      // The team subscription has answered at least once (null = no such team).
+      teamLoaded: false,
+      deleting: false,
       tab: VALID_TABS.includes(useRoute().query.tab as string)
         ? (useRoute().query.tab as string)
         : "overview",
@@ -533,6 +548,7 @@ export default {
         },
         result: function ({ data }) {
           this.team = data.teams_by_pk;
+          this.teamLoaded = true;
           const ctx = useTeamContext();
           if (this.team) {
             ctx.value = {
@@ -747,8 +763,17 @@ export default {
         this.currentTeamMembership?.role === "Admin" && this.adminCount === 1
       );
     },
+    isTeamOwner() {
+      return (
+        !!this.me?.steam_id &&
+        String(this.team?.owner_steam_id) === String(this.me.steam_id)
+      );
+    },
     isAdmin() {
       return useAuthStore().isAdmin;
+    },
+    canDeleteTeam() {
+      return this.isTeamOwner || this.isAdmin;
     },
   },
   methods: {
@@ -790,20 +815,50 @@ export default {
       });
     },
     async deleteTeam() {
-      await this.$apollo.mutate({
-        mutation: generateMutation({
-          delete_teams_by_pk: [
-            {
-              id: this.$route.params.id,
-            },
-            {
-              __typename: true,
-            },
-          ],
-        }),
-      });
-
-      this.$router.push("/teams");
+      this.deleting = true;
+      try {
+        const { data } = await this.$apollo.mutate({
+          mutation: generateMutation({
+            delete_teams_by_pk: [
+              {
+                id: this.$route.params.id,
+              },
+              {
+                id: true,
+              },
+            ],
+          }),
+        });
+        // Hasura answers null, not an error, when the permission filter hides
+        // the row. Don't pretend it worked.
+        if (!data?.delete_teams_by_pk) {
+          this.deleting = false;
+          toast({
+            variant: "destructive",
+            title: this.$t("common.error"),
+            description: this.$t("team.admin.delete_not_permitted"),
+          });
+          return;
+        }
+        // Gone for good: drop it from every list the app keeps, so /teams (and
+        // Back onto it) never shows the deleted team again.
+        forgetDeletedTeam(
+          String(this.$route.params.id),
+          this.$apollo.provider.defaultClient.cache,
+        );
+        this.$router.push("/teams");
+      } catch (error) {
+        this.deleting = false;
+        const message =
+          error instanceof Error ? error.message : JSON.stringify(error ?? "");
+        toast({
+          variant: "destructive",
+          title: this.$t("common.error"),
+          description: /foreign key|violates/i.test(message)
+            ? this.$t("team.admin.delete_blocked")
+            : this.$t("team.admin.operation_failed"),
+        });
+      }
     },
     requestLeaveTeam() {
       if (this.isLastAdmin) {
