@@ -95,8 +95,10 @@ const categories = [
   { value: "feedback", label: "Feedback / Suggestion" },
   { value: "organizer_application", label: "Tournament Organizer Application" },
 ];
+// Live: new requests, replies (updated_at) and open/closed changes show up
+// without a reload. Filters and ordering stay client-side/newest-first.
 const ALL_REQUESTS = gql`
-  query AllSupportRequests {
+  subscription AllSupportRequestsLive {
     support_requests(order_by: { updated_at: desc }) {
       id
       category
@@ -116,6 +118,20 @@ const ALL_REQUESTS = gql`
 `;
 
 export default {
+  apollo: {
+    $subscribe: {
+      supportRequestsLive: {
+        query: ALL_REQUESTS,
+        result(this: any, { data }: { data: any }) {
+          this.requests = data?.support_requests ?? [];
+          this.loading = false;
+        },
+        error(this: any) {
+          this.loading = false;
+        },
+      },
+    },
+  },
   data: () => ({
     loading: true,
     requests: [] as any[],
@@ -133,17 +149,6 @@ export default {
             request.category === this.categoryFilter),
       );
     },
-  },
-  async mounted() {
-    try {
-      const { data } = await (this.$apollo as any).query({
-        query: ALL_REQUESTS,
-        fetchPolicy: "network-only",
-      });
-      this.requests = data?.support_requests ?? [];
-    } finally {
-      this.loading = false;
-    }
   },
   methods: {
     categoryLabel(value: string) {

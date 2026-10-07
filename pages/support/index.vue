@@ -65,8 +65,11 @@ useHead({ title: "My Support Requests" });
 <script lang="ts">
 import gql from "graphql-tag";
 
+// Live copy of the player's own requests: status and reply timestamps update
+// without a reload. The where clause plus the user select permission keep
+// this to the caller's own requests.
 const MY_REQUESTS = gql`
-  query MySupportRequests($steamId: bigint!) {
+  subscription MySupportRequestsLive($steamId: bigint!) {
     support_requests(
       where: { player_steam_id: { _eq: $steamId } }
       order_by: { updated_at: desc }
@@ -81,19 +84,27 @@ const MY_REQUESTS = gql`
 `;
 
 export default {
-  data: () => ({ loading: true, requests: [] as any[] }),
-  async mounted() {
-    try {
-      const { data } = await (this.$apollo as any).query({
+  apollo: {
+    $subscribe: {
+      mySupportRequestsLive: {
         query: MY_REQUESTS,
-        variables: { steamId: useAuthStore().me?.steam_id },
-        fetchPolicy: "network-only",
-      });
-      this.requests = data?.support_requests ?? [];
-    } finally {
-      this.loading = false;
-    }
+        variables(this: any) {
+          return { steamId: useAuthStore().me?.steam_id };
+        },
+        skip() {
+          return !useAuthStore().me?.steam_id;
+        },
+        result(this: any, { data }: { data: any }) {
+          this.requests = data?.support_requests ?? [];
+          this.loading = false;
+        },
+        error(this: any) {
+          this.loading = false;
+        },
+      },
+    },
   },
+  data: () => ({ loading: true, requests: [] as any[] }),
   methods: {
     categoryLabel(value: string) {
       return (

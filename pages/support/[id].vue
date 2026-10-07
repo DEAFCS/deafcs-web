@@ -286,9 +286,9 @@ const RELATED_MATCH_QUERY = typedGql("query")({
   ],
 });
 
-const REQUEST_DETAIL = gql`
-  query SupportRequestDetail($id: uuid!) {
-    support_requests_by_pk(id: $id) {
+// One selection for the one-off fetch and the live subscription, so both
+// always return exactly what the page renders.
+const REQUEST_SELECTION = `
       id
       category
       subject
@@ -335,9 +335,24 @@ const REQUEST_DETAIL = gql`
           role
         }
       }
+
+`;
+const REQUEST_DETAIL = gql(`
+  query SupportRequestDetail($id: uuid!) {
+    support_requests_by_pk(id: $id) {
+      ${REQUEST_SELECTION}
     }
   }
-`;
+`);
+// Live copy (same pattern as the verification application pages): replies,
+// status changes and updated_at reach every open browser without a reload.
+const REQUEST_DETAIL_SUBSCRIPTION = gql(`
+  subscription SupportRequestDetailLive($id: uuid!) {
+    support_requests_by_pk(id: $id) {
+      ${REQUEST_SELECTION}
+    }
+  }
+`);
 const INSERT_REPLY = gql`
   mutation Reply($object: support_request_messages_insert_input!) {
     insert_support_request_messages_one(object: $object) {
@@ -362,6 +377,26 @@ const UPDATE_STATUS = gql`
 `;
 
 export default {
+  apollo: {
+    $subscribe: {
+      supportRequestLive: {
+        query: REQUEST_DETAIL_SUBSCRIPTION,
+        variables(this: any) {
+          return { id: this.$route.params.id };
+        },
+        result(this: any, { data }: { data: any }) {
+          this.request = data?.support_requests_by_pk ?? null;
+          this.loading = false;
+          this.refreshReportSidePanelIfNeeded();
+        },
+        // A dropped or rejected subscription must not leave the page on a
+        // spinner: fall back to one plain fetch, reconnects are Apollo's job.
+        error(this: any) {
+          if (!this.request) return this.fetchRequest();
+        },
+      },
+    },
+  },
   data: () => ({
     loading: true,
     sending: false,
@@ -371,7 +406,16 @@ export default {
     replyAttachmentFile: null as File | null,
     reportedPlayer: null as any,
     relatedMatch: null as any,
+    reportSideKey: "",
   }),
+  watch: {
+    // Navigating from one request to another reuses this component.
+    "$route.params.id"() {
+      this.request = null;
+      this.reportSideKey = "";
+      this.loading = true;
+    },
+  },
   computed: {
     isStaff() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
@@ -412,10 +456,21 @@ export default {
       return match ? match[0] : null;
     },
   },
-  mounted() {
-    return this.fetchRequest();
-  },
   methods: {
+    // The reported player's profile and the related match only change when
+    // the report itself does, never on a new reply: refetch them only then.
+    async refreshReportSidePanelIfNeeded() {
+      const key = [
+        this.isStaff ? "staff" : "user",
+        this.request?.category,
+        this.request?.reported_player_steam_id,
+        this.relatedMatchIdForFetch,
+      ].join("|");
+      if (key === this.reportSideKey) return;
+      this.reportSideKey = key;
+      await this.fetchReportedPlayer();
+      await this.fetchRelatedMatch();
+    },
     categoryLabel(value: string) {
       return (
         (
@@ -430,7 +485,7 @@ export default {
       );
     },
     async fetchRequest() {
-      this.loading = true;
+      this.loading = !this.request;
       try {
         const { data } = await (this.$apollo as any).query({
           query: REQUEST_DETAIL,
@@ -438,8 +493,7 @@ export default {
           fetchPolicy: "network-only",
         });
         this.request = data?.support_requests_by_pk ?? null;
-        await this.fetchReportedPlayer();
-        await this.fetchRelatedMatch();
+        await this.refreshReportSidePanelIfNeeded();
       } finally {
         this.loading = false;
       }
@@ -504,7 +558,6 @@ export default {
         });
         this.reply = "";
         this.replyAttachmentFile = null;
-        await this.fetchRequest();
       } catch (error) {
         toast({
           variant: "destructive",
@@ -526,7 +579,6 @@ export default {
         toast({
           title: status === "closed" ? "Request closed" : "Request reopened",
         });
-        await this.fetchRequest();
       } catch (error) {
         toast({
           variant: "destructive",
