@@ -14,6 +14,29 @@ const sw = process.env.SW === "true";
 export default defineNuxtConfig({
   ssr: false,
 
+  hooks: {
+    // The tournament page and its Manage console are ONE page component served
+    // by two routes. (An alias does not work: vue-router treats a route and its
+    // alias as the same record and drops the navigation as a duplicate.) With
+    // the same component and the same page key (app.vue), Public <-> Manage
+    // patches the mounted page instead of remounting and refetching it.
+    "pages:extend"(pages) {
+      const page = pages.find(
+        (entry) => entry.path === "/tournaments/:tournamentId()",
+      );
+      if (page?.file) {
+        pages.push({
+          name: "tournaments-tournamentId-manage",
+          path: "/tournaments/:tournamentId()/manage",
+          file: page.file,
+          // The extra route does not pick up the file's definePageMeta, so
+          // repeat it: ?section= must stay out of the page key.
+          meta: { persistQueryKeys: ["section"] },
+        });
+      }
+    },
+  },
+
   // Pin the shadcn `cn` helper to a real committed module. shadcn-nuxt
   // otherwise aliases @/lib/utils to a virtual template that Vite can drop
   // during dep re-optimization → runtime "cn is not a function".

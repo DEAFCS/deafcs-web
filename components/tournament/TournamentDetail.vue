@@ -862,21 +862,6 @@ const tacticalCornerCardClasses =
             />
           </div>
         </TabsContent>
-        <TabsContent
-          v-if="
-            tournament.status === e_tournament_status_enum.Live ||
-            tournament.status === e_tournament_status_enum.Finished
-          "
-          value="results"
-        >
-          <div>
-            <TournamentResults
-              :tournament="tournament"
-              :show-standings="false"
-              :show-matches="true"
-            />
-          </div>
-        </TabsContent>
         </div>
       </div>
     </Tabs>
@@ -1812,13 +1797,6 @@ export default {
         tabs.push("stats");
       }
 
-      if (
-        this.tournament?.status === e_tournament_status_enum.Live ||
-        this.tournament?.status === e_tournament_status_enum.Finished
-      ) {
-        tabs.push("results");
-      }
-
 
       return tabs;
     },
@@ -1838,7 +1816,6 @@ export default {
         "free-agents": this.$t("tournament.free_agents.title"),
         standings: this.$t("tournament.standings.title"),
         stats: this.$t("tournament.stats_tab.title"),
-        results: this.$t("tournament.results.title"),
       };
       return this.availableTournamentTabs.map((tab: string) => ({
         value: tab,
@@ -1915,6 +1892,15 @@ export default {
 
       if (this.manageMode) return;
       const requestedTab = getRequestedRouteTab(this.$route.query);
+      // The separate Results tab is gone: finished matches live under
+      // Matches -> Results (current 5Stack). Old ?tab=results links land there.
+      if (requestedTab === "results") {
+        if (this.availableTournamentTabs.includes("matches")) {
+          this.activeTab = "matches";
+          void replaceRouteTab(this.$router, this.$route, "matches", "overview");
+        }
+        return;
+      }
       const section = legacyTournamentManageSections[requestedTab as string];
       if (section && this.tournament.is_organizer) {
         void this.$router.replace({ path: `/tournaments/${this.tournament.id}/manage`, query: { section } });
@@ -2100,6 +2086,11 @@ export default {
       void replaceRouteTab(this.$router, this.$route, newTab, "overview");
     },
     "$route.query.tab"() {
+      this.syncActiveTabFromRoute();
+    },
+    // Public page and Manage console are one mounted page; coming back from
+    // Manage re-reads the tab from the URL.
+    manageMode() {
       this.syncActiveTabFromRoute();
     },
     availableTournamentTabs() {

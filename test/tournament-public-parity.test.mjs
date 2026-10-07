@@ -8,7 +8,7 @@ import { externalTournamentHomepage } from "../utilities/tournamentHomepage.ts";
 
 const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
 const detail = await read("../components/tournament/TournamentDetail.vue");
-const managePage = await read("../pages/tournaments/[tournamentId]/manage.vue");
+const managePage = await read("../pages/tournaments/[tournamentId]/index.vue");
 const appVue = await read("../app.vue");
 const match = await read("../components/tournament/TournamentMatch.vue");
 const viewer = await read("../components/tournament/TournamentBracketViewer.vue");
@@ -162,7 +162,7 @@ test("entry requirements sit under the header, above the tabs", () => {
 // --- manage navigation ----------------------------------------------------------
 
 test("Manage: ?section= does not change the page key (no remount)", () => {
-  assert.match(managePage, /definePageMeta\(\{ persistQueryKeys: \["section"\] \}\)/);
+  assert.match(managePage, /persistQueryKeys: \["section"\]/);
   // The key function honours persistQueryKeys.
   assert.match(appVue, /route\.meta\?\.persistQueryKeys/);
   assert.match(appVue, /<NuxtPage :page-key="pageKeyWithoutTabQuery" \/>/);

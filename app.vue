@@ -83,6 +83,10 @@ function pageKeyWithoutTabQuery(route: {
     return `/apps/${plugin[1]}`;
   }
 
+  // The tournament page and its Manage console share one mounted page.
+  const tournament = route.path.match(/^\/tournaments\/([^/]+)\/manage\/?$/);
+  const keyPath = tournament ? `/tournaments/${tournament[1]}` : route.path;
+
   const query = new URLSearchParams();
   const persisted = new Set([
     ...TAB_QUERY_KEYS,
@@ -106,7 +110,7 @@ function pageKeyWithoutTabQuery(route: {
     });
 
   const queryString = query.toString();
-  return `${route.path}${queryString ? `?${queryString}` : ""}${route.hash || ""}`;
+  return `${keyPath}${queryString ? `?${queryString}` : ""}${route.hash || ""}`;
 }
 </script>
 
