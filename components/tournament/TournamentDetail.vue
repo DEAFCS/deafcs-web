@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import TournamentManage from "~/components/tournament/TournamentManage.vue";
-import { legacyTournamentManageSections, tournamentManageSection, tournamentManageSections } from "~/utilities/tournamentManage";
+import { legacyTournamentManageSections, tournamentManageSection } from "~/utilities/tournamentManage";
 import TournamentStageBuilder from "~/components/tournament/TournamentStageBuilder.vue";
 import TournamentJoinForm from "~/components/tournament/TournamentJoinForm.vue";
 import TournamentEntryGate from "~/components/tournament/TournamentEntryGate.vue";
@@ -422,9 +422,8 @@ const tacticalCornerCardClasses =
                 </span>
               </Button>
 
-              <!-- Public page: Manage opens the console, its menu jumps to a
-                   section. Inside the console: back to the page, and the menu
-                   holds the status actions. -->
+              <!-- Manage opens the console; the adjacent menu holds lifecycle
+                   actions on both the public page and inside the console. -->
               <ButtonGroup v-if="tournament?.is_organizer">
                 <Button
                   v-if="!manageMode"
@@ -464,40 +463,13 @@ const tacticalCornerCardClasses =
                     <Button
                       variant="outline"
                       size="icon"
-                      :aria-label="
-                        manageMode
-                          ? $t('tournament.manage.status_actions')
-                          : $t('tournament.manage.sections_menu')
-                      "
+                      :aria-label="$t('tournament.manage.status_actions')"
                       data-testid="tournament-manage-menu"
                     >
                       <ChevronDown class="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    v-if="!manageMode"
-                    class="w-60"
-                    align="end"
-                  >
-                    <DropdownMenuLabel>
-                      {{ $t("tournament.manage.title") }}
-                    </DropdownMenuLabel>
-                    <DropdownMenuItem
-                      v-for="item in tournamentManageSections"
-                      :key="item.key"
-                      as-child
-                    >
-                      <NuxtLink
-                        :to="{
-                          path: `/tournaments/${tournament.id}/manage`,
-                          query: { section: item.key },
-                        }"
-                      >
-                        {{ item.label }}
-                      </NuxtLink>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                  <DropdownMenuContent v-else class="w-60" align="end">
+                  <DropdownMenuContent class="w-60" align="end">
                     <DropdownMenuLabel>
                       {{ $t("tournament.manage.status_actions") }}
                     </DropdownMenuLabel>
