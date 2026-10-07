@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { normalizeTwitchChannel } from "../../utilities/twitchChannel";
+import en from "../../i18n/locales/en.json";
 
 // The real API client is replaced; the card keeps the real client-side
 // normalization so invalid input is caught before any request.
@@ -26,7 +27,14 @@ async function mountCard(saved: string | null, status: any = NO_STATUS) {
   const w = mount(TwitchChannelCard, {
     props: { steamId: "76561198000000001" },
     global: {
-      mocks: { $t: (k: string) => k },
+      mocks: {
+        $t: (k: string) => {
+          const key = k.split(".").at(-1)!;
+          return key.startsWith("widget_")
+            ? en.pages.settings.linked_accounts.twitch[key as "widget_title" | "widget_description" | "widget_open"]
+            : k;
+        },
+      },
       // The real Button needs Nuxt auto-imported stores.
       stubs: { TwitchIcon: { template: "<svg />" }, Button: { template: "<button><slot /></button>" } },
     },
@@ -58,6 +66,25 @@ beforeEach(() => {
 });
 
 describe("Linked Accounts: Twitch Channel card", () => {
+  it.each([null, "tricon"])("shows the widget help safely with channel %j without replacing the form", async (channel) => {
+    const w = await mountCard(channel, channel ? unknown(channel) : NO_STATUS);
+    const help = $(w, "twitch-widget-help");
+    const link = $(w, "twitch-widget-open");
+    expect(help.text()).toContain("DEAFCS Twitch Widget");
+    expect(help.text()).toContain("Display DEAFCS Twitch content in OBS or on another page.");
+    expect(link.text()).toBe("Open Twitch Widget");
+    expect(link.attributes("href")).toBe("https://deafcs-widget.vercel.app/");
+    expect(link.attributes("target")).toBe("_blank");
+    expect(link.attributes("rel")).toBe("noopener noreferrer");
+    expect(w.findAll('[data-testid="twitch-widget-open"]')).toHaveLength(1);
+    expect(w.find("form").element.contains(link.element)).toBe(false);
+    expect($(w, "twitch-channel-input").exists()).toBe(true);
+    expect($(w, "twitch-channel-save").attributes("type")).toBe("submit");
+    expect(api.saveMyTwitchChannel).not.toHaveBeenCalled();
+    expect(help.classes()).toEqual(expect.arrayContaining(["min-w-0", "flex-col", "sm:flex-row"]));
+    expect(w.find("iframe").exists()).toBe(false);
+  });
+
   it("no channel: Not configured, empty input, no link, no Remove", async () => {
     const w = await mountCard(null);
     expect($(w, "twitch-channel-card").exists()).toBe(true);

@@ -243,5 +243,28 @@ function submit() {
         {{ $t("pages.settings.linked_accounts.twitch.help") }}
       </p>
     </form>
+    <div
+      class="flex min-w-0 flex-col gap-2 border-t border-border/60 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+      data-testid="twitch-widget-help"
+    >
+      <div class="min-w-0">
+        <p class="text-sm font-medium">
+          {{ $t("pages.settings.linked_accounts.twitch.widget_title") }}
+        </p>
+        <p class="text-xs text-muted-foreground">
+          {{ $t("pages.settings.linked_accounts.twitch.widget_description") }}
+        </p>
+      </div>
+      <a
+        href="https://deafcs-widget.vercel.app/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex shrink-0 items-center gap-1 self-start rounded-sm text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:self-auto"
+        data-testid="twitch-widget-open"
+      >
+        {{ $t("pages.settings.linked_accounts.twitch.widget_open") }}
+        <ExternalLink class="h-3 w-3 shrink-0" aria-hidden="true" />
+      </a>
+    </div>
   </div>
 </template>
