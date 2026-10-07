@@ -841,11 +841,21 @@ export default {
     renderSummaryScope() {
       return `${this.match?.id ?? ""}:${this.canSelectRenderJobs}`;
     },
+    // Whether the viewer has at least one action in this menu. Besides the
+    // player and organizer paths, the staff-only entries below stand on their
+    // own role checks (a moderator can read the chat log of a match they are
+    // neither playing nor organizing), so each of them must keep the "..."
+    // button reachable. Every entry still renders only behind its own flag.
     canAct() {
-      return (
+      return Boolean(
         this.match.is_in_lineup ||
-        this.match.is_organizer ||
-        this.canCancelMatch
+          this.match.is_organizer ||
+          this.canCancelMatch ||
+          this.canViewChatLog ||
+          this.canWatchCamera ||
+          this.canVoidElo ||
+          this.canDeleteMatch ||
+          this.canReparseDemos,
       );
     },
     canCancelMatch() {
