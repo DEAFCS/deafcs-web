@@ -142,25 +142,67 @@ describe("shared match expansion", () => {
     expect(read("components/tournament/TournamentMatches.vue")).toContain("<PlayerMatchesTable");
     expect(read("components/player/PlayerMatchesTable.vue")).toContain("<PlayerMatchRow");
   });
-  it.each([[true, true], [true, false], [false, true], [false, false]])("row expands lazily through shared scoreboard (neutral %s, stats %s)", async (neutral, stats) => {
+  it.each([true, false].flatMap(neutral => [true, false].flatMap(stats => [true, false].map(compact => [neutral, stats, compact]))))("row expands/collapses lazily through shared scoreboard (neutral %s, stats %s, compact %s)", async (neutral, stats, compact) => {
     vi.stubGlobal("useRuntimeConfig", () => ({ public: { apiDomain: "fixture.invalid" } }));
     const match = scoreboardFixture(stats);
     const query = vi.fn().mockResolvedValue({ data: { matches_by_pk: match } });
     const w = shallowMount(PlayerMatchRow, {
-      props: { match, neutral, player: neutral ? null : { steam_id: "22" } },
+      props: { match, neutral, compact, player: neutral ? null : { steam_id: "22" } },
       global: { config: { globalProperties: { $t: (k: string) => k, $apollo: { query } } }, stubs: { NuxtLink: true } },
     });
     wrappers.push(w);
     expect(query).not.toHaveBeenCalled();
+    expect(w.get('button[aria-expanded]').attributes("aria-expanded")).toBe("false");
+    if (compact) expect(w.get('button[aria-expanded]').text()).toContain("ui_extras.quick_overview");
     await w.get('button[aria-expanded]').trigger("click");
     await flushPromises();
+    expect(w.get('button[aria-expanded]').attributes("aria-expanded")).toBe("true");
+    if (compact) expect(w.get('button[aria-expanded]').text()).toContain("common.close");
     const panel = w.getComponent(PlayerMatchScoreboard);
     expect(panel.props("focusSteamId")).toBe(neutral ? null : "22");
+    expect(panel.props("compact")).toBe(compact);
     expect(panel.props("match").lineup_2.lineup_players).toHaveLength(2);
     expect(query).toHaveBeenCalledTimes(1);
     await w.get('button[aria-expanded]').trigger("click");
+    expect(w.findComponent(PlayerMatchScoreboard).exists()).toBe(false);
+    expect(w.get('button[aria-expanded]').attributes("aria-expanded")).toBe("false");
     await w.get('button[aria-expanded]').trigger("click");
     expect(query).toHaveBeenCalledTimes(1);
+  });
+  it.each([true, false].flatMap(neutral => [true, false].map(compact => [neutral, compact])))("Open Match stays separate from expansion (neutral %s, compact %s)", async (neutral, compact) => {
+    vi.stubGlobal("useRuntimeConfig", () => ({ public: { apiDomain: "fixture.invalid" } }));
+    const navigate = vi.fn();
+    vi.stubGlobal("navigateTo", navigate);
+    const query = vi.fn().mockResolvedValue({ data: { matches_by_pk: scoreboardFixture() } });
+    const w = shallowMount(PlayerMatchRow, {
+      props: { match: scoreboardFixture(), neutral, compact, player: neutral ? null : { steam_id: "22" } },
+      global: { config: { globalProperties: { $t: (k: string) => k, $apollo: { query } } }, stubs: {
+        NuxtLink: defineComponent({ props: ["to"], setup: (p, { slots }) => () => h("a", { href: p.to }, slots.default?.()) }),
+      } },
+    });
+    wrappers.push(w);
+    expect(w.findAll("a")).toHaveLength(1);
+    expect(w.get("a").attributes("href")).toBe("/matches/fixture-match");
+    await w.get("a").trigger("click");
+    expect(query).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+    expect(w.findComponent(PlayerMatchScoreboard).exists()).toBe(false);
+    // Clicking elsewhere keeps the existing mobile navigation/desktop expansion.
+    await w.trigger("click");
+    await flushPromises();
+    expect(navigate.mock.calls).toEqual(compact ? [["/matches/fixture-match"]] : []);
+    expect(w.findComponent(PlayerMatchScoreboard).exists()).toBe(!compact);
+  });
+  it("unfinished mobile neutral rows retain navigation without an expansion control", () => {
+    vi.stubGlobal("useRuntimeConfig", () => ({ public: { apiDomain: "fixture.invalid" } }));
+    const match = { ...scoreboardFixture(false), status: "Scheduled" };
+    const w = shallowMount(PlayerMatchRow, {
+      props: { match, neutral: true, compact: true },
+      global: { config: { globalProperties: { $t: (k: string) => k } }, stubs: { NuxtLink: true } },
+    });
+    wrappers.push(w);
+    expect(w.find('button[aria-expanded]').exists()).toBe(false);
+    expect(w.getComponent({ name: "NuxtLink" }).attributes("to")).toBe("/matches/fixture-match");
   });
   it("neutral Highlights fetch stays match-scoped and public-only", async () => {
     vi.stubGlobal("useRuntimeConfig", () => ({ public: { apiDomain: "fixture.invalid" } }));

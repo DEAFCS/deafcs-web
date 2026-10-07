@@ -393,14 +393,6 @@ const wideGrid =
             </div>
             <MatchStatus v-if="!isFinished" :match="match" />
           </div>
-          <NuxtLink
-            :to="`/matches/${match.id}`"
-            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-border/60 text-muted-foreground transition-colors hover:border-[hsl(var(--tac-amber)/0.6)] hover:text-[hsl(var(--tac-amber))]"
-            :title="$t('match.open_match')"
-            @click.stop
-          >
-            <ExternalLink class="h-4 w-4" />
-          </NuxtLink>
         </div>
 
         <div
@@ -651,6 +643,9 @@ const wideGrid =
         </div>
       </div>
 
+      </template>
+
+      <!-- Shared mobile actions, including neutral tournament rows. -->
       <div v-if="isFinished" class="mt-2.5 grid grid-cols-2 gap-2">
         <button
           type="button"
@@ -688,7 +683,6 @@ const wideGrid =
           {{ $t("match.open_match") }}
         </NuxtLink>
         </div>
-      </template>
     </div>
 
     <!-- ===================== EXPANDED DETAIL ===================== -->

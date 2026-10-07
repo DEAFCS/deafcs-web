@@ -17,7 +17,7 @@ export function scoreboardFixture(stats = true, bestOf = 1) {
     },
   });
   return {
-    id: "fixture-match", status: "Finished", lineup_1_id: "alpha", lineup_2_id: "beta",
+    id: "fixture-match", status: "Finished", created_at: "2026-09-26T17:20:00Z", lineup_1_id: "alpha", lineup_2_id: "beta",
     options: { best_of: bestOf, type: "Competitive" },
     lineup_1: { id: "alpha", name: "Alpha", lineup_players: [member("11", 30), member("12", 20)] },
     lineup_2: { id: "beta", name: "Beta", lineup_players: [member("21", 25), member("22", 10)] },
