@@ -8435,6 +8435,8 @@
     "months": "{n}mo ago"
   },
   "player_match": {
+    "show_lobby": "Show all {count} players",
+    "hide_lobby": "Hide full lobby",
     "tournament": "Tournament",
     "maps_count": "{count} maps",
     "headers": {

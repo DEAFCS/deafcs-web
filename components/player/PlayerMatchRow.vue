@@ -2,7 +2,6 @@
 import {
   ChevronDown,
   ExternalLink,
-  ListChecks,
   Play,
   Trophy,
 } from "lucide-vue-next";
@@ -12,8 +11,7 @@ import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
 import PlayerSkillGroupRank from "~/components/PlayerSkillGroupRank.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
 import MatchStatus from "~/components/match/MatchStatus.vue";
-import MatchPlayerDetailsPanel from "~/components/match/MatchPlayerDetailsPanel.vue";
-import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
+import PlayerMatchScoreboard from "~/components/player/PlayerMatchScoreboard.vue";
 import TournamentTime from "~/components/tournament/TournamentTime.vue";
 import { kdColor, hltvColor } from "~/utils/statTiers";
 import { matchSeriesLabel } from "~/utilities/matchSeriesLabel";
@@ -350,6 +348,7 @@ const wideGrid =
             : 'border-border/60 text-muted-foreground hover:border-[hsl(var(--tac-amber)/0.6)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))]'
         "
         :title="$t('ui_extras.quick_overview')"
+        :aria-expanded="expanded"
         @click.stop="toggleExpanded()"
       >
         <ChevronDown
@@ -655,6 +654,7 @@ const wideGrid =
       <div v-if="isFinished" class="mt-2.5 grid grid-cols-2 gap-2">
         <button
           type="button"
+          :aria-expanded="expanded"
           class="inline-flex items-center justify-center gap-1.5 rounded-md border px-3 py-2 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.14em] transition-colors"
           :class="
             expanded
@@ -706,45 +706,33 @@ const wideGrid =
       leave-from-class="grid-rows-[1fr] opacity-100"
       leave-to-class="grid-rows-[0fr] opacity-0"
     >
-      <div v-if="expanded && isFinished" class="grid" @click.stop>
-        <div class="overflow-hidden">
+      <div v-if="expanded && isFinished" class="grid grid-cols-[minmax(0,1fr)]" @click.stop>
+        <div class="min-w-0 overflow-hidden">
           <div
             class="border-t border-border bg-card/40 px-3 py-3 space-y-3"
             :class="compact ? '' : 'sm:px-4'"
           >
-            <MatchPlayerDetailsPanel
-              :match="panelMatch"
-              :focus-lineup="focusPlayerLineupDetailed"
+            <PlayerMatchScoreboard
+              :match="scoreboardMatch"
+              :focus-steam-id="neutral ? null : playerSteamId"
               :loading="detailsStatsLoading"
               :active-tab="detailsTab"
               :selected-map-id="selectedMapId"
+              :elo-change="neutral ? null : eloChange"
+              :rank-info="neutral ? null : rankInfo"
+              :type-label="matchTypeLabel"
+              :source-label="sourceLabel"
+              :context-label="isTournamentMatch ? tournamentLabel : ''"
+              :clips-count="filteredPlayerClips.length"
+              :compact="compact"
               @update:active-tab="(v) => (detailsTab = v)"
               @update:selected-map-id="(v) => (selectedMapId = v)"
+              @open-clips="openBestClip"
             />
-
-            <!-- View details — opens the picks/deciders + team stat-table drawer
-               (same overview MatchTableRow uses). The inline panel above is the
-               player-focused readout; this is the full match breakdown. -->
-            <div class="flex">
-              <button
-                type="button"
-                class="inline-flex flex-1 items-center justify-center gap-1.5 rounded-md border border-border bg-muted/40 px-3 py-1.5 text-xs font-medium text-foreground/80 transition-colors hover:border-[hsl(var(--tac-amber)/0.55)] hover:bg-background hover:text-[hsl(var(--tac-amber))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.6)]"
-                @click.stop="drawerOpen = true"
-              >
-                <ListChecks class="h-3.5 w-3.5" />
-                <span>{{ $t("match.match_overview") }}</span>
-              </button>
-            </div>
           </div>
         </div>
       </div>
     </Transition>
-
-    <MatchOverviewDrawer
-      v-model:open="drawerOpen"
-      :match="match"
-      :player="player"
-    />
   </div>
 </template>
 
@@ -781,7 +769,7 @@ export default {
   data() {
     return {
       expanded: false,
-      drawerOpen: false,
+      detailsPromise: null as Promise<void> | null,
       detailsStats: null as any | null,
       detailsStatsLoading: false,
       detailsTab: "overview",
@@ -813,24 +801,14 @@ export default {
         (mm: any) => (mm?.public_clips_count ?? 0) > 0,
       );
     },
-    // The match prop comes from simpleMatchFields, whose match_maps carry
-    // no per-round data — so the Overview tab's KAST/Survived columns can't
-    // compute. Once the detailed fetch lands we overlay its rounds onto the
-    // match_maps (matched by id) and hand that enriched copy to the panel.
-    panelMatch(): any {
-      const detailMaps = (this.detailsStats as any)?.match_maps;
-      if (!Array.isArray(detailMaps) || detailMaps.length === 0) {
-        return this.match;
-      }
-      const roundsById = new Map(
-        detailMaps.map((mm: any) => [mm.id, mm.rounds]),
-      );
+    // Both contexts render the same complete lineups. Keep shell metadata,
+    // tournament roster snapshots and maps while overlaying fetched stats.
+    scoreboardMatch(): any {
+      if (!this.detailsStats) return this.match;
       return {
         ...this.match,
-        match_maps: (this.match?.match_maps ?? []).map((mm: any) => ({
-          ...mm,
-          rounds: roundsById.get(mm.id) ?? mm.rounds ?? [],
-        })),
+        lineup_1: { ...this.match.lineup_1, ...this.detailsStats.lineup_1 },
+        lineup_2: { ...this.match.lineup_2, ...this.detailsStats.lineup_2 },
       };
     },
     playerSteamId(): string | null {
@@ -1209,38 +1187,6 @@ export default {
         this.$t("player_match.tournament")
       );
     },
-    focusPlayerLineupDetailed(): any {
-      const sid = this.playerSteamId;
-      if (!sid || !this.detailsStats) return null;
-      const findPlayer = (lineup: any) =>
-        (lineup?.lineup_players || []).find(
-          (lp: any) => String(lp.player?.steam_id ?? lp.steam_id ?? "") === sid,
-        );
-      const narrowMapStats = (lp: any) => {
-        if (!lp?.player) return lp;
-        if (!this.selectedMapId) {
-          return { ...lp, player: { ...lp.player, match_map_stats: null } };
-        }
-        const mapRow = (lp.player?.match_map_stats || []).find(
-          (s: any) => s.match_map_id === this.selectedMapId,
-        );
-        return {
-          ...lp,
-          player: {
-            ...lp.player,
-            match_map_stats: mapRow ? [mapRow] : null,
-          },
-        };
-      };
-      for (const key of ["lineup_1", "lineup_2"]) {
-        const lineup = (this.detailsStats as any)?.[key];
-        const found = findPlayer(lineup);
-        if (found) {
-          return { ...lineup, lineup_players: [narrowMapStats(found)] };
-        }
-      }
-      return null;
-    },
     filteredPlayerClips(): any[] {
       const base = !this.selectedMapId
         ? this.playerClips
@@ -1281,8 +1227,11 @@ export default {
       }
       this.expanded = !this.expanded;
       if (this.expanded) {
-        if (!this.detailsStats && !this.detailsStatsLoading) {
-          this.getDetailedStats().catch(() => {});
+        if (!this.detailsStats && !this.detailsPromise) {
+          this.detailsPromise = this.getDetailedStats().finally(() => {
+            this.detailsPromise = null;
+          });
+          this.detailsPromise.catch(() => {});
         }
         if (
           this.hasPublicClips &&
@@ -1305,33 +1254,6 @@ export default {
               {
                 lineup_1: [{}, matchAllMapsStats],
                 lineup_2: [{}, matchAllMapsStats],
-                // Round-level kills/assists feed the Overview tab's
-                // KAST + Survived columns (LineupOverviewRow computes
-                // them per round). simpleMatchFields omits rounds, so
-                // without this the columns render "—".
-                match_maps: [
-                  { order_by: [{ order: order_by.asc }] },
-                  {
-                    id: true,
-                    rounds: [
-                      { order_by: [{ round: order_by.asc }] },
-                      {
-                        round: true,
-                        lineup_1_side: true,
-                        lineup_2_side: true,
-                        kills: [
-                          {},
-                          {
-                            headshot: true,
-                            player: { steam_id: true },
-                            attacked_player: { steam_id: true },
-                          },
-                        ],
-                        assists: [{}, { attacker_steam_id: true }],
-                      },
-                    ],
-                  },
-                ],
               },
             ],
           }),
@@ -1343,23 +1265,23 @@ export default {
     },
     async getPlayerClips() {
       const sid = this.playerSteamId;
-      if (!sid || !this.match?.id) return;
+      if ((!sid && !this.neutral) || !this.match?.id) return;
       this.playerClipsLoading = true;
       try {
         const { data } = await this.$apollo.query({
           fetchPolicy: "network-only",
-          variables: { matchId: this.match.id, playerId: sid },
+          variables: { matchId: this.match.id, ...(!this.neutral ? { playerId: sid } : {}) },
           query: generateQuery({
             match_clips: [
               {
-                limit: 6,
+                limit: this.neutral ? 12 : 6,
                 where: {
                   visibility: { _eq: "public" },
                   match_map: { match_id: { _eq: $("matchId", "uuid!") } },
-                  _or: [
+                  ...(!this.neutral ? { _or: [
                     { user_steam_id: { _eq: $("playerId", "bigint!") } },
                     { target_steam_id: { _eq: $("playerId", "bigint!") } },
-                  ],
+                  ] } : {}),
                 },
                 order_by: [{}, { created_at: order_by.desc }],
               } as any,
