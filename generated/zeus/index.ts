@@ -29679,51 +29679,26 @@ count?: [{	columns?: Array<ValueTypes["my_blocks_select_column"]> | undefined | 
 }>;
 	/** columns and relationships of "v_my_friends" */
 ["my_friends"]: AliasType<{
-	api_key_enabled?:boolean | `@${string}`,
 	avatar_url?:boolean | `@${string}`,
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	custom_avatar_url?:boolean | `@${string}`,
-	days_since_last_ban?:boolean | `@${string}`,
 	discord_id?:boolean | `@${string}`,
 elo?: [{	/** JSON select path */
 	path?: string | undefined | null | Variable<any, string>},boolean | `@${string}`],
-	faceit_elo?:boolean | `@${string}`,
-	faceit_last_match_at?:boolean | `@${string}`,
-	faceit_nickname?:boolean | `@${string}`,
-	faceit_player_id?:boolean | `@${string}`,
-	faceit_refresh_attempted_at?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
-	faceit_synced_at?:boolean | `@${string}`,
-	faceit_updated_at?:boolean | `@${string}`,
-	faceit_url?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	language?:boolean | `@${string}`,
 last_presence_state?: [{	/** JSON select path */
 	path?: string | undefined | null | Variable<any, string>},boolean | `@${string}`],
-	last_read_news_at?:boolean | `@${string}`,
-	last_sign_in_at?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	name_registered?:boolean | `@${string}`,
 	/** An object relationship */
 	player?:ValueTypes["players"],
-	premier_rank?:boolean | `@${string}`,
-	premier_rank_updated_at?:boolean | `@${string}`,
 	presence_updated_at?:boolean | `@${string}`,
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	roster_image_url?:boolean | `@${string}`,
-	show_match_ready_modal?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
-	steam_bans_checked_at?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	twitch_channel?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
-	vac_banned?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** aggregated selection of "v_my_friends" */
@@ -29795,78 +29770,39 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 };
 	/** aggregate avg on columns */
 ["my_friends_avg_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by avg() on columns of table "v_my_friends" */
 ["my_friends_avg_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Boolean expression to filter rows from the table "v_my_friends". All fields are combined with a logical 'AND'. */
 ["my_friends_bool_exp"]: {
 	_and?: Array<ValueTypes["my_friends_bool_exp"]> | undefined | null | Variable<any, string>,
 	_not?: ValueTypes["my_friends_bool_exp"] | undefined | null | Variable<any, string>,
 	_or?: Array<ValueTypes["my_friends_bool_exp"]> | undefined | null | Variable<any, string>,
-	api_key_enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	avatar_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	country?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	custom_avatar_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
-	days_since_last_ban?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	discord_id?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	elo?: ValueTypes["jsonb_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_last_match_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_nickname?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_player_id?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_refresh_attempted_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_synced_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_updated_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
-	faceit_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
-	language?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	last_presence_state?: ValueTypes["jsonb_comparison_exp"] | undefined | null | Variable<any, string>,
-	last_read_news_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
-	last_sign_in_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage_expires_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	name_registered?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
-	premier_rank_updated_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	presence_updated_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	profile_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
-	roster_image_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
-	show_match_ready_modal?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
-	steam_bans_checked_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
-	twitch_channel?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
-	vac_banned?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>
 };
 	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 ["my_friends_delete_at_path_input"]: {
@@ -29885,61 +29821,29 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 };
 	/** input type for incrementing numeric columns in table "v_my_friends" */
 ["my_friends_inc_input"]: {
-	days_since_last_ban?: number | undefined | null | Variable<any, string>,
-	faceit_elo?: number | undefined | null | Variable<any, string>,
-	faceit_skill_level?: number | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	game_ban_count?: number | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
-	premier_rank?: number | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: number | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** input type for inserting data into table "v_my_friends" */
 ["my_friends_insert_input"]: {
-	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	country?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	custom_avatar_url?: string | undefined | null | Variable<any, string>,
-	days_since_last_ban?: number | undefined | null | Variable<any, string>,
 	discord_id?: string | undefined | null | Variable<any, string>,
 	elo?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
-	faceit_elo?: number | undefined | null | Variable<any, string>,
-	faceit_last_match_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_nickname?: string | undefined | null | Variable<any, string>,
-	faceit_player_id?: string | undefined | null | Variable<any, string>,
-	faceit_refresh_attempted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: number | undefined | null | Variable<any, string>,
-	faceit_synced_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_url?: string | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	game_ban_count?: number | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	language?: string | undefined | null | Variable<any, string>,
 	last_presence_state?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
-	last_read_news_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	last_sign_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
-	leaver_ban_stage_expires_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	name_registered?: boolean | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
-	premier_rank?: number | undefined | null | Variable<any, string>,
-	premier_rank_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	presence_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	profile_url?: string | undefined | null | Variable<any, string>,
 	role?: string | undefined | null | Variable<any, string>,
-	roster_image_url?: string | undefined | null | Variable<any, string>,
-	show_match_ready_modal?: boolean | undefined | null | Variable<any, string>,
 	status?: string | undefined | null | Variable<any, string>,
-	steam_bans_checked_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	twitch_channel?: string | undefined | null | Variable<any, string>,
-	vac_ban_count?: number | undefined | null | Variable<any, string>,
-	vac_banned?: boolean | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** aggregate max on columns */
 ["my_friends_max_fields"]: AliasType<{
@@ -29947,37 +29851,15 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	custom_avatar_url?:boolean | `@${string}`,
-	days_since_last_ban?:boolean | `@${string}`,
 	discord_id?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_last_match_at?:boolean | `@${string}`,
-	faceit_nickname?:boolean | `@${string}`,
-	faceit_player_id?:boolean | `@${string}`,
-	faceit_refresh_attempted_at?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
-	faceit_synced_at?:boolean | `@${string}`,
-	faceit_updated_at?:boolean | `@${string}`,
-	faceit_url?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	language?:boolean | `@${string}`,
-	last_read_news_at?:boolean | `@${string}`,
-	last_sign_in_at?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
-	premier_rank_updated_at?:boolean | `@${string}`,
 	presence_updated_at?:boolean | `@${string}`,
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	roster_image_url?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
-	steam_bans_checked_at?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	twitch_channel?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by max() on columns of table "v_my_friends" */
@@ -29986,37 +29868,15 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	country?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	custom_avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_last_match_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_nickname?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_player_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_refresh_attempted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_synced_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	language?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	last_read_news_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	last_sign_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage_expires_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	presence_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	profile_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	roster_image_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_bans_checked_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	twitch_channel?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate min on columns */
 ["my_friends_min_fields"]: AliasType<{
@@ -30024,37 +29884,15 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	custom_avatar_url?:boolean | `@${string}`,
-	days_since_last_ban?:boolean | `@${string}`,
 	discord_id?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_last_match_at?:boolean | `@${string}`,
-	faceit_nickname?:boolean | `@${string}`,
-	faceit_player_id?:boolean | `@${string}`,
-	faceit_refresh_attempted_at?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
-	faceit_synced_at?:boolean | `@${string}`,
-	faceit_updated_at?:boolean | `@${string}`,
-	faceit_url?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	language?:boolean | `@${string}`,
-	last_read_news_at?:boolean | `@${string}`,
-	last_sign_in_at?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
-	premier_rank_updated_at?:boolean | `@${string}`,
 	presence_updated_at?:boolean | `@${string}`,
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	roster_image_url?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
-	steam_bans_checked_at?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	twitch_channel?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by min() on columns of table "v_my_friends" */
@@ -30063,37 +29901,15 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 	country?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	custom_avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_last_match_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_nickname?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_player_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_refresh_attempted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_synced_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	language?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	last_read_news_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	last_sign_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage_expires_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	presence_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	profile_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	roster_image_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_bans_checked_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	twitch_channel?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** response of any mutation on the table "v_my_friends" */
 ["my_friends_mutation_response"]: AliasType<{
@@ -30105,48 +29921,23 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 }>;
 	/** Ordering options when selecting data from "v_my_friends". */
 ["my_friends_order_by"]: {
-	api_key_enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	country?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	custom_avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	discord_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_last_match_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_nickname?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_player_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_refresh_attempted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_synced_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	language?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	last_presence_state?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	last_read_news_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	last_sign_in_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage_expires_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name_registered?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	player?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	presence_updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	profile_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	role?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	roster_image_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	show_match_ready_modal?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	status?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_bans_checked_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	twitch_channel?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_banned?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** prepend existing jsonb value of filtered columns with new jsonb value */
 ["my_friends_prepend_input"]: {
@@ -30161,128 +29952,61 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 ["my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns"]:my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "v_my_friends" */
 ["my_friends_set_input"]: {
-	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	country?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	custom_avatar_url?: string | undefined | null | Variable<any, string>,
-	days_since_last_ban?: number | undefined | null | Variable<any, string>,
 	discord_id?: string | undefined | null | Variable<any, string>,
 	elo?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
-	faceit_elo?: number | undefined | null | Variable<any, string>,
-	faceit_last_match_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_nickname?: string | undefined | null | Variable<any, string>,
-	faceit_player_id?: string | undefined | null | Variable<any, string>,
-	faceit_refresh_attempted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: number | undefined | null | Variable<any, string>,
-	faceit_synced_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_url?: string | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	game_ban_count?: number | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	language?: string | undefined | null | Variable<any, string>,
 	last_presence_state?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
-	last_read_news_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	last_sign_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
-	leaver_ban_stage_expires_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	name_registered?: boolean | undefined | null | Variable<any, string>,
-	premier_rank?: number | undefined | null | Variable<any, string>,
-	premier_rank_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	presence_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	profile_url?: string | undefined | null | Variable<any, string>,
 	role?: string | undefined | null | Variable<any, string>,
-	roster_image_url?: string | undefined | null | Variable<any, string>,
-	show_match_ready_modal?: boolean | undefined | null | Variable<any, string>,
 	status?: string | undefined | null | Variable<any, string>,
-	steam_bans_checked_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	twitch_channel?: string | undefined | null | Variable<any, string>,
-	vac_ban_count?: number | undefined | null | Variable<any, string>,
-	vac_banned?: boolean | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev on columns */
 ["my_friends_stddev_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev() on columns of table "v_my_friends" */
 ["my_friends_stddev_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_pop on columns */
 ["my_friends_stddev_pop_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_pop() on columns of table "v_my_friends" */
 ["my_friends_stddev_pop_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate stddev_samp on columns */
 ["my_friends_stddev_samp_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_samp() on columns of table "v_my_friends" */
 ["my_friends_stddev_samp_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** Streaming cursor of the table "my_friends" */
 ["my_friends_stream_cursor_input"]: {
@@ -30293,74 +30017,35 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 };
 	/** Initial value of the column from where the streaming should start */
 ["my_friends_stream_cursor_value_input"]: {
-	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	country?: string | undefined | null | Variable<any, string>,
 	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	custom_avatar_url?: string | undefined | null | Variable<any, string>,
-	days_since_last_ban?: number | undefined | null | Variable<any, string>,
 	discord_id?: string | undefined | null | Variable<any, string>,
 	elo?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
-	faceit_elo?: number | undefined | null | Variable<any, string>,
-	faceit_last_match_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_nickname?: string | undefined | null | Variable<any, string>,
-	faceit_player_id?: string | undefined | null | Variable<any, string>,
-	faceit_refresh_attempted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: number | undefined | null | Variable<any, string>,
-	faceit_synced_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	faceit_url?: string | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	game_ban_count?: number | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	language?: string | undefined | null | Variable<any, string>,
 	last_presence_state?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
-	last_read_news_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	last_sign_in_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: number | undefined | null | Variable<any, string>,
-	leaver_ban_stage_expires_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
 	name_registered?: boolean | undefined | null | Variable<any, string>,
-	premier_rank?: number | undefined | null | Variable<any, string>,
-	premier_rank_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	presence_updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	profile_url?: string | undefined | null | Variable<any, string>,
 	role?: string | undefined | null | Variable<any, string>,
-	roster_image_url?: string | undefined | null | Variable<any, string>,
-	show_match_ready_modal?: boolean | undefined | null | Variable<any, string>,
 	status?: string | undefined | null | Variable<any, string>,
-	steam_bans_checked_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
-	twitch_channel?: string | undefined | null | Variable<any, string>,
-	vac_ban_count?: number | undefined | null | Variable<any, string>,
-	vac_banned?: boolean | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
 };
 	/** aggregate sum on columns */
 ["my_friends_sum_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by sum() on columns of table "v_my_friends" */
 ["my_friends_sum_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	["my_friends_updates"]: {
 	/** append existing jsonb value of filtered columns with new jsonb value */
@@ -30382,84 +30067,42 @@ count?: [{	columns?: Array<ValueTypes["my_friends_select_column"]> | undefined |
 };
 	/** aggregate var_pop on columns */
 ["my_friends_var_pop_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_pop() on columns of table "v_my_friends" */
 ["my_friends_var_pop_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate var_samp on columns */
 ["my_friends_var_samp_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_samp() on columns of table "v_my_friends" */
 ["my_friends_var_samp_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** aggregate variance on columns */
 ["my_friends_variance_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by variance() on columns of table "v_my_friends" */
 ["my_friends_variance_order_by"]: {
-	days_since_last_ban?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_elo?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	faceit_skill_level?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	friend_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	game_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	leaver_ban_stage?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	premier_rank?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
-	vac_ban_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
 	/** columns and relationships of "news_articles" */
 ["news_articles"]: AliasType<{
@@ -57409,6 +57052,8 @@ count?: [{	columns?: Array<ValueTypes["team_suggestions_select_column"]> | undef
 	/** An object relationship */
 	captain?:ValueTypes["players"],
 	captain_steam_id?:boolean | `@${string}`,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 invites?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["team_invites_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
@@ -57579,6 +57224,7 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 	can_remove?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	captain?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	invites?: ValueTypes["team_invites_bool_exp"] | undefined | null | Variable<any, string>,
 	invites_aggregate?: ValueTypes["team_invites_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
@@ -57613,6 +57259,8 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	captain?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	invites?: ValueTypes["team_invites_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	is_organization?: boolean | undefined | null | Variable<any, string>,
@@ -57632,6 +57280,8 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 ["teams_max_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
 	captain_steam_id?:boolean | `@${string}`,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	owner_steam_id?:boolean | `@${string}`,
@@ -57644,6 +57294,8 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 ["teams_max_order_by"]: {
 	avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	owner_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -57653,6 +57305,8 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 ["teams_min_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
 	captain_steam_id?:boolean | `@${string}`,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	owner_steam_id?:boolean | `@${string}`,
@@ -57665,6 +57319,8 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 ["teams_min_order_by"]: {
 	avatar_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	owner_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -57699,6 +57355,7 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 	can_remove?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	captain?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	invites_aggregate?: ValueTypes["team_invites_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	is_organization?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -57730,6 +57387,8 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 ["teams_set_input"]: {
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_organization?: boolean | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
@@ -57780,6 +57439,8 @@ count?: [{	columns?: Array<ValueTypes["teams_select_column"]> | undefined | null
 ["teams_stream_cursor_value_input"]: {
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	captain_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	is_organization?: boolean | undefined | null | Variable<any, string>,
 	name?: string | undefined | null | Variable<any, string>,
@@ -104283,51 +103944,26 @@ count?: [{	columns?: Array<ResolverInputTypes["my_blocks_select_column"]> | unde
 }>;
 	/** columns and relationships of "v_my_friends" */
 ["my_friends"]: AliasType<{
-	api_key_enabled?:boolean | `@${string}`,
 	avatar_url?:boolean | `@${string}`,
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	custom_avatar_url?:boolean | `@${string}`,
-	days_since_last_ban?:boolean | `@${string}`,
 	discord_id?:boolean | `@${string}`,
 elo?: [{	/** JSON select path */
 	path?: string | undefined | null},boolean | `@${string}`],
-	faceit_elo?:boolean | `@${string}`,
-	faceit_last_match_at?:boolean | `@${string}`,
-	faceit_nickname?:boolean | `@${string}`,
-	faceit_player_id?:boolean | `@${string}`,
-	faceit_refresh_attempted_at?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
-	faceit_synced_at?:boolean | `@${string}`,
-	faceit_updated_at?:boolean | `@${string}`,
-	faceit_url?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	language?:boolean | `@${string}`,
 last_presence_state?: [{	/** JSON select path */
 	path?: string | undefined | null},boolean | `@${string}`],
-	last_read_news_at?:boolean | `@${string}`,
-	last_sign_in_at?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	name_registered?:boolean | `@${string}`,
 	/** An object relationship */
 	player?:ResolverInputTypes["players"],
-	premier_rank?:boolean | `@${string}`,
-	premier_rank_updated_at?:boolean | `@${string}`,
 	presence_updated_at?:boolean | `@${string}`,
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	roster_image_url?:boolean | `@${string}`,
-	show_match_ready_modal?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
-	steam_bans_checked_at?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	twitch_channel?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
-	vac_banned?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** aggregated selection of "v_my_friends" */
@@ -104399,78 +104035,39 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 };
 	/** aggregate avg on columns */
 ["my_friends_avg_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by avg() on columns of table "v_my_friends" */
 ["my_friends_avg_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "v_my_friends". All fields are combined with a logical 'AND'. */
 ["my_friends_bool_exp"]: {
 	_and?: Array<ResolverInputTypes["my_friends_bool_exp"]> | undefined | null,
 	_not?: ResolverInputTypes["my_friends_bool_exp"] | undefined | null,
 	_or?: Array<ResolverInputTypes["my_friends_bool_exp"]> | undefined | null,
-	api_key_enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	avatar_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	country?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	custom_avatar_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
-	days_since_last_ban?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	discord_id?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	elo?: ResolverInputTypes["jsonb_comparison_exp"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
-	faceit_last_match_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_nickname?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
-	faceit_player_id?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
-	faceit_refresh_attempted_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
-	faceit_synced_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_updated_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
-	language?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	last_presence_state?: ResolverInputTypes["jsonb_comparison_exp"] | undefined | null,
-	last_read_news_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
-	last_sign_in_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
-	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	name?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	name_registered?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: ResolverInputTypes["players_bool_exp"] | undefined | null,
-	premier_rank?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
-	premier_rank_updated_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	presence_updated_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	profile_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	role?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
-	roster_image_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
-	show_match_ready_modal?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	status?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
-	steam_bans_checked_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
-	steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
-	twitch_channel?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
-	vac_banned?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null
+	steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null
 };
 	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 ["my_friends_delete_at_path_input"]: {
@@ -104489,61 +104086,29 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 };
 	/** input type for incrementing numeric columns in table "v_my_friends" */
 ["my_friends_inc_input"]: {
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "v_my_friends" */
 ["my_friends_insert_input"]: {
-	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: ResolverInputTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: ResolverInputTypes["jsonb"] | undefined | null,
-	last_read_news_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	player?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** aggregate max on columns */
 ["my_friends_max_fields"]: AliasType<{
@@ -104551,37 +104116,15 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	custom_avatar_url?:boolean | `@${string}`,
-	days_since_last_ban?:boolean | `@${string}`,
 	discord_id?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_last_match_at?:boolean | `@${string}`,
-	faceit_nickname?:boolean | `@${string}`,
-	faceit_player_id?:boolean | `@${string}`,
-	faceit_refresh_attempted_at?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
-	faceit_synced_at?:boolean | `@${string}`,
-	faceit_updated_at?:boolean | `@${string}`,
-	faceit_url?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	language?:boolean | `@${string}`,
-	last_read_news_at?:boolean | `@${string}`,
-	last_sign_in_at?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
-	premier_rank_updated_at?:boolean | `@${string}`,
 	presence_updated_at?:boolean | `@${string}`,
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	roster_image_url?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
-	steam_bans_checked_at?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	twitch_channel?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by max() on columns of table "v_my_friends" */
@@ -104590,37 +104133,15 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	country?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	custom_avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_id?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_nickname?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_player_id?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_synced_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_url?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	language?: ResolverInputTypes["order_by"] | undefined | null,
-	last_read_news_at?: ResolverInputTypes["order_by"] | undefined | null,
-	last_sign_in_at?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
 	presence_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
 	profile_url?: ResolverInputTypes["order_by"] | undefined | null,
 	role?: ResolverInputTypes["order_by"] | undefined | null,
-	roster_image_url?: ResolverInputTypes["order_by"] | undefined | null,
 	status?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	twitch_channel?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["my_friends_min_fields"]: AliasType<{
@@ -104628,37 +104149,15 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	country?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	custom_avatar_url?:boolean | `@${string}`,
-	days_since_last_ban?:boolean | `@${string}`,
 	discord_id?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_last_match_at?:boolean | `@${string}`,
-	faceit_nickname?:boolean | `@${string}`,
-	faceit_player_id?:boolean | `@${string}`,
-	faceit_refresh_attempted_at?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
-	faceit_synced_at?:boolean | `@${string}`,
-	faceit_updated_at?:boolean | `@${string}`,
-	faceit_url?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	language?:boolean | `@${string}`,
-	last_read_news_at?:boolean | `@${string}`,
-	last_sign_in_at?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	leaver_ban_stage_expires_at?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
-	premier_rank_updated_at?:boolean | `@${string}`,
 	presence_updated_at?:boolean | `@${string}`,
 	profile_url?:boolean | `@${string}`,
 	role?:boolean | `@${string}`,
-	roster_image_url?:boolean | `@${string}`,
 	status?:boolean | `@${string}`,
-	steam_bans_checked_at?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	twitch_channel?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by min() on columns of table "v_my_friends" */
@@ -104667,37 +104166,15 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 	country?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	custom_avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_id?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_nickname?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_player_id?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_synced_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_url?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	language?: ResolverInputTypes["order_by"] | undefined | null,
-	last_read_news_at?: ResolverInputTypes["order_by"] | undefined | null,
-	last_sign_in_at?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
 	presence_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
 	profile_url?: ResolverInputTypes["order_by"] | undefined | null,
 	role?: ResolverInputTypes["order_by"] | undefined | null,
-	roster_image_url?: ResolverInputTypes["order_by"] | undefined | null,
 	status?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	twitch_channel?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "v_my_friends" */
 ["my_friends_mutation_response"]: AliasType<{
@@ -104709,48 +104186,23 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 }>;
 	/** Ordering options when selecting data from "v_my_friends". */
 ["my_friends_order_by"]: {
-	api_key_enabled?: ResolverInputTypes["order_by"] | undefined | null,
 	avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
 	country?: ResolverInputTypes["order_by"] | undefined | null,
 	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	custom_avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
 	discord_id?: ResolverInputTypes["order_by"] | undefined | null,
 	elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_nickname?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_player_id?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_synced_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_url?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	language?: ResolverInputTypes["order_by"] | undefined | null,
 	last_presence_state?: ResolverInputTypes["order_by"] | undefined | null,
-	last_read_news_at?: ResolverInputTypes["order_by"] | undefined | null,
-	last_sign_in_at?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	name_registered?: ResolverInputTypes["order_by"] | undefined | null,
 	player?: ResolverInputTypes["players_order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
 	presence_updated_at?: ResolverInputTypes["order_by"] | undefined | null,
 	profile_url?: ResolverInputTypes["order_by"] | undefined | null,
 	role?: ResolverInputTypes["order_by"] | undefined | null,
-	roster_image_url?: ResolverInputTypes["order_by"] | undefined | null,
-	show_match_ready_modal?: ResolverInputTypes["order_by"] | undefined | null,
 	status?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	twitch_channel?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_banned?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** prepend existing jsonb value of filtered columns with new jsonb value */
 ["my_friends_prepend_input"]: {
@@ -104765,128 +104217,61 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 ["my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns"]:my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "v_my_friends" */
 ["my_friends_set_input"]: {
-	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: ResolverInputTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: ResolverInputTypes["jsonb"] | undefined | null,
-	last_read_news_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** aggregate stddev on columns */
 ["my_friends_stddev_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev() on columns of table "v_my_friends" */
 ["my_friends_stddev_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["my_friends_stddev_pop_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_pop() on columns of table "v_my_friends" */
 ["my_friends_stddev_pop_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["my_friends_stddev_samp_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by stddev_samp() on columns of table "v_my_friends" */
 ["my_friends_stddev_samp_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "my_friends" */
 ["my_friends_stream_cursor_input"]: {
@@ -104897,74 +104282,35 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 };
 	/** Initial value of the column from where the streaming should start */
 ["my_friends_stream_cursor_value_input"]: {
-	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: ResolverInputTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: ResolverInputTypes["jsonb"] | undefined | null,
-	last_read_news_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ResolverInputTypes["timestamptz"] | undefined | null,
-	steam_id?: ResolverInputTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
 };
 	/** aggregate sum on columns */
 ["my_friends_sum_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by sum() on columns of table "v_my_friends" */
 ["my_friends_sum_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	["my_friends_updates"]: {
 	/** append existing jsonb value of filtered columns with new jsonb value */
@@ -104986,84 +104332,42 @@ count?: [{	columns?: Array<ResolverInputTypes["my_friends_select_column"]> | und
 };
 	/** aggregate var_pop on columns */
 ["my_friends_var_pop_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_pop() on columns of table "v_my_friends" */
 ["my_friends_var_pop_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["my_friends_var_samp_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by var_samp() on columns of table "v_my_friends" */
 ["my_friends_var_samp_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["my_friends_variance_fields"]: AliasType<{
-	days_since_last_ban?:boolean | `@${string}`,
-	faceit_elo?:boolean | `@${string}`,
-	faceit_skill_level?:boolean | `@${string}`,
 	friend_steam_id?:boolean | `@${string}`,
-	game_ban_count?:boolean | `@${string}`,
 	invited_by_steam_id?:boolean | `@${string}`,
-	leaver_ban_stage?:boolean | `@${string}`,
-	premier_rank?:boolean | `@${string}`,
 	steam_id?:boolean | `@${string}`,
-	vac_ban_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	/** order by variance() on columns of table "v_my_friends" */
 ["my_friends_variance_order_by"]: {
-	days_since_last_ban?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_elo?: ResolverInputTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ResolverInputTypes["order_by"] | undefined | null,
 	friend_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	game_ban_count?: ResolverInputTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ResolverInputTypes["order_by"] | undefined | null,
-	premier_rank?: ResolverInputTypes["order_by"] | undefined | null,
-	steam_id?: ResolverInputTypes["order_by"] | undefined | null,
-	vac_ban_count?: ResolverInputTypes["order_by"] | undefined | null
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "news_articles" */
 ["news_articles"]: AliasType<{
@@ -132013,6 +131317,8 @@ count?: [{	columns?: Array<ResolverInputTypes["team_suggestions_select_column"]>
 	/** An object relationship */
 	captain?:ResolverInputTypes["players"],
 	captain_steam_id?:boolean | `@${string}`,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 invites?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["team_invites_select_column"]> | undefined | null,	/** limit the number of rows returned */
@@ -132183,6 +131489,7 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 	can_remove?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	captain?: ResolverInputTypes["players_bool_exp"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	invites?: ResolverInputTypes["team_invites_bool_exp"] | undefined | null,
 	invites_aggregate?: ResolverInputTypes["team_invites_aggregate_bool_exp"] | undefined | null,
@@ -132217,6 +131524,8 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 	avatar_url?: string | undefined | null,
 	captain?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	invites?: ResolverInputTypes["team_invites_arr_rel_insert_input"] | undefined | null,
 	is_organization?: boolean | undefined | null,
@@ -132236,6 +131545,8 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 ["teams_max_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
 	captain_steam_id?:boolean | `@${string}`,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	owner_steam_id?:boolean | `@${string}`,
@@ -132248,6 +131559,8 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 ["teams_max_order_by"]: {
 	avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	owner_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -132257,6 +131570,8 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 ["teams_min_fields"]: AliasType<{
 	avatar_url?:boolean | `@${string}`,
 	captain_steam_id?:boolean | `@${string}`,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?:boolean | `@${string}`,
 	id?:boolean | `@${string}`,
 	name?:boolean | `@${string}`,
 	owner_steam_id?:boolean | `@${string}`,
@@ -132269,6 +131584,8 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 ["teams_min_order_by"]: {
 	avatar_url?: ResolverInputTypes["order_by"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
 	owner_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
@@ -132303,6 +131620,7 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 	can_remove?: ResolverInputTypes["order_by"] | undefined | null,
 	captain?: ResolverInputTypes["players_order_by"] | undefined | null,
 	captain_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	invites_aggregate?: ResolverInputTypes["team_invites_aggregate_order_by"] | undefined | null,
 	is_organization?: ResolverInputTypes["order_by"] | undefined | null,
@@ -132334,6 +131652,8 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 ["teams_set_input"]: {
 	avatar_url?: string | undefined | null,
 	captain_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_organization?: boolean | undefined | null,
 	name?: string | undefined | null,
@@ -132384,6 +131704,8 @@ count?: [{	columns?: Array<ResolverInputTypes["teams_select_column"]> | undefine
 ["teams_stream_cursor_value_input"]: {
 	avatar_url?: string | undefined | null,
 	captain_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	is_organization?: boolean | undefined | null,
 	name?: string | undefined | null,
@@ -176019,49 +175341,24 @@ export type ModelTypes = {
 };
 	/** columns and relationships of "v_my_friends" */
 ["my_friends"]: {
-		api_key_enabled?: boolean | undefined | null,
-	avatar_url?: string | undefined | null,
+		avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: ModelTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
-	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	/** An object relationship */
 	player?: ModelTypes["players"] | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ModelTypes["timestamptz"] | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregated selection of "v_my_friends" */
 ["my_friends_aggregate"]: {
@@ -176130,77 +175427,38 @@ export type ModelTypes = {
 };
 	/** aggregate avg on columns */
 ["my_friends_avg_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by avg() on columns of table "v_my_friends" */
 ["my_friends_avg_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "v_my_friends". All fields are combined with a logical 'AND'. */
 ["my_friends_bool_exp"]: {
 	_and?: Array<ModelTypes["my_friends_bool_exp"]> | undefined | null,
 	_not?: ModelTypes["my_friends_bool_exp"] | undefined | null,
 	_or?: Array<ModelTypes["my_friends_bool_exp"]> | undefined | null,
-	api_key_enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	avatar_url?: ModelTypes["String_comparison_exp"] | undefined | null,
 	country?: ModelTypes["String_comparison_exp"] | undefined | null,
 	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	custom_avatar_url?: ModelTypes["String_comparison_exp"] | undefined | null,
-	days_since_last_ban?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	discord_id?: ModelTypes["String_comparison_exp"] | undefined | null,
 	elo?: ModelTypes["jsonb_comparison_exp"] | undefined | null,
-	faceit_elo?: ModelTypes["Int_comparison_exp"] | undefined | null,
-	faceit_last_match_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_nickname?: ModelTypes["String_comparison_exp"] | undefined | null,
-	faceit_player_id?: ModelTypes["String_comparison_exp"] | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_skill_level?: ModelTypes["Int_comparison_exp"] | undefined | null,
-	faceit_synced_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_updated_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_url?: ModelTypes["String_comparison_exp"] | undefined | null,
 	friend_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
-	game_ban_count?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
-	language?: ModelTypes["String_comparison_exp"] | undefined | null,
 	last_presence_state?: ModelTypes["jsonb_comparison_exp"] | undefined | null,
-	last_read_news_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
-	last_sign_in_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["Int_comparison_exp"] | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	name?: ModelTypes["String_comparison_exp"] | undefined | null,
 	name_registered?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: ModelTypes["players_bool_exp"] | undefined | null,
-	premier_rank?: ModelTypes["Int_comparison_exp"] | undefined | null,
-	premier_rank_updated_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	presence_updated_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	profile_url?: ModelTypes["String_comparison_exp"] | undefined | null,
 	role?: ModelTypes["String_comparison_exp"] | undefined | null,
-	roster_image_url?: ModelTypes["String_comparison_exp"] | undefined | null,
-	show_match_ready_modal?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	status?: ModelTypes["String_comparison_exp"] | undefined | null,
-	steam_bans_checked_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
-	steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
-	twitch_channel?: ModelTypes["String_comparison_exp"] | undefined | null,
-	vac_ban_count?: ModelTypes["Int_comparison_exp"] | undefined | null,
-	vac_banned?: ModelTypes["Boolean_comparison_exp"] | undefined | null
+	steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null
 };
 	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 ["my_friends_delete_at_path_input"]: {
@@ -176219,61 +175477,29 @@ export type ModelTypes = {
 };
 	/** input type for incrementing numeric columns in table "v_my_friends" */
 ["my_friends_inc_input"]: {
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "v_my_friends" */
 ["my_friends_insert_input"]: {
-	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: ModelTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
-	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	player?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ModelTypes["timestamptz"] | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregate max on columns */
 ["my_friends_max_fields"]: {
@@ -176281,37 +175507,15 @@ export type ModelTypes = {
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
-	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ModelTypes["timestamptz"] | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** order by max() on columns of table "v_my_friends" */
 ["my_friends_max_order_by"]: {
@@ -176319,37 +175523,15 @@ export type ModelTypes = {
 	country?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	custom_avatar_url?: ModelTypes["order_by"] | undefined | null,
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
 	discord_id?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_nickname?: ModelTypes["order_by"] | undefined | null,
-	faceit_player_id?: ModelTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
-	faceit_synced_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_updated_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_url?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	language?: ModelTypes["order_by"] | undefined | null,
-	last_read_news_at?: ModelTypes["order_by"] | undefined | null,
-	last_sign_in_at?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: ModelTypes["order_by"] | undefined | null,
 	presence_updated_at?: ModelTypes["order_by"] | undefined | null,
 	profile_url?: ModelTypes["order_by"] | undefined | null,
 	role?: ModelTypes["order_by"] | undefined | null,
-	roster_image_url?: ModelTypes["order_by"] | undefined | null,
 	status?: ModelTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	twitch_channel?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["my_friends_min_fields"]: {
@@ -176357,37 +175539,15 @@ export type ModelTypes = {
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
-	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ModelTypes["timestamptz"] | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** order by min() on columns of table "v_my_friends" */
 ["my_friends_min_order_by"]: {
@@ -176395,37 +175555,15 @@ export type ModelTypes = {
 	country?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	custom_avatar_url?: ModelTypes["order_by"] | undefined | null,
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
 	discord_id?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_nickname?: ModelTypes["order_by"] | undefined | null,
-	faceit_player_id?: ModelTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
-	faceit_synced_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_updated_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_url?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	language?: ModelTypes["order_by"] | undefined | null,
-	last_read_news_at?: ModelTypes["order_by"] | undefined | null,
-	last_sign_in_at?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: ModelTypes["order_by"] | undefined | null,
 	presence_updated_at?: ModelTypes["order_by"] | undefined | null,
 	profile_url?: ModelTypes["order_by"] | undefined | null,
 	role?: ModelTypes["order_by"] | undefined | null,
-	roster_image_url?: ModelTypes["order_by"] | undefined | null,
 	status?: ModelTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	twitch_channel?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "v_my_friends" */
 ["my_friends_mutation_response"]: {
@@ -176436,48 +175574,23 @@ export type ModelTypes = {
 };
 	/** Ordering options when selecting data from "v_my_friends". */
 ["my_friends_order_by"]: {
-	api_key_enabled?: ModelTypes["order_by"] | undefined | null,
 	avatar_url?: ModelTypes["order_by"] | undefined | null,
 	country?: ModelTypes["order_by"] | undefined | null,
 	created_at?: ModelTypes["order_by"] | undefined | null,
 	custom_avatar_url?: ModelTypes["order_by"] | undefined | null,
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
 	discord_id?: ModelTypes["order_by"] | undefined | null,
 	elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_nickname?: ModelTypes["order_by"] | undefined | null,
-	faceit_player_id?: ModelTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
-	faceit_synced_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_updated_at?: ModelTypes["order_by"] | undefined | null,
-	faceit_url?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	language?: ModelTypes["order_by"] | undefined | null,
 	last_presence_state?: ModelTypes["order_by"] | undefined | null,
-	last_read_news_at?: ModelTypes["order_by"] | undefined | null,
-	last_sign_in_at?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	name_registered?: ModelTypes["order_by"] | undefined | null,
 	player?: ModelTypes["players_order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: ModelTypes["order_by"] | undefined | null,
 	presence_updated_at?: ModelTypes["order_by"] | undefined | null,
 	profile_url?: ModelTypes["order_by"] | undefined | null,
 	role?: ModelTypes["order_by"] | undefined | null,
-	roster_image_url?: ModelTypes["order_by"] | undefined | null,
-	show_match_ready_modal?: ModelTypes["order_by"] | undefined | null,
 	status?: ModelTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	twitch_channel?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null,
-	vac_banned?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** prepend existing jsonb value of filtered columns with new jsonb value */
 ["my_friends_prepend_input"]: {
@@ -176489,125 +175602,58 @@ export type ModelTypes = {
 	["my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns"]:my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "v_my_friends" */
 ["my_friends_set_input"]: {
-	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: ModelTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
-	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ModelTypes["timestamptz"] | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregate stddev on columns */
 ["my_friends_stddev_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by stddev() on columns of table "v_my_friends" */
 ["my_friends_stddev_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["my_friends_stddev_pop_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by stddev_pop() on columns of table "v_my_friends" */
 ["my_friends_stddev_pop_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["my_friends_stddev_samp_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by stddev_samp() on columns of table "v_my_friends" */
 ["my_friends_stddev_samp_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "my_friends" */
 ["my_friends_stream_cursor_input"]: {
@@ -176618,73 +175664,34 @@ export type ModelTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["my_friends_stream_cursor_value_input"]: {
-	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: ModelTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: ModelTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: ModelTypes["jsonb"] | undefined | null,
-	last_read_news_at?: ModelTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: ModelTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: ModelTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: ModelTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: ModelTypes["timestamptz"] | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** aggregate sum on columns */
 ["my_friends_sum_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: ModelTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: ModelTypes["bigint"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["bigint"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: ModelTypes["bigint"] | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: ModelTypes["bigint"] | undefined | null
 };
 	/** order by sum() on columns of table "v_my_friends" */
 ["my_friends_sum_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	["my_friends_updates"]: {
 	/** append existing jsonb value of filtered columns with new jsonb value */
@@ -176706,81 +175713,39 @@ export type ModelTypes = {
 };
 	/** aggregate var_pop on columns */
 ["my_friends_var_pop_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by var_pop() on columns of table "v_my_friends" */
 ["my_friends_var_pop_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["my_friends_var_samp_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by var_samp() on columns of table "v_my_friends" */
 ["my_friends_var_samp_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["my_friends_variance_fields"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by variance() on columns of table "v_my_friends" */
 ["my_friends_variance_order_by"]: {
-	days_since_last_ban?: ModelTypes["order_by"] | undefined | null,
-	faceit_elo?: ModelTypes["order_by"] | undefined | null,
-	faceit_skill_level?: ModelTypes["order_by"] | undefined | null,
 	friend_steam_id?: ModelTypes["order_by"] | undefined | null,
-	game_ban_count?: ModelTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: ModelTypes["order_by"] | undefined | null,
-	premier_rank?: ModelTypes["order_by"] | undefined | null,
-	steam_id?: ModelTypes["order_by"] | undefined | null,
-	vac_ban_count?: ModelTypes["order_by"] | undefined | null
+	steam_id?: ModelTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "news_articles" */
 ["news_articles"]: {
@@ -198731,6 +197696,8 @@ export type ModelTypes = {
 	/** An object relationship */
 	captain?: ModelTypes["players"] | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id: ModelTypes["uuid"],
 	/** An array relationship */
 	invites: Array<ModelTypes["team_invites"]>,
@@ -198853,6 +197820,7 @@ export type ModelTypes = {
 	can_remove?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	captain?: ModelTypes["players_bool_exp"] | undefined | null,
 	captain_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	invites?: ModelTypes["team_invites_bool_exp"] | undefined | null,
 	invites_aggregate?: ModelTypes["team_invites_aggregate_bool_exp"] | undefined | null,
@@ -198886,6 +197854,8 @@ export type ModelTypes = {
 	avatar_url?: string | undefined | null,
 	captain?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	invites?: ModelTypes["team_invites_arr_rel_insert_input"] | undefined | null,
 	is_organization?: boolean | undefined | null,
@@ -198905,6 +197875,8 @@ export type ModelTypes = {
 ["teams_max_fields"]: {
 		avatar_url?: string | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	name?: string | undefined | null,
 	owner_steam_id?: ModelTypes["bigint"] | undefined | null,
@@ -198916,6 +197888,8 @@ export type ModelTypes = {
 ["teams_max_order_by"]: {
 	avatar_url?: ModelTypes["order_by"] | undefined | null,
 	captain_steam_id?: ModelTypes["order_by"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	owner_steam_id?: ModelTypes["order_by"] | undefined | null,
@@ -198925,6 +197899,8 @@ export type ModelTypes = {
 ["teams_min_fields"]: {
 		avatar_url?: string | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	name?: string | undefined | null,
 	owner_steam_id?: ModelTypes["bigint"] | undefined | null,
@@ -198936,6 +197912,8 @@ export type ModelTypes = {
 ["teams_min_order_by"]: {
 	avatar_url?: ModelTypes["order_by"] | undefined | null,
 	captain_steam_id?: ModelTypes["order_by"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
 	owner_steam_id?: ModelTypes["order_by"] | undefined | null,
@@ -198969,6 +197947,7 @@ export type ModelTypes = {
 	can_remove?: ModelTypes["order_by"] | undefined | null,
 	captain?: ModelTypes["players_order_by"] | undefined | null,
 	captain_steam_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	invites_aggregate?: ModelTypes["team_invites_aggregate_order_by"] | undefined | null,
 	is_organization?: ModelTypes["order_by"] | undefined | null,
@@ -198997,6 +197976,8 @@ export type ModelTypes = {
 ["teams_set_input"]: {
 	avatar_url?: string | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_organization?: boolean | undefined | null,
 	name?: string | undefined | null,
@@ -199044,6 +198025,8 @@ export type ModelTypes = {
 ["teams_stream_cursor_value_input"]: {
 	avatar_url?: string | undefined | null,
 	captain_steam_id?: ModelTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	is_organization?: boolean | undefined | null,
 	name?: string | undefined | null,
@@ -243041,49 +242024,24 @@ export type GraphQLTypes = {
 	/** columns and relationships of "v_my_friends" */
 ["my_friends"]: {
 	__typename: "my_friends",
-	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: GraphQLTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	/** An object relationship */
 	player?: GraphQLTypes["players"] | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregated selection of "v_my_friends" */
 ["my_friends_aggregate"]: {
@@ -243155,77 +242113,38 @@ export type GraphQLTypes = {
 	/** aggregate avg on columns */
 ["my_friends_avg_fields"]: {
 	__typename: "my_friends_avg_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by avg() on columns of table "v_my_friends" */
 ["my_friends_avg_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Boolean expression to filter rows from the table "v_my_friends". All fields are combined with a logical 'AND'. */
 ["my_friends_bool_exp"]: {
 		_and?: Array<GraphQLTypes["my_friends_bool_exp"]> | undefined | null,
 	_not?: GraphQLTypes["my_friends_bool_exp"] | undefined | null,
 	_or?: Array<GraphQLTypes["my_friends_bool_exp"]> | undefined | null,
-	api_key_enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	avatar_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	country?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	custom_avatar_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
-	days_since_last_ban?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	discord_id?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	elo?: GraphQLTypes["jsonb_comparison_exp"] | undefined | null,
-	faceit_elo?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_nickname?: GraphQLTypes["String_comparison_exp"] | undefined | null,
-	faceit_player_id?: GraphQLTypes["String_comparison_exp"] | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
-	faceit_synced_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
-	faceit_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
-	game_ban_count?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
-	language?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	last_presence_state?: GraphQLTypes["jsonb_comparison_exp"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	name?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	name_registered?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	player?: GraphQLTypes["players_bool_exp"] | undefined | null,
-	premier_rank?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	profile_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	role?: GraphQLTypes["String_comparison_exp"] | undefined | null,
-	roster_image_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
-	show_match_ready_modal?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	status?: GraphQLTypes["String_comparison_exp"] | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
-	steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
-	twitch_channel?: GraphQLTypes["String_comparison_exp"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
-	vac_banned?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null
+	steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null
 };
 	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 ["my_friends_delete_at_path_input"]: {
@@ -243244,61 +242163,29 @@ export type GraphQLTypes = {
 };
 	/** input type for incrementing numeric columns in table "v_my_friends" */
 ["my_friends_inc_input"]: {
-		days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
+		friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** input type for inserting data into table "v_my_friends" */
 ["my_friends_insert_input"]: {
-		api_key_enabled?: boolean | undefined | null,
-	avatar_url?: string | undefined | null,
+		avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: GraphQLTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
 	player?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregate max on columns */
 ["my_friends_max_fields"]: {
@@ -243307,37 +242194,15 @@ export type GraphQLTypes = {
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
-	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** order by max() on columns of table "v_my_friends" */
 ["my_friends_max_order_by"]: {
@@ -243345,37 +242210,15 @@ export type GraphQLTypes = {
 	country?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	custom_avatar_url?: GraphQLTypes["order_by"] | undefined | null,
-	days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
 	discord_id?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_nickname?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_player_id?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_synced_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_url?: GraphQLTypes["order_by"] | undefined | null,
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	language?: GraphQLTypes["order_by"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["order_by"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["order_by"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["order_by"] | undefined | null,
 	profile_url?: GraphQLTypes["order_by"] | undefined | null,
 	role?: GraphQLTypes["order_by"] | undefined | null,
-	roster_image_url?: GraphQLTypes["order_by"] | undefined | null,
 	status?: GraphQLTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	twitch_channel?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate min on columns */
 ["my_friends_min_fields"]: {
@@ -243384,37 +242227,15 @@ export type GraphQLTypes = {
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
-	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** order by min() on columns of table "v_my_friends" */
 ["my_friends_min_order_by"]: {
@@ -243422,37 +242243,15 @@ export type GraphQLTypes = {
 	country?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	custom_avatar_url?: GraphQLTypes["order_by"] | undefined | null,
-	days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
 	discord_id?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_nickname?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_player_id?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_synced_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_url?: GraphQLTypes["order_by"] | undefined | null,
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	language?: GraphQLTypes["order_by"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["order_by"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["order_by"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["order_by"] | undefined | null,
 	profile_url?: GraphQLTypes["order_by"] | undefined | null,
 	role?: GraphQLTypes["order_by"] | undefined | null,
-	roster_image_url?: GraphQLTypes["order_by"] | undefined | null,
 	status?: GraphQLTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	twitch_channel?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** response of any mutation on the table "v_my_friends" */
 ["my_friends_mutation_response"]: {
@@ -243464,48 +242263,23 @@ export type GraphQLTypes = {
 };
 	/** Ordering options when selecting data from "v_my_friends". */
 ["my_friends_order_by"]: {
-		api_key_enabled?: GraphQLTypes["order_by"] | undefined | null,
-	avatar_url?: GraphQLTypes["order_by"] | undefined | null,
+		avatar_url?: GraphQLTypes["order_by"] | undefined | null,
 	country?: GraphQLTypes["order_by"] | undefined | null,
 	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	custom_avatar_url?: GraphQLTypes["order_by"] | undefined | null,
-	days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
 	discord_id?: GraphQLTypes["order_by"] | undefined | null,
 	elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_nickname?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_player_id?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_synced_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_url?: GraphQLTypes["order_by"] | undefined | null,
 	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	language?: GraphQLTypes["order_by"] | undefined | null,
 	last_presence_state?: GraphQLTypes["order_by"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["order_by"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	name_registered?: GraphQLTypes["order_by"] | undefined | null,
 	player?: GraphQLTypes["players_order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["order_by"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["order_by"] | undefined | null,
 	profile_url?: GraphQLTypes["order_by"] | undefined | null,
 	role?: GraphQLTypes["order_by"] | undefined | null,
-	roster_image_url?: GraphQLTypes["order_by"] | undefined | null,
-	show_match_ready_modal?: GraphQLTypes["order_by"] | undefined | null,
 	status?: GraphQLTypes["order_by"] | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	twitch_channel?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null,
-	vac_banned?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** prepend existing jsonb value of filtered columns with new jsonb value */
 ["my_friends_prepend_input"]: {
@@ -243520,128 +242294,61 @@ export type GraphQLTypes = {
 ["my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns"]: my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns;
 	/** input type for updating data in table "v_my_friends" */
 ["my_friends_set_input"]: {
-		api_key_enabled?: boolean | undefined | null,
-	avatar_url?: string | undefined | null,
+		avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: GraphQLTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregate stddev on columns */
 ["my_friends_stddev_fields"]: {
 	__typename: "my_friends_stddev_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by stddev() on columns of table "v_my_friends" */
 ["my_friends_stddev_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_pop on columns */
 ["my_friends_stddev_pop_fields"]: {
 	__typename: "my_friends_stddev_pop_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by stddev_pop() on columns of table "v_my_friends" */
 ["my_friends_stddev_pop_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate stddev_samp on columns */
 ["my_friends_stddev_samp_fields"]: {
 	__typename: "my_friends_stddev_samp_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by stddev_samp() on columns of table "v_my_friends" */
 ["my_friends_stddev_samp_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** Streaming cursor of the table "my_friends" */
 ["my_friends_stream_cursor_input"]: {
@@ -243652,74 +242359,35 @@ export type GraphQLTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["my_friends_stream_cursor_value_input"]: {
-		api_key_enabled?: boolean | undefined | null,
-	avatar_url?: string | undefined | null,
+		avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	custom_avatar_url?: string | undefined | null,
-	days_since_last_ban?: number | undefined | null,
 	discord_id?: string | undefined | null,
 	elo?: GraphQLTypes["jsonb"] | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_last_match_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_nickname?: string | undefined | null,
-	faceit_player_id?: string | undefined | null,
-	faceit_refresh_attempted_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_skill_level?: number | undefined | null,
-	faceit_synced_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	faceit_url?: string | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	language?: string | undefined | null,
 	last_presence_state?: GraphQLTypes["jsonb"] | undefined | null,
-	last_read_news_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	last_sign_in_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	leaver_ban_stage_expires_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	name?: string | undefined | null,
 	name_registered?: boolean | undefined | null,
-	premier_rank?: number | undefined | null,
-	premier_rank_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	presence_updated_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	profile_url?: string | undefined | null,
 	role?: string | undefined | null,
-	roster_image_url?: string | undefined | null,
-	show_match_ready_modal?: boolean | undefined | null,
 	status?: string | undefined | null,
-	steam_bans_checked_at?: GraphQLTypes["timestamptz"] | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	twitch_channel?: string | undefined | null,
-	vac_ban_count?: number | undefined | null,
-	vac_banned?: boolean | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** aggregate sum on columns */
 ["my_friends_sum_fields"]: {
 	__typename: "my_friends_sum_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: GraphQLTypes["bigint"] | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
 };
 	/** order by sum() on columns of table "v_my_friends" */
 ["my_friends_sum_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	["my_friends_updates"]: {
 		/** append existing jsonb value of filtered columns with new jsonb value */
@@ -243742,83 +242410,41 @@ export type GraphQLTypes = {
 	/** aggregate var_pop on columns */
 ["my_friends_var_pop_fields"]: {
 	__typename: "my_friends_var_pop_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by var_pop() on columns of table "v_my_friends" */
 ["my_friends_var_pop_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate var_samp on columns */
 ["my_friends_var_samp_fields"]: {
 	__typename: "my_friends_var_samp_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by var_samp() on columns of table "v_my_friends" */
 ["my_friends_var_samp_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** aggregate variance on columns */
 ["my_friends_variance_fields"]: {
 	__typename: "my_friends_variance_fields",
-	days_since_last_ban?: number | undefined | null,
-	faceit_elo?: number | undefined | null,
-	faceit_skill_level?: number | undefined | null,
 	friend_steam_id?: number | undefined | null,
-	game_ban_count?: number | undefined | null,
 	invited_by_steam_id?: number | undefined | null,
-	leaver_ban_stage?: number | undefined | null,
-	premier_rank?: number | undefined | null,
-	steam_id?: number | undefined | null,
-	vac_ban_count?: number | undefined | null
+	steam_id?: number | undefined | null
 };
 	/** order by variance() on columns of table "v_my_friends" */
 ["my_friends_variance_order_by"]: {
-		days_since_last_ban?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_elo?: GraphQLTypes["order_by"] | undefined | null,
-	faceit_skill_level?: GraphQLTypes["order_by"] | undefined | null,
-	friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	game_ban_count?: GraphQLTypes["order_by"] | undefined | null,
+		friend_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	leaver_ban_stage?: GraphQLTypes["order_by"] | undefined | null,
-	premier_rank?: GraphQLTypes["order_by"] | undefined | null,
-	steam_id?: GraphQLTypes["order_by"] | undefined | null,
-	vac_ban_count?: GraphQLTypes["order_by"] | undefined | null
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "news_articles" */
 ["news_articles"]: {
@@ -266661,6 +265287,8 @@ export type GraphQLTypes = {
 	/** An object relationship */
 	captain?: GraphQLTypes["players"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id: GraphQLTypes["uuid"],
 	/** An array relationship */
 	invites: Array<GraphQLTypes["team_invites"]>,
@@ -266786,6 +265414,7 @@ export type GraphQLTypes = {
 	can_remove?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	captain?: GraphQLTypes["players_bool_exp"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	invites?: GraphQLTypes["team_invites_bool_exp"] | undefined | null,
 	invites_aggregate?: GraphQLTypes["team_invites_aggregate_bool_exp"] | undefined | null,
@@ -266820,6 +265449,8 @@ export type GraphQLTypes = {
 		avatar_url?: string | undefined | null,
 	captain?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	invites?: GraphQLTypes["team_invites_arr_rel_insert_input"] | undefined | null,
 	is_organization?: boolean | undefined | null,
@@ -266840,6 +265471,8 @@ export type GraphQLTypes = {
 	__typename: "teams_max_fields",
 	avatar_url?: string | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	name?: string | undefined | null,
 	owner_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -266851,6 +265484,8 @@ export type GraphQLTypes = {
 ["teams_max_order_by"]: {
 		avatar_url?: GraphQLTypes["order_by"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	owner_steam_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -266861,6 +265496,8 @@ export type GraphQLTypes = {
 	__typename: "teams_min_fields",
 	avatar_url?: string | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	name?: string | undefined | null,
 	owner_steam_id?: GraphQLTypes["bigint"] | undefined | null,
@@ -266872,6 +265509,8 @@ export type GraphQLTypes = {
 ["teams_min_order_by"]: {
 		avatar_url?: GraphQLTypes["order_by"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
 	owner_steam_id?: GraphQLTypes["order_by"] | undefined | null,
@@ -266906,6 +265545,7 @@ export type GraphQLTypes = {
 	can_remove?: GraphQLTypes["order_by"] | undefined | null,
 	captain?: GraphQLTypes["players_order_by"] | undefined | null,
 	captain_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	invites_aggregate?: GraphQLTypes["team_invites_aggregate_order_by"] | undefined | null,
 	is_organization?: GraphQLTypes["order_by"] | undefined | null,
@@ -266937,6 +265577,8 @@ export type GraphQLTypes = {
 ["teams_set_input"]: {
 		avatar_url?: string | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_organization?: boolean | undefined | null,
 	name?: string | undefined | null,
@@ -266987,6 +265629,8 @@ export type GraphQLTypes = {
 ["teams_stream_cursor_value_input"]: {
 		avatar_url?: string | undefined | null,
 	captain_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	/** When the team was created. NULL for teams that predate this column. */
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	is_organization?: boolean | undefined | null,
 	name?: string | undefined | null,
@@ -287509,61 +286153,30 @@ export enum my_blocks_select_column {
 }
 /** select columns of table "v_my_friends" */
 export enum my_friends_select_column {
-	api_key_enabled = "api_key_enabled",
 	avatar_url = "avatar_url",
 	country = "country",
 	created_at = "created_at",
 	custom_avatar_url = "custom_avatar_url",
-	days_since_last_ban = "days_since_last_ban",
 	discord_id = "discord_id",
 	elo = "elo",
-	faceit_elo = "faceit_elo",
-	faceit_last_match_at = "faceit_last_match_at",
-	faceit_nickname = "faceit_nickname",
-	faceit_player_id = "faceit_player_id",
-	faceit_refresh_attempted_at = "faceit_refresh_attempted_at",
-	faceit_skill_level = "faceit_skill_level",
-	faceit_synced_at = "faceit_synced_at",
-	faceit_updated_at = "faceit_updated_at",
-	faceit_url = "faceit_url",
 	friend_steam_id = "friend_steam_id",
-	game_ban_count = "game_ban_count",
 	invited_by_steam_id = "invited_by_steam_id",
-	language = "language",
 	last_presence_state = "last_presence_state",
-	last_read_news_at = "last_read_news_at",
-	last_sign_in_at = "last_sign_in_at",
-	leaver_ban_stage = "leaver_ban_stage",
-	leaver_ban_stage_expires_at = "leaver_ban_stage_expires_at",
 	name = "name",
 	name_registered = "name_registered",
-	premier_rank = "premier_rank",
-	premier_rank_updated_at = "premier_rank_updated_at",
 	presence_updated_at = "presence_updated_at",
 	profile_url = "profile_url",
 	role = "role",
-	roster_image_url = "roster_image_url",
-	show_match_ready_modal = "show_match_ready_modal",
 	status = "status",
-	steam_bans_checked_at = "steam_bans_checked_at",
-	steam_id = "steam_id",
-	twitch_channel = "twitch_channel",
-	vac_ban_count = "vac_ban_count",
-	vac_banned = "vac_banned"
+	steam_id = "steam_id"
 }
 /** select "my_friends_aggregate_bool_exp_bool_and_arguments_columns" columns of table "v_my_friends" */
 export enum my_friends_select_column_my_friends_aggregate_bool_exp_bool_and_arguments_columns {
-	api_key_enabled = "api_key_enabled",
-	name_registered = "name_registered",
-	show_match_ready_modal = "show_match_ready_modal",
-	vac_banned = "vac_banned"
+	name_registered = "name_registered"
 }
 /** select "my_friends_aggregate_bool_exp_bool_or_arguments_columns" columns of table "v_my_friends" */
 export enum my_friends_select_column_my_friends_aggregate_bool_exp_bool_or_arguments_columns {
-	api_key_enabled = "api_key_enabled",
-	name_registered = "name_registered",
-	show_match_ready_modal = "show_match_ready_modal",
-	vac_banned = "vac_banned"
+	name_registered = "name_registered"
 }
 /** unique or primary key constraints on table "news_articles" */
 export enum news_articles_constraint {
@@ -289433,6 +288046,7 @@ export enum teams_constraint {
 export enum teams_select_column {
 	avatar_url = "avatar_url",
 	captain_steam_id = "captain_steam_id",
+	created_at = "created_at",
 	id = "id",
 	is_organization = "is_organization",
 	name = "name",
@@ -289451,6 +288065,7 @@ export enum teams_select_column_teams_aggregate_bool_exp_bool_or_arguments_colum
 export enum teams_update_column {
 	avatar_url = "avatar_url",
 	captain_steam_id = "captain_steam_id",
+	created_at = "created_at",
 	id = "id",
 	is_organization = "is_organization",
 	name = "name",
