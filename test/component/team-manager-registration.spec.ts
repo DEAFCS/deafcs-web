@@ -169,3 +169,20 @@ describe("registration errors", () => {
     expect(tournamentRegistrationErrorKey({ message: "something else" })).toBeNull();
   });
 });
+
+// TeamMember can only label the owner if the roster's own subscription loads
+// owner_steam_id (TeamMembers fetches its team separately from the team page).
+describe("team roster data", () => {
+  it("the roster subscription selects the owner next to the captain", async () => {
+    const { readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
+    const source = readFileSync(
+      resolve(__dirname, "../../components/teams/TeamMembers.vue"),
+      "utf8",
+    );
+    const block = source.slice(source.indexOf("teams_by_pk: {"));
+    const selection = block.slice(0, block.indexOf("variables:"));
+    expect(selection).toContain("owner_steam_id: true");
+    expect(selection).toContain("captain_steam_id: true");
+  });
+});

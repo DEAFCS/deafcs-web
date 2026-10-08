@@ -266,6 +266,7 @@ export default {
             },
             {
               id: true,
+              owner_steam_id: true,
               captain_steam_id: true,
               can_invite: true,
               can_remove: true,
