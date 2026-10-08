@@ -5563,6 +5563,10 @@
     "join": {
       "title": "Join Tournament",
       "add_self_to_lineup": "Add Self to Lineup",
+      "error_team_already_registered": "This team is already registered in this tournament.",
+      "error_player_already_registered": "A player on this lineup is already registered with another team in this tournament.",
+      "error_already_registered_own_team": "You already have a team of your own in this tournament.",
+      "error_no_permission": "You can only register a team you own, manage as an admin, or captain.",
       "team_owner": "Team Owner",
       "requirements": "You need at least {count} players to join this tournament",
       "roster_range": "Lineup ({selected} selected · up to {max} players)",
@@ -6373,7 +6377,8 @@
       "accept": "Accept"
     },
     "roles": {
-      "captain": "Captain"
+      "captain": "Captain",
+      "owner": "Owner"
     },
     "admin": {
       "last_admin": "You are the last team Admin. Assign another Admin before changing your role or leaving the team.",
@@ -6437,7 +6442,8 @@
       "owner": "Owner",
       "captain": "Captain",
       "ineligible_short": "Locked",
-      "tournament_join_requires_owner_or_captain": "You can only join a tournament with teams where you are the owner or captain.",
+      "admin": "Admin",
+      "tournament_join_requires_owner_or_captain": "You can only join a tournament with teams where you are the owner, an admin or the captain.",
       "not_enough_players": "Needs at least {count} players to challenge.",
       "selected": "Selected"
     },

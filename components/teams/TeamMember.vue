@@ -70,10 +70,10 @@ import { resolveRosterImageUrl } from "~/utilities/rosterImage";
       >
         <template #name-postfix>
           <span
-            v-if="!isInvite && member.role"
+            v-if="!isInvite && roleLabel"
             class="text-[10px] uppercase tracking-[0.16em] text-muted-foreground/80"
           >
-            {{ member.role }}
+            {{ roleLabel }}
           </span>
           <GraduationCap
             v-if="!isInvite && member.coach"
@@ -486,6 +486,19 @@ export default {
         this.removeBlockedAsLastAdmin ||
         this.canEditRosterImage
       );
+    },
+    // The owner is a team role of its own, shown instead of the Admin role the
+    // owner also holds. Other Admins keep "Admin"; the captain badge is separate.
+    isOwner(): boolean {
+      const ownerId = this.team?.owner_steam_id;
+      return (
+        !this.isInvite &&
+        ownerId != null &&
+        String(ownerId) === String(this.member.player?.steam_id)
+      );
+    },
+    roleLabel(): string {
+      return this.isOwner ? this.$t("team.roles.owner") : this.member.role;
     },
     canSetCaptain(): boolean {
       return !!(this.team.can_change_role && !this.isInvite && !this.isCaptain);

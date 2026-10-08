@@ -513,12 +513,16 @@ export default {
       if (!this.tournamentJoinSelector) return true;
       const isOwner = team.owner_steam_id === this.me?.steam_id;
       const isCaptain = team.captain_steam_id === this.me?.steam_id;
-      return isOwner || isCaptain;
+      // Any team manager can enter the team: owner, team Admin or captain.
+      return isOwner || isCaptain || team.role === e_team_roles_enum.Admin;
     },
     teamEligibilityLabel(team: Team): string {
       if (!this.tournamentJoinSelector) return "";
       if (team.owner_steam_id === this.me?.steam_id) {
         return this.$t("team.search.owner");
+      }
+      if (team.role === e_team_roles_enum.Admin) {
+        return this.$t("team.search.admin");
       }
       if (team.captain_steam_id === this.me?.steam_id) {
         return this.$t("team.search.captain");

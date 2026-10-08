@@ -12,6 +12,7 @@ import type {
 } from "@apollo/client/cache";
 import { toast } from "@/components/ui/toast";
 import { isAuthErrorMessage } from "~/graphql/isAuthError";
+import { tournamentRegistrationErrorKey } from "~/utilities/tournamentRegistrationErrors";
 
 const mergeObjectFields = (
   existing: Record<string, unknown> | undefined,
@@ -171,10 +172,14 @@ export default defineNuxtPlugin((nuxtApp) => {
           continue;
         }
 
+        const friendlyKey = tournamentRegistrationErrorKey(graphqlError);
+
         toast({
           variant: "destructive",
           title: $i18n.t("common.error"),
-          description: graphqlError.message,
+          description: friendlyKey
+            ? $i18n.t(friendlyKey)
+            : graphqlError.message,
         });
       }
     }
