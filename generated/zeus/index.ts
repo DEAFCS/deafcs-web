@@ -288511,7 +288511,7 @@ export enum tournament_team_roster_update_column {
 }
 /** unique or primary key constraints on table "tournament_teams" */
 export enum tournament_teams_constraint {
-	tournament_teams_creator_steam_id_tournament_id_key = "tournament_teams_creator_steam_id_tournament_id_key",
+	tournament_teams_owner_tournament_only_key = "tournament_teams_owner_tournament_only_key",
 	tournament_teams_pkey = "tournament_teams_pkey",
 	tournament_teams_tournament_id_name_key = "tournament_teams_tournament_id_name_key",
 	tournament_teams_tournament_id_seed_key = "tournament_teams_tournament_id_seed_key",
