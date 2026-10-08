@@ -128,7 +128,7 @@ import {
               {{ $t("match.overview.promote_captain") }}
             </DropdownMenuItem>
             <DropdownMenuSeparator
-              v-if="canPromoteCaptain && (canLeaveSelf || canUpdateRole)"
+              v-if="canPromoteCaptain && (canLeaveSelf || canRemoveMember)"
             />
             <DropdownMenuItem
               v-if="canLeaveSelf"
@@ -139,7 +139,7 @@ import {
               {{ $t("tournament.team.leave_team") }}
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="canUpdateRole"
+              v-if="canRemoveMember"
               class="text-destructive"
               :disabled="rosterLockedAtMin"
               :title="
@@ -193,6 +193,8 @@ import {
 
 <script lang="ts">
 import { generateMutation } from "~/graphql/graphqlGen";
+import { e_player_roles_enum } from "~/generated/zeus";
+import { canRemoveTournamentRosterMember } from "~/utilities/tournamentRosterRemoval";
 
 export default {
   emits: ["leave"],
@@ -277,7 +279,22 @@ export default {
       return this.isCurrentUser && this.canLeave;
     },
     hasMenuActions() {
-      return this.canPromoteCaptain || this.canLeaveSelf || this.canUpdateRole;
+      return (
+        this.canPromoteCaptain || this.canLeaveSelf || this.canRemoveMember
+      );
+    },
+    // Remove is offered to everyone who may manage the team, in the windows
+    // the backend allows (see utilities/tournamentRosterRemoval.ts). It is a
+    // different question from changing a role, which stays organizer-only.
+    canRemoveMember() {
+      return canRemoveTournamentRosterMember({
+        status: this.tournament?.status,
+        isSelf: this.isCurrentUser,
+        canManage: this.canManageTeam,
+        hasTournamentOrganizerRole: useAuthStore().isRoleAbove(
+          e_player_roles_enum.tournament_organizer,
+        ),
+      });
     },
     canUpdateRole() {
       const me = useAuthStore().me;
@@ -319,7 +336,7 @@ export default {
     },
     async removeMember() {
       this.removeMemberDialog = false;
-      if (!this.canUpdateRole || this.rosterLockedAtMin) return;
+      if (!this.canRemoveMember || this.rosterLockedAtMin) return;
 
       await this.$apollo.mutate({
         mutation: generateMutation({

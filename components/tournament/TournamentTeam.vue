@@ -845,6 +845,9 @@ export default {
                 player_steam_id: {
                   _eq: useAuthStore().me.steam_id,
                 },
+                tournament_team_id: {
+                  _eq: this.team.id,
+                },
               },
             },
             {
