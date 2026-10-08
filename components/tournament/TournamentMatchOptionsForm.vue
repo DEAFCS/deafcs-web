@@ -13,6 +13,7 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
       :hide-best-of="true"
       :hide-match-mode="true"
       :lock-substitutes="true"
+      :keep-substitute-allowance="true"
     >
       <FormField v-slot="{ value, handleChange }" name="negotiated_scheduling">
         <FormItem>
@@ -296,10 +297,9 @@ export default {
 
       this.submitting = true;
       try {
-        this.form.setFieldValue(
-          "number_of_substitutes",
-          useApplicationSettingsStore().teamMaxSubs,
-        );
+        // number_of_substitutes is deliberately NOT re-applied from the global
+        // setting here: it was filled from the tournament's own options when
+        // the form loaded, so saving keeps the allowance the tournament has.
         // Negotiated scheduling keeps brackets dormant until a time is agreed.
         if (this.form.values.negotiated_scheduling) {
           this.form.setFieldValue("match_mode", "admin");

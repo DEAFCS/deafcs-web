@@ -1334,6 +1334,15 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Editing an existing tournament: keep the substitute allowance it was
+    // created with instead of re-applying the current global value. A
+    // tournament that was created with 0 (every Random / Free Agent event so
+    // far) must stay 0 when its settings are saved.
+    keepSubstituteAllowance: {
+      required: false,
+      type: Boolean,
+      default: false,
+    },
   },
   apollo: {
     e_match_types: {
@@ -1407,7 +1416,7 @@ export default {
     lockSubstitutes: {
       immediate: true,
       handler(lockSubstitutes) {
-        if (lockSubstitutes) {
+        if (lockSubstitutes && !this.keepSubstituteAllowance) {
           this.form.setFieldValue(
             "number_of_substitutes",
             useApplicationSettingsStore().teamMaxSubs,
@@ -1417,7 +1426,7 @@ export default {
     },
     teamMaxSubs: {
       handler(teamMaxSubs) {
-        if (this.lockSubstitutes) {
+        if (this.lockSubstitutes && !this.keepSubstituteAllowance) {
           this.form.setFieldValue("number_of_substitutes", teamMaxSubs);
         }
       },

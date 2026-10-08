@@ -356,6 +356,7 @@ import {
 } from "~/utilities/setupOptions";
 import { requiresLocation } from "~/utilities/tournamentCategories";
 import { registrationColumns, registrationSchemaShape, REGISTRATION_FIELD } from "~/utilities/tournamentRegistration";
+import { newTournamentSubstituteAllowance } from "~/utilities/tournamentSubstituteAllowance";
 
 export default {
   data() {
@@ -602,9 +603,14 @@ export default {
           return;
         }
 
+        // Random / Free Agent tournaments are created with 0 substitutes; every
+        // other tournament takes the global default.
         this.form.setFieldValue(
           "number_of_substitutes",
-          useApplicationSettingsStore().teamMaxSubs,
+          newTournamentSubstituteAllowance(
+            this.form.values,
+            useApplicationSettingsStore().teamMaxSubs,
+          ),
         );
         if (this.form.values.negotiated_scheduling) {
           this.form.setFieldValue("match_mode", "admin");

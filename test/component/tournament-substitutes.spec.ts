@@ -114,10 +114,14 @@ describe("Substitutes Enabled wiring", () => {
       expect(src).toContain('name="substitutes_enabled"');
       expect(src).toContain("v-if=\"form.values.type !== 'Duel'\"");
       expect(src).toContain("substitutes_enabled: z.boolean().default(true),");
-      // No second, tournament-specific count: the allowance stays global.
-      expect(src).toContain('"number_of_substitutes",\n          useApplicationSettingsStore().teamMaxSubs,');
+      // No second, tournament-specific count field.
       expect(src).not.toMatch(/name="number_of_substitutes"/);
     }
+    // A NEW tournament takes the global allowance; EDITING one keeps its own.
+    expect(wizard).toContain("newTournamentSubstituteAllowance(");
+    expect(wizard).toContain("useApplicationSettingsStore().teamMaxSubs,");
+    expect(edit).not.toContain("useApplicationSettingsStore().teamMaxSubs");
+    expect(edit).toContain(':keep-substitute-allowance="true"');
     expect(wizard).toContain("substitutes_enabled: form.substitutes_enabled ?? true,");
     expect(edit).toContain('substitutes_enabled: $("substitutes_enabled", "Boolean!"),');
   });
