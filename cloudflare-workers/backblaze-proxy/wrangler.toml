@@ -16,10 +16,16 @@ enabled = true
 [vars]
 BUCKET_NAME = "5stack"
 S3_ENDPOINT = "s3.us-east-005.backblazeb2.com"
-# Base URL of the 5stack API. When set, the worker beacons clip playback
-# starts to {API_URL}/clip-views/play so the API can count clip views.
-# Leave unset to disable view counting.
-API_URL = "https://api.5stack.gg"
+# Base URL of THIS installation's API. When set, the worker beacons clip
+# playback to {API_URL}/clip-views/play, authenticated with S3_SECRET, so the
+# API can count clip views. Leave unset to disable view counting.
+#
+# Never point this at another installation's API: the beacon carries S3_SECRET.
+# DEAFCS serves clips straight from its own API (demos.deafcs.net/clips) and
+# counts views there, so it does not deploy this worker for clips. An install
+# that does should inject its own value at deploy time, for example:
+#   yarn wrangler deploy --var API_URL:https://api.example.com
+# API_URL = "https://api.example.com"
 
 routes = [
   { pattern = "demo-dl.5stack.gg/demo*",  zone_name = "5stack.gg" },
