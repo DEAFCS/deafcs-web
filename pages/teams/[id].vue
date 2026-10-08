@@ -613,6 +613,7 @@ export default {
                 team_id: {
                   _eq: $("teamId", "uuid!"),
                 },
+                revoked_at: { _is_null: true },
               },
             },
             awardFields,

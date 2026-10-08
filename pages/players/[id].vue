@@ -3399,6 +3399,9 @@ export default {
                 player_steam_id: {
                   _eq: $("steam_id", "bigint"),
                 },
+                // A revoked award (for example a replaced tournament MVP)
+                // is not shown on the profile.
+                revoked_at: { _is_null: true },
               },
             },
             awardFields,

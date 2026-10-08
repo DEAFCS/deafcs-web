@@ -17,6 +17,7 @@ import TournamentInformationForm from "~/components/tournament/TournamentInforma
 import TournamentMatchOptionsForm from "~/components/tournament/TournamentMatchOptionsForm.vue";
 import TournamentPrizesManage from "~/components/tournament/TournamentPrizesManage.vue";
 import TournamentAwardPicker from "~/components/tournament/TournamentAwardPicker.vue";
+import TournamentMvpChooser from "~/components/tournament/TournamentMvpChooser.vue";
 import TournamentFreeAgents from "~/components/tournament/TournamentFreeAgents.vue";
 import TournamentIndividualPlayers from "~/components/tournament/TournamentIndividualPlayers.vue";
 import TournamentTeam from "~/components/tournament/TournamentTeam.vue";
@@ -205,15 +206,23 @@ onUnmounted(() => resizeObserver?.disconnect());
 
       </template>
 
-      <TournamentAwardPicker
-        v-else-if="current.key === 'awards'"
-        v-model="awardSelection"
-        :tournament-id="tournament.id"
-        :match-type="tournament.options?.type || null"
-        :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
-        :finished="tournament.status === 'Finished'"
-        :trophies-enabled="tournament.trophies_enabled ?? false"
-      />
+      <template v-else-if="current.key === 'awards'">
+        <TournamentAwardPicker
+          v-model="awardSelection"
+          :tournament-id="tournament.id"
+          :match-type="tournament.options?.type || null"
+          :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
+          :finished="tournament.status === 'Finished'"
+          :trophies-enabled="tournament.trophies_enabled ?? false"
+        />
+        <TournamentMvpChooser
+          v-if="tournament.is_organizer"
+          :tournament-id="tournament.id"
+          :match-type="tournament.options?.type || null"
+          :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
+          :finished="tournament.status === 'Finished'"
+        />
+      </template>
 
       <TournamentOrganizers
         v-else-if="current.key === 'organizers'"

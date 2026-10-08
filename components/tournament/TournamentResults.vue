@@ -681,8 +681,10 @@ export default {
                 image_url: true,
                 system_key: true,
               },
+              // A revoked recipient (a replaced or cleared MVP) is history, not
+              // a result: it must never show on the page.
               recipients: [
-                {},
+                { where: { revoked_at: { _is_null: true } } },
                 {
                   id: true,
                   team_id: true,
@@ -886,8 +888,13 @@ export default {
       return entries.sort((a: any, b: any) => a.placement - b.placement);
     },
     mvp() {
+      // The tournament MVP is chosen by hand and may have been changed or
+      // cleared, so there can be several placement 0 occurrences; the shown
+      // one is the one that still has an active recipient.
       const occurrences = (this as any).awardOccurrences || [];
-      const occ = occurrences.find((o: any) => o.placement === 0);
+      const occ = occurrences.find(
+        (o: any) => o.placement === 0 && (o.recipients || []).length > 0,
+      );
       if (!occ) return null;
       const recipient = (occ.recipients || [])[0];
       if (!recipient) return null;

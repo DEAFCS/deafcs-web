@@ -12,7 +12,7 @@ vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
 vi.stubGlobal("ResizeObserver", class { observe() {} disconnect() {} });
 vi.mock("~/components/ui/toast", () => ({ toast: vi.fn() }));
 
-const children = ["TournamentInformationForm", "TournamentMatchOptionsForm", "TournamentPrizesManage", "TournamentAwardPicker", "TournamentOrganizers", "TournamentNotifications", "TournamentStagesManage", "TournamentJoinForm", "TournamentInvites", "TournamentInviteLinks", "TournamentCheckInReview", "TournamentFreeAgents", "TournamentIndividualPlayers", "TournamentTeam", "TournamentNotSelectedSection"];
+const children = ["TournamentInformationForm", "TournamentMatchOptionsForm", "TournamentPrizesManage", "TournamentAwardPicker", "TournamentMvpChooser", "TournamentOrganizers", "TournamentNotifications", "TournamentStagesManage", "TournamentJoinForm", "TournamentInvites", "TournamentInviteLinks", "TournamentCheckInReview", "TournamentFreeAgents", "TournamentIndividualPlayers", "TournamentTeam", "TournamentNotSelectedSection"];
 let Manage: any;
 let Stages: any;
 beforeAll(async () => {
@@ -38,6 +38,15 @@ describe("dedicated tournament Manage", () => {
     expect(w.findAll("nav button")).toHaveLength(9);
     expect(w.find("[aria-current='page']").text()).toBe(tournamentManageSections.find(s => s.key === section)?.label);
     w.unmount();
+  });
+  it("offers the manual MVP choice next to the awards, for organizers only", () => {
+    const w = mount(Manage, { props: { tournament: fixture({ status: "Finished" }), registration: null, checkInTeams: [], checkInReviewVisible: false, section: "awards" }, global: { mocks } });
+    expect(w.find("[data-panel='TournamentAwardPicker']").exists()).toBe(true);
+    expect(w.find("[data-panel='TournamentMvpChooser']").exists()).toBe(true);
+    w.unmount();
+    const other = mount(Manage, { props: { tournament: fixture({ status: "Finished" }), registration: null, checkInTeams: [], checkInReviewVisible: false, section: "details" }, global: { mocks } });
+    expect(other.find("[data-panel='TournamentMvpChooser']").exists()).toBe(false);
+    other.unmount();
   });
   it("never mounts management forms for a non-organizer", () => {
     const w = mount(Manage, { props: { tournament: fixture({ is_organizer: false }), registration: null, checkInTeams: [], checkInReviewVisible: false, section: "details" }, global: { mocks } });
