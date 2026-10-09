@@ -7,8 +7,8 @@ import test from "node:test";
 //
 // UPCOMING / LIVE / PAUSED: Tournament Awards owns the #1/#2/#3 placement
 // cards. Each card holds the award artwork AND the configured prize money in
-// one reward row; #4+ stay in a small payout list; the Prize Pool total sits
-// in the header next to the manual MVP. No separate TournamentPrizes block.
+// one reward row; #4+ stay in a small payout list; the header holds
+// only the manual MVP (the Prize Pool total is in the top info bar). No separate TournamentPrizes block.
 //
 // FINISHED: TournamentResults (final podium) + TournamentPrizes in its
 // #prizes slot, the 5Stack-style flow. The combined cards are not used there.
@@ -128,27 +128,23 @@ test("MVP is the manual DEAFCS award: placement 0, 5v5 only, header only, never 
   assert.doesNotMatch(rewardsSource, /\bkdr\b|\.kills\b|\.rating\b|\.sort\(|\.reduce\(/i);
 });
 
-test("the header shows the Prize Pool total next to the MVP, from the shared formatter, only when it parses as money", () => {
-  assert.match(rewardsSource, /import \{ formatPrizePool \} from "~\/utilities\/prizePool";/);
-  assert.match(rewardsSource, /const pool = computed\(\(\) => formatPrizePool\(prizeList\.value\)\)/);
-  assert.match(headerBlock, /v-if="mvpAward \|\| pool"/);
-  assert.match(headerBlock, /v-if="pool"/);
-  assert.match(headerBlock, /data-testid="tournament-awards-total"/);
-  assert.match(headerBlock, /\{\{ pool \}\}/);
-  assert.match(headerBlock, /\$t\("tournament\.stats\.prize_pool"\)/);
-  assert.equal(enLocale.tournament.stats.prize_pool, "Prize Pool");
-  // Exactly one right-aligned wrapper holds both MVP and total.
+test("the header holds only the MVP: the Prize Pool total is not repeated here (it lives in the top info bar)", () => {
+  assert.doesNotMatch(rewardsSource, /formatPrizePool/);
+  assert.doesNotMatch(rewardsSource, /prizePool/);
+  assert.doesNotMatch(rewardsSource, /const pool\b/);
+  assert.doesNotMatch(headerBlock, /\{\{ pool \}\}/);
+  assert.doesNotMatch(headerBlock, /tournament-awards-total/);
+  assert.doesNotMatch(headerBlock, /tournament\.stats\.prize_pool/);
+  assert.match(headerBlock, /v-if="mvpAward"/);
+  // Exactly one right-aligned element: the MVP block.
   assert.equal((headerBlock.match(/ml-auto/g) ?? []).length, 1);
+  // The top info bar still receives the pool.
+  assert.match(detailSource, /<TournamentStatRibbon\s+:prize-pool="prizePool"/);
 });
 
-test("no hardcoded currency, and non-money prize text is not summed into the pool", async () => {
+test("no hardcoded currency in the awards component; the pool formatter still ignores non-money text", async () => {
   assert.doesNotMatch(rewardsSource, /["'`]\s*[$€£¥]/);
   assert.doesNotMatch(rewardsSource, /DEFAULT_CURRENCY/);
-  const { formatPrizePool } = await import("../utilities/prizePool.ts").catch(() => ({}));
-  if (typeof formatPrizePool === "function") {
-    assert.equal(formatPrizePool([{ prize: "Custom Knife" }, { prize: "Top 3 teams" }]), null);
-    assert.equal(formatPrizePool([{ prize: "$3" }, { prize: "$2" }, { prize: "Custom Knife" }]), "$5");
-  }
   const poolSource = await read("../utilities/prizePool.ts");
   assert.match(poolSource, /Only count values that are a bare amount/);
 });

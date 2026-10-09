@@ -261,24 +261,32 @@ describe("Tournament Awards (before and during the tournament)", () => {
     expect(none.find('[data-testid="tournament-awards-extras"]').exists()).toBe(false);
   });
 
-  it("shows the total prize money in the header, next to the MVP", async () => {
+  it("the header holds only the MVP: no duplicate Prize Pool total, while the cards keep inline prizes", async () => {
     const wrapper = await mountRewards({ prizes: slotPrizes });
     const meta = wrapper.find('[data-testid="tournament-awards-header-meta"]');
     expect(meta.find(".art").attributes("data-award")).toBe("mvp");
-    expect(meta.find('[data-testid="tournament-awards-total"]').text()).toContain("$6");
-    // 2v2: no MVP, total still shown.
+    expect(meta.text()).not.toContain("$");
+    expect(meta.text()).not.toContain("tournament.stats.prize_pool");
+    expect(wrapper.find('[data-testid="tournament-awards-total"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain("$6");
+    expect(wrapper.findAll('[data-testid="tournament-awards-prize"]').map((p) => p.text())).toEqual(["$3", "$2", "$1"]);
+    // 2v2: no MVP, so no header block at all, and still no total.
     const wingman = await mountRewards({ prizes: slotPrizes, matchType: "Wingman", minPlayersPerLineup: 2 });
-    const wMeta = wingman.find('[data-testid="tournament-awards-header-meta"]');
-    expect(wMeta.find(".art").exists()).toBe(false);
-    expect(wMeta.text()).toContain("$6");
+    expect(wingman.find('[data-testid="tournament-awards-header-meta"]').exists()).toBe(false);
+    expect(wingman.find('[data-testid="tournament-awards-total"]').exists()).toBe(false);
+    const source = read("components/tournament/TournamentRewards.vue");
+    expect(source).not.toContain("formatPrizePool");
+    expect(source).not.toContain("tournament.stats.prize_pool");
   });
 
-  it("does not hardcode a currency symbol and shows no total for non-money prizes", async () => {
-    const source = read("components/tournament/TournamentRewards.vue");
-    expect(source).toContain("formatPrizePool");
-    expect(source).not.toMatch(/["'`]\$/);
+  it("the Prize Pool stays in the top info bar and no hardcoded currency is used here", () => {
+    const detail = read("components/tournament/TournamentDetail.vue");
+    expect(detail).toMatch(/<TournamentStatRibbon\s+:prize-pool="prizePool"/);
+    expect(read("components/tournament/TournamentRewards.vue")).not.toMatch(/["'`]\$/);
+  });
+
+  it("non-money prize text still renders in the card and in the payout list", async () => {
     const wrapper = await mountRewards({ prizes: [{ id: "1", place: "1st", prize: "Custom Knife" }] });
-    expect(wrapper.find('[data-testid="tournament-awards-total"]').exists()).toBe(false);
     expect(wrapper.text()).toContain("Custom Knife");
   });
 

@@ -4,7 +4,6 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { Trophy } from "lucide-vue-next";
 import { Card } from "~/components/ui/card";
-import { formatPrizePool } from "~/utilities/prizePool";
 import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import {
   TOURNAMENT_AWARD_PLACEMENTS,
@@ -19,8 +18,8 @@ import {
 // effective-selection resolver, same two queries). Before and during the
 // tournament the configured prize money rides inside the same #1/#2/#3 card as
 // the award artwork (finished tournaments use TournamentResults instead). MVP
-// is pulled out of the grid and rendered compactly in the header, beside the
-// total prize money.
+// is pulled out of the grid and rendered compactly in the header. The prize
+// pool total lives only in the top info bar, not here.
 const AWARD_DEFINITIONS_QUERY = gql`
   query TournamentRewardsAwardDefinitions {
     awards(
@@ -134,7 +133,6 @@ const bodyPlacements = TOURNAMENT_AWARD_PLACEMENTS.filter(
 
 const prizeList = computed(() => props.prizes ?? []);
 const hasPrizes = computed(() => prizeList.value.length > 0);
-const pool = computed(() => formatPrizePool(prizeList.value));
 // Prize rows beyond the top three keep the small payout list.
 const extras = computed(() => prizeList.value.slice(3));
 
@@ -220,36 +218,18 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
           {{ $t("tournament.rewards.title") }}
         </span>
         <div
-          v-if="mvpAward || pool"
-          class="ml-auto flex items-center gap-4"
+          v-if="mvpAward"
+          class="ml-auto flex items-center gap-2"
           data-testid="tournament-awards-header-meta"
         >
-          <div v-if="mvpAward" class="flex items-center gap-2">
-            <AwardArtwork :award="mvpAward" size="xs" decorative />
-            <div class="flex flex-col text-left leading-tight">
-              <span
-                class="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
-              >
-                {{ $t("trophies.mvp") }}
-              </span>
-              <span class="text-xs font-medium">{{ mvpAward.name }}</span>
-            </div>
-          </div>
-          <div
-            v-if="pool"
-            class="flex flex-col text-right leading-tight"
-            data-testid="tournament-awards-total"
-          >
+          <AwardArtwork :award="mvpAward" size="xs" decorative />
+          <div class="flex flex-col text-left leading-tight">
             <span
               class="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
             >
-              {{ $t("tournament.stats.prize_pool") }}
+              {{ $t("trophies.mvp") }}
             </span>
-            <span
-              class="font-sans text-base font-bold tabular-nums text-[hsl(var(--tac-amber))]"
-            >
-              {{ pool }}
-            </span>
+            <span class="text-xs font-medium">{{ mvpAward.name }}</span>
           </div>
         </div>
       </div>
