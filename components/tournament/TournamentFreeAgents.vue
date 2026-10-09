@@ -471,6 +471,15 @@ async function leavePool() {
 // same windows and the same eligibility rules a self-registration meets; this
 // only decides what to offer. A drafted entry belongs to a generated team and is
 // changed through that team's roster, so it never gets a Remove.
+// Staff manage the pool until it is drafted: before registration opens (Setup),
+// while it is open and in a held check-in review. Players sign up themselves
+// only while registration is open.
+const POOL_EDITABLE_STATUSES: string[] = [
+  e_tournament_status_enum.Setup,
+  e_tournament_status_enum.RegistrationOpen,
+  "CheckInReview",
+];
+
 const canManagePool = computed(
   () => !!props.tournament?.is_organizer && !props.readOnlyAdmin,
 );
@@ -478,17 +487,14 @@ const canManagePool = computed(
 const canAddToPool = computed(
   () =>
     canManagePool.value &&
-    props.tournament?.status === e_tournament_status_enum.RegistrationOpen &&
+    POOL_EDITABLE_STATUSES.includes(props.tournament?.status) &&
     ["free_agents", "both"].includes(props.tournament?.registration_type),
 );
 
 const canRemoveFromPool = computed(
   () =>
     canManagePool.value &&
-    [
-      e_tournament_status_enum.RegistrationOpen,
-      e_tournament_status_enum.CheckInReview,
-    ].includes(props.tournament?.status),
+    POOL_EDITABLE_STATUSES.includes(props.tournament?.status),
 );
 
 function canRemoveEntry(agent: Agent) {
