@@ -19,3 +19,33 @@ export function dateLocale(): string | undefined {
 
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
+
+// The clock the viewer's own browser uses: 24-hour for locales that normally
+// show it (most of Europe), 12-hour with AM/PM for the ones that do not (the
+// US). dateLocale() is the app's UI language, and "en" resolves to en-US
+// everywhere, so a European reading the site in English got AM/PM. The
+// language of the text stays the app's; only the hour cycle follows the
+// browser. The time zone is the browser's own, as before.
+export function browserUses12HourClock(browserLocale?: string): boolean {
+  try {
+    const cycle = new Intl.DateTimeFormat(browserLocale, {
+      hour: "numeric",
+    }).resolvedOptions().hourCycle;
+    return cycle === "h11" || cycle === "h12";
+  } catch {
+    return false;
+  }
+}
+
+export function formatLocalClock(
+  date: Date,
+  options: { locale?: string; browserLocale?: string } = {},
+): string {
+  const twelveHour = browserUses12HourClock(options.browserLocale);
+
+  return date.toLocaleTimeString(options.locale ?? dateLocale(), {
+    hour: twelveHour ? "numeric" : "2-digit",
+    minute: "2-digit",
+    hourCycle: twelveHour ? "h12" : "h23",
+  });
+}

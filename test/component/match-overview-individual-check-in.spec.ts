@@ -291,3 +291,21 @@ describe("captain and admin check-in overview", () => {
     expect(row.findAll("button")).toHaveLength(0);
   });
 });
+
+describe("tournament Check In button size", () => {
+  it("fills the middle control width like the old check-in button, still centered", async () => {
+    const wrapper = await mountOverview(build({ size: 2, roster1: 4 }), "11");
+    const control = middle(wrapper).get('[data-testid="team-check-in"]');
+    // The control (not just its button) is full width, so the button is not a small floating CTA.
+    expect(control.classes()).toEqual(expect.arrayContaining(["w-full", "justify-center"]));
+    expect(control.get("button").classes()).toContain("w-full");
+    expect(control.text()).toContain("match.check_in.check_in");
+    expect(control.text()).not.toContain("confirm_lineup");
+    // The wrapper keeps its own width and centering, and the team rows are intact.
+    expect(middle(wrapper).get('[data-testid="overview-team-check-in"]').classes()).toEqual(
+      expect.arrayContaining(["w-full", "justify-center"]),
+    );
+    expect(middle(wrapper).findAll('[data-testid="check-in-teams"] > li')).toHaveLength(2);
+    expect(editIn(wrapper, 1).exists()).toBe(true);
+  });
+});

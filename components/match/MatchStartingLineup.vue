@@ -303,6 +303,7 @@ export default {
       :match="match"
       :label="checkInLabel"
       :centered="part === 'check-in'"
+      :class="part === 'check-in' ? 'w-full' : ''"
       data-testid="team-check-in"
     />
 

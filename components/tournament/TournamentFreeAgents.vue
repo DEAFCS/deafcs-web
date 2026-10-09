@@ -21,7 +21,7 @@ import { $, e_tournament_status_enum } from "~/generated/zeus";
 import { generateSubscription } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
 import { useAuthStore } from "~/stores/AuthStore";
-import { dateLocale } from "~/utilities/dateLocale";
+import { formatLocalClock } from "~/utilities/dateLocale";
 import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
@@ -412,10 +412,8 @@ function signUpTime(createdAt: string) {
   if (Number.isNaN(date.getTime())) {
     return "--:--";
   }
-  return date.toLocaleTimeString(dateLocale(), {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  // The viewer's own clock: 24-hour or AM/PM as their browser locale does.
+  return formatLocalClock(date);
 }
 
 function statusTone(status: string) {
