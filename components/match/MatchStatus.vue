@@ -13,6 +13,8 @@ const props = defineProps<{
     winning_lineup_id?: string | null;
     match_maps?: Array<{ status?: string }>;
   };
+  // Compact wording for a table cell (only the long check-in status differs).
+  short?: boolean;
 }>();
 
 const isTie = computed(() => {
@@ -85,6 +87,11 @@ const badgeClasses = computed(() => {
       v-else-if="match.status === e_match_status_enum.Live && hasPausedMap"
     >
       {{ $t("match.status.paused") }}
+    </template>
+    <template
+      v-else-if="short && match.status === e_match_status_enum.WaitingForCheckIn"
+    >
+      {{ $t("match.status.waiting_check_in") }}
     </template>
     <template v-else>
       {{ match.e_match_status.description }}

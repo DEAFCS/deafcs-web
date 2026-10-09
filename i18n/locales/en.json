@@ -7032,6 +7032,7 @@
     "status": {
       "cancelled": "Cancelled",
       "waiting_server": "Waiting for server ...",
+      "waiting_check_in": "Waiting for check-in",
       "scheduled_asap": "Scheduled ASAP",
       "paused": "Paused",
       "tied": "Tied"
@@ -7091,9 +7092,8 @@
     },
     "starting_lineup": {
       "title": "Starting Lineup",
-      "select": "Select Starting Lineup",
-      "confirm": "Confirm Starting Lineup",
-      "needs_confirmation": "Confirm your starting lineup before checking in.",
+      "edit": "Edit Lineup",
+      "confirm_lineup": "Confirm Lineup",
       "active": "Active",
       "substitute": "Substitute",
       "pick_hint": "Choose the {count} players who play this match. Everyone else stays a substitute.",
@@ -7174,7 +7174,6 @@
       "skip_checkin": "Skip Check In",
       "cancel": "Cancel Match",
       "delete": "Delete Match",
-      "reset_tournament_match": "Reset Match",
       "canceled": "Match Canceled",
       "deleted": "Match Deleted",
       "void_elo": "Void ELO",

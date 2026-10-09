@@ -82,20 +82,10 @@
         />
       </div>
     </div>
-
-    <!-- Tournament matches with substitutes: who is Active and who is a
-         Substitute, and the way to confirm or change it before the match
-         starts. Full width under both team panels. -->
-    <MatchStartingLineup
-      v-if="stage === 'check-in' && match.is_tournament_match"
-      :match="match"
-      data-testid="overview-starting-lineup"
-    />
   </section>
 </template>
 
 <script lang="ts">
-import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
 import DraftTeamPanel from "~/components/draft-games/DraftTeamPanel.vue";
 import CaptainPickProgress from "~/components/match/CaptainPickProgress.vue";
 import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
@@ -143,7 +133,7 @@ const NEUTRAL = "0 0% 92%";
 export default {
   components: {
     DraftTeamPanel, CaptainPickProgress, MatchRegionVeto, OverviewActionBar,
-    MatchStartingLineup, OverviewVeto, OverviewPreMatch, OverviewCheckIn, OverviewRegion, OverviewSchedule,
+    OverviewVeto, OverviewPreMatch, OverviewCheckIn, OverviewRegion, OverviewSchedule,
   },
   props: {
     match: { type: Object, required: true },

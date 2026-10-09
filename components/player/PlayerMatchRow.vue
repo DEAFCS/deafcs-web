@@ -153,7 +153,12 @@ const wideGrid =
             }}</span>
           </div>
         </template>
-        <MatchStatus v-else :match="match" class="result-status self-start" />
+        <MatchStatus
+            v-else
+            :match="match"
+            short
+            class="result-status self-start"
+          />
       </div>
       <div v-else class="result-cell flex min-w-0 overflow-hidden flex-col justify-center gap-0.5">
         <span
@@ -164,7 +169,12 @@ const wideGrid =
           <span class="mx-1 text-muted-foreground/60">:</span>
           <span class="text-muted-foreground/90">{{ score.opponent }}</span>
         </span>
-        <MatchStatus v-else :match="match" class="result-status self-start" />
+        <MatchStatus
+            v-else
+            :match="match"
+            short
+            class="result-status self-start"
+          />
         <span
           v-if="opponentTeam"
           class="flex min-w-0 items-center gap-1"
@@ -391,7 +401,7 @@ const wideGrid =
                 >{{ team.score ?? "—" }}</span
               >
             </div>
-            <MatchStatus v-if="!isFinished" :match="match" />
+            <MatchStatus v-if="!isFinished" :match="match" short />
           </div>
         </div>
 
@@ -507,7 +517,7 @@ const wideGrid =
             </span>
           </span>
         </template>
-        <MatchStatus v-else :match="match" />
+        <MatchStatus v-else :match="match" short />
 
         <div class="ml-auto flex items-center gap-1.5 text-muted-foreground">
           <MatchSourceBadge :source="match.source" />

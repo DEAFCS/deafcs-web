@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import CheckIntoMatch from "~/components/match/CheckIntoMatch.vue";
+import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
 import { Check } from "lucide-vue-next";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 </script>
@@ -37,6 +38,13 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
             }}
           </span>
         </div>
+        <MatchStartingLineup
+          v-if="inlineTeamControls && !team.ready"
+          :match="match"
+          :team="team.team"
+          :check-in-label="checkInLabel"
+          data-testid="overview-starting-lineup"
+        />
         <ul class="flex flex-col gap-1">
           <li
             v-for="player in teamPlayers(team.team)"
@@ -100,9 +108,18 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
             }}
           </span>
         </div>
-        <span class="check-in-badge shrink-0 rounded px-2 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em]">
-          {{ team.ready ? $t("match.lifecycle.ready") : $t("match.lifecycle.waiting_check_in") }}
-        </span>
+        <div class="flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-2">
+          <MatchStartingLineup
+            v-if="inlineTeamControls && !team.ready"
+            :match="match"
+            :team="team.team"
+            :check-in-label="checkInLabel"
+            data-testid="overview-starting-lineup"
+          />
+          <span class="check-in-badge shrink-0 rounded px-2 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em]">
+            {{ team.ready ? $t("match.lifecycle.ready") : $t("match.lifecycle.waiting_check_in") }}
+          </span>
+        </div>
       </li>
     </ul>
 
@@ -110,6 +127,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
          can_check_in allows (Players: any player; Captains: a captain;
          Admin: an administrator in the lineup). -->
     <CheckIntoMatch
+      v-if="!inlineTeamControls"
       :match="match"
       :label="summary.mode === 'Captains' ? $t('match.lifecycle.check_in_team') : null"
     />
@@ -146,6 +164,7 @@ import { checkInSummary } from "~/utilities/matchLifecycle";
  * the server's lineup is_ready; the action is CheckIntoMatch as before.
  */
 export default {
+  components: { MatchStartingLineup },
   props: {
     match: {
       type: Object,
@@ -169,6 +188,16 @@ export default {
     // A tournament match's Check-in Time passed with nobody ready: the
     // server cleared cancels_at and paged an organizer (CancelExpiredMatches).
     // Other matches may simply have no check-in deadline at all.
+    // A tournament match keeps Edit Lineup and the team check-in in each
+    // team own row; other matches keep the one check-in button below.
+    checkInLabel() {
+      return this.summary.mode === "Captains"
+        ? this.$t("match.lifecycle.check_in_team")
+        : null;
+    },
+    inlineTeamControls() {
+      return !!this.match.is_tournament_match;
+    },
     expired() {
       return !!this.match.is_tournament_match && !this.match.cancels_at;
     },

@@ -41,62 +41,67 @@ const as = (role: string | null, match: Record<string, any>) => {
   auth.me = role ? { steam_id: "900", role } : null;
   return {
     canDelete: component.computed.canDeleteMatch.call({ match }),
-    canReset: component.computed.canResetTournamentMatch.call({ match }),
+    disabledDelete: component.computed.canDeleteTournamentMatchDisabled.call({ match }),
   };
 };
 
-describe("tournament match: Reset Match instead of Delete Match", () => {
-  it("offers Reset Match for a tournament match and never the generic delete", () => {
+describe("tournament match page: Delete Match is greyed out, there is no Reset Match", () => {
+  const read = (f: string) => readFileSync(path.resolve(__dirname, "../..", f), "utf8");
+
+  it("a tournament match shows a disabled Delete Match and never the generic delete", () => {
     const result = as("administrator", { id: "m", status: "Finished", is_tournament_match: true });
     expect(result.canDelete).toBe(false);
-    expect(result.canReset).toBe(true);
-    expect(template).toContain('v-if="canResetTournamentMatch"');
-    expect(template).toContain("match.actions.reset_tournament_match");
-    expect(template).toContain('@click="openTournamentReset"');
-    // The disabled "cannot delete" entry is gone.
-    expect(template).not.toContain("delete_tournament_blocked");
+    expect(result.disabledDelete).toBe(true);
+    const block = template.match(/<template v-if="canDeleteTournamentMatchDisabled">[\s\S]*?<\/template>/)![0];
+    expect(block).toContain("disabled");
+    expect(block).toContain("text-muted-foreground");
+    expect(block).toContain('$t("match.actions.delete")');
+    // Inert: no click handler, no dialog, no explanation text.
+    expect(block).not.toContain("@click");
+    expect(block).not.toContain("showDeleteDialog");
+    expect(block).not.toContain("delete_tournament_blocked");
   });
 
-  it("offers it to the match's tournament organizer too, not to others", () => {
-    expect(as("user", { id: "m", status: "Finished", is_tournament_match: true, is_organizer: true }).canReset).toBe(true);
-    expect(as("user", { id: "m", status: "Finished", is_tournament_match: true, is_organizer: false }).canReset).toBe(false);
-    expect(as(null, { id: "m", status: "Finished", is_tournament_match: true }).canReset).toBe(false);
+  it("there is no Reset Match on the match page any more", () => {
+    expect(template).not.toContain("reset_tournament_match");
+    expect(template).not.toContain("TournamentMatchResetFlow");
+    expect(component.computed.canResetTournamentMatch).toBeUndefined();
+    expect(component.methods.openTournamentReset).toBeUndefined();
+    expect(read("i18n/locales/en.json")).not.toContain("reset_tournament_match");
   });
 
-  it("a normal match keeps Delete Match and gets no Reset Match", () => {
+  it("the disabled Delete only shows to whoever could delete a normal match", () => {
+    expect(as("user", { id: "m", status: "Finished", is_tournament_match: true, is_organizer: true }).disabledDelete).toBe(false);
+    expect(as("tournament_organizer", { id: "m", status: "Finished", is_tournament_match: true }).disabledDelete).toBe(false);
+    expect(as(null, { id: "m", status: "Finished", is_tournament_match: true }).disabledDelete).toBe(false);
+    expect(as("administrator", { id: "m", status: "Live", is_tournament_match: true }).disabledDelete).toBe(false);
+  });
+
+  it("a normal match keeps a working Delete Match and no disabled one", () => {
     const result = as("administrator", { id: "m", status: "Finished", is_tournament_match: false });
     expect(result.canDelete).toBe(true);
-    expect(result.canReset).toBe(false);
+    expect(result.disabledDelete).toBe(false);
     expect(as("administrator", { id: "m", status: "Canceled" }).canDelete).toBe(true);
+    const deleteBlock = template.match(/<template v-if="canDeleteMatch">[\s\S]*?<\/template>/)![0];
+    expect(deleteBlock).toContain("showDeleteDialog = true");
   });
 
   it("is never offered on a live match, and Delete stays administrator-only", () => {
     expect(as("tournament_organizer", { id: "m", status: "Finished" }).canDelete).toBe(false);
     expect(as("administrator", { id: "m", status: "Live" }).canDelete).toBe(false);
-    expect(as("administrator", { id: "m", status: "Live", is_tournament_match: true }).canReset).toBe(false);
   });
 
-  it("reuses the one tournament reset flow component (no second implementation)", () => {
-    const read = (f: string) => readFileSync(path.resolve(__dirname, "../..", f), "utf8");
+  it("the generic delete is not reachable for a tournament match from the page", () => {
+    expect(as("administrator", { id: "m", status: "Finished", is_tournament_match: true }).canDelete).toBe(false);
+  });
+
+  it("the bracket card keeps the one shared tournament reset flow", () => {
     const flow = read("components/tournament/TournamentMatchResetFlow.vue");
-    // The flow owns the preview, winner choice, schedule and the single action.
     expect(flow).toContain("PreviewTournamentMatchReset");
     expect(flow).toContain("ResetTournamentMatch");
-    for (const consumer of ["components/match/MatchActions.vue", "components/tournament/TournamentMatch.vue"]) {
-      const source = read(consumer);
-      expect(source).toContain("TournamentMatchResetFlow");
-      // Neither keeps its own copy of the mutation or the dialogs.
-      expect(source).not.toContain("mutation ResetTournamentMatch");
-      expect(source).not.toContain("PreviewTournamentMatchReset");
-    }
-    // The match page's click opens it with the match it already has.
-    expect(read("components/match/MatchActions.vue")).toContain('this.$refs.tournamentReset as any)?.open(this.match)');
-  });
-
-  it("the generic delete path is not reachable for a tournament match from the page", () => {
-    const deleteBlock = template.match(/<template v-if="canDeleteMatch">[\s\S]*?<\/template>/)![0];
-    expect(deleteBlock).toContain("showDeleteDialog = true");
-    expect(as("administrator", { id: "m", status: "Finished", is_tournament_match: true }).canDelete).toBe(false);
+    const card = read("components/tournament/TournamentMatch.vue");
+    expect(card).toContain("TournamentMatchResetFlow");
+    expect(card).not.toContain("mutation ResetTournamentMatch");
   });
 });
 

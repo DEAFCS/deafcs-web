@@ -13,7 +13,8 @@ import {
   DialogTitle,
 } from "~/components/ui/dialog";
 import { toast } from "~/components/ui/toast";
-import { $ } from "~/generated/zeus";
+import CheckIntoMatch from "~/components/match/CheckIntoMatch.vue";
+import { $, e_player_roles_enum } from "~/generated/zeus";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
 import { runTournamentAction } from "~/utilities/tournamentActions";
@@ -30,14 +31,17 @@ type Roster = {
   }>;
 };
 
-// Who plays THIS tournament match. A tournament roster may hold substitutes;
-// the match lineup is exactly the starting size, so the players on it are the
-// active ones and everyone else on the roster is a substitute for this match.
-// The API decides who may change it and until when (the match start); this
-// panel only offers the choice to people who could be allowed, while the
-// match has not started.
+// One team's lineup control inside its check-in row. A tournament roster may
+// hold substitutes; the match lineup is exactly the starting size, so the
+// players on it are the active ones and everyone else on the roster is a
+// substitute for this match. "Edit Lineup" only exists for a team with more
+// players than the match size. Checking in is the confirmation: a team with
+// substitutes checks in with "Confirm Lineup", which confirms the lineup it is
+// seated with and checks in. The API decides who may change the lineup and
+// until when; this only offers the choice to people who could be allowed.
 export default {
   components: {
+    CheckIntoMatch,
     ListChecks,
     PlayerDisplay,
     TournamentChip,
@@ -55,14 +59,22 @@ export default {
       type: Object,
       required: true,
     },
+    team: {
+      type: Number as () => 1 | 2,
+      required: true,
+    },
+    // The check-in wording when the team has no substitutes (a team with
+    // substitutes always checks in with Confirm Lineup).
+    checkInLabel: {
+      type: String,
+      default: null,
+    },
   },
   data() {
     return {
       rosters: { 1: null, 2: null } as Record<1 | 2, Roster | null>,
-      needsConfirmation: { 1: false, 2: false } as Record<1 | 2, boolean>,
       open: false,
       saving: false,
-      editingTeam: 1 as 1 | 2,
       selected: [] as string[],
     };
   },
@@ -79,11 +91,21 @@ export default {
     editable(): boolean {
       return ["Scheduled", "WaitingForCheckIn"].includes(this.match?.status);
     },
-    visibleTeams(): Array<1 | 2> {
-      return ([1, 2] as const).filter((team) => this.hasBench(team));
+    bench(): boolean {
+      return this.hasBench(this.team);
+    },
+    // The viewer sits in this team match lineup (the one who checks in).
+    viewerInTeam(): boolean {
+      const steamId = String(this.me?.steam_id ?? "");
+      return (
+        !!steamId &&
+        (this.lineupOf(this.team)?.lineup_players ?? []).some(
+          (p: any) => String(p.steam_id) === steamId,
+        )
+      );
     },
     captainSteamId(): string {
-      return String(this.rosters[this.editingTeam]?.captain_steam_id ?? "");
+      return String(this.rosters[this.team]?.captain_steam_id ?? "");
     },
     valid(): boolean {
       return this.selected.length === this.startingSize;
@@ -91,9 +113,7 @@ export default {
     // Re-read the rosters when a lineup changes (a roster edit or another
     // organizer's choice), so Active and Substitute never go stale.
     lineupSignature(): string {
-      return ([1, 2] as const)
-        .map((team) => [...this.activeIds(team)].sort().join(","))
-        .join("|");
+      return [...this.activeIds(this.team)].sort().join(",");
     },
   },
   watch: {
@@ -135,12 +155,6 @@ export default {
                 id: true,
                 team_1: team,
                 team_2: team,
-                // Whether each side still has to confirm its starters (a team
-                // with substitutes cannot check in before it does).
-                match: {
-                  lineup_1: { id: true, needs_starting_lineup_confirmation: true },
-                  lineup_2: { id: true, needs_starting_lineup_confirmation: true },
-                },
               },
             ],
           } as any),
@@ -152,12 +166,8 @@ export default {
           1: bracket?.team_1 ?? null,
           2: bracket?.team_2 ?? null,
         };
-        this.needsConfirmation = {
-          1: !!bracket?.match?.lineup_1?.needs_starting_lineup_confirmation,
-          2: !!bracket?.match?.lineup_2?.needs_starting_lineup_confirmation,
-        };
       } catch {
-        // The panel is an addition to check-in: without the rosters it stays
+        // Editing is an addition to check-in: without the rosters it stays
         // out of the way rather than blocking the page.
         this.rosters = { 1: null, 2: null };
       }
@@ -176,13 +186,17 @@ export default {
       const roster = this.rosters[team]?.roster ?? [];
       return this.startingSize > 0 && roster.length > this.startingSize;
     },
-    // A hint, not the rule: the captain, the team's owner or Admin, and the
-    // tournament's organizers may choose, and the API says no to anyone else.
+    // A hint, not the rule: the captain, the team's owner or Admin, the
+    // tournament's organizers and site administrators (for either team) may
+    // choose, and the API says no to anyone else.
     canChoose(team: 1 | 2) {
       if (!this.editable || !this.hasBench(team) || !this.me) {
         return false;
       }
-      if (this.match?.can_start) {
+      if (
+        this.match?.can_start ||
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+      ) {
         return true;
       }
       const entry = this.rosters[team];
@@ -196,27 +210,6 @@ export default {
         )
       );
     },
-    teamName(team: 1 | 2) {
-      return (
-        this.lineupOf(team)?.name ||
-        this.rosters[team]?.name ||
-        this.$t(`match.lineup.lineup_${team}`)
-      );
-    },
-    rosterRows(team: 1 | 2) {
-      const active = this.activeIds(team);
-      return (this.rosters[team]?.roster ?? [])
-        .slice()
-        .sort((a, b) => {
-          const left = active.has(String(a.player_steam_id)) ? 0 : 1;
-          const right = active.has(String(b.player_steam_id)) ? 0 : 1;
-          return left - right;
-        })
-        .map((row) => ({
-          ...row,
-          active: active.has(String(row.player_steam_id)),
-        }));
-    },
     isSelected(steamId: string) {
       return this.selected.includes(String(steamId));
     },
@@ -226,16 +219,8 @@ export default {
         !this.isSelected(steamId) && this.selected.length >= this.startingSize
       );
     },
-    // Same dialog for confirming the default and for changing a lineup; the
-    // wording follows what is still owed.
-    actionLabel(team: 1 | 2) {
-      return this.needsConfirmation[team]
-        ? this.$t("match.starting_lineup.confirm")
-        : this.$t("match.starting_lineup.select");
-    },
-    startEditing(team: 1 | 2) {
-      this.editingTeam = team;
-      this.selected = [...this.activeIds(team)];
+    startEditing() {
+      this.selected = [...this.activeIds(this.team)];
       this.open = true;
     },
     toggle(steamId: string, checked: boolean | "indeterminate") {
@@ -251,7 +236,7 @@ export default {
       this.selected = [...next];
     },
     async save() {
-      const lineup = this.lineupOf(this.editingTeam);
+      const lineup = this.lineupOf(this.team);
       if (!lineup || !this.valid || this.saving) {
         return;
       }
@@ -285,96 +270,34 @@ export default {
 </script>
 
 <template>
-  <!-- A full-width panel under both team panels: one block per team, its
-       players in a responsive grid (one row for a Wingman roster, wrapping for a
-       Competitive roster with substitutes). -->
-  <section
-    v-if="visibleTeams.length > 0"
-    class="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card/40 p-4"
-    data-testid="starting-lineup"
+  <!-- One team lineup control, placed in its check-in row: Edit Lineup (only
+       with substitutes) and the team check-in, labelled Confirm Lineup when
+       checking in also confirms a lineup chosen from a bigger roster. -->
+  <div
+    class="flex min-w-0 flex-wrap items-center justify-end gap-2"
   >
-    <h3
-      class="font-mono text-[0.7rem] font-bold uppercase tracking-[0.18em] text-muted-foreground"
-      data-testid="starting-lineup-title"
+    <Button
+      v-if="canChoose(team)"
+      variant="outline"
+      size="sm"
+      class="h-7 shrink-0"
+      data-testid="select-starting-lineup"
+      @click="startEditing"
     >
-      {{ $t("match.starting_lineup.title") }}
-    </h3>
-    <div class="flex flex-col gap-4 divide-y divide-border/60">
-      <div
-        v-for="team in visibleTeams"
-        :key="team"
-        class="flex min-w-0 flex-col gap-2 pt-4 first:pt-0"
-        :data-testid="`starting-lineup-team-${team}`"
-      >
-        <div class="flex items-center justify-between gap-2">
-          <span
-            class="truncate font-sans text-sm font-bold uppercase tracking-[0.14em]"
-          >
-            {{ teamName(team) }}
-          </span>
-          <Button
-            v-if="canChoose(team)"
-            variant="outline"
-            size="sm"
-            class="h-7 shrink-0"
-            data-testid="select-starting-lineup"
-            @click="startEditing(team)"
-          >
-            <ListChecks class="mr-1.5 h-3.5 w-3.5" />
-            {{ actionLabel(team) }}
-          </Button>
-        </div>
-        <p
-          v-if="needsConfirmation[team]"
-          class="text-xs text-muted-foreground"
-          data-testid="starting-lineup-needs-confirmation"
-        >
-          {{ $t("match.starting_lineup.needs_confirmation") }}
-        </p>
-        <ul
-          class="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(12rem,1fr))]"
-          data-testid="starting-lineup-players"
-        >
-          <li
-            v-for="row in rosterRows(team)"
-            :key="row.player_steam_id"
-            class="flex min-w-0 items-center gap-2 rounded-md border border-border/60 bg-background/40 px-2 py-1.5"
-            :class="{ 'opacity-60': !row.active }"
-            :data-testid="`starting-lineup-player-${row.player_steam_id}`"
-            :data-active="row.active ? 'true' : 'false'"
-          >
-            <div class="min-w-0 flex-1">
-              <PlayerDisplay
-                v-if="row.player"
-                :player="row.player"
-                dense
-                size="xs"
-                :show-online="false"
-                :show-flag="false"
-                :show-elo="false"
-                :show-add-friend="false"
-                :truncate-name="true"
-              />
-              <span v-else class="block truncate text-sm">{{
-                row.player_steam_id
-              }}</span>
-            </div>
-            <TournamentChip :tone="row.active ? 'ok' : 'muted'">
-              {{
-                row.active
-                  ? $t("match.starting_lineup.active")
-                  : $t("match.starting_lineup.substitute")
-              }}
-            </TournamentChip>
-          </li>
-        </ul>
-      </div>
-    </div>
+      <ListChecks class="mr-1.5 h-3.5 w-3.5" />
+      {{ $t("match.starting_lineup.edit") }}
+    </Button>
+    <CheckIntoMatch
+      v-if="viewerInTeam"
+      :match="match"
+      :label="bench ? $t('match.starting_lineup.confirm_lineup') : checkInLabel"
+      data-testid="team-check-in"
+    />
 
     <Dialog v-model:open="open">
       <DialogContent class="max-w-md">
         <DialogHeader>
-          <DialogTitle>{{ actionLabel(editingTeam) }}</DialogTitle>
+          <DialogTitle>{{ $t("match.starting_lineup.edit") }}</DialogTitle>
           <DialogDescription>
             {{
               $t("match.starting_lineup.pick_hint", { count: startingSize })
@@ -383,7 +306,7 @@ export default {
         </DialogHeader>
         <ul class="flex flex-col gap-1">
           <li
-            v-for="row in rosters[editingTeam]?.roster ?? []"
+            v-for="row in rosters[team]?.roster ?? []"
             :key="row.player_steam_id"
           >
             <label
@@ -429,14 +352,10 @@ export default {
             }}
           </span>
           <Button :disabled="!valid || saving" @click="save">
-            {{
-              needsConfirmation[editingTeam]
-                ? $t("match.starting_lineup.confirm")
-                : $t("match.starting_lineup.save")
-            }}
+            {{ $t("match.starting_lineup.save") }}
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  </section>
+  </div>
 </template>
