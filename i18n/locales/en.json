@@ -7174,7 +7174,7 @@
       "skip_checkin": "Skip Check In",
       "cancel": "Cancel Match",
       "delete": "Delete Match",
-      "delete_tournament_blocked": "Tournament matches must be reset or cancelled from the tournament bracket.",
+      "reset_tournament_match": "Reset Match",
       "canceled": "Match Canceled",
       "deleted": "Match Deleted",
       "void_elo": "Void ELO",

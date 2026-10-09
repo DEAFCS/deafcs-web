@@ -41,30 +41,62 @@ const as = (role: string | null, match: Record<string, any>) => {
   auth.me = role ? { steam_id: "900", role } : null;
   return {
     canDelete: component.computed.canDeleteMatch.call({ match }),
-    blocked: component.computed.deleteBlockedForTournament.call({ match }),
+    canReset: component.computed.canResetTournamentMatch.call({ match }),
   };
 };
 
-describe("generic Delete Match on a tournament match", () => {
-  it("is hidden for a tournament match and replaced by an explanation", () => {
+describe("tournament match: Reset Match instead of Delete Match", () => {
+  it("offers Reset Match for a tournament match and never the generic delete", () => {
     const result = as("administrator", { id: "m", status: "Finished", is_tournament_match: true });
     expect(result.canDelete).toBe(false);
-    expect(result.blocked).toBe(true);
-    expect(template).toContain("match.actions.delete_tournament_blocked");
-    expect(template).toContain('v-if="deleteBlockedForTournament"');
+    expect(result.canReset).toBe(true);
+    expect(template).toContain('v-if="canResetTournamentMatch"');
+    expect(template).toContain("match.actions.reset_tournament_match");
+    expect(template).toContain('@click="openTournamentReset"');
+    // The disabled "cannot delete" entry is gone.
+    expect(template).not.toContain("delete_tournament_blocked");
   });
 
-  it("is still offered for a normal match", () => {
+  it("offers it to the match's tournament organizer too, not to others", () => {
+    expect(as("user", { id: "m", status: "Finished", is_tournament_match: true, is_organizer: true }).canReset).toBe(true);
+    expect(as("user", { id: "m", status: "Finished", is_tournament_match: true, is_organizer: false }).canReset).toBe(false);
+    expect(as(null, { id: "m", status: "Finished", is_tournament_match: true }).canReset).toBe(false);
+  });
+
+  it("a normal match keeps Delete Match and gets no Reset Match", () => {
     const result = as("administrator", { id: "m", status: "Finished", is_tournament_match: false });
     expect(result.canDelete).toBe(true);
-    expect(result.blocked).toBe(false);
+    expect(result.canReset).toBe(false);
     expect(as("administrator", { id: "m", status: "Canceled" }).canDelete).toBe(true);
   });
 
-  it("is never offered to anyone below administrator, or on a live match", () => {
+  it("is never offered on a live match, and Delete stays administrator-only", () => {
     expect(as("tournament_organizer", { id: "m", status: "Finished" }).canDelete).toBe(false);
     expect(as("administrator", { id: "m", status: "Live" }).canDelete).toBe(false);
-    expect(as("administrator", { id: "m", status: "Live", is_tournament_match: true }).blocked).toBe(false);
+    expect(as("administrator", { id: "m", status: "Live", is_tournament_match: true }).canReset).toBe(false);
+  });
+
+  it("reuses the one tournament reset flow component (no second implementation)", () => {
+    const read = (f: string) => readFileSync(path.resolve(__dirname, "../..", f), "utf8");
+    const flow = read("components/tournament/TournamentMatchResetFlow.vue");
+    // The flow owns the preview, winner choice, schedule and the single action.
+    expect(flow).toContain("PreviewTournamentMatchReset");
+    expect(flow).toContain("ResetTournamentMatch");
+    for (const consumer of ["components/match/MatchActions.vue", "components/tournament/TournamentMatch.vue"]) {
+      const source = read(consumer);
+      expect(source).toContain("TournamentMatchResetFlow");
+      // Neither keeps its own copy of the mutation or the dialogs.
+      expect(source).not.toContain("mutation ResetTournamentMatch");
+      expect(source).not.toContain("PreviewTournamentMatchReset");
+    }
+    // The match page's click opens it with the match it already has.
+    expect(read("components/match/MatchActions.vue")).toContain('this.$refs.tournamentReset as any)?.open(this.match)');
+  });
+
+  it("the generic delete path is not reachable for a tournament match from the page", () => {
+    const deleteBlock = template.match(/<template v-if="canDeleteMatch">[\s\S]*?<\/template>/)![0];
+    expect(deleteBlock).toContain("showDeleteDialog = true");
+    expect(as("administrator", { id: "m", status: "Finished", is_tournament_match: true }).canDelete).toBe(false);
   });
 });
 

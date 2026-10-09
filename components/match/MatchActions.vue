@@ -308,14 +308,17 @@ import {
           </DropdownMenuItem>
         </template>
 
-        <template v-if="deleteBlockedForTournament">
+        <!-- A tournament match is reset, not deleted: the same tournament
+             reset (affected bracket chain, winner, schedule, confirmation) the
+             bracket offers, without leaving the match page. -->
+        <template v-if="canResetTournamentMatch">
           <DropdownMenuItem
-            disabled
-            data-testid="match-action-delete-blocked"
-            :title="$t('match.actions.delete_tournament_blocked')"
+            class="text-destructive"
+            data-testid="match-action-reset-tournament-match"
+            @click="openTournamentReset"
           >
-            <Trash2 />
-            {{ $t("match.actions.delete_tournament_blocked") }}
+            <RotateCcw />
+            {{ $t("match.actions.reset_tournament_match") }}
           </DropdownMenuItem>
         </template>
 
@@ -330,6 +333,12 @@ import {
         </template>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    <!-- The shared tournament reset flow (also used by the bracket card). -->
+    <TournamentMatchResetFlow
+      v-if="canResetTournamentMatch"
+      ref="tournamentReset"
+    />
 
     <AlertDialog :open="showDeleteDialog">
       <AlertDialogContent>
@@ -556,6 +565,9 @@ export default {
       } finally {
         this.voidingElo = false;
       }
+    },
+    openTournamentReset() {
+      (this.$refs.tournamentReset as any)?.open(this.match);
     },
     async deleteMatch() {
       if (this.deletingMatch) {
@@ -866,7 +878,7 @@ export default {
           this.canWatchCamera ||
           this.canVoidElo ||
           this.canDeleteMatch ||
-          this.deleteBlockedForTournament ||
+          this.canResetTournamentMatch ||
           this.canReparseDemos,
       );
     },
@@ -1125,11 +1137,15 @@ export default {
         useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },
-    deleteBlockedForTournament() {
+    // Who may reset is decided by the API (the tournament's organizers and site
+    // administrators); this only decides whether to offer it.
+    canResetTournamentMatch() {
+      const match = this.match as any;
       return (
-        this.match.status !== e_match_status_enum.Live &&
-        (this.match as any).is_tournament_match === true &&
-        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+        match.status !== e_match_status_enum.Live &&
+        match.is_tournament_match === true &&
+        (match.is_organizer === true ||
+          useAuthStore().isRoleAbove(e_player_roles_enum.administrator))
       );
     },
     // Reparse-all is admin-only (matches the Hasura action permission) and
