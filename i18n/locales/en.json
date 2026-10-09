@@ -5824,6 +5824,10 @@
     },
     "match": {
       "reset_winner": "Reset winner",
+      "recreate_match": "Recreate match",
+      "recreate_confirm": "This slot was played but its match was deleted. Recreate the match? The result that moved on to the next round is taken back and the match is played again.",
+      "recreate_done": "Match recreated",
+      "recreate_failed": "Could not recreate the match",
       "reset_warning": "Changing this result can delete downstream matches in the bracket",
       "winner_after_reset": "Winner after reset",
       "scheduled_at": "Scheduled at",
@@ -7170,6 +7174,7 @@
       "skip_checkin": "Skip Check In",
       "cancel": "Cancel Match",
       "delete": "Delete Match",
+      "delete_tournament_blocked": "Tournament matches must be reset or cancelled from the tournament bracket.",
       "canceled": "Match Canceled",
       "deleted": "Match Deleted",
       "void_elo": "Void ELO",

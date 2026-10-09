@@ -308,6 +308,17 @@ import {
           </DropdownMenuItem>
         </template>
 
+        <template v-if="deleteBlockedForTournament">
+          <DropdownMenuItem
+            disabled
+            data-testid="match-action-delete-blocked"
+            :title="$t('match.actions.delete_tournament_blocked')"
+          >
+            <Trash2 />
+            {{ $t("match.actions.delete_tournament_blocked") }}
+          </DropdownMenuItem>
+        </template>
+
         <template v-if="canDeleteMatch">
           <DropdownMenuItem
             class="text-destructive"
@@ -855,6 +866,7 @@ export default {
           this.canWatchCamera ||
           this.canVoidElo ||
           this.canDeleteMatch ||
+          this.deleteBlockedForTournament ||
           this.canReparseDemos,
       );
     },
@@ -1103,9 +1115,20 @@ export default {
         useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },
+    // A tournament match is never deleted from here: its bracket would keep the
+    // slot, the teams and possibly a winner with no match left to reset. It is
+    // reset or cancelled from the tournament bracket. The API refuses it too.
     canDeleteMatch() {
       return (
         this.match.status !== e_match_status_enum.Live &&
+        (this.match as any).is_tournament_match !== true &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+      );
+    },
+    deleteBlockedForTournament() {
+      return (
+        this.match.status !== e_match_status_enum.Live &&
+        (this.match as any).is_tournament_match === true &&
         useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },

@@ -2,6 +2,8 @@ export interface Bracket {
   id: string;
   round?: number;
   bye?: boolean;
+  // Set when the slot was played (or its match was taken away afterwards).
+  finished?: boolean;
   match_number?: number;
   path?: string;
   group?: number;

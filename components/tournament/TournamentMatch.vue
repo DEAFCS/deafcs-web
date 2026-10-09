@@ -33,6 +33,7 @@ import MatchMapDots from "~/components/match/MatchMapDots.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import BracketNegotiation from "~/components/tournament/BracketNegotiation.vue";
 import { negotiableBracket } from "~/utilities/bracketNegotiation";
+import { isOrphanedBracket } from "~/utilities/tournamentOrphanBracket";
 import {
   e_match_status_enum,
   e_player_roles_enum,
@@ -225,6 +226,38 @@ const executeResetMutation = gql`
     }
   }
 `;
+
+const recreateMutation = gql`
+  mutation RecreateTournamentBracketMatch($bracketId: uuid!) {
+    RecreateTournamentBracketMatch(bracket_id: $bracketId) {
+      success
+      match_id
+    }
+  }
+`;
+
+const recreateLoading = ref(false);
+
+const recreateMatch = async (bracket: Bracket) => {
+  if (recreateLoading.value) return;
+  if (!window.confirm(t("tournament.match.recreate_confirm"))) return;
+  recreateLoading.value = true;
+  try {
+    await nuxtApp.$apollo.defaultClient.mutate({
+      mutation: recreateMutation,
+      variables: { bracketId: bracket.id },
+    });
+    toast({ title: t("tournament.match.recreate_done") });
+  } catch (error: any) {
+    toast({
+      title: t("tournament.match.recreate_failed"),
+      description: error?.message || t("toasts.please_try_again"),
+      variant: "destructive",
+    });
+  } finally {
+    recreateLoading.value = false;
+  }
+};
 
 const orderedImpacts = computed(() =>
   [...resetImpacts.value].sort((a, b) => a.depth - b.depth),
@@ -933,6 +966,33 @@ const hasFooter = (bracket: Bracket) =>
             {{ statusLabel(bracket) }}
           </span>
           <MatchMapDots v-else-if="bracket.match" :match="bracket.match" />
+          <DropdownMenu v-if="canManageBracketReset && isOrphanedBracket(bracket)">
+            <DropdownMenuTrigger as-child>
+              <Button
+                variant="ghost"
+                size="icon"
+                class="relative h-5 w-5 rounded-sm text-muted-foreground hover:text-foreground after:absolute after:-inset-1.5"
+                :disabled="recreateLoading"
+                data-testid="bracket-orphan-actions"
+                @click.stop
+              >
+                <span class="sr-only">{{
+                  $t("tournament.open_match_actions")
+                }}</span>
+                <MoreVertical aria-hidden="true" class="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-52">
+              <DropdownMenuItem
+                class="text-red-300 focus:bg-red-950/50 focus:text-red-200"
+                data-testid="bracket-recreate-match"
+                @click.stop="recreateMatch(bracket)"
+              >
+                <RotateCcw />
+                {{ $t("tournament.match.recreate_match") }}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu
             v-if="canManageBracketReset && bracket.match && !bracket.bye"
           >

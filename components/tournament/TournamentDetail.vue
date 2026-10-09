@@ -1294,6 +1294,7 @@ export default {
                       round: true,
                       group: true,
                       bye: true,
+                      finished: true,
                       match_number: true,
                       scheduled_at: true,
                       scheduled_eta: true,
