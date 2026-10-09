@@ -20,7 +20,8 @@ import {
 <template>
   <div class="space-y-6">
     <section
-      v-if="showStandings && podium.length && !isLive"
+      v-if="showStandings && isFinished && (podium.length || mvp)"
+      data-testid="tournament-results-podium"
       class="relative rounded-lg border border-border px-6 py-7 [background:radial-gradient(ellipse_at_top,hsl(var(--tac-amber)_/_0.08)_0%,transparent_60%),linear-gradient(180deg,hsl(var(--card)_/_0.6)_0%,hsl(var(--card)_/_0.25)_100%)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-['']"
     >
       <div
@@ -69,7 +70,7 @@ import {
                 {{ placementLabel(entry.placement) }}
               </div>
 
-              <div class="relative">
+              <div v-if="hasAwardFor(entry.placement)" class="relative">
                 <div
                   class="pointer-events-none absolute inset-0 blur-2xl transition-opacity duration-300 group-hover/step:opacity-100"
                   :class="entry.placement === 1 ? 'opacity-60' : 'opacity-30'"
@@ -378,6 +379,9 @@ import {
         </div>
       </div>
     </section>
+
+    <!-- Prize money sits between the podium and the standings (Overview). -->
+    <slot name="prizes" />
 
     <template v-if="showStandings">
       <Card v-for="stage in stagesWithStandings" :key="stage.id">
@@ -790,6 +794,14 @@ export default {
     // The award definition granted for this placement (with any
     // per-tournament slot override applied), rendered through AwardArtwork so
     // the podium shows the real award and its uploaded artwork.
+    // The Champion / Runner-up / Third Place award was granted for this
+    // placement (awards on for the tournament). Without it the podium shows
+    // the placed team only, no artwork.
+    hasAwardFor(placement: number) {
+      return ((this as any).awardOccurrences || []).some(
+        (o: any) => o.placement === placement,
+      );
+    },
     awardArtworkFor(placement: number) {
       const occurrence = ((this as any).awardOccurrences || []).find(
         (o: any) => o.placement === placement,
@@ -852,40 +864,53 @@ export default {
       const stages = (this.tournament as any)?.stages || [];
       return stages.length ? stages[stages.length - 1]?.type || null : null;
     },
+    isFinished() {
+      return (
+        (this.tournament as any)?.status === e_tournament_status_enum.Finished
+      );
+    },
+    // The top three are tournament RESULTS: the final placement of the last
+    // stage, shown only once the tournament is finished and whether or not
+    // placement awards are enabled. Award artwork is added on top where an
+    // award was granted (hasAwardFor); the MVP below is separate and stays the
+    // manually selected award recipient.
     podium() {
-      const occurrences = (this as any).awardOccurrences || [];
-      const entries = [];
-      for (const occ of occurrences) {
-        if (occ.placement === 0) continue;
-        const recipients = occ.recipients || [];
-        const primary =
-          recipients.find((r: any) => r.tournament_team) || recipients[0];
-        const rosterPlayers = (primary?.tournament_team?.roster || [])
+      if (!this.isFinished) return [];
+      const stages = (((this.tournament as any)?.stages || []) as any[])
+        .slice()
+        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+      const finalStage = stages[stages.length - 1];
+      const rows = ((finalStage?.results || []) as any[])
+        .filter((row: any) => {
+          const placement = Number(row?.placement) || 0;
+          return placement >= 1 && placement <= 3;
+        })
+        .sort(
+          (a: any, b: any) =>
+            Number(a.placement) - Number(b.placement) ||
+            (Number(a.group_number) || 1) - (Number(b.group_number) || 1) ||
+            (Number(a.rank) || 0) - (Number(b.rank) || 0),
+        );
+      return rows.map((row: any) => {
+        const rosterPlayers = (row.team?.roster || [])
           .map((r: any) => r.player)
           .filter(Boolean);
-        const directPlayers = recipients
-          .map((r: any) => r.player)
-          .filter(Boolean);
-        const players = rosterPlayers.length ? rosterPlayers : directPlayers;
-        entries.push({
-          placement: occ.placement,
-          teamId: primary?.tournament_team_id ?? null,
-          realTeamId:
-            primary?.tournament_team?.team?.id || primary?.team?.id || null,
+        return {
+          placement: Number(row.placement),
+          teamId: row.tournament_team_id ?? row.team?.id ?? null,
+          realTeamId: row.team?.team?.id || null,
           teamName:
             this.displayTeamName(
-              primary?.tournament_team,
-              primary?.tournament_team_id,
+              row.team,
+              row.tournament_team_id ?? row.team?.id,
             ) ||
-            primary?.team?.name ||
-            primary?.team?.short_name ||
+            row.team?.team?.name ||
             "",
           tournamentType: this.finalStageType,
-          players,
-          tournamentTeam: primary?.tournament_team ?? null,
-        });
-      }
-      return entries.sort((a: any, b: any) => a.placement - b.placement);
+          players: rosterPlayers,
+          tournamentTeam: row.team ?? null,
+        };
+      });
     },
     mvp() {
       // The tournament MVP is chosen by hand and may have been changed or

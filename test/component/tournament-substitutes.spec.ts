@@ -46,29 +46,62 @@ const mountSetup = (t: any, format = "Single Elimination - BO1") =>
 const $ = (w: any, id: string) => w.find(`[data-testid="${id}"]`);
 
 describe("Overview Match Setup", () => {
-  it("shows the mode with the DEAFCS mode colour, BO, veto and map count", () => {
+  const withRulesSlot = (t: any) =>
+    mount(TournamentMatchSetup, {
+      props: { tournament: t, format: "Single Elimination - BO1" },
+      global: {
+        mocks: { $t: (k: string, v?: any) => (v ? `${k}:${JSON.stringify(v)}` : k) },
+        stubs: {
+          MatchOptionsDisplay: {
+            name: "MatchOptionsDisplay",
+            props: ["options", "substitutes", "showDetailsByDefault", "minRole"],
+            template:
+              "<div data-testid='options-display' :data-substitutes='String(substitutes)'><slot name='actions' /></div>",
+          },
+          NuxtLink: { props: ["to"], template: "<a :href='to'><slot /></a>" },
+        },
+      },
+    });
+
+  it("no longer repeats Mode, Format, Best Of, Map veto or Substitutes", () => {
     const w = mountSetup(tournament());
-    const mode = $(w, "tournament-match-setup-mode");
-    expect(mode.text()).toBe("Competitive");
-    expect(mode.attributes("style")).toContain("--mode-rgb: 249 158 47");
-    expect($(w, "tournament-match-setup-best-of").text()).toContain("BO1");
-    expect(w.text()).toContain('tournament.page.match_setup.maps:{"count":7}');
-    expect(w.text()).toContain("Single Elimination - BO1");
+    for (const id of [
+      "tournament-match-setup-mode",
+      "tournament-match-setup-best-of",
+      "tournament-match-setup-substitutes",
+      "tournament-match-setup-stages",
+    ]) {
+      expect($(w, id).exists()).toBe(false);
+    }
+    const text = w.text();
+    for (const label of ["match_setup.mode", "match_setup.format", "match_setup.best_of", "match_setup.map_veto", "match_setup.substitutes"]) {
+      expect(text).not.toContain(label);
+    }
+    expect(w.find("dl").exists()).toBe(false);
+    expect(text).not.toContain("Single Elimination - BO1");
   });
 
-  it("substitutes ON: Enabled, never an invented count; settings get the effective 2", () => {
-    const w = mountSetup(tournament());
-    expect($(w, "tournament-match-setup-substitutes").text()).toBe("tournament.page.match_setup.enabled");
-    expect($(w, "options-display").attributes("data-substitutes")).toBe("2");
+  it("keeps the map pool and Show Advanced Settings (MatchOptionsDisplay) with the Tournament Rules action beside it", () => {
+    const w = withRulesSlot(tournament());
+    expect($(w, "options-display").exists()).toBe(true);
+    const rules = $(w, "tournament-overview-rules");
+    expect(rules.exists()).toBe(true);
+    expect(rules.attributes("href")).toBe("/tournament-rules");
+    expect(rules.text()).toBe("tournament.page.tournament_rules_action");
+    // Rendered inside the display's actions slot, i.e. next to its toggle.
+    expect($(w, "options-display").find('[data-testid="tournament-overview-rules"]').exists()).toBe(true);
   });
 
-  it("substitutes OFF: Off, and the settings show 0 substitutes, not the global allowance", () => {
+  it("substitutes ON: the advanced settings get the effective 2", () => {
+    expect($(mountSetup(tournament()), "options-display").attributes("data-substitutes")).toBe("2");
+  });
+
+  it("substitutes OFF: the advanced settings show 0, not the global allowance", () => {
     const w = mountSetup(tournament({ substitutes_enabled: false, max_players_per_lineup: 5 }));
-    expect($(w, "tournament-match-setup-substitutes").text()).toBe("tournament.page.match_setup.disabled");
     expect($(w, "options-display").attributes("data-substitutes")).toBe("0");
   });
 
-  it("Duel: no substitutes row and 0 in the settings", () => {
+  it("Duel: 0 substitutes in the advanced settings", () => {
     const w = mountSetup(
       tournament({
         min_players_per_lineup: 1,
@@ -76,30 +109,7 @@ describe("Overview Match Setup", () => {
         options: { type: "Duel", best_of: 1, map_veto: true, number_of_substitutes: 2, map_pool: pool("p", 5) },
       }),
     );
-    expect($(w, "tournament-match-setup-substitutes").exists()).toBe(false);
-    expect($(w, "tournament-match-setup-mode").attributes("style")).toContain("--mode-rgb: 34 211 238");
     expect($(w, "options-display").attributes("data-substitutes")).toBe("0");
-  });
-
-  it("multi-stage: one accurate row per stage (BO, decider, own map pool)", () => {
-    const w = mountSetup(
-      tournament({
-        stages: [
-          { id: "b", order: 2, type: "SingleElimination", e_tournament_stage_type: { description: "Playoffs" }, default_best_of: 3, decider_best_of: 5, options: { map_pool: pool("q", 3) } },
-          { id: "a", order: 1, type: "Swiss", e_tournament_stage_type: { description: "Swiss" }, default_best_of: null, decider_best_of: null, options: null },
-        ],
-      }),
-      "2 stages",
-    );
-    const rows = $(w, "tournament-match-setup-stages").findAll("li").map((li: any) => li.text().replace(/\s+/g, " "));
-    expect(rows[0]).toContain('tournament.page.match_setup.stage:{"number":1} · Swiss');
-    expect(rows[0]).toContain("BO1");
-    expect(rows[1]).toContain("Playoffs");
-    expect(rows[1]).toContain("BO3");
-    expect(rows[1]).toContain('decider:{"best_of":5}');
-    expect(rows[1]).toContain('own_map_pool:{"count":3}');
-    // No single BO number when stages differ.
-    expect($(w, "tournament-match-setup-best-of").exists()).toBe(false);
   });
 });
 

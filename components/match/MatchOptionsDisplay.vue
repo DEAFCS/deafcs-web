@@ -40,17 +40,24 @@ const BooleanPill = defineComponent({
   </template>
 
   <Collapsible v-model:open="showDetails">
-    <CollapsibleTrigger as-child v-if="!showDetailsByDefault">
-      <button
-        type="button"
-        class="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 p-0 cursor-pointer"
-      >
-        <span
-          class="w-1.5 h-1.5 rounded-full bg-[hsl(var(--tac-amber))]"
-        ></span>
-        {{ $t("match.options.advanced_settings") }}
-      </button>
-    </CollapsibleTrigger>
+    <!-- Other compact actions (e.g. Tournament Rules) sit next to the toggle. -->
+    <div
+      v-if="!showDetailsByDefault || $slots.actions"
+      class="flex flex-wrap items-center gap-x-5 gap-y-2"
+    >
+      <CollapsibleTrigger as-child v-if="!showDetailsByDefault">
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 text-xs font-mono uppercase tracking-[0.2em] text-muted-foreground hover:text-foreground transition-colors bg-transparent border-0 p-0 cursor-pointer"
+        >
+          <span
+            class="w-1.5 h-1.5 rounded-full bg-[hsl(var(--tac-amber))]"
+          ></span>
+          {{ $t("match.options.advanced_settings") }}
+        </button>
+      </CollapsibleTrigger>
+      <slot name="actions" />
+    </div>
     <CollapsibleContent>
       <div class="settings-grid-wrap mt-4">
         <div class="settings-grid">

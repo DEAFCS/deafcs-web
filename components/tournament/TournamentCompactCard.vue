@@ -45,7 +45,8 @@ const runtimeConfig = useRuntimeConfig();
 
 const tournamentPath = computed(() => {
   const base = `/tournaments/${props.tournament.id}`;
-  return props.statusVariant === "finished" ? `${base}?tab=standings` : base;
+  // Final standings are on the Overview now; no tab to open.
+  return base;
 });
 
 const logoUrl = computed(() => {

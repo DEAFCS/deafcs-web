@@ -5478,6 +5478,7 @@
       "read_more": "Read more",
       "read_less": "Read less",
       "view_tournament_rules": "View Tournament Rules",
+      "tournament_rules_action": "Tournament Rules",
       "tournament_rules_hint": "General tournament rules apply to all events. Check this tournament's settings for event-specific match rules.",
       "load_error": "This tournament couldn't be loaded. Try refreshing the page.",
       "awards_showcase": {
@@ -6083,7 +6084,7 @@
       "move_down": "Move down"
     },
     "rewards": {
-      "title": "Tournament Rewards"
+      "title": "Tournament Awards"
     },
     "stats": {
       "prize_pool": "Prize Pool",

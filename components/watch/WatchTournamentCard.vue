@@ -319,7 +319,7 @@ const primaryClasses =
           class="hit h-8"
           data-testid="watch-tournament-secondary-action"
         >
-          <NuxtLink :to="state === 'finished' ? `${path}?tab=standings` : path">
+          <NuxtLink :to="path">
             {{
               state === "finished"
                 ? $t("pages.watch.tournaments.results")

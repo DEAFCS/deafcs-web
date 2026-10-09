@@ -12,6 +12,7 @@ import TournamentInviteAccept from "~/components/tournament/TournamentInviteAcce
 import TournamentIndividualPlayers from "~/components/tournament/TournamentIndividualPlayers.vue";
 import TournamentTeam from "~/components/tournament/TournamentTeam.vue";
 import TournamentRewards from "~/components/tournament/TournamentRewards.vue";
+import TournamentPrizes from "~/components/tournament/TournamentPrizes.vue";
 import ManageSection from "~/components/common/ManageSection.vue";
 import TournamentStatRibbon from "~/components/tournament/TournamentStatRibbon.vue";
 import TournamentCheckInInfo from "~/components/tournament/TournamentCheckInInfo.vue";
@@ -661,68 +662,88 @@ const tacticalCornerCardClasses =
                 :location="shortLocation"
               ></TournamentStatRibbon>
 
-              <TournamentProgress
+              <!-- Finished: the final presentation (top 3, MVP, then prize money,
+                   then the standings) as one deliberate block. Otherwise the
+                   configured awards, with the prize money directly under them. -->
+              <TournamentResults
+                v-if="tournament.status === e_tournament_status_enum.Finished"
                 :tournament="tournament"
-                :show-matches-link="matchesTabVisible"
-                @open-tab="(tab) => (activeTab = tab)"
-              ></TournamentProgress>
-
-              <ManageSection
-                v-if="tournament.options"
-                :label="$t('tournament.page.match_setup.title')"
+                :show-standings="true"
+                :show-matches="false"
+                data-testid="tournament-overview-results"
               >
-                <TournamentMatchSetup
+                <template #prizes>
+                  <TournamentPrizes
+                    v-if="hasPrizes"
+                    :prizes="tournament.prizes"
+                  ></TournamentPrizes>
+                </template>
+              </TournamentResults>
+              <template v-else>
+                <TournamentRewards
+                  :tournament-id="tournament.id"
+                  :awards-enabled="tournament.trophies_enabled ?? false"
+                  :match-type="tournament.options?.type || null"
+                  :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
+                ></TournamentRewards>
+
+                <TournamentPrizes
+                  v-if="hasPrizes"
+                  :prizes="tournament.prizes"
+                ></TournamentPrizes>
+
+                <TournamentProgress
                   :tournament="tournament"
-                  :format="formatLabel"
-                ></TournamentMatchSetup>
-                <!-- Was on the removed public "Tournament Settings" tab; the
-                     full match settings are already in Match Setup above. -->
-                <div class="grid gap-1" data-testid="tournament-overview-rules">
-                  <NuxtLink
-                    to="/tournament-rules"
-                    class="inline-flex w-fit items-center text-xs text-muted-foreground hover:text-[hsl(var(--tac-amber))]"
-                  >
-                    {{ $t("tournament.page.view_tournament_rules") }}
-                  </NuxtLink>
-                  <p class="text-xs text-muted-foreground/70">
-                    {{ $t("tournament.page.tournament_rules_hint") }}
-                  </p>
-                </div>
-              </ManageSection>
+                  :show-matches-link="matchesTabVisible"
+                  @open-tab="(tab) => (activeTab = tab)"
+                ></TournamentProgress>
+              </template>
 
-              <TournamentRewards
-                :prizes="tournament.prizes"
-                :tournament-id="tournament.id"
-                :awards-enabled="tournament.trophies_enabled ?? false"
-                :match-type="tournament.options?.type || null"
-                :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
-              ></TournamentRewards>
-
-              <ManageSection
-                v-if="tournament.description"
-                :label="$t('tournament.page.about_section')"
+              <!-- About | Match Setup; Match Setup alone is full width when
+                   there is no description. -->
+              <div
+                class="grid items-start gap-6"
+                :class="hasDescription ? 'xl:grid-cols-2' : ''"
+                data-testid="tournament-overview-bottom"
               >
-                <div class="flex flex-col gap-3">
-                  <p
-                    class="max-w-[70ch] whitespace-pre-line text-sm leading-relaxed text-muted-foreground"
-                    :class="{ 'line-clamp-[8]': !descExpanded }"
-                  >
-                    {{ tournament.description }}
-                  </p>
-                  <button
-                    v-if="descLong"
-                    type="button"
-                    class="self-start text-xs font-semibold text-[hsl(var(--tac-amber))] transition-opacity hover:opacity-80"
-                    @click="descExpanded = !descExpanded"
-                  >
-                    {{
-                      descExpanded
-                        ? $t("tournament.page.read_less")
-                        : $t("tournament.page.read_more")
-                    }}
-                  </button>
-                </div>
-              </ManageSection>
+                <ManageSection
+                  v-if="hasDescription"
+                  :label="$t('tournament.page.about_section')"
+                  data-testid="tournament-overview-about"
+                >
+                  <div class="flex flex-col gap-3">
+                    <p
+                      class="max-w-[70ch] whitespace-pre-line text-sm leading-relaxed text-muted-foreground"
+                      :class="{ 'line-clamp-[8]': !descExpanded }"
+                    >
+                      {{ tournament.description }}
+                    </p>
+                    <button
+                      v-if="descLong"
+                      type="button"
+                      class="self-start text-xs font-semibold text-[hsl(var(--tac-amber))] transition-opacity hover:opacity-80"
+                      @click="descExpanded = !descExpanded"
+                    >
+                      {{
+                        descExpanded
+                          ? $t("tournament.page.read_less")
+                          : $t("tournament.page.read_more")
+                      }}
+                    </button>
+                  </div>
+                </ManageSection>
+
+                <ManageSection
+                  v-if="tournament.options"
+                  :label="$t('tournament.page.match_setup.title')"
+                  data-testid="tournament-overview-match-setup"
+                >
+                  <TournamentMatchSetup
+                    :tournament="tournament"
+                    :format="formatLabel"
+                  ></TournamentMatchSetup>
+                </ManageSection>
+              </div>
             </div>
           </div>
         </TabsContent>
@@ -829,15 +850,6 @@ const tacticalCornerCardClasses =
               ></TournamentNotSelectedSection>
             </div>
 
-          </div>
-        </TabsContent>
-        <TabsContent v-if="standingsTabVisible" value="standings">
-          <div>
-            <TournamentResults
-              :tournament="tournament"
-              :show-standings="true"
-              :show-matches="false"
-            />
           </div>
         </TabsContent>
         <TabsContent v-if="statsTabVisible" value="stats">
@@ -1666,6 +1678,12 @@ export default {
 
       return this.singleStageType;
     },
+    hasPrizes() {
+      return (this.tournament?.prizes?.length ?? 0) > 0;
+    },
+    hasDescription() {
+      return !!String(this.tournament?.description ?? "").trim();
+    },
     prizePool() {
       return formatPrizePool(this.tournament?.prizes);
     },
@@ -1776,10 +1794,6 @@ export default {
       // organizers, and the rules already sit in Overview (Match Setup).
       // Administrative settings live in Manage.
 
-      if (this.standingsTabVisible) {
-        tabs.push("standings");
-      }
-
       if (this.statsTabVisible) {
         tabs.push("stats");
       }
@@ -1801,7 +1815,6 @@ export default {
               count: this.tournament?.teams_aggregate?.aggregate?.count || 0,
             }),
         "free-agents": this.$t("tournament.free_agents.title"),
-        standings: this.$t("tournament.standings.title"),
         stats: this.$t("tournament.stats_tab.title"),
       };
       return this.availableTournamentTabs.map((tab: string) => ({
@@ -1830,6 +1843,9 @@ export default {
               t.status !== e_tournament_status_enum.Live)))
       );
     },
+    // The final standings now live in the Overview, so this only gates the Stats
+    // tab (live, paused or finished); there is no public Standings tab. An old
+    // ?tab=standings link falls back to the Overview.
     standingsTabVisible() {
       const status = this.tournament?.status;
       return (

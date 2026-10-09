@@ -271,7 +271,7 @@ const section = "grid gap-2.5 border-t border-border/65 pt-4";
         class="h-8 text-muted-foreground hover:text-foreground"
       >
         <NuxtLink
-          :to="state === 'finished' ? `${path}?tab=standings` : path"
+          :to="path"
         >
           {{
             state === "finished"
