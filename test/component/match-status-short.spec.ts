@@ -35,6 +35,6 @@ describe("matches table status wording", () => {
     expect(uses.length).toBeGreaterThan(0);
     for (const use of uses) expect(use).toMatch(/\bshort\b/);
     const en = JSON.parse(readFileSync(path.resolve(__dirname, "../../i18n/locales/en.json"), "utf8"));
-    expect(en.match.status.waiting_check_in).toBe("Waiting for check-in");
+    expect(en.match.status.waiting_check_in).toBe("Check-in");
   });
 });

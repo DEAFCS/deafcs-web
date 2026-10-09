@@ -151,12 +151,12 @@ describe("team check-in with and without substitutes", () => {
     expect(buttons[0].text()).not.toContain("confirm_lineup");
   });
 
-  it("Wingman roster of 4: Edit Lineup, and check-in is visible at once as Confirm Lineup", async () => {
+  it("Wingman roster of 4: Edit Lineup, and check-in is visible at once as a normal check-in", async () => {
     const wrapper = await mountCheckIn(build({ size: 2, roster1: 4 }), "11");
     expect(edit(wrapper, 1).text()).toContain("match.starting_lineup.edit");
     const buttons = action(wrapper, 1);
     expect(buttons).toHaveLength(1);
-    expect(buttons[0].text()).toContain("match.starting_lineup.confirm_lineup");
+    expect(buttons[0].text()).toContain("match.lifecycle.check_in_team");
     // No separate Confirm Starting Lineup step or explanation any more.
     expect(wrapper.text()).not.toContain("match.starting_lineup.confirm\"");
     expect(wrapper.find('[data-testid="starting-lineup-needs-confirmation"]').exists()).toBe(false);
@@ -167,13 +167,13 @@ describe("team check-in with and without substitutes", () => {
     expect(JSON.stringify(apollo.mutate.mock.calls[0][0].mutation)).toContain("checkIntoMatch");
   });
 
-  it("5v5 roster of 5: no Edit Lineup; roster of 6 or 7: Edit Lineup and Confirm Lineup", async () => {
+  it("5v5 roster of 5: no Edit Lineup; roster of 6 or 7: Edit Lineup and the same check-in", async () => {
     let wrapper = await mountCheckIn(build({ size: 5, roster1: 5 }), "11");
     expect(edit(wrapper, 1).exists()).toBe(false);
     for (const count of [6, 7]) {
       wrapper = await mountCheckIn(build({ size: 5, roster1: count }), "11");
       expect(edit(wrapper, 1).exists()).toBe(true);
-      expect(action(wrapper, 1)[0].text()).toContain("match.starting_lineup.confirm_lineup");
+      expect(action(wrapper, 1)[0].text()).toContain("match.lifecycle.check_in_team");
     }
   });
 

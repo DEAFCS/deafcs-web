@@ -133,10 +133,12 @@ describe("check-in stage", () => {
   it("individual check-in: the real action for an eligible player, no per-team list or counter", async () => {
     auth.me = { steam_id: "14" };
     const wrapper = mountCheckIn(checkInMatch("Players", { can_check_in: true }));
-    // The team cards beside the panel show each player, so nothing repeats here.
+    // The team cards beside the panel show each player: only team rows here.
     expect(wrapper.find('[data-testid="check-in-players"]').exists()).toBe(false);
-    expect(wrapper.find('[data-testid^="check-in-team-"]').exists()).toBe(false);
+    expect(wrapper.findAll('[data-testid="check-in-teams"] > li')).toHaveLength(2);
     expect(wrapper.find('[data-testid^="check-in-player-"]').exists()).toBe(false);
+    expect(wrapper.get('[data-testid="check-in-progress-1"]').text()).toBe("3 / 5");
+    expect(wrapper.get('[data-testid="check-in-progress-2"]').text()).toBe("match.lifecycle.ready");
     expect(wrapper.text()).not.toContain("match.lifecycle.players_checked_in");
     const button = wrapper.get("button");
     expect(button.text()).toContain("match.check_in.check_in");

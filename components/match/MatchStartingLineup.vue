@@ -63,8 +63,8 @@ export default {
       type: Number as () => 1 | 2,
       required: true,
     },
-    // The check-in wording when the team has no substitutes (a team with
-    // substitutes always checks in with Confirm Lineup).
+    // The check-in wording. Checking in also confirms the lineup the team is
+    // seated with (the API does that), so the button is simply Check In.
     checkInLabel: {
       type: String,
       default: null,
@@ -102,9 +102,6 @@ export default {
     },
     showCheckIn(): boolean {
       return this.part !== "edit" && this.viewerInTeam;
-    },
-    bench(): boolean {
-      return this.hasBench(this.team);
     },
     // The viewer sits in this team match lineup (the one who checks in).
     viewerInTeam(): boolean {
@@ -287,8 +284,8 @@ export default {
        checking in also confirms a lineup chosen from a bigger roster. -->
   <div
     v-if="showEdit || showCheckIn"
-    class="flex min-w-0 flex-wrap items-center justify-end gap-2"
-    :class="part === 'edit' ? 'mt-3 justify-start' : ''"
+    class="flex min-w-0 flex-wrap items-center gap-2"
+    :class="part === 'edit' ? 'mt-3 justify-start' : part === 'check-in' ? 'w-full justify-center' : 'justify-end'"
   >
     <Button
       v-if="showEdit"
@@ -304,7 +301,8 @@ export default {
     <CheckIntoMatch
       v-if="showCheckIn"
       :match="match"
-      :label="bench ? $t('match.starting_lineup.confirm_lineup') : checkInLabel"
+      :label="checkInLabel"
+      :centered="part === 'check-in'"
       data-testid="team-check-in"
     />
 

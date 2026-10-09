@@ -7032,7 +7032,7 @@
     "status": {
       "cancelled": "Cancelled",
       "waiting_server": "Waiting for server ...",
-      "waiting_check_in": "Waiting for check-in",
+      "waiting_check_in": "Check-in",
       "scheduled_asap": "Scheduled ASAP",
       "paused": "Paused",
       "tied": "Tied"
@@ -7093,7 +7093,6 @@
     "starting_lineup": {
       "title": "Starting Lineup",
       "edit": "Edit Lineup",
-      "confirm_lineup": "Confirm Lineup",
       "active": "Active",
       "substitute": "Substitute",
       "pick_hint": "Choose the {count} players who play this match. Everyone else stays a substitute.",

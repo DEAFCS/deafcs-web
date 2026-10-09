@@ -6,10 +6,10 @@ import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
 <template>
   <section class="flex min-w-0 flex-col gap-4" data-testid="overview-check-in" :data-mode="summary.mode">
 
-    <!-- Every player checks in: the team cards beside this panel already
-         show each player's readiness, so nothing is repeated here. -->
+    <!-- One row per team. With every-player check-in the team cards beside this
+         panel already show each player, so a row is only the team and its
+         progress (READY once all its active players are in). -->
     <ul
-      v-if="summary.mode !== 'Players'"
       class="flex flex-col gap-2"
       data-testid="check-in-teams"
     >
@@ -34,8 +34,11 @@ import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
             :check-in-label="checkInLabel"
             data-testid="overview-starting-lineup"
           />
-          <span class="check-in-badge shrink-0 rounded px-2 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em]">
-            {{ team.ready ? $t("match.lifecycle.ready") : $t("match.lifecycle.waiting_check_in") }}
+          <span
+            class="check-in-badge shrink-0 rounded px-2 py-1 font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em]"
+            :data-testid="`check-in-progress-${team.team}`"
+          >
+            {{ rowStatus(team) }}
           </span>
         </div>
       </li>
@@ -57,6 +60,7 @@ import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
     </template>
     <CheckIntoMatch
       v-else-if="!inlineTeamControls"
+      :centered="summary.mode === 'Players'"
       :match="match"
       :label="summary.mode === 'Captains' ? $t('match.lifecycle.check_in_team') : null"
     />
@@ -101,6 +105,17 @@ export default {
     },
   },
   methods: {
+    // Every-player check-in shows X / required until the team is ready;
+    // the other modes keep READY / waiting.
+    rowStatus(team: { ready: boolean; checkedIn: number; required: number }) {
+      if (team.ready) {
+        return this.$t("match.lifecycle.ready");
+      }
+      if (this.summary.mode === "Players") {
+        return `${Math.min(team.checkedIn, team.required)} / ${team.required}`;
+      }
+      return this.$t("match.lifecycle.waiting_check_in");
+    },
     teamName(team: 1 | 2) {
       return (
         this.match[`lineup_${team}`]?.name || this.$t(`match.lineup.lineup_${team}`)

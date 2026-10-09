@@ -2,6 +2,7 @@
   <div
     v-if="isInMatch && match.can_check_in"
     class="flex min-h-[2.625rem] items-center"
+    :class="centered ? 'justify-center' : ''"
   >
     <button
       v-if="!isCheckedIn"
@@ -21,7 +22,11 @@
         label || $t("match.check_in.check_in")
       }}</span>
     </button>
-    <div v-else class="flex items-center gap-3">
+    <div
+      v-else
+      class="flex items-center gap-3"
+      :class="centered ? 'justify-center text-center' : ''"
+    >
       <Badge variant="secondary" class="shrink-0 whitespace-nowrap">
         {{ $t("match.check_in.checked_in") }}
       </Badge>
@@ -56,6 +61,11 @@ export default {
     label: {
       type: String,
       default: null,
+    },
+    // Centered in its section (the every-player check-in overview).
+    centered: {
+      type: Boolean,
+      default: false,
     },
   },
   setup() {

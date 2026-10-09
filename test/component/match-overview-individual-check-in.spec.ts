@@ -139,14 +139,50 @@ beforeEach(() => {
 afterEach(() => vi.unstubAllGlobals());
 
 describe("every-player check-in overview", () => {
-  it("drops the duplicated player lists and per-team counters from the middle", async () => {
-    const wrapper = await mountOverview(build({ checkedIn: ["11"] }), "11");
+  it("the middle is one row per team (name and progress), with no player names or lists", async () => {
+    const wrapper = await mountOverview(build({ size: 2, checkedIn: ["11"] }), "11");
     const mid = middle(wrapper);
     expect(mid.find('[data-testid="check-in-players"]').exists()).toBe(false);
-    expect(mid.find('[data-testid="check-in-teams"]').exists()).toBe(false);
-    expect(mid.find('[data-testid^="check-in-team-"]').exists()).toBe(false);
     expect(mid.find('[data-testid^="check-in-player-"]').exists()).toBe(false);
-    expect(mid.text()).not.toContain("match.lifecycle.players_checked_in");
+    const rows = mid.findAll('[data-testid="check-in-teams"] > li');
+    expect(rows).toHaveLength(2);
+    expect(rows.map((r: any) => r.text())).toEqual(["Alpha1 / 2", "Bravo0 / 2"]);
+    expect(mid.text()).not.toContain("P11");
+    expect(mid.text()).not.toContain("P12");
+  });
+
+  it("a row shows X / required (Wingman 0/2, 1/2; 5v5 0/5, 3/5) and READY when complete", async () => {
+    let wrapper = await mountOverview(build({ size: 2, checkedIn: ["11"] }), "11");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-1"]').text()).toBe("1 / 2");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-2"]').text()).toBe("0 / 2");
+    wrapper = await mountOverview(build({ size: 5, checkedIn: ["11", "12", "13"] }), "11");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-1"]').text()).toBe("3 / 5");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-2"]').text()).toBe("0 / 5");
+    // Complete teams read READY, never 5 / 5 or 2 / 2.
+    wrapper = await mountOverview(build({ size: 5, ready1: true }), "11");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-1"]').text()).toBe("match.lifecycle.ready");
+    wrapper = await mountOverview(build({ size: 2, ready1: true, ready2: true }), "11");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-1"]').text()).toBe("match.lifecycle.ready");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-2"]').text()).toBe("match.lifecycle.ready");
+    expect(middle(wrapper).text()).not.toMatch(/2 \/ 2|5 \/ 5/);
+  });
+
+  it("substitutes are not counted: the required number is the match size", async () => {
+    const wrapper = await mountOverview(build({ size: 2, roster1: 4, checkedIn: ["11"] }), "11");
+    expect(middle(wrapper).get('[data-testid="check-in-progress-1"]').text()).toBe("1 / 2");
+  });
+
+  it("the Check In button and the overall message are centered in the middle", async () => {
+    const wrapper = await mountOverview(build({ size: 2, roster1: 4, checkedIn: ["12"] }), "11");
+    const controls = middle(wrapper).get('[data-testid="overview-team-check-in"]');
+    expect(controls.classes()).toEqual(expect.arrayContaining(["w-full", "justify-center"]));
+    expect(controls.classes()).not.toContain("justify-end");
+    expect(controls.text()).toContain("match.check_in.check_in");
+    expect(controls.text()).not.toContain("confirm_lineup");
+    // Once checked in the overall message is centered too.
+    const done = await mountOverview(build({ size: 2, checkedIn: ["11"] }), "11");
+    const status = done.get('[data-testid="overview-team-check-in"] .text-center');
+    expect(status.text()).toContain("match.check_in.checked_in_description");
   });
 
   it("keeps the overall progress message and the team cards' player readiness", async () => {
@@ -171,7 +207,7 @@ describe("every-player check-in overview", () => {
 
   it("a team with substitutes checks in with Confirm Lineup, one without keeps Check In", async () => {
     const wrapper = await mountOverview(build({ size: 2, roster1: 4 }), "11");
-    expect(middle(wrapper).get("button").text()).toContain("match.starting_lineup.confirm_lineup");
+    expect(middle(wrapper).get("button").text()).toContain("match.check_in.check_in");
     const plain = await mountOverview(build({ size: 2 }), "11");
     expect(middle(plain).get("button").text()).toContain("match.check_in.check_in");
     expect(editIn(plain, 1).exists()).toBe(false);
@@ -238,7 +274,7 @@ describe("captain and admin check-in overview", () => {
     const mid = middle(wrapper);
     expect(mid.findAll('[data-testid="check-in-teams"] > li')).toHaveLength(2);
     expect(mid.get('[data-testid="check-in-team-1"]').find('[data-testid="select-starting-lineup"]').exists()).toBe(true);
-    expect(mid.get('[data-testid="check-in-team-1"]').text()).toContain("match.starting_lineup.confirm_lineup");
+    expect(mid.get('[data-testid="check-in-team-1"]').text()).toContain("match.lifecycle.check_in_team");
     expect(editIn(wrapper, 1).exists()).toBe(false);
   });
 
