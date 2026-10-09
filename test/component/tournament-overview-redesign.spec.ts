@@ -60,14 +60,14 @@ describe("Overview order", () => {
     expect(at("<TournamentStatRibbon")).toBeLessThan(at("<TournamentRewards"));
   });
 
-  it("before and during the tournament: awards, then prize money directly under them, then progress", () => {
+  it("before and during the tournament: awards carry the prize money, no separate Prize Distribution, then progress", () => {
     const rewards = at("<TournamentRewards");
-    const money = overview.indexOf("<TournamentPrizes", rewards);
-    expect(money).toBeGreaterThan(rewards);
-    expect(overview.slice(rewards, money)).not.toContain("<TournamentProgress");
-    expect(at("<TournamentProgress")).toBeGreaterThan(money);
-    // Money only when configured: no empty section.
-    expect(overview.slice(money - 40, money + 60)).toContain('v-if="hasPrizes"');
+    const rewardsEnd = at("</TournamentRewards>");
+    expect(overview.slice(rewards, rewardsEnd)).toContain(':prizes="tournament.prizes"');
+    // The only standalone prize section left is the finished one (#prizes slot).
+    const elseBranch = overview.slice(overview.indexOf("<template v-else>"), overview.indexOf('data-testid="tournament-overview-bottom"'));
+    expect(elseBranch).not.toContain("<TournamentPrizes");
+    expect(at("<TournamentProgress")).toBeGreaterThan(rewardsEnd);
     expect(detail).toMatch(/hasPrizes\(\) \{\s+return \(this\.tournament\?\.prizes\?\.length \?\? 0\) > 0;/);
     // The awards are not shown in the finished presentation.
     expect(overview).toMatch(/<TournamentResults\s+v-if="tournament\.status === e_tournament_status_enum\.Finished"/);
@@ -96,6 +96,18 @@ describe("Overview order", () => {
     // Stacks below xl: the two-column class is the only layout class, so the
     // grid is a single column on phones and tablets.
     expect(bottom.replace("xl:grid-cols-2", "")).not.toContain("grid-cols-2");
+  });
+
+  it("About and Match Setup use the same heading treatment with no top divider", () => {
+    for (const id of ["tournament-overview-about", "tournament-overview-match-setup"]) {
+      const start = overview.lastIndexOf("<ManageSection", overview.indexOf(`data-testid="${id}"`));
+      const tag = overview.slice(start, overview.indexOf(">", overview.indexOf(`data-testid="${id}"`)));
+      expect(tag, id).toContain('class="!border-t-0 !pt-0"');
+      expect(tag, id).toContain(":label=");
+    }
+    // ManageSection still owns the tick + heading for both.
+    const section = read("components/common/ManageSection.vue");
+    expect(section).toContain("tacticalSectionTickClasses");
   });
 
   it("does not repeat Match Setup, placement or prizes in the Overview", () => {
@@ -167,13 +179,113 @@ describe("Tournament Awards (before and during the tournament)", () => {
     return wrapper;
   };
 
-  it("shows the configured placement awards and the MVP, and no prize money", async () => {
+  it("shows the configured placement awards and the MVP, and no fake prize money without prizes", async () => {
     const wrapper = await mountRewards({});
     const awards = wrapper.findAll(".art").map((a) => a.attributes("data-award"));
     expect(awards).toEqual(expect.arrayContaining(["gold", "silver", "bronze", "mvp"]));
     expect(wrapper.find('[data-testid="tournament-awards-placements"]').exists()).toBe(true);
-    expect(wrapper.text()).not.toMatch(/\$\d/);
-    expect(read("components/tournament/TournamentRewards.vue")).not.toMatch(/prizes\b/);
+    expect(wrapper.text()).not.toMatch(/\$/);
+    expect(wrapper.find('[data-testid="tournament-awards-prize"]').exists()).toBe(false);
+    expect(wrapper.find('[data-testid="tournament-awards-total"]').exists()).toBe(false);
+  });
+
+  const cards = (wrapper: any) =>
+    wrapper.findAll('[data-testid="tournament-awards-placements"] > div');
+  const slotPrizes = [
+    { id: "1", place: "1st", prize: "$3" },
+    { id: "2", place: "2nd", prize: "$2" },
+    { id: "3", place: "3rd", prize: "$1" },
+  ];
+
+  it("puts each top-3 prize in the same card as its award, in one reward row", async () => {
+    const wrapper = await mountRewards({ prizes: slotPrizes });
+    expect(wrapper.find('[data-testid="tournament-prize-money"]').exists()).toBe(false);
+    expect(wrapper.text()).not.toContain("tournament.prizes.distribution");
+    const found = cards(wrapper);
+    expect(found).toHaveLength(3);
+    const expected = [["gold", "$3"], ["silver", "$2"], ["bronze", "$1"]];
+    found.forEach((card: any, i: number) => {
+      const row = card.findAll('[data-testid="tournament-awards-reward"]');
+      expect(row).toHaveLength(1);
+      expect(row[0].find(".art").attributes("data-award")).toBe(expected[i][0]);
+      expect(row[0].find('[data-testid="tournament-awards-prize"]').text()).toBe(expected[i][1]);
+    });
+  });
+
+  it("all three cards use identical geometry and the same prize size; #1 differs only in colour", async () => {
+    const wrapper = await mountRewards({ prizes: slotPrizes });
+    const classes = cards(wrapper).map((c: any) =>
+      c.classes().filter((k: string) => /^(p|px|py|pt|pb|h|min-h|text-\[1)/.test(k)),
+    );
+    expect(classes[1]).toEqual(classes[0]);
+    expect(classes[2]).toEqual(classes[0]);
+    const sizes = cards(wrapper).map((c: any) =>
+      c.find('[data-testid="tournament-awards-prize"]').classes().filter((k: string) => /text-\[1/.test(k)),
+    );
+    expect(sizes[0]).toEqual(["text-[1.35rem]"]);
+    expect(sizes[1]).toEqual(sizes[0]);
+    expect(sizes[2]).toEqual(sizes[0]);
+    const source = read("components/tournament/TournamentRewards.vue");
+    expect(source).not.toMatch(/sm:pt-[57]/);
+    expect(source).not.toContain("text-[1.7rem]");
+    expect(source).toContain("items-stretch");
+  });
+
+  it("a placement without money shows the award alone, with no zero prize, and keeps the same row", async () => {
+    const wrapper = await mountRewards({ prizes: [slotPrizes[0]] });
+    const found = cards(wrapper);
+    expect(found).toHaveLength(3);
+    expect(found[1].find('[data-testid="tournament-awards-prize"]').exists()).toBe(false);
+    expect(found[1].text()).not.toMatch(/\$|\b0\b/);
+    expect(found[1].find('[data-testid="tournament-awards-reward"]').classes()).toEqual(
+      found[0].find('[data-testid="tournament-awards-reward"]').classes(),
+    );
+  });
+
+  it("prize money without awards still renders money-only cards", async () => {
+    const wrapper = await mountRewards({ awardsEnabled: false, prizes: slotPrizes });
+    expect(wrapper.find('[data-testid="tournament-awards"]').exists()).toBe(true);
+    expect(wrapper.findAll(".art")).toHaveLength(0);
+    expect(cards(wrapper)).toHaveLength(3);
+    expect(wrapper.text()).toContain("$3");
+  });
+
+  it("#4 and lower prizes stay in the small payout list inside the section", async () => {
+    const wrapper = await mountRewards({ prizes: [...slotPrizes, { id: "4", place: "4th", prize: "$50" }, { id: "5", place: "5th", prize: "$25" }] });
+    expect(cards(wrapper)).toHaveLength(3);
+    const extras = wrapper.find('[data-testid="tournament-awards-extras"]');
+    expect(extras.findAll("li")).toHaveLength(2);
+    expect(extras.text()).toContain("4th");
+    expect(extras.text()).toContain("$25");
+    const none = await mountRewards({ prizes: slotPrizes });
+    expect(none.find('[data-testid="tournament-awards-extras"]').exists()).toBe(false);
+  });
+
+  it("shows the total prize money in the header, next to the MVP", async () => {
+    const wrapper = await mountRewards({ prizes: slotPrizes });
+    const meta = wrapper.find('[data-testid="tournament-awards-header-meta"]');
+    expect(meta.find(".art").attributes("data-award")).toBe("mvp");
+    expect(meta.find('[data-testid="tournament-awards-total"]').text()).toContain("$6");
+    // 2v2: no MVP, total still shown.
+    const wingman = await mountRewards({ prizes: slotPrizes, matchType: "Wingman", minPlayersPerLineup: 2 });
+    const wMeta = wingman.find('[data-testid="tournament-awards-header-meta"]');
+    expect(wMeta.find(".art").exists()).toBe(false);
+    expect(wMeta.text()).toContain("$6");
+  });
+
+  it("does not hardcode a currency symbol and shows no total for non-money prizes", async () => {
+    const source = read("components/tournament/TournamentRewards.vue");
+    expect(source).toContain("formatPrizePool");
+    expect(source).not.toMatch(/["'`]\$/);
+    const wrapper = await mountRewards({ prizes: [{ id: "1", place: "1st", prize: "Custom Knife" }] });
+    expect(wrapper.find('[data-testid="tournament-awards-total"]').exists()).toBe(false);
+    expect(wrapper.text()).toContain("Custom Knife");
+  });
+
+  it("keeps the finished layout out of the combined cards", () => {
+    const results = read("components/tournament/TournamentResults.vue");
+    expect(results).not.toContain("tournament-awards-reward");
+    expect(results).toContain('<slot name="prizes" />');
   });
 
   it("the MVP award is shown for 5v5 only", async () => {

@@ -664,7 +664,7 @@ const tacticalCornerCardClasses =
 
               <!-- Finished: the final presentation (top 3, MVP, then prize money,
                    then the standings) as one deliberate block. Otherwise the
-                   configured awards, with the prize money directly under them. -->
+                   configured awards, with the prize money inside each card. -->
               <TournamentResults
                 v-if="tournament.status === e_tournament_status_enum.Finished"
                 :tournament="tournament"
@@ -685,12 +685,8 @@ const tacticalCornerCardClasses =
                   :awards-enabled="tournament.trophies_enabled ?? false"
                   :match-type="tournament.options?.type || null"
                   :min-players-per-lineup="tournament.min_players_per_lineup ?? null"
-                ></TournamentRewards>
-
-                <TournamentPrizes
-                  v-if="hasPrizes"
                   :prizes="tournament.prizes"
-                ></TournamentPrizes>
+                ></TournamentRewards>
 
                 <TournamentProgress
                   :tournament="tournament"
@@ -709,6 +705,7 @@ const tacticalCornerCardClasses =
                 <ManageSection
                   v-if="hasDescription"
                   :label="$t('tournament.page.about_section')"
+                  class="!border-t-0 !pt-0"
                   data-testid="tournament-overview-about"
                 >
                   <div class="flex flex-col gap-3">
@@ -736,6 +733,7 @@ const tacticalCornerCardClasses =
                 <ManageSection
                   v-if="tournament.options"
                   :label="$t('tournament.page.match_setup.title')"
+                  class="!border-t-0 !pt-0"
                   data-testid="tournament-overview-match-setup"
                 >
                   <TournamentMatchSetup

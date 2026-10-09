@@ -3,120 +3,103 @@ import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-// Consolidates the old standalone Prize Distribution section, the
-// MatchOptionsDisplay "Awards" yes/no row, and the separate
-// TournamentAwardShowcase into one public "Tournament Rewards" section
-// (components/tournament/TournamentRewards.vue). Award artwork for
-// Champion/Runner-up/Third Place rides inside the SAME #1/#2/#3 placement
-// card as the prize money (no separate award-card row underneath) --
-// static source-inspection tests, matching this suite's existing pattern.
+// Public "Tournament Awards" section (components/tournament/TournamentRewards.vue).
+//
+// UPCOMING / LIVE / PAUSED: Tournament Awards owns the #1/#2/#3 placement
+// cards. Each card holds the award artwork AND the configured prize money in
+// one reward row; #4+ stay in a small payout list; the Prize Pool total sits
+// in the header next to the manual MVP. No separate TournamentPrizes block.
+//
+// FINISHED: TournamentResults (final podium) + TournamentPrizes in its
+// #prizes slot, the 5Stack-style flow. The combined cards are not used there.
+//
+// Static source-inspection tests, matching this suite's existing pattern. The
+// rendered behaviour is covered in test/component/tournament-overview-redesign.spec.ts.
 
-const rewardsPath = new URL(
-  "../components/tournament/TournamentRewards.vue",
-  import.meta.url,
+const read = async (relative) =>
+  (await readFile(new URL(relative, import.meta.url), "utf8")).replace(/\r\n/g, "\n");
+
+const rewardsSource = await read("../components/tournament/TournamentRewards.vue");
+const detailSource = await read("../components/tournament/TournamentDetail.vue");
+const resultsSource = await read("../components/tournament/TournamentResults.vue");
+const matchOptionsSource = await read("../components/match/MatchOptionsDisplay.vue");
+const enLocale = JSON.parse(await read("../i18n/locales/en.json"));
+
+const overview = detailSource.slice(
+  detailSource.indexOf('<TabsContent value="overview">'),
+  detailSource.indexOf('<TabsContent value="bracket">'),
 );
-const rewardsSource = await readFile(rewardsPath, "utf8");
-const detailSource = await readFile(
-  new URL("../components/tournament/TournamentDetail.vue", import.meta.url),
-  "utf8",
+const finishedBranch = overview.slice(
+  overview.indexOf("<TournamentResults"),
+  overview.indexOf("<template v-else>"),
 );
-const matchOptionsSource = await readFile(
-  new URL("../components/match/MatchOptionsDisplay.vue", import.meta.url),
-  "utf8",
+const liveBranch = overview.slice(
+  overview.indexOf("<template v-else>"),
+  overview.indexOf('data-testid="tournament-overview-bottom"'),
 );
-const enLocale = JSON.parse(
-  await readFile(new URL("../i18n/locales/en.json", import.meta.url), "utf8"),
+const headerBlock = rewardsSource.slice(
+  rewardsSource.indexOf('{{ $t("tournament.rewards.title") }}'),
+  rewardsSource.indexOf('v-if="hasStandings"'),
+);
+const cardsBlock = rewardsSource.slice(
+  rewardsSource.indexOf('v-if="hasStandings"'),
+  rewardsSource.indexOf('v-if="extras.length > 0"'),
 );
 
-test("the old split components are gone -- folded into TournamentRewards.vue, not left as dead code", () => {
+test("the old standalone showcase is gone and MatchOptionsDisplay has no Awards row", () => {
   assert.equal(
-    existsSync(
-      new URL("../components/tournament/TournamentPrizes.vue", import.meta.url),
-    ),
+    existsSync(new URL("../components/tournament/TournamentAwardShowcase.vue", import.meta.url)),
     false,
   );
-  assert.equal(
-    existsSync(
-      new URL(
-        "../components/tournament/TournamentAwardShowcase.vue",
-        import.meta.url,
-      ),
-    ),
-    false,
-  );
-});
-
-test("MatchOptionsDisplay no longer has an Awards yes/no row or an awardsEnabled prop", () => {
+  assert.doesNotMatch(detailSource, /TournamentAwardShowcase/);
   assert.doesNotMatch(matchOptionsSource, /awardsEnabled/);
   assert.doesNotMatch(matchOptionsSource, /match\.options\.awards_enabled/);
 });
 
-test("TournamentDetail wires TournamentRewards into the overview tab with the tournament data it already has (no duplicate query)", () => {
-  assert.doesNotMatch(detailSource, /TournamentPrizes\b/);
-  assert.doesNotMatch(detailSource, /TournamentAwardShowcase/);
-  assert.match(
-    detailSource,
-    /import TournamentRewards from "~\/components\/tournament\/TournamentRewards\.vue";/,
-  );
+test("section title is Tournament Awards, driven by i18n", () => {
+  assert.match(rewardsSource, /\$t\("tournament\.rewards\.title"\)/);
+  assert.equal(enLocale.tournament.rewards.title, "Tournament Awards");
+});
 
-  const block = detailSource.slice(
-    detailSource.indexOf("<TournamentRewards"),
-    detailSource.indexOf("</TournamentRewards>") + 1,
+test("upcoming/live/paused: TournamentRewards gets the prizes and no separate TournamentPrizes block renders", () => {
+  const block = liveBranch.slice(
+    liveBranch.indexOf("<TournamentRewards"),
+    liveBranch.indexOf("</TournamentRewards>"),
   );
   assert.match(block, /:prizes="tournament\.prizes"/);
   assert.match(block, /:tournament-id="tournament\.id"/);
   assert.match(block, /:awards-enabled="tournament\.trophies_enabled \?\? false"/);
   assert.match(block, /:match-type="tournament\.options\?\.type \|\| null"/);
-  assert.match(
-    block,
-    /:min-players-per-lineup="tournament\.min_players_per_lineup \?\? null"/,
-  );
+  assert.match(block, /:min-players-per-lineup="tournament\.min_players_per_lineup \?\? null"/);
+  assert.doesNotMatch(liveBranch, /<TournamentPrizes/);
+  assert.doesNotMatch(rewardsSource, /prizes\.distribution/);
+  assert.doesNotMatch(rewardsSource, /tournament-prize-money/);
 });
 
-test("the match-settings tab no longer passes awards-enabled to MatchOptionsDisplay", () => {
-  const block = detailSource.slice(
-    detailSource.indexOf("<MatchOptionsDisplay"),
-    detailSource.indexOf("</MatchOptionsDisplay>") + 1,
-  );
-  assert.doesNotMatch(block, /awards-enabled/);
+test("finished: TournamentResults stays the final podium and TournamentPrizes is still used in its prizes slot", () => {
+  assert.match(overview, /<TournamentResults\s+v-if="tournament\.status === e_tournament_status_enum\.Finished"/);
+  assert.match(finishedBranch, /<template #prizes>/);
+  assert.match(finishedBranch, /<TournamentPrizes\s+v-if="hasPrizes"\s+:prizes="tournament\.prizes"/);
+  assert.doesNotMatch(finishedBranch, /<TournamentRewards/);
+  assert.ok(existsSync(new URL("../components/tournament/TournamentPrizes.vue", import.meta.url)));
+  assert.match(resultsSource, /<slot name="prizes" \/>/);
+  assert.match(resultsSource, /tournament-results-podium/);
 });
 
-test("section title is Tournament Rewards, driven by i18n (not hardcoded)", () => {
-  assert.match(rewardsSource, /\$t\("tournament\.rewards\.title"\)/);
-  assert.equal(enLocale.tournament.rewards.title, "Tournament Rewards");
+test("the combined-card layout does not leak into the finished results", () => {
+  for (const marker of ["tournament-awards-reward", "tournament-awards-placements", "tournament-awards-prize"]) {
+    assert.doesNotMatch(resultsSource, new RegExp(marker));
+  }
+  assert.doesNotMatch(resultsSource, /TournamentRewards/);
 });
 
-test("the header no longer repeats the total prize-pool amount -- the summary bar above the section already shows it", () => {
-  assert.doesNotMatch(rewardsSource, /formatPrizePool/);
-  assert.doesNotMatch(rewardsSource, /from "~\/utilities\/prizePool"/);
-  assert.doesNotMatch(rewardsSource, /const pool = computed/);
-
-  const headerBlock = rewardsSource.slice(
-    rewardsSource.indexOf('{{ $t("tournament.rewards.title") }}'),
-    rewardsSource.indexOf('<template v-if="hasStandings">'),
-  );
-  assert.doesNotMatch(headerBlock, /\{\{ pool \}\}/);
-  assert.doesNotMatch(headerBlock, /text-\[hsl\(var\(--tac-amber\)\)\]">\s*\{\{ pool/);
-});
-
-test("the header's right side renders only the MVP block -- nothing else -- and is absent entirely when there's no MVP", () => {
-  const headerBlock = rewardsSource.slice(
-    rewardsSource.indexOf('{{ $t("tournament.rewards.title") }}'),
-    rewardsSource.indexOf('<template v-if="hasStandings">'),
-  );
-  assert.match(headerBlock, /<div v-if="mvpAward" class="ml-auto flex items-center gap-2">/);
-  // Only one ml-auto element -- not a wrapper plus a separate sibling span.
-  const mlAutoMatches = headerBlock.match(/ml-auto/g) ?? [];
-  assert.equal(mlAutoMatches.length, 1);
-});
-
-test("the section shows when prizes exist OR awards are enabled/configured, hides otherwise", () => {
-  const showSectionBlock = rewardsSource.slice(
+test("the section shows when prizes exist OR awards content exists, hides otherwise", () => {
+  const showBlock = rewardsSource.slice(
     rewardsSource.indexOf("const showSection"),
     rewardsSource.indexOf("const showSection") + 100,
   );
-  assert.match(showSectionBlock, /hasPrizes\.value \|\| hasAwardsContent\.value/);
-  assert.match(rewardsSource, /<Card v-if="showSection"/);
+  assert.match(showBlock, /hasPrizes\.value \|\| hasAwardsContent\.value/);
+  assert.match(rewardsSource, /<Card\s+v-if="showSection"/);
 
   const hasAwardsBlock = rewardsSource.slice(
     rewardsSource.indexOf("const hasAwardsContent"),
@@ -127,148 +110,109 @@ test("the section shows when prizes exist OR awards are enabled/configured, hide
   assert.match(hasAwardsBlock, /!!mvpAward\.value/);
 });
 
-test("MVP is computed separately from the standing placements and only renders in the header", () => {
+test("MVP is the manual DEAFCS award: placement 0, 5v5 only, header only, never in a placement card", () => {
   const mvpBlock = rewardsSource.slice(
     rewardsSource.indexOf("const mvpAward"),
     rewardsSource.indexOf("const mvpAward") + 150,
   );
   assert.match(mvpBlock, /mvpEnabled\.value \? awardForId\(selection\.value\[0\]\) : null/);
-
-  // bodyPlacements (used to pair awards with podium ranks) explicitly
-  // excludes placement 0 (MVP).
-  const bodyPlacementsBlock = rewardsSource.slice(
+  const bodyBlock = rewardsSource.slice(
     rewardsSource.indexOf("const bodyPlacements"),
     rewardsSource.indexOf("const bodyPlacements") + 150,
   );
-  assert.match(bodyPlacementsBlock, /config\.placement !== 0/);
-
-  // Header renders mvpAward via AwardArtwork.
-  const headerBlock = rewardsSource.slice(
-    rewardsSource.indexOf('{{ $t("tournament.rewards.title") }}'),
-    rewardsSource.indexOf('<template v-if="hasStandings">'),
-  );
+  assert.match(bodyBlock, /config\.placement !== 0/);
   assert.match(headerBlock, /v-if="mvpAward"/);
   assert.match(headerBlock, /<AwardArtwork :award="mvpAward" size="xs" decorative \/>/);
-
-  // The standing-card block (podium ranks) never references mvpAward.
-  const standingsBlock = rewardsSource.slice(
-    rewardsSource.indexOf('<template v-if="hasStandings">'),
-    rewardsSource.indexOf("</template>", rewardsSource.indexOf('<template v-if="hasStandings">')),
-  );
-  assert.doesNotMatch(standingsBlock, /mvpAward/);
+  assert.doesNotMatch(cardsBlock, /mvpAward/);
+  // No stats-derived MVP logic in the rewards component.
+  assert.doesNotMatch(rewardsSource, /\bkdr\b|\.kills\b|\.rating\b|\.sort\(|\.reduce\(/i);
 });
 
-test("reuses the shared award placement config/resolver instead of a second hardcoded hierarchy", () => {
+test("the header shows the Prize Pool total next to the MVP, from the shared formatter, only when it parses as money", () => {
+  assert.match(rewardsSource, /import \{ formatPrizePool \} from "~\/utilities\/prizePool";/);
+  assert.match(rewardsSource, /const pool = computed\(\(\) => formatPrizePool\(prizeList\.value\)\)/);
+  assert.match(headerBlock, /v-if="mvpAward \|\| pool"/);
+  assert.match(headerBlock, /v-if="pool"/);
+  assert.match(headerBlock, /data-testid="tournament-awards-total"/);
+  assert.match(headerBlock, /\{\{ pool \}\}/);
+  assert.match(headerBlock, /\$t\("tournament\.stats\.prize_pool"\)/);
+  assert.equal(enLocale.tournament.stats.prize_pool, "Prize Pool");
+  // Exactly one right-aligned wrapper holds both MVP and total.
+  assert.equal((headerBlock.match(/ml-auto/g) ?? []).length, 1);
+});
+
+test("no hardcoded currency, and non-money prize text is not summed into the pool", async () => {
+  assert.doesNotMatch(rewardsSource, /["'`]\s*[$€£¥]/);
+  assert.doesNotMatch(rewardsSource, /DEFAULT_CURRENCY/);
+  const { formatPrizePool } = await import("../utilities/prizePool.ts").catch(() => ({}));
+  if (typeof formatPrizePool === "function") {
+    assert.equal(formatPrizePool([{ prize: "Custom Knife" }, { prize: "Top 3 teams" }]), null);
+    assert.equal(formatPrizePool([{ prize: "$3" }, { prize: "$2" }, { prize: "Custom Knife" }]), "$5");
+  }
+  const poolSource = await read("../utilities/prizePool.ts");
+  assert.match(poolSource, /Only count values that are a bare amount/);
+});
+
+test("reuses the shared award placement config/resolver and one award query pair", () => {
   assert.match(rewardsSource, /from "~\/utilities\/tournamentAwardPicker";/);
   assert.match(rewardsSource, /TOURNAMENT_AWARD_PLACEMENTS/);
   assert.match(rewardsSource, /effectiveTournamentAwardSelection/);
-  assert.match(
-    rewardsSource,
-    /tournamentMvpEnabled\(props\.matchType, props\.minPlayersPerLineup\)/,
-  );
-  // No second copy of the placement labels/tiers array.
+  assert.match(rewardsSource, /tournamentMvpEnabled\(props\.matchType, props\.minPlayersPerLineup\)/);
   assert.doesNotMatch(rewardsSource, /shortLabel:\s*["']Champion["']/);
+  assert.equal((rewardsSource.match(/query \w*AwardDefinitions/g) ?? []).length, 1);
+  assert.equal((rewardsSource.match(/query \w*AwardSlots/g) ?? []).length, 1);
 });
 
-test("only one award query pair exists (no duplicate GraphQL query from the old showcase)", () => {
-  const definitionQueries = rewardsSource.match(/query \w*AwardDefinitions/g) ?? [];
-  const slotQueries = rewardsSource.match(/query \w*AwardSlots/g) ?? [];
-  assert.equal(definitionQueries.length, 1);
-  assert.equal(slotQueries.length, 1);
+test("one placement-card loop; award artwork and prize money share a single reward row per card", () => {
+  assert.equal((rewardsSource.match(/v-for="entry in standingEntries"/g) ?? []).length, 1);
+  const row = cardsBlock.slice(cardsBlock.indexOf('data-testid="tournament-awards-reward"') - 120);
+  assert.match(row, /class="mt-2 flex min-h-\[2\.75rem\] items-center justify-center gap-2"/);
+  assert.match(row, /<AwardArtwork\s+v-if="entry\.award"\s+:award="entry\.award"\s+size="xs"/);
+  assert.match(row, /v-if="entry\.prize"/);
+  assert.match(row, /\{\{ entry\.prize\.prize \}\}/);
+  // Exactly one reward row and one prize element inside the card loop.
+  assert.equal((cardsBlock.match(/tournament-awards-reward/g) ?? []).length, 1);
+  assert.equal((cardsBlock.match(/tournament-awards-prize/g) ?? []).length, 1);
+  // The prize is not rendered as a separate block below the artwork row.
+  assert.doesNotMatch(cardsBlock, /mt-1 font-sans text-\[1\.35rem\]/);
+  // Award name text is not rendered in the card (keeps height stable).
+  assert.doesNotMatch(cardsBlock, /entry\.award\.name/);
 });
 
-test("award artwork for Champion/Runner-up/Third Place rides inside the same #1/#2/#3 card as the prize money -- no separate award-card row", () => {
-  // Exactly one placement-card v-for -- the merged standingEntries loop --
-  // not two separate loops (money cards + award cards).
-  const cardLoops = rewardsSource.match(/v-for="entry in standingEntries"/g) ?? [];
-  assert.equal(cardLoops.length, 1);
-
-  // The old separate award-grid loop/classes are gone entirely.
-  assert.doesNotMatch(rewardsSource, /v-for="entry in bodyEntries"/);
-  assert.doesNotMatch(rewardsSource, /sm:grid-cols-2 lg:grid-cols-3/);
-  assert.doesNotMatch(rewardsSource, /awards_showcase\.team/);
-
-  // The dashed divider that only ever separated money from the old award
-  // row is gone (the extras list's own dashed divider is unrelated and
-  // still present -- checked separately below).
-  assert.doesNotMatch(rewardsSource, /hasPrizes \? 'border-t border-dashed border-border pt-4' : ''/);
-
-  // Award artwork is rendered from inside the standing-card block, using
-  // the compact "xs" size (same as the header MVP badge), not the larger
-  // "md" size the old separate row used.
-  const standingsBlock = rewardsSource.slice(
-    rewardsSource.indexOf('<template v-if="hasStandings">'),
-    rewardsSource.indexOf("</template>", rewardsSource.indexOf('<template v-if="hasStandings">')),
-  );
-  assert.match(standingsBlock, /<AwardArtwork v-if="entry\.award" :award="entry\.award" size="xs" \/>/);
-  assert.doesNotMatch(standingsBlock, /size="md"/);
-
-  // No award name text rendered inside the card (keeps card height stable).
-  assert.doesNotMatch(standingsBlock, /entry\.award\.name/);
-});
-
-test("the extras list (prize rows beyond the top 3) keeps its own dashed divider, unaffected", () => {
-  assert.match(
-    rewardsSource,
-    /v-if="extras\.length > 0"[\s\S]{0,40}class="flex flex-col divide-y divide-border\/60 border-t border-dashed border-border pt-1"/,
-  );
-});
-
-test("placement card container classes are unchanged -- same dimensions as before", () => {
+test("all three cards share identical geometry; #1 differs only in colour", () => {
   assert.match(
     rewardsSource,
     /'relative overflow-hidden rounded-lg border border-border bg-card\/40 px-4 py-4 text-center \[backdrop-filter:blur\(6px\)\]'/,
   );
-  // TIERS drives per-rank accent/frame/order exactly as before -- three
-  // entries, same class strings, keyed by entry.index (not v-for position)
-  // so a skipped middle rank still resolves the correct tier.
-  assert.match(rewardsSource, /TIERS\[entry\.index\]\.frame/);
-  assert.match(rewardsSource, /TIERS\[entry\.index\]\.order/);
-  assert.match(rewardsSource, /TIERS\[entry\.index\]\.label/);
-  assert.match(rewardsSource, /TIERS\[entry\.index\]\.amount/);
-  assert.match(rewardsSource, /TIERS\[entry\.index\]\.bar/);
+  assert.match(cardsBlock, /items-stretch/);
+  assert.doesNotMatch(rewardsSource, /sm:pt-[0-9]/);
+  assert.doesNotMatch(rewardsSource, /text-\[1\.7rem\]/);
+  assert.match(cardsBlock, /'font-sans text-\[1\.35rem\] font-bold leading-none tabular-nums'/);
+  for (const key of ["frame", "order", "label", "amount", "bar"]) {
+    assert.match(rewardsSource, new RegExp(`TIERS\\[entry\\.index\\]\\.${key}`));
+  }
 });
 
-test("money-only rendering is unchanged: the amount is still the standalone content when no award is configured for that rank", () => {
-  const block = rewardsSource.slice(
-    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">'),
-    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">') + 500,
-  );
-  assert.match(block, /v-if="entry\.prize"/);
-  assert.match(block, /\{\{ entry\.prize\.prize \}\}/);
-});
-
-test("the amount and award artwork stay on the same items-center row, with a tight line-height plus a small optical nudge -- no margin/card-height changes", () => {
-  const rowBlock = rewardsSource.slice(
-    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">'),
-    rewardsSource.indexOf('<div class="mt-1 flex items-center justify-center gap-2">') + 500,
-  );
-  // Row itself: unchanged flex/items-center/justify-center, no height/margin added.
-  assert.match(rowBlock, /^<div class="mt-1 flex items-center justify-center gap-2">/);
-
-  // Amount keeps its existing tight line-height and gets a minimal (1px)
-  // optical nudge only -- not a margin or the row/card dimensions.
-  assert.match(rowBlock, /'translate-y-px font-sans text-\[1\.35rem\] font-bold leading-none tabular-nums'/);
-
-  // The artwork itself is untouched -- still the compact "xs" size, no
-  // extra wrapper or size bump introduced to fix alignment.
-  assert.match(rowBlock, /<AwardArtwork v-if="entry\.award" :award="entry\.award" size="xs" \/>/);
-});
-
-test("no empty placement card renders when a rank has neither prize money nor a configured award", () => {
-  const standingEntriesBlock = rewardsSource.slice(
-    rewardsSource.indexOf("const standingEntries"),
-    rewardsSource.indexOf("const hasStandings"),
-  );
-  assert.match(standingEntriesBlock, /if \(!prize && !award\) continue;/);
-});
-
-test("standingEntries pairs podium rank with the same-index Champion/Runner-up/Third Place placement", () => {
+test("standingEntries pairs podium rank i with prize i and the same-index placement award; awards off still keeps money", () => {
   const block = rewardsSource.slice(
     rewardsSource.indexOf("const standingEntries"),
     rewardsSource.indexOf("const hasStandings"),
   );
-  assert.match(block, /const prize = podium\.value\[index\] \?\? null;/);
+  assert.match(block, /const prize = prizeList\.value\[index\] \?\? null;/);
   assert.match(block, /const placementConfig = bodyPlacements\[index\];/);
   assert.match(block, /props\.awardsEnabled && placementConfig/);
+  // A rank with neither money nor award is skipped; no zero/fake prize is made.
+  assert.match(block, /if \(!prize && !award\) continue;/);
+  assert.doesNotMatch(block, /prize:\s*["'`]?0/);
+  // The amount only renders from a real configured prize.
+  assert.doesNotMatch(cardsBlock, /entry\.prize\?\.prize \?\? 0|\|\| 0/);
+});
+
+test("#4+ prizes stay in the smaller payout list, with its own dashed divider", () => {
+  assert.match(rewardsSource, /const extras = computed\(\(\) => prizeList\.value\.slice\(3\)\)/);
+  assert.match(
+    rewardsSource,
+    /v-if="extras\.length > 0"[\s\S]{0,40}class="flex flex-col divide-y divide-border\/60 border-t border-dashed border-border pt-1"/,
+  );
+  assert.match(rewardsSource, /v-for="prize in extras"/);
 });

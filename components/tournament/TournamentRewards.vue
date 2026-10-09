@@ -4,6 +4,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { Trophy } from "lucide-vue-next";
 import { Card } from "~/components/ui/card";
+import { formatPrizePool } from "~/utilities/prizePool";
 import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import {
   TOURNAMENT_AWARD_PLACEMENTS,
@@ -15,9 +16,11 @@ import {
 
 // The public "Tournament Awards" section: the read-only award selection an
 // organizer already configures in TournamentAwardPicker.vue (same
-// effective-selection resolver, same two queries). Prize money is its own
-// section right below it (TournamentPrizes.vue), as on 5Stack. MVP is pulled
-// out of the award grid and rendered compactly in the header instead.
+// effective-selection resolver, same two queries). Before and during the
+// tournament the configured prize money rides inside the same #1/#2/#3 card as
+// the award artwork (finished tournaments use TournamentResults instead). MVP
+// is pulled out of the grid and rendered compactly in the header, beside the
+// total prize money.
 const AWARD_DEFINITIONS_QUERY = gql`
   query TournamentRewardsAwardDefinitions {
     awards(
@@ -60,8 +63,10 @@ const props = withDefaults(
     awardsEnabled?: boolean;
     matchType?: string | null;
     minPlayersPerLineup?: number | null;
+    prizes?: Array<{ id: string; place: string; prize: string }> | null;
   }>(),
   {
+    prizes: null,
     tournamentId: null,
     awardsEnabled: false,
     matchType: null,
@@ -70,21 +75,21 @@ const props = withDefaults(
 );
 
 // Champion sits center, runner-up left, third right (desktop). Each rank drives
-// its own accent, height and podium order.
+// its own accent and podium order; all three cards share identical geometry.
 const TIERS = [
   {
     label: "text-[hsl(var(--tac-amber))]",
     bar: "bg-[hsl(var(--tac-amber))]",
-    amount: "text-[hsl(var(--tac-amber))] text-[1.7rem]",
+    amount: "text-[hsl(var(--tac-amber))]",
     frame:
-      "border-[hsl(var(--tac-amber)/0.4)] [background:linear-gradient(180deg,hsl(var(--tac-amber)/0.12),hsl(var(--card)/0.4))] sm:pt-7",
+      "border-[hsl(var(--tac-amber)/0.4)] [background:linear-gradient(180deg,hsl(var(--tac-amber)/0.12),hsl(var(--card)/0.4))]",
     order: "sm:order-2",
   },
   {
     label: "text-[hsl(220_9%_72%)]",
     bar: "bg-[hsl(220_9%_72%)]",
     amount: "",
-    frame: "sm:pt-5",
+    frame: "",
     order: "sm:order-1",
   },
   {
@@ -127,22 +132,31 @@ const bodyPlacements = TOURNAMENT_AWARD_PLACEMENTS.filter(
   (config) => config.placement !== 0,
 );
 
+const prizeList = computed(() => props.prizes ?? []);
+const hasPrizes = computed(() => prizeList.value.length > 0);
+const pool = computed(() => formatPrizePool(prizeList.value));
+// Prize rows beyond the top three keep the small payout list.
+const extras = computed(() => prizeList.value.slice(3));
+
 // One entry per podium position (0/1/2 = 1st/2nd/3rd) that has a configured
-// award; a placement without one is omitted rather than rendered empty.
-// `index` is kept so TIERS[entry.index] still resolves when a middle rank is
-// skipped.
+// award and/or prize; a placement with neither is omitted rather than rendered
+// empty. `index` is kept so TIERS[entry.index] still resolves when a middle
+// rank is skipped.
 const standingEntries = computed(() => {
   const entries: Array<{
     index: number;
-    award: TournamentAwardDefinition;
+    award: TournamentAwardDefinition | null;
+    prize: { id: string; place: string; prize: string } | null;
   }> = [];
-  if (!props.awardsEnabled) return entries;
   for (let index = 0; index < 3; index++) {
+    const prize = prizeList.value[index] ?? null;
     const placementConfig = bodyPlacements[index];
-    const award = placementConfig
-      ? awardForId(selection.value[placementConfig.placement])
-      : null;
-    if (award) entries.push({ index, award });
+    const award =
+      props.awardsEnabled && placementConfig
+        ? awardForId(selection.value[placementConfig.placement])
+        : null;
+    if (!prize && !award) continue;
+    entries.push({ index, award, prize });
   }
   return entries;
 });
@@ -153,11 +167,13 @@ const hasAwardsContent = computed(
     props.awardsEnabled &&
     (awardsLoading.value ||
       !!awardsLoadError.value ||
-      standingEntries.value.length > 0 ||
+      standingEntries.value.some((entry) => !!entry.award) ||
       !!mvpAward.value),
 );
 
-const showSection = computed(() => hasAwardsContent.value);
+const showSection = computed(
+  () => hasPrizes.value || hasAwardsContent.value,
+);
 
 async function loadAwards() {
   if (!props.tournamentId || !props.awardsEnabled) return;
@@ -203,22 +219,44 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
         >
           {{ $t("tournament.rewards.title") }}
         </span>
-        <div v-if="mvpAward" class="ml-auto flex items-center gap-2">
-          <AwardArtwork :award="mvpAward" size="xs" decorative />
-          <div class="flex flex-col text-left leading-tight">
+        <div
+          v-if="mvpAward || pool"
+          class="ml-auto flex items-center gap-4"
+          data-testid="tournament-awards-header-meta"
+        >
+          <div v-if="mvpAward" class="flex items-center gap-2">
+            <AwardArtwork :award="mvpAward" size="xs" decorative />
+            <div class="flex flex-col text-left leading-tight">
+              <span
+                class="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+              >
+                {{ $t("trophies.mvp") }}
+              </span>
+              <span class="text-xs font-medium">{{ mvpAward.name }}</span>
+            </div>
+          </div>
+          <div
+            v-if="pool"
+            class="flex flex-col text-right leading-tight"
+            data-testid="tournament-awards-total"
+          >
             <span
               class="font-mono text-[0.55rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
             >
-              {{ $t("trophies.mvp") }}
+              {{ $t("tournament.stats.prize_pool") }}
             </span>
-            <span class="text-xs font-medium">{{ mvpAward.name }}</span>
+            <span
+              class="font-sans text-base font-bold tabular-nums text-[hsl(var(--tac-amber))]"
+            >
+              {{ pool }}
+            </span>
           </div>
         </div>
       </div>
 
       <div
         v-if="hasStandings"
-        class="grid items-end gap-3 sm:grid-cols-3"
+        class="grid items-stretch gap-3 sm:grid-cols-3"
         data-testid="tournament-awards-placements"
       >
         <div
@@ -238,8 +276,25 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
           >
             #{{ entry.index + 1 }}
           </div>
-          <div class="mt-2 flex items-center justify-center">
-            <AwardArtwork :award="entry.award" size="xs" />
+          <div
+            class="mt-2 flex min-h-[2.75rem] items-center justify-center gap-2"
+            data-testid="tournament-awards-reward"
+          >
+            <AwardArtwork
+              v-if="entry.award"
+              :award="entry.award"
+              size="xs"
+            />
+            <span
+              v-if="entry.prize"
+              :class="[
+                'font-sans text-[1.35rem] font-bold leading-none tabular-nums',
+                TIERS[entry.index].amount,
+              ]"
+              data-testid="tournament-awards-prize"
+            >
+              {{ entry.prize.prize }}
+            </span>
           </div>
           <div
             :class="[
@@ -249,6 +304,25 @@ watch(() => [props.tournamentId, props.awardsEnabled], loadAwards);
           ></div>
         </div>
       </div>
+
+      <ul
+        v-if="extras.length > 0"
+        class="flex flex-col divide-y divide-border/60 border-t border-dashed border-border pt-1"
+        data-testid="tournament-awards-extras"
+      >
+        <li
+          v-for="prize in extras"
+          :key="prize.id"
+          class="flex items-center justify-between gap-4 py-2"
+        >
+          <span
+            class="font-mono text-[0.7rem] font-semibold uppercase tracking-[0.16em] text-muted-foreground"
+          >
+            {{ prize.place }}
+          </span>
+          <span class="text-right text-sm font-medium">{{ prize.prize }}</span>
+        </li>
+      </ul>
     </div>
   </Card>
 </template>
