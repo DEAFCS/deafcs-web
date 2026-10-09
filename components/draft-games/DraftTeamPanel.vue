@@ -186,6 +186,7 @@ const slots = computed(() => {
         </div>
       </template>
     </TransitionGroup>
+    <slot name="footer" />
   </div>
 </template>
 

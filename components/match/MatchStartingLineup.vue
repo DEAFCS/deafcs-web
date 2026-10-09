@@ -69,6 +69,12 @@ export default {
       type: String,
       default: null,
     },
+    // "edit" is only Edit Lineup (placed under a team card), "check-in" only
+    // the team check-in; "both" is the row control used for team check-in.
+    part: {
+      type: String as () => "both" | "edit" | "check-in",
+      default: "both",
+    },
   },
   data() {
     return {
@@ -90,6 +96,12 @@ export default {
     },
     editable(): boolean {
       return ["Scheduled", "WaitingForCheckIn"].includes(this.match?.status);
+    },
+    showEdit(): boolean {
+      return this.part !== "check-in" && this.canChoose(this.team);
+    },
+    showCheckIn(): boolean {
+      return this.part !== "edit" && this.viewerInTeam;
     },
     bench(): boolean {
       return this.hasBench(this.team);
@@ -274,10 +286,12 @@ export default {
        with substitutes) and the team check-in, labelled Confirm Lineup when
        checking in also confirms a lineup chosen from a bigger roster. -->
   <div
+    v-if="showEdit || showCheckIn"
     class="flex min-w-0 flex-wrap items-center justify-end gap-2"
+    :class="part === 'edit' ? 'mt-3 justify-start' : ''"
   >
     <Button
-      v-if="canChoose(team)"
+      v-if="showEdit"
       variant="outline"
       size="sm"
       class="h-7 shrink-0"
@@ -288,7 +302,7 @@ export default {
       {{ $t("match.starting_lineup.edit") }}
     </Button>
     <CheckIntoMatch
-      v-if="viewerInTeam"
+      v-if="showCheckIn"
       :match="match"
       :label="bench ? $t('match.starting_lineup.confirm_lineup') : checkInLabel"
       data-testid="team-check-in"

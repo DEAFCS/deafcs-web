@@ -143,11 +143,11 @@ afterEach(() => {
 
 describe("team check-in with and without substitutes", () => {
   it("Wingman roster of 2: no Edit Lineup and a normal check-in", async () => {
-    const wrapper = await mountCheckIn(build({ size: 2, setting: "Players" }), "11");
+    const wrapper = await mountCheckIn(build({ size: 2 }), "11");
     expect(edit(wrapper, 1).exists()).toBe(false);
     const buttons = action(wrapper, 1);
     expect(buttons).toHaveLength(1);
-    expect(buttons[0].text()).toContain("match.check_in.check_in");
+    expect(buttons[0].text()).toContain("match.lifecycle.check_in_team");
     expect(buttons[0].text()).not.toContain("confirm_lineup");
   });
 
@@ -193,12 +193,16 @@ describe("team check-in with and without substitutes", () => {
     expect(card.text()).not.toContain("match.starting_lineup");
   });
 
-  it("each team shows its own controls in its own row (no separate full-width panel)", async () => {
+  it("the viewer team has its controls in its own row (no separate full-width panel)", async () => {
     const wrapper = await mountCheckIn(build({ size: 2, roster1: 4, roster2: 3 }), "11");
     expect(team(wrapper, 1).find('[data-testid="overview-starting-lineup"]').exists()).toBe(true);
-    expect(team(wrapper, 2).find('[data-testid="overview-starting-lineup"]').exists()).toBe(true);
+    // Nothing is offered for the opponent team to this viewer.
+    expect(team(wrapper, 2).find('[data-testid="overview-starting-lineup"]').exists()).toBe(false);
     expect(wrapper.find('[data-testid="starting-lineup"]').exists()).toBe(false);
-    expect(read("components/match/overview/MatchOverview.vue")).not.toContain("MatchStartingLineup");
+    // The overview only mounts it as the footer of a team card (Edit Lineup).
+    const overview = read("components/match/overview/MatchOverview.vue");
+    expect(overview.match(/<MatchStartingLineup/g)).toHaveLength(1);
+    expect(overview).toContain('part="edit"');
   });
 });
 

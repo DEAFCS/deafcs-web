@@ -1,89 +1,18 @@
 <script lang="ts" setup>
 import CheckIntoMatch from "~/components/match/CheckIntoMatch.vue";
 import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
-import { Check } from "lucide-vue-next";
-import PlayerDisplay from "~/components/PlayerDisplay.vue";
 </script>
 
 <template>
   <section class="flex min-w-0 flex-col gap-4" data-testid="overview-check-in" :data-mode="summary.mode">
 
-    <!-- Players check-in: each team's players side by side (Team 1 left,
-         Team 2 right) instead of one long column. -->
-    <div
-      v-if="summary.mode === 'Players'"
-      class="grid grid-cols-1 gap-3 sm:grid-cols-2"
-      data-testid="check-in-players"
+    <!-- Every player checks in: the team cards beside this panel already
+         show each player's readiness, so nothing is repeated here. -->
+    <ul
+      v-if="summary.mode !== 'Players'"
+      class="flex flex-col gap-2"
+      data-testid="check-in-teams"
     >
-      <div
-        v-for="team in summary.teams"
-        :key="team.team"
-        class="check-in-team flex min-w-0 flex-col gap-2 rounded-xl border p-3"
-        :class="[team.ready ? 'is-ready' : '', team.team === 1 ? 'team-1' : 'team-2']"
-        :data-testid="`check-in-team-${team.team}`"
-        :data-ready="team.ready ? 'true' : 'false'"
-      >
-        <div class="flex items-center justify-between gap-2">
-          <span class="truncate font-sans text-sm font-bold uppercase tracking-[0.14em]">
-            {{ teamName(team.team) }}
-          </span>
-          <span class="check-in-badge shrink-0 rounded px-1.5 py-0.5 font-mono text-[0.58rem] font-bold uppercase tracking-[0.14em]">
-            {{
-              team.ready
-                ? $t("match.lifecycle.ready")
-                : $t("match.lifecycle.players_checked_in", {
-                    checked: Math.min(team.checkedIn, team.required),
-                    required: team.required,
-                  })
-            }}
-          </span>
-        </div>
-        <MatchStartingLineup
-          v-if="inlineTeamControls && !team.ready"
-          :match="match"
-          :team="team.team"
-          :check-in-label="checkInLabel"
-          data-testid="overview-starting-lineup"
-        />
-        <ul class="flex flex-col gap-1">
-          <li
-            v-for="player in teamPlayers(team.team)"
-            :key="player.steam_id"
-            class="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1"
-            :data-testid="`check-in-player-${player.steam_id}`"
-            :data-checked-in="player.checked_in ? 'true' : 'false'"
-          >
-            <!-- The site's player display: a normal in-app profile link (same
-                 tab/window, like every other player link) and the usual role
-                 icon. dense centers the name + role block on the avatar. -->
-            <div class="min-w-0 flex-1">
-              <PlayerDisplay
-                v-if="player.player"
-                :player="player.player"
-                linkable
-                dense
-                size="xs"
-                :show-online="false"
-                :show-flag="false"
-                :show-elo="false"
-                :show-add-friend="false"
-                :truncate-name="true"
-              />
-              <span v-else class="block truncate text-sm">{{ player.placeholder_name || player.steam_id }}</span>
-            </div>
-            <span
-              class="check-mark flex h-4 w-4 shrink-0 items-center justify-center rounded-full"
-              :class="player.checked_in ? 'is-checked' : ''"
-              :title="player.checked_in ? $t('match.lifecycle.ready') : $t('match.lifecycle.waiting_check_in')"
-            >
-              <Check v-if="player.checked_in" class="h-3 w-3" />
-            </span>
-          </li>
-        </ul>
-      </div>
-    </div>
-
-    <ul v-else class="flex flex-col gap-2" data-testid="check-in-teams">
       <li
         v-for="team in summary.teams"
         :key="team.team"
@@ -96,21 +25,10 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
           <span class="truncate font-sans text-sm font-bold uppercase tracking-[0.14em]">
             {{ teamName(team.team) }}
           </span>
-          <span
-            v-if="summary.mode === 'Players'"
-            class="font-mono text-[0.62rem] uppercase tracking-[0.16em] text-muted-foreground"
-          >
-            {{
-              $t("match.lifecycle.players_checked_in", {
-                checked: Math.min(team.checkedIn, team.required),
-                required: team.required,
-              })
-            }}
-          </span>
         </div>
         <div class="flex min-w-0 shrink-0 flex-wrap items-center justify-end gap-2">
           <MatchStartingLineup
-            v-if="inlineTeamControls && !team.ready"
+            v-if="inlineTeamControls && !team.ready && summary.mode !== 'Players'"
             :match="match"
             :team="team.team"
             :check-in-label="checkInLabel"
@@ -126,8 +44,19 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
     <!-- The real check-in action, unchanged: it only appears for the viewer
          can_check_in allows (Players: any player; Captains: a captain;
          Admin: an administrator in the lineup). -->
+    <template v-if="inlineTeamControls && summary.mode === 'Players'">
+      <MatchStartingLineup
+        v-for="team in summary.teams"
+        :key="team.team"
+        :match="match"
+        :team="team.team"
+        part="check-in"
+        :check-in-label="checkInLabel"
+        data-testid="overview-team-check-in"
+      />
+    </template>
     <CheckIntoMatch
-      v-if="!inlineTeamControls"
+      v-else-if="!inlineTeamControls"
       :match="match"
       :label="summary.mode === 'Captains' ? $t('match.lifecycle.check_in_team') : null"
     />

@@ -79,7 +79,18 @@
           linkable
           show-role
           :data-testid="`overview-team-${team.lineup}`"
-        />
+        >
+          <!-- Every player checks in: Edit Lineup sits right under that team's
+               players (other check-in modes keep it in the check-in row). -->
+          <template v-if="team.editLineup" #footer>
+            <MatchStartingLineup
+              :match="match"
+              :team="team.lineup"
+              part="edit"
+              data-testid="overview-edit-lineup"
+            />
+          </template>
+        </DraftTeamPanel>
       </div>
     </div>
   </section>
@@ -93,6 +104,7 @@ import OverviewActionBar from "~/components/match/overview/OverviewActionBar.vue
 import OverviewVeto from "~/components/match/overview/OverviewVeto.vue";
 import OverviewPreMatch from "~/components/match/overview/OverviewPreMatch.vue";
 import OverviewCheckIn from "~/components/match/overview/OverviewCheckIn.vue";
+import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
 import OverviewRegion from "~/components/match/overview/OverviewRegion.vue";
 import OverviewSchedule from "~/components/match/overview/OverviewSchedule.vue";
 import { computed, type PropType } from "vue";
@@ -132,7 +144,7 @@ const NEUTRAL = "0 0% 92%";
  */
 export default {
   components: {
-    DraftTeamPanel, CaptainPickProgress, MatchRegionVeto, OverviewActionBar,
+    DraftTeamPanel, CaptainPickProgress, MatchRegionVeto, MatchStartingLineup, OverviewActionBar,
     OverviewVeto, OverviewPreMatch, OverviewCheckIn, OverviewRegion, OverviewSchedule,
   },
   props: {
@@ -303,6 +315,7 @@ export default {
             perTeam: Math.max(1, Math.ceil(progress.participants.length / 2)),
             active: progress.pickingLineup === lineup,
             checkIns: null,
+            editLineup: false,
           };
         }
         const row = this.match[`lineup_${lineup}`];
@@ -325,6 +338,10 @@ export default {
           perTeam: this.match.min_players_per_lineup || 5,
           active: this.stage === "veto" && this.vetoTeam === lineup,
           checkIns,
+          editLineup:
+            this.checkIn?.mode === "Players" &&
+            !!this.match.is_tournament_match &&
+            !row?.is_ready,
         };
       });
     },
