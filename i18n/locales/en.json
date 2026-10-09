@@ -6035,6 +6035,7 @@
     },
     "actions": {
       "open_registration": "Open Registration",
+      "open_registration_start_passed": "Open Registration (move the start time into the future first)",
       "close_registration": "Close Registration",
       "generate_teams": "Generate Teams",
       "generate_teams_success": "{teams} team(s) generated, {waitlisted} player(s) waitlisted",

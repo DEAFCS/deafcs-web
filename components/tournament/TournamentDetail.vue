@@ -7,6 +7,7 @@ import TournamentJoinForm from "~/components/tournament/TournamentJoinForm.vue";
 import TournamentEntryGate from "~/components/tournament/TournamentEntryGate.vue";
 import TournamentCheckInPanel from "~/components/tournament/TournamentCheckInPanel.vue";
 import TournamentFreeAgents from "~/components/tournament/TournamentFreeAgents.vue";
+import { openRegistrationBlockedByStart } from "~/utilities/tournamentOpenRegistration";
 import TournamentInviteAccept from "~/components/tournament/TournamentInviteAccept.vue";
 import TournamentIndividualPlayers from "~/components/tournament/TournamentIndividualPlayers.vue";
 import TournamentTeam from "~/components/tournament/TournamentTeam.vue";
@@ -480,6 +481,19 @@ const tacticalCornerCardClasses =
                       <Unlock />
                       <span>{{
                         $t("tournament.actions.open_registration")
+                      }}</span>
+                    </DropdownMenuItem>
+                    <!-- Registration cannot open once the start time has
+                         passed (a reset tournament keeps its old start). Say
+                         so instead of silently hiding the action. -->
+                    <DropdownMenuItem
+                      v-else-if="openRegistrationBlockedByStart"
+                      disabled
+                      data-testid="open-registration-start-passed"
+                    >
+                      <Unlock />
+                      <span>{{
+                        $t("tournament.actions.open_registration_start_passed")
                       }}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
@@ -1794,11 +1808,15 @@ export default {
         label: labels[tab] ?? tab,
       }));
     },
+    openRegistrationBlockedByStart() {
+      return openRegistrationBlockedByStart(this.tournament);
+    },
     hasStatusActions() {
       const t = this.tournament;
       if (!t) return false;
       return !!(
         t.can_open_registration ||
+        this.openRegistrationBlockedByStart ||
         t.can_close_registration ||
         this.canGenerateTeams ||
         t.can_start ||
