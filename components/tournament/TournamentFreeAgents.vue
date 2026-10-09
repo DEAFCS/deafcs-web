@@ -13,6 +13,7 @@ import {
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PlayerElo from "~/components/PlayerElo.vue";
+import PlayerSearch from "~/components/PlayerSearch.vue";
 import TournamentChip from "~/components/tournament/TournamentChip.vue";
 import TournamentFreeAgentSignUp from "~/components/tournament/TournamentFreeAgentSignUp.vue";
 import { toast } from "~/components/ui/toast";
@@ -73,6 +74,7 @@ const { result } = useSubscription(
         id: true,
         status: true,
         created_at: true,
+        checked_in_at: true,
         party_id: true,
         tournament_team_id: true,
         player: playerFields,
@@ -477,6 +479,86 @@ async function leavePool() {
   );
 }
 
+// Organizer controls over the pool, before the draft. The API enforces the
+// same windows and the same eligibility rules a self-registration meets; this
+// only decides what to offer. A drafted entry belongs to a generated team and is
+// changed through that team's roster, so it never gets a Remove.
+const canManagePool = computed(
+  () => !!props.tournament?.is_organizer && !props.readOnlyAdmin,
+);
+
+const canAddToPool = computed(
+  () =>
+    canManagePool.value &&
+    props.tournament?.status === e_tournament_status_enum.RegistrationOpen &&
+    ["free_agents", "both"].includes(props.tournament?.registration_type),
+);
+
+const canRemoveFromPool = computed(
+  () =>
+    canManagePool.value &&
+    [
+      e_tournament_status_enum.RegistrationOpen,
+      e_tournament_status_enum.CheckInReview,
+    ].includes(props.tournament?.status),
+);
+
+function canRemoveEntry(agent: Agent) {
+  return (
+    canRemoveFromPool.value &&
+    ["registered", "waitlisted"].includes(agent.status)
+  );
+}
+
+const poolSteamIds = computed(() =>
+  pool.value.map((row) => String(row.player?.steam_id)).filter(Boolean),
+);
+
+async function addToPool(player: { steam_id: string }) {
+  if (!player?.steam_id) {
+    return;
+  }
+  const data = await runTournamentAction(
+    client,
+    {
+      addTournamentFreeAgent: [
+        {
+          tournament_id: props.tournament.id,
+          player_steam_id: String(player.steam_id),
+        },
+        {
+          success: true,
+        },
+      ],
+    },
+    t("tournament.free_agents.add_failed"),
+  );
+  if (data) {
+    toast({ title: t("tournament.free_agents.add_done") });
+  }
+}
+
+async function removeFromPool(agent: Agent) {
+  const data = await runTournamentAction(
+    client,
+    {
+      removeTournamentFreeAgent: [
+        {
+          tournament_id: props.tournament.id,
+          player_steam_id: String(agent.player?.steam_id),
+        },
+        {
+          success: true,
+        },
+      ],
+    },
+    t("tournament.free_agents.remove_failed"),
+  );
+  if (data) {
+    toast({ title: t("tournament.free_agents.remove_done") });
+  }
+}
+
 async function draftTeams() {
   const data = await runTournamentAction(
     client,
@@ -658,6 +740,25 @@ async function draftTeams() {
               <TournamentChip class="col-start-3 sm:col-auto" :tone="statusTone(row.agent.status)">
                 {{ statusLabel(row.agent.status) }}
               </TournamentChip>
+              <TournamentChip
+                v-if="tournament.check_in_required && row.agent.checked_in_at"
+                class="sm:col-auto"
+                tone="ok"
+              >
+                {{ $t("tournament.free_agents.checked_in") }}
+              </TournamentChip>
+              <Button
+                v-if="canRemoveEntry(row.agent)"
+                variant="ghost"
+                size="sm"
+                class="h-7 shrink-0 px-2 text-muted-foreground hover:text-destructive"
+                :aria-label="$t('tournament.free_agents.remove_player')"
+                :title="$t('tournament.free_agents.remove_player')"
+                data-testid="free-agent-remove"
+                @click="removeFromPool(row.agent)"
+              >
+                <UserMinus class="h-3.5 w-3.5" />
+              </Button>
             </div>
           </div>
         </div>
@@ -703,6 +804,23 @@ async function draftTeams() {
 
     <template v-if="tournament.is_organizer && !readOnlyAdmin">
       <div class="h-px bg-border"></div>
+
+      <div v-if="canAddToPool" class="flex flex-col gap-1.5">
+        <!-- Adds an existing player through the normal sign-up checks (entry
+             requirements, bans, one roster per tournament, invite access), so
+             the organizer has no side door around them. -->
+        <PlayerSearch
+          :label="$t('tournament.free_agents.add_player')"
+          :exclude="poolSteamIds"
+          :registeredOnly="true"
+          :match-type="tournament?.options?.type"
+          :min-role="tournament?.min_role"
+          @selected="addToPool"
+        />
+        <span class="text-[0.72rem] text-muted-foreground">
+          {{ $t("tournament.free_agents.add_player_hint") }}
+        </span>
+      </div>
 
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="min-w-0">
