@@ -18,8 +18,9 @@ import mapLabel from "~/utilities/mapLabel";
       <Switch :model-value="override" />
     </div>
 
-    <!-- Side choice: the map just picked, CT or T. Same footprint as the map
-         grid it replaces (its measured height), so the middle doesn't jump. -->
+    <!-- Side choice: the map just picked, CT or T. Always ONE row tall, the
+         height of the first row of map cards (measured), whatever the number of
+         map rows, so two wide choices never turn into a 2-row block. -->
     <div
       v-if="pickType === 'Side' && sideMap"
       class="relative w-full overflow-hidden rounded-xl border border-border"
@@ -32,20 +33,20 @@ import mapLabel from "~/utilities/mapLabel";
         alt=""
         class="absolute inset-0 h-full w-full object-cover brightness-[0.35]"
       />
-      <div class="relative flex h-full flex-col items-center justify-center gap-3 p-4">
+      <div class="relative flex h-full flex-col gap-2 p-3">
         <span
-          class="font-sans text-xl font-bold uppercase tracking-[0.2em] text-white"
+          class="truncate font-sans text-sm font-bold uppercase tracking-[0.2em] text-white"
           data-testid="veto-side-map"
         >
           {{ mapLabel(sideMap) }}
         </span>
-        <div class="flex items-center gap-3">
+        <div class="grid min-h-0 flex-1 grid-cols-2 gap-3">
           <component
             :is="isPicking ? 'button' : 'div'"
             v-for="option in sideOptions"
             :key="option.value"
             :type="isPicking ? 'button' : undefined"
-            class="side-option flex flex-col items-center gap-1.5 rounded-lg border px-4 py-2"
+            class="side-option flex items-center justify-center gap-3 rounded-lg border px-4"
             :class="[
               selectedSide === option.value ? 'is-selected' : '',
               isPicking ? 'is-pickable' : '',
@@ -54,8 +55,8 @@ import mapLabel from "~/utilities/mapLabel";
             :data-testid="`veto-side-${option.short}`"
             @click="isPicking && !submitting && selectSide(option.value)"
           >
-            <img :src="option.img" alt="" class="h-10 w-10 drop-shadow-xl" />
-            <span class="font-mono text-xs font-bold tracking-[0.18em] text-white">
+            <img :src="option.img" alt="" class="h-10 w-10 shrink-0 drop-shadow-xl" />
+            <span class="font-mono text-sm font-bold tracking-[0.18em] text-white">
               {{ option.short }}
             </span>
           </component>
@@ -214,7 +215,7 @@ export default {
       countdownInterval: undefined as ReturnType<typeof setInterval> | undefined,
       sounds: useSound(),
       // Last rendered height of the map grid; the side choice takes it.
-      mapGridHeight: null as number | null,
+      mapCardHeight: null as number | null,
       gridObserver: undefined as ResizeObserver | undefined,
       observedGrid: null as HTMLElement | null,
     };
@@ -248,7 +249,7 @@ export default {
     if (typeof ResizeObserver !== "undefined") {
       this.gridObserver = new ResizeObserver((entries) => {
         const height = entries[0]?.contentRect.height ?? 0;
-        if (height > 0) this.mapGridHeight = height;
+        if (height > 0) this.mapCardHeight = height;
       });
       this.observeMapGrid();
     }
@@ -268,10 +269,14 @@ export default {
     // the side choice and comes back for the next ban/pick).
     observeMapGrid() {
       const grid = this.$refs.mapGrid as HTMLElement | undefined;
-      if (!this.gridObserver || !grid || this.observedGrid === grid) return;
+      // The first row's card height (a selected card can grow, so take one
+      // that is not selected).
+      const card = (grid?.querySelector(".veto-map:not(.is-selected)") ??
+        grid?.firstElementChild) as HTMLElement | null | undefined;
+      if (!this.gridObserver || !card || this.observedGrid === card) return;
       this.gridObserver.disconnect();
-      this.gridObserver.observe(grid);
-      this.observedGrid = grid;
+      this.gridObserver.observe(card);
+      this.observedGrid = card;
     },
     teamName(team: 1 | 2) {
       return this.match[`lineup_${team}`]?.name || this.$t(`match.lineup.lineup_${team}`);
@@ -404,17 +409,16 @@ export default {
     sideMap() {
       return (this.picks as any[]).at(-1)?.map ?? null;
     },
-    // The map grid's footprint: its measured height, or (page opened during a
-    // side choice) the shape a three-column grid of this pool has: rows of
-    // 4:3 cards a third of the width wide, plus the 0.5rem gaps.
+    // One row: the measured height of a first-row map card, or (page opened
+    // during a side choice, nothing measured yet) the shape of that row: a 4:3
+    // card a third of the width wide is a quarter of the width tall.
     sideChoiceStyle() {
-      if (this.mapGridHeight) {
-        return { height: `${this.mapGridHeight}px`, minHeight: "10rem" };
+      if (this.mapCardHeight) {
+        return { height: `${this.mapCardHeight}px`, minHeight: "6rem" };
       }
-      const rows = Math.max(1, Math.ceil(this.mapRows.length / 3));
       return {
-        aspectRatio: `4 / ${rows}`,
-        minHeight: "12rem",
+        aspectRatio: "4 / 1",
+        minHeight: "6rem",
       };
     },
     sideOptions() {

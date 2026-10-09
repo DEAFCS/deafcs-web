@@ -85,11 +85,10 @@ describe("who gets a match action, from the server's own flags", () => {
     expect(matchActions([match()], null)).toEqual([]);
   });
 
-  it("veto: only the acting lineup, on its own turn", () => {
+  it("a veto turn is not an action popup: the corner notification is the only one", () => {
     const veto = (patch: any) => withLineup(1, patch, { status: "Veto" });
-    expect(matchActions([veto({ can_pick_map_veto: true })], "11").map((a) => a.id)).toEqual(["match-map_veto:m1"]);
-    expect(matchActions([veto({ can_pick_region_veto: true })], "11").map((a) => a.id)).toEqual(["match-region_veto:m1"]);
-    // The other team's turn: Bravo has it, Alpha does not.
+    expect(matchActions([veto({ can_pick_map_veto: true })], "11")).toEqual([]);
+    expect(matchActions([veto({ can_pick_region_veto: true })], "11")).toEqual([]);
     expect(matchActions([withLineup(2, { can_pick_map_veto: true }, { status: "Veto" })], "11")).toEqual([]);
   });
 
@@ -158,20 +157,35 @@ describe("ActionToasts", () => {
     expect(toasts(wrapper)).toHaveLength(0);
   });
 
-  it("dismissed stays dismissed for that action; once it is done, the next action pops up again", async () => {
+  it("renders no veto popup (the old orange map veto notice), while check-in still shows", async () => {
     lobbyStore.myMatches = [withLineup(1, { can_pick_map_veto: true }, { status: "Veto" })];
     const wrapper = mountToasts();
     await flushPromises();
-    await wrapper.get('[data-testid="action-toast-match-map_veto:m1"] .toast-dismiss').trigger("click");
     expect(toasts(wrapper)).toHaveLength(0);
-    // Same turn, more updates: still dismissed.
-    lobbyStore.myMatches = [withLineup(1, { can_pick_map_veto: true }, { status: "Veto" })];
+    expect(wrapper.find('[data-testid="action-toast-match-map_veto:m1"]').exists()).toBe(false);
+    lobbyStore.myMatches = [withLineup(1, { can_pick_region_veto: true }, { status: "Veto" })];
     await flushPromises();
     expect(toasts(wrapper)).toHaveLength(0);
-    // Bravo's turn, then Alpha's next turn: a new popup.
-    lobbyStore.myMatches = [withLineup(2, { can_pick_map_veto: true }, { status: "Veto" })];
+    // Check-in is a different notification and stays.
+    lobbyStore.myMatches = [match()];
     await flushPromises();
-    lobbyStore.myMatches = [withLineup(1, { can_pick_map_veto: true }, { status: "Veto" })];
+    expect(toasts(wrapper)).toHaveLength(1);
+  });
+
+  it("dismissed stays dismissed for that action; once it is done, the next action pops up again", async () => {
+    lobbyStore.myMatches = [match()];
+    const wrapper = mountToasts();
+    await flushPromises();
+    await wrapper.get('[data-testid="action-toast-match-check_in:m1"] .toast-dismiss').trigger("click");
+    expect(toasts(wrapper)).toHaveLength(0);
+    // Same action, more updates: still dismissed.
+    lobbyStore.myMatches = [match()];
+    await flushPromises();
+    expect(toasts(wrapper)).toHaveLength(0);
+    // The action is done (checked in), then it is needed again: a new popup.
+    lobbyStore.myMatches = [withLineup(1, { lineup_players: players(["11", "12"], ["11"]) })];
+    await flushPromises();
+    lobbyStore.myMatches = [match()];
     await flushPromises();
     expect(toasts(wrapper)).toHaveLength(1);
   });

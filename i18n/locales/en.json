@@ -7091,6 +7091,7 @@
       "picked": "Picked"
     },
     "starting_lineup": {
+      "title": "Starting Lineup",
       "select": "Select Starting Lineup",
       "confirm": "Confirm Starting Lineup",
       "needs_confirmation": "Confirm your starting lineup before checking in.",

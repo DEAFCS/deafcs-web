@@ -1,13 +1,14 @@
 // Match actions the viewer must take right now, for ActionToasts. Derived
 // only from the viewer's own matches subscription (MatchLobbyStore.myMatches):
-// every flag here is the server's (can_check_in, checked_in, is_ready,
-// can_pick_map_veto, can_pick_region_veto), so nothing is decided client-side.
+// every flag here is the server's (can_check_in, checked_in, is_ready), so
+// nothing is decided client-side.
 //
-// One item per match and action. Its id stays the same while the action is
+// One item per match and action (check-in; a veto turn is announced by the
+// corner notification in useOffPageToasts, not here). Its id stays the same while the action is
 // open (repeated subscription updates never re-toast) and the item disappears
 // once the server says it is done, so a later turn is a new notification.
 
-export type MatchActionKind = "check_in" | "region_veto" | "map_veto";
+export type MatchActionKind = "check_in";
 
 export type MatchAction = {
   id: string;
@@ -61,11 +62,9 @@ export function matchActions(
       if (match.can_check_in && myRow && !myRow.checked_in && !mine.is_ready) {
         add("check_in");
       }
-    } else if (match.status === "Veto") {
-      // Only the acting captain's lineup has these, and only on its turn.
-      if (mine.can_pick_region_veto) add("region_veto");
-      else if (mine.can_pick_map_veto) add("map_veto");
     }
+    // A veto turn is announced by the corner notification (useOffPageToasts)
+    // only; there is no second popup for it.
   }
   return actions;
 }

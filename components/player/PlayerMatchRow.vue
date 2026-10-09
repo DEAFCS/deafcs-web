@@ -132,7 +132,7 @@ const wideGrid =
       <!-- RESULT + SCORE — finished matches show the W/L/T badge + score;
            anything else (scheduled/cancelled/live) shows only the status. The
            opponent TEAM (real teams only — never pugs) tucks under the score. -->
-      <div v-if="neutral" class="flex min-w-0 flex-col justify-center gap-1">
+      <div v-if="neutral" class="result-cell flex min-w-0 overflow-hidden flex-col justify-center gap-1">
         <template v-if="isFinished">
           <div
             v-for="team in neutralTeams"
@@ -153,9 +153,9 @@ const wideGrid =
             }}</span>
           </div>
         </template>
-        <MatchStatus v-else :match="match" class="self-start" />
+        <MatchStatus v-else :match="match" class="result-status self-start" />
       </div>
-      <div v-else class="flex min-w-0 flex-col justify-center gap-0.5">
+      <div v-else class="result-cell flex min-w-0 overflow-hidden flex-col justify-center gap-0.5">
         <span
           v-if="isFinished"
           class="font-mono text-sm font-bold leading-none tabular-nums"
@@ -164,7 +164,7 @@ const wideGrid =
           <span class="mx-1 text-muted-foreground/60">:</span>
           <span class="text-muted-foreground/90">{{ score.opponent }}</span>
         </span>
-        <MatchStatus v-else :match="match" class="self-start" />
+        <MatchStatus v-else :match="match" class="result-status self-start" />
         <span
           v-if="opponentTeam"
           class="flex min-w-0 items-center gap-1"
@@ -1310,3 +1310,16 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* The Result column is a fixed track: a long status ("Waiting for players /
+   check in") wraps inside it instead of running into the Map column. */
+.result-cell :deep(.result-status) {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.15;
+  letter-spacing: 0.08em;
+  padding-block: 0.3rem;
+}
+</style>

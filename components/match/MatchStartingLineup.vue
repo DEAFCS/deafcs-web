@@ -285,16 +285,25 @@ export default {
 </script>
 
 <template>
+  <!-- A full-width panel under both team panels: one block per team, its
+       players in a responsive grid (one row for a Wingman roster, wrapping for a
+       Competitive roster with substitutes). -->
   <section
     v-if="visibleTeams.length > 0"
-    class="flex min-w-0 flex-col gap-3"
+    class="flex min-w-0 flex-col gap-4 rounded-xl border border-border bg-card/40 p-4"
     data-testid="starting-lineup"
   >
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <h3
+      class="font-mono text-[0.7rem] font-bold uppercase tracking-[0.18em] text-muted-foreground"
+      data-testid="starting-lineup-title"
+    >
+      {{ $t("match.starting_lineup.title") }}
+    </h3>
+    <div class="flex flex-col gap-4 divide-y divide-border/60">
       <div
         v-for="team in visibleTeams"
         :key="team"
-        class="flex min-w-0 flex-col gap-2 rounded-xl border border-border bg-card/40 p-3"
+        class="flex min-w-0 flex-col gap-2 pt-4 first:pt-0"
         :data-testid="`starting-lineup-team-${team}`"
       >
         <div class="flex items-center justify-between gap-2">
@@ -322,11 +331,14 @@ export default {
         >
           {{ $t("match.starting_lineup.needs_confirmation") }}
         </p>
-        <ul class="flex flex-col gap-1">
+        <ul
+          class="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(12rem,1fr))]"
+          data-testid="starting-lineup-players"
+        >
           <li
             v-for="row in rosterRows(team)"
             :key="row.player_steam_id"
-            class="flex min-w-0 items-center gap-2 rounded-md px-1.5 py-1"
+            class="flex min-w-0 items-center gap-2 rounded-md border border-border/60 bg-background/40 px-2 py-1.5"
             :class="{ 'opacity-60': !row.active }"
             :data-testid="`starting-lineup-player-${row.player_steam_id}`"
             :data-active="row.active ? 'true' : 'false'"

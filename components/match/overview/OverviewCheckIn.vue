@@ -2,14 +2,10 @@
 import CheckIntoMatch from "~/components/match/CheckIntoMatch.vue";
 import { Check } from "lucide-vue-next";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
-import MatchStartingLineup from "~/components/match/MatchStartingLineup.vue";
 </script>
 
 <template>
   <section class="flex min-w-0 flex-col gap-4" data-testid="overview-check-in" :data-mode="summary.mode">
-    <!-- Tournament matches with substitutes: who is Active and who is a
-         Substitute for this match, and the way to change it before it starts. -->
-    <MatchStartingLineup v-if="match.is_tournament_match" :match="match" />
 
     <!-- Players check-in: each team's players side by side (Team 1 left,
          Team 2 right) instead of one long column. -->

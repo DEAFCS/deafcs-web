@@ -1083,23 +1083,24 @@ describe("Overview layout refinement", () => {
     wrapper.unmount();
   });
 
-  it("CT/T choice keeps the map grid's footprint; choosing a side works exactly as before", async () => {
+  it("CT/T choice is one row tall (the first row of map cards); choosing a side works exactly as before", async () => {
     const captain = { is_captain: true, lineup_2: lineup("Bravo", ["21"], { can_pick_map_veto: true }) };
     // A Pick is on the table, then the server asks Bravo for a side.
     const wrapper = mountVeto(baseMatch({ map_veto_type: "Ban", ...captain }), bo3Picks.slice(0, 2));
     expect(wrapper.find('[data-testid="veto-maps"]').exists()).toBe(true);
-    // The grid's rendered height (ResizeObserver in a browser) is what the
-    // side choice takes over.
-    (wrapper.vm as any).$.data.mapGridHeight = 412;
+    // A first-row map card's rendered height (ResizeObserver in a browser) is
+    // what the side choice takes over, not the whole grid's.
+    (wrapper.vm as any).$.data.mapCardHeight = 132;
     await wrapper.setProps({ match: baseMatch({ map_veto_type: "Side", ...captain }), picks: bo3Picks.slice(0, 3) });
     const side = wrapper.get('[data-testid="veto-side-choice"]');
     expect(wrapper.find('[data-testid="veto-maps"]').exists()).toBe(false);
-    expect(side.attributes("style")).toContain("height: 412px");
+    expect(side.attributes("style")).toContain("height: 132px");
     expect(side.classes()).toContain("w-full");
-    // Map background and name kept; slightly smaller CT/T cards.
+    // Map background and name kept; two wide CT/T choices side by side.
     expect(side.find("img").attributes("src")).toBe("/img/maps/mirage.webp");
     expect(side.get('[data-testid="veto-side-map"]').text()).toBe("Mirage");
-    expect(side.get('[data-testid="veto-side-CT"]').classes()).toEqual(expect.arrayContaining(["px-4", "py-2"]));
+    expect(side.get('[data-testid="veto-side-CT"]').classes()).toEqual(expect.arrayContaining(["flex", "justify-center", "px-4"]));
+    expect(side.get('[data-testid="veto-side-CT"]').classes()).not.toContain("flex-col");
     // Same CT/T confirmation and mutation as before.
     await side.get('[data-testid="veto-side-CT"]').trigger("click");
     await wrapper.get('[data-testid="veto-confirm-submit"]').trigger("click");
@@ -1109,12 +1110,12 @@ describe("Overview layout refinement", () => {
     });
     wrapper.unmount();
 
-    // Opened straight into a side choice (nothing measured yet): the shape a
-    // three-column grid of this 7-map pool has (3 rows of 4:3 cards).
+    // Opened straight into a side choice (nothing measured yet): one row of
+    // 4:3 cards a third of the width wide, whatever the pool size (7 maps here).
     const fresh = mountVeto(baseMatch({ map_veto_type: "Side", ...captain }), bo3Picks.slice(0, 3));
     const style = fresh.get('[data-testid="veto-side-choice"]').attributes("style");
-    expect(style).toContain("aspect-ratio: 4 / 3");
-    expect(style).toContain("min-height: 12rem");
+    expect(style).toContain("aspect-ratio: 4 / 1");
+    expect(style).toContain("min-height: 6rem");
     fresh.unmount();
   });
 
