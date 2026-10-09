@@ -6269,7 +6269,6 @@
       "status_registered": "registered",
       "empty_title": "No free agents yet",
       "empty_description": "Players who sign up alone appear here, and are drafted into balanced teams when registration closes.",
-      "waitlist_explainer": "{name} is the highest-rated entrant and still waitlisted — they signed up after the slots filled. Sign-up time decides who gets a slot; ELO only decides which team. That is the rule working, not a bug.",
       "party_of": "Party of {count}",
       "party_status_drafted": "drafted together",
       "party_status_waitlisted": "waitlisted together",

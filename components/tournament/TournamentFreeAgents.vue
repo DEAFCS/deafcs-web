@@ -383,18 +383,6 @@ const hasWaitlistedParty = computed(() =>
   ),
 );
 
-// The single most confusing thing about this pool: the best player in it can be
-// on the waitlist. Say so out loud instead of letting it look like a bug.
-const topRatedWaitlisted = computed(() => {
-  if (pool.value.length === 0) {
-    return null;
-  }
-  const best = pool.value.reduce((top, row) =>
-    (playerElo(row) ?? 0) > (playerElo(top) ?? 0) ? row : top,
-  );
-  return best.status === "waitlisted" ? best : null;
-});
-
 const myEntry = computed(() => {
   const steamId = me.value?.steam_id;
   if (!steamId) {
@@ -787,19 +775,6 @@ async function draftTeams() {
         <span>{{ $t("tournament.free_agents.party_waitlist_explainer") }}</span>
       </div>
 
-      <div
-        v-if="topRatedWaitlisted"
-        class="flex items-start gap-2.5 rounded-md border border-border bg-muted/20 px-4 py-3 text-[0.78rem] leading-relaxed text-muted-foreground"
-      >
-        <Info class="mt-px h-3.5 w-3.5 shrink-0 text-[hsl(var(--tac-amber))]" />
-        <span>
-          {{
-            $t("tournament.free_agents.waitlist_explainer", {
-              name: topRatedWaitlisted.player?.name,
-            })
-          }}
-        </span>
-      </div>
     </template>
 
     <template v-if="tournament.is_organizer && !readOnlyAdmin">

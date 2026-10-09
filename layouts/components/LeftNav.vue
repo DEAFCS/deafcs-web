@@ -920,29 +920,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             </SidebarMenuItem>
 
             <SidebarMenuItem
-              v-if="isTournamentOrganizer || isAdmin"
-              :tooltip="$t('layouts.app_nav.tooltips.manage_tournaments')"
-            >
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.manage_tournaments')"
-              >
-                <NuxtLink
-                  :to="{ name: 'tournaments-manage' }"
-                  :class="{
-                    'router-link-active': isRouteActive('tournaments-manage'),
-                  }"
-                >
-                  <TournamentBracket />
-                  {{ $t("layouts.app_nav.administration.manage_tournaments") }}
-                  <Badge size="sm" v-if="managingTournamentsCount > 0">
-                    {{ managingTournamentsCount }}
-                  </Badge>
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem
               v-if="isAdmin"
               :tooltip="$t('layouts.app_nav.tooltips.terms_acceptances')"
             >
