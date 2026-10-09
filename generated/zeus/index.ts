@@ -1,6 +1,8 @@
 /* eslint-disable */
 
 import { AllTypesProps, ReturnTypes, Ops } from './const';
+
+
 export const HOST = "https://api.deafcs.net/v1/graphql"
 
 
@@ -1725,6 +1727,18 @@ export type ValueTypes = {
 	round?:boolean | `@${string}`,
 	stage_type?:boolean | `@${string}`,
 	will_delete_match?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["TournamentMvpCandidate"]: AliasType<{
+	assists?:boolean | `@${string}`,
+	deaths?:boolean | `@${string}`,
+	kills?:boolean | `@${string}`,
+	matches_played?:boolean | `@${string}`,
+	player_name?:boolean | `@${string}`,
+	player_steam_id?:boolean | `@${string}`,
+	rating?:boolean | `@${string}`,
+	team_name?:boolean | `@${string}`,
+	tournament_team_id?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["WatchDemoOutput"]: AliasType<{
@@ -21405,6 +21419,10 @@ match_veto_picks_aggregate?: [{	/** distinct select on columns */
 	where?: ValueTypes["match_map_veto_picks_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["match_map_veto_picks_aggregate"]],
 	/** A computed field, executes function "get_team_name" */
 	name?:boolean | `@${string}`,
+	/** A computed field, executes function "match_lineup_needs_starting_lineup_confirmation" */
+	needs_starting_lineup_confirmation?:boolean | `@${string}`,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?:boolean | `@${string}`,
 	/** An object relationship */
 	team?:ValueTypes["teams"],
 	team_id?:boolean | `@${string}`,
@@ -21493,6 +21511,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	match_veto_picks?: ValueTypes["match_map_veto_picks_bool_exp"] | undefined | null | Variable<any, string>,
 	match_veto_picks_aggregate?: ValueTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	needs_starting_lineup_confirmation?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
+	starting_lineup_confirmed_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
 	team?: ValueTypes["teams_bool_exp"] | undefined | null | Variable<any, string>,
 	team_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	team_name?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>
@@ -21513,6 +21533,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	match?: ValueTypes["matches_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	match_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	match_veto_picks?: ValueTypes["match_map_veto_picks_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	team?: ValueTypes["teams_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	team_name?: string | undefined | null | Variable<any, string>
@@ -21524,6 +21546,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	match_id?:boolean | `@${string}`,
 	/** A computed field, executes function "get_team_name" */
 	name?:boolean | `@${string}`,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?:boolean | `@${string}`,
 	team_id?:boolean | `@${string}`,
 	team_name?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -21533,6 +21557,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	coach_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	match_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	team_name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
@@ -21543,6 +21569,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	match_id?:boolean | `@${string}`,
 	/** A computed field, executes function "get_team_name" */
 	name?:boolean | `@${string}`,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?:boolean | `@${string}`,
 	team_id?:boolean | `@${string}`,
 	team_name?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -21552,6 +21580,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	coach_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	match_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	team_name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
@@ -21593,6 +21623,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	match_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	match_veto_picks_aggregate?: ValueTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	needs_starting_lineup_confirmation?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	starting_lineup_confirmed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	team?: ValueTypes["teams_order_by"] | undefined | null | Variable<any, string>,
 	team_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	team_name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -21608,6 +21640,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	coach_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	match_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	team_name?: string | undefined | null | Variable<any, string>
 };
@@ -21650,6 +21684,8 @@ count?: [{	columns?: Array<ValueTypes["match_lineups_select_column"]> | undefine
 	coach_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
 	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	match_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
 	team_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	team_name?: string | undefined | null | Variable<any, string>
 };
@@ -25955,6 +25991,7 @@ acceptInvite?: [{	invite_id: ValueTypes["uuid"] | Variable<any, string>,	type: s
 	acceptTerms?:ValueTypes["SuccessOutput"],
 addDraftPlayer?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	steamId: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string | Variable<any, string>,	friend_capacity?: number | undefined | null | Variable<any, string>,	username: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
+addTournamentFreeAgent?: [{	player_steam_id: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 addTournamentIndividualPlayer?: [{	player_steam_id: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["AddTournamentIndividualPlayerOutput"]],
 approveNameChange?: [{	name: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 approveVerificationApplication?: [{	application_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -25996,6 +26033,7 @@ clearClipRenderBatch?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, strin
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
 	clearFinishedClipRenders?:ValueTypes["SuccessOutput"],
 clearPendingMatchImport?: [{	valve_match_id: string | Variable<any, string>},ValueTypes["PendingMatchImportActionOutput"]],
+clearTournamentMvp?: [{	note?: string | undefined | null | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 clone_league_season?: [{	/** input parameters for function "clone_league_season" */
 	args: ValueTypes["clone_league_season_args"] | Variable<any, string>,	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["league_seasons_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
@@ -27763,6 +27801,7 @@ removeAbandonedMatch?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueT
 	/** Remove dev fixture data (dev only) */
 	removeFixtures?:ValueTypes["SuccessOutput"],
 removeSteamPresenceBotAccount?: [{	account_id: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
+removeTournamentFreeAgent?: [{	player_steam_id: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 removeTournamentIndividualPlayer?: [{	player_steam_id: string | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["RemoveTournamentIndividualPlayerOutput"]],
 remove_league_team_from_season?: [{	/** input parameters for function "remove_league_team_from_season" */
 	args: ValueTypes["remove_league_team_from_season_args"] | Variable<any, string>,	/** distinct select on columns */
@@ -27814,9 +27853,11 @@ sendScrimRequest?: [{	best_of?: number | undefined | null | Variable<any, string
 setGameNodeSchedulingState?: [{	enabled: boolean | Variable<any, string>,	game_server_node_id: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 setHudMode?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	mode: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 setMapWinner?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	match_map_id: ValueTypes["uuid"] | Variable<any, string>,	winning_lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+setMatchStartingLineup?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	match_lineup_id: ValueTypes["uuid"] | Variable<any, string>,	steam_ids: Array<string> | Variable<any, string>},ValueTypes["SuccessOutput"]],
 setMatchWinner?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	winning_lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 setNewsPostStatus?: [{	id: ValueTypes["uuid"] | Variable<any, string>,	status: string | Variable<any, string>},ValueTypes["NewsPost"]],
 setTournamentAward?: [{	award_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	custom_name?: string | undefined | null | Variable<any, string>,	placement: number | Variable<any, string>,	silhouette?: number | undefined | null | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["TournamentAward"]],
+setTournamentMvp?: [{	note?: string | undefined | null | Variable<any, string>,	player_steam_id: ValueTypes["bigint"] | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 	setupGameServer?:ValueTypes["SetupGameServeOutput"],
 skipShaders?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 specAutodirector?: [{	enabled: boolean | Variable<any, string>,	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -47773,6 +47814,7 @@ teams_aggregate?: [{	/** distinct select on columns */
 	where?: ValueTypes["teams_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["teams_aggregate"]],
 teams_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["teams"]],
 	telemetryStats?:ValueTypes["TelemetryStats"],
+tournamentMvpCandidates?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["TournamentMvpCandidate"]],
 tournament_award_slots?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["tournament_award_slots_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -75992,6 +76034,18 @@ export type ResolverInputTypes = {
 	will_delete_match?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["TournamentMvpCandidate"]: AliasType<{
+	assists?:boolean | `@${string}`,
+	deaths?:boolean | `@${string}`,
+	kills?:boolean | `@${string}`,
+	matches_played?:boolean | `@${string}`,
+	player_name?:boolean | `@${string}`,
+	player_steam_id?:boolean | `@${string}`,
+	rating?:boolean | `@${string}`,
+	team_name?:boolean | `@${string}`,
+	tournament_team_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["WatchDemoOutput"]: AliasType<{
 	match_map_id?:boolean | `@${string}`,
 	session_id?:boolean | `@${string}`,
@@ -95670,6 +95724,10 @@ match_veto_picks_aggregate?: [{	/** distinct select on columns */
 	where?: ResolverInputTypes["match_map_veto_picks_bool_exp"] | undefined | null},ResolverInputTypes["match_map_veto_picks_aggregate"]],
 	/** A computed field, executes function "get_team_name" */
 	name?:boolean | `@${string}`,
+	/** A computed field, executes function "match_lineup_needs_starting_lineup_confirmation" */
+	needs_starting_lineup_confirmation?:boolean | `@${string}`,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?:boolean | `@${string}`,
 	/** An object relationship */
 	team?:ResolverInputTypes["teams"],
 	team_id?:boolean | `@${string}`,
@@ -95758,6 +95816,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	match_veto_picks?: ResolverInputTypes["match_map_veto_picks_bool_exp"] | undefined | null,
 	match_veto_picks_aggregate?: ResolverInputTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null,
 	name?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	needs_starting_lineup_confirmation?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
+	starting_lineup_confirmed_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
 	team?: ResolverInputTypes["teams_bool_exp"] | undefined | null,
 	team_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	team_name?: ResolverInputTypes["String_comparison_exp"] | undefined | null
@@ -95778,6 +95838,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	match?: ResolverInputTypes["matches_obj_rel_insert_input"] | undefined | null,
 	match_id?: ResolverInputTypes["uuid"] | undefined | null,
 	match_veto_picks?: ResolverInputTypes["match_map_veto_picks_arr_rel_insert_input"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	team?: ResolverInputTypes["teams_obj_rel_insert_input"] | undefined | null,
 	team_id?: ResolverInputTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
@@ -95789,6 +95851,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	match_id?:boolean | `@${string}`,
 	/** A computed field, executes function "get_team_name" */
 	name?:boolean | `@${string}`,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?:boolean | `@${string}`,
 	team_id?:boolean | `@${string}`,
 	team_name?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -95798,6 +95862,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	coach_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	match_id?: ResolverInputTypes["order_by"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ResolverInputTypes["order_by"] | undefined | null,
 	team_id?: ResolverInputTypes["order_by"] | undefined | null,
 	team_name?: ResolverInputTypes["order_by"] | undefined | null
 };
@@ -95808,6 +95874,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	match_id?:boolean | `@${string}`,
 	/** A computed field, executes function "get_team_name" */
 	name?:boolean | `@${string}`,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?:boolean | `@${string}`,
 	team_id?:boolean | `@${string}`,
 	team_name?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
@@ -95817,6 +95885,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	coach_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	id?: ResolverInputTypes["order_by"] | undefined | null,
 	match_id?: ResolverInputTypes["order_by"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ResolverInputTypes["order_by"] | undefined | null,
 	team_id?: ResolverInputTypes["order_by"] | undefined | null,
 	team_name?: ResolverInputTypes["order_by"] | undefined | null
 };
@@ -95858,6 +95928,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	match_id?: ResolverInputTypes["order_by"] | undefined | null,
 	match_veto_picks_aggregate?: ResolverInputTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null,
 	name?: ResolverInputTypes["order_by"] | undefined | null,
+	needs_starting_lineup_confirmation?: ResolverInputTypes["order_by"] | undefined | null,
+	starting_lineup_confirmed_at?: ResolverInputTypes["order_by"] | undefined | null,
 	team?: ResolverInputTypes["teams_order_by"] | undefined | null,
 	team_id?: ResolverInputTypes["order_by"] | undefined | null,
 	team_name?: ResolverInputTypes["order_by"] | undefined | null
@@ -95873,6 +95945,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	coach_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	match_id?: ResolverInputTypes["uuid"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	team_id?: ResolverInputTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -95915,6 +95989,8 @@ count?: [{	columns?: Array<ResolverInputTypes["match_lineups_select_column"]> | 
 	coach_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
 	id?: ResolverInputTypes["uuid"] | undefined | null,
 	match_id?: ResolverInputTypes["uuid"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
 	team_id?: ResolverInputTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -100220,6 +100296,7 @@ acceptInvite?: [{	invite_id: ResolverInputTypes["uuid"],	type: string},ResolverI
 	acceptTerms?:ResolverInputTypes["SuccessOutput"],
 addDraftPlayer?: [{	draftGameId: ResolverInputTypes["uuid"],	steamId: string},ResolverInputTypes["SuccessOutput"]],
 addSteamPresenceBotAccount?: [{	bot_secret: string,	friend_capacity?: number | undefined | null,	username: string},ResolverInputTypes["SuccessOutput"]],
+addTournamentFreeAgent?: [{	player_steam_id: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 addTournamentIndividualPlayer?: [{	player_steam_id: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["AddTournamentIndividualPlayerOutput"]],
 approveNameChange?: [{	name: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["SuccessOutput"]],
 approveVerificationApplication?: [{	application_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -100261,6 +100338,7 @@ clearClipRenderBatch?: [{	match_map_id: ResolverInputTypes["uuid"]},ResolverInpu
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
 	clearFinishedClipRenders?:ResolverInputTypes["SuccessOutput"],
 clearPendingMatchImport?: [{	valve_match_id: string},ResolverInputTypes["PendingMatchImportActionOutput"]],
+clearTournamentMvp?: [{	note?: string | undefined | null,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 clone_league_season?: [{	/** input parameters for function "clone_league_season" */
 	args: ResolverInputTypes["clone_league_season_args"],	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["league_seasons_select_column"]> | undefined | null,	/** limit the number of rows returned */
@@ -102028,6 +102106,7 @@ removeAbandonedMatch?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["Su
 	/** Remove dev fixture data (dev only) */
 	removeFixtures?:ResolverInputTypes["SuccessOutput"],
 removeSteamPresenceBotAccount?: [{	account_id: string},ResolverInputTypes["SuccessOutput"]],
+removeTournamentFreeAgent?: [{	player_steam_id: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 removeTournamentIndividualPlayer?: [{	player_steam_id: string,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["RemoveTournamentIndividualPlayerOutput"]],
 remove_league_team_from_season?: [{	/** input parameters for function "remove_league_team_from_season" */
 	args: ResolverInputTypes["remove_league_team_from_season_args"],	/** distinct select on columns */
@@ -102079,9 +102158,11 @@ sendScrimRequest?: [{	best_of?: number | undefined | null,	from_team_id: Resolve
 setGameNodeSchedulingState?: [{	enabled: boolean,	game_server_node_id: string},ResolverInputTypes["SuccessOutput"]],
 setHudMode?: [{	match_id: ResolverInputTypes["uuid"],	mode: string},ResolverInputTypes["SuccessOutput"]],
 setMapWinner?: [{	match_id: ResolverInputTypes["uuid"],	match_map_id: ResolverInputTypes["uuid"],	winning_lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+setMatchStartingLineup?: [{	match_id: ResolverInputTypes["uuid"],	match_lineup_id: ResolverInputTypes["uuid"],	steam_ids: Array<string>},ResolverInputTypes["SuccessOutput"]],
 setMatchWinner?: [{	match_id: ResolverInputTypes["uuid"],	winning_lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 setNewsPostStatus?: [{	id: ResolverInputTypes["uuid"],	status: string},ResolverInputTypes["NewsPost"]],
 setTournamentAward?: [{	award_id?: ResolverInputTypes["uuid"] | undefined | null,	custom_name?: string | undefined | null,	placement: number,	silhouette?: number | undefined | null,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["TournamentAward"]],
+setTournamentMvp?: [{	note?: string | undefined | null,	player_steam_id: ResolverInputTypes["bigint"],	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 	setupGameServer?:ResolverInputTypes["SetupGameServeOutput"],
 skipShaders?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 specAutodirector?: [{	enabled: boolean,	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -122038,6 +122119,7 @@ teams_aggregate?: [{	/** distinct select on columns */
 	where?: ResolverInputTypes["teams_bool_exp"] | undefined | null},ResolverInputTypes["teams_aggregate"]],
 teams_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["teams"]],
 	telemetryStats?:ResolverInputTypes["TelemetryStats"],
+tournamentMvpCandidates?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["TournamentMvpCandidate"]],
 tournament_award_slots?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["tournament_award_slots_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -150169,6 +150251,17 @@ export type ModelTypes = {
 	stage_type: string,
 	will_delete_match: boolean
 };
+	["TournamentMvpCandidate"]: {
+		assists: number,
+	deaths: number,
+	kills: number,
+	matches_played: number,
+	player_name: string,
+	player_steam_id: string,
+	rating: number,
+	team_name?: string | undefined | null,
+	tournament_team_id?: ModelTypes["uuid"] | undefined | null
+};
 	["WatchDemoOutput"]: {
 		match_map_id?: string | undefined | null,
 	session_id: string,
@@ -168213,6 +168306,10 @@ export type ModelTypes = {
 	match_veto_picks_aggregate: ModelTypes["match_map_veto_picks_aggregate"],
 	/** A computed field, executes function "get_team_name" */
 	name?: string | undefined | null,
+	/** A computed field, executes function "match_lineup_needs_starting_lineup_confirmation" */
+	needs_starting_lineup_confirmation?: boolean | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["timestamptz"] | undefined | null,
 	/** An object relationship */
 	team?: ModelTypes["teams"] | undefined | null,
 	team_id?: ModelTypes["uuid"] | undefined | null,
@@ -168297,6 +168394,8 @@ export type ModelTypes = {
 	match_veto_picks?: ModelTypes["match_map_veto_picks_bool_exp"] | undefined | null,
 	match_veto_picks_aggregate?: ModelTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null,
 	name?: ModelTypes["String_comparison_exp"] | undefined | null,
+	needs_starting_lineup_confirmation?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
+	starting_lineup_confirmed_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
 	team?: ModelTypes["teams_bool_exp"] | undefined | null,
 	team_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	team_name?: ModelTypes["String_comparison_exp"] | undefined | null
@@ -168316,6 +168415,8 @@ export type ModelTypes = {
 	match?: ModelTypes["matches_obj_rel_insert_input"] | undefined | null,
 	match_id?: ModelTypes["uuid"] | undefined | null,
 	match_veto_picks?: ModelTypes["match_map_veto_picks_arr_rel_insert_input"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["timestamptz"] | undefined | null,
 	team?: ModelTypes["teams_obj_rel_insert_input"] | undefined | null,
 	team_id?: ModelTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
@@ -168327,6 +168428,8 @@ export type ModelTypes = {
 	match_id?: ModelTypes["uuid"] | undefined | null,
 	/** A computed field, executes function "get_team_name" */
 	name?: string | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["timestamptz"] | undefined | null,
 	team_id?: ModelTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -168335,6 +168438,8 @@ export type ModelTypes = {
 	coach_steam_id?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	match_id?: ModelTypes["order_by"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["order_by"] | undefined | null,
 	team_id?: ModelTypes["order_by"] | undefined | null,
 	team_name?: ModelTypes["order_by"] | undefined | null
 };
@@ -168345,6 +168450,8 @@ export type ModelTypes = {
 	match_id?: ModelTypes["uuid"] | undefined | null,
 	/** A computed field, executes function "get_team_name" */
 	name?: string | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["timestamptz"] | undefined | null,
 	team_id?: ModelTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -168353,6 +168460,8 @@ export type ModelTypes = {
 	coach_steam_id?: ModelTypes["order_by"] | undefined | null,
 	id?: ModelTypes["order_by"] | undefined | null,
 	match_id?: ModelTypes["order_by"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["order_by"] | undefined | null,
 	team_id?: ModelTypes["order_by"] | undefined | null,
 	team_name?: ModelTypes["order_by"] | undefined | null
 };
@@ -168393,6 +168502,8 @@ export type ModelTypes = {
 	match_id?: ModelTypes["order_by"] | undefined | null,
 	match_veto_picks_aggregate?: ModelTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null,
 	name?: ModelTypes["order_by"] | undefined | null,
+	needs_starting_lineup_confirmation?: ModelTypes["order_by"] | undefined | null,
+	starting_lineup_confirmed_at?: ModelTypes["order_by"] | undefined | null,
 	team?: ModelTypes["teams_order_by"] | undefined | null,
 	team_id?: ModelTypes["order_by"] | undefined | null,
 	team_name?: ModelTypes["order_by"] | undefined | null
@@ -168407,6 +168518,8 @@ export type ModelTypes = {
 	coach_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	match_id?: ModelTypes["uuid"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["timestamptz"] | undefined | null,
 	team_id?: ModelTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -168446,6 +168559,8 @@ export type ModelTypes = {
 	coach_steam_id?: ModelTypes["bigint"] | undefined | null,
 	id?: ModelTypes["uuid"] | undefined | null,
 	match_id?: ModelTypes["uuid"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: ModelTypes["timestamptz"] | undefined | null,
 	team_id?: ModelTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -172316,6 +172431,8 @@ export type ModelTypes = {
 	addDraftPlayer?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Organizer adds an eligible player to the free agent pool before the draft (checked by the API) */
+	addTournamentFreeAgent?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Organizer/admin adds an existing player to a Solo Random individual sign-up pool */
 	addTournamentIndividualPlayer?: ModelTypes["AddTournamentIndividualPlayerOutput"] | undefined | null,
 	approveNameChange?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -172368,6 +172485,8 @@ export type ModelTypes = {
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
 	clearFinishedClipRenders?: ModelTypes["SuccessOutput"] | undefined | null,
 	clearPendingMatchImport?: ModelTypes["PendingMatchImportActionOutput"] | undefined | null,
+	/** Clear the tournament MVP (tournament organizers and site administrators; checked by the API) */
+	clearTournamentMvp?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "clone_league_season" which returns "league_seasons" */
 	clone_league_season: Array<ModelTypes["league_seasons"]>,
 	/** Organizer proceeds without the teams that missed check-in */
@@ -173964,6 +174083,8 @@ export type ModelTypes = {
 	removeFixtures?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Remove a friends-role presence bot account */
 	removeSteamPresenceBotAccount?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Organizer removes a not yet drafted player from the free agent pool (checked by the API) */
+	removeTournamentFreeAgent?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Organizer removes a Solo Random sign-up, or a player leaves one they joined */
 	removeTournamentIndividualPlayer?: ModelTypes["RemoveTournamentIndividualPlayerOutput"] | undefined | null,
 	/** execute VOLATILE function "remove_league_team_from_season" which returns "league_team_seasons" */
@@ -174016,12 +174137,16 @@ export type ModelTypes = {
 	setHudMode?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** setMapWinner */
 	setMapWinner?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** Choose the active players of a tournament match before it starts (team captain, owner or Admin, tournament organizers; checked by the database) */
+	setMatchStartingLineup?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** setMatchWinner */
 	setMatchWinner?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Publish or unpublish a news post. Caller role is verified against public.post_news_role. */
 	setNewsPostStatus?: ModelTypes["NewsPost"] | undefined | null,
 	/** Configure a tournament award slot */
 	setTournamentAward?: ModelTypes["TournamentAward"] | undefined | null,
+	/** Choose or change the tournament MVP (tournament organizers and site administrators; checked by the API) */
+	setTournamentMvp?: ModelTypes["SuccessOutput"] | undefined | null,
 	setupGameServer?: ModelTypes["SetupGameServeOutput"] | undefined | null,
 	skipShaders?: ModelTypes["SuccessOutput"] | undefined | null,
 	specAutodirector?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -191286,6 +191411,8 @@ export type ModelTypes = {
 	/** fetch data from the table: "teams" using primary key columns */
 	teams_by_pk?: ModelTypes["teams"] | undefined | null,
 	telemetryStats: ModelTypes["TelemetryStats"],
+	/** Players who played in a tournament, with stats for guidance (tournament organizers and site administrators) */
+	tournamentMvpCandidates: Array<ModelTypes["TournamentMvpCandidate"]>,
 	/** fetch data from the table: "tournament_award_slots" */
 	tournament_award_slots: Array<ModelTypes["tournament_award_slots"]>,
 	/** fetch aggregated fields from the table: "tournament_award_slots" */
@@ -215466,6 +215593,18 @@ export type GraphQLTypes = {
 	stage_type: string,
 	will_delete_match: boolean
 };
+	["TournamentMvpCandidate"]: {
+	__typename: "TournamentMvpCandidate",
+	assists: number,
+	deaths: number,
+	kills: number,
+	matches_played: number,
+	player_name: string,
+	player_steam_id: string,
+	rating: number,
+	team_name?: string | undefined | null,
+	tournament_team_id?: GraphQLTypes["uuid"] | undefined | null
+};
 	["WatchDemoOutput"]: {
 	__typename: "WatchDemoOutput",
 	match_map_id?: string | undefined | null,
@@ -234719,6 +234858,10 @@ export type GraphQLTypes = {
 	match_veto_picks_aggregate: GraphQLTypes["match_map_veto_picks_aggregate"],
 	/** A computed field, executes function "get_team_name" */
 	name?: string | undefined | null,
+	/** A computed field, executes function "match_lineup_needs_starting_lineup_confirmation" */
+	needs_starting_lineup_confirmation?: boolean | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	/** An object relationship */
 	team?: GraphQLTypes["teams"] | undefined | null,
 	team_id?: GraphQLTypes["uuid"] | undefined | null,
@@ -234806,6 +234949,8 @@ export type GraphQLTypes = {
 	match_veto_picks?: GraphQLTypes["match_map_veto_picks_bool_exp"] | undefined | null,
 	match_veto_picks_aggregate?: GraphQLTypes["match_map_veto_picks_aggregate_bool_exp"] | undefined | null,
 	name?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	needs_starting_lineup_confirmation?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
+	starting_lineup_confirmed_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
 	team?: GraphQLTypes["teams_bool_exp"] | undefined | null,
 	team_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	team_name?: GraphQLTypes["String_comparison_exp"] | undefined | null
@@ -234826,6 +234971,8 @@ export type GraphQLTypes = {
 	match?: GraphQLTypes["matches_obj_rel_insert_input"] | undefined | null,
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
 	match_veto_picks?: GraphQLTypes["match_map_veto_picks_arr_rel_insert_input"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	team?: GraphQLTypes["teams_obj_rel_insert_input"] | undefined | null,
 	team_id?: GraphQLTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
@@ -234838,6 +234985,8 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** A computed field, executes function "get_team_name" */
 	name?: string | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	team_id?: GraphQLTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -234846,6 +234995,8 @@ export type GraphQLTypes = {
 		coach_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	match_id?: GraphQLTypes["order_by"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["order_by"] | undefined | null,
 	team_id?: GraphQLTypes["order_by"] | undefined | null,
 	team_name?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -234857,6 +235008,8 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
 	/** A computed field, executes function "get_team_name" */
 	name?: string | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	team_id?: GraphQLTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -234865,6 +235018,8 @@ export type GraphQLTypes = {
 		coach_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	id?: GraphQLTypes["order_by"] | undefined | null,
 	match_id?: GraphQLTypes["order_by"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["order_by"] | undefined | null,
 	team_id?: GraphQLTypes["order_by"] | undefined | null,
 	team_name?: GraphQLTypes["order_by"] | undefined | null
 };
@@ -234906,6 +235061,8 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["order_by"] | undefined | null,
 	match_veto_picks_aggregate?: GraphQLTypes["match_map_veto_picks_aggregate_order_by"] | undefined | null,
 	name?: GraphQLTypes["order_by"] | undefined | null,
+	needs_starting_lineup_confirmation?: GraphQLTypes["order_by"] | undefined | null,
+	starting_lineup_confirmed_at?: GraphQLTypes["order_by"] | undefined | null,
 	team?: GraphQLTypes["teams_order_by"] | undefined | null,
 	team_id?: GraphQLTypes["order_by"] | undefined | null,
 	team_name?: GraphQLTypes["order_by"] | undefined | null
@@ -234921,6 +235078,8 @@ export type GraphQLTypes = {
 		coach_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	team_id?: GraphQLTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -234963,6 +235122,8 @@ export type GraphQLTypes = {
 		coach_steam_id?: GraphQLTypes["bigint"] | undefined | null,
 	id?: GraphQLTypes["uuid"] | undefined | null,
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
+	/** When the starting lineup of a tournament match was explicitly confirmed; NULL while it is only the generated default. */
+	starting_lineup_confirmed_at?: GraphQLTypes["timestamptz"] | undefined | null,
 	team_id?: GraphQLTypes["uuid"] | undefined | null,
 	team_name?: string | undefined | null
 };
@@ -238983,6 +239144,8 @@ export type GraphQLTypes = {
 	addDraftPlayer?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Add a friends-role presence bot account to the pool */
 	addSteamPresenceBotAccount?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Organizer adds an eligible player to the free agent pool before the draft (checked by the API) */
+	addTournamentFreeAgent?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Organizer/admin adds an existing player to a Solo Random individual sign-up pool */
 	addTournamentIndividualPlayer?: GraphQLTypes["AddTournamentIndividualPlayerOutput"] | undefined | null,
 	approveNameChange?: GraphQLTypes["SuccessOutput"] | undefined | null,
@@ -239035,6 +239198,8 @@ export type GraphQLTypes = {
 	/** Delete all terminal-state clip_render_jobs rows platform-wide. */
 	clearFinishedClipRenders?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	clearPendingMatchImport?: GraphQLTypes["PendingMatchImportActionOutput"] | undefined | null,
+	/** Clear the tournament MVP (tournament organizers and site administrators; checked by the API) */
+	clearTournamentMvp?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** execute VOLATILE function "clone_league_season" which returns "league_seasons" */
 	clone_league_season: Array<GraphQLTypes["league_seasons"]>,
 	/** Organizer proceeds without the teams that missed check-in */
@@ -240631,6 +240796,8 @@ export type GraphQLTypes = {
 	removeFixtures?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Remove a friends-role presence bot account */
 	removeSteamPresenceBotAccount?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Organizer removes a not yet drafted player from the free agent pool (checked by the API) */
+	removeTournamentFreeAgent?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Organizer removes a Solo Random sign-up, or a player leaves one they joined */
 	removeTournamentIndividualPlayer?: GraphQLTypes["RemoveTournamentIndividualPlayerOutput"] | undefined | null,
 	/** execute VOLATILE function "remove_league_team_from_season" which returns "league_team_seasons" */
@@ -240683,12 +240850,16 @@ export type GraphQLTypes = {
 	setHudMode?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** setMapWinner */
 	setMapWinner?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** Choose the active players of a tournament match before it starts (team captain, owner or Admin, tournament organizers; checked by the database) */
+	setMatchStartingLineup?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** setMatchWinner */
 	setMatchWinner?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Publish or unpublish a news post. Caller role is verified against public.post_news_role. */
 	setNewsPostStatus?: GraphQLTypes["NewsPost"] | undefined | null,
 	/** Configure a tournament award slot */
 	setTournamentAward?: GraphQLTypes["TournamentAward"] | undefined | null,
+	/** Choose or change the tournament MVP (tournament organizers and site administrators; checked by the API) */
+	setTournamentMvp?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	setupGameServer?: GraphQLTypes["SetupGameServeOutput"] | undefined | null,
 	skipShaders?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	specAutodirector?: GraphQLTypes["SuccessOutput"] | undefined | null,
@@ -258583,6 +258754,8 @@ export type GraphQLTypes = {
 	/** fetch data from the table: "teams" using primary key columns */
 	teams_by_pk?: GraphQLTypes["teams"] | undefined | null,
 	telemetryStats: GraphQLTypes["TelemetryStats"],
+	/** Players who played in a tournament, with stats for guidance (tournament organizers and site administrators) */
+	tournamentMvpCandidates: Array<GraphQLTypes["TournamentMvpCandidate"]>,
 	/** fetch data from the table: "tournament_award_slots" */
 	tournament_award_slots: Array<GraphQLTypes["tournament_award_slots"]>,
 	/** fetch aggregated fields from the table: "tournament_award_slots" */
@@ -285709,6 +285882,7 @@ export enum match_lineups_select_column {
 	coach_steam_id = "coach_steam_id",
 	id = "id",
 	match_id = "match_id",
+	starting_lineup_confirmed_at = "starting_lineup_confirmed_at",
 	team_id = "team_id",
 	team_name = "team_name"
 }
@@ -285717,6 +285891,7 @@ export enum match_lineups_update_column {
 	coach_steam_id = "coach_steam_id",
 	id = "id",
 	match_id = "match_id",
+	starting_lineup_confirmed_at = "starting_lineup_confirmed_at",
 	team_id = "team_id",
 	team_name = "team_name"
 }

@@ -9993,6 +9993,8 @@ export const AllTypesProps: Record<string,any> = {
 		match_veto_picks:"match_map_veto_picks_bool_exp",
 		match_veto_picks_aggregate:"match_map_veto_picks_aggregate_bool_exp",
 		name:"String_comparison_exp",
+		needs_starting_lineup_confirmation:"Boolean_comparison_exp",
+		starting_lineup_confirmed_at:"timestamptz_comparison_exp",
 		team:"teams_bool_exp",
 		team_id:"uuid_comparison_exp",
 		team_name:"String_comparison_exp"
@@ -10010,6 +10012,7 @@ export const AllTypesProps: Record<string,any> = {
 		match:"matches_obj_rel_insert_input",
 		match_id:"uuid",
 		match_veto_picks:"match_map_veto_picks_arr_rel_insert_input",
+		starting_lineup_confirmed_at:"timestamptz",
 		team:"teams_obj_rel_insert_input",
 		team_id:"uuid"
 	},
@@ -10017,6 +10020,7 @@ export const AllTypesProps: Record<string,any> = {
 		coach_steam_id:"order_by",
 		id:"order_by",
 		match_id:"order_by",
+		starting_lineup_confirmed_at:"order_by",
 		team_id:"order_by",
 		team_name:"order_by"
 	},
@@ -10024,6 +10028,7 @@ export const AllTypesProps: Record<string,any> = {
 		coach_steam_id:"order_by",
 		id:"order_by",
 		match_id:"order_by",
+		starting_lineup_confirmed_at:"order_by",
 		team_id:"order_by",
 		team_name:"order_by"
 	},
@@ -10053,6 +10058,8 @@ export const AllTypesProps: Record<string,any> = {
 		match_id:"order_by",
 		match_veto_picks_aggregate:"match_map_veto_picks_aggregate_order_by",
 		name:"order_by",
+		needs_starting_lineup_confirmation:"order_by",
+		starting_lineup_confirmed_at:"order_by",
 		team:"teams_order_by",
 		team_id:"order_by",
 		team_name:"order_by"
@@ -10065,6 +10072,7 @@ export const AllTypesProps: Record<string,any> = {
 		coach_steam_id:"bigint",
 		id:"uuid",
 		match_id:"uuid",
+		starting_lineup_confirmed_at:"timestamptz",
 		team_id:"uuid"
 	},
 	match_lineups_stddev_order_by:{
@@ -10084,6 +10092,7 @@ export const AllTypesProps: Record<string,any> = {
 		coach_steam_id:"bigint",
 		id:"uuid",
 		match_id:"uuid",
+		starting_lineup_confirmed_at:"timestamptz",
 		team_id:"uuid"
 	},
 	match_lineups_sum_order_by:{
@@ -12413,6 +12422,9 @@ export const AllTypesProps: Record<string,any> = {
 		addSteamPresenceBotAccount:{
 
 		},
+		addTournamentFreeAgent:{
+			tournament_id:"uuid"
+		},
 		addTournamentIndividualPlayer:{
 			tournament_id:"uuid"
 		},
@@ -12473,6 +12485,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		clearPendingMatchImport:{
 
+		},
+		clearTournamentMvp:{
+			tournament_id:"uuid"
 		},
 		clone_league_season:{
 			args:"clone_league_season_args",
@@ -15287,6 +15302,9 @@ export const AllTypesProps: Record<string,any> = {
 		removeSteamPresenceBotAccount:{
 
 		},
+		removeTournamentFreeAgent:{
+			tournament_id:"uuid"
+		},
 		removeTournamentIndividualPlayer:{
 			tournament_id:"uuid"
 		},
@@ -15380,6 +15398,10 @@ export const AllTypesProps: Record<string,any> = {
 			match_map_id:"uuid",
 			winning_lineup_id:"uuid"
 		},
+		setMatchStartingLineup:{
+			match_id:"uuid",
+			match_lineup_id:"uuid"
+		},
 		setMatchWinner:{
 			match_id:"uuid",
 			winning_lineup_id:"uuid"
@@ -15389,6 +15411,10 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		setTournamentAward:{
 			award_id:"uuid",
+			tournament_id:"uuid"
+		},
+		setTournamentMvp:{
+			player_steam_id:"bigint",
 			tournament_id:"uuid"
 		},
 		skipShaders:{
@@ -27279,6 +27305,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		teams_by_pk:{
 			id:"uuid"
+		},
+		tournamentMvpCandidates:{
+			tournament_id:"uuid"
 		},
 		tournament_award_slots:{
 			distinct_on:"tournament_award_slots_select_column",
@@ -42702,6 +42731,17 @@ export const ReturnTypes: Record<string,any> = {
 		stage_type:"String",
 		will_delete_match:"Boolean"
 	},
+	TournamentMvpCandidate:{
+		assists:"Int",
+		deaths:"Int",
+		kills:"Int",
+		matches_played:"Int",
+		player_name:"String",
+		player_steam_id:"String",
+		rating:"Float",
+		team_name:"String",
+		tournament_team_id:"uuid"
+	},
 	WatchDemoOutput:{
 		match_map_id:"String",
 		session_id:"String",
@@ -48028,6 +48068,8 @@ export const ReturnTypes: Record<string,any> = {
 		match_veto_picks:"match_map_veto_picks",
 		match_veto_picks_aggregate:"match_map_veto_picks_aggregate",
 		name:"String",
+		needs_starting_lineup_confirmation:"Boolean",
+		starting_lineup_confirmed_at:"timestamptz",
 		team:"teams",
 		team_id:"uuid",
 		team_name:"String"
@@ -48057,6 +48099,7 @@ export const ReturnTypes: Record<string,any> = {
 		id:"uuid",
 		match_id:"uuid",
 		name:"String",
+		starting_lineup_confirmed_at:"timestamptz",
 		team_id:"uuid",
 		team_name:"String"
 	},
@@ -48065,6 +48108,7 @@ export const ReturnTypes: Record<string,any> = {
 		id:"uuid",
 		match_id:"uuid",
 		name:"String",
+		starting_lineup_confirmed_at:"timestamptz",
 		team_id:"uuid",
 		team_name:"String"
 	},
@@ -49225,6 +49269,7 @@ export const ReturnTypes: Record<string,any> = {
 		acceptTerms:"SuccessOutput",
 		addDraftPlayer:"SuccessOutput",
 		addSteamPresenceBotAccount:"SuccessOutput",
+		addTournamentFreeAgent:"SuccessOutput",
 		addTournamentIndividualPlayer:"AddTournamentIndividualPlayerOutput",
 		approveNameChange:"SuccessOutput",
 		approveVerificationApplication:"SuccessOutput",
@@ -49252,6 +49297,7 @@ export const ReturnTypes: Record<string,any> = {
 		clearClipRenderBatch:"SuccessOutput",
 		clearFinishedClipRenders:"SuccessOutput",
 		clearPendingMatchImport:"PendingMatchImportActionOutput",
+		clearTournamentMvp:"SuccessOutput",
 		clone_league_season:"league_seasons",
 		continueTournamentCheckIn:"SuccessOutput",
 		counterScrimRequest:"SuccessOutput",
@@ -50058,6 +50104,7 @@ export const ReturnTypes: Record<string,any> = {
 		removeAbandonedMatch:"SuccessOutput",
 		removeFixtures:"SuccessOutput",
 		removeSteamPresenceBotAccount:"SuccessOutput",
+		removeTournamentFreeAgent:"SuccessOutput",
 		removeTournamentIndividualPlayer:"RemoveTournamentIndividualPlayerOutput",
 		remove_league_team_from_season:"league_team_seasons",
 		renameServerItem:"SuccessOutput",
@@ -50087,9 +50134,11 @@ export const ReturnTypes: Record<string,any> = {
 		setGameNodeSchedulingState:"SuccessOutput",
 		setHudMode:"SuccessOutput",
 		setMapWinner:"SuccessOutput",
+		setMatchStartingLineup:"SuccessOutput",
 		setMatchWinner:"SuccessOutput",
 		setNewsPostStatus:"NewsPost",
 		setTournamentAward:"TournamentAward",
+		setTournamentMvp:"SuccessOutput",
 		setupGameServer:"SetupGameServeOutput",
 		skipShaders:"SuccessOutput",
 		specAutodirector:"SuccessOutput",
@@ -57162,6 +57211,7 @@ export const ReturnTypes: Record<string,any> = {
 		teams_aggregate:"teams_aggregate",
 		teams_by_pk:"teams",
 		telemetryStats:"TelemetryStats",
+		tournamentMvpCandidates:"TournamentMvpCandidate",
 		tournament_award_slots:"tournament_award_slots",
 		tournament_award_slots_aggregate:"tournament_award_slots_aggregate",
 		tournament_award_slots_by_pk:"tournament_award_slots",
