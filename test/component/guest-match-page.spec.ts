@@ -129,7 +129,7 @@ describe("guest-safe match page and private camera requests", () => {
     auth.me = { steam_id: "123" };
     mountPage();
     await tick();
-    wrapper.vm.match = match("WaitingForCheckIn");
+    wrapper.vm.matchLive = match("WaitingForCheckIn");
     expect(wrapper.vm.showCameraOverlay).toBe(false);
     requested();
     await tick();
@@ -170,7 +170,7 @@ describe("guest-safe match page and private camera requests", () => {
     auth.me = { steam_id: "123" };
     mountPage();
     await tick();
-    wrapper.vm.match = match();
+    wrapper.vm.matchLive = match();
     const previous = currentPrivate();
     requested(previous);
     await tick();
@@ -211,15 +211,15 @@ describe("guest-safe match page and private camera requests", () => {
     mountPage();
     await tick();
     for (const status of ["Veto", "Live", "WaitingForServer"]) {
-      wrapper.vm.match = match(status, true);
+      wrapper.vm.matchLive = match(status, true);
       expect(wrapper.vm.cameraSpotCheckRequested).toBe(false);
       expect(wrapper.vm.showCameraOverlay).toBe(true);
     }
     for (const status of ["PickingPlayers", "WaitingForCheckIn", "Finished"]) {
-      wrapper.vm.match = match(status, true);
+      wrapper.vm.matchLive = match(status, true);
       expect(wrapper.vm.showCameraOverlay).toBe(false);
     }
-    wrapper.vm.match = { ...match("Live", true), lineup_1: { is_on_lineup: false } };
+    wrapper.vm.matchLive = { ...match("Live", true), lineup_1: { is_on_lineup: false } };
     expect(wrapper.vm.showCameraOverlay).toBe(false);
   });
 });

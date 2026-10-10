@@ -262,7 +262,8 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
             can_check_in: true,
             can_assign_server: true,
             can_stream_live: true,
-            requested_organizer: true,
+            // requested_organizer is deliberately not requested: nothing reads
+            // it, and it scanned the notifications table on every tick.
             server_id: true,
             server_type: true,
             server_plugin_runtime: true,

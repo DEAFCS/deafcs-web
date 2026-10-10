@@ -765,7 +765,10 @@ export default {
   },
   data() {
     return {
-      match: undefined,
+      // Live half (subscription) and static half (one-time query) of the
+      // match; `match` (computed) merges them. See the apollo block.
+      matchLive: undefined,
+      matchStatic: undefined,
       publicCaptainPick: { matchId: null, progress: null },
       // The MatchTabs tab on screen (the Overview takes the full width).
       matchTab: null as string | null,
@@ -806,6 +809,17 @@ export default {
     };
   },
   watch: {
+    // The static half (see the apollo block) only moves with these: a status
+    // change (who may schedule, assign a server, stream), a server
+    // assignment, a new organizer, someone joining/leaving a lineup, or a
+    // different viewer (login/logout). One key, so several of them changing
+    // in the same tick refetch once. A different match id needs no refetch:
+    // the query's variables changed, so Apollo already runs it again.
+    matchStaticRefreshKey(key, previousKey) {
+      if (!key || !previousKey || key === previousKey) return;
+      if (key.split("|")[0] !== previousKey.split("|")[0]) return;
+      void this.refetchMatchStatic();
+    },
     // Automatic player POV streams: only once gameplay is live and only for
     // viewers who neither play nor coach in it (the API enforces the same
     // rules). They come and go with the players' Twitch status and stop as
@@ -904,6 +918,9 @@ export default {
     },
   },
   methods: {
+    refetchMatchStatic() {
+      return this.$apollo?.queries?.matchStatic?.refetch();
+    },
     stopAutoStreams() {
       if (this.autoStreamsTimer) {
         clearInterval(this.autoStreamsTimer);
@@ -1004,18 +1021,21 @@ export default {
               e_region: {
                 description: true,
               },
-              is_coach: true,
-              is_captain: true,
-              is_in_lineup: true,
-              is_organizer: true,
+              // The viewer's membership/permission fields and the organizer
+              // record live in `matchStatic` (a one-time query, refetched on
+              // status, server, organizer or lineup changes). Each is a
+              // function the database re-ran for this row on every
+              // subscription tick, for every viewer (5Stack upstream made the
+              // same split). `requested_organizer` is not requested at all:
+              // nothing reads it, and it scanned the notifications table.
+              //
+              // can_start and can_check_in stay live: they read lineup
+              // readiness, which changes during check-in.
               can_start: true,
-              can_schedule: true,
               can_check_in: true,
-              requested_organizer: true,
+              organizer_steam_id: true,
               is_tournament_match: true,
               label: true,
-              can_assign_server: true,
-              can_stream_live: true,
               min_players_per_lineup: true,
               max_players_per_lineup: true,
               server_id: true,
@@ -1040,7 +1060,6 @@ export default {
               scheduled_at: true,
               ended_at: true,
               server_error: true,
-              organizer: playerFields,
               options: {
                 ...matchOptionsFields,
               },
@@ -1192,8 +1211,8 @@ export default {
 
           if (!match) {
             // Deleted/gone — leave. Canceling keeps the row, so we stay.
-            if (this.match !== null) {
-              this.match = null;
+            if (this.matchLive !== null) {
+              this.matchLive = null;
               useMatchContext().value = null;
               navigateTo("/watch");
             }
@@ -1214,7 +1233,7 @@ export default {
             return;
           }
 
-          this.match = match;
+          this.matchLive = match;
 
           const mc = useMatchContext();
           const displayText =
@@ -1231,8 +1250,90 @@ export default {
         },
       },
     },
+    // The viewer's membership/permission fields and the organizer record:
+    // fetched once instead of on every tick of the subscription above, and
+    // refetched by the watchers on status, server, organizer and lineup
+    // changes (the only things that move them).
+    matchStatic: {
+      variables: function () {
+        return { matchId: this.$route.params.id };
+      },
+      skip: function () {
+        return !this.$route.params.id;
+      },
+      // network-only: these are the viewer's own permissions, and the Apollo
+      // cache is not cleared on login/logout, so a cached answer could belong
+      // to the previous account.
+      fetchPolicy: "network-only",
+      query: typedGql("query")({
+        matches_by_pk: [
+          {
+            id: $("matchId", "uuid!"),
+          },
+          {
+            id: true,
+            is_coach: true,
+            is_captain: true,
+            is_in_lineup: true,
+            is_organizer: true,
+            can_schedule: true,
+            can_assign_server: true,
+            can_stream_live: true,
+            organizer: playerFields,
+          },
+        ],
+      }),
+      update: (data: any) => data?.matches_by_pk ?? null,
+    },
   },
   computed: {
+    // Both halves as the single object the page and every child already
+    // expect. `matchLive` gates it: until the subscription has said the match
+    // exists there is nothing to show, and null means the row is gone.
+    match(): Record<string, any> | null | undefined {
+      if (!this.matchLive) {
+        return this.matchLive;
+      }
+      return { ...(this.currentMatchStatic ?? {}), ...this.matchLive };
+    },
+    // The static half, only when it belongs to the match on screen: right
+    // after navigating to another match the previous one's permissions must
+    // not be shown for the new one.
+    currentMatchStatic(): Record<string, any> | null {
+      const live = this.matchLive;
+      const stat = this.matchStatic;
+      return live && stat && stat.id === live.id ? stat : null;
+    },
+    matchStaticRefreshKey(): string | null {
+      const live = this.matchLive;
+      if (!live) return null;
+      return [
+        live.id,
+        live.status,
+        live.server_id ?? "",
+        live.organizer_steam_id ?? "",
+        this.matchLineupMembershipKey ?? "",
+        useAuthStore().me?.steam_id ?? "",
+      ].join("|");
+    },
+    // Who is on either lineup (players, captains, coaches). When it changes,
+    // so can the viewer's is_in_lineup / is_captain / is_coach.
+    matchLineupMembershipKey(): string | null {
+      const live = this.matchLive;
+      if (!live) return null;
+      return [live.lineup_1, live.lineup_2]
+        .map((lineup: any) =>
+          [
+            lineup?.id ?? "",
+            lineup?.coach?.steam_id ?? "",
+            lineup?.captain?.player?.steam_id ?? "",
+            ...(lineup?.lineup_players ?? []).map((p: any) =>
+              String(p.steam_id ?? p.placeholder_name ?? ""),
+            ),
+          ].join(","),
+        )
+        .join("|");
+    },
     // A Captain Pick draft owns this PickingPlayers match: the public feed has
     // its picks, or (between the final pick and the match moving to veto) the
     // API has confirmed the draft for this match.
@@ -1612,6 +1713,9 @@ export default {
     // show manual streams only) and the viewer may watch its streams
     // (anti-cheat: never its own players or coaches).
     autoStreamsKey() {
+      // Wait for the static half: until it lands, is_in_lineup/is_coach are
+      // unknown and a player would briefly look like a spectator.
+      if (!this.currentMatchStatic) return null;
       return autoPovEligible(this.match) ? this.match.id : null;
     },
     // Manual streams from the first pre-match stage on; automatic POVs only
