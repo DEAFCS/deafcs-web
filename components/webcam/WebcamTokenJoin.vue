@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { ref, computed, onBeforeUnmount, nextTick } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount, nextTick } from "vue";
 import { LucideX, LucideRefreshCw } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import { fetchLobbyCallStatus } from "~/composables/useLobbyCallApi";
+import {
+  createDropWatcher,
+  WEBCAM_DROPPED_MESSAGE,
+  WEBCAM_REMOVED_MESSAGE,
+} from "~/composables/useWebcamConnectionWatch";
 import {
   groupGridFallbackStyle,
   groupGridLayout,
@@ -32,6 +37,34 @@ type Phase = "idle" | "requesting" | "connected" | "error";
 const phase = ref<Phase>("idle");
 const errorMessage = ref<string | null>(null);
 const mySteamId = ref<string | null>(null);
+// True while a dropped call is being re-established automatically.
+const reconnecting = ref(false);
+// A removed/expired link can never reconnect, so the Join button is hidden.
+const linkExpired = ref(false);
+const watcher = createDropWatcher();
+
+const pageTitle = computed(() => props.room.title ?? "Lobby webcam call");
+
+// Phones switch the screen off after a while, which suspends the camera and
+// the WebRTC session and is a common cause of "Connection dropped". Keep it
+// awake while in the call where the browser supports it (best effort).
+let wakeLock: { release?: () => Promise<void> | void } | null = null;
+async function acquireWakeLock() {
+  try {
+    const api = (navigator as any).wakeLock;
+    if (api?.request) wakeLock = await api.request("screen");
+  } catch {
+    wakeLock = null;
+  }
+}
+function releaseWakeLock() {
+  try {
+    void wakeLock?.release?.();
+  } catch {
+    // best-effort
+  }
+  wakeLock = null;
+}
 
 const previewEl = ref<HTMLVideoElement | null>(null);
 let camStream: MediaStream | null = null;
@@ -78,8 +111,12 @@ async function getCameraStream(mode: "user" | "environment"): Promise<MediaStrea
 }
 
 async function startCall() {
+  // Never keep two publishers for one person: drop any previous camera
+  // stream / peer connection before opening a new one.
+  if (camPc || camStream) teardownStream();
   phase.value = "requesting";
   errorMessage.value = null;
+  linkExpired.value = false;
   try {
     const stream = await getCameraStream(facingMode);
     camStream = stream;
@@ -118,32 +155,82 @@ async function startCall() {
     // stream was attached to -- same class of bug fixed earlier in the
     // popout window. Re-attach after Vue mounts the new element.
     phase.value = "connected";
+    reconnecting.value = false;
     await nextTick();
     if (previewEl.value) previewEl.value.srcObject = camStream;
 
+    void acquireWakeLock();
     pollStatus();
     pollParticipants();
   } catch (err) {
+    teardownStream();
+    reconnecting.value = false;
     phase.value = "error";
     errorMessage.value = err instanceof Error ? err.message : String(err);
   }
 }
 
+// One status check -> verdict from the shared drop watcher. A single failed
+// or slow request is tolerated; see useWebcamConnectionWatch.ts.
+async function checkStatus(afterResume = false) {
+  const status = await fetchLobbyCallStatus(
+    props.room.playerStatusUrl(token.value),
+  );
+  if (phase.value !== "connected") return;
+  if (status.steamId) mySteamId.value = status.steamId;
+
+  const verdict = watcher.sample(status, { afterResume });
+  if (verdict === "expired") {
+    teardownStream();
+    linkExpired.value = true;
+    phase.value = "error";
+    errorMessage.value = WEBCAM_REMOVED_MESSAGE;
+  } else if (verdict === "dropped") {
+    await handleDrop();
+  }
+}
+
+async function handleDrop() {
+  teardownStream();
+  if (watcher.canAutoReconnect()) {
+    watcher.noteAutoReconnect();
+    reconnecting.value = true;
+    await startCall();
+    return;
+  }
+  phase.value = "error";
+  errorMessage.value = WEBCAM_DROPPED_MESSAGE;
+}
+
 function pollStatus() {
+  if (statusPollTimer) clearTimeout(statusPollTimer);
   statusPollTimer = setTimeout(async () => {
-    const { ready, steamId } = await fetchLobbyCallStatus(
-      props.room.playerStatusUrl(token.value),
-    );
-    if (steamId) mySteamId.value = steamId;
-    if (!ready && phase.value === "connected") {
-      phase.value = "error";
-      errorMessage.value = "Connection dropped. Tap Join call to reconnect.";
-      teardownStream();
-      return;
-    }
-    pollStatus();
+    statusPollTimer = null;
+    await checkStatus();
+    // A drop handled above already restarted (or ended) the polling loop.
+    if (phase.value === "connected" && !statusPollTimer) pollStatus();
   }, 2000);
 }
+
+// Returning to the page after the phone was locked or the browser was in the
+// background: the old WebRTC session is already dead, so check right away
+// (no grace) and reconnect instead of waiting for several slow polls.
+async function onVisibilityChange() {
+  if (document.visibilityState !== "visible" || phase.value !== "connected") {
+    return;
+  }
+  if (statusPollTimer) {
+    clearTimeout(statusPollTimer);
+    statusPollTimer = null;
+  }
+  void acquireWakeLock();
+  await checkStatus(true);
+  if (phase.value === "connected" && !statusPollTimer) pollStatus();
+}
+
+onMounted(() => {
+  document.addEventListener("visibilitychange", onVisibilityChange);
+});
 
 // Same front/back switch the required-webcam join page has -- this is
 // a phone-only control (the desktop "this computer" flow only ever has
@@ -170,11 +257,18 @@ async function flipCamera() {
   }
 }
 
+function joinManually() {
+  watcher.reset();
+  reconnecting.value = false;
+  void startCall();
+}
+
 function teardownStream() {
   if (statusPollTimer) {
     clearTimeout(statusPollTimer);
     statusPollTimer = null;
   }
+  releaseWakeLock();
   stopParticipantsPolling();
   if (camPc) {
     camPc.close();
@@ -189,6 +283,7 @@ function teardownStream() {
 
 async function leaveCall() {
   teardownStream();
+  watcher.reset();
   phase.value = "idle";
   try {
     await fetch(props.room.playerHangupUrl(token.value), { method: "POST" });
@@ -291,9 +386,18 @@ function stopParticipantsPolling() {
 // letterboxed rather than cropped into a zoomed face, and rotating any
 // phone just re-letterboxes it. On my own, my camera takes its real ratio.
 const TILE_GAP = 8;
+// A room that holds exactly 4 (the tournament webcam) shows its one open
+// seat as an empty cell once three people are in, so the 2x2 grid keeps its
+// shape instead of jumping when the fourth person arrives.
+const emptySlotKeys = computed(() =>
+  props.room.maxParticipants === 4 && otherParticipants.value.length + 1 === 3
+    ? ["empty-0"]
+    : [],
+);
 const tileKeys = computed(() => [
   ...otherParticipants.value.map((p) => p.steamId),
   "local",
+  ...emptySlotKeys.value,
 ]);
 const { tileRef, shape: tileShape, aspect: tileAspect } = useVideoTileDimensions();
 const stageEl = ref<HTMLElement | null>(null);
@@ -342,6 +446,7 @@ function tileStyle(key: string) {
     : groupGridFallbackStyle(groupGrid.value, TILE_GAP);
 }
 onBeforeUnmount(() => {
+  document.removeEventListener("visibilitychange", onVisibilityChange);
   teardownStream();
 });
 </script>
@@ -352,11 +457,11 @@ onBeforeUnmount(() => {
        browser chrome (address bar, home indicator) shrinking/growing the
        visible area, so this fits on any phone without scrolling. -->
   <div
-    class="w-full bg-background text-foreground flex flex-col overflow-hidden p-3 gap-3"
+    class="w-full bg-zinc-950 text-foreground flex flex-col overflow-hidden p-3 gap-3"
     style="height: 100dvh"
   >
     <h1 v-if="phase !== 'connected'" class="text-base font-semibold text-center shrink-0">
-      Lobby webcam call
+      {{ pageTitle }}
     </h1>
 
     <!-- Video area -- everyone else + my own camera as equal cells, none
@@ -383,7 +488,7 @@ onBeforeUnmount(() => {
           v-for="p in otherParticipants"
           :key="p.steamId"
           :ref="tileRef(p.steamId)"
-          class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-border transition-[width,height] duration-200"
+          class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-zinc-800 transition-[width,height] duration-200"
           :style="tileStyle(p.steamId)"
           data-testid="webcam-tile"
           :data-key="p.steamId"
@@ -404,7 +509,7 @@ onBeforeUnmount(() => {
 
         <div
           :ref="tileRef('local')"
-          class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-border transition-[width,height] duration-200"
+          class="relative shrink-0 rounded-lg overflow-hidden bg-black border border-zinc-800 transition-[width,height] duration-200"
           :style="tileStyle('local')"
           data-testid="webcam-tile"
           data-key="local"
@@ -432,6 +537,16 @@ onBeforeUnmount(() => {
             You
           </span>
         </div>
+
+        <div
+          v-for="key in emptySlotKeys"
+          :key="key"
+          class="shrink-0 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/60 flex items-center justify-center text-xs text-muted-foreground"
+          :style="tileStyle(key)"
+          data-testid="webcam-empty-slot"
+        >
+          Open slot
+        </div>
       </div>
     </div>
 
@@ -439,7 +554,7 @@ onBeforeUnmount(() => {
          same video element as above (kept mounted throughout). -->
     <div
       v-else
-      class="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black border border-border"
+      class="relative flex-1 min-h-0 rounded-xl overflow-hidden bg-black border border-zinc-800"
     >
       <video
         ref="previewEl"
@@ -479,16 +594,23 @@ onBeforeUnmount(() => {
           </p>
         </template>
         <template v-else-if="phase === 'requesting'">
-          <p class="text-sm text-muted-foreground">Requesting camera access…</p>
+          <p class="text-sm text-muted-foreground">
+            {{ reconnecting ? "Reconnecting…" : "Requesting camera access…" }}
+          </p>
         </template>
         <template v-else>
-          <p class="text-sm text-muted-foreground">
-            Tap below to join the lobby's webcam call.
+          <p v-if="!linkExpired" class="text-sm text-muted-foreground">
+            Tap below to join the call.
           </p>
           <p v-if="errorMessage" class="text-sm text-destructive">
             {{ errorMessage }}
           </p>
-          <Button size="lg" class="rounded-full mt-2" @click="startCall">
+          <Button
+            v-if="!linkExpired"
+            size="lg"
+            class="rounded-full mt-2"
+            @click="joinManually"
+          >
             Join call
           </Button>
         </template>

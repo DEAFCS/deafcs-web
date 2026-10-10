@@ -139,7 +139,7 @@ export function layoutTiles(
 // outer cells (Discord-style): nobody's tile grows because their camera is
 // landscape. Each feed is shown whole inside its cell (object-contain), so
 // a portrait phone gets dark bars left/right and a landscape webcam dark
-// bars top/bottom. Rooms hold at most 5 people (API MAX_PARTICIPANTS).
+// bars top/bottom. Lobby rooms hold at most 5 people (API MAX_PARTICIPANTS), the tournament webcam 4.
 export type GroupGrid = { columns: number; rows: number; cell: TileBox | null };
 
 // Cells are kept between 9:16 and 16:9 so a single row on an ultra-wide
