@@ -130,13 +130,13 @@ async function mountRoom(room: any) {
 }
 
 describe("WebcamCallRoom (tournament)", () => {
-  it("shows the server's friendly full message and does not join a 5th person", async () => {
+  it("shows the server's friendly full message and does not join a 6th person", async () => {
     const room = fakeRoom({
       fetchParticipants: vi.fn(async () => ({ participants: [], canKick: false })),
-      join: vi.fn(async () => ({ error: "Webcam room is full (4/4)." })),
+      join: vi.fn(async () => ({ error: "Webcam room is full (5/5)." })),
     });
     const wrapper = await mountRoom(room);
-    expect(wrapper.text()).toContain("Webcam room is full (4/4).");
+    expect(wrapper.text()).toContain("Webcam room is full (5/5).");
     expect(wrapper.text()).not.toContain("Connect with");
   });
 

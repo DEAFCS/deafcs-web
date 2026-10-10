@@ -3246,22 +3246,6 @@ const playerHeroTeamChipDotClasses =
                 `https://${apiDomain}/avatars/roster-teams/${teamId}/${player.steam_id}`
             "
           />
-          <i18n-t
-            keypath="avatar.roster_rules_hint"
-            tag="p"
-            scope="global"
-            class="max-w-[16rem] text-xs text-muted-foreground"
-            data-testid="roster-rules-hint"
-          >
-            <template #link>
-              <NuxtLink
-                to="/tournament-rules#roster-images"
-                class="underline underline-offset-2 hover:text-foreground"
-              >
-                {{ $t("pages.info.tournament_rules.title") }}
-              </NuxtLink>
-            </template>
-          </i18n-t>
         </div>
 
         <div v-if="canEditName" class="space-y-2">
@@ -3688,16 +3672,9 @@ export default {
     canEditAvatar() {
       return this.isSelfProfile || this.isAdmin;
     },
-    // The general roster image follows the avatar (and upstream 5Stack): own
-    // profile for any signed-in player, or an Administrator for anyone else.
-    // The API enforces the same rule; team-specific images are separate.
+    // Roster images (general and team-specific) are Administrator/Tournament
+    // Organizer only - unlike the avatar above, self-service is not allowed.
     canEditRosterImages() {
-      return this.canEditAvatar;
-    },
-    // Bulk "apply to teams" writes team-specific roster images, which the API
-    // only allows for site staff, team owners/admins, or verified_user+
-    // editing their own. Keep it staff-only here, as before.
-    canBulkApplyTeamRosterImages() {
       return useAuthStore().isRoleAbove(
         e_player_roles_enum.tournament_organizer,
       );
@@ -3739,7 +3716,7 @@ export default {
       return this.canEditPlayer && (this.isSelfProfile || this.isAdmin);
     },
     bulkApplyTeams() {
-      if (!this.canBulkApplyTeamRosterImages) return [];
+      if (!this.canEditRosterImages) return [];
       const memberships = this.playerTeamMemberships ?? [];
       return memberships.map((m) => ({
         teamId: m.team.id,

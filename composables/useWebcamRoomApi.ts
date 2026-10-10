@@ -30,10 +30,6 @@ export type WebcamRoomJoinResult = {
 
 // Token-gated half: everything the anonymous phone/QR page needs.
 export interface WebcamTokenRoom {
-  // Heading on the phone/QR page (defaults to the lobby wording).
-  title?: string;
-  // Hard room size, when the room has one worth showing as "Open slot".
-  maxParticipants?: number;
   playerWhipUrl(token: string): string;
   playerStatusUrl(token: string): string;
   playerHangupUrl(token: string): string;
@@ -93,9 +89,8 @@ export function createLobbyWebcamTokenRoom(): WebcamTokenRoom {
 
 // --- Tournament webcam support room ---
 
-// Same cap the API enforces (TOURNAMENT_CALL_MAX_PARTICIPANTS in
-// tournament-call.service.ts): a 2x2 grid. The lobby call keeps its own cap.
-export const TOURNAMENT_WEBCAM_MAX = 4;
+// Same cap the API enforces (MAX_PARTICIPANTS in lobby-call.service.ts).
+export const TOURNAMENT_WEBCAM_MAX = 5;
 // The chat header count and the popout both refresh on this interval.
 export const TOURNAMENT_WEBCAM_POLL_MS = 15_000;
 
@@ -110,8 +105,6 @@ export function tournamentWebcamPopoutPath(tournamentId: string): string {
 
 export function createTournamentWebcamTokenRoom(): WebcamTokenRoom {
   return {
-    title: "Tournament webcam call",
-    maxParticipants: TOURNAMENT_WEBCAM_MAX,
     playerWhipUrl: (token) => tournamentCallApi(`player/${token}/whip`),
     playerStatusUrl: (token) => tournamentCallApi(`player/${token}/status`),
     playerHangupUrl: (token) => tournamentCallApi(`player/${token}/hangup`),

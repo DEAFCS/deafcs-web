@@ -23,10 +23,6 @@ import {
   useVideoTileDimensions,
 } from "~/composables/useCallVideoLayout";
 import { fetchLobbyCallStatus } from "~/composables/useLobbyCallApi";
-import {
-  createDropWatcher,
-  WEBCAM_REMOVED_MESSAGE,
-} from "~/composables/useWebcamConnectionWatch";
 import type {
   WebcamRoom,
   WebcamRoomParticipant as LobbyCallParticipant,
@@ -88,7 +84,6 @@ const step = ref<Step>("idle");
 const joinToken = ref<string | null>(null);
 const qrDataUrl = ref<string | null>(null);
 const joinError = ref<string | null>(null);
-const watcher = createDropWatcher();
 
 const joinUrl = computed(() =>
   joinToken.value ? room.value.joinPageUrl(joinToken.value) : null,
@@ -307,72 +302,17 @@ async function confirmJoin() {
   }
 }
 
-// Manual "Join call": starts from a clean reconnect budget.
-function joinFromPreview() {
-  watcher.reset();
-  void confirmJoin();
-}
-
-// One status check -> verdict from the shared drop watcher. A single failed
-// or slow request is tolerated; see useWebcamConnectionWatch.ts.
-async function checkStatus(token: string, afterResume = false) {
-  const status = await fetchLobbyCallStatus(room.value.playerStatusUrl(token));
-  if (step.value !== "in-call") return;
-  const verdict = watcher.sample(status, { afterResume });
-  if (verdict === "expired") {
-    // Removed from the room (or access lost): this link can never work again.
-    teardownStream();
-    joinToken.value = null;
-    step.value = "idle";
-    joinError.value = WEBCAM_REMOVED_MESSAGE;
-  } else if (verdict === "dropped") {
-    await handleDrop(token);
-  }
-}
-
-async function handleDrop(token: string) {
-  teardownStream();
-  if (watcher.canAutoReconnect() && joinToken.value === token) {
-    watcher.noteAutoReconnect();
-    step.value = "connecting";
-    try {
-      await startPreviewDevice(selectedDeviceId.value);
-    } catch (err) {
-      joinError.value = err instanceof Error ? err.message : String(err);
+function pollStatus(token: string) {
+  statusPollTimer = setTimeout(async () => {
+    const { ready } = await fetchLobbyCallStatus(room.value.playerStatusUrl(token));
+    if (!ready && step.value === "in-call") {
+      joinError.value = "Connection dropped. Click Join call to reconnect.";
+      teardownStream();
       step.value = "choose";
       return;
     }
-    // confirmJoin publishes again with the same link and restarts polling;
-    // on failure it lands on the device picker with the error shown.
-    await confirmJoin();
-    return;
-  }
-  joinError.value = "Connection dropped. Click Join call to reconnect.";
-  step.value = "choose";
-}
-
-function pollStatus(token: string) {
-  if (statusPollTimer) clearTimeout(statusPollTimer);
-  statusPollTimer = setTimeout(async () => {
-    statusPollTimer = null;
-    await checkStatus(token);
-    if (step.value === "in-call" && !statusPollTimer) pollStatus(token);
+    pollStatus(token);
   }, 2000);
-}
-
-// Coming back to a window that was in the background (a locked or sleeping
-// device, another tab): check right away instead of waiting out the grace.
-async function onVisibilityChange() {
-  const token = joinToken.value;
-  if (document.visibilityState !== "visible" || step.value !== "in-call" || !token) {
-    return;
-  }
-  if (statusPollTimer) {
-    clearTimeout(statusPollTimer);
-    statusPollTimer = null;
-  }
-  await checkStatus(token, true);
-  if (step.value === "in-call" && !statusPollTimer) pollStatus(token);
 }
 
 function teardownStream() {
@@ -395,7 +335,6 @@ function teardownStream() {
 async function leaveCall() {
   const token = joinToken.value;
   teardownStream();
-  watcher.reset();
   step.value = "idle";
   joinToken.value = null;
   if (token) {
@@ -427,7 +366,6 @@ let unlistenLeft: (() => void) | null = null;
 let unlistenJoining: (() => void) | null = null;
 
 onMounted(async () => {
-  document.addEventListener("visibilitychange", onVisibilityChange);
   await refreshParticipants();
 
   // Clicking the webcam icon in ChatPanel.vue is the "start/join call"
@@ -500,7 +438,6 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  document.removeEventListener("visibilitychange", onVisibilityChange);
   unlistenJoined?.();
   unlistenLeft?.();
   unlistenJoining?.();
@@ -553,22 +490,10 @@ const visibleTileCount = computed(() =>
 // landscape webcam top/bottom, and a rotation just re-letterboxes. A lone
 // tile takes its feed's own ratio instead of a big empty box.
 const TILE_GAP = 12;
-const occupiedTileKeys = computed(() => [
+const tileKeys = computed(() => [
   ...tileParticipants.value.map((p) => p.steamId),
   ...joiningList.value.map((p) => `joining-${p.steamId}`),
   ...(publishingLocally.value ? ["local"] : []),
-]);
-// A room that holds exactly 4 (the tournament webcam) shows its one open
-// seat as an empty cell once three tiles are up, so the 2x2 grid keeps its
-// shape instead of jumping when the fourth person arrives.
-const emptySlotKeys = computed(() =>
-  room.value.maxParticipants === 4 && occupiedTileKeys.value.length === 3
-    ? ["empty-0"]
-    : [],
-);
-const tileKeys = computed(() => [
-  ...occupiedTileKeys.value,
-  ...emptySlotKeys.value,
 ]);
 const { tileRef, shape: tileShape, aspect: tileAspect } = useVideoTileDimensions();
 const stageEl = ref<HTMLElement | null>(null);
@@ -630,18 +555,13 @@ function tileStyle(key: string) {
         <LucideVideo class="w-4 h-4" />
         {{ title || $t("matchmaking.lobby_call.tooltip", "Webcam call") }}
       </h1>
-      <span class="text-xs text-muted-foreground" data-testid="webcam-count">
+      <span class="text-xs text-muted-foreground">
         {{
-          !participants.length
-            ? $t("matchmaking.lobby_call.no_call", "No active call")
-            : room.maxParticipants
-              ? $t("tournament.webcam.in_call_max", "{count}/{max} in call", {
-                  count: participants.length,
-                  max: room.maxParticipants,
-                })
-              : $t("matchmaking.lobby_call.in_call", "{count} in call", {
-                  count: participants.length,
-                })
+          participants.length
+            ? $t("matchmaking.lobby_call.in_call", "{count} in call", {
+                count: participants.length,
+              })
+            : $t("matchmaking.lobby_call.no_call", "No active call")
         }}
       </span>
     </div>
@@ -733,16 +653,6 @@ function tileStyle(key: string) {
         <span class="absolute bottom-2 left-2 text-xs font-medium text-white bg-black/60 rounded px-2 py-0.5">
           {{ $t("matchmaking.lobby_call.you", "You") }}
         </span>
-      </div>
-      <!-- The one open seat of a 4-person room, so the 2x2 grid stays put. -->
-      <div
-        v-for="key in emptySlotKeys"
-        :key="key"
-        class="shrink-0 rounded-lg border border-dashed border-zinc-700 bg-zinc-900/60 flex items-center justify-center text-xs text-muted-foreground"
-        :style="tileStyle(key)"
-        data-testid="webcam-empty-slot"
-      >
-        {{ $t("tournament.webcam.open_slot", "Open slot") }}
       </div>
      </div>
     </div>
@@ -902,7 +812,7 @@ function tileStyle(key: string) {
           <Button variant="outline" class="flex-1" @click="cancelPreview">
             <LucideArrowLeft class="w-4 h-4" /> Back
           </Button>
-          <Button class="flex-1" @click="joinFromPreview"> Join call </Button>
+          <Button class="flex-1" @click="confirmJoin"> Join call </Button>
         </div>
       </div>
 

@@ -149,30 +149,6 @@ const linkClasses =
       </div>
     </div>
 
-    <!-- Roster Images: standalone; the player profile roster-image editor links here (#roster-images). -->
-    <div id="roster-images" class="flex scroll-mt-24 flex-col gap-3">
-      <span :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses" />
-        {{ $t("pages.info.tournament_rules.sections.roster_images.title") }}
-      </span>
-      <Card class="bg-card/20">
-        <CardContent class="flex flex-col gap-3 p-4 sm:p-6">
-          <p :class="bodyClasses">
-            {{ $t("pages.info.tournament_rules.sections.roster_images.body_1") }}
-          </p>
-          <p :class="bodyClasses">
-            {{ $t("pages.info.tournament_rules.sections.roster_images.body_2") }}
-          </p>
-          <p :class="bodyClasses">
-            {{ $t("pages.info.tournament_rules.sections.roster_images.body_3") }}
-          </p>
-          <p :class="bodyClasses">
-            {{ $t("pages.info.tournament_rules.sections.roster_images.body_4") }}
-          </p>
-        </CardContent>
-      </Card>
-    </div>
-
     <!-- Tournament Check-In & Attendance: standalone, distinct from Match Check-In below. -->
     <div class="flex flex-col gap-3">
       <span :class="tacticalSectionLabelClasses">

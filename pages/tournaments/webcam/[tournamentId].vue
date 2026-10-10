@@ -5,7 +5,7 @@ import { createTournamentWebcamRoom } from "~/composables/useWebcamRoomApi";
 
 // Opened via window.open() from the tournament chat's webcam button in
 // ChatPanel.vue. Opt-in support room: opening it never rings or notifies
-// anyone. Access, the 4-person cap and kicks are enforced by the API
+// anyone. Access, the 5-person cap and kicks are enforced by the API
 // (TournamentCallService).
 definePageMeta({ layout: false });
 
