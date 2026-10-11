@@ -1,147 +1,211 @@
 <script setup lang="ts">
-import { useI18n } from "vue-i18n";
-import { Merge, LogOut } from "lucide-vue-next";
+import { computed, ref, watch } from "vue";
+import { Merge, LogOut, Video } from "lucide-vue-next";
+import HubEmptyState from "~/components/hub/HubEmptyState.vue";
+import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
+import LobbyInvites from "~/components/matchmaking-lobby/LobbyInvites.vue";
 import MatchLobbyExpanded from "~/components/matchmaking-lobby/MatchLobbyExpanded.vue";
 import MatchmakingLobbyAccess from "~/components/matchmaking-lobby/MatchmakingLobbyAccess.vue";
-import LobbyInvites from "~/components/matchmaking-lobby/LobbyInvites.vue";
+import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
-import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import PartyQueueLine from "~/components/hub/PartyQueueLine.vue";
 import { Button } from "~/components/ui/button";
-import { Separator } from "~/components/ui/separator";
-import Empty from "~/components/ui/empty/Empty.vue";
 import { useInvites } from "@/composables/useInvites";
+import { useRightSidebar } from "~/composables/useRightSidebar";
+import { currentHub } from "~/composables/useHubState";
+import { useChatTabs } from "~/composables/useChatTabs";
+import { openLobbyCallWindow } from "~/composables/useLobbyCallApi";
 
-const { t } = useI18n();
+// 5Stack's party room: invites, the squad, the queue line, then the lobby
+// chat. DEAFCS keeps its own squad list (MatchLobbyExpanded, with the
+// captain's invite and remove), the lobby access setting, and the lobby's
+// webcam call; upstream's voice channel is not part of DEAFCS.
 const { hasLobbyInvites } = useInvites();
+const { rightSidebarOpen } = useRightSidebar();
+
+const lobbyId = computed(
+  () => ((useMatchmakingStore().currentLobby as any)?.id as string) ?? null,
+);
+
+const lobbyCallStatus = ref<{ count: number; isInCall: boolean }>({
+  count: 0,
+  isInCall: false,
+});
+
+// Reading the lobby chat here is reading it: the same room is a tab in Chat,
+// and its badge must not keep counting what is already on screen.
+const onScreen = computed(
+  () => rightSidebarOpen.value && currentHub() === "lobby",
+);
+watch(
+  [onScreen, lobbyId],
+  ([visible, id]) => {
+    if (visible && id) useChatTabs().resetUnread(`matchmaking:${id}`);
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
-  <div class="flex flex-col h-full">
-    <div class="px-3 pt-3 pb-3 flex-shrink-0 border-b border-border">
-      <div
-        class="flex items-center gap-[0.4rem] font-mono text-[0.62rem] font-bold tracking-[0.24em] uppercase text-muted-foreground"
-      >
-        <span class="w-2 h-[2px] bg-[hsl(var(--tac-amber))]"></span>
-        {{ $t("layouts.hub.lobby") }}
-      </div>
-    </div>
-    <!-- min-h-0 is required here, not decorative: a flex item's default
-         min-height is `auto`, which refuses to shrink below its content's
-         natural size even under flex-1 -- without this override, invites
-         + squad + chat combined can exceed the parent's h-full bound and
-         grow past it, silently clipped by RightHub's overflow-hidden
-         ancestor with no visual indication anything is cut off. Only
-         shows up once total available height is actually tight (a short
-         window, or DPI/zoom that shrinks the sidebar), which is exactly
-         why this went unnoticed until now. -->
-    <div class="flex-1 min-h-0 px-3 pt-3 flex flex-col gap-4 overflow-hidden">
-      <!-- Scrollable main content (invites + squad) -- capped so chat
-           below always keeps its own real space instead of the two
-           competing over an unbounded parent height. -->
-      <div class="flex-shrink-0 max-h-[45%] flex flex-col gap-4 overflow-y-auto">
-        <!-- Lobby invites -->
-        <Transition name="lobby-item">
-          <div v-if="hasLobbyInvites" class="flex flex-col gap-3">
+  <!-- The party room: seats on top, the queue line, party chat below. The
+       dock's Lobby icon opens it. -->
+  <div class="flex h-full flex-col">
+    <!-- Lobby invites. Folds its height shut instead of vanishing with a
+         one-frame gap collapse. -->
+    <Transition
+      enter-active-class="lobby-fold"
+      enter-from-class="lobby-fold-collapsed"
+      leave-active-class="lobby-fold"
+      leave-to-class="lobby-fold-collapsed"
+    >
+      <div v-if="hasLobbyInvites" class="grid shrink-0 grid-rows-[1fr]">
+        <div class="min-h-0">
+          <div class="flex flex-col gap-3 border-b border-border p-3">
             <div
-              class="inline-flex items-center gap-[0.35rem] text-[0.68rem] font-semibold tracking-[0.12em] uppercase text-muted-foreground"
+              class="inline-flex items-center gap-[0.35rem] text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
             >
               <Merge class="h-3 w-3" />
               <span>{{ $t("layouts.lobby_panel.lobby_invites") }}</span>
             </div>
             <LobbyInvites />
-            <Separator class="my-3 opacity-60" />
           </div>
-        </Transition>
+        </div>
+      </div>
+    </Transition>
 
-        <!-- Squad ↔ create-lobby swap -->
-        <Transition name="lobby-swap" mode="out-in" @after-enter="onSquadEntered">
-          <!-- Matchmaking lobby -->
-          <div v-if="currentLobby" key="squad" class="flex flex-col gap-3">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex flex-col gap-1">
-                <div
-                  class="inline-flex items-center gap-[0.35rem] text-[0.68rem] font-semibold tracking-[0.12em] uppercase text-muted-foreground"
+    <!-- The squad folds open in a measured motion when a party forms. -->
+    <HeightSwap class="shrink-0" @settled="onSquadEntered">
+      <div v-if="currentLobby" key="squad" class="flex flex-col">
+        <div
+          class="max-h-[45vh] overflow-y-auto border-b border-border bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.06),transparent_70%)] px-3 pb-3.5 pt-3"
+        >
+          <div class="mb-3 flex items-center justify-between gap-3">
+            <div
+              class="inline-flex items-center gap-[0.35rem] text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
+            >
+              {{ $t("layouts.lobby_panel.your_squad") }}
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                type="button"
+                data-lobby-call
+                class="relative inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors"
+                :class="
+                  lobbyCallStatus.count
+                    ? 'border-[hsl(var(--tac-amber))]/50 bg-[hsl(var(--tac-amber))]/10 text-[hsl(var(--tac-amber))] motion-safe:animate-pulse'
+                    : 'border-border bg-card/50 text-muted-foreground hover:bg-muted hover:text-foreground'
+                "
+                :aria-label="
+                  lobbyCallStatus.count
+                    ? $t('matchmaking.lobby_call.join', 'Join call')
+                    : $t('matchmaking.lobby_call.tooltip', 'Webcam call')
+                "
+                :title="
+                  lobbyCallStatus.count
+                    ? $t('matchmaking.lobby_call.join', 'Join call')
+                    : $t('matchmaking.lobby_call.tooltip', 'Webcam call')
+                "
+                @click="openCall"
+              >
+                <Video class="h-3.5 w-3.5" />
+                <span
+                  v-if="lobbyCallStatus.count"
+                  class="absolute -right-1 -top-1 inline-flex h-4 min-w-[1.05rem] items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] px-1 text-[9px] font-bold leading-none text-black"
                 >
-                  {{ $t("layouts.lobby_panel.your_squad") }}
-                </div>
-                <p class="text-[11px] text-muted-foreground">
-                  {{ $t("layouts.lobby_panel.squad_description") }}
-                </p>
-              </div>
+                  {{ lobbyCallStatus.count }}
+                </span>
+              </button>
               <div class="flex items-center gap-2 md:hidden">
                 <MatchmakingLobbyAccess :lobby="currentLobby" />
                 <Button
                   size="icon"
                   variant="destructive"
-                  class="rounded-full transition-colors duration-200"
-                  @click="leaveCurrentLobby"
+                  class="h-7 w-7 rounded-full transition-colors duration-200"
                   :title="$t('matchmaking.lobby.leave')"
+                  :aria-label="$t('matchmaking.lobby.leave')"
+                  @click="leaveCurrentLobby"
                 >
                   <LogOut class="h-3 w-3" />
                 </Button>
               </div>
             </div>
-
-            <MatchLobbyExpanded :lobby="currentLobby" />
           </div>
-
-          <!-- Create lobby — only when not in a lobby or match -->
-          <Empty v-else key="empty" class="px-3 pb-5 pt-4">
-            <p class="text-sm text-muted-foreground text-center max-w-xs">
-              {{ $t("layouts.lobby_panel.create_lobby_description") }}
-            </p>
-            <div
-              class="inline-flex rounded-full p-[1.5px] bg-[linear-gradient(135deg,hsl(40_58%_60%)_0%,hsl(33_62%_55%)_50%,hsl(24_56%_52%)_100%)] shadow-[0_4px_14px_-8px_hsl(var(--tac-amber)/0.3)] transition-shadow duration-300 hover:shadow-[0_6px_18px_-8px_hsl(var(--tac-amber)/0.4)]"
-            >
-              <Button
-                variant="ghost"
-                @click="createLobby"
-                :loading="creatingLobby"
-                size="default"
-                class="rounded-full border-0 bg-zinc-950/95 px-7 py-2 text-[hsl(var(--tac-amber))] transition-colors duration-300 hover:bg-zinc-900/95 hover:text-[hsl(var(--tac-amber))] focus-visible:ring-[hsl(var(--tac-amber))]"
-              >
-                <Merge class="h-5 w-5" />
-                <span class="font-semibold">
-                  {{ $t("layouts.lobby_panel.create_lobby_button") }}
-                </span>
-              </Button>
-            </div>
-          </Empty>
-        </Transition>
-      </div>
-
-      <!-- Lobby chat -- fills all remaining space (same flex-1/min-h-0
-           pattern ChatPanel.vue uses for the Chat hub tab, rather than
-           the previous fixed/percentage height mix that got squeezed
-           out and cut off whenever the squad section above grew tall). -->
-      <Transition name="lobby-item">
-        <div
-          v-if="currentLobby && squadReady"
-          class="flex-1 min-h-0 border-t border-zinc-800 pt-3 flex flex-col gap-2"
-        >
-          <div
-            class="text-[11px] font-semibold text-zinc-400 uppercase tracking-wide"
-          >
-            {{ $t("chat.lobby_chat") }}
-          </div>
-          <ChatLobby
-            v-if="(currentLobby as any)?.id"
-            instance="matchmaking"
-            type="matchmaking"
-            :lobby-id="(currentLobby as any).id"
-            :frameless="true"
-            :hide-participants-summary="true"
-            class="flex-1 min-h-0"
-          />
+          <MatchLobbyExpanded :lobby="currentLobby" />
         </div>
-      </Transition>
-    </div>
+        <LobbyCallPanel
+          v-if="lobbyId"
+          :lobby-id="lobbyId"
+          :show-bar="true"
+          @open-call="openCall"
+          @status="lobbyCallStatus = $event"
+        />
+        <PartyQueueLine :lobby="currentLobby" />
+      </div>
+    </HeightSwap>
+
+    <!-- No party: the same centred empty state as every other tab. -->
+    <Transition
+      enter-active-class="transition-opacity [transition-duration:240ms] motion-reduce:![transition-duration:1ms]"
+      leave-active-class="transition-opacity [transition-duration:110ms] ease-in motion-reduce:![transition-duration:1ms]"
+      enter-from-class="opacity-0"
+      leave-to-class="opacity-0"
+    >
+      <HubEmptyState
+        v-if="!currentLobby"
+        :title="$t('layouts.hub.empty.party_title')"
+        :description="$t('layouts.lobby_panel.create_lobby_description')"
+      >
+        <div
+          class="relative inline-flex rounded-md shadow-[0_4px_14px_-8px_hsl(var(--tac-amber)/0.3)] transition-shadow duration-300 hover:shadow-[0_6px_18px_-8px_hsl(var(--tac-amber)/0.4)]"
+        >
+          <span
+            aria-hidden="true"
+            class="tac-amber-frame pointer-events-none absolute inset-0 rounded-md"
+          ></span>
+          <Button
+            variant="ghost"
+            @click="createLobby"
+            :loading="creatingLobby"
+            size="default"
+            class="rounded-md border-0 bg-transparent px-7 py-2 text-[hsl(var(--tac-amber))] transition-colors duration-300 hover:bg-[hsl(var(--tac-amber)/0.12)] hover:text-[hsl(var(--tac-amber))] focus-visible:ring-[hsl(var(--tac-amber))]"
+          >
+            <Merge class="h-5 w-5" />
+            <span class="font-semibold">
+              {{ $t("layouts.lobby_panel.create_lobby_button") }}
+            </span>
+          </Button>
+        </div>
+      </HubEmptyState>
+    </Transition>
+
+    <!-- Party chat takes the rest. A flex-sized dock, so its reveal animates
+         flex-basis/grow rather than content height. -->
+    <Transition
+      enter-active-class="lobby-dock"
+      enter-from-class="lobby-dock-collapsed"
+      leave-active-class="lobby-dock"
+      leave-to-class="lobby-dock-collapsed"
+    >
+      <div
+        v-if="currentLobby && squadReady"
+        class="flex min-h-0 flex-1 flex-col"
+      >
+        <ChatLobby
+          v-if="(currentLobby as any)?.id"
+          instance="matchmaking"
+          type="matchmaking"
+          :lobby-id="(currentLobby as any).id"
+          :frameless="true"
+          :hide-participants-summary="true"
+          class="min-h-0 flex-1"
+        />
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script lang="ts">
 import { e_match_status_enum, e_player_roles_enum } from "~/generated/zeus";
-import { useChatTabs } from "~/composables/useChatTabs";
 import { generateMutation } from "~/graphql/graphqlGen";
 
 export default {
@@ -246,14 +310,9 @@ export default {
       // (currentLobby set) should unlock the bottom sections.
       if (this.currentLobby) this.squadReady = true;
     },
-    matchName(match: any) {
-      return (
-        match.label ||
-        `${match.lineup_1?.name ?? this.$t("common.tbd")} vs ${match.lineup_2?.name ?? this.$t("common.tbd")}`
-      );
-    },
-    goToMatch(match: any) {
-      this.$router.push({ name: "matches-id", params: { id: match.id } });
+    openCall() {
+      const id = (this.currentLobby as any)?.id;
+      if (id) openLobbyCallWindow(id);
     },
     getStatusPriority(status: e_match_status_enum): number {
       switch (status) {
@@ -314,42 +373,45 @@ export default {
 </script>
 
 <style scoped>
-/* Squad ↔ create-lobby crossfade */
-.lobby-swap-enter-active {
+/* One clock for every fold in this column. Content-sized sections (invites)
+   collapse their grid row; spacing rides inside the clipped cell so no flex
+   gap is left to snap when an element unmounts. Chat stays gated on
+   `squadReady` so it reveals after the squad has landed. */
+.lobby-fold {
   transition:
-    opacity 0.25s ease,
-    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    grid-template-rows 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.18s ease;
 }
-.lobby-swap-leave-active {
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s ease;
+.lobby-fold > * {
+  overflow: hidden;
 }
-.lobby-swap-enter-from {
+.lobby-fold-collapsed {
+  grid-template-rows: 0fr;
   opacity: 0;
-  transform: translateY(8px) scale(0.98);
-}
-.lobby-swap-leave-to {
-  opacity: 0;
-  transform: translateY(-6px) scale(0.98);
 }
 
-/* Sections fading/sliding in (invites, voice, chat). Voice/chat are gated on
-   `squadReady` so they only mount once the squad has entered — preventing the
-   bottom from reserving layout (and popping in) before the top. */
-.lobby-item-enter-active {
+/* The chat dock is sized by flex, not by its content, so its reveal animates
+   the flex sizing itself -- the squad area above shrinks continuously into
+   the new distribution instead of losing the dock's share in one frame. */
+.lobby-dock {
   transition:
-    opacity 0.3s ease 0.04s,
-    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.04s;
+    flex-basis 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    flex-grow 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.18s ease;
+  overflow: hidden;
 }
-.lobby-item-leave-active {
-  transition:
-    opacity 0.16s ease,
-    transform 0.16s ease;
-}
-.lobby-item-enter-from,
-.lobby-item-leave-to {
+.lobby-dock-collapsed {
+  flex-basis: 0px;
+  flex-grow: 0;
+  min-height: 0;
+  max-height: none;
   opacity: 0;
-  transform: translateY(10px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lobby-fold,
+  .lobby-dock {
+    transition-duration: 1ms;
+  }
 }
 </style>

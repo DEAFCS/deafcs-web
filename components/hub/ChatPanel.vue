@@ -22,6 +22,7 @@ import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 import ChatDirectProfileLink from "~/components/chat/ChatDirectProfileLink.vue";
 import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
+import { currentHub } from "~/composables/useHubState";
 import { useTournamentWebcamStatus } from "~/composables/useTournamentWebcamStatus";
 import {
   TOURNAMENT_WEBCAM_MAX,
@@ -53,6 +54,7 @@ const {
   resetUnread,
   incrementUnread,
   incrementMention,
+  noteActivity,
   closeTab,
   activeTabId,
   manualOrder,
@@ -472,13 +474,23 @@ function handleMessageReceived(payload: {
   direction: "inbound" | "outbound";
   message: any;
 }) {
-  if (payload.direction !== "inbound") return;
   const tabId = payload.tabId ?? activeChatId.value;
   if (!tabId) return;
+  // Either side keeps a conversation on the hub dock (5Stack).
+  noteActivity(tabId);
+  if (payload.direction !== "inbound") return;
   const room = tabs.value.find((tab) => tab.id === tabId);
   const isCurrentRoom = room && viewId(room) === activeChatId.value;
-  const isVisible = props.isSidebarOpen && props.isTabActive && isCurrentRoom;
   const tab = tabs.value.find((t) => t.id === tabId);
+  // The lobby's chat is also shown in the Lobby panel; reading it there is
+  // reading it.
+  const isOnLobbyPanel =
+    tab?.type === "matchmaking" &&
+    props.isSidebarOpen &&
+    currentHub() === "lobby";
+  const isVisible =
+    (props.isSidebarOpen && props.isTabActive && isCurrentRoom) ||
+    isOnLobbyPanel;
   if (!isVisible) {
     // Direct messages are fully owned by useIncomingDirectMessages.ts
     // instead -- it independently subscribes to the same ChatMessage

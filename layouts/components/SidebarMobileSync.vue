@@ -4,7 +4,7 @@ import { useSidebar } from "@/components/ui/sidebar/utils";
 import { watch } from "vue";
 import { useRoute } from "vue-router";
 
-const { rightSidebarOpen, setRightSidebarOpen, isPinned } = useRightSidebar();
+const { rightSidebarOpen, setRightSidebarOpen } = useRightSidebar();
 const { isMobile, setOpenMobile, openMobile } = useSidebar();
 const route = useRoute();
 
@@ -20,26 +20,25 @@ watch(
 );
 
 // Sync rightSidebarOpen with the provider's openMobile on mobile.
-// If pinned, force both to stay open.
+// DEAFCS: a pin is a desktop state (see useRightSidebar). On a phone a tap
+// opens the hub and it stays until closed, and a pin left over from a
+// desktop session never holds the sheet over the page after a reload.
 watch(
   rightSidebarOpen,
   (newValue) => {
     if (isMobile.value) {
-      const next = isPinned.value ? true : newValue;
-      setOpenMobile(next);
+      setOpenMobile(newValue);
     }
   },
   { immediate: true },
 );
 
 // Also sync in reverse: when mobile sidebar closes, update rightSidebarOpen.
-// If pinned, prevent it from closing.
 watch(openMobile, (newValue) => {
   if (!isMobile.value) return;
 
-  const next = isPinned.value ? true : newValue;
-  if (rightSidebarOpen.value !== next) {
-    setRightSidebarOpen(next);
+  if (rightSidebarOpen.value !== newValue) {
+    setRightSidebarOpen(newValue);
   }
 });
 </script>

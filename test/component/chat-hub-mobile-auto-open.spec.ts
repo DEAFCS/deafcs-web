@@ -165,7 +165,8 @@ describe("withoutMobileAutoOpen", () => {
   it("uses the Chat Hub's own mobile breakpoint", () => {
     expect(MOBILE_CHAT_HUB_QUERY).toBe("(max-width: 768px)");
     const read = (p: string) => fs.readFileSync(path.resolve(__dirname, "../..", p), "utf8");
-    expect(read("layouts/components/RightHub.vue")).toContain('useMediaQuery("(max-width: 768px)")');
+    // The dock reads the same breakpoint through the shared constant.
+    expect(read("layouts/components/RightHub.vue")).toContain("useMediaQuery(MOBILE_CHAT_HUB_QUERY)");
     expect(read("components/hub/ChatPanel.vue")).toContain('useMediaQuery("(max-width: 768px)")');
   });
 });

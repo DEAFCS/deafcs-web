@@ -109,3 +109,24 @@ export async function fetchLobbyCallParticipantsForToken(
     return [];
   }
 }
+
+// The lobby's webcam call in its own window -- the same window and size the
+// Chat Hub's lobby tab and the incoming-call popup open.
+export function openLobbyCallWindow(lobbyId: string) {
+  const w = 960;
+  const h = 720;
+  const left = Math.max(0, (window.screen.width - w) / 2);
+  const top = Math.max(0, (window.screen.height - h) / 2);
+  const features = [
+    `width=${w}`,
+    `height=${h}`,
+    `left=${left}`,
+    `top=${top}`,
+    "scrollbars=yes",
+    "location=no",
+    "menubar=no",
+    "toolbar=no",
+    "status=no",
+  ].join(",");
+  window.open(`/matchmaking/lobby-call/${lobbyId}`, "lobby-call", features);
+}

@@ -2,7 +2,7 @@
 import type { SidebarProps } from "."
 import { computed } from "vue"
 import { cn } from "@/lib/utils"
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet'
 import { SIDEBAR_WIDTH_MOBILE, useSidebar } from "./utils"
 import { useApplicationSettingsStore } from "@/stores/ApplicationSettings"
 
@@ -38,11 +38,14 @@ const showSeparators = computed(() => {
       data-sidebar="sidebar"
       data-mobile="true"
       :side="side"
-      class="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+      :class="cn('w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden', props.sheetClass)"
+      :overlay-class="props.sheetOverlayClass"
       :style="{
         '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
       }"
     >
+      <SheetTitle class="sr-only">Sidebar</SheetTitle>
+      <SheetDescription class="sr-only">Displays the mobile sidebar.</SheetDescription>
       <div class="flex h-full w-full flex-col">
         <slot />
       </div>

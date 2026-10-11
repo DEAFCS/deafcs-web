@@ -972,12 +972,15 @@ socket.listen(
       lobbyId,
     });
 
+    // currentHub(), not useHubState(): this runs per message, and the
+    // composable registers watchers each time it is called (5Stack).
     const { rightSidebarOpen } = useRightSidebar();
-    const { activeHub } = useHubState();
+    const hub = currentHub();
     const isVisible =
       rightSidebarOpen.value &&
-      activeHub.value === "chat" &&
-      activeTabId.value === tabId;
+      ((hub === "chat" && activeTabId.value === tabId) ||
+        // The lobby's chat is also shown in the Lobby panel.
+        (hub === "lobby" && type === "matchmaking"));
 
     // Already looking at this exact conversation -- the per-lobby "chat"
     // listener above (via listenChat) already handled the badge/read

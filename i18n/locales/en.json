@@ -4772,7 +4772,8 @@
         "match_map_veto_action": "It's your turn in the map veto.",
         "open_match": "Open Match",
         "your_match": "Your match"
-      }
+      },
+      "settings": "Notification Settings"
     },
     "app_nav": {
       "brand": "DEAFCS",
@@ -5002,7 +5003,37 @@
     "hub": {
       "social": "Social",
       "notifications": "Notifications",
-      "lobby": "Lobby"
+      "lobby": "Lobby",
+      "dock": {
+        "label": "Chat Hub",
+        "inbox": "Alerts",
+        "chat": "Chat",
+        "friends": "Friends",
+        "matches": "Recent Matches",
+        "waiting": "{count} waiting on you",
+        "nothing_new": "Nothing new",
+        "searching": "Searching for a match",
+        "searching_for": "Searching · {time}",
+        "party_invites": "Lobby invites: {count}",
+        "in_party": "{count} in your lobby",
+        "start_party": "Start a lobby",
+        "unread": "{count} unread",
+        "friend_requests": "Friend requests: {count}",
+        "online": "{count} online",
+        "just_online": "{count} just came online",
+        "friend_just_online": "{name} just came online",
+        "on_the_dock": "Show on the dock",
+        "people": "People",
+        "rooms": "Rooms",
+        "show_hidden": "Show hidden chats ({count})",
+        "pin_shortcut": "Pin to the dock",
+        "unpin_shortcut": "Unpin from the dock",
+        "remove_shortcut": "Remove until a new message",
+        "hide_shortcut": "Never show on the dock"
+      },
+      "empty": {
+        "party_title": "No lobby yet"
+      }
     },
     "lobby_panel": {
       "lobby_invites": "Lobby Invites",
@@ -5035,6 +5066,13 @@
     },
     "public_header": {
       "secure_channel": "SECURE CHANNEL"
+    },
+    "party_room": {
+      "open_match": "Open match",
+      "ready_count": "{confirmed} of {players} ready",
+      "searching": "Searching {mode}",
+      "cancel": "Cancel",
+      "leader_picks": "{name} picks the mode and starts the search"
     }
   },
   "alt_text": {

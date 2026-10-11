@@ -3105,7 +3105,8 @@
         "invited_you": "邀请您加入",
         "invited_party": "邀请您加入他们的队伍",
         "wants_to_be_friends": "想成为好友"
-      }
+      },
+      "settings": "通知设置"
     },
     "app_nav": {
       "brand": "DEAFCS",
@@ -3259,7 +3260,37 @@
     "hub": {
       "social": "社交",
       "notifications": "通知",
-      "lobby": "大厅"
+      "lobby": "大厅",
+      "dock": {
+        "label": "中心",
+        "inbox": "收件箱",
+        "chat": "聊天",
+        "friends": "好友",
+        "matches": "比赛",
+        "waiting": "{count} 项等待你处理",
+        "nothing_new": "暂无新消息",
+        "searching": "正在寻找比赛",
+        "searching_for": "寻找中 · {time}",
+        "party_invites": "小队邀请：{count}",
+        "in_party": "小队 {count}/5 人",
+        "start_party": "创建小队",
+        "unread": "{count} 条未读",
+        "friend_requests": "好友请求：{count}",
+        "online": "{count} 人在线",
+        "just_online": "{count} 位好友刚刚上线",
+        "friend_just_online": "{name} 刚刚上线",
+        "on_the_dock": "在侧栏显示",
+        "people": "好友",
+        "rooms": "房间",
+        "show_hidden": "显示已隐藏的聊天（{count}）",
+        "pin_shortcut": "固定到侧栏",
+        "unpin_shortcut": "从侧栏取消固定",
+        "remove_shortcut": "移除直到有新消息",
+        "hide_shortcut": "永不在侧栏显示"
+      },
+      "empty": {
+        "party_title": "还没有小队"
+      }
     },
     "lobby_panel": {
       "lobby_invites": "大厅邀请",
@@ -3291,6 +3322,13 @@
     },
     "public_header": {
       "secure_channel": "安全通道"
+    },
+    "party_room": {
+      "open_match": "打开比赛",
+      "ready_count": "{confirmed}/{players} 已准备",
+      "searching": "正在寻找 {mode}",
+      "cancel": "取消",
+      "leader_picks": "{name} 选择模式并开始寻找"
     }
   },
   "alt_text": {

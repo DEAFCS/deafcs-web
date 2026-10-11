@@ -182,6 +182,10 @@ const mentionCountsRef = ref<Record<string, number>>(
   loadPersistedMentionCounts(),
 );
 const activeTabIdRef = ref<string | null>(null);
+// When each room last saw a message, from either side (5Stack). The hub dock
+// keeps the most recently active conversations on it, read or not, freshest
+// first.
+const activityAtRef = ref<Record<string, number>>({});
 
 export function chatHubViewId(tab: ChatTab, tabs: readonly ChatTab[]) {
   const matchId = tab.type === "match_team"
@@ -216,7 +220,11 @@ export function useChatTabs() {
   const tabs = computed(() => tabsRef.value);
   const unreadCounts = computed(() => unreadCountsRef.value);
   const mentionCounts = computed(() => mentionCountsRef.value);
+  const activityAt = computed(() => activityAtRef.value);
   const activeTabId = computed(() => activeTabIdRef.value);
+  const totalUnread = computed(() =>
+    Object.values(unreadCountsRef.value).reduce((sum, n) => sum + (n || 0), 0),
+  );
 
   function findTabIndex(id: string) {
     return tabsRef.value.findIndex((t) => t.id === id);
@@ -312,6 +320,7 @@ export function useChatTabs() {
       delete mentionCountsRef.value[removed.id];
       persistMentionCounts(mentionCountsRef.value);
     }
+    delete activityAtRef.value[removed.id];
     persistDmTabs(tabsRef.value);
 
     if (activeTabIdRef.value === removed.id) {
@@ -351,9 +360,21 @@ export function useChatTabs() {
     };
   }
 
+  // Only ever moves forward: a room's history arriving after a live message
+  // must not make it look older than it is.
+  function noteActivity(id: string, at: number = Date.now()) {
+    if (!Number.isFinite(at)) {
+      return;
+    }
+    if ((activityAtRef.value[id] ?? 0) < at) {
+      activityAtRef.value[id] = at;
+    }
+  }
+
   function incrementUnread(id: string) {
     unreadCountsRef.value[id] = (unreadCountsRef.value[id] || 0) + 1;
     persistUnreadCounts(unreadCountsRef.value);
+    noteActivity(id);
   }
 
   function incrementMention(id: string) {
@@ -406,6 +427,7 @@ export function useChatTabs() {
     tabsRef.value = [];
     unreadCountsRef.value = {};
     mentionCountsRef.value = {};
+    activityAtRef.value = {};
     activeTabIdRef.value = null;
     if (typeof window !== "undefined") {
       try {
@@ -455,6 +477,8 @@ export function useChatTabs() {
     tabs,
     unreadCounts,
     mentionCounts,
+    activityAt,
+    totalUnread,
     activeTabId,
     manualOrder,
     openTab,
@@ -464,6 +488,7 @@ export function useChatTabs() {
     setPinned,
     incrementUnread,
     incrementMention,
+    noteActivity,
     resetUnread,
     setUnread,
     clearUnread,

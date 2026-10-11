@@ -1,8 +1,17 @@
 <script setup lang="ts">
+import { useMediaQuery } from "@vueuse/core";
 import TimeAgo from "~/components/TimeAgo.vue";
-import { useRightSidebar } from "~/composables/useRightSidebar";
+import { localServerTime } from "~/utilities/matchmakingDeadline";
+import {
+  MOBILE_CHAT_HUB_QUERY,
+  useRightSidebar,
+} from "~/composables/useRightSidebar";
 
 const { rightSidebarOpen } = useRightSidebar();
+// The hub dock's Lobby icon carries the search clock wherever the dock is on
+// screen (5Stack). On a desktop that is always, so this pill is phone-only,
+// and even there only while the hub is closed: one clock on screen, never two.
+const isMobile = useMediaQuery(MOBILE_CHAT_HUB_QUERY);
 
 const matchTypeColors: Record<string, string> = {
   Competitive: "249 158 47",
@@ -18,9 +27,9 @@ const matchTypeColorStyle = (type: string): Record<string, string> => ({
 <template>
   <ClientOnly>
     <div
-      v-if="shouldShow"
-      class="pointer-events-none fixed bottom-4 left-2 right-2 z-[55] flex justify-end transition-[right] duration-200 ease-linear md:left-auto md:w-[280px]"
-      :class="rightSidebarOpen ? 'md:right-[30.75rem]' : 'md:right-[4.75rem]'"
+      v-if="shouldShow && isMobile && !rightSidebarOpen"
+      data-mobile-search-pill
+      class="pointer-events-none fixed bottom-4 left-2 right-2 z-[55] flex justify-end"
     >
       <NuxtLink
         to="/play"
@@ -47,7 +56,12 @@ const matchTypeColorStyle = (type: string): Record<string, string> => ({
           class="shrink-0 font-mono text-sm font-bold tabular-nums text-foreground"
         >
           <TimeAgo
-            :date="Math.min(Date.now(), new Date(details.joinedAt).getTime())"
+            :date="
+              Math.min(
+                Date.now(),
+                localServerTime(details.joinedAt, details) ?? Date.now(),
+              )
+            "
             :seconds="true"
             :hide-icon="true"
           />

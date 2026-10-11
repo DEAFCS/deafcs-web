@@ -16,6 +16,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("~/composables/useHubState", () => ({
   setActiveHub: (hub: string) => mocks.hubCalls.push(hub),
+  currentHub: () => "chat",
 }));
 vi.mock("~/stores/MatchLobbyStore", () => ({
   useMatchLobbyStore: () => mocks.matchLobbyStore,

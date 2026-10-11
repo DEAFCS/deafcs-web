@@ -16,6 +16,7 @@ import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { webrtc } from "~/web-sockets/Webrtc";
 import { setActiveHub } from "~/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
+import { useRightSidebar } from "~/composables/useRightSidebar";
 import {
   CAPTAIN_PICK_MODE_KEY,
   type MatchmakingQueueVariant,
@@ -452,23 +453,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
         });
       }
 
-      // Land on the chat sidebar's matchmaking lobby tab, not the
-      // standalone Lobby hub panel -- same fix as joinLobby() below.
-      // This call was missed when that fix went in, which is why
-      // creating a lobby still popped the (button-hidden but not
-      // actually removed) Lobby panel open.
-      const { openTab } = useChatTabs();
-      openTab({
-        id: `matchmaking:${newLobbyId}`,
-        // Hardcoded (not useI18n()'s t()) deliberately -- see joinLobby()
-        // below for why calling that composable here crashes SSR.
-        label: "Lobby",
-        instance: "matchmaking",
-        type: "matchmaking",
-        lobbyId: newLobbyId,
-        pinned: true,
-      });
-      setActiveHub("chat");
+      openLobbyHub(newLobbyId as string);
       return newLobbyId;
     } finally {
       creatingLobby.value = false;
@@ -526,32 +511,38 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
         ],
       }),
     });
-    // Land on the chat sidebar's matchmaking lobby tab, not the
-    // standalone Lobby hub panel. Open (or focus, if it's already open
-    // for some reason) the tab explicitly here rather than trusting
-    // useChatTabSetup's reactive watch on me.current_lobby_id to do it
-    // -- that watch's ensureDefaultTabs() deliberately restores
-    // whatever tab was active before it ran ("adding defaults doesn't
-    // steal focus"), so relying on it left the *previous* tab (e.g. a
-    // pinned tournament chat) active instead of the lobby just joined.
-    const { openTab } = useChatTabs();
-    openTab({
-      id: `matchmaking:${lobby_id}`,
-      // Hardcoded (not useI18n()'s t()) deliberately -- calling that
-      // composable from inside a Pinia store action crashed SSR outright
-      // (every page returned 500, not just this flow) since it can run
-      // outside any component's setup context. Matches the English
-      // value of chat_tab_labels.lobby_default; ensureDefaultTabs' own
-      // reactive watch (useChatTabSetup.ts) still uses the real
-      // translated t() call whenever it creates this tab instead of us.
-      label: "Lobby",
-      instance: "matchmaking",
-      type: "matchmaking",
-      lobbyId: lobby_id,
-      pinned: true,
-    });
-    setActiveHub("chat");
+    openLobbyHub(lobby_id);
   };
+
+  // Creating or joining a lobby lands on the hub's Lobby panel -- its seats,
+  // queue line and chat (5Stack's createLobby does setActiveHub("lobby")).
+  // The lobby's Chat tab is still opened here rather than left to
+  // useChatTabSetup's watch on me.current_lobby_id, so it is there at once,
+  // but in the background: the Lobby panel is what the player is looking at.
+  function openLobbyHub(lobbyId: string) {
+    const { openTab } = useChatTabs();
+    openTab(
+      {
+        id: `matchmaking:${lobbyId}`,
+        // Hardcoded (not useI18n()'s t()) deliberately -- calling that
+        // composable from inside a Pinia store action crashed SSR outright
+        // (every page returned 500, not just this flow) since it can run
+        // outside any component's setup context. Matches the English
+        // value of chat_tab_labels.lobby_default; ensureDefaultTabs' own
+        // reactive watch (useChatTabSetup.ts) still uses the real
+        // translated t() call whenever it creates this tab instead of us.
+        label: "Lobby",
+        instance: "matchmaking",
+        type: "matchmaking",
+        lobbyId,
+        pinned: true,
+      },
+      { setActive: false },
+    );
+    setActiveHub("lobby");
+    const { rightSidebarOpen, setRightSidebarOpen } = useRightSidebar();
+    if (!rightSidebarOpen.value) setRightSidebarOpen(true);
+  }
 
   const storedRegions = ref<string[]>(
     safeParseLocalStorage<string[]>(PREFERRED_REGIONS_KEY) ?? [],

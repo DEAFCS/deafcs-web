@@ -18,6 +18,7 @@ export function useChatTabSetup() {
     setPinned,
     unreadCounts,
     clearUnread,
+    noteActivity,
   } = useChatTabs();
 
   const matchLobbyStore = useMatchLobbyStore();
@@ -67,14 +68,26 @@ export function useChatTabSetup() {
         continue;
       }
 
-      persistentLobbies.set(
-        tab.id,
-        socket.joinLobby(
-          `chat-tab-setup:${tab.id}`,
-          tab.type as ChatType,
-          tab.lobbyId,
-        ),
+      const lobby = socket.joinLobby(
+        `chat-tab-setup:${tab.id}`,
+        tab.type as ChatType,
+        tab.lobbyId,
       );
+      // The room's history marks when it was last active, so a conversation
+      // that was busy before a reload keeps its place on the hub dock
+      // (5Stack's useChatTabSetup does the same).
+      lobby.on("lobby:messages", (messages: Array<{ timestamp?: string }>) => {
+        const newest = Math.max(
+          0,
+          ...(messages ?? []).map((message) =>
+            Date.parse(message?.timestamp ?? ""),
+          ).filter(Number.isFinite),
+        );
+        if (newest > 0) {
+          noteActivity(tab.id, newest);
+        }
+      });
+      persistentLobbies.set(tab.id, lobby);
     }
 
     for (const [tabId, lobby] of persistentLobbies.entries()) {
