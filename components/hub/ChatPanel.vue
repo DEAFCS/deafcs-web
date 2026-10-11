@@ -1,6 +1,22 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { ref, computed, watch, onUnmounted } from "vue";
 import { useI18n } from "vue-i18n";
+import { hapticTap } from "~/utilities/haptics";
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from "~/components/ui/context-menu";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "~/components/ui/dropdown-menu";
+import NewConversation from "~/components/hub/NewConversation.vue";
+import NewChatRailButton from "~/components/hub/NewChatRailButton.vue";
+import { useDockShortcutPrefs } from "~/composables/useDockShortcutPrefs";
 import { useMediaQuery } from "@vueuse/core";
 import {
   Megaphone,
@@ -14,6 +30,7 @@ import {
   X,
   Video,
   BellRing,
+  MoreHorizontal,
 } from "lucide-vue-next";
 import { useRouter } from "#app";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
@@ -28,7 +45,11 @@ import {
   TOURNAMENT_WEBCAM_MAX,
   tournamentWebcamPopoutPath,
 } from "~/composables/useWebcamRoomApi";
-import { chatHubViewId, useChatTabs, type ChatTab } from "~/composables/useChatTabs";
+import {
+  chatHubViewId,
+  useChatTabs,
+  type ChatTab,
+} from "~/composables/useChatTabs";
 import { markDirectMessagesRead } from "~/composables/useIncomingDirectMessages";
 import TooltipProvider from "~/components/ui/tooltip/TooltipProvider.vue";
 import TooltipTrigger from "~/components/ui/tooltip/TooltipTrigger.vue";
@@ -58,7 +79,7 @@ const {
   closeTab,
   activeTabId,
   manualOrder,
-  reorderTab,
+  setTabOrder,
 } = useChatTabs();
 
 // Amber = calm unread; red = private messages, announcements and @-mentions.
@@ -84,22 +105,35 @@ function isTeamRoom(tab: ChatTab) {
   return tab.type === "match_team" || tab.type === "captain_pick_team";
 }
 function canShowRoom(tab: ChatTab) {
-  return (tab.type !== "match" && !isTeamRoom(tab)) || !!useAuthStore().me?.steam_id;
+  return (
+    (tab.type !== "match" && !isTeamRoom(tab)) || !!useAuthStore().me?.steam_id
+  );
 }
 function isDisplayedTeamRoom(tab: ChatTab) {
   const parent = viewId(tab);
   if (parent === tab.id) return false;
   // During Captain Pick's handover the draft and finalized lineup rooms
   // can briefly coexist. Show the draft's own room until its context ends.
-  const teamRooms = tabs.value.filter((room) =>
-    !room.unopened && isTeamRoom(room) && viewId(room) === parent,
+  const teamRooms = tabs.value.filter(
+    (room) => !room.unopened && isTeamRoom(room) && viewId(room) === parent,
   );
-  return (teamRooms.find((room) => room.type === "captain_pick_team") ?? teamRooms[0])?.id === tab.id;
+  return (
+    (
+      teamRooms.find((room) => room.type === "captain_pick_team") ??
+      teamRooms[0]
+    )?.id === tab.id
+  );
 }
-const mountedTabs = computed(() => tabs.value
-  .filter((tab) => !tab.unopened && canShowRoom(tab) &&
-    (!isTeamRoom(tab) || isDisplayedTeamRoom(tab)))
-  .sort((a, b) => Number(isTeamRoom(a)) - Number(isTeamRoom(b))));
+const mountedTabs = computed(() =>
+  tabs.value
+    .filter(
+      (tab) =>
+        !tab.unopened &&
+        canShowRoom(tab) &&
+        (!isTeamRoom(tab) || isDisplayedTeamRoom(tab)),
+    )
+    .sort((a, b) => Number(isTeamRoom(a)) - Number(isTeamRoom(b))),
+);
 
 const isAdmin = computed(() =>
   useAuthStore().isRoleAbove(e_player_roles_enum.administrator),
@@ -132,6 +166,7 @@ const activeChatId = ref<string | null>(null);
 // without this it silently kept showing whatever was already open
 // (reported as "clicking Message lands on Global Chat instead").
 watch(activeTabId, (id) => {
+  if (id) composing.value = false;
   const requested = tabs.value.find((tab) => tab.id === id);
   const view = requested ? viewId(requested) : null;
   if (view && view !== activeChatId.value) {
@@ -154,12 +189,14 @@ const orderedTabs = computed<ChatTab[]>(() => {
     if (tab.type === "tournament") return 3;
     return 4;
   };
-  const base = tabs.value.filter((tab) => canShowRoom(tab) && !isTeamRoom(tab)).sort((a, b) => {
-    const wa = weight(a);
-    const wb = weight(b);
-    if (wa !== wb) return wa - wb;
-    return a.label.localeCompare(b.label);
-  });
+  const base = tabs.value
+    .filter((tab) => canShowRoom(tab) && !isTeamRoom(tab))
+    .sort((a, b) => {
+      const wa = weight(a);
+      const wb = weight(b);
+      if (wa !== wb) return wa - wb;
+      return a.label.localeCompare(b.label);
+    });
 
   if (!manualOrder.value.length) return base;
 
@@ -174,158 +211,323 @@ const orderedTabs = computed<ChatTab[]>(() => {
   });
 });
 
-// Custom pointer-based drag instead of native HTML5 draggable="true" --
-// the native version shows the browser/OS's own drag cursor and a
-// translucent ghost snapshot (reported as looking "weird" / showing a
-// Windows drag icon), which can't be styled away since the OS renders
-// it, not the page. This never calls the native drag APIs at all, so
-// there's nothing for the OS to draw -- the only thing that moves is
-// the button itself, following the pointer directly.
-const draggedTabId = ref<string | null>(null);
-const draggedTab = computed<ChatTab | null>(
-  () => orderedTabs.value.find((t) => t.id === draggedTabId.value) ?? null,
-);
-// Viewport-space box for the dragged button while held -- position:
-// fixed, driven directly by the pointer position, completely decoupled
-// from the rail's own flex layout. A relative CSS transform (the
-// earlier version) is measured against the button's *own current flow
-// position*, which itself moves every time a live reorder shifts the
-// button to a new slot mid-drag -- causing the reported "suddenly
-// jumps far away, doesn't smoothly follow the cursor" the moment a
-// reorder fired. Fixed positioning has no such reference to lose.
-const dragBox = ref<{ left: number; top: number; width: number; height: number } | null>(
-  null,
-);
+// Dragging a conversation around the rail.
+//
+// Pointer events rather than HTML5 drag-and-drop, and rather than a sortable
+// library. HTML5 drag never fires on touch at all, and its drop target is
+// whatever element happens to be under the cursor -- which left dead zones
+// between the buttons where a drop did nothing and, worse, a drag that came
+// back onto the rail through one of those gaps still counted as "dropped
+// outside" and removed the conversation.
+//
+// Here the rail itself is the drop target and the slot is worked out from the
+// pointer's position, so there is nowhere on it that does not resolve to a
+// slot.
+const draggingRoomId = ref<string | null>(null);
+// Where the dragged conversation would land, as an index into the rail's
+// conversations. Null while the pointer is off the rail.
+const dropIndex = ref<number | null>(null);
+const dropOutside = ref(false);
+// iOS's editing mode: long-press, everything wiggles, and each conversation
+// grows a badge to remove it. Touch only -- a mouse has a right button.
+const wiggling = ref(false);
 
-// FLIP (First-Last-Invert-Play): capture where every rail button
-// currently sits, reorder the data, then on the next tick offset each
-// moved button back to its old spot with transitions off and
-// transition it to zero -- the icons visibly slide out of the way of
-// the dragged one, instead of the whole rail just snapping to its new
-// order.
-function animateReorder(mutate: () => void) {
-  const before = new Map<string, number>();
-  for (const [id, el] of Object.entries(chatButtonRefs.value)) {
-    if (el && id !== draggedTabId.value) before.set(id, el.getBoundingClientRect().top);
-  }
+const LONG_PRESS_MS = 450;
+// Enough that a tap or a scroll is never mistaken for the start of a drag.
+const DRAG_SLOP_PX = 8;
+// How far past the rail counts as taking the conversation off it. The rail is
+// 64px wide around a 44px button, so the bare edge leaves about ten pixels of
+// slack -- far too little between "reordering" and "removing".
+const REMOVE_MARGIN_PX = 32;
 
-  mutate();
+let pressTimer: ReturnType<typeof setTimeout> | null = null;
+let pressOrigin: { x: number; y: number } | null = null;
+let pressRoomId: string | null = null;
+let pressIsTouch = false;
+// Set once a drag actually starts, so the click that follows the release does
+// not also select the room.
+let suppressClick = false;
 
-  nextTick(() => {
-    for (const [id, el] of Object.entries(chatButtonRefs.value)) {
-      if (!el || id === draggedTabId.value) continue;
-      const prevTop = before.get(id);
-      if (prevTop === undefined) continue;
-      const delta = prevTop - el.getBoundingClientRect().top;
-      if (!delta) continue;
-
-      el.style.transition = "none";
-      el.style.transform = `translateY(${delta}px)`;
-      // Force a reflow so the browser registers the starting transform
-      // before we clear it -- otherwise it'd just skip straight to the
-      // end state with no animation at all.
-      void el.offsetHeight;
-      el.style.transition = "transform 220ms cubic-bezier(0.2, 0, 0, 1)";
-      el.style.transform = "";
-    }
-  });
+function directTabsInOrder(): ChatTab[] {
+  return orderedTabs.value;
 }
 
-let lastDragOverTarget: string | null = null;
+// Drawn absolutely rather than as an element between the buttons: an inline
+// indicator adds its own height to the rail, which moves every button below it
+// and so moves the midpoints this is measured against -- the slot flickers
+// between two values as the pointer sits still.
+const dropIndicatorY = ref(0);
 
-function onTabPointerDown(event: PointerEvent, tab: ChatTab) {
-  if (event.button !== 0) return;
+// Which slot the pointer is over, by comparing against each conversation's
+// midpoint. Returns null when the pointer is off the rail entirely, which is
+// what removal is judged on.
+function slotAt(clientX: number, clientY: number): number | null {
+  const rail = chatRailRef.value;
 
-  const id = tab.id;
-  const startX = event.clientX;
-  const startY = event.clientY;
-  let dragging = false;
-  let grabDx = 0;
-  let grabDy = 0;
+  if (!rail) {
+    return null;
+  }
 
-  function onMove(e: PointerEvent) {
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
+  const bounds = rail.getBoundingClientRect();
 
-    if (!dragging) {
-      // Small threshold so this doesn't hijack a plain click.
-      if (Math.hypot(dx, dy) < 4) return;
-      dragging = true;
-      draggedTabId.value = id;
+  if (
+    clientX < bounds.left - REMOVE_MARGIN_PX ||
+    clientX > bounds.right + REMOVE_MARGIN_PX ||
+    clientY < bounds.top - REMOVE_MARGIN_PX ||
+    clientY > bounds.bottom + REMOVE_MARGIN_PX
+  ) {
+    return null;
+  }
 
-      const el = chatButtonRefs.value[id];
-      const rect = el?.getBoundingClientRect();
-      if (rect) {
-        // Where inside the button the pointer actually grabbed it, so
-        // the icon doesn't snap to have its corner under the cursor.
-        grabDx = startX - rect.left;
-        grabDy = startY - rect.top;
-        dragBox.value = {
-          left: rect.left,
-          top: rect.top,
-          width: rect.width,
-          height: rect.height,
-        };
-      }
+  const tabs = directTabsInOrder();
+  // Absolutely positioned children of a scrolling container are placed against
+  // the content box, so a viewport delta has to have the scroll added back.
+  const toContentY = (viewportY: number) =>
+    viewportY - bounds.top + rail.scrollTop;
+
+  let lastBottom = 0;
+
+  for (const [index, tab] of tabs.entries()) {
+    const button = chatButtonRefs.value[tab.id];
+
+    if (!button) {
+      continue;
     }
 
-    if (dragBox.value) {
-      dragBox.value = {
-        ...dragBox.value,
-        left: e.clientX - grabDx,
-        top: e.clientY - grabDy,
-      };
-    }
+    const rect = button.getBoundingClientRect();
+    lastBottom = rect.bottom;
 
-    const el = document.elementFromPoint(e.clientX, e.clientY);
-    const targetEl = (el as HTMLElement)?.closest<HTMLElement>(
-      "[data-chat-tab-id]",
-    );
-    const targetId = targetEl?.dataset.chatTabId;
-    // Any room can now be a drop target, not just the pinned/standing
-    // channels -- the old `targetTab?.pinned` gate meant hovering over a
-    // DM tab (always unpinned) anywhere in the rail, including one that
-    // happened to land in the middle of the list, silently refused the
-    // drop. Reordering itself (reorderTab) was always generic over ids;
-    // only this check was blocking it.
-    if (targetId && targetId !== id && targetId !== lastDragOverTarget) {
-      lastDragOverTarget = targetId;
-      animateReorder(() => reorderTab(id, targetId as string));
+    if (clientY < rect.top + rect.height / 2) {
+      dropIndicatorY.value = toContentY(rect.top) - 3;
+      return index;
     }
   }
 
-  function onUp() {
-    window.removeEventListener("pointermove", onMove);
-    window.removeEventListener("pointerup", onUp);
-    draggedTabId.value = null;
-    dragBox.value = null;
-    lastDragOverTarget = null;
-    // A real drag still fires a trailing click on pointerup in most
-    // browsers -- swallow just that one so it doesn't also select the
-    // room you dragged over on the way past.
-    if (dragging) suppressNextClick = true;
-  }
+  // Below the last conversation. The channels above resolve through the loop
+  // instead -- the first conversation's midpoint is beneath them, so a pointer
+  // up there lands in the top slot rather than nowhere.
+  dropIndicatorY.value = lastBottom ? toContentY(lastBottom) + 1 : 0;
 
-  window.addEventListener("pointermove", onMove);
-  window.addEventListener("pointerup", onUp);
+  return tabs.length;
 }
 
-let suppressNextClick = false;
-function onTabClick(tab: ChatTab) {
-  if (suppressNextClick) {
-    suppressNextClick = false;
+function beginDrag(roomId: string) {
+  draggingRoomId.value = roomId;
+  suppressClick = true;
+}
+
+function handlePointerDown(tab: ChatTab, event: PointerEvent) {
+  if (event.button !== 0) {
     return;
   }
+
+  pressRoomId = tab.id;
+  pressOrigin = { x: event.clientX, y: event.clientY };
+  pressIsTouch = event.pointerType !== "mouse";
+
+  (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+
+  // Already in editing mode, so the press has been paid for once and every
+  // conversation is grabbable straight away -- the same as a mouse.
+  if (!pressIsTouch || wiggling.value) {
+    return;
+  }
+
+  // Touch waits for the press. Grabbing on the first move instead would mean
+  // the rail could never be scrolled.
+  pressTimer = setTimeout(() => {
+    pressTimer = null;
+
+    // The press may have been released or cancelled while this was pending.
+    if (!pressRoomId || draggingRoomId.value) {
+      return;
+    }
+
+    wiggling.value = true;
+    // The press is what enters editing mode, and nothing on screen has moved
+    // yet -- the tap back is the only thing telling the player it worked.
+    hapticTap();
+    beginDrag(pressRoomId);
+  }, LONG_PRESS_MS);
+}
+
+function handlePointerMove(event: PointerEvent) {
+  if (!pressRoomId) {
+    return;
+  }
+
+  const moved =
+    pressOrigin &&
+    Math.hypot(event.clientX - pressOrigin.x, event.clientY - pressOrigin.y) >
+      DRAG_SLOP_PX;
+
+  if (!draggingRoomId.value) {
+    if (!moved) {
+      return;
+    }
+
+    // Moving before the press completed is a scroll, not a drag.
+    if (pressIsTouch && !wiggling.value) {
+      return cancelPress();
+    }
+
+    beginDrag(pressRoomId);
+  }
+
+  // Held once dragging: otherwise the rail scrolls out from under the drag on
+  // touch, and the browser paints a text selection on desktop.
+  event.preventDefault();
+
+  dropIndex.value = slotAt(event.clientX, event.clientY);
+  dropOutside.value = dropIndex.value === null;
+}
+
+function handlePointerUp() {
+  const dragged = draggingRoomId.value;
+
+  if (!dragged) {
+    return cancelPress();
+  }
+
+  if (dropOutside.value) {
+    removeConversation(dragged);
+  } else if (dropIndex.value !== null) {
+    moveConversation(dragged, dropIndex.value);
+  }
+
+  cancelPress();
+}
+
+function cancelPress() {
+  if (pressTimer) {
+    clearTimeout(pressTimer);
+    pressTimer = null;
+  }
+
+  pressRoomId = null;
+  pressOrigin = null;
+  draggingRoomId.value = null;
+  dropIndex.value = null;
+  dropOutside.value = false;
+
+  // Deferred, or the click that follows a release selects whichever room the
+  // pointer ended up over. Cleared here rather than on release alone: a drag
+  // the browser takes over ends in pointercancel, and a flag left standing
+  // swallows every later click on the rail.
+  setTimeout(() => {
+    suppressClick = false;
+  }, 0);
+}
+
+function moveConversation(roomId: string, index: number) {
+  const order = orderedTabs.value.map((tab) => tab.id);
+  const from = order.indexOf(roomId);
+
+  if (from === -1) {
+    return;
+  }
+
+  const [moved] = order.splice(from, 1);
+  // Removing the dragged entry shifts everything after it up by one, so a slot
+  // below where it started means one less than the raw index.
+  order.splice(index > from ? index - 1 : index, 0, moved);
+
+  setTabOrder(order);
+}
+
+// Leaving editing mode. A tap anywhere that is not a remove badge ends it, the
+// way iOS does.
+function stopWiggling() {
+  wiggling.value = false;
+}
+
+// Anywhere off the rail counts, not just the rail itself -- the message list,
+// the header, the page behind the panel. Without this the only way out was to
+// tap a conversation, which is the one gesture someone in editing mode is
+// trying not to make.
+function handleDocumentPointerDown(event: PointerEvent) {
+  const rail = chatRailRef.value;
+  const target = event.target as Node | null;
+
+  // The rail's own buttons and remove badges handle themselves.
+  if (rail && target && rail.contains(target)) {
+    return;
+  }
+
+  stopWiggling();
+}
+
+// Capture phase, so a tap that opens a menu or navigates still drops editing
+// mode on the way past. The tap is deliberately not swallowed: eating it would
+// cost a deliberate action to undo a mode the user already meant to leave.
+watch(wiggling, (editing) => {
+  if (!import.meta.client) {
+    return;
+  }
+
+  if (editing) {
+    document.addEventListener("pointerdown", handleDocumentPointerDown, true);
+    return;
+  }
+
+  document.removeEventListener("pointerdown", handleDocumentPointerDown, true);
+});
+
+onUnmounted(() => {
+  document.removeEventListener("pointerdown", handleDocumentPointerDown, true);
+});
+
+watch(
+  () => props.isTabActive && props.isSidebarOpen,
+  (open) => {
+    if (!open) {
+      stopWiggling();
+    }
+  },
+);
+
+function removeConversation(tabId: string) {
+  const tab = tabs.value.find((tab) => tab.id === tabId);
+  if (!tab || tab.pinned) return;
+  closeTab(tabId);
+  activeChatId.value = activeTabId.value;
+}
+function onTabClick(tab: ChatTab) {
+  if (suppressClick) return;
+  if (wiggling.value) return stopWiggling();
+  composing.value = false;
   handleSelectRoom(tab);
+}
+const composing = ref(false);
+const firstDirectTabId = computed(
+  () => orderedTabs.value.find((tab) => tab.type === "direct")?.id,
+);
+// DEAFCS's existing unread paths use activeTabId to decide whether a room is
+// being read. The compose screen keeps listeners mounted, but reads no room.
+watch(composing, (open) => setActiveTab(open ? null : activeChatId.value));
+const { isPinned: isShortcutPinned, togglePin: toggleShortcutPin } =
+  useDockShortcutPrefs();
+function onDock(tab: ChatTab) {
+  return ![
+    "match",
+    "match_team",
+    "captain_pick_team",
+    "draft",
+    "matchmaking",
+  ].includes(tab.type);
 }
 
 const activeTab = computed<ChatTab | null>(() => {
   if (!activeChatId.value) return null;
   return orderedTabs.value.find((t) => t.id === activeChatId.value) || null;
 });
-const activeMatch = computed(() => activeTab.value?.type === "match"
-  ? matchLobbyStore.myMatches?.find((match) => String(match.id) === activeTab.value?.lobbyId) ?? null
-  : null);
+const activeMatch = computed(() =>
+  activeTab.value?.type === "match"
+    ? (matchLobbyStore.myMatches?.find(
+        (match) => String(match.id) === activeTab.value?.lobbyId,
+      ) ?? null)
+    : null,
+);
 
 const activeParticipantsCount = computed(() => {
   const tab = activeTab.value;
@@ -489,7 +691,10 @@ function handleMessageReceived(payload: {
     props.isSidebarOpen &&
     currentHub() === "lobby";
   const isVisible =
-    (props.isSidebarOpen && props.isTabActive && isCurrentRoom) ||
+    (!composing.value &&
+      props.isSidebarOpen &&
+      props.isTabActive &&
+      isCurrentRoom) ||
     isOnLobbyPanel;
   if (!isVisible) {
     // Direct messages are fully owned by useIncomingDirectMessages.ts
@@ -519,7 +724,9 @@ function handleMessageReceived(payload: {
         payload.message?.mentions ?? [];
       if (
         mySteamId &&
-        mentions.some((mention) => String(mention.steam_id) === String(mySteamId))
+        mentions.some(
+          (mention) => String(mention.steam_id) === String(mySteamId),
+        )
       ) {
         incrementMention(tabId);
       }
@@ -718,154 +925,187 @@ function openTournamentWebcamWindow() {
 
         <TooltipProvider>
           <template v-for="tab in orderedTabs" :key="tab.id">
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <button
-                  :ref="setChatButtonRef(tab.id)"
-                  :data-chat-tab-id="tab.id"
-                  class="relative flex items-center justify-center w-11 h-11 rounded-md transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary touch-none select-none"
-                  :class="[
-                    activeChatId === tab.id
-                      ? 'text-zinc-100'
-                      : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100',
-                    draggedTabId === tab.id
-                      ? 'pointer-events-none border-2 border-dashed border-zinc-600 bg-zinc-800/30'
-                      : 'z-[1]',
-                  ]"
-                  type="button"
-                  @click="onTabClick(tab)"
-                  @pointerdown="onTabPointerDown($event, tab)"
-                >
-                  <!-- The icon/avatar itself is hidden while this slot is
-                       the drag placeholder -- the floating clone below
-                       (driven by dragBox) is what actually renders it,
-                       following the pointer. This slot stays in flex flow
-                       the whole time (unlike the old position:fixed swap,
-                       which yanked the button out of flow so its space
-                       silently closed up with nothing marking where it
-                       had been) so there's always a visible empty square
-                       showing exactly where the dragged room will land,
-                       iOS-springboard style. -->
-                  <template v-if="draggedTabId !== tab.id">
-                    <div
-                      v-if="tab.type === 'direct'"
-                      class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset bg-zinc-900/80"
-                      :class="
-                        activeChatId === tab.id
-                          ? 'ring-zinc-500'
-                          : 'ring-zinc-700 group-hover:ring-zinc-600'
-                      "
+            <div
+              v-if="tab.id === firstDirectTabId"
+              class="flex w-full shrink-0 flex-col items-center"
+            >
+              <div class="my-1 h-px w-8 bg-border" />
+              <NewChatRailButton
+                :active="composing"
+                @click="composing = !composing"
+              />
+            </div>
+            <div class="relative">
+              <ContextMenu>
+                <ContextMenuTrigger as-child>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        :ref="setChatButtonRef(tab.id)"
+                        :data-chat-tab-id="tab.id"
+                        class="relative flex items-center justify-center w-11 h-11 rounded-md transition-colors duration-200 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary select-none"
+                        :class="[
+                          wiggling ? 'touch-none chat-wiggle' : 'touch-pan-y',
+                          activeChatId === tab.id
+                            ? 'text-zinc-100'
+                            : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-100',
+                          draggingRoomId === tab.id
+                            ? 'opacity-40 scale-95'
+                            : 'z-[1]',
+                        ]"
+                        type="button"
+                        @click="onTabClick(tab)"
+                        @pointerdown="handlePointerDown(tab, $event)"
+                        @pointermove="handlePointerMove"
+                        @pointerup="handlePointerUp"
+                        @pointercancel="cancelPress"
+                      >
+                        <template v-if="draggingRoomId !== tab.id">
+                          <div
+                            v-if="tab.type === 'direct'"
+                            class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset bg-zinc-900/80"
+                            :class="
+                              activeChatId === tab.id
+                                ? 'ring-zinc-500'
+                                : 'ring-zinc-700 group-hover:ring-zinc-600'
+                            "
+                          >
+                            <LiveAvatarImg
+                              :steam-id="tab.otherSteamId"
+                              :fallback-url="tab.avatarUrl"
+                              img-class="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div
+                            v-else
+                            class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-inherit transition-colors"
+                            :class="
+                              activeChatId === tab.id
+                                ? 'bg-zinc-700'
+                                : 'bg-zinc-900/80 group-hover:bg-zinc-700/70'
+                            "
+                          >
+                            <component
+                              :is="getRoomIcon(tab)"
+                              class="w-3.5 h-3.5"
+                            />
+                          </div>
+                        </template>
+                        <span
+                          v-if="draggingRoomId !== tab.id && tabBadge(tab).calm"
+                          class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] text-black text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
+                        >
+                          {{ formatBadgeCount(tabBadge(tab).calm) }}
+                        </span>
+                        <span
+                          v-if="
+                            draggingRoomId !== tab.id &&
+                            isUrgentChatType(tab.type) &&
+                            tabBadge(tab).urgent
+                          "
+                          class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
+                          :title="
+                            $t(
+                              'chat.urgent_badge',
+                              'Private messages, announcements and mentions',
+                            )
+                          "
+                        >
+                          {{ formatBadgeCount(tabBadge(tab).urgent) }}
+                        </span>
+                        <span
+                          v-if="
+                            draggingRoomId !== tab.id &&
+                            !isUrgentChatType(tab.type) &&
+                            mentionCounts[tab.id]
+                          "
+                          class="absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
+                          :title="
+                            $t('chat.mentions_badge', 'You were mentioned')
+                          "
+                        >
+                          @{{ formatBadgeCount(mentionCounts[tab.id]) }}
+                        </span>
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent
+                      side="left"
+                      class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-2"
                     >
-                      <LiveAvatarImg
-                        :steam-id="tab.otherSteamId"
-                        :fallback-url="tab.avatarUrl"
-                        img-class="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div
-                      v-else
-                      class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-inherit transition-colors"
-                      :class="
-                        activeChatId === tab.id
-                          ? 'bg-zinc-700'
-                          : 'bg-zinc-900/80 group-hover:bg-zinc-700/70'
-                      "
-                    >
-                      <component :is="getRoomIcon(tab)" class="w-3.5 h-3.5" />
-                    </div>
-                  </template>
-                  <span
-                    v-if="draggedTabId !== tab.id && tabBadge(tab).calm"
-                    class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-[hsl(var(--tac-amber))] text-black text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
+                      <div class="flex flex-col">
+                        <span class="text-xs font-medium">
+                          {{ tab.label }}
+                        </span>
+                        <span
+                          v-if="getRoomSubtitle(tab)"
+                          class="text-[10px] text-zinc-200/80"
+                        >
+                          {{ getRoomSubtitle(tab) }}
+                        </span>
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                </ContextMenuTrigger>
+                <ContextMenuContent data-right-hub-interactive>
+                  <ContextMenuItem
+                    v-if="onDock(tab)"
+                    @select="toggleShortcutPin(tab.id)"
+                    >{{
+                      isShortcutPinned(tab.id)
+                        ? $t("layouts.hub.dock.unpin_shortcut")
+                        : $t("layouts.hub.dock.pin_shortcut")
+                    }}</ContextMenuItem
                   >
-                    {{ formatBadgeCount(tabBadge(tab).calm) }}
-                  </span>
-                  <span
-                    v-if="draggedTabId !== tab.id && isUrgentChatType(tab.type) && tabBadge(tab).urgent"
-                    class="absolute -top-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
-                    :title="$t('chat.urgent_badge', 'Private messages, announcements and mentions')"
-                  >
-                    {{ formatBadgeCount(tabBadge(tab).urgent) }}
-                  </span>
-                  <span
-                    v-if="draggedTabId !== tab.id && !isUrgentChatType(tab.type) && mentionCounts[tab.id]"
-                    class="absolute -bottom-1 -right-1 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-[9px] px-1 min-w-[1.05rem] h-4 leading-none"
-                    :title="$t('chat.mentions_badge', 'You were mentioned')"
-                  >
-                    @{{ formatBadgeCount(mentionCounts[tab.id]) }}
-                  </span>
-                  <button
+                  <ContextMenuItem
                     v-if="!tab.pinned"
-                    type="button"
-                    class="absolute -top-1 -left-1 hidden group-hover:flex items-center justify-center w-4 h-4 rounded-full bg-zinc-700 hover:bg-red-500 text-zinc-200 hover:text-white"
-                    :aria-label="$t('common.close')"
-                    @click="handleCloseTab($event, tab.id)"
+                    @select="removeConversation(tab.id)"
+                    >{{ $t("common.close") }}</ContextMenuItem
                   >
-                    <X class="w-2.5 h-2.5" />
-                  </button>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent
-                side="left"
-                class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-2"
+                </ContextMenuContent>
+              </ContextMenu>
+              <button
+                v-if="wiggling && !tab.pinned"
+                type="button"
+                :aria-label="$t('common.close')"
+                class="absolute -top-1 -left-1 z-[2] inline-flex h-4 w-4 items-center justify-center rounded-full bg-zinc-100 text-zinc-900 shadow"
+                @pointerdown.stop
+                @click.stop="removeConversation(tab.id)"
               >
-                <div class="flex flex-col">
-                  <span class="text-xs font-medium">
-                    {{ tab.label }}
-                  </span>
-                  <span
-                    v-if="getRoomSubtitle(tab)"
-                    class="text-[10px] text-zinc-200/80"
-                  >
-                    {{ getRoomSubtitle(tab) }}
-                  </span>
-                </div>
-              </TooltipContent>
-            </Tooltip>
+                <X class="h-2.5 w-2.5" />
+              </button>
+            </div>
           </template>
         </TooltipProvider>
+        <template v-if="!firstDirectTabId">
+          <div class="my-1 h-px w-8 shrink-0 bg-border" />
+          <NewChatRailButton
+            :active="composing"
+            @click="composing = !composing"
+          />
+        </template>
 
-        <!-- Floating clone of whatever's being dragged -- this is the
-             piece that actually follows the pointer; the in-flow button
-             above just becomes an empty dashed placeholder for the
-             duration of the drag. -->
         <div
-          v-if="draggedTab && dragBox"
-          class="fixed z-20 flex items-center justify-center rounded-md bg-zinc-800 shadow-xl shadow-black/40 scale-110 pointer-events-none text-zinc-100"
-          :style="{
-            left: `${dragBox.left}px`,
-            top: `${dragBox.top}px`,
-            width: `${dragBox.width}px`,
-            height: `${dragBox.height}px`,
-          }"
-        >
-          <div
-            v-if="draggedTab.type === 'direct'"
-            class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset ring-zinc-500 bg-zinc-900/80"
-          >
-            <LiveAvatarImg
-              :steam-id="draggedTab.otherSteamId"
-              :fallback-url="draggedTab.avatarUrl"
-              img-class="w-full h-full object-cover"
-            />
-          </div>
-          <div
-            v-else
-            class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center bg-zinc-700 text-inherit"
-          >
-            <component :is="getRoomIcon(draggedTab)" class="w-3.5 h-3.5" />
-          </div>
-        </div>
+          v-if="draggingRoomId && dropIndex !== null"
+          class="absolute left-3 right-3 h-0.5 bg-primary pointer-events-none"
+          :style="{ top: dropIndicatorY + 'px' }"
+        />
       </div>
 
       <div v-else class="flex-1" />
+      <NewChatRailButton
+        v-if="!orderedTabs.length"
+        :active="composing"
+        @click="composing = !composing"
+      />
     </div>
 
     <!-- Right chat area -->
     <div class="flex-1 min-w-0 flex flex-col">
+      <NewConversation v-if="composing" @close="composing = false" />
       <template v-if="orderedTabs.length">
         <!-- Header with channel title + participants + controls -->
         <div
+          v-show="!composing"
           class="flex items-center justify-between px-3 py-3 border-b border-border bg-card/30"
         >
           <div class="min-w-0 flex items-center gap-3">
@@ -974,6 +1214,37 @@ function openTournamentWebcamWindow() {
                   {{ $t("layouts.chat_panel.pop_out_tooltip") }}
                 </TooltipContent>
               </Tooltip>
+              <DropdownMenu v-if="activeTab">
+                <DropdownMenuTrigger as-child>
+                  <button
+                    type="button"
+                    class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-card/50 text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    :aria-label="$t('layouts.chat_panel.conversation_menu')"
+                  >
+                    <MoreHorizontal class="size-3.5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  class="w-56"
+                  data-right-hub-interactive
+                >
+                  <DropdownMenuItem
+                    v-if="onDock(activeTab)"
+                    @select="toggleShortcutPin(activeTab.id)"
+                    >{{
+                      isShortcutPinned(activeTab.id)
+                        ? $t("layouts.hub.dock.unpin_shortcut")
+                        : $t("layouts.hub.dock.pin_shortcut")
+                    }}</DropdownMenuItem
+                  >
+                  <DropdownMenuItem
+                    v-if="!activeTab.pinned"
+                    @select="removeConversation(activeTab.id)"
+                    >{{ $t("common.close") }}</DropdownMenuItem
+                  >
+                </DropdownMenuContent>
+              </DropdownMenu>
             </TooltipProvider>
           </div>
         </div>
@@ -988,21 +1259,25 @@ function openTournamentWebcamWindow() {
         <LobbyCallPanel
           v-if="matchmakingTab"
           :lobby-id="matchmakingTab.lobbyId"
-          :show-bar="activeTab?.id === matchmakingTab.id"
+          :show-bar="!composing && activeTab?.id === matchmakingTab.id"
           @open-call="openLobbyCallWindow"
           @status="lobbyCallStatus = $event"
         />
 
-
         <div
           v-if="isParticipantsOpen && activeParticipants.length"
+          v-show="!composing"
           class="px-3 py-2 border-b border-zinc-800/60 bg-zinc-950/80"
         >
           <ChatParticipantsList :participants="activeParticipants" />
         </div>
 
-        <ChatMatchHeader v-if="activeMatch" :match="activeMatch" class="mx-3 mt-2" />
-        <div class="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <ChatMatchHeader
+          v-if="activeMatch && !composing"
+          :match="activeMatch"
+          class="mx-3 mt-2"
+        />
+        <div v-show="!composing" class="flex-1 min-h-0 flex flex-col overflow-hidden">
           <!-- ChatLobby's root template is a Teleport-or-div pair plus a
                sibling SanctionPlayer node, so it has no single element
                root -- Vue only special-cases v-show for a component
@@ -1015,16 +1290,24 @@ function openTournamentWebcamWindow() {
           <div
             v-for="tab in mountedTabs"
             :key="tab.id"
-            v-show="viewId(tab) === activeChatId"
+            v-show="!composing && viewId(tab) === activeChatId"
             class="flex-1 basis-0 min-h-0 flex flex-col overflow-hidden"
-            :class="isTeamRoom(tab) && viewId(tab) !== tab.id ? 'border-t border-border' : ''"
+            :class="
+              isTeamRoom(tab) && viewId(tab) !== tab.id
+                ? 'border-t border-border'
+                : ''
+            "
             :data-chat-room-id="tab.id"
           >
             <h3
               v-if="tab.type === 'match' || isTeamRoom(tab)"
               class="shrink-0 px-3 pt-2 text-xs font-semibold text-muted-foreground"
             >
-              {{ tab.type === 'match' ? $t('chat.match_chat') : $t('chat.team_chat') }}
+              {{
+                tab.type === "match"
+                  ? $t("chat.match_chat")
+                  : $t("chat.team_chat")
+              }}
             </h3>
             <ChatLobby
               :instance="tab.instance"
@@ -1038,7 +1321,10 @@ function openTournamentWebcamWindow() {
               :hide-match-header="true"
               :disable-auto-focus-on-activate="isMobile || isTeamRoom(tab)"
               :is-active-tab="
-                viewId(tab) === activeChatId && isSidebarOpen && isTabActive
+                !composing &&
+                viewId(tab) === activeChatId &&
+                isSidebarOpen &&
+                isTabActive
               "
               :can-send="canSendToTab(tab)"
               :readonly-hint="readonlyHintFor(tab)"
@@ -1050,7 +1336,7 @@ function openTournamentWebcamWindow() {
           </div>
         </div>
       </template>
-      <div v-else class="flex-1 flex flex-col">
+      <div v-else-if="!composing" class="flex-1 flex flex-col">
         <Empty>
           <div class="space-y-1">
             <p class="text-sm font-medium text-foreground">
@@ -1065,3 +1351,28 @@ function openTournamentWebcamWindow() {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 5Stack's touch editing animation, with the same reduced-motion opt-out. */
+.chat-wiggle {
+  animation: chat-wiggle 0.24s ease-in-out infinite;
+  transform-origin: 50% 50%;
+}
+.chat-wiggle:nth-child(even) {
+  animation-delay: -0.12s;
+}
+@keyframes chat-wiggle {
+  0%,
+  100% {
+    transform: rotate(-1.4deg);
+  }
+  50% {
+    transform: rotate(1.4deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .chat-wiggle {
+    animation: none;
+  }
+}
+</style>

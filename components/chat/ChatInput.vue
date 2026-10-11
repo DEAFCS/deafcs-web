@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { Film, RotateCw, SendHorizontal, X } from "lucide-vue-next";
 import { Textarea } from "~/components/ui/textarea";
+import { chatEnterAction } from "~/utilities/chatInputKeys";
 
 // Enter sends; Shift+Enter inserts a real line break instead -- native
 // <textarea> already does that on its own, so this only needs to
 // intercept the plain-Enter case.
 function handleKeydown(event: KeyboardEvent, submit: () => void) {
-  if (event.key === "Enter" && !event.shiftKey) {
+  if (event.key === "Enter" && chatEnterAction(event) !== "newline") {
     event.preventDefault();
     submit();
   }
@@ -108,6 +109,8 @@ function autoResize(event: Event) {
               class="flex-1 min-h-0 resize-none transition-all duration-200"
               @keydown="
                 (event) => {
+                  if (event.isComposing) return;
+                  if (event.key === 'ArrowUp' && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && !form.values.message && !pendingAttachment && !mentionOpen) { event.preventDefault(); $emit('edit-last'); return; }
                   if (!mentionKeydown(event)) handleKeydown(event, sendMessage);
                 }
               "
@@ -227,6 +230,8 @@ function autoResize(event: Event) {
               class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
               @keydown="
                 (event) => {
+                  if (event.isComposing) return;
+                  if (event.key === 'ArrowUp' && !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey && !form.values.message && !pendingAttachment && !mentionOpen) { event.preventDefault(); $emit('edit-last'); return; }
                   if (!mentionKeydown(event)) handleKeydown(event, sendMessage);
                 }
               "
@@ -336,7 +341,7 @@ export default {
     chatType: { type: String, default: "" },
     roomId: { type: String, default: "" },
   },
-  emits: ["sendMessage"],
+  emits: ["sendMessage", "edit-last"],
   data() {
     return {
       sending: false,

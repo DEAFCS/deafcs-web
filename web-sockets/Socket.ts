@@ -2,6 +2,60 @@ import EventEmitter from "eventemitter3";
 import type { e_match_types_enum } from "~/generated/zeus";
 import { toast } from "@/components/ui/toast";
 import { CHAT_REACTIONS, type ChatReaction } from "~/utils/chatReactions";
+import type { ChatAttachment, ChatGif } from "~/utilities/chatAttachments";
+
+import guid from "~/utilities/uuid";
+import {
+  toastChatError,
+  type ChatAction,
+  type ChatError,
+} from "~/utilities/chatErrors";
+
+export function chatMessageKey(message: LobbyMessage) {
+  return (
+    message.id ||
+    [
+      message.from?.steam_id ?? "",
+      message.timestamp ?? "",
+      message.message ?? "",
+    ].join("|")
+  );
+}
+
+export interface LobbyMessage {
+  id?: string;
+  message: string;
+  timestamp?: string;
+  source?: string;
+  edited_at?: string;
+  reactions?: any;
+  attachments?: ChatAttachment[];
+  gif?: (ChatGif & { url?: string }) | null;
+  media?: { type?: string; id?: string; [key: string]: any };
+  blocked?: boolean;
+  from?: {
+    steam_id?: string;
+    name?: string;
+    role?: string;
+    [key: string]: any;
+  };
+  [key: string]: any;
+}
+
+interface ChatAck {
+  requestId?: string;
+  messageId?: string;
+  action?: ChatAction;
+  message?: string;
+  edited_at?: string;
+}
+
+interface PendingChatRequest {
+  action: ChatAction;
+  resolve: (ack: ChatAck) => void;
+  reject: (error: ChatError) => void;
+  timer: ReturnType<typeof setTimeout>;
+}
 
 type ChatReactionUpdate = {
   messageId: string;
@@ -74,6 +128,11 @@ class Socket extends EventEmitter {
     expiresAt: null,
     permanent: false,
   };
+
+  private pendingRequests: Map<string, PendingChatRequest> = new Map();
+  private reactionsInFlight = new Set<string>();
+  private static readonly REQUEST_TIMEOUT_MS = 8000;
+  private static readonly LATE_ANSWER_MS = 60000;
 
   private listening = new Set();
   private connection?: WebSocket;
@@ -161,6 +220,10 @@ class Socket extends EventEmitter {
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  lobbyMessages(type: ChatType, id: string): LobbyMessage[] {
+    return this.lobbies.get(`${type}:${id}`)?.messages ?? [];
+  }
 
   private lobbies: Map<string, LobbyState> = new Map();
   private rooms: Map<
@@ -418,6 +481,125 @@ class Socket extends EventEmitter {
     });
   }
 
+  public deleteMessage(
+    type: ChatType,
+    id: string,
+    messageId: string,
+  ): Promise<void> {
+    return this.chatRequest(
+      "delete",
+      { id, type, messageId },
+      { resolved: () => {}, rejected: () => {} },
+    );
+  }
+
+  public editMessage(
+    type: ChatType,
+    id: string,
+    messageId: string,
+    message: string,
+  ): Promise<void> {
+    return this.chatRequest(
+      "edit",
+      { id, type, messageId, message },
+      { resolved: () => {}, rejected: () => {} },
+    );
+  }
+
+  public react(
+    type: ChatType,
+    id: string,
+    messageId: string,
+    reaction: ChatReaction,
+  ): Promise<void> {
+    const toggle = `${type}:${id}:${messageId}:${reaction}`;
+    if (this.reactionsInFlight.has(toggle)) return Promise.resolve();
+    const request = this.chatRequest(
+      "react",
+      { id, type, messageId, reaction },
+      { resolved: () => {}, rejected: () => {} },
+    );
+    this.reactionsInFlight.add(toggle);
+    const settle = () => {
+      this.reactionsInFlight.delete(toggle);
+    };
+    request.then(settle, settle);
+    return request;
+  }
+
+  private chatRequest(
+    action: ChatAction,
+    data: Record<string, unknown>,
+    handlers: {
+      resolved: (ack: ChatAck) => void;
+      rejected: (error: ChatError) => void;
+    },
+  ): Promise<void> {
+    if (!this.connected || !this.connection) {
+      return Promise.reject({ code: "offline", action });
+    }
+
+    const requestId = guid();
+
+    return new Promise<void>((resolve, reject) => {
+      const pending: PendingChatRequest = {
+        action,
+        resolve: (ack) => {
+          handlers.resolved(ack);
+          resolve();
+        },
+        reject: (error) => {
+          handlers.rejected(error);
+          reject(error);
+        },
+        timer: setTimeout(() => {
+          reject({ code: "timeout", action, requestId });
+          pending.timer = setTimeout(() => {
+            this.pendingRequests.delete(requestId);
+          }, Socket.LATE_ANSWER_MS);
+        }, Socket.REQUEST_TIMEOUT_MS),
+      };
+
+      this.pendingRequests.set(requestId, pending);
+
+      this.event(action === "send" ? "lobby:chat" : `lobby:${action}`, {
+        ...data,
+        requestId,
+      });
+    });
+  }
+
+  public resolveChatRequest(ack: ChatAck) {
+    this.takeChatRequest(ack)?.resolve(ack);
+  }
+
+  public rejectChatRequest(error: ChatError) {
+    const pending = this.takeChatRequest(error);
+    if (!pending) {
+      return false;
+    }
+
+    pending.reject(error);
+    return true;
+  }
+
+  private takeChatRequest(answer: ChatAck | ChatError) {
+    const requestId = answer?.requestId;
+    if (!requestId) {
+      return undefined;
+    }
+
+    const pending = this.pendingRequests.get(requestId);
+    if (!pending || (answer.action ?? "send") !== pending.action) {
+      return undefined;
+    }
+
+    this.pendingRequests.delete(requestId);
+    clearTimeout(pending.timer);
+
+    return pending;
+  }
+
   public listenChatReaction(
     type: string,
     id: string,
@@ -502,11 +684,15 @@ class Socket extends EventEmitter {
   public listenChatEdited(
     type: string,
     id: string,
-    callback: (data: { id: string; message: string }) => void,
+    callback: (data: {
+      id: string;
+      message: string;
+      edited_at?: string;
+    }) => void,
   ) {
     return this.listen(
       `lobby:${type}:${id}:edited`,
-      (data: { id: string; message: string }) => {
+      (data: { id: string; message: string; edited_at?: string }) => {
         const lobby = this.lobbies.get(`${type}:${id}`);
         if (lobby) {
           // Routed through setMessages (rebuilding the array) rather than
@@ -517,7 +703,19 @@ class Socket extends EventEmitter {
           // listenChatDeleted just below.
           lobby.setMessages(
             lobby.messages.map((m: any) =>
-              m.id === data.id ? { ...m, message: data.message } : m,
+              m.id === data.id &&
+              !(
+                data.edited_at &&
+                m.edited_at &&
+                new Date(data.edited_at).getTime() <
+                  new Date(m.edited_at).getTime()
+              )
+                ? {
+                    ...m,
+                    message: data.message,
+                    ...(data.edited_at ? { edited_at: data.edited_at } : {}),
+                  }
+                : m,
             ),
           );
         }
@@ -793,6 +991,11 @@ class Socket extends EventEmitter {
   }
 }
 const socket = new Socket();
+
+socket.listen("chat:ack", (ack: ChatAck) => socket.resolveChatRequest(ack));
+socket.listen("chat:error", (error: ChatError) => {
+  if (!socket.rejectChatRequest(error)) toastChatError(error);
+});
 
 socket.listen(
   "chat:mute-status",

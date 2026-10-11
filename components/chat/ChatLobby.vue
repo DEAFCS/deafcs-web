@@ -94,6 +94,8 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
             ref="chatMessagesRef"
             :messages="visibleMessages"
             :chat-type="type"
+            :room-id="lobbyId"
+            :can-post="effectiveCanSend"
             :reactions-enabled="reactionsEnabled"
             :absolute-timestamps="absoluteTimestamps"
             variant="global"
@@ -105,6 +107,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
             @delete-message="handleDeleteMessage"
             @mute-player="handleMutePlayer"
             @toggle-reaction="handleToggleReaction"
+            @edit-last-end="($refs.chatInputRef as any)?.focus()"
           />
           <Empty v-else class="flex-1 text-muted-foreground">
             <div class="space-y-1">
@@ -131,6 +134,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
           :room-id="lobbyId"
           :attachment-enabled="allowChatAttachments && type !== 'announcement' && effectiveCanSend"
           @send-message="handleSendMessage"
+          @edit-last="($refs.chatMessagesRef as any)?.editLast()"
         />
         <div v-else class="px-3 py-2 text-center text-xs text-muted-foreground">
           {{ effectiveReadonlyHint }}
@@ -177,6 +181,8 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         ref="chatMessagesRef"
         :messages="visibleMessages"
         :chat-type="type"
+        :room-id="lobbyId"
+        :can-post="effectiveCanSend"
         :reactions-enabled="reactionsEnabled"
         :absolute-timestamps="absoluteTimestamps"
         variant="embedded"
@@ -187,6 +193,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         @delete-message="handleDeleteMessage"
         @mute-player="handleMutePlayer"
         @toggle-reaction="handleToggleReaction"
+        @edit-last-end="($refs.chatInputRef as any)?.focus()"
       />
       <Empty v-else class="flex-1 text-muted-foreground">
         <div class="space-y-1">
@@ -212,6 +219,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
         :room-id="lobbyId"
         :attachment-enabled="allowChatAttachments && type !== 'announcement' && effectiveCanSend"
         @send-message="handleSendMessage"
+        @edit-last="($refs.chatMessagesRef as any)?.editLast()"
       />
       <div v-else class="px-3 py-2 text-center text-xs text-muted-foreground">
         {{ effectiveReadonlyHint }}

@@ -441,6 +441,19 @@ export function useChatTabs() {
 
   const manualOrder = computed(() => manualOrderRef.value);
 
+  function setTabOrder(order: string[]) {
+    const ids = new Set(tabsRef.value.map((tab) => tab.id));
+    manualOrderRef.value = [...new Set(order)].filter((id) => ids.has(id));
+    try {
+      window.localStorage.setItem(
+        TAB_ORDER_STORAGE_KEY,
+        JSON.stringify(manualOrderRef.value),
+      );
+    } catch {
+      /* per-browser best effort */
+    }
+  }
+
   function reorderTab(draggedId: string, targetId: string) {
     if (draggedId === targetId) return;
     const currentIds = tabsRef.value.map((t) => t.id);
@@ -494,5 +507,6 @@ export function useChatTabs() {
     clearUnread,
     clearAll,
     reorderTab,
+    setTabOrder,
   };
 }

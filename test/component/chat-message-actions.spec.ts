@@ -1,7 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { mount } from "@vue/test-utils";
+import { mount, shallowMount } from "@vue/test-utils";
 import ChatMessage from "../../components/chat/ChatMessage.vue";
 import ChatMessageActionsMenu from "../../components/chat/ChatMessageActionsMenu.vue";
+import ChatMessageActions from "../../components/chat/ChatMessageActions.vue";
+import ChatMessageEditor from "../../components/chat/ChatMessageEditor.vue";
+import socket from "../../web-sockets/Socket";
 import ChatInput from "../../components/chat/ChatInput.vue";
 import {
   CHAT_MESSAGE_MAX_LENGTH,
@@ -53,13 +56,48 @@ function permissions(
 
 describe("chat message action permissions", () => {
   it.each([
-    ["normal user, own <=10 min", own(), false, { canEdit: true, canDelete: true, canMute: false }],
-    ["normal user, own >10 min", own(old), false, { canEdit: false, canDelete: false, canMute: false }],
-    ["normal user, someone else's", others(), false, { canEdit: false, canDelete: false, canMute: false }],
-    ["admin, someone else's", others(), true, { canEdit: false, canDelete: true, canMute: true }],
-    ["admin, someone else's old", others(old), true, { canEdit: false, canDelete: true, canMute: true }],
-    ["admin, own <=10 min", own(), true, { canEdit: true, canDelete: true, canMute: false }],
-    ["admin, own >10 min", own(old), true, { canEdit: false, canDelete: true, canMute: false }],
+    [
+      "normal user, own <=10 min",
+      own(),
+      false,
+      { canEdit: true, canDelete: true, canMute: false },
+    ],
+    [
+      "normal user, own >10 min",
+      own(old),
+      false,
+      { canEdit: false, canDelete: false, canMute: false },
+    ],
+    [
+      "normal user, someone else's",
+      others(),
+      false,
+      { canEdit: false, canDelete: false, canMute: false },
+    ],
+    [
+      "admin, someone else's",
+      others(),
+      true,
+      { canEdit: false, canDelete: true, canMute: true },
+    ],
+    [
+      "admin, someone else's old",
+      others(old),
+      true,
+      { canEdit: false, canDelete: true, canMute: true },
+    ],
+    [
+      "admin, own <=10 min",
+      own(),
+      true,
+      { canEdit: true, canDelete: true, canMute: false },
+    ],
+    [
+      "admin, own >10 min",
+      own(old),
+      true,
+      { canEdit: false, canDelete: true, canMute: false },
+    ],
   ])("%s", (_label, msg, isAdministrator, expected) => {
     expect(permissions(msg, isAdministrator)).toEqual(expected);
   });
@@ -67,8 +105,12 @@ describe("chat message action permissions", () => {
   it("matches the API boundary: exactly 10 minutes is allowed, 1 ms later is not", () => {
     const at = (age: number) =>
       own({ timestamp: new Date(NOW - age).toISOString() });
-    expect(permissions(at(CHAT_MESSAGE_SELF_SERVICE_WINDOW_MS), false).canEdit).toBe(true);
-    expect(permissions(at(CHAT_MESSAGE_SELF_SERVICE_WINDOW_MS + 1), false).canEdit).toBe(false);
+    expect(
+      permissions(at(CHAT_MESSAGE_SELF_SERVICE_WINDOW_MS), false).canEdit,
+    ).toBe(true);
+    expect(
+      permissions(at(CHAT_MESSAGE_SELF_SERVICE_WINDOW_MS + 1), false).canEdit,
+    ).toBe(false);
   });
 
   it("hides self Edit/Delete for an invalid or missing timestamp", () => {
@@ -88,8 +130,9 @@ describe("chat message action permissions", () => {
       canDelete: true,
       canMute: false,
     });
-    expect(permissions(others({ message: "", attachment: { id: "a-1" } }), false))
-      .toEqual({ canEdit: false, canDelete: false, canMute: false });
+    expect(
+      permissions(others({ message: "", attachment: { id: "a-1" } }), false),
+    ).toEqual({ canEdit: false, canDelete: false, canMute: false });
   });
 
   it("gives system/game/legacy messages no Edit and no invented ownership", () => {
@@ -112,7 +155,9 @@ describe("chat message action permissions", () => {
       // the API decides whether the stored shape is auditable.
       expect(admin.canDelete).toBe(true);
     }
-    expect(permissions(message({ from: { name: "System" } }), true).canMute).toBe(false);
+    expect(
+      permissions(message({ from: { name: "System" } }), true).canMute,
+    ).toBe(false);
   });
 
   it("offers nothing without a message id", () => {
@@ -128,8 +173,12 @@ describe("chat message action permissions", () => {
       const { source: _source, ...rest } = own(overrides);
       return rest;
     };
-    expect(permissions(announcement(), true, "announcement").canEdit).toBe(true);
-    expect(permissions(announcement(old), true, "announcement").canEdit).toBe(false);
+    expect(permissions(announcement(), true, "announcement").canEdit).toBe(
+      true,
+    );
+    expect(permissions(announcement(old), true, "announcement").canEdit).toBe(
+      false,
+    );
     expect(
       permissions(
         { ...announcement(), from: { steam_id: OTHER } },
@@ -138,7 +187,9 @@ describe("chat message action permissions", () => {
       ),
     ).toEqual({ canEdit: false, canDelete: true, canMute: true });
     // Posting/editing announcements stays administrator-only.
-    expect(permissions(announcement(), false, "announcement").canEdit).toBe(false);
+    expect(permissions(announcement(), false, "announcement").canEdit).toBe(
+      false,
+    );
   });
 });
 
@@ -149,6 +200,9 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
     isAdministrator = false;
+    vi.stubGlobal("useWebsiteRestrictionStore", () => ({
+      isRestricted: false,
+    }));
     vi.stubGlobal("useAuthStore", () => ({
       me: { steam_id: ME },
       isRoleAbove: () => isAdministrator,
@@ -161,8 +215,15 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
   });
 
   function mountMessage(props: Record<string, unknown>) {
-    return mount(ChatMessage, {
-      props: { chatType: "global", reactionsEnabled: true, ...props },
+    return shallowMount(ChatMessage, {
+      props: {
+        chatType: "global",
+        room: { type: "global", id: "global" },
+        canPost: true,
+        canModerate: isAdministrator,
+        reactionsEnabled: true,
+        ...props,
+      },
       global: {
         mocks: {
           $t: (key: string, fallback?: string) => fallback ?? key,
@@ -179,17 +240,17 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
   }
 
   const menuProps = (wrapper: ReturnType<typeof mountMessage>) => {
-    const menu = wrapper.findComponent(ChatMessageActionsMenu);
+    const menu = wrapper.findComponent(ChatMessageActions);
     // The "..." menu itself no longer renders at all once canEdit/canDelete/
     // canMute are all false (nothing left to show in it) -- absence means
     // false for each, same as if it were still there with every flag off.
     return {
       // React lives in its own standalone button next to "..." now, not
       // as a prop on the menu itself.
-      canReact: wrapper.find('[aria-label="React"]').exists(),
-      canEdit: menu.exists() ? menu.props("canEdit") : false,
-      canDelete: menu.exists() ? menu.props("canDelete") : false,
-      canMute: menu.exists() ? menu.props("canMute") : false,
+      canReact: menu.exists() ? menu.props("permissions").canReact : false,
+      canEdit: menu.exists() ? menu.props("permissions").canEdit : false,
+      canDelete: menu.exists() ? menu.props("permissions").canDelete : false,
+      canMute: menu.exists() ? menu.props("permissions").canSanction : false,
     };
   };
 
@@ -221,6 +282,7 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
     expect(menuProps(wrapper).canEdit).toBe(true);
 
     vi.advanceTimersByTime(MINUTE + 100);
+    wrapper.getComponent(ChatMessageActions).vm.$emit("open");
     await wrapper.vm.$nextTick();
     expect(menuProps(wrapper)).toEqual({
       canReact: true,
@@ -235,38 +297,49 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
       message: own({ timestamp: new Date(NOW - 9 * MINUTE).toISOString() }),
     });
     vi.setSystemTime(NOW + 2 * MINUTE);
-    wrapper.findComponent(ChatMessageActionsMenu).vm.$emit("opened");
+    wrapper.findComponent(ChatMessageActions).vm.$emit("open");
     await wrapper.vm.$nextTick();
     expect(menuProps(wrapper).canEdit).toBe(false);
   });
 
   it("match page (reactions off): own old message and others' messages get no menu at all", () => {
     const ownOld = mountMessage({ message: own(old), reactionsEnabled: false });
-    expect(ownOld.findComponent(ChatMessageActionsMenu).exists()).toBe(false);
+    expect(ownOld.findComponent(ChatMessageActions).exists()).toBe(false);
     const other = mountMessage({ message: others(), reactionsEnabled: false });
-    expect(other.findComponent(ChatMessageActionsMenu).exists()).toBe(false);
+    expect(other.findComponent(ChatMessageActions).exists()).toBe(false);
   });
 
-  it("emits edit-message for the stable id only", async () => {
+  it("hands the stable message to the list-owned inline editor", async () => {
     const wrapper = mountMessage({ message: own() });
-    wrapper.findComponent(ChatMessageActionsMenu).vm.$emit("edit");
+    wrapper.findComponent(ChatMessageActions).vm.$emit("edit");
     await wrapper.vm.$nextTick();
-    const textarea = wrapper.get("textarea");
-    // No maxlength: the browser would silently cut pasted text.
-    expect(textarea.attributes("maxlength")).toBeUndefined();
-    await textarea.setValue("fixed");
-    await textarea.trigger("keydown", { key: "Enter" });
-    expect(wrapper.emitted("edit-message")?.[0]?.[0]).toEqual({
-      id: messageId,
-      message: "fixed",
-    });
+    expect(wrapper.emitted("edit")).toHaveLength(1);
+    await wrapper.setProps({ editing: true });
+    expect(wrapper.getComponent(ChatMessageEditor).props("message").id).toBe(
+      messageId,
+    );
+    wrapper.unmount();
   });
 
   it("edit: exactly 2,000 characters is sent, 2,001 is refused and kept open untruncated", async () => {
-    const wrapper = mountMessage({ message: own() });
+    const send = vi.spyOn(socket, "editMessage").mockResolvedValue(undefined);
+    vi.stubGlobal("useNuxtApp", () => ({ $i18n: { t: (key: string) => key } }));
+    const wrapper = mount(ChatMessageEditor, {
+      props: { message: own(), room: { type: "global", id: "global" } },
+      global: {
+        mocks: { $t: (key: string) => key },
+        stubs: {
+          Textarea: {
+            props: ["modelValue"],
+            emits: ["update:modelValue"],
+            template:
+              '<textarea :value="modelValue" @input="$emit(\'update:modelValue\', $event.target.value)" />',
+          },
+          Button: { template: "<button><slot /></button>" },
+        },
+      },
+    });
     const edit = async (text: string) => {
-      wrapper.findComponent(ChatMessageActionsMenu).vm.$emit("edit");
-      await wrapper.vm.$nextTick();
       const textarea = wrapper.get("textarea");
       await textarea.setValue(text);
       await textarea.trigger("keydown", { key: "Enter" });
@@ -275,28 +348,29 @@ describe("ChatMessage wires the permissions into the ... menu", () => {
 
     const tooLong = "y".repeat(CHAT_MESSAGE_MAX_LENGTH + 1);
     const textarea = await edit(tooLong);
-    expect(wrapper.emitted("edit-message")).toBeUndefined();
+    expect(send).not.toHaveBeenCalled();
     expect((textarea.element as HTMLTextAreaElement).value).toBe(tooLong);
     expect(toastMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        description: "Message can be up to 2,000 characters.",
+        description: "chat.message_too_long",
       }),
     );
 
     const exact = "x".repeat(CHAT_MESSAGE_MAX_LENGTH);
     await wrapper.get("textarea").setValue(exact);
     await wrapper.get("textarea").trigger("keydown", { key: "Enter" });
-    expect(wrapper.emitted("edit-message")?.[0]?.[0]).toEqual({
-      id: messageId,
-      message: exact,
-    });
+    expect(send).toHaveBeenCalledWith("global", "global", messageId, exact);
+    wrapper.unmount();
+    send.mockRestore();
   });
 });
 
 describe("ChatInput 2,000 character limit", () => {
   beforeEach(() => {
     toastMock.mockClear();
-    vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
+    vi.stubGlobal("useWebsiteRestrictionStore", () => ({
+      isRestricted: false,
+    }));
   });
 
   afterEach(() => {

@@ -8295,6 +8295,8 @@
                         "disk_label":  "Disk:"
                     },
     "chat":  {
+        "message_label": "Besked",
+        "awaiting_reply": "Din beskedanmodning er ikke besvaret endnu. Du kan skrive igen, når de svarer.",
                  "lobby_chat":  "Lobbychat",
                  "message_placeholder":  "Skriv en besked...",
                  "readonly":  "Chatten er skrivebeskyttet.",

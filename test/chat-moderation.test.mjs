@@ -5,6 +5,8 @@ import test from "node:test";
 const read = (path) => fs.readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
 const message = read("components/chat/ChatMessage.vue");
+const messages = read("components/chat/ChatMessages.vue");
+const actions = read("components/chat/ChatMessageActions.vue");
 const lobby = read("components/chat/ChatLobby.vue");
 const socket = read("web-sockets/Socket.ts");
 const sanction = read("components/SanctionPlayer.vue");
@@ -12,12 +14,12 @@ const history = read("components/PlayerSanctions.vue");
 
 test("chat moderation controls are administrator-only and use the message Steam ID", () => {
   assert.match(
-    message,
+    messages,
     /isRoleAbove\(e_player_roles_enum\.administrator\)/,
   );
-  assert.match(message, /player:\s*this\.message\.from/);
-  assert.match(message, /messageId:\s*this\.message\.id/);
-  assert.match(message, /confirm_delete_message/);
+  assert.match(message, /player:\s*message\.from/);
+  assert.match(message, /messageId:\s*message\.id/);
+  assert.match(actions, /v-model:open="confirmDelete"/);
 });
 
 test("message deletion is room-qualified and updates shared lobby state", () => {
@@ -29,7 +31,7 @@ test("message deletion is room-qualified and updates shared lobby state", () => 
     socket,
     /deleteChat\(type: ChatType, roomId: string, messageId: string\)/,
   );
-  assert.match(socket, /lobby\.setMessages\(lobby\.messages\.filter/);
+  assert.match(socket, /lobby\.setMessages\(\s*lobby\.messages\.filter/);
 });
 
 test("website chat mute reuses SanctionPlayer with evidence and server status", () => {

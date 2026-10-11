@@ -84,7 +84,7 @@ describe("sidebar wiring", () => {
 
   it("ChatPanel colours private and announcement tabs red", () => {
     const panel = read("components/hub/ChatPanel.vue");
-    expect(panel).toContain("isUrgentChatType(tab.type) && tabBadge(tab).urgent");
+    expect(panel).toMatch(/isUrgentChatType\(tab.type\)\s*&&\s*tabBadge\(tab\)\.urgent/);
     expect(panel).toMatch(/bg-red-500 text-white text-\[9px\][^>]*\n[^>]*urgent_badge/);
   });
 });

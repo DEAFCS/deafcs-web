@@ -43,6 +43,7 @@ const mountMessage = (message: Record<string, unknown>) =>
         PlayerDisplay: true,
         FiveStackToolTip: true,
         ChatMessageActionsMenu: true,
+        PlayerAvatar: true, ChatMessageActions: true, ChatMessageReactions: true, ChatMessageMedia: true,
       },
     },
   });

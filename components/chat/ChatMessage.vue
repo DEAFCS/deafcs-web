@@ -1,26 +1,55 @@
 <script setup lang="ts">
-import ChatVideoPlayer from "~/components/chat/ChatVideoPlayer.vue";
+import { dateLocale } from "~/utilities/dateLocale";
 import TimeAgo from "~/components/TimeAgo.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import ChatMessageActions from "~/components/chat/ChatMessageActions.vue";
+import ChatMessageEditor from "~/components/chat/ChatMessageEditor.vue";
+import ChatMessageReactions from "~/components/chat/ChatMessageReactions.vue";
+import ChatMessageMedia from "~/components/chat/ChatMessageMedia.vue";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
-import ChatMessageActionsMenu from "~/components/chat/ChatMessageActionsMenu.vue";
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
-import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover";
-import { Check, Play, SmilePlus, X as XIcon } from "lucide-vue-next";
-import { e_player_roles_enum } from "~/generated/zeus";
 </script>
 
 <template>
   <div
-    :class="[
-      'group/chat-message relative pl-12 pr-6 text-[11px] leading-snug',
-      isSameSender && isCloseTogether ? 'mt-1' : 'mt-3',
-    ]"
+    :class="rowClasses"
+    :style="{ paddingTop: `${padTopRem}rem` }"
+    @pointerenter="hovered = $event.pointerType !== 'touch'"
+    @pointerleave="hovered = false"
   >
-    <div v-if="showMeta" class="absolute left-2 top-0">
+    <!-- One rail down a whole run of team lines. Rows inside a run carry no
+         margin, so the segments meet and read as a single stroke; a border per
+         row broke into dashes the moment two people spoke in a row. -->
+    <span
+      v-if="isTeamMessage"
+      class="pointer-events-none absolute inset-y-0 left-0 w-[2px] bg-[hsl(var(--tac-amber)/0.55)]"
+      :class="[
+        startsTeamRun ? 'rounded-t-full' : '',
+        endsTeamRun ? 'rounded-b-full' : '',
+      ]"
+    ></span>
+
+    <!-- Grouped lines carry no name and no time, which is what makes a run
+         readable -- but the time still has to be recoverable, so it comes back
+         in the gutter the avatar left empty, on hover. -->
+    <span
+      v-if="!showMeta"
+      class="pointer-events-none absolute left-0 w-12 pr-2 text-right font-mono text-[10px] leading-snug text-muted-foreground/70 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+      :style="{ top: `calc(${padTopRem}rem + 1px)` }"
+    >
+      {{ clockTime }}
+    </span>
+
+    <!-- Offset by the row's own top padding. Absolute children measure from the
+         padding edge, so a padded team row would drop its text without moving
+         the avatar, and the two would sit on different lines. -->
+    <div
+      v-if="showMeta"
+      class="absolute left-2"
+      :style="{ top: `${padTopRem}rem` }"
+    >
       <PlayerDisplay
-        :player="message.from"
-        :avatar-override="liveAvatarUrl"
+        :player="message.from ?? {}"
+        :avatar-override="liveAvatarUrl ?? undefined"
         size="sm"
         :compact="true"
         :align-top="true"
@@ -36,75 +65,58 @@ import { e_player_roles_enum } from "~/generated/zeus";
     </div>
 
     <div>
-      <!-- The react button sits just left of "..." (right-6, 16px wide),
-           i.e. inside this column's first line, while "..." itself fits in
-           the row's pr-6. Reserve that spot on the first line only, so a
-           full-width first line (an emoji at its end included) wraps before
-           the controls instead of running underneath them. -->
-      <span
-        v-if="showReactionControls && !isEditing"
-        aria-hidden="true"
-        class="float-right h-[1lh] w-5"
-        data-testid="chat-message-actions-spacer"
-      ></span>
       <div
         v-if="showMeta"
-        class="flex items-center space-x-1.5 text-muted-foreground text-[10px]"
+        class="flex items-center space-x-1.5 text-muted-foreground text-xs"
       >
-        <FiveStackToolTip v-if="roleBadge" as-child>
-          <template #trigger>
-            <component
+        <FiveStackToolTip v-if="roleBadge" as-child
+          ><template #trigger
+            ><component
               :is="roleBadge.icon"
-              :class="['h-3 w-3 shrink-0', roleBadge.class]"
-            />
-          </template>
-          <span class="capitalize">
-            {{ message.from.role?.replace("_", " ") }}
-          </span>
-        </FiveStackToolTip>
-        <h4 class="font-semibold truncate max-w-[140px]">
-          {{ message.from.name }}
-        </h4>
+              :class="['h-3 w-3 shrink-0', roleBadge.class]" /></template
+          ><span class="capitalize">{{
+            message.from?.role?.replace("_", " ")
+          }}</span></FiveStackToolTip
+        >
         <span
-          v-if="showSourceTag"
-          class="rounded bg-muted px-1 py-px text-[9px] font-medium uppercase tracking-wide text-muted-foreground"
+          v-if="
+            chatType === 'match' &&
+            ['web', 'website'].includes(message.source ?? '')
+          "
+          class="rounded bg-muted px-1 py-px text-[9px] uppercase"
+          >{{ $t("chat.source_website", "DEAFCS") }}</span
         >
-          {{ $t("chat.source_website", "DEAFCS") }}
+        <h4 class="font-semibold truncate max-w-[160px] text-foreground/90">
+          {{ message.from?.name }}
+        </h4>
+        <span class="whitespace-nowrap text-[10px] text-muted-foreground/70">
+          <template v-if="absoluteTimestamps">{{ clockTime }}</template>
+          <time-ago v-else :date="message.timestamp ?? ''" hide-icon></time-ago>
         </span>
-        <span class="text-[10px] whitespace-nowrap">
-          <template v-if="absoluteTimestamps">{{ formattedTimestamp }}</template>
-          <time-ago v-else :date="message.timestamp" hide-icon></time-ago>
+        <span
+          v-if="authorBlocked"
+          class="shrink-0 font-mono text-[0.5rem] font-bold uppercase leading-none tracking-[0.16em] text-muted-foreground/70"
+        >
+          {{ $t("player_blocks.blocked_badge") }}
+        </span>
+        <!-- Which room, not who is speaking, so it sits away from the name --
+             and only where the run starts, since the rail says the rest. -->
+        <span
+          v-if="isTeamMessage && startsTeamRun"
+          class="ml-auto shrink-0 font-mono text-[0.5rem] font-bold uppercase leading-none tracking-[0.16em] text-[hsl(var(--tac-amber)/0.85)]"
+        >
+          {{ $t("chat.team_tag") }}
         </span>
       </div>
-      <div v-if="isEditing" class="flex items-start gap-1.5">
-        <textarea
-          v-model="editDraft"
-          rows="2"
-          class="flex-1 resize-none rounded border border-border bg-background px-1.5 py-1 text-[11px] leading-snug"
-          @keydown.escape="cancelEdit"
-          @keydown.enter.exact.prevent="confirmEdit"
-        />
-        <button
-          type="button"
-          :title="$t('common.save', 'Save')"
-          class="text-emerald-500 hover:text-emerald-400"
-          @click="confirmEdit"
-        >
-          <Check class="h-3.5 w-3.5" />
-        </button>
-        <button
-          type="button"
-          :title="$t('common.cancel')"
-          class="text-muted-foreground hover:text-foreground"
-          @click="cancelEdit"
-        >
-          <XIcon class="h-3.5 w-3.5" />
-        </button>
-      </div>
+      <ChatMessageEditor
+        v-if="editing && room"
+        :message="message"
+        :room="room"
+        @close="endEdit"
+      />
       <p
-        v-if="message.message"
-        class="text-[11px] leading-snug break-words whitespace-pre-wrap"
-        :class="{ 'italic text-muted-foreground': message.blocked }"
+        v-else-if="hasText"
+        class="text-[13px] leading-snug break-words whitespace-pre-wrap"
       >
         <template v-for="(segment, index) in messageSegments" :key="index"
           ><span
@@ -118,186 +130,74 @@ import { e_player_roles_enum } from "~/generated/zeus";
             >{{ segment.text }}</span
           ><template v-else>{{ segment.text }}</template></template
         >
-      </p>
-      <ChatVideoPlayer
-        v-if="message.media?.type === 'video' && !message.blocked"
-        :src="liveVideoUrl"
-        class="mt-2"
-      />
-      <div v-if="message.attachment && !message.blocked" class="mt-2">
-        <button
-          v-if="isAttachmentImage"
-          type="button"
-          class="block cursor-zoom-in"
-          @click="imageLightboxOpen = true"
+        <FiveStackToolTip
+          v-if="editedAtLabel"
+          as-child
+          :delay-duration="120"
+          side="top"
         >
-          <img
-            :src="attachmentUrl"
-            alt=""
-            class="h-28 w-28 rounded-md border border-border/60 object-cover"
-          />
-        </button>
-        <button
-          v-else-if="isAttachmentVideo"
-          type="button"
-          class="group/chat-video relative block h-28 w-28 cursor-pointer overflow-hidden rounded-md border border-border/60"
-          @click="videoLightboxOpen = true"
-        >
-          <video
-            :src="attachmentUrl"
-            preload="metadata"
-            muted
-            class="h-full w-full object-cover"
-          ></video>
-          <span
-            class="absolute inset-0 flex items-center justify-center bg-black/20 transition-colors group-hover/chat-video:bg-black/35"
-          >
+          <template #trigger>
             <span
-              class="flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white"
+              tabindex="0"
+              class="ml-1 whitespace-nowrap rounded-sm text-[10px] text-muted-foreground/70 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+              data-chat-edited
             >
-              <Play class="ml-0.5 h-4 w-4" />
+              {{ $t("chat.edited") }}
             </span>
-          </span>
-        </button>
-
-        <Dialog v-if="isAttachmentImage" v-model:open="imageLightboxOpen">
-          <DialogContent class="max-w-3xl border-border/60 bg-black/90 p-2 sm:p-3">
-            <DialogTitle class="sr-only">
-              {{ $t("chat.attachment_image", "Chat image") }}
-            </DialogTitle>
-            <img :src="attachmentUrl" class="max-h-[80vh] w-full rounded object-contain" />
-          </DialogContent>
-        </Dialog>
-        <Dialog v-else-if="isAttachmentVideo" v-model:open="videoLightboxOpen">
-          <DialogContent class="max-w-5xl border-border/60 bg-black/90 p-2 sm:p-3">
-            <DialogTitle class="sr-only">
-              {{ $t("chat.attachment_video", "Chat video") }}
-            </DialogTitle>
-            <video
-              v-if="videoLightboxOpen"
-              :src="attachmentUrl"
-              controls
-              autoplay
-              class="max-h-[85vh] w-full rounded object-contain"
-            ></video>
-          </DialogContent>
-        </Dialog>
-      </div>
-      <div v-if="message.gifUrl && !message.blocked" class="mt-2">
-        <button
-          type="button"
-          class="block cursor-zoom-in"
-          @click="gifLightboxOpen = true"
-        >
-          <img
-            :src="message.gifUrl"
-            alt=""
-            class="h-28 w-28 rounded-md border border-border/60 object-cover"
-          />
-        </button>
-
-        <Dialog v-model:open="gifLightboxOpen">
-          <DialogContent class="max-w-3xl border-border/60 bg-black/90 p-2 sm:p-3">
-            <DialogTitle class="sr-only">
-              {{ $t("chat.attachment_gif", "GIF") }}
-            </DialogTitle>
-            <img :src="message.gifUrl" class="max-h-[80vh] w-full rounded object-contain" />
-          </DialogContent>
-        </Dialog>
-      </div>
-      <!-- Only rendered once a message actually has reactions, so a
-           reaction-free message keeps the old compact chat spacing.
-           Adding a reaction lives in the "..." menu. -->
-      <div
-        v-if="visibleReactions.length > 0"
-        class="mt-0.5 flex flex-wrap items-center gap-1"
-        @click.stop
-      >
-        <button
-          v-for="reaction in visibleReactions"
-          :key="reaction.reaction"
-          type="button"
-          class="reaction-chip relative inline-flex h-4 items-center gap-0.5 rounded-full border px-1 text-[9px] leading-none tabular-nums transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          :class="
-            reaction.reacted
-              ? 'border-primary/70 bg-primary/15 text-primary'
-              : 'border-border/60 bg-muted/40 text-muted-foreground hover:bg-muted'
-          "
-          :aria-label="`${reaction.emoji} ${reaction.count}`"
-          :aria-pressed="Boolean(reaction.reacted)"
-          @click.stop="toggleReaction(reaction.reaction)"
-        >
-          <span class="text-[10px]">{{ reaction.emoji }}</span>
-          <span>{{ reaction.count }}</span>
-        </button>
-      </div>
+          </template>
+          {{ $t("chat.edited_at", { time: editedAtLabel }) }}
+        </FiveStackToolTip>
+      </p>
+      <ChatMessageMedia v-if="hasMedia" :message="message" />
+      <ChatMessageReactions
+        v-if="reactionsEnabled && !authorBlocked"
+        :message="message"
+        :room="room"
+        :permissions="permissions"
+        :viewer-steam-id="viewerSteamId"
+        @toggle="toggleReaction"
+      />
     </div>
 
-    <Popover v-if="showReactionControls && !isEditing" v-model:open="reactPopoverOpen">
-      <PopoverTrigger as-child>
-        <button
-          type="button"
-          :aria-label="$t('chat.react', 'React')"
-          :class="[
-            'absolute right-6 top-0 z-10 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded text-muted-foreground transition-opacity hover:text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring',
-            reactPopoverOpen
-              ? 'opacity-100'
-              : 'opacity-0 group-hover/chat-message:opacity-100 group-focus-within/chat-message:opacity-100 [@media(hover:none)]:opacity-100',
-          ]"
-        >
-          <SmilePlus class="h-3 w-3" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        class="flex w-auto items-center gap-0.5 p-1"
-        align="end"
-        :aria-label="$t('chat.choose_reaction', 'Choose a reaction')"
-      >
-        <button
-          v-for="choice in CHAT_REACTIONS"
-          :key="choice.id"
-          type="button"
-          class="flex size-8 items-center justify-center rounded text-base hover:bg-muted"
-          :aria-label="`React with ${choice.emoji}`"
-          @click="toggleReaction(choice.id); reactPopoverOpen = false"
-        >
-          {{ choice.emoji }}
-        </button>
-      </PopoverContent>
-    </Popover>
-
-    <ChatMessageActionsMenu
-      v-if="hasMessageActions && !isEditing"
-      :can-edit="canEdit"
-      :can-delete="canDelete"
-      :can-mute="canMute"
-      align="end"
-      trigger-class="absolute right-1 top-0 z-10"
-      @edit="startEdit"
-      @mute="requestMute"
-      @delete="requestDelete"
-      @opened="refreshNow"
+    <!-- Floats over the top edge of the line, as the frame is taller than a
+         line of chat and would otherwise hide the text it acts on. -->
+    <ChatMessageActions
+      v-if="hasActions && room && !editing"
+      ref="actions"
+      class="absolute right-0.5 z-10"
+      :style="{ top: `calc(${padTopRem}rem - 0.75rem)` }"
+      :hovered="hovered"
+      :message="message"
+      :room="room"
+      :permissions="permissions"
+      :own="isOwnMessage"
+      :viewer-steam-id="viewerSteamId"
+      @open="recheckPermissions"
+      @expired="permissionsCheckedAt = Date.now()"
+      @edit="$emit('edit')"
+      @react="toggleReaction"
+      @mute="
+        $emit('mute-player', { player: message.from, messageId: message.id })
+      "
     />
   </div>
 </template>
 
 <script lang="ts">
+import type { PropType } from "vue";
+import socket, { type ChatType, type LobbyMessage } from "~/web-sockets/Socket";
+import type { ChatReaction } from "~/constants/chat";
+import { toast } from "@/components/ui/toast";
+import { toastChatError, type ChatError } from "~/utilities/chatErrors";
+import {
+  chatMessagePermissions,
+  hasChatMessageActions,
+  isOwnChatMessage,
+} from "~/utilities/chatMessageActions";
 import { Crown, Shield, ShieldHalf } from "lucide-vue-next";
 import gql from "graphql-tag";
-import {
-  CHAT_REACTIONS,
-  isStableChatMessageId,
-  type ChatReaction,
-} from "~/utils/chatReactions";
-import {
-  getChatMessageActionPermissions,
-  isChatMessageTooLong,
-  selfServiceTimeLeft,
-  showChatMessageTooLong,
-} from "~/utils/chatMessageActions";
+import { e_player_roles_enum } from "~/generated/zeus";
 
-// Elevated roles only -- regular (verified_)user and streamer get no
-// badge at all next to their name, just the avatar.
 const ROLE_BADGE: Record<string, { icon: any; class: string }> = {
   moderator: { icon: ShieldHalf, class: "text-blue-500" },
   match_organizer: { icon: Shield, class: "text-yellow-500" },
@@ -318,74 +218,113 @@ const LIVE_PLAYER_AVATAR_QUERY = gql`
 export default {
   props: {
     message: {
-      type: Object,
-      required: false,
+      type: Object as PropType<LobbyMessage>,
+      required: true,
     },
     previousMessage: {
       type: Object,
       required: false,
     },
-    chatType: {
-      type: String,
-      required: true,
+    nextMessage: {
+      type: Object,
+      required: false,
     },
-    // Relative "X minutes ago" reads fine for live chat, but is useless
-    // for reviewing a match's chat log days later -- reported: wanted a
-    // plain local clock time there instead. Only the post-match chat
-    // log page (matches/[id]/chat-log.vue) passes this; live chat is
-    // unaffected.
-    absoluteTimestamps: {
+    chatType: { type: String, default: "" },
+    absoluteTimestamps: { type: Boolean, default: false },
+    reactionsEnabled: { type: Boolean, default: false },
+    // The room this line lives in. Without one there is nothing to act on, so
+    // no actions are offered.
+    room: {
+      type: Object as PropType<{ type: ChatType; id: string } | null>,
+      default: null,
+    },
+    canModerate: {
       type: Boolean,
       default: false,
     },
-    reactionsEnabled: {
+    canPost: {
+      type: Boolean,
+      default: false,
+    },
+    editing: {
       type: Boolean,
       default: false,
     },
   },
-  emits: [
-    "edit-message",
-    "delete-message",
-    "mute-player",
-    "toggle-reaction",
-  ],
-  data() {
-    return {
-      // Chat messages embed a snapshot of the sender's avatar_url from
-      // send time (chat.service.ts) -- never updated if they change
-      // their avatar afterwards. This overrides it with a live lookup
-      // once resolved; null (the default) falls straight through to
-      // PlayerDisplay's normal player.avatar_url, so there's no flash
-      // of a missing avatar while this is in flight.
-      liveAvatarUrl: null as string | null,
-      isEditing: false,
-      reactPopoverOpen: false,
-      editDraft: "",
-      // Own-message Edit/Delete depend on the message's age, which a
-      // computed can't observe on its own -- refreshed when the menu opens
-      // and once more right as the 10-minute window closes.
-      nowMs: Date.now(),
-      selfServiceTimer: undefined as ReturnType<typeof setTimeout> | undefined,
-      // Opens the enlarged view in an overlay (same Dialog lightbox
-      // pattern as EventMediaTile.vue) -- the chat thumbnail itself
-      // always stays locked at its small size.
-      imageLightboxOpen: false,
-      videoLightboxOpen: false,
-      gifLightboxOpen: false,
-    };
-  },
+  emits: ["edit", "edit-end", "mute-player"],
   created() {
     this.fetchLiveAvatar();
-    this.scheduleSelfServiceExpiry();
   },
-  beforeUnmount() {
-    clearTimeout(this.selfServiceTimer);
+  data() {
+    return {
+      // Not a ticking clock: the menu refreshes it when it opens.
+      permissionsCheckedAt: Date.now(),
+      hovered: false,
+      liveAvatarUrl: null as string | null,
+    };
+  },
+  methods: {
+    async fetchLiveAvatar() {
+      const steamId = this.message?.from?.steam_id;
+      if (!steamId) return;
+      try {
+        const { data } = await (this as any).$apollo.query({
+          query: LIVE_PLAYER_AVATAR_QUERY,
+          variables: { steamId },
+          fetchPolicy: "cache-first",
+        });
+        const player = data?.players_by_pk;
+        if (player) {
+          this.liveAvatarUrl =
+            player.custom_avatar_url || player.avatar_url || null;
+        }
+      } catch {
+        // Best-effort -- keep the snapshot avatar on any failure
+        // (network, permissions, player deleted, etc).
+      }
+    },
+    // A menu opened after the window closed has nothing left to offer, so the
+    // trigger goes and the reason is given instead of an empty menu.
+    recheckPermissions() {
+      this.permissionsCheckedAt = Date.now();
+
+      if (!hasChatMessageActions(this.permissions)) {
+        toast({ title: this.$t("chat.own_message_window_closed") });
+      }
+    },
+    toggleReaction(reaction: ChatReaction) {
+      if (!this.room || !this.message?.id) {
+        return;
+      }
+
+      socket
+        .react(this.room.type, this.room.id, this.message.id, reaction)
+        .catch((error: ChatError) => toastChatError(error));
+    },
+    // Focus goes back to the trigger the edit came from, if the window still
+    // leaves it anything to offer, rather than falling to the page. An edit
+    // started from the composer has already been handed back there.
+    endEdit() {
+      this.permissionsCheckedAt = Date.now();
+      this.$emit("edit-end");
+
+      void this.$nextTick(() => {
+        if (
+          document.activeElement &&
+          document.activeElement !== document.body
+        ) {
+          return;
+        }
+
+        const actions = this.$refs.actions as
+          | { focusTrigger?: () => void }
+          | undefined;
+
+        actions?.focusTrigger?.();
+      });
+    },
   },
   computed: {
-    // The text split around @Name tags the API accepted for this message
-    // (message.mentions, see ChatService.resolveMentions), so those can be
-    // highlighted -- red when it's me. Without mentions it's one plain
-    // segment, rendered exactly as before.
     messageSegments(): Array<{
       text: string;
       mention: boolean;
@@ -419,21 +358,172 @@ export default {
           self: byTag.get(part) === true,
         }));
     },
-    liveVideoUrl() {
-      return `https://${useRuntimeConfig().public.apiDomain}/matches/chat-video/media/${this.message.media.id}`;
+
+    roleBadge() {
+      return ROLE_BADGE[this.message?.from?.role ?? ""] ?? null;
+    },
+    hasText() {
+      return !!this.message?.message?.trim();
+    },
+    hasMedia() {
+      return (
+        (this.message?.attachments?.length ?? 0) > 0 ||
+        !!this.message?.gif ||
+        !!this.message?.media
+      );
+    },
+    viewerSteamId() {
+      return useAuthStore().me?.steam_id ?? null;
+    },
+    isOwnMessage() {
+      return isOwnChatMessage(this.message, this.viewerSteamId);
+    },
+    // Not gated on role or room: only a moderator in a group room is ever sent
+    // a blocked player's line to begin with.
+    authorBlocked() {
+      return !!this.message?.blocked;
+    },
+    permissions() {
+      return chatMessagePermissions({
+        message: this.message,
+        viewerSteamId: this.viewerSteamId,
+        viewerGagged:
+          !!socket.websiteChatMuteStatus.active ||
+          useWebsiteRestrictionStore().isRestricted,
+        canModerate: this.canModerate,
+        canPost: this.canPost && this.reactionsEnabled,
+        roomType: this.room?.type ?? "",
+        now: this.permissionsCheckedAt,
+      });
+    },
+    editedAtLabel() {
+      const editedAt = new Date(this.message?.edited_at ?? NaN);
+
+      if (Number.isNaN(editedAt.getTime())) {
+        return "";
+      }
+
+      return editedAt.toLocaleString(dateLocale(), {
+        dateStyle: "medium",
+        timeStyle: "short",
+      });
+    },
+    hasActions() {
+      return !!this.room && hasChatMessageActions(this.permissions);
+    },
+    // A gagged player's trigger comes and goes with the reactions they hold,
+    // so the room for it is kept wherever reacting is possible at all.
+    reservesActions() {
+      return (
+        this.hasActions ||
+        (!!this.room &&
+          this.canPost &&
+          !!this.message?.id &&
+          !!this.viewerSteamId)
+      );
+    },
+    // Stamped by ChatLobby when it merges the match room with a lineup room.
+    // Absent everywhere else, which is what keeps every other chat surface
+    // rendering exactly as before.
+    isTeamMessage() {
+      return this.message?.__channel === "team";
+    },
+    // Wall clock rather than "5 minutes ago": this only shows on hover over a
+    // grouped line, where the question is when that line landed relative to the
+    // ones around it, not how long ago it was.
+    clockTime() {
+      const time = new Date(this.message?.timestamp ?? NaN);
+
+      if (Number.isNaN(time.getTime())) {
+        return "";
+      }
+
+      return time.toLocaleTimeString(dateLocale(), {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+    },
+    // A run is consecutive team lines, whoever is speaking -- the rail marks
+    // the room, not the speaker, so it should not break when the speaker
+    // changes.
+    startsTeamRun() {
+      return this.previousMessage?.__channel !== "team";
+    },
+    endsTeamRun() {
+      return this.nextMessage?.__channel !== "team";
+    },
+    // Kept in one place so the row's padding and the absolute children that
+    // have to match it can never drift apart.
+    padTopRem() {
+      if (!this.isTeamMessage) {
+        return 0;
+      }
+
+      if (this.startsTeamRun) {
+        return 0.375;
+      }
+
+      return this.showMeta ? 0.625 : 0.25;
+    },
+    rowClasses() {
+      // Same gutter either way. The rail is drawn inside it rather than added
+      // to it, so a team line starts on the same column as every other line and
+      // the avatars stay in one straight edge down the list.
+      const classes = [
+        "group group/chat-message relative isolate pl-12 text-[13px] leading-snug",
+        // Lifts the line under the pointer, and holds it while one of its menus
+        // is open and the pointer has gone into it.
+        "before:pointer-events-none before:absolute before:-z-10 before:rounded-sm before:transition-colors before:duration-150 [@media(hover:hover)]:hover:before:bg-muted/25 has-[[data-chat-menu-open]]:before:bg-muted/40",
+      ];
+
+      // Room for the actions trigger kept whether or not it is showing, so a
+      // hover never rewraps the line under the pointer.
+      if (this.reservesActions) {
+        classes.push("pr-7");
+      }
+
+      if (!this.isTeamMessage) {
+        classes.push(
+          "before:inset-x-0 before:-inset-y-0.5",
+          this.isSameSender && this.isCloseTogether ? "mt-1" : "mt-3",
+        );
+        return classes;
+      }
+
+      classes.push("bg-[hsl(var(--tac-amber)/0.05)] before:inset-0");
+      if (!this.reservesActions) {
+        classes.push("pr-2");
+      }
+
+      // Inside a run the separation between speakers is padding, not margin, so
+      // the tinted block and the rail stay unbroken. The amount comes from
+      // padTopRem, which the avatar reads too.
+      classes.push(this.startsTeamRun ? "mt-3 rounded-t-sm" : "mt-0");
+      classes.push(this.endsTeamRun ? "rounded-b-sm pb-1.5" : "pb-0");
+
+      return classes;
     },
     isSameSender() {
       if (!this.previousMessage) {
         return false;
       }
-      return this.message.from.steam_id === this.previousMessage.from.steam_id;
+      // Same player, different room is not the same speaker as far as this
+      // stream is concerned -- grouping the second line under the first would
+      // hand it the wrong rail and hide which room it went to.
+      if (this.previousMessage.__channel !== this.message.__channel) {
+        return false;
+      }
+      return (
+        String(this.message.from?.steam_id) ===
+        String(this.previousMessage.from?.steam_id)
+      );
     },
     isCloseTogether() {
       if (!this.isSameSender || !this.previousMessage) {
         return false;
       }
       const previousTimestamp = new Date(this.previousMessage.timestamp);
-      const messageTimestamp = new Date(this.message.timestamp);
+      const messageTimestamp = new Date(this.message.timestamp ?? NaN);
 
       messageTimestamp.setMinutes(messageTimestamp.getMinutes() - 5);
 
@@ -442,178 +532,6 @@ export default {
     showMeta() {
       return !this.isSameSender || !this.isCloseTogether;
     },
-    roleBadge() {
-      return ROLE_BADGE[this.message?.from?.role] ?? null;
-    },
-    isOwnMessage() {
-      const me = useAuthStore().me?.steam_id;
-      return (
-        Boolean(this.message?.from?.steam_id) &&
-        me != null &&
-        String(this.message.from.steam_id) === String(me)
-      );
-    },
-    actionPermissions() {
-      const auth = useAuthStore();
-      return getChatMessageActionPermissions({
-        message: this.message,
-        chatType: this.chatType,
-        viewerSteamId: auth.me?.steam_id,
-        isAdministrator: auth.isRoleAbove(e_player_roles_enum.administrator),
-        now: this.nowMs,
-      });
-    },
-    canEdit() {
-      return this.actionPermissions.canEdit;
-    },
-    canDelete() {
-      return this.actionPermissions.canDelete;
-    },
-    canMute() {
-      return this.actionPermissions.canMute;
-    },
-    hasMessageActions() {
-      // React lives in its own always-checked button (see the template)
-      // now, not inside this "..." menu.
-      return this.canEdit || this.canDelete || this.canMute;
-    },
-    // Match-type chat mixes messages relayed in from the live CS2/CSS
-    // server with ones typed directly on the DEAFCS site itself (see
-    // ChatMessageEvent.ts / chat.service.ts's sendMessageToChat source
-    // param) -- every other chat type is website-only already, so the
-    // tag would just be noise there. Older messages sent before this
-    // field existed have no `source` at all; treat those as in-game
-    // rather than mislabeling them.
-    showSourceTag() {
-      return this.chatType === "match" && this.message?.source === "website";
-    },
-    attachmentUrl() {
-      const id = this.message?.attachment?.id;
-      if (!id) return null;
-      return `https://${useRuntimeConfig().public.apiDomain}/chat/attachment/${encodeURIComponent(id)}`;
-    },
-    isAttachmentImage() {
-      return (this.message?.attachment?.contentType || "").startsWith("image/");
-    },
-    isAttachmentVideo() {
-      return (this.message?.attachment?.contentType || "").startsWith("video/");
-    },
-    formattedTimestamp() {
-      if (!this.message?.timestamp) return "";
-      // Intl with no explicit locale/timeZone follows the viewer's own
-      // browser settings, matching the "based on your local time" ask.
-      return new Intl.DateTimeFormat(undefined, {
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(new Date(this.message.timestamp));
-    },
-    showReactionControls() {
-      return (
-        this.reactionsEnabled &&
-        isStableChatMessageId(this.message?.id) &&
-        !this.message?.blocked
-      );
-    },
-    visibleReactions() {
-      if (!this.showReactionControls || !Array.isArray(this.message?.reactions)) {
-        return [];
-      }
-      const allowed = new Map(CHAT_REACTIONS.map((choice) => [choice.id, choice.emoji]));
-      return this.message.reactions
-        .filter(
-          (item: any) =>
-            allowed.has(item?.reaction) &&
-            Number.isInteger(item?.count) &&
-            item.count > 0,
-        )
-        .map((item: any) => ({
-          ...item,
-          emoji: allowed.get(item.reaction),
-        }));
-    },
-  },
-  methods: {
-    refreshNow() {
-      this.nowMs = Date.now();
-    },
-    scheduleSelfServiceExpiry() {
-      clearTimeout(this.selfServiceTimer);
-      if (!this.isOwnMessage) return;
-      const left = selfServiceTimeLeft(this.message?.timestamp);
-      if (left === null) return;
-      this.selfServiceTimer = setTimeout(() => this.refreshNow(), left + 50);
-    },
-    startEdit() {
-      this.editDraft = this.message.message;
-      this.isEditing = true;
-    },
-    cancelEdit() {
-      this.isEditing = false;
-    },
-    confirmEdit() {
-      const message = this.editDraft.trim();
-      if (!message || message === this.message.message) {
-        this.isEditing = false;
-        return;
-      }
-      // Keep the draft open so nothing is lost or silently cut.
-      if (isChatMessageTooLong(message)) {
-        showChatMessageTooLong();
-        return;
-      }
-      this.$emit("edit-message", { id: this.message.id, message });
-      this.isEditing = false;
-    },
-    requestDelete() {
-      if (!window.confirm(this.$t("chat.confirm_delete_message", "Delete this chat message?"))) {
-        return;
-      }
-      this.$emit("delete-message", { id: this.message.id });
-    },
-    requestMute() {
-      this.$emit("mute-player", {
-        player: this.message.from,
-        messageId: this.message.id,
-      });
-    },
-    toggleReaction(reaction: ChatReaction) {
-      if (!this.showReactionControls) return;
-      this.$emit("toggle-reaction", {
-        messageId: String(this.message.id),
-        reaction,
-      });
-    },
-    async fetchLiveAvatar() {
-      const steamId = this.message?.from?.steam_id;
-      if (!steamId) return;
-      try {
-        const { data } = await (this as any).$apollo.query({
-          query: LIVE_PLAYER_AVATAR_QUERY,
-          variables: { steamId },
-          fetchPolicy: "cache-first",
-        });
-        const player = data?.players_by_pk;
-        if (player) {
-          this.liveAvatarUrl =
-            player.custom_avatar_url || player.avatar_url || null;
-        }
-      } catch {
-        // Best-effort -- keep the snapshot avatar on any failure
-        // (network, permissions, player deleted, etc).
-      }
-    },
   },
 };
 </script>
-
-<style scoped>
-/* Visually a tiny badge, but keep a finger-sized hit area on touch
-   devices without adding any layout height to the message. */
-@media (pointer: coarse) {
-  .reaction-chip::before {
-    content: "";
-    position: absolute;
-    inset: -6px -2px;
-  }
-}
-</style>

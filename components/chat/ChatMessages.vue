@@ -1,92 +1,94 @@
 <template>
   <div
-    v-if="variant === 'global' && !isMinimized"
-    class="flex-1 overflow-y-auto p-3"
+    v-if="variant !== 'global' || !isMinimized"
     ref="chatMessages"
+    :class="
+      variant === 'global'
+        ? 'min-h-0 flex-1 overflow-y-auto p-3'
+        : 'min-h-0 flex-1 overflow-y-auto'
+    "
   >
-    <template v-for="(message, index) in messages" :key="message.id || index">
-      <div
-        v-if="
-          lastReadCount > 0 &&
-          lastReadCount < messages.length &&
-          index === lastReadCount
-        "
-        class="relative my-2 flex items-center text-[11px] text-red-400"
-        data-new-divider="true"
+    <!-- Changing the filter rewrites nearly every row, and animating those in
+         and out against each other put two sets of text on the same pixels.
+         The whole list leaves before the replacement arrives instead -- one
+         thing on screen at a time, which is the only version that reads. -->
+    <Transition
+      mode="out-in"
+      enter-from-class="opacity-0"
+      enter-active-class="transition-opacity duration-200 ease-out"
+      leave-active-class="transition-opacity duration-150 ease-in"
+      leave-to-class="opacity-0"
+      @after-enter="scrollToBottom(true)"
+    >
+      <!-- Keyed on the filter, so it swaps only when the filter does. A message
+         merely arriving leaves the key alone and animates on its own below. -->
+      <TransitionGroup
+        :key="groupKey"
+        tag="div"
+        enter-from-class="opacity-0 translate-y-1"
+        enter-active-class="transition duration-200 ease-out"
+        enter-to-class="opacity-100 translate-y-0"
+        leave-active-class="hidden"
       >
-        <div class="flex-1 h-px bg-red-500/60"></div>
-        <span
-          class="mx-2 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/60"
-        >
-          {{ $t("chat.new_since_last_visit", "New") }}
-        </span>
-        <div class="flex-1 h-px bg-red-500/60"></div>
-      </div>
-      <ChatMessage
-        :message="message"
-        :previous-message="messages[index - 1]"
-        :chat-type="chatType"
-        :reactions-enabled="reactionsEnabled"
-        :absolute-timestamps="absoluteTimestamps"
-        @edit-message="$emit('edit-message', $event)"
-        @delete-message="$emit('delete-message', $event)"
-        @mute-player="$emit('mute-player', $event)"
-        @toggle-reaction="$emit('toggle-reaction', $event)"
-      />
-    </template>
-  </div>
-  <div
-    v-else-if="variant === 'embedded'"
-    class="flex-1 overflow-y-auto max-h-screen"
-    ref="chatMessages"
-  >
-    <template v-for="(message, index) in messages" :key="message.id || index">
-      <div
-        v-if="
-          lastReadCount > 0 &&
-          lastReadCount < messages.length &&
-          index === lastReadCount
-        "
-        class="relative my-2 flex items-center text-[11px] text-red-400"
-        data-new-divider="true"
-      >
-        <div class="flex-1 h-px bg-red-500/60"></div>
-        <span
-          class="mx-2 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/60"
-        >
-          {{ $t("chat.new_since_last_visit", "New") }}
-        </span>
-        <div class="flex-1 h-px bg-red-500/60"></div>
-      </div>
-      <ChatMessage
-        :message="message"
-        :previous-message="messages[index - 1]"
-        :chat-type="chatType"
-        :reactions-enabled="reactionsEnabled"
-        :absolute-timestamps="absoluteTimestamps"
-        @edit-message="$emit('edit-message', $event)"
-        @delete-message="$emit('delete-message', $event)"
-        @mute-player="$emit('mute-player', $event)"
-        @toggle-reaction="$emit('toggle-reaction', $event)"
-      />
-    </template>
+        <div v-for="(message, index) in messages" :key="messageKey(message)">
+          <div
+            v-if="
+              lastReadCount > 0 &&
+              lastReadCount < messages.length &&
+              index === lastReadCount
+            "
+            class="relative my-2 flex items-center text-[11px] text-red-400"
+            data-new-divider="true"
+          >
+            <div class="flex-1 h-px bg-red-500/60"></div>
+            <span
+              class="mx-2 px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/60"
+            >
+              {{ $t("chat.new_since_last_visit", "New") }}
+            </span>
+            <div class="flex-1 h-px bg-red-500/60"></div>
+          </div>
+          <ChatMessage
+            :message="normalizeChatMessage(message)"
+            :previous-message="messages[index - 1]"
+            :next-message="messages[index + 1]"
+            :room="roomFor(message)"
+            :chat-type="chatType"
+            :absolute-timestamps="absoluteTimestamps"
+            :reactions-enabled="reactionsEnabled"
+            :can-moderate="isAdministrator"
+            :can-post="canPost"
+            :editing="!!message.id && message.id === editingId"
+            @edit="startEditing(message.id)"
+            @mute-player="$emit('mute-player', $event)"
+            @edit-end="stopEditing(message.id)"
+          />
+        </div>
+      </TransitionGroup>
+    </Transition>
   </div>
 </template>
 
 <script lang="ts">
+import type { PropType } from "vue";
+import { normalizeChatMessage } from "~/utilities/chatMessageCompatibility";
+import { e_player_roles_enum } from "~/generated/zeus";
 import ChatMessage from "~/components/chat/ChatMessage.vue";
+import socket, { chatMessageKey } from "~/web-sockets/Socket";
+import { chatMessagePermissions } from "~/utilities/chatMessageActions";
+import type { ChatType, LobbyMessage } from "~/web-sockets/Socket";
 
 export default {
   components: {
     ChatMessage,
   },
   props: {
+    chatType: { type: String, required: true },
+    roomId: { type: String, default: "" },
+    absoluteTimestamps: { type: Boolean, default: false },
+    reactionsEnabled: { type: Boolean, default: false },
     messages: {
       type: Array as () => any[],
-      required: true,
-    },
-    chatType: {
-      type: String,
       required: true,
     },
     variant: {
@@ -102,28 +104,97 @@ export default {
       type: Number,
       default: 0,
     },
-    absoluteTimestamps: {
+    // Changes when the surface is showing a different slice of the same room.
+    // Constant everywhere that only ever shows one thing, which is every
+    // surface but the merged match panel.
+    groupKey: {
+      type: String,
+      default: "",
+    },
+    // Which room a line belongs to, for acting on it. Hand back the same object
+    // for the same room, or every row re-renders on every new message.
+    messageRoom: {
+      type: Function as PropType<
+        (message: LobbyMessage) => { type: ChatType; id: string } | null
+      >,
+      required: false,
+    },
+    canModerate: {
       type: Boolean,
       default: false,
     },
-    reactionsEnabled: {
+    canPost: {
       type: Boolean,
       default: false,
     },
   },
-  emits: [
-    "bottom-state-change",
-    "edit-message",
-    "delete-message",
-    "mute-player",
-    "toggle-reaction",
-  ],
+  emits: ["bottom-state-change", "edit-last-end", "mute-player"],
   data() {
     return {
       isAtBottom: false,
+      editingId: null as string | null,
+      editingFromComposer: false,
     };
   },
+  computed: {
+    isAdministrator() {
+      return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
+    },
+  },
   methods: {
+    normalizeChatMessage,
+    roomFor(message: LobbyMessage) {
+      return (
+        this.messageRoom?.(message) ??
+        (this.roomId
+          ? { type: this.chatType as ChatType, id: this.roomId }
+          : null)
+      );
+    },
+    messageKey(message: any) {
+      return chatMessageKey(message);
+    },
+    startEditing(messageId: string) {
+      this.editingId = messageId;
+      this.editingFromComposer = false;
+    },
+    stopEditing(messageId?: string) {
+      if (this.editingId === messageId) {
+        this.editingId = null;
+
+        if (this.editingFromComposer) {
+          this.$emit("edit-last-end");
+        }
+      }
+    },
+    // Up from an empty composer: the newest line the viewer can still change.
+    // The composer gets focus back once it is saved or dropped.
+    editLast() {
+      const me = useAuthStore().me;
+
+      for (let index = this.messages.length - 1; index >= 0; index--) {
+        const message = this.messages[index];
+        const room = this.roomFor(message);
+
+        if (
+          room &&
+          chatMessagePermissions({
+            message: normalizeChatMessage(message),
+            viewerSteamId: me?.steam_id,
+            viewerGagged:
+              !!socket.websiteChatMuteStatus.active ||
+              useWebsiteRestrictionStore().isRestricted,
+            canModerate: this.isAdministrator,
+            canPost: this.canPost,
+            roomType: room.type,
+          }).canEdit
+        ) {
+          this.editingId = message.id;
+          this.editingFromComposer = true;
+          return;
+        }
+      }
+    },
     checkIfAtBottom() {
       const chatMessages = this.$refs.chatMessages as HTMLElement;
       if (chatMessages) {
@@ -156,8 +227,14 @@ export default {
       if (!divider) {
         return;
       }
-      const targetTop =
-        divider.offsetTop - Math.max(0, chatMessages.clientHeight / 3);
+      // Measured rather than read off offsetTop: the transition group is a
+      // positioned element now, so it -- not the scroller -- is the offset
+      // parent, and offsetTop would be short by the scroller's padding.
+      const offset =
+        divider.getBoundingClientRect().top -
+        chatMessages.getBoundingClientRect().top +
+        chatMessages.scrollTop;
+      const targetTop = offset - Math.max(0, chatMessages.clientHeight / 3);
       chatMessages.scrollTop = targetTop < 0 ? 0 : targetTop;
       this.checkIfAtBottom();
     },
@@ -165,6 +242,13 @@ export default {
   watch: {
     messages: {
       handler(current, prev) {
+        if (
+          this.editingId &&
+          !current.some((message: any) => message?.id === this.editingId)
+        ) {
+          this.editingId = null;
+        }
+
         this.$nextTick(() => {
           this.scrollToBottom(prev.length === 0);
           this.checkIfAtBottom();

@@ -1,12 +1,11 @@
-export const CHAT_REACTIONS = [
-  { id: "thumbsup", emoji: "👍" },
-  { id: "heart", emoji: "❤️" },
-  { id: "laugh", emoji: "😂" },
-  { id: "fire", emoji: "🔥" },
-  { id: "party", emoji: "🎉" },
-] as const;
+import { CHAT_REACTIONS as upstreamReactions } from "~/constants/chat";
 
-export type ChatReaction = (typeof CHAT_REACTIONS)[number]["id"];
+// Existing DEAFCS consumers use emoji rather than upstream glyph.
+export const CHAT_REACTIONS = upstreamReactions.map(({ id, glyph }) => ({
+  id,
+  emoji: glyph,
+}));
+export type { ChatReaction } from "~/constants/chat";
 
 export function isStableChatMessageId(value: unknown): value is string {
   return (

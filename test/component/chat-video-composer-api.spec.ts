@@ -16,6 +16,7 @@ const chatMessage = fs
     "utf8",
   )
   .replace(/\r\n/g, "\n");
+const mediaMessage = fs.readFileSync(path.resolve(__dirname, "../../components/chat/ChatMessageMedia.vue"), "utf8").replace(/\r\n/g, "\n");
 const chatInput = fs.readFileSync(
   path.resolve(__dirname, "../../components/chat/ChatInput.vue"),
   "utf8",
@@ -45,7 +46,7 @@ describe("Short Video API routing and local recording startup", () => {
     expect(phonePage).toContain(
       "const api = `https://${config.public.apiDomain}/matches/chat-video`;",
     );
-    expect(chatMessage).toContain("/matches/chat-video/media/");
+    expect(mediaMessage).toContain("/matches/chat-video/media/");
     expect(phonePage).toContain("`${api}/phone/upload`");
     expect(phonePage).toContain("`${api}/phone/send`");
     expect(phonePage).toContain("`${api}/phone/retake`");
@@ -102,14 +103,14 @@ describe("Short Video API routing and local recording startup", () => {
   });
 
   it("keeps text rendering intact and uses the custom player only for video media", () => {
-    expect(chatMessage).toContain('v-if="message.message"');
+    expect(chatMessage).toContain('v-else-if="hasText"');
     // The text renders through messageSegments (plain text split around
     // @mentions); behavior is covered in chat-mentions.spec.ts.
     expect(chatMessage).toContain("{{ segment.text }}");
-    expect(chatMessage).toContain(
-      "<ChatVideoPlayer\n        v-if=\"message.media?.type === 'video' && !message.blocked\"",
-    );
-    expect(chatMessage).toContain("message.attachment");
+    expect(mediaMessage).toContain("<ChatVideoPlayer");
+    expect(mediaMessage).toContain("message.media?.type === 'video'");
+    expect(mediaMessage).toContain('v-if="!message.blocked"');
+    expect(chatMessage).toContain("message?.attachments");
   });
 
   it("creates a phone session only from Use phone and shows its loading state", () => {
