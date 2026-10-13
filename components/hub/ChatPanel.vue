@@ -29,7 +29,7 @@ import {
   Globe,
   X,
   Video,
-  BellRing,
+  Gavel,
   MoreHorizontal,
 } from "lucide-vue-next";
 import { useRouter } from "#app";
@@ -744,9 +744,9 @@ function handleMessageReceived(payload: {
 }
 
 function getRoomIcon(tab: ChatTab) {
-  if (tab.type === "announcement") return BellRing;
+  if (tab.type === "announcement") return Megaphone;
   if (tab.type === "tournament") return Trophy;
-  if (tab.type === "organizers") return Megaphone;
+  if (tab.type === "organizers") return Gavel;
   if (tab.id.startsWith("matchmaking:")) return Merge;
   if (tab.type === "match" || tab.type === "draft") return Sword;
   if (

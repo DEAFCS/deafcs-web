@@ -5029,7 +5029,9 @@
         "pin_shortcut": "Pin to the dock",
         "unpin_shortcut": "Unpin from the dock",
         "remove_shortcut": "Remove until a new message",
-        "hide_shortcut": "Never show on the dock"
+        "hide_shortcut": "Never show on the dock",
+        "pin": "Keep the hub open",
+        "unpin": "Let the hub close on its own"
       },
       "empty": {
         "party_title": "No lobby yet"

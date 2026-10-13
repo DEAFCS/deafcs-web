@@ -360,6 +360,23 @@ export function useChatTabs() {
     };
   }
 
+  // Patches in an avatar fetched after the tab already exists -- used by
+  // useIncomingDirectMessages, whose ChatMessage notification row carries
+  // no avatar, so a DM arriving from someone with no prior open
+  // conversation registers its tab avatar-less and fills it in once the
+  // player lookup resolves (see that composable for why).
+  function setAvatarUrl(id: string, avatarUrl: string) {
+    const idx = findTabIndex(id);
+    if (idx === -1 || !avatarUrl) {
+      return;
+    }
+    tabsRef.value[idx] = {
+      ...tabsRef.value[idx],
+      avatarUrl,
+    };
+    persistDmTabs(tabsRef.value);
+  }
+
   // Only ever moves forward: a room's history arriving after a live message
   // must not make it look older than it is.
   function noteActivity(id: string, at: number = Date.now()) {
@@ -499,6 +516,7 @@ export function useChatTabs() {
     closeTab,
     setActiveTab,
     setPinned,
+    setAvatarUrl,
     incrementUnread,
     incrementMention,
     noteActivity,

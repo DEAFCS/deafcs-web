@@ -13,7 +13,7 @@
 import { watch } from "vue";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $, order_by } from "~/generated/zeus";
-import { generateMutation } from "~/graphql/graphqlGen";
+import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import { useChatTabs } from "~/composables/useChatTabs";
@@ -58,10 +58,29 @@ export async function markDirectMessagesRead(lobbyId: string) {
   }
 }
 
+async function fetchAvatarUrl(steamId: string): Promise<string | undefined> {
+  try {
+    const { data } = await getGraphqlClient().query({
+      query: generateQuery({
+        players_by_pk: [
+          { steam_id: steamId },
+          { avatar_url: true, custom_avatar_url: true },
+        ],
+      }),
+      fetchPolicy: "cache-first",
+    });
+    const player = data?.players_by_pk;
+    return player?.custom_avatar_url || player?.avatar_url || undefined;
+  } catch (error) {
+    console.error("failed to fetch avatar for incoming DM tab", error);
+    return undefined;
+  }
+}
+
 export function useIncomingDirectMessages() {
   const authStore = useAuthStore();
   const { subscribe } = useSubscriptionManager();
-  const { tabs, registerTabIfMissing, incrementUnread, activeTabId } =
+  const { tabs, registerTabIfMissing, setAvatarUrl, incrementUnread, activeTabId } =
     useChatTabs();
   const { rightSidebarOpen } = useRightSidebar();
   const { activeHub } = useHubState();
@@ -103,6 +122,16 @@ export function useIncomingDirectMessages() {
         lobbyId,
         pinned: false,
         otherSteamId,
+      });
+
+      // Reported bug: a DM arriving from someone with no conversation
+      // open yet showed the fallback initial instead of their avatar.
+      // The ChatMessage notification row (above) carries no avatar at
+      // all -- unlike openDirectMessage's "Message" button, which gets
+      // it straight from the profile already loaded in memory -- so it
+      // has to be fetched here once the tab is registered.
+      fetchAvatarUrl(otherSteamId).then((avatarUrl) => {
+        if (avatarUrl) setAvatarUrl(tabId, avatarUrl);
       });
     }
 

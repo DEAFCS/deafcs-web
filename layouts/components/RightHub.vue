@@ -2,7 +2,6 @@
 import { Sidebar } from "~/components/ui/sidebar";
 import {
   Bell,
-  BellRing,
   Globe,
   History,
   Users,
@@ -11,7 +10,9 @@ import {
   Swords,
   Merge,
   Megaphone,
+  Gavel,
   Trophy,
+  Pin,
 } from "lucide-vue-next";
 import { useMediaQuery } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
@@ -60,8 +61,11 @@ import LobbyPanel from "~/components/hub/LobbyPanel.vue";
 // 5Stack's floating hub dock (layouts/components/RightHub.vue). DEAFCS
 // differences, each marked below:
 // - no Voice app: Alerts, Lobby, Friends, Chat, Recent Matches;
-// - a click pins the hub, and clicking the open app again closes it (the
-//   bottom Pin button is gone -- the click is the pin);
+// - resting the pointer on a dock icon never opens anything -- only a
+//   click does, and a click pins the hub open at once. The bottom Pin
+//   button is back (see the nav's own comment near the template) as an
+//   explicit, always-visible toggle, since a click already pins and
+//   there is no longer a hover preview to distinguish it from;
 // - Chat keeps DEAFCS's two counts: amber for unread, red for private
 //   messages, announcements and @-mentions.
 
@@ -150,9 +154,8 @@ function queueHoverClose() {
   }, DOCK_CLOSE_DELAY_MS);
 }
 
-// Opening starts from an icon the pointer settles on (hoverOpen below), not
-// from touching the dock, so brushing past it on the way to a scrollbar opens
-// nothing. Leaving closes it unless it is pinned or holds a half-typed message.
+// Only a click opens the hub (clickHub below) -- hovering the dock never
+// does. Leaving closes it unless it is pinned or holds a half-typed message.
 function onMouseEnter() {
   isPointerInsideHub.value = true;
   clearCloseTimer();
@@ -276,14 +279,6 @@ function showHub(hub: HubName) {
   if (!rightSidebarOpen.value) setRightSidebarOpen(true);
 }
 
-function hoverOpen(hub: HubName) {
-  if (dockIntent.shouldHold(hub, () => hoverOpen(hub))) return;
-  if (rightSidebarOpen.value && (activeHub.value === hub || composerBusy())) {
-    return;
-  }
-  showHub(hub);
-}
-
 // DEAFCS: a click is "keep this open". It opens the app and pins the hub at
 // once; clicking the app that is already pinned open closes the hub (and
 // unpins it); clicking another app switches and stays pinned. On a phone
@@ -305,8 +300,8 @@ function keepOpen() {
   if (!isMobile.value && !isPinned.value) togglePin();
 }
 
-// The outlined "preview" look is for a desktop hover that will close on its
-// own; a pinned hub, and any open hub on a phone, stays -- filled.
+// The outlined look is for an icon that isn't the pinned-open app; a
+// pinned hub, and any open hub on a phone, stays -- filled.
 const dockPreview = computed(() => !isPinned.value && !isMobile.value);
 
 // Alerts: anything waiting on an answer.
@@ -453,10 +448,10 @@ const chatUnreadTotal = computed(
 );
 
 function shortcutIcon(tab: ChatTab) {
-  if (tab.type === "announcement") return BellRing;
+  if (tab.type === "announcement") return Megaphone;
   if (tab.type === "global") return Globe;
   if (tab.type === "tournament") return Trophy;
-  if (tab.type === "organizers") return Megaphone;
+  if (tab.type === "organizers") return Gavel;
   if (tab.id.startsWith("matchmaking:")) return Merge;
   if (tab.type === "match") return Swords;
   return null;
@@ -492,13 +487,6 @@ function openChatTab(tab: ChatTab) {
   setActiveTab(tab.id);
   showHub("chat");
   keepOpen();
-}
-
-function hoverOpenChat(tab: ChatTab) {
-  if (dockIntent.shouldHold(undefined, () => hoverOpenChat(tab))) return;
-  if (rightSidebarOpen.value && composerBusy()) return;
-  setActiveTab(tab.id);
-  showHub("chat");
 }
 
 // Friends: a request needs an answer and replaces the online count until it
@@ -741,7 +729,6 @@ function onHubTouchEnd(e: TouchEvent) {
           :unread="hasNotifications"
           :badge="inboxBadge"
           @select="clickHub('notifications')"
-          @intent="hoverOpen('notifications')"
         >
           <Bell
             :key="bellRing"
@@ -764,7 +751,6 @@ function onHubTouchEnd(e: TouchEvent) {
           :pip="lobbyMemberCount > 0 || !!queueDetails"
           :caption="queueClock"
           @select="clickHub('lobby')"
-          @intent="hoverOpen('lobby')"
         >
           <Tent class="size-[18px]" />
         </HubDockItem>
@@ -793,7 +779,6 @@ function onHubTouchEnd(e: TouchEvent) {
                 : 'neutral'
           "
           @select="clickHub('social')"
-          @intent="hoverOpen('social')"
         >
           <Users class="size-[18px]" />
         </HubDockItem>
@@ -832,7 +817,6 @@ function onHubTouchEnd(e: TouchEvent) {
                     : null
                 "
                 @select="clickHub('chat')"
-                @intent="hoverOpen('chat')"
               >
                 <MessageSquare class="size-[18px]" />
               </HubDockItem>
@@ -933,7 +917,6 @@ function onHubTouchEnd(e: TouchEvent) {
                         : null
                     "
                     @select="openChatTab(tab)"
-                    @intent="hoverOpenChat(tab)"
                   >
                     <img
                       v-if="tab.type === 'direct' && tab.avatarUrl"
@@ -982,12 +965,37 @@ function onHubTouchEnd(e: TouchEvent) {
           :active="isHubActive('recent-games')"
           :preview="dockPreview"
           @select="clickHub('recent-games')"
-          @intent="hoverOpen('recent-games')"
         >
           <History class="size-[18px]" />
         </HubDockItem>
 
         <div class="flex-1" />
+
+        <!-- Explicit pin, back at the bottom of the dock. A click already
+             pins the hub it opens, so this isn't how pinning normally
+             happens -- it's for keeping the hub open while switching apps
+             with the pointer resting elsewhere, or deliberately unpinning
+             an app that was only opened to glance at. Desktop only: a
+             phone has no "closes when you look away" state to override. -->
+        <button
+          v-if="!isMobile"
+          type="button"
+          class="flex size-8 items-center justify-center rounded-full transition-colors"
+          :class="
+            isPinned
+              ? 'text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground'
+              : 'text-sidebar-foreground/30 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground/60'
+          "
+          :aria-label="
+            isPinned
+              ? $t('layouts.hub.dock.unpin')
+              : $t('layouts.hub.dock.pin')
+          "
+          :aria-pressed="isPinned"
+          @click="togglePin"
+        >
+          <Pin class="size-4 transition-transform" :class="isPinned ? 'rotate-0' : 'rotate-45'" />
+        </button>
       </nav>
     </div>
   </component>
