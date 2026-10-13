@@ -56,6 +56,14 @@ import { toast } from "@/components/ui/toast";
 
 definePageMeta({ persistQueryKeys: ["invite"] });
 
+// Looks like its TabsTrigger neighbours (components/ui/tabs/TabsTrigger.vue and
+// tacticalTabsTriggerClasses), minus the active state: it is never selected.
+const teamChatEntryClasses =
+  "relative z-[1] inline-flex items-center justify-center gap-[0.45rem] whitespace-nowrap rounded-md px-3 py-1.5 font-sans text-[0.7rem] font-semibold uppercase tracking-[0.14em] ring-offset-background transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+// The tournament page's Chat Room badge, unchanged.
+const teamChatUnreadClasses =
+  "inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 font-sans text-[0.6rem] font-bold leading-none tracking-normal text-white tabular-nums";
+
 const teamMenu = ref(false);
 
 // Scrim requests waiting on the team, for the Scrim Finder tab's badge. The
@@ -181,6 +189,18 @@ const scrimNeedsCount = computed(
        instant instead of refetching and re-skeletoning. -->
   <Tabs v-if="team" v-model="tab" :unmount-on-hide="false" class="mt-8 w-full">
     <MobileTabSelect v-model="tab" :items="tabItems(scrimNeedsCount)" />
+    <button
+      v-if="chatRoomTeam"
+      type="button"
+      class="mt-2 inline-flex h-9 w-full items-center justify-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium text-foreground md:hidden"
+      data-testid="team-chat-tab-mobile"
+      @click="openChatRoom"
+    >
+      {{ $t("team.tabs.chat") }}
+      <span v-if="chatRoomUnreadLabel" :class="teamChatUnreadClasses">{{
+        chatRoomUnreadLabel
+      }}</span>
+    </button>
     <div class="overflow-x-auto max-md:hidden">
       <TabsList variant="underline" class="h-auto flex-nowrap justify-start">
         <TabsTrigger value="overview">{{
@@ -194,6 +214,27 @@ const scrimNeedsCount = computed(
         <TabsTrigger value="highlights">{{
           $t("team.tabs.highlights")
         }}</TabsTrigger>
+        <!-- Not a tab: opens this team's private room in the Chat Hub and
+             stays on this page. Only shown while the Chat Hub itself lists
+             this team (its current roster). -->
+        <button
+          v-if="chatRoomTeam"
+          type="button"
+          :class="teamChatEntryClasses"
+          data-testid="team-chat-tab"
+          @click="openChatRoom"
+        >
+          <span class="truncate">{{ $t("team.tabs.chat") }}</span>
+          <span
+            v-if="chatRoomUnreadLabel"
+            :class="teamChatUnreadClasses"
+            data-testid="team-chat-unread"
+            ><span aria-hidden="true">{{ chatRoomUnreadLabel }}</span
+            ><span class="sr-only">{{
+              $t("team.tabs.chat_unread", { count: chatRoomUnread })
+            }}</span></span
+          >
+        </button>
         <TabsTrigger v-if="showScrimTab" value="scrim">
           {{ $t("team.tabs.scrim") }}
           <span
@@ -417,6 +458,14 @@ import { awardFields } from "~/graphql/awardFields";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { recipientToGrant } from "~/components/teams/teamAwards";
 import { forgetDeletedTeam } from "~/utilities/teamsListCache";
+import { useChatTabs } from "~/composables/useChatTabs";
+import {
+  findChatTeam,
+  formatTeamChatUnread,
+  openTeamChatRoom,
+  teamChatTabId,
+} from "~/composables/useTeamChatRoom";
+import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 
 const VALID_TABS = [
   "overview",
@@ -776,8 +825,28 @@ export default {
     canDeleteTeam() {
       return this.isTeamOwner || this.isAdmin;
     },
+    // The Chat Hub's own list of teams this viewer is on now; the Chat entry
+    // only exists while this team is in it, so a non-member sees nothing.
+    chatRoomTeam() {
+      return findChatTeam(useMatchLobbyStore().chatTeams, this.team?.id);
+    },
+    // The Chat Hub's existing unread count for this room, not a copy.
+    chatRoomUnread(): number {
+      if (!this.chatRoomTeam) return 0;
+      return (
+        useChatTabs().unreadCounts.value[teamChatTabId(this.chatRoomTeam.id)] ??
+        0
+      );
+    },
+    chatRoomUnreadLabel(): string {
+      return formatTeamChatUnread(this.chatRoomUnread);
+    },
   },
   methods: {
+    openChatRoom() {
+      if (!this.chatRoomTeam) return;
+      openTeamChatRoom(this.chatRoomTeam);
+    },
     tabItems(scrimCount: number): Array<{ value: string; label: string }> {
       return [
         { value: "overview", label: this.$t("team.tabs.overview") },

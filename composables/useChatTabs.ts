@@ -377,6 +377,22 @@ export function useChatTabs() {
     persistDmTabs(tabsRef.value);
   }
 
+  // Keeps an open room's name and picture in step with its source (a team
+  // renamed or given a new logo), without touching its pin, order or unread.
+  function patchTab(id: string, patch: { label?: string; avatarUrl?: string }) {
+    const idx = findTabIndex(id);
+    if (idx === -1) {
+      return;
+    }
+    const current = tabsRef.value[idx];
+    const label = patch.label || current.label;
+    const avatarUrl = patch.avatarUrl ?? current.avatarUrl;
+    if (label === current.label && avatarUrl === current.avatarUrl) {
+      return;
+    }
+    tabsRef.value[idx] = { ...current, label, avatarUrl };
+  }
+
   // Only ever moves forward: a room's history arriving after a live message
   // must not make it look older than it is.
   function noteActivity(id: string, at: number = Date.now()) {
@@ -517,6 +533,7 @@ export function useChatTabs() {
     setActiveTab,
     setPinned,
     setAvatarUrl,
+    patchTab,
     incrementUnread,
     incrementMention,
     noteActivity,

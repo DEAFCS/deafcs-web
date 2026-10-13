@@ -6442,6 +6442,8 @@
       "overview": "Overview",
       "stats": "Stats",
       "highlights": "Highlights",
+      "chat": "Chat",
+      "chat_unread": "{count} unread team chat messages",
       "scrim": "Scrim Finder"
     },
     "scrim_open_description": "This team is open to scrims — pick a time from their availability and send a challenge.",

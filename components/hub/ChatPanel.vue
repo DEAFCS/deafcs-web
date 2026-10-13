@@ -16,7 +16,11 @@ import {
 } from "~/components/ui/dropdown-menu";
 import NewConversation from "~/components/hub/NewConversation.vue";
 import NewChatRailButton from "~/components/hub/NewChatRailButton.vue";
-import { useDockShortcutPrefs } from "~/composables/useDockShortcutPrefs";
+import {
+  isDefaultDockRoomType,
+  useDockShortcutPrefs,
+} from "~/composables/useDockShortcutPrefs";
+import { hideTeamChat } from "~/composables/useTeamChatRoom";
 import { useMediaQuery } from "@vueuse/core";
 import {
   Megaphone,
@@ -195,7 +199,8 @@ const orderedTabs = computed<ChatTab[]>(() => {
     if (tab.type === "organizers") return 2;
     if (tab.type === "global") return 0;
     if (tab.type === "tournament") return 3;
-    return 4;
+    if (tab.type === "team") return 4;
+    return 5;
   };
   const base = tabs.value
     .filter((tab) => canShowRoom(tab) && !isTeamRoom(tab))
@@ -509,6 +514,9 @@ watch(
 function removeConversation(tabId: string) {
   const tab = tabs.value.find((tab) => tab.id === tabId);
   if (!tab || tab.pinned) return;
+  // A closed Team Chat stays closed (useChatTabSetup would otherwise open it
+  // again on the next load); the team page's Chat entry reopens it.
+  if (tab.type === "team") hideTeamChat(tab.lobbyId);
   closeTab(tabId);
   activeChatId.value = activeTabId.value;
 }
@@ -525,7 +533,7 @@ const firstDirectTabId = computed(
 // DEAFCS's existing unread paths use activeTabId to decide whether a room is
 // being read. The compose screen keeps listeners mounted, but reads no room.
 watch(composing, (open) => setActiveTab(open ? null : activeChatId.value));
-const { isPinned: isShortcutPinned, togglePin: toggleShortcutPin } =
+const { isOnDock: isShortcutOnDock, togglePin: toggleShortcutPin } =
   useDockShortcutPrefs();
 function onDock(tab: ChatTab) {
   return ![
@@ -997,6 +1005,22 @@ function openTournamentWebcamWindow() {
                             />
                           </div>
                           <div
+                            v-else-if="tab.type === 'team' && tab.avatarUrl"
+                            class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset bg-zinc-900/80"
+                            :class="
+                              activeChatId === tab.id
+                                ? 'ring-zinc-500'
+                                : 'ring-zinc-700 group-hover:ring-zinc-600'
+                            "
+                          >
+                            <img
+                              :src="tab.avatarUrl"
+                              alt=""
+                              draggable="false"
+                              class="w-full h-full object-cover"
+                            />
+                          </div>
+                          <div
                             v-else
                             class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-inherit transition-colors"
                             :class="
@@ -1069,9 +1093,15 @@ function openTournamentWebcamWindow() {
                 <ContextMenuContent data-right-hub-interactive>
                   <ContextMenuItem
                     v-if="onDock(tab)"
-                    @select="toggleShortcutPin(tab.id, tab.type !== 'direct')"
+                    @select="
+                      toggleShortcutPin(
+                        tab.id,
+                        tab.type !== 'direct',
+                        isDefaultDockRoomType(tab.type),
+                      )
+                    "
                     >{{
-                      isShortcutPinned(tab.id)
+                      isShortcutOnDock(tab.id, isDefaultDockRoomType(tab.type))
                         ? $t("layouts.hub.dock.unpin_shortcut")
                         : $t("layouts.hub.dock.pin_shortcut")
                     }}</ContextMenuItem
@@ -1137,18 +1167,29 @@ function openTournamentWebcamWindow() {
               :subtitle="getRoomSubtitle(activeTab)"
               @navigate="tooltipEpoch++"
             />
-            <div v-else class="min-w-0">
-              <div class="text-xs font-semibold text-foreground truncate">
-                {{ activeTab?.label || $t("layouts.chat_panel.default_title") }}
+            <template v-else>
+              <img
+                v-if="activeTab?.type === 'team' && activeTab.avatarUrl"
+                :src="activeTab.avatarUrl"
+                alt=""
+                draggable="false"
+                class="h-7 w-7 shrink-0 rounded-md object-cover ring-1 ring-inset ring-zinc-700"
+              />
+              <div class="min-w-0">
+                <div class="text-xs font-semibold text-foreground truncate">
+                  {{
+                    activeTab?.label || $t("layouts.chat_panel.default_title")
+                  }}
+                </div>
+                <div
+                  class="flex items-center gap-2 text-[10px] text-muted-foreground truncate"
+                >
+                  <span>
+                    {{ activeTab ? getRoomSubtitle(activeTab) : "" }}
+                  </span>
+                </div>
               </div>
-              <div
-                class="flex items-center gap-2 text-[10px] text-muted-foreground truncate"
-              >
-                <span>
-                  {{ activeTab ? getRoomSubtitle(activeTab) : "" }}
-                </span>
-              </div>
-            </div>
+            </template>
           </div>
           <div class="flex items-center gap-1.5">
             <TooltipProvider :ignore-non-keyboard-focus="true">
@@ -1256,10 +1297,14 @@ function openTournamentWebcamWindow() {
                       toggleShortcutPin(
                         activeTab.id,
                         activeTab.type !== 'direct',
+                        isDefaultDockRoomType(activeTab.type),
                       )
                     "
                     >{{
-                      isShortcutPinned(activeTab.id)
+                      isShortcutOnDock(
+                        activeTab.id,
+                        isDefaultDockRoomType(activeTab.type),
+                      )
                         ? $t("layouts.hub.dock.unpin_shortcut")
                         : $t("layouts.hub.dock.pin_shortcut")
                     }}</DropdownMenuItem

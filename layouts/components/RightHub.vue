@@ -32,6 +32,7 @@ import {
 import { useFriendArrivals } from "~/composables/useFriendArrivals";
 import {
   useDockShortcutPrefs,
+  isDefaultDockRoomType,
   DOCK_SHORTCUT_LIMIT_OPTIONS,
 } from "~/composables/useDockShortcutPrefs";
 import {
@@ -337,7 +338,7 @@ const RECENT_ACTIVITY_MS = 24 * 60 * 60 * 1000;
 const {
   prefs: dockPrefs,
   setLimit: setShortcutLimit,
-  isPinned: isShortcutPinned,
+  isOnDock: isShortcutOnDock,
   togglePin: toggleShortcutPin,
   dismiss: dismissShortcut,
   hide: hideShortcut,
@@ -359,7 +360,7 @@ const chatShortcuts = computed(() => {
   // Registered foundation rooms have already passed useChatTabSetup role gates.
   const isDefault = (tab: ChatTab) =>
     maxRooms > 0 &&
-    ["global", "announcement", "organizers"].includes(tab.type) &&
+    isDefaultDockRoomType(tab.type) &&
     dismissed[tab.id] === undefined;
 
   const candidates = chatTabs.value.filter(
@@ -933,6 +934,13 @@ function onHubTouchEnd(e: TouchEvent) {
                       draggable="false"
                       img-class="size-full select-none object-cover"
                     />
+                    <img
+                      v-else-if="tab.type === 'team' && tab.avatarUrl"
+                      :src="tab.avatarUrl"
+                      :alt="tab.label"
+                      draggable="false"
+                      class="size-full select-none object-cover"
+                    />
                     <span
                       v-else
                       class="grid size-full place-items-center bg-[linear-gradient(140deg,#3f3f46,#1f1f23)] text-[0.65rem] font-semibold text-zinc-200"
@@ -948,10 +956,16 @@ function onHubTouchEnd(e: TouchEvent) {
                 </ContextMenuTrigger>
                 <ContextMenuContent class="w-52" data-right-hub-interactive>
                   <ContextMenuItem
-                    @select="toggleShortcutPin(tab.id, tab.type !== 'direct')"
+                    @select="
+                      toggleShortcutPin(
+                        tab.id,
+                        tab.type !== 'direct',
+                        isDefaultDockRoomType(tab.type),
+                      )
+                    "
                   >
                     {{
-                      isShortcutPinned(tab.id)
+                      isShortcutOnDock(tab.id, isDefaultDockRoomType(tab.type))
                         ? $t("layouts.hub.dock.unpin_shortcut")
                         : $t("layouts.hub.dock.pin_shortcut")
                     }}

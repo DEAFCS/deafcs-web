@@ -9,7 +9,7 @@ definePageMeta({
 const authStore = useAuthStore();
 
 const canAccess = computed(() =>
-  authStore.isRoleAbove(e_player_roles_enum.match_organizer),
+  authStore.isRoleAbove(e_player_roles_enum.moderator),
 );
 </script>
 

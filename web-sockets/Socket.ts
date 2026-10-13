@@ -5,6 +5,7 @@ import { CHAT_REACTIONS, type ChatReaction } from "~/utils/chatReactions";
 import type { ChatAttachment, ChatGif } from "~/utilities/chatAttachments";
 
 import guid from "~/utilities/uuid";
+import { isTeamChatHidden } from "~/composables/useTeamChatRoom";
 import {
   toastChatError,
   type ChatAction,
@@ -1112,6 +1113,12 @@ socket.listen(
       "team",
     ];
     if (!registrableTypes.includes(type)) {
+      return;
+    }
+
+    // A Team Chat the player closed stays closed: its pings neither bring the
+    // tab back nor count (see useTeamChatRoom).
+    if (type === "team" && isTeamChatHidden(id)) {
       return;
     }
 

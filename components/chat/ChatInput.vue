@@ -308,7 +308,7 @@ const MENTION_ROOM_TYPES = [
   "matchmaking",
 ];
 
-// Global is verified_user+ and Organizer is match_organizer+, so the list
+// Global is verified_user+ and Organizer is moderator+, so the list
 // only offers people who can actually read the room there.
 const GLOBAL_MENTION_ROLES = [
   "verified_user",
@@ -319,6 +319,7 @@ const GLOBAL_MENTION_ROLES = [
   "administrator",
 ];
 const ORGANIZER_MENTION_ROLES = [
+  "moderator",
   "match_organizer",
   "tournament_organizer",
   "administrator",

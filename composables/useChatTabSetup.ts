@@ -6,6 +6,11 @@ import { useAuthStore } from "~/stores/AuthStore";
 import { e_player_roles_enum } from "~/generated/zeus";
 import socket, { type ChatType, type Lobby } from "~/web-sockets/Socket";
 import { isChatTabHeldByContext } from "~/composables/useChatHubContext";
+import {
+  isTeamChatHidden,
+  teamChatTab,
+  teamChatTabId,
+} from "~/composables/useTeamChatRoom";
 
 export function useChatTabSetup() {
   const { t } = useI18n();
@@ -16,6 +21,7 @@ export function useChatTabSetup() {
     closeTab,
     setActiveTab,
     setPinned,
+    patchTab,
     unreadCounts,
     clearUnread,
     noteActivity,
@@ -24,8 +30,10 @@ export function useChatTabSetup() {
   const matchLobbyStore = useMatchLobbyStore();
   const authStore = useAuthStore();
 
+  // Moderators join the organizers and administrators in Organizer Chat. The
+  // API (ChatService.ORGANIZER_CHAT_MIN_ROLE) is the real gate.
   const isOrganizer = computed(() =>
-    authStore.isRoleAbove(e_player_roles_enum.match_organizer),
+    authStore.isRoleAbove(e_player_roles_enum.moderator),
   );
   const canUseGlobalChat = computed(() =>
     authStore.isRoleAbove(e_player_roles_enum.verified_user),
@@ -149,6 +157,41 @@ export function useChatTabSetup() {
         if (id.startsWith("tournament:") && !activeIds.has(id)) {
           clearUnread(id);
         }
+      }
+    }
+  }
+
+  // One private room per team the player is on. A new team (or a room the
+  // player never closed) appears on its own; a room they closed stays closed
+  // until they open it from the team page, and a team they left disappears.
+  function ensureTeamChatTabs() {
+    const teams = (matchLobbyStore.chatTeams ?? []) as any[];
+
+    for (const team of teams) {
+      const tab = teamChatTab(team);
+      const existing = tabs.value.find((candidate) => candidate.id === tab.id);
+      if (existing) {
+        patchTab(tab.id, { label: tab.label, avatarUrl: tab.avatarUrl });
+        continue;
+      }
+      if (isTeamChatHidden(team.id)) continue;
+      openTab(tab, { setActive: false });
+    }
+
+    const eligibleIds = new Set(teams.map((team: any) => teamChatTabId(team.id)));
+
+    // Only once the subscription has actually reported (chatTeamsLoaded), so
+    // the empty initial value never closes a room or wipes a real count.
+    if (!matchLobbyStore.chatTeamsLoaded) return;
+
+    for (const tab of [...tabs.value]) {
+      if (tab.type === "team" && !eligibleIds.has(tab.id)) {
+        closeTab(tab.id);
+      }
+    }
+    for (const id of Object.keys(unreadCounts.value)) {
+      if (id.startsWith("team:") && !eligibleIds.has(id)) {
+        clearUnread(id);
       }
     }
   }
@@ -322,6 +365,14 @@ export function useChatTabSetup() {
     () => matchLobbyStore.chatTournaments,
     () => {
       ensureTournamentChatTabs();
+    },
+    { immediate: true, deep: true },
+  );
+
+  watch(
+    () => [matchLobbyStore.chatTeams, authStore.me?.steam_id],
+    () => {
+      ensureTeamChatTabs();
     },
     { immediate: true, deep: true },
   );

@@ -13,6 +13,12 @@ import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { setActiveHub } from "~/composables/useHubState";
 import { requestChatHubFocus } from "~/composables/useChatHubContext";
+import {
+  findChatTeam,
+  teamChatTab,
+  unhideTeamChat,
+} from "~/composables/useTeamChatRoom";
+import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 
 const PLAYER_QUERY = gql`
   query ChatNotificationPlayer($steamId: bigint!) {
@@ -59,6 +65,30 @@ async function waitForMe(timeoutMs = 8000): Promise<string | undefined> {
     setTimeout(() => {
       stop();
       resolve(auth.me?.steam_id ? String(auth.me.steam_id) : undefined);
+    }, timeoutMs);
+  });
+}
+
+// A Team Chat tab needs the team's name and logo, which come from the player's
+// own team list. On a cold app open that list has not arrived yet, so wait for
+// it briefly instead of opening a nameless room.
+async function waitForChatTeams(timeoutMs = 8000): Promise<void> {
+  const store = useMatchLobbyStore();
+  if (store.chatTeamsLoaded) return;
+
+  return new Promise((resolve) => {
+    const stop = watch(
+      () => store.chatTeamsLoaded,
+      (loaded) => {
+        if (loaded) {
+          stop();
+          resolve();
+        }
+      },
+    );
+    setTimeout(() => {
+      stop();
+      resolve();
     }, timeoutMs);
   });
 }
@@ -165,6 +195,22 @@ export function useChatNotificationNavigation() {
       if (!draftId) return false;
       requestChatHubFocus(entityId);
       await navigateTo(`/draft-room/${draftId}`);
+      return true;
+    }
+
+    // A team's private room: only for a team the player is on (the API refuses
+    // everyone else anyway). Opening it from a notification is an explicit
+    // action, so it also brings back a room the player had closed.
+    if (type === "team") {
+      const lobbyId = entityId.slice(type.length + 1);
+      if (!lobbyId) return false;
+      await waitForChatTeams();
+      const team = findChatTeam(useMatchLobbyStore().chatTeams, lobbyId);
+      if (!team) return false;
+      unhideTeamChat(team.id);
+      const tab = teamChatTab(team);
+      openTab(tab);
+      focusTab(tab.id);
       return true;
     }
 

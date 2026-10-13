@@ -228,6 +228,49 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
     );
   };
 
+  const subscribeToChatTeams = async () => {
+    const me = useAuthStore().me;
+    if (!me) {
+      return;
+    }
+
+    const subscription = getGraphqlClient().subscribe({
+      query: generateSubscription({
+        teams: [
+          {
+            where: {
+              _or: [
+                { owner_steam_id: { _eq: me.steam_id } },
+                { roster: { player_steam_id: { _eq: me.steam_id } } },
+              ],
+            },
+            order_by: [{ name: order_by.asc }],
+          },
+          {
+            id: true,
+            name: true,
+            short_name: true,
+            avatar_url: true,
+          },
+        ],
+      }),
+    });
+
+    const { subscribe } = useSubscriptionManager();
+    subscribe(
+      "matchLobby:chatTeams",
+      subscription.subscribe({
+        next: ({ data }) => {
+          chatTeams.value = data?.teams || [];
+          chatTeamsLoaded.value = true;
+        },
+        error: (error) => {
+          console.error("Error in chat teams subscription:", error);
+        },
+      }),
+    );
+  };
+
   const subscribeToManagingMatches = async () => {
     const me = useAuthStore().me;
     if (!me) {
@@ -513,6 +556,7 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
     subscribeToLiveTournaments,
     subscribeToOpenRegistrationTournaments,
     subscribeToChatTournaments,
+    subscribeToChatTeams,
   };
 });
 

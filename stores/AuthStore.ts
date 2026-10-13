@@ -193,6 +193,8 @@ export const useAuthStore = defineStore("auth", (): AuthStoreSetup => {
       useMatchLobbyStore().subscribeToOpenRegistrationTournaments();
       // Chat-scoped tournaments (live & joined, or organizer)
       useMatchLobbyStore().subscribeToChatTournaments();
+      // Private Team Chat rooms of the teams this player is on
+      useMatchLobbyStore().subscribeToChatTeams();
     }
 
     if (shouldStartManagingMatches) {

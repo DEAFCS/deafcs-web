@@ -15,6 +15,20 @@ const STORAGE_KEY = "hub-dock-shortcuts";
 
 export const DOCK_SHORTCUT_LIMIT_OPTIONS = [0, 1, 2, 3, 4, 5] as const;
 
+// Rooms that sit on the dock from the moment they exist for a player, until
+// the player takes them off (an unpin is remembered, so it is never put back).
+// The Team Chat of each of the player's teams is one of them (DEAFCS).
+export const DEFAULT_DOCK_ROOM_TYPES = [
+  "global",
+  "announcement",
+  "organizers",
+  "team",
+] as const;
+
+export function isDefaultDockRoomType(type: string) {
+  return (DEFAULT_DOCK_ROOM_TYPES as readonly string[]).includes(type);
+}
+
 type DockShortcutPrefs = {
   maxPeople: number;
   maxRooms: number;
@@ -68,10 +82,23 @@ export function useDockShortcutPrefs() {
     return prefs.value.pinned.includes(id);
   }
 
-  function togglePin(id: string, removeOnUnpin = false) {
+  // Whether a conversation is on the dock because of a choice or a default,
+  // which is what the Pin / Unpin label has to say. A default room that was
+  // never touched is already on the dock, so its menu offers Unpin at once.
+  function isOnDock(id: string, defaultOn = false) {
+    if (isPinned(id)) return true;
+    return (
+      defaultOn &&
+      prefs.value.maxRooms > 0 &&
+      prefs.value.dismissed[id] === undefined &&
+      !prefs.value.hidden.includes(id)
+    );
+  }
+
+  function togglePin(id: string, removeOnUnpin = false, defaultOn = false) {
     // Room defaults must not immediately restore a shortcut explicitly unpinned.
     // Direct conversations retain their existing recent-activity behavior.
-    if (removeOnUnpin && isPinned(id)) {
+    if (removeOnUnpin && isOnDock(id, defaultOn)) {
       dismiss(id);
       return;
     }
@@ -112,6 +139,7 @@ export function useDockShortcutPrefs() {
     prefs,
     setLimit,
     isPinned,
+    isOnDock,
     togglePin,
     dismiss,
     hide,
