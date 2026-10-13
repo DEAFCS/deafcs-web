@@ -6,16 +6,26 @@ import {
 } from "~/composables/useRightSidebar";
 
 // Chat Hub header title for a private (direct) message room: the other
-// player's avatar + name, linked to their profile. Uses the same
-// internal named-route NuxtLink as PlayerDisplay.vue and the Captain
-// Pick / Match Overview profile controls, so it is plain same-context
-// client-side navigation: no new-tab target, no popup window and no
-// absolute URL that could trigger an "open in app" handoff. Website
-// stays website, the app stays inside the app.
+// player's avatar and name, both linking to their profile.
+//
+// Markup and classes follow 5Stack's current hub header (components/hub/
+// ChatPanel.vue, upstream ba0628b2): a round avatar link and a name link that
+// turns amber with an underline on hover, with the room's subtitle underneath.
+// The subtitle row can hold a button upstream, which a link can't contain, so
+// the avatar is its own mouse-only link (out of the tab order and hidden from
+// assistive tech) and the name is the one keyboard stop for the player. There
+// is no card, background or tooltip, so nothing is left behind after the
+// pointer moves on or the page navigates.
+//
+// Uses the same internal named-route NuxtLink as PlayerDisplay.vue and the
+// Captain Pick / Match Overview profile controls, so it is plain same-context
+// client-side navigation: no new-tab target, no popup window and no absolute
+// URL that could trigger an "open in app" handoff. Website stays website, the
+// app stays inside the app.
 //
 // On the mobile layout the open Chat Hub covers the page, so it is closed
-// first while preserving its saved pin, and the NuxtLink then
-// navigates as usual. On desktop the Hub stays as it is.
+// first while preserving its saved pin, and the NuxtLink then navigates as
+// usual. On desktop the Hub stays as it is.
 defineProps<{
   steamId: string;
   name: string;
@@ -34,31 +44,39 @@ function closeHubOnMobile() {
 </script>
 
 <template>
-  <NuxtLink
-    :to="{ name: 'players-id', params: { id: steamId } }"
-    class="group/dm-profile -m-1 flex min-w-0 items-center gap-2 rounded-md p-1 transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-    :aria-label="`View ${name}'s profile`"
-    data-testid="chat-direct-profile-link"
-    @click="closeHubOnMobile"
-  >
-    <span
-      class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset ring-zinc-700 bg-zinc-900/80 group-hover/dm-profile:ring-zinc-500"
+  <div class="flex min-w-0 items-center gap-3" data-testid="chat-direct-profile">
+    <NuxtLink
+      :to="{ name: 'players-id', params: { id: steamId } }"
+      tabindex="-1"
+      aria-hidden="true"
+      class="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-muted text-[0.58rem] font-bold text-foreground/80 transition-shadow duration-150 hover:ring-2 hover:ring-[hsl(var(--tac-amber)/0.6)] motion-reduce:transition-none"
+      data-testid="chat-direct-profile-avatar"
+      @click="closeHubOnMobile"
     >
       <LiveAvatarImg
         :steam-id="steamId"
         :fallback-url="avatarUrl"
-        img-class="w-full h-full object-cover"
+        img-class="h-full w-full object-cover"
       />
-    </span>
-    <span class="min-w-0">
-      <span
-        class="block text-xs font-semibold text-foreground truncate group-hover/dm-profile:underline"
+    </NuxtLink>
+    <div class="min-w-0">
+      <div class="flex min-w-0 items-center gap-2">
+        <NuxtLink
+          :to="{ name: 'players-id', params: { id: steamId } }"
+          class="truncate rounded-sm text-xs font-semibold text-foreground underline-offset-2 transition-colors duration-150 hover:text-[hsl(var(--tac-amber))] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))] motion-reduce:transition-none"
+          :aria-label="`View ${name}'s profile`"
+          data-testid="chat-direct-profile-link"
+          @click="closeHubOnMobile"
+        >
+          {{ name }}
+        </NuxtLink>
+      </div>
+      <div
+        v-if="subtitle"
+        class="flex items-center gap-2 truncate text-[10px] text-muted-foreground"
       >
-        {{ name }}
-      </span>
-      <span class="block text-[10px] text-muted-foreground truncate">
-        {{ subtitle }}
-      </span>
-    </span>
-  </NuxtLink>
+        <span>{{ subtitle }}</span>
+      </div>
+    </div>
+  </div>
 </template>

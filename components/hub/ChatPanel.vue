@@ -966,8 +966,13 @@ function openTournamentWebcamWindow() {
             <div class="relative">
               <ContextMenu>
                 <Tooltip>
-                  <TooltipTrigger as-child>
-                    <ContextMenuTrigger as-child>
+                  <!-- ContextMenuTrigger renders a fragment (a virtual anchor at
+                       the pointer, then the button), so it must sit OUTSIDE
+                       TooltipTrigger's as-child: the other way round the tooltip
+                       anchors to that virtual 0x0 point and opens at the top-left
+                       of the screen. -->
+                  <ContextMenuTrigger as-child>
+                    <TooltipTrigger as-child>
                       <button
                         :ref="setChatButtonRef(tab.id)"
                         :data-chat-tab-id="tab.id"
@@ -1071,8 +1076,8 @@ function openTournamentWebcamWindow() {
                           @{{ formatBadgeCount(mentionCounts[tab.id]) }}
                         </span>
                       </button>
-                    </ContextMenuTrigger>
-                  </TooltipTrigger>
+                    </TooltipTrigger>
+                  </ContextMenuTrigger>
                   <TooltipContent
                     side="left"
                     class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-2"

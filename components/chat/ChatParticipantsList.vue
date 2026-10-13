@@ -26,7 +26,7 @@ defineProps<{
         <NuxtLink
           v-if="user.steam_id"
           :to="`/players/${user.steam_id}`"
-          class="-mx-1 flex min-w-0 items-center gap-2 rounded px-1 py-0.5 transition-colors hover:bg-muted/60"
+          class="flex min-w-0 items-center gap-2 transition-colors hover:text-[hsl(var(--tac-amber))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))] motion-reduce:transition-none"
         >
           <LiveAvatarImg
             :steam-id="user.steam_id"
@@ -35,7 +35,7 @@ defineProps<{
           />
           <span class="min-w-0 truncate text-[11px]">{{ user.name }}</span>
         </NuxtLink>
-        <div v-else class="-mx-1 flex min-w-0 items-center gap-2 px-1 py-0.5">
+        <div v-else class="flex min-w-0 items-center gap-2">
           <LiveAvatarImg
             :fallback-url="user.avatar_url"
             img-class="h-5 w-5 rounded-full shrink-0"
