@@ -13,7 +13,6 @@ import ChatPanel from "../../components/hub/ChatPanel.vue";
 import NewConversation from "../../components/hub/NewConversation.vue";
 import { useChatTabs } from "../../composables/useChatTabs";
 import { useDockShortcutPrefs } from "../../composables/useDockShortcutPrefs";
-import { useChatHubSection } from "../../composables/useChatHubSection";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("~/composables/useHubState", () => ({
@@ -47,19 +46,13 @@ vi.mock("~/components/matchmaking-lobby/LobbyCallPanel.vue", () => ({
 vi.mock("~/composables/useDirectMessage", () => ({
   openDirectMessage: vi.fn(),
 }));
-vi.mock("~/components/ui/context-menu", () => {
-  const part = defineComponent({
-    emits: ["select"],
-    setup:
-      (_props, { slots }) =>
-      () =>
-        h("div", slots.default?.()),
-  });
+const navigation = vi.hoisted(() => ({ route: null as any }));
+vi.mock("#app", async () => {
+  const { reactive } = await import("vue");
+  navigation.route = reactive({ fullPath: "/" });
   return {
-    ContextMenu: part,
-    ContextMenuTrigger: part,
-    ContextMenuContent: part,
-    ContextMenuItem: part,
+    useRoute: () => navigation.route,
+    useRouter: () => ({ resolve: () => ({ href: "" }), push: vi.fn() }),
   };
 });
 
@@ -69,8 +62,15 @@ const tabs = useChatTabs();
 beforeEach(() => {
   vi.useFakeTimers();
   localStorage.clear();
+  useDockShortcutPrefs().prefs.value = {
+    maxPeople: 3,
+    maxRooms: 2,
+    pinned: [],
+    dismissed: {},
+    hidden: [],
+  };
+  navigation.route.fullPath = "/";
   tabs.clearAll();
-  useChatHubSection().setSection("all");
   tabs.setTabOrder([]);
   for (const [name, value] of Object.entries({
     nextTick,
@@ -121,16 +121,17 @@ afterEach(() => {
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
-function panel() {
+function panel(realTooltips = false) {
   wrapper = mount(ChatPanel, {
     props: { isSidebarOpen: true, isTabActive: true },
+    attachTo: document.body,
     global: {
       mocks: { $t: (key: string) => key },
       stubs: {
-        TooltipProvider: passthrough,
-        Tooltip: passthrough,
-        TooltipTrigger: passthrough,
-        TooltipContent: passthrough,
+        TooltipProvider: realTooltips ? false : passthrough,
+        Tooltip: realTooltips ? false : passthrough,
+        TooltipTrigger: realTooltips ? false : passthrough,
+        TooltipContent: realTooltips ? false : passthrough,
         ChatMatchHeader: true,
         LiveAvatarImg: true,
         ChatDirectProfileLink: true,
@@ -169,38 +170,142 @@ function layout(w: ReturnType<typeof mount>) {
 }
 
 describe("upstream conversation management with legacy persistence", () => {
-  it("Rooms and People filter the sidebar without closing live conversations", async () => {
-    const w = panel();
-    useChatHubSection().setSection("rooms");
-    await nextTick();
-    expect(w.find('[data-chat-tab-id="global:global"]').exists()).toBe(true);
-    expect(w.find('[data-chat-tab-id="direct:1:2"]').exists()).toBe(false);
-    useChatHubSection().setSection("people");
-    await nextTick();
-    expect(w.find('[data-chat-tab-id="direct:1:2"]').exists()).toBe(true);
-    expect(w.find('[data-chat-tab-id="global:global"]').exists()).toBe(false);
-    expect(tabs.tabs.value).toHaveLength(2);
-  });
-  it("reordering People preserves rooms outside the filtered rail", async () => {
+  it.each(["route", "click"])(
+    "disposes the rail tooltip on profile %s while the hub stays mounted",
+    async (action) => {
+      tabs.setActiveTab("direct:1:2");
+      const w = panel(true);
+      const button = w.get('[data-chat-tab-id="direct:1:2"]');
+      await button.trigger("pointermove", { pointerType: "mouse" });
+      await vi.advanceTimersByTimeAsync(800);
+      await nextTick();
+      expect(document.querySelector('[role="tooltip"]')).toBeTruthy();
+      if (action === "route") navigation.route.fullPath = "/players/2";
+      else
+        w.findComponent({ name: "ChatDirectProfileLink" }).vm.$emit("navigate");
+      await nextTick();
+      expect(document.querySelector('[role="tooltip"]')).toBeNull();
+      expect(w.find('[data-chat-tab-id="direct:1:2"]').exists()).toBe(true);
+    },
+  );
+  it.each([
+    "global",
+    "announcement",
+    "organizers",
+    "tournament",
+    "team",
+    "direct",
+  ] as const)(
+    "the actual sidebar context menu restores a removed %s shortcut and persists",
+    async (type) => {
+      const id =
+        type === "global"
+          ? "global:global"
+          : type === "direct"
+            ? "direct:1:2"
+            : type;
+      if (!["global", "direct"].includes(type)) {
+        vi.stubGlobal("useAuthStore", () => ({
+          me: { steam_id: "1" },
+          isRoleAbove: () => true,
+        }));
+        tabs.openTab(
+          { id, type, lobbyId: id, instance: type, label: type },
+          { setActive: false },
+        );
+      }
+      const prefs = useDockShortcutPrefs();
+      prefs.dismiss(id);
+      const w = panel(true);
+      await w
+        .get('[data-chat-tab-id="' + id + '"]')
+        .trigger("contextmenu", { button: 2, clientX: 20, clientY: 20 });
+      await nextTick();
+      const item = Array.from(
+        document.querySelectorAll('[role="menuitem"]'),
+      ).find(
+        (el) => el.textContent?.trim() === "layouts.hub.dock.pin_shortcut",
+      ) as HTMLElement;
+      expect(item).toBeTruthy();
+      item.click();
+      await nextTick();
+      expect(prefs.isPinned(id)).toBe(true);
+      expect(prefs.prefs.value.dismissed[id]).toBeUndefined();
+      expect(
+        JSON.parse(localStorage.getItem("hub-dock-shortcuts")!).pinned,
+      ).toContain(id);
+      await w
+        .get('[data-chat-tab-id="' + id + '"]')
+        .trigger("contextmenu", { button: 2 });
+      await nextTick();
+      const unpin = Array.from(
+        document.querySelectorAll('[role="menuitem"]'),
+      ).find(
+        (el) => el.textContent?.trim() === "layouts.hub.dock.unpin_shortcut",
+      ) as HTMLElement;
+      expect(unpin).toBeTruthy();
+      unpin.click();
+      await nextTick();
+      expect(prefs.isPinned(id)).toBe(false);
+      if (type !== "direct")
+        expect(prefs.prefs.value.dismissed[id]).toBeDefined();
+      await w
+        .get('[data-chat-tab-id="' + id + '"]')
+        .trigger("contextmenu", { button: 2 });
+      await nextTick();
+      const repin = Array.from(
+        document.querySelectorAll('[role="menuitem"]'),
+      ).find(
+        (el) => el.textContent?.trim() === "layouts.hub.dock.pin_shortcut",
+      ) as HTMLElement;
+      expect(repin.closest("[data-right-hub-interactive]")).toBeTruthy();
+      repin.click();
+      await nextTick();
+      expect(
+        JSON.parse(localStorage.getItem("hub-dock-shortcuts")!).pinned.filter(
+          (pin: string) => pin === id,
+        ),
+      ).toHaveLength(1);
+    },
+  );
+  it("places Global before Announcements while keeping the rest of the sidebar", () => {
     tabs.openTab(
       {
-        id: "direct:1:3",
-        type: "direct",
-        lobbyId: "1:3",
-        instance: "direct",
-        label: "Other",
+        id: "announcement",
+        type: "announcement",
+        lobbyId: "announcement",
+        instance: "announcement",
+        label: "Announcements",
+        pinned: true,
       },
       { setActive: false },
     );
-    useChatHubSection().setSection("people");
+    tabs.setTabOrder(["announcement", "global:global", "direct:1:2"]);
     const w = panel();
+    expect(
+      w
+        .findAll("[data-chat-tab-id]")
+        .map((el) => el.attributes("data-chat-tab-id")),
+    ).toEqual(["global:global", "announcement", "direct:1:2"]);
+  });
+  it("renders all rooms and DMs, including conversations opened after mounting", async () => {
+    const w = panel();
+    tabs.openTab({
+      id: "direct:1:3",
+      type: "direct",
+      lobbyId: "1:3",
+      instance: "direct",
+      label: "Theft",
+    });
     await nextTick();
-    (w.vm as any).$.setupState.moveConversation("direct:1:3", 0);
-    expect(tabs.manualOrder.value).toEqual([
-      "global:global",
-      "direct:1:3",
-      "direct:1:2",
-    ]);
+    expect(w.find('[data-chat-tab-id="global:global"]').exists()).toBe(true);
+    expect(w.find('[data-chat-tab-id="direct:1:2"]').exists()).toBe(true);
+    expect(w.find('[data-chat-tab-id="direct:1:3"]').exists()).toBe(true);
+  });
+  it("reorders the full rail without dropping conversations", async () => {
+    const w = panel();
+    (w.vm as any).$.setupState.moveConversation("direct:1:2", 0);
+    expect(tabs.manualOrder.value).toEqual(["direct:1:2", "global:global"]);
   });
   it("closing and reopening a DM preserves its canonical ID without deleting history", () => {
     tabs.closeTab("direct:1:2");

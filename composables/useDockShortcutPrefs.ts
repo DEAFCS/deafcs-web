@@ -68,7 +68,13 @@ export function useDockShortcutPrefs() {
     return prefs.value.pinned.includes(id);
   }
 
-  function togglePin(id: string) {
+  function togglePin(id: string, removeOnUnpin = false) {
+    // Room defaults must not immediately restore a shortcut explicitly unpinned.
+    // Direct conversations retain their existing recent-activity behavior.
+    if (removeOnUnpin && isPinned(id)) {
+      dismiss(id);
+      return;
+    }
     prefs.value.pinned = isPinned(id)
       ? prefs.value.pinned.filter((pinned) => pinned !== id)
       : [...prefs.value.pinned, id];

@@ -17,7 +17,6 @@ import {
 import NewConversation from "~/components/hub/NewConversation.vue";
 import NewChatRailButton from "~/components/hub/NewChatRailButton.vue";
 import { useDockShortcutPrefs } from "~/composables/useDockShortcutPrefs";
-import { useChatHubSection } from "~/composables/useChatHubSection";
 import { useMediaQuery } from "@vueuse/core";
 import {
   Megaphone,
@@ -33,7 +32,8 @@ import {
   Gavel,
   MoreHorizontal,
 } from "lucide-vue-next";
-import { useRouter } from "#app";
+import { useRouter, useRoute } from "#app";
+import Tooltip from "~/components/ui/tooltip/Tooltip.vue";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
 import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
@@ -67,6 +67,13 @@ const props = defineProps<{
 
 const { t } = useI18n();
 const router = useRouter();
+const route = useRoute();
+// The hub stays mounted across profile navigation; dispose portalled rail tooltips.
+const tooltipEpoch = ref(0);
+watch(
+  () => route.fullPath,
+  () => tooltipEpoch.value++,
+);
 
 const {
   tabs,
@@ -179,16 +186,16 @@ watch(activeTabId, (id) => {
 });
 
 const orderedTabs = computed<ChatTab[]>(() => {
-  // Default (pre-drag) order: Announcements, Organizers, Global,
+  // Default (pre-drag) order: Global, Announcements, Organizers,
   // Tournament, then everything else -- matchmaking lobby, per-match chat,
   // DMs, etc. Anything a user has manually dragged still overrides this via
   // manualOrder below; this is only the fallback for untouched tabs.
   const weight = (tab: ChatTab) => {
-    if (tab.type === "announcement") return 0;
-    if (tab.type === "organizers") return 1;
-    if (tab.type === "global") return 2;
+    if (tab.type === "announcement") return 1;
+    if (tab.type === "organizers") return 2;
+    if (tab.type === "global") return 0;
     if (tab.type === "tournament") return 3;
-    return tab.type === "direct" ? 5 : 4;
+    return 4;
   };
   const base = tabs.value
     .filter((tab) => canShowRoom(tab) && !isTeamRoom(tab))
@@ -205,23 +212,24 @@ const orderedTabs = computed<ChatTab[]>(() => {
   // relative weight-sorted order (Array.sort is stable, so ties fall
   // through unchanged).
   const position = new Map(manualOrder.value.map((id, i) => [id, i]));
-  return [...base].sort((a, b) => {
+  const ordered = [...base].sort((a, b) => {
     const pa = position.has(a.id) ? (position.get(a.id) as number) : Infinity;
     const pb = position.has(b.id) ? (position.get(b.id) as number) : Infinity;
     return pa - pb;
   });
+  // Preserve saved drag positions except for the requested Global/Announcements priority.
+  const globalIndex = ordered.findIndex((tab) => tab.type === "global");
+  const announcementIndex = ordered.findIndex(
+    (tab) => tab.type === "announcement",
+  );
+  if (announcementIndex >= 0 && globalIndex > announcementIndex) {
+    [ordered[announcementIndex], ordered[globalIndex]] = [
+      ordered[globalIndex],
+      ordered[announcementIndex],
+    ];
+  }
+  return ordered;
 });
-
-const { section, setSection } = useChatHubSection();
-const railTabs = computed(() =>
-  orderedTabs.value.filter(
-    (tab) =>
-      section.value === "all" ||
-      (section.value === "people"
-        ? tab.type === "direct"
-        : tab.type !== "direct"),
-  ),
-);
 
 // Dragging a conversation around the rail.
 //
@@ -261,7 +269,7 @@ let pressIsTouch = false;
 let suppressClick = false;
 
 function directTabsInOrder(): ChatTab[] {
-  return railTabs.value;
+  return orderedTabs.value;
 }
 
 // Drawn absolutely rather than as an element between the buttons: an inline
@@ -432,8 +440,7 @@ function cancelPress() {
 }
 
 function moveConversation(roomId: string, index: number) {
-  const order = railTabs.value.map((tab) => tab.id);
-  const visibleIds = new Set(order);
+  const order = orderedTabs.value.map((tab) => tab.id);
   const from = order.indexOf(roomId);
 
   if (from === -1) {
@@ -445,12 +452,7 @@ function moveConversation(roomId: string, index: number) {
   // below where it started means one less than the raw index.
   order.splice(index > from ? index - 1 : index, 0, moved);
 
-  // Keep conversations in the other section in their existing positions.
-  setTabOrder(
-    orderedTabs.value.map((tab) =>
-      visibleIds.has(tab.id) ? order.shift()! : tab.id,
-    ),
-  );
+  setTabOrder(order);
 }
 
 // Leaving editing mode. A tap anywhere that is not a remove badge ends it, the
@@ -518,7 +520,7 @@ function onTabClick(tab: ChatTab) {
 }
 const composing = ref(false);
 const firstDirectTabId = computed(
-  () => railTabs.value.find((tab) => tab.type === "direct")?.id,
+  () => orderedTabs.value.find((tab) => tab.type === "direct")?.id,
 );
 // DEAFCS's existing unread paths use activeTabId to decide whether a room is
 // being read. The compose screen keeps listeners mounted, but reads no room.
@@ -941,8 +943,8 @@ function openTournamentWebcamWindow() {
           }"
         />
 
-        <TooltipProvider>
-          <template v-for="tab in railTabs" :key="tab.id">
+        <TooltipProvider :key="tooltipEpoch" :ignore-non-keyboard-focus="true">
+          <template v-for="tab in orderedTabs" :key="tab.id">
             <div
               v-if="tab.id === firstDirectTabId"
               class="flex w-full shrink-0 flex-col items-center"
@@ -955,9 +957,9 @@ function openTournamentWebcamWindow() {
             </div>
             <div class="relative">
               <ContextMenu>
-                <ContextMenuTrigger as-child>
-                  <Tooltip>
-                    <TooltipTrigger as-child>
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <ContextMenuTrigger as-child>
                       <button
                         :ref="setChatButtonRef(tab.id)"
                         :data-chat-tab-id="tab.id"
@@ -1045,35 +1047,29 @@ function openTournamentWebcamWindow() {
                           @{{ formatBadgeCount(mentionCounts[tab.id]) }}
                         </span>
                       </button>
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="left"
-                      class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-2"
-                    >
-                      <div class="flex flex-col">
-                        <span class="text-xs font-medium">
-                          {{ tab.label }}
-                        </span>
-                        <span
-                          v-if="getRoomSubtitle(tab)"
-                          class="text-[10px] text-zinc-200/80"
-                        >
-                          {{ getRoomSubtitle(tab) }}
-                        </span>
-                      </div>
-                    </TooltipContent>
-                  </Tooltip>
-                </ContextMenuTrigger>
+                    </ContextMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="left"
+                    class="bg-zinc-900 text-zinc-50 border border-zinc-800 shadow-lg rounded-md px-3 py-2"
+                  >
+                    <div class="flex flex-col">
+                      <span class="text-xs font-medium">
+                        {{ tab.label }}
+                      </span>
+                      <span
+                        v-if="getRoomSubtitle(tab)"
+                        class="text-[10px] text-zinc-200/80"
+                      >
+                        {{ getRoomSubtitle(tab) }}
+                      </span>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
                 <ContextMenuContent data-right-hub-interactive>
-                  <ContextMenuItem @select="setSection('rooms')">{{
-                    $t("layouts.hub.dock.rooms")
-                  }}</ContextMenuItem>
-                  <ContextMenuItem @select="setSection('people')">{{
-                    $t("layouts.hub.dock.people")
-                  }}</ContextMenuItem>
                   <ContextMenuItem
                     v-if="onDock(tab)"
-                    @select="toggleShortcutPin(tab.id)"
+                    @select="toggleShortcutPin(tab.id, tab.type !== 'direct')"
                     >{{
                       isShortcutPinned(tab.id)
                         ? $t("layouts.hub.dock.unpin_shortcut")
@@ -1139,6 +1135,7 @@ function openTournamentWebcamWindow() {
               :name="activeTab.label"
               :avatar-url="activeTab.avatarUrl"
               :subtitle="getRoomSubtitle(activeTab)"
+              @navigate="tooltipEpoch++"
             />
             <div v-else class="min-w-0">
               <div class="text-xs font-semibold text-foreground truncate">
@@ -1154,7 +1151,7 @@ function openTournamentWebcamWindow() {
             </div>
           </div>
           <div class="flex items-center gap-1.5">
-            <TooltipProvider>
+            <TooltipProvider :ignore-non-keyboard-focus="true">
               <Tooltip v-if="activeTab?.id?.startsWith('matchmaking:')">
                 <TooltipTrigger as-child>
                   <button
@@ -1253,15 +1250,14 @@ function openTournamentWebcamWindow() {
                   class="w-56"
                   data-right-hub-interactive
                 >
-                  <DropdownMenuItem @select="setSection('rooms')">{{
-                    $t("layouts.hub.dock.rooms")
-                  }}</DropdownMenuItem>
-                  <DropdownMenuItem @select="setSection('people')">{{
-                    $t("layouts.hub.dock.people")
-                  }}</DropdownMenuItem>
                   <DropdownMenuItem
                     v-if="onDock(activeTab)"
-                    @select="toggleShortcutPin(activeTab.id)"
+                    @select="
+                      toggleShortcutPin(
+                        activeTab.id,
+                        activeTab.type !== 'direct',
+                      )
+                    "
                     >{{
                       isShortcutPinned(activeTab.id)
                         ? $t("layouts.hub.dock.unpin_shortcut")

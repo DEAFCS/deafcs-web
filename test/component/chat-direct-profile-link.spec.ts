@@ -4,7 +4,10 @@ import { flushPromises, mount } from "@vue/test-utils";
 import { createMemoryHistory, createRouter, RouterLink } from "vue-router";
 import fs from "node:fs";
 import path from "node:path";
-import { MOBILE_CHAT_HUB_QUERY, useRightSidebar } from "../../composables/useRightSidebar";
+import {
+  MOBILE_CHAT_HUB_QUERY,
+  useRightSidebar,
+} from "../../composables/useRightSidebar";
 
 // Private message header: the other player's avatar + name open their
 // profile with same-context internal routing (the NuxtLink/players-id
@@ -20,7 +23,8 @@ vi.mock("~/components/LiveAvatarImg.vue", () => ({
 }));
 
 const OTHER = "76561190000000002";
-const read = (p: string) => fs.readFileSync(path.resolve(__dirname, "../..", p), "utf8");
+const read = (p: string) =>
+  fs.readFileSync(path.resolve(__dirname, "../..", p), "utf8");
 
 function makeRouter() {
   const Blank = defineComponent({ render: () => null });
@@ -67,9 +71,8 @@ async function mountLink() {
   const router = makeRouter();
   await router.push("/");
   await router.isReady();
-  const { default: ChatDirectProfileLink } = await import(
-    "../../components/chat/ChatDirectProfileLink.vue"
-  );
+  const { default: ChatDirectProfileLink } =
+    await import("../../components/chat/ChatDirectProfileLink.vue");
   const wrapper = mount(ChatDirectProfileLink, {
     attachTo: document.body,
     props: { steamId: OTHER, name: "Opponent", subtitle: "Private message" },
@@ -84,7 +87,9 @@ describe("ChatDirectProfileLink", () => {
     const { wrapper } = await mountLink();
     const link = wrapper.get('[data-testid="chat-direct-profile-link"]');
     expect(link.element.tagName).toBe("A");
-    expect(link.find('[data-testid="dm-avatar"]').attributes("data-steam-id")).toBe(OTHER);
+    expect(
+      link.find('[data-testid="dm-avatar"]').attributes("data-steam-id"),
+    ).toBe(OTHER);
     expect(link.text()).toContain("Opponent");
     expect(link.text()).toContain("Private message");
     expect(link.attributes("href")).toBe(`/players/${OTHER}`);
@@ -100,6 +105,7 @@ describe("ChatDirectProfileLink", () => {
 
     await link.trigger("click");
     await flushPromises();
+    expect(wrapper.emitted("navigate")).toHaveLength(1);
     expect(router.currentRoute.value.name).toBe("players-id");
     expect(router.currentRoute.value.params.id).toBe(OTHER);
     expect(openSpy).not.toHaveBeenCalled();
@@ -108,7 +114,8 @@ describe("ChatDirectProfileLink", () => {
 
   it("is keyboard accessible as a native focusable link", async () => {
     const { wrapper, router } = await mountLink();
-    const el = wrapper.get('[data-testid="chat-direct-profile-link"]').element as HTMLAnchorElement;
+    const el = wrapper.get('[data-testid="chat-direct-profile-link"]')
+      .element as HTMLAnchorElement;
     el.focus();
     expect(document.activeElement).toBe(el);
     expect(el.className).toContain("focus-visible:ring-2");
@@ -122,7 +129,9 @@ describe("ChatDirectProfileLink", () => {
   it("desktop: opens the profile and leaves the Chat Hub as it is", async () => {
     setViewport(false);
     const { wrapper, router } = await mountLink();
-    await wrapper.get('[data-testid="chat-direct-profile-link"]').trigger("click");
+    await wrapper
+      .get('[data-testid="chat-direct-profile-link"]')
+      .trigger("click");
     await flushPromises();
     expect(router.currentRoute.value.fullPath).toBe(`/players/${OTHER}`);
     expect(useRightSidebar().rightSidebarOpen.value).toBe(true);
@@ -147,9 +156,9 @@ describe("ChatDirectProfileLink", () => {
     expect(hubOpenWhenNavigating).toBe(false);
     expect(router.currentRoute.value.name).toBe("players-id");
     expect(router.currentRoute.value.params.id).toBe(OTHER);
-    // The Hub's own close also unpins, so the mobile layout does not reopen it.
+    // Closing the mobile panel preserves the saved pin independently.
     expect(useRightSidebar().rightSidebarOpen.value).toBe(false);
-    expect(useRightSidebar().isPinned.value).toBe(false);
+    expect(useRightSidebar().isPinned.value).toBe(true);
     expect(openSpy).not.toHaveBeenCalled();
     wrapper.unmount();
   });
@@ -157,7 +166,8 @@ describe("ChatDirectProfileLink", () => {
   it("mobile: keyboard activation closes the Hub and navigates too", async () => {
     setViewport(true);
     const { wrapper, router } = await mountLink();
-    const el = wrapper.get('[data-testid="chat-direct-profile-link"]').element as HTMLAnchorElement;
+    const el = wrapper.get('[data-testid="chat-direct-profile-link"]')
+      .element as HTMLAnchorElement;
     el.focus();
     el.click();
     await flushPromises();
@@ -174,7 +184,9 @@ describe("ChatDirectProfileLink", () => {
     expect(src).not.toMatch(/https?:\/\//);
     expect(src).not.toContain("external");
     // Closes through the Hub's existing state path, nothing new.
-    expect(src).toContain("if (isMobileChatHubLayout()) setRightSidebarOpen(false);");
+    expect(src).toContain(
+      "if (isMobileChatHubLayout()) setRightSidebarOpen(false);",
+    );
   });
 });
 
@@ -186,7 +198,9 @@ describe("ChatPanel header wiring", () => {
       /<ChatDirectProfileLink\s+v-if="activeTab\?\.type === 'direct' && activeTab\.otherSteamId"\s+:steam-id="activeTab\.otherSteamId"/,
     );
     // Every other room keeps the existing plain title block.
-    expect(panel).toMatch(/<div v-else class="min-w-0">\s+<div class="text-xs font-semibold text-foreground truncate">/);
+    expect(panel).toMatch(
+      /<div v-else class="min-w-0">\s+<div class="text-xs font-semibold text-foreground truncate">/,
+    );
   });
 
   it("leaves room switching and pop-out unchanged", () => {

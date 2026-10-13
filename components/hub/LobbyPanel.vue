@@ -133,6 +133,7 @@ watch(
     >
       <HubEmptyState
         v-if="!currentLobby"
+        :class="hasLobbyInvites ? '!min-h-0 !flex-none !pb-6' : '!min-h-0'"
         :title="$t('layouts.hub.empty.party_title')"
         :description="$t('layouts.lobby_panel.create_lobby_description')"
       >

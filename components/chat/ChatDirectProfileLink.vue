@@ -14,7 +14,7 @@ import {
 // stays website, the app stays inside the app.
 //
 // On the mobile layout the open Chat Hub covers the page, so it is closed
-// first (the Hub's own close, which also unpins it) and the NuxtLink then
+// first while preserving its saved pin, and the NuxtLink then
 // navigates as usual. On desktop the Hub stays as it is.
 defineProps<{
   steamId: string;
@@ -23,9 +23,12 @@ defineProps<{
   avatarUrl?: string;
 }>();
 
+const emit = defineEmits<{ navigate: [] }>();
+
 const { setRightSidebarOpen } = useRightSidebar();
 
 function closeHubOnMobile() {
+  emit("navigate");
   if (isMobileChatHubLayout()) setRightSidebarOpen(false);
 }
 </script>

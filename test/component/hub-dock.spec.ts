@@ -111,7 +111,6 @@ import { useRightSidebar } from "../../composables/useRightSidebar";
 import { currentHub, setActiveHub } from "../../composables/useHubState";
 import { useChatTabs } from "../../composables/useChatTabs";
 import { useDockShortcutPrefs } from "../../composables/useDockShortcutPrefs";
-import { useChatHubSection } from "../../composables/useChatHubSection";
 
 let wrapper: VueWrapper | null = null;
 
@@ -153,7 +152,6 @@ beforeEach(() => {
   useRightSidebar().setRightSidebarOpen(false);
   setActiveHub("social");
   useChatTabs().clearAll();
-  useChatHubSection().setSection("all");
   useDockShortcutPrefs().prefs.value = {
     maxRooms: 2,
     maxPeople: 3,
@@ -310,7 +308,7 @@ describe("temporary panels and explicit pinning", () => {
 });
 
 describe("conversation shortcuts", () => {
-  it("orders announcements, organizers, global, other rooms, then people with no duplicates", async () => {
+  it("orders global, announcements, organizers, other rooms, then people with no duplicates", async () => {
     const { openTab } = useChatTabs();
     const prefs = useDockShortcutPrefs();
     for (const type of [
@@ -333,9 +331,9 @@ describe("conversation shortcuts", () => {
         .findAll("[data-dock-shortcut]")
         .map((item) => item.attributes("data-dock-shortcut")),
     ).toEqual([
+      "global",
       "announcement",
       "organizers",
-      "global",
       "tournament",
       "direct:1:2",
     ]);
@@ -390,27 +388,55 @@ describe("conversation shortcuts", () => {
       expect(saved.dismissed[type]).toBeUndefined();
     }
   });
-  it("the Chat right-click menu opens Rooms or People without pinning", async () => {
+  it("the Chat menu retains limits without sidebar view switches", async () => {
     mountHub();
-    for (const section of ["rooms", "people"] as const) {
-      await app("chat").trigger("contextmenu", {
-        clientX: 50,
-        clientY: 50,
-        button: 2,
-      });
-      await flushPromises();
-      const menu = Array.from(
-        document.querySelectorAll('[role="menuitem"]'),
-      ).find(
-        (item) => item.textContent?.trim() === `layouts.hub.dock.${section}`,
-      ) as HTMLElement;
-      expect(menu).toBeTruthy();
-      menu.click();
-      await nextTick();
-      expect(useChatHubSection().section.value).toBe(section);
-      expect(hubOpen()).toBe(true);
-      expect(pinned()).toBe(false);
-    }
+    await app("chat").trigger("contextmenu", {
+      clientX: 50,
+      clientY: 50,
+      button: 2,
+    });
+    await flushPromises();
+    const items = Array.from(document.querySelectorAll('[role="menuitem"]'));
+    expect(
+      items.some(
+        (item) => item.textContent?.trim() === "layouts.hub.dock.rooms",
+      ),
+    ).toBe(false);
+    expect(
+      items.some(
+        (item) => item.textContent?.trim() === "layouts.hub.dock.people",
+      ),
+    ).toBe(false);
+    expect(document.body.textContent).toContain("layouts.hub.dock.on_the_dock");
+  });
+  it("default rooms appear without activity, while removed rooms stay removed", async () => {
+    const tabs = useChatTabs();
+    for (const type of ["global", "announcement", "organizers"] as const)
+      tabs.openTab(
+        { id: type, type, label: type, instance: type, lobbyId: type },
+        { setActive: false },
+      );
+    mountHub();
+    expect(
+      wrapper!
+        .findAll("[data-dock-shortcut]")
+        .map((el) => el.attributes("data-dock-shortcut")),
+    ).toEqual(["global", "announcement", "organizers"]);
+    useDockShortcutPrefs().dismiss("global");
+    await nextTick();
+    expect(wrapper!.find('[data-dock-shortcut="global"]').exists()).toBe(false);
+    tabs.noteActivity("global", Date.now() - 1000);
+    await nextTick();
+    expect(wrapper!.find('[data-dock-shortcut="global"]').exists()).toBe(false);
+    useDockShortcutPrefs().togglePin("global");
+    await nextTick();
+    expect(wrapper!.findAll('[data-dock-shortcut="global"]')).toHaveLength(1);
+    useDockShortcutPrefs().togglePin("global", true);
+    await nextTick();
+    expect(wrapper!.find('[data-dock-shortcut="global"]').exists()).toBe(false);
+    useDockShortcutPrefs().togglePin("global", true);
+    await nextTick();
+    expect(wrapper!.findAll('[data-dock-shortcut="global"]')).toHaveLength(1);
   });
   function addDirect() {
     const { openTab, noteActivity } = useChatTabs();
@@ -453,6 +479,7 @@ describe("conversation shortcuts", () => {
       },
       { setActive: false },
     );
+    useDockShortcutPrefs().dismiss("global");
     mountHub();
     expect(wrapper!.find('[data-dock-shortcut="global"]').exists()).toBe(false);
 
@@ -460,8 +487,6 @@ describe("conversation shortcuts", () => {
       "hub-dock-shortcuts",
       JSON.stringify({ pinned: ["global"] }),
     );
-    const { useDockShortcutPrefs } =
-      await import("../../composables/useDockShortcutPrefs");
     useDockShortcutPrefs().togglePin("global");
     await nextTick();
     expect(wrapper!.find('[data-dock-shortcut="global"]').exists()).toBe(true);
@@ -554,8 +579,6 @@ describe("badges", () => {
       "hub-dock-shortcuts",
       JSON.stringify({ maxPeople: 0, maxRooms: 0 }),
     );
-    const { useDockShortcutPrefs } =
-      await import("../../composables/useDockShortcutPrefs");
     useDockShortcutPrefs().setLimit("rooms", 0);
     incrementUnread("global");
     incrementUnread("global");

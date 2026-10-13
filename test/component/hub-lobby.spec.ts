@@ -346,6 +346,18 @@ describe("queue line (PartyQueueLine)", () => {
 describe("Lobby panel", () => {
   const panel = () => mount(LobbyPanel, { global, attachTo: document.body });
 
+  it("invitations constrain the empty state instead of reserving a second full panel height", async () => {
+    store.lobbyInvites = [{ id: "invite-1" }];
+    const wrapper = mount(LobbyPanel, { global });
+    await nextTick();
+    expect(wrapper.find('[data-stub="LobbyInvites"]').exists()).toBe(true);
+    const empty = wrapper.findComponent({ name: "HubEmptyState" });
+    expect(empty.classes()).toContain("!min-h-0");
+    expect(empty.classes()).toContain("!flex-none");
+    expect(wrapper.find("[data-create-lobby]").exists()).toBe(true);
+    expect(store.createLobby).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
   it("with no lobby: the empty state creates one", async () => {
     const wrapper = panel();
     expect(wrapper.text()).toContain("layouts.hub.empty.party_title");
@@ -357,11 +369,11 @@ describe("Lobby panel", () => {
     store.creatingLobby = true;
     const calls = store.createLobby.mock.calls.length;
     const wrapper = panel();
-    const button = wrapper.get('[data-create-lobby]');
-    expect(button.attributes('disabled')).toBeDefined();
-    expect(wrapper.find('.tac-amber-frame').exists()).toBe(true);
-    expect(button.text()).toContain('layouts.lobby_panel.create_lobby_button');
-    await button.trigger('click');
+    const button = wrapper.get("[data-create-lobby]");
+    expect(button.attributes("disabled")).toBeDefined();
+    expect(wrapper.find(".tac-amber-frame").exists()).toBe(true);
+    expect(button.text()).toContain("layouts.lobby_panel.create_lobby_button");
+    await button.trigger("click");
     expect(store.createLobby.mock.calls.length).toBe(calls);
     wrapper.unmount();
     store.creatingLobby = false;

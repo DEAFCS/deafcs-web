@@ -50,7 +50,6 @@ import {
 import MiniDisplay from "~/components/matchmaking-lobby/MiniDisplay.vue";
 import HubDockItem from "~/components/hub/HubDockItem.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
-import { useChatHubSection } from "~/composables/useChatHubSection";
 import { formatBadgeCount } from "~/utilities/badgeCount";
 import { splitTabBadge, totalBadgeCounts } from "~/utilities/chatBadgeCounts";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
@@ -357,6 +356,11 @@ const chatShortcuts = computed(() => {
   const { pinned, dismissed, hidden, maxPeople, maxRooms } = dockPrefs.value;
   const activity = (tab: ChatTab) => activityAt.value[tab.id] ?? 0;
   const isPinnedTab = (tab: ChatTab) => pinned.includes(tab.id);
+  // Registered foundation rooms have already passed useChatTabSetup role gates.
+  const isDefault = (tab: ChatTab) =>
+    maxRooms > 0 &&
+    ["global", "announcement", "organizers"].includes(tab.type) &&
+    dismissed[tab.id] === undefined;
 
   const candidates = chatTabs.value.filter(
     (tab) =>
@@ -364,6 +368,7 @@ const chatShortcuts = computed(() => {
       !tab.id.startsWith("matchmaking:") &&
       !hidden.includes(tab.id) &&
       (isPinnedTab(tab) ||
+        isDefault(tab) ||
         (((unreadCounts.value[tab.id] ?? 0) > 0 || activity(tab) > cutoff) &&
           activity(tab) > (dismissed[tab.id] ?? 0))),
   );
@@ -375,9 +380,14 @@ const chatShortcuts = computed(() => {
         Number(isPinnedTab(b)) - Number(isPinnedTab(a)) ||
         activity(b) - activity(a),
     );
-    const pins = sorted.filter(isPinnedTab);
-    const rest = sorted.filter((tab) => !isPinnedTab(tab));
-    return [...pins, ...rest.slice(0, Math.max(0, max - pins.length))];
+    const defaults = sorted.filter(isDefault);
+    const pins = sorted.filter((tab) => isPinnedTab(tab) && !isDefault(tab));
+    const rest = sorted.filter((tab) => !isPinnedTab(tab) && !isDefault(tab));
+    return [
+      ...defaults,
+      ...pins,
+      ...rest.slice(0, Math.max(0, max - pins.length)),
+    ];
   }
 
   return [
@@ -393,18 +403,13 @@ const chatShortcuts = computed(() => {
 });
 
 function roomPriority(tab: ChatTab) {
-  return tab.type === "announcement"
+  return tab.type === "global"
     ? 0
-    : tab.type === "organizers"
+    : tab.type === "announcement"
       ? 1
-      : tab.type === "global"
+      : tab.type === "organizers"
         ? 2
         : 3;
-}
-const { setSection } = useChatHubSection();
-function openChatSection(section: "rooms" | "people") {
-  setSection(section);
-  showHub("chat");
 }
 
 // DEAFCS: each unread message is counted once, amber or red -- red for
@@ -485,7 +490,6 @@ function shortcutInitials(tab: ChatTab) {
 // A shortcut selects its conversation without changing the hub pin.
 function openChatTab(tab: ChatTab) {
   dockIntent.noteClick();
-  setSection("all");
   setActiveTab(tab.id);
   showHub("chat");
 }
@@ -823,13 +827,6 @@ function onHubTouchEnd(e: TouchEvent) {
               </HubDockItem>
             </ContextMenuTrigger>
             <ContextMenuContent class="w-56" data-right-hub-interactive>
-              <ContextMenuItem @select="openChatSection('rooms')">{{
-                $t("layouts.hub.dock.rooms")
-              }}</ContextMenuItem>
-              <ContextMenuItem @select="openChatSection('people')">{{
-                $t("layouts.hub.dock.people")
-              }}</ContextMenuItem>
-              <ContextMenuSeparator />
               <ContextMenuLabel
                 class="text-xs font-medium text-muted-foreground"
               >
@@ -950,7 +947,9 @@ function onHubTouchEnd(e: TouchEvent) {
                   </HubDockItem>
                 </ContextMenuTrigger>
                 <ContextMenuContent class="w-52" data-right-hub-interactive>
-                  <ContextMenuItem @select="toggleShortcutPin(tab.id)">
+                  <ContextMenuItem
+                    @select="toggleShortcutPin(tab.id, tab.type !== 'direct')"
+                  >
                     {{
                       isShortcutPinned(tab.id)
                         ? $t("layouts.hub.dock.unpin_shortcut")
