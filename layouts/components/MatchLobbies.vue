@@ -2,11 +2,27 @@
 import { ChevronDown, Merge, Play } from "lucide-vue-next";
 import MatchLobbySelector from "./MatchLobbySelector.vue";
 import MatchLobby from "~/components/matchmaking-lobby/MatchLobby.vue";
+import { currentHub, setActiveHub } from "~/composables/useHubState";
+import { useRightSidebar } from "~/composables/useRightSidebar";
+import { Spinner } from "~/components/ui/spinner";
 import { e_player_roles_enum } from "~/generated/zeus";
 
 const isElevatedUser = computed(() =>
   useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer),
 );
+
+// Upstream party pill opens the same Lobby panel as the dock.
+const { rightSidebarOpen, setRightSidebarOpen } = useRightSidebar();
+const partyRoomOpen = computed(
+  () => rightSidebarOpen.value && currentHub() === "lobby",
+);
+function togglePartyRoom() {
+  if (partyRoomOpen.value) setRightSidebarOpen(false);
+  else {
+    setActiveHub("lobby");
+    setRightSidebarOpen(true);
+  }
+}
 </script>
 
 <template>
@@ -75,32 +91,40 @@ const isElevatedUser = computed(() =>
         </NuxtLink>
       </Transition>
 
-      <MatchLobby :lobby="currentLobby" />
+      <MatchLobby
+        :lobby="currentLobby"
+        :active="partyRoomOpen"
+        data-right-hub-interactive
+        @open="togglePartyRoom"
+      />
     </div>
 
     <Button
       v-else
       key="create"
       variant="ghost"
-      @click="createLobby"
-      :loading="creatingLobby"
+      @click="
+        () => {
+          void createLobby();
+        }
+      "
+      :disabled="creatingLobby"
+      participation
       size="default"
       class="relative group h-12 overflow-hidden rounded bg-transparent px-5 text-[hsl(var(--tac-amber))] shadow-lg hover:bg-transparent hover:text-[hsl(var(--tac-amber))] hover:shadow transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))]"
     >
       <span
-        class="absolute inset-0 rounded p-[1.5px] bg-[linear-gradient(135deg,var(--tac-amber-cta-from)_0%,hsl(var(--tac-amber))_50%,var(--tac-amber-cta-to)_100%)]"
-      >
-        <span
-          class="block h-full w-full rounded-[2.5px] bg-[hsl(var(--topnav-background))]"
-        ></span>
-      </span>
+        aria-hidden="true"
+        class="tac-amber-frame pointer-events-none absolute inset-0 rounded-md"
+      ></span>
 
       <span
         class="pointer-events-none absolute inset-0 rounded bg-[hsl(var(--tac-amber)/0.12)] opacity-0 group-hover:opacity-100 group-hover:scale-105 transition-all duration-300 ease-out"
       ></span>
 
       <div class="relative flex items-center gap-2 z-10">
-        <Merge class="h-5 w-5 drop-shadow-sm" />
+        <Spinner v-if="creatingLobby" class="h-5 w-5" />
+        <Merge v-else class="h-5 w-5 drop-shadow-sm" />
         <span class="font-semibold">{{
           $t("layouts.lobby_panel.create_lobby_button")
         }}</span>

@@ -406,6 +406,7 @@ export default {
       return editedAt.toLocaleString(dateLocale(), {
         dateStyle: "medium",
         timeStyle: "short",
+        hourCycle: "h23",
       });
     },
     hasActions() {
@@ -439,8 +440,9 @@ export default {
       }
 
       return time.toLocaleTimeString(dateLocale(), {
-        hour: "numeric",
+        hour: "2-digit",
         minute: "2-digit",
+        hourCycle: "h23",
       });
     },
     // A run is consecutive team lines, whoever is speaking -- the rail marks

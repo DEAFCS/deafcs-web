@@ -1,4 +1,4 @@
-import { CHAT_REACTIONS, type ChatReaction } from "~/constants/chat";
+import { CHAT_REACTIONS, LEGACY_CHAT_REACTIONS, type ChatReaction } from "~/constants/chat";
 import type { ChatType, LobbyMessage } from "~/web-sockets/Socket";
 import { getChatMessageActionPermissions } from "~/utils/chatMessageActions";
 import { isStableChatMessageId } from "~/utils/chatReactions";
@@ -47,7 +47,7 @@ export function heldChatReactions(
     return held;
   }
 
-  for (const { id } of CHAT_REACTIONS) {
+  for (const { id } of [...CHAT_REACTIONS, ...LEGACY_CHAT_REACTIONS]) {
     // DEAFCS sends counts and viewer membership, not a public reactor list.
     const summary = Array.isArray(message?.reactions)
       ? message.reactions.find((reaction) => reaction.reaction === id)

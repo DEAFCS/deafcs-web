@@ -13,6 +13,7 @@ import ChatPanel from "../../components/hub/ChatPanel.vue";
 import NewConversation from "../../components/hub/NewConversation.vue";
 import { useChatTabs } from "../../composables/useChatTabs";
 import { useDockShortcutPrefs } from "../../composables/useDockShortcutPrefs";
+import { useChatHubSection } from "../../composables/useChatHubSection";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("~/composables/useHubState", () => ({
@@ -69,6 +70,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   localStorage.clear();
   tabs.clearAll();
+  useChatHubSection().setSection("all");
   tabs.setTabOrder([]);
   for (const [name, value] of Object.entries({
     nextTick,
@@ -155,20 +157,51 @@ function layout(w: ReturnType<typeof mount>) {
     width: 64,
   } as DOMRect);
   w.findAll("[data-chat-tab-id]").forEach((button, index) =>
-    vi
-      .spyOn(button.element, "getBoundingClientRect")
-      .mockReturnValue({
-        left: 10,
-        right: 54,
-        top: index * 48,
-        bottom: index * 48 + 44,
-        height: 44,
-        width: 44,
-      } as DOMRect),
+    vi.spyOn(button.element, "getBoundingClientRect").mockReturnValue({
+      left: 10,
+      right: 54,
+      top: index * 48,
+      bottom: index * 48 + 44,
+      height: 44,
+      width: 44,
+    } as DOMRect),
   );
 }
 
 describe("upstream conversation management with legacy persistence", () => {
+  it("Rooms and People filter the sidebar without closing live conversations", async () => {
+    const w = panel();
+    useChatHubSection().setSection("rooms");
+    await nextTick();
+    expect(w.find('[data-chat-tab-id="global:global"]').exists()).toBe(true);
+    expect(w.find('[data-chat-tab-id="direct:1:2"]').exists()).toBe(false);
+    useChatHubSection().setSection("people");
+    await nextTick();
+    expect(w.find('[data-chat-tab-id="direct:1:2"]').exists()).toBe(true);
+    expect(w.find('[data-chat-tab-id="global:global"]').exists()).toBe(false);
+    expect(tabs.tabs.value).toHaveLength(2);
+  });
+  it("reordering People preserves rooms outside the filtered rail", async () => {
+    tabs.openTab(
+      {
+        id: "direct:1:3",
+        type: "direct",
+        lobbyId: "1:3",
+        instance: "direct",
+        label: "Other",
+      },
+      { setActive: false },
+    );
+    useChatHubSection().setSection("people");
+    const w = panel();
+    await nextTick();
+    (w.vm as any).$.setupState.moveConversation("direct:1:3", 0);
+    expect(tabs.manualOrder.value).toEqual([
+      "global:global",
+      "direct:1:3",
+      "direct:1:2",
+    ]);
+  });
   it("closing and reopening a DM preserves its canonical ID without deleting history", () => {
     tabs.closeTab("direct:1:2");
     expect(tabs.tabs.value.some((t) => t.type === "direct")).toBe(false);

@@ -35,8 +35,8 @@ export const CHAT_REACTIONS = [
   { id: "muscle", glyph: "💪" },
   { id: "goat", glyph: "🐐" },
   { id: "clown", glyph: "🤡" },
-  // DEAFCS: retain the existing Redis ID/history alongside upstream tada.
-  { id: "party", glyph: "🎉" },
 ] as const;
 
-export type ChatReaction = (typeof CHAT_REACTIONS)[number]["id"];
+// Historical DEAFCS reactions remain visible/removable, outside the picker.
+export const LEGACY_CHAT_REACTIONS = [{ id: "party", glyph: "🎉" }] as const;
+export type ChatReaction = (typeof CHAT_REACTIONS)[number]["id"] | "party";

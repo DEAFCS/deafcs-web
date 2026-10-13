@@ -20,24 +20,29 @@ import path from "node:path";
 
 const mocks = vi.hoisted(() => ({
   socketEvents: [] as Array<[string, unknown]>,
-  stub: (name: string, attrs: Record<string, string> = {}) => async () => {
-    const { defineComponent, h } = await import("vue");
-    return {
-      default: defineComponent({
-        name,
-        inheritAttrs: false,
-        props: ["lobby", "lobbyId", "showBar", "type", "instance"],
-        emits: ["open-call", "status"],
-        setup: (props, { emit }) => () =>
-          h("div", {
-            "data-stub": name,
-            "data-lobby-id": (props as any).lobbyId ?? (props as any).lobby?.id,
-            onClick: () => emit("open-call"),
-            ...attrs,
-          }),
-      }),
-    };
-  },
+  stub:
+    (name: string, attrs: Record<string, string> = {}) =>
+    async () => {
+      const { defineComponent, h } = await import("vue");
+      return {
+        default: defineComponent({
+          name,
+          inheritAttrs: false,
+          props: ["lobby", "lobbyId", "showBar", "type", "instance"],
+          emits: ["open-call", "status"],
+          setup:
+            (props, { emit }) =>
+            () =>
+              h("div", {
+                "data-stub": name,
+                "data-lobby-id":
+                  (props as any).lobbyId ?? (props as any).lobby?.id,
+                onClick: () => emit("open-call"),
+                ...attrs,
+              }),
+        }),
+      };
+    },
 }));
 
 vi.mock("vue-i18n", () => ({
@@ -52,10 +57,30 @@ vi.mock("~/web-sockets/Socket", () => ({
       mocks.socketEvents.push([name, data]),
   },
 }));
-vi.mock("~/components/matchmaking-lobby/MatchLobbyExpanded.vue", mocks.stub("MatchLobbyExpanded"));
-vi.mock("~/components/matchmaking-lobby/MatchmakingLobbyAccess.vue", mocks.stub("MatchmakingLobbyAccess"));
-vi.mock("~/components/matchmaking-lobby/LobbyCallPanel.vue", mocks.stub("LobbyCallPanel"));
-vi.mock("~/components/matchmaking-lobby/LobbyInvites.vue", mocks.stub("LobbyInvites"));
+vi.mock("~/components/hub/PartySeats.vue", async () => {
+  const { defineComponent, h } = await import("vue");
+  return {
+    default: defineComponent({
+      props: ["lobby"],
+      setup:
+        (_, { slots }) =>
+        () =>
+          h("div", { "data-stub": "PartySeats" }, slots.actions?.()),
+    }),
+  };
+});
+vi.mock(
+  "~/components/matchmaking-lobby/MatchmakingLobbyAccess.vue",
+  mocks.stub("MatchmakingLobbyAccess"),
+);
+vi.mock(
+  "~/components/matchmaking-lobby/LobbyCallPanel.vue",
+  mocks.stub("LobbyCallPanel"),
+);
+vi.mock(
+  "~/components/matchmaking-lobby/LobbyInvites.vue",
+  mocks.stub("LobbyInvites"),
+);
 vi.mock("~/components/chat/ChatLobby.vue", mocks.stub("ChatLobby"));
 // The search pill imports the store module itself; it gets the same stand-in.
 vi.mock("~/stores/MatchmakingStore", () => ({
@@ -98,12 +123,17 @@ import { useChatTabs } from "../../composables/useChatTabs";
 
 const NuxtLink = defineComponent({
   props: ["to"],
-  setup: (props, { slots }) => () =>
-    h(
-      "a",
-      { "data-to": typeof props.to === "string" ? props.to : JSON.stringify(props.to) },
-      slots.default?.(),
-    ),
+  setup:
+    (props, { slots }) =>
+    () =>
+      h(
+        "a",
+        {
+          "data-to":
+            typeof props.to === "string" ? props.to : JSON.stringify(props.to),
+        },
+        slots.default?.(),
+      ),
 });
 const global = {
   mocks: {
@@ -118,8 +148,16 @@ const NOW = Date.parse("2026-10-11T12:00:00Z");
 const lobby = (captain = "1") => ({
   id: "lobby-1",
   players: [
-    { captain: captain === "1", status: "Accepted", player: { steam_id: "1", name: "Me" } },
-    { captain: captain === "2", status: "Accepted", player: { steam_id: "2", name: "Leader" } },
+    {
+      captain: captain === "1",
+      status: "Accepted",
+      player: { steam_id: "1", name: "Me" },
+    },
+    {
+      captain: captain === "2",
+      status: "Accepted",
+      player: { steam_id: "2", name: "Leader" },
+    },
   ],
 });
 
@@ -158,7 +196,10 @@ function withQueue() {
 
 describe("search clock (useQuickQueue)", () => {
   it("counts from the server's join time", () => {
-    search({ type: "Competitive", joinedAt: new Date(NOW - 65_000).toISOString() });
+    search({
+      type: "Competitive",
+      joinedAt: new Date(NOW - 65_000).toISOString(),
+    });
     expect(withQueue().api.clock.value).toBe("1:05");
   });
 
@@ -234,7 +275,8 @@ describe("search clock (useQuickQueue)", () => {
 });
 
 describe("queue line (PartyQueueLine)", () => {
-  const line = () => mount(PartyQueueLine, { props: { lobby: store.currentLobby }, global });
+  const line = () =>
+    mount(PartyQueueLine, { props: { lobby: store.currentLobby }, global });
 
   it("searching: mode, clock, regions and Cancel", () => {
     store.currentLobby = lobby();
@@ -288,7 +330,12 @@ describe("queue line (PartyQueueLine)", () => {
   it("in a match (Captain Pick included): links to the match", () => {
     store.currentLobby = lobby();
     matchLobbyStore.myMatches = [
-      { id: "m1", status: "PickingPlayers", lineup_1: { name: "A" }, lineup_2: { name: "B" } },
+      {
+        id: "m1",
+        status: "PickingPlayers",
+        lineup_1: { name: "A" },
+        lineup_2: { name: "B" },
+      },
     ];
     const link = line().find("a");
     expect(link.attributes("data-to")).toContain("m1");
@@ -306,6 +353,20 @@ describe("Lobby panel", () => {
     expect(store.createLobby).toHaveBeenCalled();
   });
 
+  it("keeps the orange create button visible and prevents duplicate clicks while creating", async () => {
+    store.creatingLobby = true;
+    const calls = store.createLobby.mock.calls.length;
+    const wrapper = panel();
+    const button = wrapper.get('[data-create-lobby]');
+    expect(button.attributes('disabled')).toBeDefined();
+    expect(wrapper.find('.tac-amber-frame').exists()).toBe(true);
+    expect(button.text()).toContain('layouts.lobby_panel.create_lobby_button');
+    await button.trigger('click');
+    expect(store.createLobby.mock.calls.length).toBe(calls);
+    wrapper.unmount();
+    store.creatingLobby = false;
+  });
+
   it("shows lobby invites", async () => {
     store.lobbyInvites = [{ id: "i1" }];
     const wrapper = panel();
@@ -318,9 +379,11 @@ describe("Lobby panel", () => {
     const wrapper = panel();
     await nextTick();
 
-    expect(wrapper.find('[data-stub="MatchLobbyExpanded"]').exists()).toBe(true);
-    expect(wrapper.find('[data-stub="MatchmakingLobbyAccess"]').exists()).toBe(true);
-    expect(wrapper.find('[data-stub="LobbyCallPanel"]').attributes("data-lobby-id")).toBe("lobby-1");
+    expect(wrapper.find('[data-stub="PartySeats"]').exists()).toBe(true);
+    // PartySeats owns the captain access and leave controls.
+    expect(
+      wrapper.find('[data-stub="LobbyCallPanel"]').attributes("data-lobby-id"),
+    ).toBe("lobby-1");
     expect(wrapper.find('[data-stub="ChatLobby"]').exists()).toBe(true);
     expect(wrapper.find('a[data-to="/play"]').exists()).toBe(true);
   });
@@ -343,7 +406,13 @@ describe("Lobby panel", () => {
     store.currentLobby = lobby();
     const { openTab, incrementUnread, unreadCounts } = useChatTabs();
     openTab(
-      { id: "matchmaking:lobby-1", label: "Lobby", instance: "matchmaking", type: "matchmaking", lobbyId: "lobby-1" },
+      {
+        id: "matchmaking:lobby-1",
+        label: "Lobby",
+        instance: "matchmaking",
+        type: "matchmaking",
+        lobbyId: "lobby-1",
+      },
       { setActive: false },
     );
     incrementUnread("matchmaking:lobby-1");
@@ -379,16 +448,20 @@ describe("search pill (one clock on screen)", () => {
   });
 
   async function pill() {
-    const { default: Toast } = await import(
-      "../../components/matchmaking/MatchmakingSearchToast.vue"
-    );
+    const { default: Toast } =
+      await import("../../components/matchmaking/MatchmakingSearchToast.vue");
     return mount(Toast, {
       global: {
         ...global,
         mocks: { ...global.mocks, $route: { path: "/matches" } },
         stubs: {
           ...global.stubs,
-          ClientOnly: { setup: (_: unknown, { slots }: any) => () => slots.default?.() },
+          ClientOnly: {
+            setup:
+              (_: unknown, { slots }: any) =>
+              () =>
+                slots.default?.(),
+          },
           TimeAgo: {
             props: ["date"],
             setup: (props: any) => () => h("time", String(props.date)),
@@ -400,7 +473,9 @@ describe("search pill (one clock on screen)", () => {
 
   it("never shows on a desktop, where the dock's Lobby icon has the clock", async () => {
     search({ type: "Competitive", joinedAt: new Date(NOW).toISOString() });
-    expect((await pill()).find("[data-mobile-search-pill]").exists()).toBe(false);
+    expect((await pill()).find("[data-mobile-search-pill]").exists()).toBe(
+      false,
+    );
   });
 
   it("shows on a phone while the hub is closed, and steps aside when it opens", async () => {
@@ -443,8 +518,14 @@ describe("wiring", () => {
 
   it("creating or joining a lobby opens the Lobby panel, not the chat tab", () => {
     const source = read("stores/MatchmakingStore.ts");
-    const create = source.slice(source.indexOf("const createLobby"), source.indexOf("const inviteToLobby"));
-    const join = source.slice(source.indexOf("const joinLobby"), source.indexOf("function openLobbyHub"));
+    const create = source.slice(
+      source.indexOf("const createLobby"),
+      source.indexOf("const inviteToLobby"),
+    );
+    const join = source.slice(
+      source.indexOf("const joinLobby"),
+      source.indexOf("function openLobbyHub"),
+    );
     expect(create).toContain("openLobbyHub(newLobbyId as string)");
     expect(join).toContain("openLobbyHub(lobby_id)");
 
@@ -479,7 +560,11 @@ describe("wiring", () => {
   });
 
   it("chat counts the lobby room as read while the Lobby panel shows it", () => {
-    expect(read("web-sockets/Socket.ts")).toContain('(hub === "lobby" && type === "matchmaking")');
-    expect(read("components/hub/ChatPanel.vue")).toContain('currentHub() === "lobby"');
+    expect(read("web-sockets/Socket.ts")).toContain(
+      '(hub === "lobby" && type === "matchmaking")',
+    );
+    expect(read("components/hub/ChatPanel.vue")).toContain(
+      'currentHub() === "lobby"',
+    );
   });
 });

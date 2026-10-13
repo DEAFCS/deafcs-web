@@ -8,11 +8,23 @@ import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 
 <template>
   <div
-    class="relative flex items-center justify-between gap-2 bg-background rounded-full px-2 py-1 border border-gray-700 h-12"
+    class="relative flex items-center justify-between gap-2 bg-background rounded-full py-1 pr-2 border h-12 transition-[border-color,box-shadow] duration-200"
+    :class="[
+      isCaptain ? 'pl-2' : 'pl-4',
+      active
+        ? 'border-[hsl(var(--tac-amber))] shadow-[0_0_0_3px_hsl(var(--tac-amber)/0.14)]'
+        : 'border-gray-700',
+    ]"
   >
     <MatchmakingLobbyAccess :lobby="lobby" v-if="isCaptain" />
 
-    <TransitionGroup tag="div" name="avatar" class="flex items-center -space-x-2">
+    <!-- The faces are the party's tab: they open the party room in the hub. -->
+    <TransitionGroup
+      tag="div"
+      name="avatar"
+      class="flex cursor-pointer items-center -space-x-2"
+      @click="$emit('open')"
+    >
       <div
         v-for="(player, index) of lobby?.players"
         :key="player.player.steam_id"
@@ -40,7 +52,7 @@ import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
               class="absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 rounded-full h-5 w-5 opacity-0 group-hover:opacity-100 transition-all duration-200 bg-red-400 hover:bg-red-500 border-2 border-gray-900"
               variant="destructive"
               size="xs"
-              @click="removeFromLobby(lobby.id, player.player.steam_id)"
+              @click.stop="removeFromLobby(lobby.id, player.player.steam_id)"
               v-if="
                 (player.status === 'Invited' || player.status === 'Accepted') &&
                 player.player.steam_id !== me?.steam_id &&
@@ -65,7 +77,7 @@ import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
             :self="false"
             @selected="(player) => inviteToLobby(player.steam_id)"
             :registeredOnly="true"
-            :exclude="lobby?.players.map((player) => player.player.steam_id)"
+            :exclude="lobby?.players.map((slot) => slot.player.steam_id)"
           >
             <div
               class="w-8 h-8 rounded-full p-0.5 bg-gray-800 border border-gray-600 flex items-center justify-center cursor-pointer hover:bg-gray-700 transition-colors duration-200"
@@ -104,7 +116,12 @@ export default {
       type: Object,
       required: true,
     },
+    active: {
+      type: Boolean,
+      default: false,
+    },
   },
+  emits: ["open"],
   data() {
     return {
       playerSearchOpen: false,

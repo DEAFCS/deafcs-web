@@ -5093,7 +5093,12 @@
       "ready_count": "{confirmed} of {players} ready",
       "searching": "Searching {mode}",
       "cancel": "Cancel",
-      "leader_picks": "{name} picks the mode and starts the search"
+      "leader_picks": "{name} picks the mode and starts the search",
+      "title": "Your squad",
+      "members": "{count}/5",
+      "remove": "Remove {name}",
+      "invite": "Invite",
+      "open_seat": "Open seat"
     }
   },
   "alt_text": {

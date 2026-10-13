@@ -1,4 +1,12 @@
-import { computed, effectScope, ref, watch } from "vue";
+import {
+  computed,
+  effectScope,
+  ref,
+  watch,
+  onScopeDispose,
+  getCurrentScope,
+  type EffectScope,
+} from "vue";
 import { useDocumentVisibility } from "@vueuse/core";
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { currentHub } from "~/composables/useHubState";
@@ -43,7 +51,11 @@ const heldArrivals = ref<string[] | null>(null);
 // When each friend was seen coming online, newest first in the list; friends
 // already online when this tab loaded sort last.
 const arrivedAt = new Map<string, number>();
-let started = false;
+let tracker: EffectScope | null = null;
+let consumers = 0;
+const arrivalId = ref<string | null>(null);
+const arrivalSerial = ref(0);
+export const FRIEND_ARRIVAL_MS = 4000;
 
 // Newest arrival first.
 const newlyOnline = computed(() =>
@@ -52,9 +64,7 @@ const newlyOnline = computed(() =>
     .sort((a, b) => (arrivedAt.get(b) ?? 0) - (arrivedAt.get(a) ?? 0)),
 );
 
-const visitArrivals = computed(
-  () => heldArrivals.value ?? newlyOnline.value,
-);
+const visitArrivals = computed(() => heldArrivals.value ?? newlyOnline.value);
 
 function writeSeen() {
   try {
@@ -70,6 +80,16 @@ function track() {
   const visibility = useDocumentVisibility();
   const offlineAt = new Map<string, number>();
   let previous: Set<string> | null = null;
+  let arrivalTimer: ReturnType<typeof setTimeout> | null = null;
+  function announce(id: string) {
+    if (arrivalTimer) clearTimeout(arrivalTimer);
+    arrivalId.value = id;
+    arrivalSerial.value++;
+    arrivalTimer = setTimeout(() => {
+      arrivalTimer = null;
+      arrivalId.value = null;
+    }, FRIEND_ARRIVAL_MS);
+  }
 
   const friendsOpen = computed(
     () => rightSidebarOpen.value && currentHub() === "social",
@@ -82,7 +102,7 @@ function track() {
   // (upstream's presenceLoaded).
   watch(
     () =>
-      store.hasOnlinePlayerSnapshot && store.friends?.length
+      store.hasOnlinePlayerSnapshot
         ? (store.onlineFriends ?? []).map((friend: any) =>
             String(friend.steam_id),
           )
@@ -102,6 +122,7 @@ function track() {
           if (wentAt === undefined || now - wentAt >= OFFLINE_GRACE_MS) {
             arrivedAt.set(id, now);
             seen.value.delete(id);
+            announce(id);
           }
         }
         for (const id of previous) {
@@ -110,6 +131,11 @@ function track() {
       }
       previous = current;
       onlineIds.value = ids;
+      if (arrivalId.value && !current.has(arrivalId.value)) {
+        if (arrivalTimer) clearTimeout(arrivalTimer);
+        arrivalTimer = null;
+        arrivalId.value = null;
+      }
 
       // While Friends is open, whoever is new joins this visit's marks, and
       // whoever left drops out of them.
@@ -171,13 +197,29 @@ function track() {
   watch(onlineIds, () => {
     if (looking.value && !lookTimer) markSeen();
   });
+  onScopeDispose(() => {
+    if (arrivalTimer) clearTimeout(arrivalTimer);
+    if (lookTimer) clearTimeout(lookTimer);
+    if (releaseTimer) clearTimeout(releaseTimer);
+    arrivalId.value = null;
+    heldArrivals.value = null;
+  });
 }
 
 export function useFriendArrivals() {
-  if (!started && import.meta.client) {
-    started = true;
-    effectScope(true).run(track);
+  if (!tracker && typeof window !== "undefined") {
+    tracker = effectScope(true);
+    tracker.run(track);
+  }
+  if (getCurrentScope()) {
+    consumers++;
+    onScopeDispose(() => {
+      if (--consumers === 0) {
+        tracker?.stop();
+        tracker = null;
+      }
+    });
   }
 
-  return { newlyOnline, visitArrivals };
+  return { newlyOnline, visitArrivals, arrivalId, arrivalSerial };
 }

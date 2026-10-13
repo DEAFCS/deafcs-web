@@ -14,8 +14,8 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 
-// Phase B: the 5Stack floating dock (layouts/components/RightHub.vue) with
-// DEAFCS's click-to-pin. The real RightHub, HubDockItem and dock composables
+// The 5Stack floating dock with DEAFCS temporary clicks and explicit pinning.
+// The real RightHub, HubDockItem and dock composables
 // run here; only Nuxt globals, stores, the socket and the panels' contents are
 // stand-ins.
 
@@ -73,8 +73,10 @@ vi.mock("~/components/ui/sidebar", async () => {
   return {
     Sidebar: defineComponent({
       name: "Sidebar",
-      setup: (_props, { slots }) => () =>
-        h("div", { "data-sheet": "" }, slots.default?.()),
+      setup:
+        (_props, { slots }) =>
+        () =>
+          h("div", { "data-sheet": "" }, slots.default?.()),
     }),
   };
 });
@@ -108,6 +110,8 @@ import RightHub from "../../layouts/components/RightHub.vue";
 import { useRightSidebar } from "../../composables/useRightSidebar";
 import { currentHub, setActiveHub } from "../../composables/useHubState";
 import { useChatTabs } from "../../composables/useChatTabs";
+import { useDockShortcutPrefs } from "../../composables/useDockShortcutPrefs";
+import { useChatHubSection } from "../../composables/useChatHubSection";
 
 let wrapper: VueWrapper | null = null;
 
@@ -116,14 +120,13 @@ function mountHub() {
     attachTo: document.body,
     global: {
       mocks: { $t: (key: string) => key },
-      stubs: { Transition: false, TransitionGroup: false },
+      stubs: { Transition: true, TransitionGroup: true },
     },
   });
   return wrapper;
 }
 
-const app = (name: string) =>
-  wrapper!.find(`[data-dock-app="${name}"] button`);
+const app = (name: string) => wrapper!.find(`[data-dock-app="${name}"] button`);
 
 function hubOpen() {
   return useRightSidebar().rightSidebarOpen.value;
@@ -146,9 +149,21 @@ beforeEach(() => {
   mocks.state.mobile = false;
   mocks.socketEvents.length = 0;
   localStorage.clear();
+  useRightSidebar().setPinned(false);
   useRightSidebar().setRightSidebarOpen(false);
   setActiveHub("social");
   useChatTabs().clearAll();
+  useChatHubSection().setSection("all");
+  useDockShortcutPrefs().prefs.value = {
+    maxRooms: 2,
+    maxPeople: 3,
+    pinned: [],
+    hidden: [],
+    dismissed: {},
+  };
+  store.hasOnlinePlayerSnapshot = false;
+  store.onlineFriends = [];
+  store.friends = [];
   store.currentLobby = null;
   store.lobbyInvites = [];
   store.joinedMatchmakingQueues = {};
@@ -183,145 +198,220 @@ describe("dock order", () => {
     expect(labels.some((label) => /settings/i.test(label))).toBe(false);
   });
 
-  it("has no separate Pin button: the click is the pin", () => {
+  it("has an explicit bottom pin control", () => {
     mountHub();
-    expect(wrapper!.find('nav button[aria-pressed]').exists()).toBe(false);
-    expect(wrapper!.html()).not.toContain("layouts.hub.dock.pin\"");
+    expect(wrapper!.find("nav button[aria-pressed]").exists()).toBe(true);
   });
 });
 
-describe("hover preview", () => {
-  it("resting on an icon opens that app without pinning it", async () => {
-    mountHub();
-    const item = wrapper!.find('[data-dock-app="lobby"]');
-    item.element.dispatchEvent(pointer("pointerenter"));
-    vi.advanceTimersByTime(150);
-    await nextTick();
+const pinButton = () => wrapper!.find("nav button[aria-pressed]");
 
-    expect(hubOpen()).toBe(true);
-    expect(currentHub()).toBe("lobby");
+describe("temporary panels and explicit pinning", () => {
+  it("hover never opens a panel, including after the settle delay", async () => {
+    mountHub();
+    wrapper!
+      .find('[data-dock-app="lobby"]')
+      .element.dispatchEvent(pointer("pointerenter"));
+    vi.advanceTimersByTime(2000);
+    await nextTick();
+    expect(hubOpen()).toBe(false);
     expect(pinned()).toBe(false);
   });
-
-  it("a pointer passing over an icon opens nothing", async () => {
+  it("each dock click opens a temporary panel and a second click closes it", async () => {
     mountHub();
-    const item = wrapper!.find('[data-dock-app="lobby"]');
-    item.element.dispatchEvent(pointer("pointerenter"));
-    vi.advanceTimersByTime(50);
-    item.element.dispatchEvent(pointer("pointerleave"));
-    vi.advanceTimersByTime(500);
-    await nextTick();
-
-    expect(hubOpen()).toBe(false);
+    for (const hub of [
+      "notifications",
+      "lobby",
+      "social",
+      "chat",
+      "recent-games",
+    ]) {
+      await app(hub).trigger("click");
+      expect(hubOpen()).toBe(true);
+      expect(pinned()).toBe(false);
+      expect(currentHub()).toBe(hub);
+      await app(hub).trigger("click");
+      expect(hubOpen()).toBe(false);
+      expect(pinned()).toBe(false);
+    }
+    expect(localStorage.getItem("right-hub-pinned")).toBeNull();
   });
-
-  it("leaving the hub closes an unpinned preview", async () => {
+  it("switching temporary panels never pins them", async () => {
     mountHub();
-    wrapper!.find('[data-dock-app="social"]').element.dispatchEvent(
-      pointer("pointerenter"),
-    );
-    vi.advanceTimersByTime(150);
-    await nextTick();
+    await app("lobby").trigger("click");
+    await app("chat").trigger("click");
     expect(hubOpen()).toBe(true);
-
-    const layer = wrapper!.find("nav").element.parentElement!;
-    layer.dispatchEvent(new MouseEvent("mouseenter"));
-    layer.dispatchEvent(new MouseEvent("mouseleave", { relatedTarget: null }));
-    vi.advanceTimersByTime(300);
-    await nextTick();
-
-    expect(hubOpen()).toBe(false);
+    expect(pinned()).toBe(false);
+    expect(currentHub()).toBe("chat");
   });
-
-  it("the preview is drawn outlined, a pinned app filled", async () => {
+  it("the pin highlights orange and fills Chat's whole icon", async () => {
     mountHub();
-    wrapper!.find('[data-dock-app="social"]').element.dispatchEvent(
-      pointer("pointerenter"),
-    );
-    vi.advanceTimersByTime(150);
-    await nextTick();
-    expect(app("social").classes().join(" ")).toContain(
+    await app("chat").trigger("click");
+    expect(app("chat").classes().join(" ")).toContain(
       "border-[hsl(var(--tac-amber)/0.6)]",
     );
-
-    await app("social").trigger("click");
-    expect(app("social").classes().join(" ")).toContain(
+    await pinButton().trigger("click");
+    expect(pinned()).toBe(true);
+    expect(pinButton().classes().join(" ")).toContain(
+      "text-[hsl(var(--tac-amber))]",
+    );
+    expect(app("chat").classes().join(" ")).toContain(
       "[background:linear-gradient(135deg,var(--tac-amber-cta-from)",
     );
+    expect(localStorage.getItem("right-hub-pinned")).toBe("1");
   });
-});
-
-describe("click to pin", () => {
-  it("a click opens the app and pins the hub at once", async () => {
+  it("closing, reopening and switching preserve an explicit pin", async () => {
     mountHub();
-    await app("notifications").trigger("click");
-
+    await app("lobby").trigger("click");
+    await pinButton().trigger("click");
+    await app("lobby").trigger("click");
+    expect(hubOpen()).toBe(false);
+    expect(pinned()).toBe(true);
+    await app("chat").trigger("click");
+    await app("social").trigger("click");
     expect(hubOpen()).toBe(true);
     expect(pinned()).toBe(true);
-    expect(currentHub()).toBe("notifications");
-    expect(app("notifications").attributes("aria-current")).toBe("true");
+    await pinButton().trigger("click");
+    expect(hubOpen()).toBe(true);
+    expect(pinned()).toBe(false);
+    expect(localStorage.getItem("right-hub-pinned")).toBeNull();
   });
-
-  it("a pinned hub stays when the pointer leaves", async () => {
+  it("outside click closes a temporary panel, but leaves a pinned panel open", async () => {
+    mountHub();
+    await app("social").trigger("click");
+    document.body.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true }),
+    );
+    await nextTick();
+    expect(hubOpen()).toBe(false);
+    await app("social").trigger("click");
+    await pinButton().trigger("click");
+    document.body.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true }),
+    );
+    await nextTick();
+    expect(hubOpen()).toBe(true);
+  });
+  it("leaving closes temporary panels and preserves pinned panels", async () => {
     mountHub();
     await app("social").trigger("click");
     const layer = wrapper!.find("nav").element.parentElement!;
     layer.dispatchEvent(new MouseEvent("mouseleave", { relatedTarget: null }));
     vi.advanceTimersByTime(1000);
     await nextTick();
-
-    expect(hubOpen()).toBe(true);
-  });
-
-  it("clicking a previewed app pins it rather than closing it", async () => {
-    mountHub();
-    wrapper!.find('[data-dock-app="chat"]').element.dispatchEvent(
-      pointer("pointerenter"),
-    );
-    vi.advanceTimersByTime(150);
-    await nextTick();
-    expect(pinned()).toBe(false);
-
-    await app("chat").trigger("click");
-    expect(hubOpen()).toBe(true);
-    expect(pinned()).toBe(true);
-  });
-
-  it("clicking the pinned app again closes and unpins the hub", async () => {
-    mountHub();
-    await app("lobby").trigger("click");
-    await app("lobby").trigger("click");
-
     expect(hubOpen()).toBe(false);
-    expect(pinned()).toBe(false);
-  });
-
-  it("clicking another app switches and stays pinned", async () => {
-    mountHub();
-    await app("lobby").trigger("click");
-    await app("chat").trigger("click");
-
-    expect(hubOpen()).toBe(true);
-    expect(pinned()).toBe(true);
-    expect(currentHub()).toBe("chat");
-  });
-
-  it("a click outside does not close a pinned hub", async () => {
-    mountHub();
     await app("social").trigger("click");
-    document.body.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true }));
+    await pinButton().trigger("click");
+    layer.dispatchEvent(new MouseEvent("mouseleave", { relatedTarget: null }));
+    vi.advanceTimersByTime(1000);
     await nextTick();
     expect(hubOpen()).toBe(true);
-  });
-
-  it("a pinned hub comes back after a desktop reload", async () => {
-    mountHub();
-    await app("social").trigger("click");
-    expect(localStorage.getItem("right-hub-pinned")).toBe("1");
   });
 });
 
 describe("conversation shortcuts", () => {
+  it("orders announcements, organizers, global, other rooms, then people with no duplicates", async () => {
+    const { openTab } = useChatTabs();
+    const prefs = useDockShortcutPrefs();
+    for (const type of [
+      "direct",
+      "tournament",
+      "global",
+      "organizers",
+      "announcement",
+    ] as const) {
+      const id = type === "direct" ? "direct:1:2" : type;
+      openTab(
+        { id, type, label: type, instance: type, lobbyId: id },
+        { setActive: false },
+      );
+      prefs.togglePin(id);
+    }
+    mountHub();
+    expect(
+      wrapper!
+        .findAll("[data-dock-shortcut]")
+        .map((item) => item.attributes("data-dock-shortcut")),
+    ).toEqual([
+      "announcement",
+      "organizers",
+      "global",
+      "tournament",
+      "direct:1:2",
+    ]);
+  });
+  it("removed and hidden rooms repin immediately, persist, and do not duplicate", async () => {
+    const { openTab } = useChatTabs();
+    const prefs = useDockShortcutPrefs();
+    for (const type of [
+      "announcement",
+      "organizers",
+      "global",
+      "tournament",
+      "team",
+    ] as const) {
+      openTab(
+        { id: type, type, label: type, instance: type, lobbyId: type },
+        { setActive: false },
+      );
+      prefs.togglePin(type);
+    }
+    mountHub();
+    for (const type of [
+      "announcement",
+      "organizers",
+      "global",
+      "tournament",
+      "team",
+    ]) {
+      prefs.dismiss(type);
+      await nextTick();
+      expect(wrapper!.find(`[data-dock-shortcut="${type}"]`).exists()).toBe(
+        false,
+      );
+      prefs.togglePin(type);
+      await nextTick();
+      expect(wrapper!.findAll(`[data-dock-shortcut="${type}"]`)).toHaveLength(
+        1,
+      );
+      prefs.hide(type);
+      await nextTick();
+      expect(wrapper!.find(`[data-dock-shortcut="${type}"]`).exists()).toBe(
+        false,
+      );
+      prefs.togglePin(type);
+      await nextTick();
+      expect(wrapper!.findAll(`[data-dock-shortcut="${type}"]`)).toHaveLength(
+        1,
+      );
+      const saved = JSON.parse(localStorage.getItem("hub-dock-shortcuts")!);
+      expect(saved.pinned).toContain(type);
+      expect(saved.hidden).not.toContain(type);
+      expect(saved.dismissed[type]).toBeUndefined();
+    }
+  });
+  it("the Chat right-click menu opens Rooms or People without pinning", async () => {
+    mountHub();
+    for (const section of ["rooms", "people"] as const) {
+      await app("chat").trigger("contextmenu", {
+        clientX: 50,
+        clientY: 50,
+        button: 2,
+      });
+      await flushPromises();
+      const menu = Array.from(
+        document.querySelectorAll('[role="menuitem"]'),
+      ).find(
+        (item) => item.textContent?.trim() === `layouts.hub.dock.${section}`,
+      ) as HTMLElement;
+      expect(menu).toBeTruthy();
+      menu.click();
+      await nextTick();
+      expect(useChatHubSection().section.value).toBe(section);
+      expect(hubOpen()).toBe(true);
+      expect(pinned()).toBe(false);
+    }
+  });
   function addDirect() {
     const { openTab, noteActivity } = useChatTabs();
     openTab(
@@ -337,7 +427,7 @@ describe("conversation shortcuts", () => {
     noteActivity("direct:1:2");
   }
 
-  it("a recently active conversation sits under Chat, and a click opens it pinned", async () => {
+  it("a recently active conversation opens temporarily", async () => {
     addDirect();
     mountHub();
     await nextTick();
@@ -346,7 +436,7 @@ describe("conversation shortcuts", () => {
 
     await shortcut.trigger("click");
     expect(hubOpen()).toBe(true);
-    expect(pinned()).toBe(true);
+    expect(pinned()).toBe(false);
     expect(currentHub()).toBe("chat");
     expect(useChatTabs().activeTabId.value).toBe("direct:1:2");
   });
@@ -354,7 +444,13 @@ describe("conversation shortcuts", () => {
   it("Pin to the dock keeps a conversation there without any activity", async () => {
     const { openTab } = useChatTabs();
     openTab(
-      { id: "global", label: "Global", instance: "global", type: "global", lobbyId: "global" },
+      {
+        id: "global",
+        label: "Global",
+        instance: "global",
+        type: "global",
+        lobbyId: "global",
+      },
       { setActive: false },
     );
     mountHub();
@@ -364,9 +460,8 @@ describe("conversation shortcuts", () => {
       "hub-dock-shortcuts",
       JSON.stringify({ pinned: ["global"] }),
     );
-    const { useDockShortcutPrefs } = await import(
-      "../../composables/useDockShortcutPrefs"
-    );
+    const { useDockShortcutPrefs } =
+      await import("../../composables/useDockShortcutPrefs");
     useDockShortcutPrefs().togglePin("global");
     await nextTick();
     expect(wrapper!.find('[data-dock-shortcut="global"]').exists()).toBe(true);
@@ -392,11 +487,66 @@ describe("conversation shortcuts", () => {
   });
 });
 
+describe("friend arrival badge", () => {
+  const friend = (id: string) => ({
+    steam_id: id,
+    name: `Friend ${id}`,
+    avatar_url: `/avatars/${id}.png`,
+  });
+  it("shows the newest arriving avatar for four seconds and restores the online count without opening", async () => {
+    store.friends = [friend("2"), friend("3")];
+    store.hasOnlinePlayerSnapshot = true;
+    mountHub();
+    store.onlineFriends = [friend("2")];
+    await nextTick();
+    expect(
+      wrapper!.find('[data-dock-app="social"] img').attributes("src"),
+    ).toBe("https://api/avatars/2.png");
+    vi.advanceTimersByTime(3000);
+    store.onlineFriends = [friend("2"), friend("3")];
+    await nextTick();
+    expect(
+      wrapper!.find('[data-dock-app="social"] img').attributes("src"),
+    ).toBe("https://api/avatars/3.png");
+    vi.advanceTimersByTime(3999);
+    await nextTick();
+    expect(wrapper!.find('[data-dock-app="social"] img').exists()).toBe(true);
+    vi.advanceTimersByTime(1);
+    await nextTick();
+    expect(wrapper!.find('[data-dock-app="social"] img').exists()).toBe(false);
+    expect(wrapper!.find('[data-dock-app="social"]').text()).toContain("2");
+    expect(hubOpen()).toBe(false);
+  });
+  it("does not announce the initial snapshot or brief reconnects and clears timers on unmount", async () => {
+    store.friends = [friend("2")];
+    store.hasOnlinePlayerSnapshot = true;
+    store.onlineFriends = [friend("2")];
+    mountHub();
+    expect(wrapper!.find('[data-dock-app="social"] img').exists()).toBe(false);
+    store.onlineFriends = [];
+    await nextTick();
+    vi.advanceTimersByTime(1000);
+    store.onlineFriends = [friend("2")];
+    await nextTick();
+    expect(wrapper!.find('[data-dock-app="social"] img').exists()).toBe(false);
+    wrapper!.unmount();
+    wrapper = null;
+    vi.advanceTimersByTime(5000);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+});
+
 describe("badges", () => {
   it("Chat keeps the amber unread and red urgent counts", async () => {
     const { openTab, incrementUnread, incrementMention } = useChatTabs();
     openTab(
-      { id: "global", label: "Global", instance: "global", type: "global", lobbyId: "global" },
+      {
+        id: "global",
+        label: "Global",
+        instance: "global",
+        type: "global",
+        lobbyId: "global",
+      },
       { setActive: false },
     );
     // Off the dock (limit 0), so Chat itself carries the counts.
@@ -404,9 +554,8 @@ describe("badges", () => {
       "hub-dock-shortcuts",
       JSON.stringify({ maxPeople: 0, maxRooms: 0 }),
     );
-    const { useDockShortcutPrefs } = await import(
-      "../../composables/useDockShortcutPrefs"
-    );
+    const { useDockShortcutPrefs } =
+      await import("../../composables/useDockShortcutPrefs");
     useDockShortcutPrefs().setLimit("rooms", 0);
     incrementUnread("global");
     incrementUnread("global");
@@ -416,7 +565,9 @@ describe("badges", () => {
     await nextTick();
 
     const chat = wrapper!.find('[data-dock-app="chat"]');
-    expect(chat.find(".bg-\\[hsl\\(var\\(--tac-amber\\)\\)\\]").text()).toBe("2");
+    expect(chat.find(".bg-\\[hsl\\(var\\(--tac-amber\\)\\)\\]").text()).toBe(
+      "2",
+    );
     expect(chat.find("[data-dock-urgent-badge]").text()).toBe("1");
     useDockShortcutPrefs().setLimit("rooms", 2);
   });
@@ -426,7 +577,9 @@ describe("badges", () => {
     notificationStore.unreadNotificationCount = 3;
     mountHub();
     await nextTick();
-    expect(wrapper!.find('[data-dock-app="notifications"]').text()).toContain("3");
+    expect(wrapper!.find('[data-dock-app="notifications"]').text()).toContain(
+      "3",
+    );
   });
 
   it("Lobby shows pending invites", async () => {
@@ -454,7 +607,9 @@ describe("queue clock on the Lobby icon", () => {
 
     store.joinedMatchmakingQueues = {};
     await nextTick();
-    expect(wrapper!.find('[data-dock-app="lobby"]').text()).not.toContain("1:05");
+    expect(wrapper!.find('[data-dock-app="lobby"]').text()).not.toContain(
+      "1:05",
+    );
   });
 });
 
@@ -523,12 +678,10 @@ describe("reload", () => {
 describe("keyboard and screen readers", () => {
   it("Escape closes a previewed hub and hands focus back to its icon", async () => {
     mountHub();
-    wrapper!.find('[data-dock-app="social"]').element.dispatchEvent(
-      pointer("pointerenter"),
-    );
-    vi.advanceTimersByTime(150);
+    await app("social").trigger("click");
     await nextTick();
-    const inside = wrapper!.find('[data-panel="social"]').element as HTMLElement;
+    const inside = wrapper!.find('[data-panel="social"]')
+      .element as HTMLElement;
     inside.setAttribute("tabindex", "-1");
     inside.focus();
     inside.dispatchEvent(
@@ -542,6 +695,7 @@ describe("keyboard and screen readers", () => {
   it("Escape leaves a pinned hub open", async () => {
     mountHub();
     await app("social").trigger("click");
+    await pinButton().trigger("click");
     document.body.dispatchEvent(
       new KeyboardEvent("keydown", { key: "Escape", bubbles: true }),
     );
@@ -583,8 +737,11 @@ describe("Alerts settings", () => {
       path.resolve(__dirname, "../../components/hub/NotificationsPanel.vue"),
       "utf8",
     );
-    const header = panel.slice(0, panel.indexOf('class="flex-1 overflow-y-auto'));
-    expect(header).toContain('to="/settings/notifications"');
+    const header = panel.slice(
+      0,
+      panel.indexOf('class="flex-1 overflow-y-auto'),
+    );
+    expect(header).toContain('to="/settings/notification-preferences"');
     expect(header).toContain("data-alerts-settings");
     expect(header).toContain("layouts.notifications.settings");
   });

@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
-import { Merge, LogOut, Video } from "lucide-vue-next";
+import { Merge, Video } from "lucide-vue-next";
 import HubEmptyState from "~/components/hub/HubEmptyState.vue";
 import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
 import LobbyInvites from "~/components/matchmaking-lobby/LobbyInvites.vue";
-import MatchLobbyExpanded from "~/components/matchmaking-lobby/MatchLobbyExpanded.vue";
-import MatchmakingLobbyAccess from "~/components/matchmaking-lobby/MatchmakingLobbyAccess.vue";
+import PartySeats from "~/components/hub/PartySeats.vue";
+import { Spinner } from "~/components/ui/spinner";
 import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
 import ChatLobby from "~/components/chat/ChatLobby.vue";
 import PartyQueueLine from "~/components/hub/PartyQueueLine.vue";
@@ -17,8 +17,8 @@ import { useChatTabs } from "~/composables/useChatTabs";
 import { openLobbyCallWindow } from "~/composables/useLobbyCallApi";
 
 // 5Stack's party room: invites, the squad, the queue line, then the lobby
-// chat. DEAFCS keeps its own squad list (MatchLobbyExpanded, with the
-// captain's invite and remove), the lobby access setting, and the lobby's
+// chat. PartySeats keeps captain invite/remove and access controls, plus
+// DEAFCS ELO and the lobby's
 // webcam call; upstream's voice channel is not part of DEAFCS.
 const { hasLobbyInvites } = useInvites();
 const { rightSidebarOpen } = useRightSidebar();
@@ -79,13 +79,8 @@ watch(
         <div
           class="max-h-[45vh] overflow-y-auto border-b border-border bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.06),transparent_70%)] px-3 pb-3.5 pt-3"
         >
-          <div class="mb-3 flex items-center justify-between gap-3">
-            <div
-              class="inline-flex items-center gap-[0.35rem] text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground"
-            >
-              {{ $t("layouts.lobby_panel.your_squad") }}
-            </div>
-            <div class="flex items-center gap-2">
+          <PartySeats :lobby="currentLobby">
+            <template #actions>
               <button
                 type="button"
                 data-lobby-call
@@ -115,22 +110,8 @@ watch(
                   {{ lobbyCallStatus.count }}
                 </span>
               </button>
-              <div class="flex items-center gap-2 md:hidden">
-                <MatchmakingLobbyAccess :lobby="currentLobby" />
-                <Button
-                  size="icon"
-                  variant="destructive"
-                  class="h-7 w-7 rounded-full transition-colors duration-200"
-                  :title="$t('matchmaking.lobby.leave')"
-                  :aria-label="$t('matchmaking.lobby.leave')"
-                  @click="leaveCurrentLobby"
-                >
-                  <LogOut class="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-          </div>
-          <MatchLobbyExpanded :lobby="currentLobby" />
+            </template>
+          </PartySeats>
         </div>
         <LobbyCallPanel
           v-if="lobbyId"
@@ -164,12 +145,19 @@ watch(
           ></span>
           <Button
             variant="ghost"
-            @click="createLobby"
-            :loading="creatingLobby"
+            @click="
+              () => {
+                void createLobby();
+              }
+            "
+            :disabled="creatingLobby || !me"
+            participation
+            data-create-lobby
             size="default"
             class="rounded-md border-0 bg-transparent px-7 py-2 text-[hsl(var(--tac-amber))] transition-colors duration-300 hover:bg-[hsl(var(--tac-amber)/0.12)] hover:text-[hsl(var(--tac-amber))] focus-visible:ring-[hsl(var(--tac-amber))]"
           >
-            <Merge class="h-5 w-5" />
+            <Spinner v-if="creatingLobby" class="h-5 w-5" />
+            <Merge v-else class="h-5 w-5" />
             <span class="font-semibold">
               {{ $t("layouts.lobby_panel.create_lobby_button") }}
             </span>
@@ -206,7 +194,6 @@ watch(
 
 <script lang="ts">
 import { e_match_status_enum, e_player_roles_enum } from "~/generated/zeus";
-import { generateMutation } from "~/graphql/graphqlGen";
 
 export default {
   data() {
@@ -349,24 +336,6 @@ export default {
     },
     createLobby() {
       return useMatchmakingStore().createLobby();
-    },
-    async leaveCurrentLobby() {
-      const lobby = this.currentLobby as any;
-      if (!lobby || !this.me?.steam_id) return;
-
-      await (this.$apollo as any).mutate({
-        mutation: generateMutation({
-          delete_lobby_players_by_pk: [
-            {
-              lobby_id: lobby.id,
-              steam_id: this.me.steam_id,
-            },
-            {
-              __typename: true,
-            },
-          ],
-        }),
-      });
     },
   },
 };

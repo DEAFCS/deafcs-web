@@ -239,6 +239,7 @@ import SanctionPlayer from "~/components/SanctionPlayer.vue";
 
 <script lang="ts">
 import type { PropType } from "vue";
+import { dateLocale } from "~/utilities/dateLocale";
 import socket from "~/web-sockets/Socket";
 import type { Lobby, ChatType } from "~/web-sockets/Socket";
 import type { ChatReaction } from "~/utils/chatReactions";
@@ -416,9 +417,10 @@ export default {
       if (this.chatMuteStatus.active) {
         if (this.chatMuteStatus.expiresAt) {
           return this.$t("chat.muted_until", {
-            date: new Intl.DateTimeFormat(undefined, {
+            date: new Intl.DateTimeFormat(dateLocale(), {
               dateStyle: "medium",
               timeStyle: "short",
+              hourCycle: "h23",
             }).format(new Date(this.chatMuteStatus.expiresAt)),
           });
         }

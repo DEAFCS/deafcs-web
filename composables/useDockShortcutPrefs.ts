@@ -73,6 +73,8 @@ export function useDockShortcutPrefs() {
       ? prefs.value.pinned.filter((pinned) => pinned !== id)
       : [...prefs.value.pinned, id];
     delete prefs.value.dismissed[id];
+    // Explicitly pinning also restores a shortcut removed with Hide.
+    if (isPinned(id)) unhide(id);
   }
 
   function dismiss(id: string) {

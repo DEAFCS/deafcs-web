@@ -17,6 +17,7 @@ import {
 import NewConversation from "~/components/hub/NewConversation.vue";
 import NewChatRailButton from "~/components/hub/NewChatRailButton.vue";
 import { useDockShortcutPrefs } from "~/composables/useDockShortcutPrefs";
+import { useChatHubSection } from "~/composables/useChatHubSection";
 import { useMediaQuery } from "@vueuse/core";
 import {
   Megaphone,
@@ -178,16 +179,16 @@ watch(activeTabId, (id) => {
 });
 
 const orderedTabs = computed<ChatTab[]>(() => {
-  // Default (pre-drag) order: Announcements, Global, Organizers (admin-only),
+  // Default (pre-drag) order: Announcements, Organizers, Global,
   // Tournament, then everything else -- matchmaking lobby, per-match chat,
   // DMs, etc. Anything a user has manually dragged still overrides this via
   // manualOrder below; this is only the fallback for untouched tabs.
   const weight = (tab: ChatTab) => {
     if (tab.type === "announcement") return 0;
-    if (tab.type === "global") return 1;
-    if (tab.type === "organizers") return 2;
+    if (tab.type === "organizers") return 1;
+    if (tab.type === "global") return 2;
     if (tab.type === "tournament") return 3;
-    return 4;
+    return tab.type === "direct" ? 5 : 4;
   };
   const base = tabs.value
     .filter((tab) => canShowRoom(tab) && !isTeamRoom(tab))
@@ -210,6 +211,17 @@ const orderedTabs = computed<ChatTab[]>(() => {
     return pa - pb;
   });
 });
+
+const { section, setSection } = useChatHubSection();
+const railTabs = computed(() =>
+  orderedTabs.value.filter(
+    (tab) =>
+      section.value === "all" ||
+      (section.value === "people"
+        ? tab.type === "direct"
+        : tab.type !== "direct"),
+  ),
+);
 
 // Dragging a conversation around the rail.
 //
@@ -249,7 +261,7 @@ let pressIsTouch = false;
 let suppressClick = false;
 
 function directTabsInOrder(): ChatTab[] {
-  return orderedTabs.value;
+  return railTabs.value;
 }
 
 // Drawn absolutely rather than as an element between the buttons: an inline
@@ -420,7 +432,8 @@ function cancelPress() {
 }
 
 function moveConversation(roomId: string, index: number) {
-  const order = orderedTabs.value.map((tab) => tab.id);
+  const order = railTabs.value.map((tab) => tab.id);
+  const visibleIds = new Set(order);
   const from = order.indexOf(roomId);
 
   if (from === -1) {
@@ -432,7 +445,12 @@ function moveConversation(roomId: string, index: number) {
   // below where it started means one less than the raw index.
   order.splice(index > from ? index - 1 : index, 0, moved);
 
-  setTabOrder(order);
+  // Keep conversations in the other section in their existing positions.
+  setTabOrder(
+    orderedTabs.value.map((tab) =>
+      visibleIds.has(tab.id) ? order.shift()! : tab.id,
+    ),
+  );
 }
 
 // Leaving editing mode. A tap anywhere that is not a remove badge ends it, the
@@ -500,7 +518,7 @@ function onTabClick(tab: ChatTab) {
 }
 const composing = ref(false);
 const firstDirectTabId = computed(
-  () => orderedTabs.value.find((tab) => tab.type === "direct")?.id,
+  () => railTabs.value.find((tab) => tab.type === "direct")?.id,
 );
 // DEAFCS's existing unread paths use activeTabId to decide whether a room is
 // being read. The compose screen keeps listeners mounted, but reads no room.
@@ -924,7 +942,7 @@ function openTournamentWebcamWindow() {
         />
 
         <TooltipProvider>
-          <template v-for="tab in orderedTabs" :key="tab.id">
+          <template v-for="tab in railTabs" :key="tab.id">
             <div
               v-if="tab.id === firstDirectTabId"
               class="flex w-full shrink-0 flex-col items-center"
@@ -1047,6 +1065,12 @@ function openTournamentWebcamWindow() {
                   </Tooltip>
                 </ContextMenuTrigger>
                 <ContextMenuContent data-right-hub-interactive>
+                  <ContextMenuItem @select="setSection('rooms')">{{
+                    $t("layouts.hub.dock.rooms")
+                  }}</ContextMenuItem>
+                  <ContextMenuItem @select="setSection('people')">{{
+                    $t("layouts.hub.dock.people")
+                  }}</ContextMenuItem>
                   <ContextMenuItem
                     v-if="onDock(tab)"
                     @select="toggleShortcutPin(tab.id)"
@@ -1229,6 +1253,12 @@ function openTournamentWebcamWindow() {
                   class="w-56"
                   data-right-hub-interactive
                 >
+                  <DropdownMenuItem @select="setSection('rooms')">{{
+                    $t("layouts.hub.dock.rooms")
+                  }}</DropdownMenuItem>
+                  <DropdownMenuItem @select="setSection('people')">{{
+                    $t("layouts.hub.dock.people")
+                  }}</DropdownMenuItem>
                   <DropdownMenuItem
                     v-if="onDock(activeTab)"
                     @select="toggleShortcutPin(activeTab.id)"
@@ -1277,7 +1307,10 @@ function openTournamentWebcamWindow() {
           :match="activeMatch"
           class="mx-3 mt-2"
         />
-        <div v-show="!composing" class="flex-1 min-h-0 flex flex-col overflow-hidden">
+        <div
+          v-show="!composing"
+          class="flex-1 min-h-0 flex flex-col overflow-hidden"
+        >
           <!-- ChatLobby's root template is a Teleport-or-div pair plus a
                sibling SanctionPlayer node, so it has no single element
                root -- Vue only special-cases v-show for a component

@@ -49,6 +49,8 @@ import {
 } from "~/components/ui/context-menu";
 import MiniDisplay from "~/components/matchmaking-lobby/MiniDisplay.vue";
 import HubDockItem from "~/components/hub/HubDockItem.vue";
+import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
+import { useChatHubSection } from "~/composables/useChatHubSection";
 import { formatBadgeCount } from "~/utilities/badgeCount";
 import { splitTabBadge, totalBadgeCounts } from "~/utilities/chatBadgeCounts";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
@@ -61,11 +63,8 @@ import LobbyPanel from "~/components/hub/LobbyPanel.vue";
 // 5Stack's floating hub dock (layouts/components/RightHub.vue). DEAFCS
 // differences, each marked below:
 // - no Voice app: Alerts, Lobby, Friends, Chat, Recent Matches;
-// - resting the pointer on a dock icon never opens anything -- only a
-//   click does, and a click pins the hub open at once. The bottom Pin
-//   button is back (see the nav's own comment near the template) as an
-//   explicit, always-visible toggle, since a click already pins and
-//   there is no longer a hover preview to distinguish it from;
+// - resting the pointer never opens anything; clicks open temporary panels;
+//   only the bottom Pin control persists the open state;
 // - Chat keeps DEAFCS's two counts: amber for unread, red for private
 //   messages, announcements and @-mentions.
 
@@ -219,8 +218,7 @@ function onDocumentKeydown(event: KeyboardEvent) {
     return;
   }
   const target = event.target;
-  const inCard =
-    target instanceof Node && !!hubCardRef.value?.contains(target);
+  const inCard = target instanceof Node && !!hubCardRef.value?.contains(target);
   const inLayer =
     target instanceof Node && !!hubLayerRef.value?.contains(target);
   if (!inLayer && target !== document.body) return;
@@ -245,6 +243,7 @@ onMounted(() => {
   document.addEventListener("keydown", onDocumentKeydown);
 });
 onBeforeUnmount(() => {
+  clearCloseTimer();
   document.removeEventListener("pointerdown", onDocumentPointerDown, true);
   document.removeEventListener("keydown", onDocumentKeydown);
 });
@@ -279,25 +278,14 @@ function showHub(hub: HubName) {
   if (!rightSidebarOpen.value) setRightSidebarOpen(true);
 }
 
-// DEAFCS: a click is "keep this open". It opens the app and pins the hub at
-// once; clicking the app that is already pinned open closes the hub (and
-// unpins it); clicking another app switches and stays pinned. On a phone
-// there is no hover preview and no pin: a tap opens the app and it stays
-// until a tap on it again, a swipe or the overlay closes it.
+// Clicks toggle visibility. Only the bottom pin control changes persistence.
 function clickHub(hub: HubName) {
   dockIntent.noteClick();
-  const pinnedHere =
-    isHubActive(hub) && (isPinned.value || isMobile.value);
-  if (pinnedHere) {
+  if (isHubActive(hub)) {
     setRightSidebarOpen(false);
     return;
   }
   showHub(hub);
-  keepOpen();
-}
-
-function keepOpen() {
-  if (!isMobile.value && !isPinned.value) togglePin();
 }
 
 // The outlined look is for an icon that isn't the pinned-open app; a
@@ -394,15 +382,30 @@ const chatShortcuts = computed(() => {
 
   return [
     ...pick(
+      candidates.filter((tab) => tab.type !== "direct"),
+      maxRooms,
+    ).sort((a, b) => roomPriority(a) - roomPriority(b)),
+    ...pick(
       candidates.filter((tab) => tab.type === "direct"),
       maxPeople,
     ),
-    ...pick(
-      candidates.filter((tab) => tab.type !== "direct"),
-      maxRooms,
-    ),
   ];
 });
+
+function roomPriority(tab: ChatTab) {
+  return tab.type === "announcement"
+    ? 0
+    : tab.type === "organizers"
+      ? 1
+      : tab.type === "global"
+        ? 2
+        : 3;
+}
+const { setSection } = useChatHubSection();
+function openChatSection(section: "rooms" | "people") {
+  setSection(section);
+  showHub("chat");
+}
 
 // DEAFCS: each unread message is counted once, amber or red -- red for
 // private messages, announcements and @-mentions (chatBadgeCounts.ts).
@@ -443,9 +446,7 @@ const chatLeftoverUnread = computed(() =>
 const chatLeftoverMentions = computed(() =>
   Math.max(0, totalMentions.value - shortcutTotals.value.urgent),
 );
-const chatUnreadTotal = computed(
-  () => totalUnread.value + totalMentions.value,
-);
+const chatUnreadTotal = computed(() => totalUnread.value + totalMentions.value);
 
 function shortcutIcon(tab: ChatTab) {
   if (tab.type === "announcement") return Megaphone;
@@ -481,12 +482,12 @@ function shortcutInitials(tab: ChatTab) {
     .toUpperCase();
 }
 
-// A conversation on the dock opens Chat on it, pinned like any app click.
+// A shortcut selects its conversation without changing the hub pin.
 function openChatTab(tab: ChatTab) {
   dockIntent.noteClick();
+  setSection("all");
   setActiveTab(tab.id);
   showHub("chat");
-  keepOpen();
 }
 
 // Friends: a request needs an answer and replaces the online count until it
@@ -498,31 +499,31 @@ const friendRequestCount = computed(() => pendingFriends.value?.length ?? 0);
 // Friends who came online since you last looked: bright rather than red --
 // worth a glance, not an answer. One arrival shows their face; more show the
 // online count in white.
-const { newlyOnline } = useFriendArrivals();
+const { newlyOnline, arrivalId, arrivalSerial } = useFriendArrivals();
 const apiDomain = useRuntimeConfig().public.apiDomain as string;
 const arrivalFace = computed(() => {
-  if (friendRequestCount.value > 0 || newlyOnline.value.length !== 1) {
+  if (friendRequestCount.value > 0 || !arrivalId.value) {
     return null;
   }
   const friend = (matchmakingStore.onlineFriends ?? []).find(
-    (candidate: any) => String(candidate.steam_id) === newlyOnline.value[0],
+    (candidate: any) => String(candidate.steam_id) === arrivalId.value,
   ) as any;
   if (!friend) return null;
   return {
     key: String(friend.steam_id),
     name: friend.name as string,
-    src: resolveAvatarUrl(friend.avatar_url, apiDomain),
+    src: resolveAvatarUrl(
+      friend.custom_avatar_url || friend.avatar_url,
+      apiDomain,
+    ),
     initials: (friend.name ?? "?").slice(0, 2).toUpperCase(),
   };
 });
 // Rings the Friends badge once each time someone new arrives.
 const arrivalPulse = ref(0);
-watch(
-  () => newlyOnline.value.length,
-  (count, previous) => {
-    if (count > (previous ?? 0)) arrivalPulse.value += 1;
-  },
-);
+watch(arrivalSerial, () => {
+  arrivalPulse.value += 1;
+});
 const friendsDetail = computed(() => {
   if (friendRequestCount.value > 0) {
     return t("layouts.hub.dock.friend_requests", {
@@ -822,7 +823,16 @@ function onHubTouchEnd(e: TouchEvent) {
               </HubDockItem>
             </ContextMenuTrigger>
             <ContextMenuContent class="w-56" data-right-hub-interactive>
-              <ContextMenuLabel class="text-xs font-medium text-muted-foreground">
+              <ContextMenuItem @select="openChatSection('rooms')">{{
+                $t("layouts.hub.dock.rooms")
+              }}</ContextMenuItem>
+              <ContextMenuItem @select="openChatSection('people')">{{
+                $t("layouts.hub.dock.people")
+              }}</ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuLabel
+                class="text-xs font-medium text-muted-foreground"
+              >
                 {{ $t("layouts.hub.dock.on_the_dock") }}
               </ContextMenuLabel>
               <ContextMenuSub>
@@ -918,12 +928,13 @@ function onHubTouchEnd(e: TouchEvent) {
                     "
                     @select="openChatTab(tab)"
                   >
-                    <img
-                      v-if="tab.type === 'direct' && tab.avatarUrl"
-                      :src="tab.avatarUrl"
+                    <LiveAvatarImg
+                      v-if="tab.type === 'direct'"
+                      :steam-id="tab.otherSteamId"
+                      :fallback-url="tab.avatarUrl"
                       :alt="tab.label"
                       draggable="false"
-                      class="size-full select-none object-cover"
+                      img-class="size-full select-none object-cover"
                     />
                     <span
                       v-else
@@ -971,30 +982,27 @@ function onHubTouchEnd(e: TouchEvent) {
 
         <div class="flex-1" />
 
-        <!-- Explicit pin, back at the bottom of the dock. A click already
-             pins the hub it opens, so this isn't how pinning normally
-             happens -- it's for keeping the hub open while switching apps
-             with the pointer resting elsewhere, or deliberately unpinning
-             an app that was only opened to glance at. Desktop only: a
-             phone has no "closes when you look away" state to override. -->
+        <!-- Only this control pins the panel. Desktop pins persist through
+             closing, reopening and switching apps until explicitly unpinned. -->
         <button
           v-if="!isMobile"
           type="button"
           class="flex size-8 items-center justify-center rounded-full transition-colors"
           :class="
             isPinned
-              ? 'text-sidebar-foreground/70 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground'
+              ? 'bg-[hsl(var(--tac-amber)/0.2)] text-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)/0.3)]'
               : 'text-sidebar-foreground/30 hover:bg-sidebar-accent/40 hover:text-sidebar-foreground/60'
           "
           :aria-label="
-            isPinned
-              ? $t('layouts.hub.dock.unpin')
-              : $t('layouts.hub.dock.pin')
+            isPinned ? $t('layouts.hub.dock.unpin') : $t('layouts.hub.dock.pin')
           "
           :aria-pressed="isPinned"
           @click="togglePin"
         >
-          <Pin class="size-4 transition-transform" :class="isPinned ? 'rotate-0' : 'rotate-45'" />
+          <Pin
+            class="size-4 transition-transform"
+            :class="isPinned ? 'rotate-0' : 'rotate-45'"
+          />
         </button>
       </nav>
     </div>

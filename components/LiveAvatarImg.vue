@@ -67,6 +67,12 @@ export default {
     },
   },
   watch: {
+    fallbackUrl() {
+      this.loadFailed = false;
+    },
+    liveUrl() {
+      this.loadFailed = false;
+    },
     steamId() {
       this.loadFailed = false;
       this.liveUrl = null;
@@ -79,14 +85,15 @@ export default {
   methods: {
     async fetchLiveAvatar() {
       if (!this.steamId) return;
+      const steamId = this.steamId;
       try {
         const { data } = await (this as any).$apollo.query({
           query: LIVE_PLAYER_AVATAR_QUERY,
-          variables: { steamId: this.steamId },
+          variables: { steamId },
           fetchPolicy: "cache-first",
         });
         const player = data?.players_by_pk;
-        if (player) {
+        if (player && this.steamId === steamId) {
           this.liveUrl = player.custom_avatar_url || player.avatar_url || null;
         }
       } catch {

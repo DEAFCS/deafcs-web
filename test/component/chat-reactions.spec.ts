@@ -7,6 +7,7 @@ import ChatMessageReactions from "../../components/chat/ChatMessageReactions.vue
 import {
   chatMessagePermissions,
   chatReactionChoices,
+  heldChatReactions,
 } from "../../utilities/chatMessageActions";
 import ChatMessage from "../../components/chat/ChatMessage.vue";
 import ChatMessageActionsMenu from "../../components/chat/ChatMessageActionsMenu.vue";
@@ -80,10 +81,10 @@ describe("Chat Hub message reactions", () => {
   const actionsMenu = (wrapper: ReturnType<typeof mountMessage>) =>
     wrapper.findComponent(ChatMessageActionsMenu);
 
-  it("exposes all 24 upstream choices and keeps party distinct from tada", () => {
-    expect(CHAT_REACTIONS).toHaveLength(25);
-    expect(new Set(CHAT_REACTIONS.map((x) => x.id)).size).toBe(25);
-    expect(CHAT_REACTIONS.find((x) => x.id === "party")?.emoji).toBe("🎉");
+  it("exposes exactly 24 upstream choices without the historical duplicate", () => {
+    expect(CHAT_REACTIONS).toHaveLength(24);
+    expect(new Set(CHAT_REACTIONS.map((x) => x.id)).size).toBe(24);
+    expect(CHAT_REACTIONS.find((x) => x.id === "party")).toBeUndefined();
     expect(CHAT_REACTIONS.find((x) => x.id === "tada")?.emoji).toBe("🎉");
   });
   it("does not offer reactions for blocked, unstable, gagged or read-only messages", () => {
@@ -133,7 +134,13 @@ describe("Chat Hub message reactions", () => {
       "76561190000000123",
       { canReact: true, canAddReaction: true },
     );
-    expect(choices.find((x) => x.id === "party")?.mine).toBe(true);
+    expect(choices.find((x) => x.id === "party")).toBeUndefined();
+    expect(
+      heldChatReactions(
+        { ...message, reactions: { party: ["76561190000000123"] } },
+        "76561190000000123",
+      ).has("party"),
+    ).toBe(true);
     expect(choices.find((x) => x.id === "tada")?.mine).toBe(false);
   });
   it("renders positive counts and selected pills in the upstream layout", () => {
@@ -143,7 +150,7 @@ describe("Chat Hub message reactions", () => {
           ...message,
           reactions: [
             { reaction: "heart", count: 3, reacted: true },
-            { reaction: "party", count: 0 },
+            { reaction: "party", count: 2, reacted: true },
             { reaction: "unknown", count: 99 },
           ],
         },
@@ -176,9 +183,13 @@ describe("Chat Hub message reactions", () => {
     const pill = w.get('button[aria-label="React with ❤️ (3)"]');
     expect(pill.attributes("aria-pressed")).toBe("true");
     expect(pill.classes()).toContain("h-6");
-    expect(w.findAll("button")).toHaveLength(1);
+    expect(w.findAll("button")).toHaveLength(2);
     pill.trigger("click");
     expect(w.emitted("toggle")?.[0]).toEqual(["heart"]);
+    const historical = w.get('button[data-reaction="party"]');
+    expect(historical.attributes("aria-pressed")).toBe("true");
+    historical.trigger("click");
+    expect(w.emitted("toggle")?.[1]).toEqual(["party"]);
     w.unmount();
   });
   it("reacts through the correlated upstream event and blocks overlapping toggles", async () => {
@@ -260,8 +271,8 @@ describe("Chat Hub message reactions", () => {
     const chatPanel = read("components/hub/ChatPanel.vue");
     const chatPopout = read("pages/chat/[tabId].vue");
 
-    expect(CHAT_REACTIONS).toHaveLength(25);
-    expect(CHAT_REACTIONS.map(({ id }) => id)).toContain("party");
+    expect(CHAT_REACTIONS).toHaveLength(24);
+    expect(CHAT_REACTIONS.map(({ id }) => id)).not.toContain("party");
     expect(lobby).toMatch(/reactionsEnabled:\s*\{[\s\S]*?default:\s*false/);
     expect(lobby).toMatch(/allowChatAttachments:\s*\{[\s\S]*?default:\s*true/);
     // The match page's inline chats were removed (the Chat Hub has both

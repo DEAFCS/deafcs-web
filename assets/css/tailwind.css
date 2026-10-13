@@ -2,6 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 5Stack WEB ba0628b2, MIT. Shared lobby CTA frame, transparent inside. */
+.tac-amber-frame {
+  padding: 1.5px;
+  background: linear-gradient(135deg, var(--tac-amber-cta-from) 0%, hsl(var(--tac-amber)) 50%, var(--tac-amber-cta-to) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
 @font-face {
   font-family: "Oxanium";
   src: url("/fonts/Oxanium-VariableFont_wght.ttf") format("truetype");

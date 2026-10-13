@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
 import ChatReactionPicker from "~/components/chat/ChatReactionPicker.vue";
 import { Fold } from "~/components/ui/transitions";
-import { CHAT_REACTIONS, type ChatReaction } from "~/constants/chat";
+import { CHAT_REACTIONS, LEGACY_CHAT_REACTIONS, type ChatReaction } from "~/constants/chat";
 import { useMatchLobbyStore } from "~/stores/MatchLobbyStore";
 import { dateLocale } from "~/utilities/dateLocale";
 import { reactionSummary } from "~/utilities/chatMessageCompatibility";
@@ -51,7 +51,7 @@ const heldStaticClasses = tacticalFilterPillActiveClasses
 const pills = computed(() => {
   const held = heldChatReactions(props.message, props.viewerSteamId);
 
-  return CHAT_REACTIONS.flatMap(({ id, glyph }) => {
+  return [...CHAT_REACTIONS, ...LEGACY_CHAT_REACTIONS].flatMap(({ id, glyph }) => {
     const summary = reactionSummary(props.message, id);
     const steamIds = !Array.isArray(props.message?.reactions) ? props.message?.reactions?.[id] : undefined;
 

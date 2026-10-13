@@ -14,13 +14,9 @@ export function isMobileChatHubLayout() {
   );
 }
 
-// 5Stack's model: the hub is open for as long as you are using it, or pinned.
-// A hover opens it, and leaving it, clicking outside or Escape puts it away
-// again. Pinning is what keeps it open, and the only state a reload restores.
-//
-// DEAFCS: clicking a dock icon is what pins (see RightHub's clickHub), and a
-// pin is a desktop state. A phone has no hover to peek with, so a tap simply
-// opens the hub, and a reload never brings it back over the page there.
+// Dock clicks open temporary panels. Only Pin changes the state restored on
+// reload; dismissing or explicitly closing a panel never changes that choice.
+// On phones a reload never brings the hub back over the page.
 const rightSidebarOpen = ref(false);
 const isPinned = ref(false);
 const hoverCloseLocks = ref(0);
@@ -49,10 +45,7 @@ function setPinned(value: boolean) {
 export function useRightSidebar() {
   const setRightSidebarOpen = (value: boolean) => {
     rightSidebarOpen.value = value;
-    // Explicitly closing also unpins.
-    if (!value && isPinned.value) {
-      setPinned(false);
-    }
+    // Visibility and the user's persistent pin are independent.
   };
 
   const toggleRightSidebar = () => {
