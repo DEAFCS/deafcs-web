@@ -21,6 +21,7 @@ import {
   useRightSidebar,
 } from "@/composables/useRightSidebar";
 import { useHubState, setActiveHub } from "@/composables/useHubState";
+import { useMessageRequests } from "~/composables/useMessageRequests";
 import { useChatTabs, type ChatTab } from "~/composables/useChatTabs";
 import { useNotificationBadge } from "~/composables/useNotificationBadge";
 import { useInvites } from "@/composables/useInvites";
@@ -352,6 +353,7 @@ const DOCKLESS_TYPES = new Set([
   "captain_pick_team",
 ]);
 
+const { isRequest } = useMessageRequests();
 const chatShortcuts = computed(() => {
   const cutoff = Date.now() - RECENT_ACTIVITY_MS;
   const { pinned, dismissed, hidden, maxPeople, maxRooms } = dockPrefs.value;
@@ -366,6 +368,8 @@ const chatShortcuts = computed(() => {
   const candidates = chatTabs.value.filter(
     (tab) =>
       !DOCKLESS_TYPES.has(tab.type) &&
+      !tab.requestPreview &&
+      !(tab.type === "direct" && isRequest(tab.lobbyId)) &&
       !tab.id.startsWith("matchmaking:") &&
       !hidden.includes(tab.id) &&
       (isPinnedTab(tab) ||

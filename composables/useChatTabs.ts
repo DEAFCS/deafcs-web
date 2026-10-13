@@ -40,6 +40,8 @@ export interface ChatTab {
   // would join the lobby and start receiving the same realtime "chat"
   // event chat:new-message already pings for.
   unopened?: boolean;
+  // An explicitly opened pending request is temporary until the server accepts it.
+  requestPreview?: boolean;
 }
 
 const DM_TABS_STORAGE_KEY = "chat-open-dm-tabs";
@@ -70,7 +72,7 @@ function persistDmTabs(tabs: ChatTab[]) {
   if (typeof window === "undefined") return;
   try {
     const dmTabs = tabs
-      .filter((t) => t.type === "direct")
+      .filter((t) => t.type === "direct" && !t.requestPreview)
       .map((t) => ({
         id: t.id,
         label: t.label,
@@ -365,6 +367,14 @@ export function useChatTabs() {
   // no avatar, so a DM arriving from someone with no prior open
   // conversation registers its tab avatar-less and fills it in once the
   // player lookup resolves (see that composable for why).
+  function setRequestPreview(id: string, preview: boolean) {
+    const tab = tabsRef.value.find((tab) => tab.id === id);
+    if (tab) {
+      tab.requestPreview = preview;
+      persistDmTabs(tabsRef.value);
+    }
+  }
+
   function setAvatarUrl(id: string, avatarUrl: string) {
     const idx = findTabIndex(id);
     if (idx === -1 || !avatarUrl) {
@@ -533,6 +543,7 @@ export function useChatTabs() {
     setActiveTab,
     setPinned,
     setAvatarUrl,
+    setRequestPreview,
     patchTab,
     incrementUnread,
     incrementMention,

@@ -2468,6 +2468,14 @@
         "toast_demo_uploaded": "Demo uploaded",
         "toast_demo_uploaded_description": "Importing now — your match will appear shortly.",
         "toast_upload_failed": "Upload failed"
+      },
+      "blocked_players": {
+        "message_requests": {
+          "title": "Message Requests",
+          "description": "Let players who aren't your friends send you one message. It waits in your requests until you reply.",
+          "updated": "Message request setting saved",
+          "update_failed": "Couldn't save your message request setting"
+        }
       }
     },
     "watch": {
@@ -5073,7 +5081,20 @@
       "friends": "Friends",
       "existing_conversation": "You already have a conversation",
       "no_friends": "Add friends to message them.",
-      "find_friends": "Find friends"
+      "find_friends": "Find friends",
+      "requests": {
+        "open": "Message requests ({count})",
+        "title": "Message requests",
+        "hint": "From players who aren't your friends",
+        "close": "Close message requests",
+        "wants_to_message": "Wants to message you",
+        "deny": "Deny",
+        "deny_failed": "Couldn't deny that request",
+        "empty_title": "No message requests",
+        "empty_description": "First messages from players who aren't your friends wait here.",
+        "banner": "{name} isn't your friend. Reply to accept their message request, or deny it.",
+        "awaiting_reply": "Waiting for {name} to reply to your message request."
+      }
     },
     "recent_games": {
       "title": "Recent Games",

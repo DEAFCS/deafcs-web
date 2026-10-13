@@ -10,18 +10,28 @@
 // ChatMessage notifications for `direct:` entities and auto-opens
 // (or just bumps unread on) the matching tab so the conversation exists
 // once a first message has actually arrived.
-import { watch } from "vue";
+import socket from "~/web-sockets/Socket";
+import { useMessageRequests } from "~/composables/useMessageRequests";
+import { useBlockActions } from "~/composables/useBlockActions";
+import { watch, watchEffect, getCurrentScope, onScopeDispose } from "vue";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $, order_by } from "~/generated/zeus";
 import { generateMutation, generateQuery } from "~/graphql/graphqlGen";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import { useChatTabs } from "~/composables/useChatTabs";
-import { directChatId } from "~/composables/useDirectMessage";
+import {
+  directChatId,
+  directPeerSteamId,
+} from "~/composables/useDirectMessage";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { useHubState } from "~/composables/useHubState";
 
+let requestsListener: ReturnType<typeof socket.listen> | undefined;
+
+let reconnectListener: ReturnType<typeof socket.listen> | undefined;
+const readRequests = new Map<string, Promise<unknown>>();
 const seenNotificationIds = new Set<string>();
 
 // Persists "I've read this DM" server-side so a reload doesn't undo it.
@@ -35,6 +45,20 @@ const seenNotificationIds = new Set<string>();
 export async function markDirectMessagesRead(lobbyId: string) {
   const me = useAuthStore().me;
   if (!me?.steam_id) return;
+  if (typeof $fetch === "function") {
+    const key = String(me.steam_id) + ":" + lobbyId;
+    if (!readRequests.has(key)) {
+      const pending = $fetch(
+        `https://${useRuntimeConfig().public.apiDomain}/chat/direct/conversations/${encodeURIComponent(lobbyId)}/read`,
+        { method: "POST", credentials: "include" },
+      )
+        .catch(() => undefined)
+        .finally(() => readRequests.delete(key));
+      readRequests.set(key, pending);
+    }
+    await readRequests.get(key);
+    if (useAuthStore().me?.steam_id !== me.steam_id) return;
+  }
   try {
     await getGraphqlClient().mutate({
       mutation: generateMutation({
@@ -79,11 +103,117 @@ async function fetchAvatarUrl(steamId: string): Promise<string | undefined> {
 
 export function useIncomingDirectMessages() {
   const authStore = useAuthStore();
+  const messageRequests = useMessageRequests();
+  let hydrationVersion = 0;
+  let disposed = false;
+  const changedRooms = new Set<string>();
+  async function hydrateRequests() {
+    const steamId = authStore.me?.steam_id;
+    const version = ++hydrationVersion;
+    changedRooms.clear();
+    if (!steamId) return;
+    try {
+      const { conversations } = await $fetch<{ conversations: Array<any> }>(
+        `https://${useRuntimeConfig().public.apiDomain}/chat/direct/conversations`,
+        { credentials: "include" },
+      );
+      if (
+        disposed ||
+        version !== hydrationVersion ||
+        authStore.me?.steam_id !== steamId
+      )
+        return;
+      const valid = conversations.filter(
+        (row) =>
+          directPeerSteamId(row.roomId, steamId) === String(row.peer?.steam_id),
+      );
+      messageRequests.setRequests([
+        ...messageRequests.requests.value.filter((row) =>
+          changedRooms.has(row.roomId),
+        ),
+        ...valid
+          .filter(
+            (row) =>
+              row.request &&
+              !changedRooms.has(row.roomId) &&
+              !useBlockActions().isBlocked(row.peer.steam_id),
+          )
+          .map((row) => ({
+            roomId: row.roomId,
+            peer: row.peer,
+            unread: row.unread,
+          })),
+      ]);
+      for (const row of valid)
+        if (!row.request && !changedRooms.has(row.roomId))
+          messageRequests.setAwaitingReply(row.roomId, !!row.awaitingReply);
+    } catch {
+      /* An API not yet migrated must not break legacy friend DMs. */
+    }
+  }
+  requestsListener?.stop();
+  requestsListener = socket.listen("direct:incoming", (data: any) => {
+    const me = authStore.me?.steam_id;
+    const peer = directPeerSteamId(data?.roomId, me);
+    if (
+      disposed ||
+      !peer ||
+      peer !== String(data.from?.steam_id) ||
+      useBlockActions().isBlocked(peer)
+    )
+      return;
+    changedRooms.add(data.roomId);
+    if (data.request === true) {
+      messageRequests.addRequest({
+        roomId: data.roomId,
+        peer: data.from,
+        unread: 1,
+      });
+    } else if (
+      data.request === false &&
+      typeof data.awaitingReply === "boolean"
+    ) {
+      // State only: normal DM badges remain owned by the durable notification
+      // subscription, so these events never double-count or steal focus.
+      messageRequests.setAwaitingReply(data.roomId, data.awaitingReply);
+    }
+  });
+  reconnectListener?.stop();
+  reconnectListener = socket.listen("online", () => {
+    void hydrateRequests();
+  });
+  const ownedListener = requestsListener,
+    ownedReconnect = reconnectListener;
+  if (getCurrentScope())
+    onScopeDispose(() => {
+      disposed = true;
+      hydrationVersion++;
+      ownedListener.stop();
+      ownedReconnect.stop();
+    });
   const { subscribe } = useSubscriptionManager();
-  const { tabs, registerTabIfMissing, setAvatarUrl, incrementUnread, activeTabId } =
-    useChatTabs();
+  const {
+    tabs,
+    registerTabIfMissing,
+    setAvatarUrl,
+    incrementUnread,
+    activeTabId,
+  } = useChatTabs();
   const { rightSidebarOpen } = useRightSidebar();
   const { activeHub } = useHubState();
+
+  // Remove an explicitly opened request preview when its author is blocked.
+  // The API still owns delivery authorization; this also hides cached content.
+  watchEffect(() => {
+    for (const tab of [...tabs.value]) {
+      if (
+        tab.requestPreview &&
+        tab.otherSteamId &&
+        useBlockActions().isBlocked(tab.otherSteamId)
+      )
+        useChatTabs().closeTab(tab.id);
+    }
+  });
 
   function handleRow(row: {
     id: string;
@@ -97,12 +227,15 @@ export function useIncomingDirectMessages() {
     const me = authStore.me;
     if (!me?.steam_id) return;
 
-    const parties = (row.entity_id || "").replace(/^direct:/, "").split(":");
-    if (parties.length !== 2) return;
-    const otherSteamId = parties.find((p) => p !== String(me.steam_id));
-    if (!otherSteamId) return;
+    if (String(row.steam_id) !== String(me.steam_id)) return;
+    const otherSteamId = directPeerSteamId(
+      (row.entity_id || "").replace(/^direct:/, ""),
+      me.steam_id,
+    );
+    if (!otherSteamId || useBlockActions().isBlocked(otherSteamId)) return;
 
     const lobbyId = directChatId(me.steam_id, otherSteamId);
+    if (messageRequests.isRequest(lobbyId)) return;
     const tabId = `direct:${lobbyId}`;
 
     const existing = tabs.value.find((t) => t.id === tabId);
@@ -131,7 +264,8 @@ export function useIncomingDirectMessages() {
       // it straight from the profile already loaded in memory -- so it
       // has to be fetched here once the tab is registered.
       fetchAvatarUrl(otherSteamId).then((avatarUrl) => {
-        if (avatarUrl) setAvatarUrl(tabId, avatarUrl);
+        if (authStore.me?.steam_id === me.steam_id && avatarUrl)
+          setAvatarUrl(tabId, avatarUrl);
       });
     }
 
@@ -151,18 +285,31 @@ export function useIncomingDirectMessages() {
 
     if (!isVisible) {
       incrementUnread(tabId);
+    } else {
+      void markDirectMessagesRead(lobbyId);
     }
   }
 
   watch(
     () => authStore.me?.steam_id,
-    (steamId) => {
+    (steamId, previous) => {
+      seenNotificationIds.clear();
+      hydrationVersion++;
+      changedRooms.clear();
+      messageRequests.reset();
+      if (previous && steamId !== previous) {
+        for (const tab of [...tabs.value])
+          if (tab.type === "direct") useChatTabs().closeTab(tab.id);
+      }
       if (!steamId) {
+        hydrationVersion++;
+        messageRequests.reset();
         const { unsubscribe } = useSubscriptionManager();
         unsubscribe("incoming-direct-messages");
         return;
       }
 
+      void hydrateRequests();
       subscribe(
         "incoming-direct-messages",
         getGraphqlClient()

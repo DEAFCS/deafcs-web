@@ -3297,6 +3297,13 @@ import { fetchPlayerTwitch } from "~/composables/useTwitchApi";
 
 export default {
   apollo: {
+    peerAllowsMessageRequests: {
+      query: gql`query PeerMessageRequests($steamId: bigint!) { players_by_pk(steam_id: $steamId) { steam_id allow_message_requests } }`,
+      variables() { return {steamId: String(this.$route.params.id)}; },
+      skip() { return !this.me?.steam_id || !/^[0-9]+$/.test(String(this.$route.params.id)); },
+      update: (data: any) => data?.players_by_pk?.allow_message_requests ?? null,
+      error() { this.peerAllowsMessageRequests = null; },
+    },
     $subscribe: {
       players_by_pk: {
         query: typedGql("subscription")({
@@ -3497,6 +3504,7 @@ export default {
   },
   data() {
     return {
+      peerAllowsMessageRequests: null as boolean | null,
       player: undefined,
       twitch: { channel: null as string | null, live: false },
       twitchTimer: undefined as number | undefined,
@@ -3650,7 +3658,7 @@ export default {
         this.me &&
         this.player?.steam_id &&
         !this.isSelfProfile &&
-        this.isFriend &&
+        (this.isFriend || this.peerAllowsMessageRequests !== false || useMessageRequests().hasConversation(String(this.player?.steam_id))) &&
         !this.isBlockedByMe
       );
     },

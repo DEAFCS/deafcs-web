@@ -14,6 +14,15 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "~/components/ui/dropdown-menu";
+import MessageRequests from "~/components/hub/MessageRequests.vue";
+import MessageRequestsRailButton from "~/components/hub/MessageRequestsRailButton.vue";
+import {
+  useMessageRequests,
+  type MessageRequest,
+} from "~/composables/useMessageRequests";
+import { openDirectMessage } from "~/composables/useDirectMessage";
+import socket from "~/web-sockets/Socket";
+import { toast } from "~/components/ui/toast";
 import NewConversation from "~/components/hub/NewConversation.vue";
 import NewChatRailButton from "~/components/hub/NewChatRailButton.vue";
 import {
@@ -156,11 +165,14 @@ const isAdmin = computed(() =>
 // case), but only admins can post -- every other channel type is
 // unrestricted here (ChatLobby's own `canSend` prop defaults to true).
 function canSendToTab(tab: ChatTab) {
+  if (awaitingReply(tab)) return false;
   if (tab.type === "announcement") return isAdmin.value;
   return true;
 }
 
 function readonlyHintFor(tab: ChatTab) {
+  if (awaitingReply(tab))
+    return t("layouts.chat_panel.requests.awaiting_reply", { name: tab.label });
   if (tab.type === "announcement") {
     return t("chat.announcement_readonly", "Only admins can post here.");
   }
@@ -525,18 +537,85 @@ function onTabClick(tab: ChatTab) {
   if (suppressClick) return;
   if (wiggling.value) return stopWiggling();
   composing.value = false;
+  viewingRequests.value = false;
   handleSelectRoom(tab);
 }
 const composing = ref(false);
+// Message requests take over the thread area the same way, one at a time.
+const viewingRequests = ref(false);
+const {
+  requests,
+  requestCount,
+  isRequest,
+  isAwaitingReply,
+  decline,
+} = useMessageRequests();
+
+watch(composing, (isComposing) => {
+  if (isComposing) {
+    viewingRequests.value = false;
+  }
+});
+
+watch(viewingRequests, (viewing) => {
+  setActiveTab(viewing ? null : composing.value ? null : activeChatId.value);
+  if (viewing) {
+    composing.value = false;
+  }
+});
+
+// Nothing left to show once the last request is answered or denied.
+watch(requestCount, (count) => {
+  if (count === 0) {
+    viewingRequests.value = false;
+  }
+});
+
+function openRequest(request: MessageRequest) {
+  viewingRequests.value = false;
+  openDirectMessage(request.peer, {requestPreview: true});
+}
+
+const activeRequest = computed(() =>
+  activeTab.value?.type === "direct" && isRequest(activeTab.value.lobbyId)
+    ? activeTab.value
+    : null,
+);
+
+async function denyActiveRequest() {
+  const tab = activeRequest.value;
+
+  if (!tab) {
+    return;
+  }
+
+  try {
+    await decline(tab.lobbyId);
+  } catch {
+    toast({
+      title: t("layouts.chat_panel.requests.deny_failed"),
+      variant: "destructive",
+    });
+  }
+}
+
+// The sender of a request writes once, then waits for a reply.
+function awaitingReply(tab: ChatTab) {
+  return (
+    tab.type === "direct" && isAwaitingReply(tab.lobbyId, tab.otherSteamId)
+  );
+}
+
 const firstDirectTabId = computed(
   () => orderedTabs.value.find((tab) => tab.type === "direct")?.id,
 );
 // DEAFCS's existing unread paths use activeTabId to decide whether a room is
 // being read. The compose screen keeps listeners mounted, but reads no room.
-watch(composing, (open) => setActiveTab(open ? null : activeChatId.value));
+watch(composing, (open) => setActiveTab(open || viewingRequests.value ? null : activeChatId.value));
 const { isOnDock: isShortcutOnDock, togglePin: toggleShortcutPin } =
   useDockShortcutPrefs();
 function onDock(tab: ChatTab) {
+  if(tab.type==='direct' && isRequest(tab.lobbyId)) return false;
   return ![
     "match",
     "match_team",
@@ -721,6 +800,7 @@ function handleMessageReceived(payload: {
     currentHub() === "lobby";
   const isVisible =
     (!composing.value &&
+      !viewingRequests.value &&
       props.isSidebarOpen &&
       props.isTabActive &&
       isCurrentRoom) ||
@@ -959,6 +1039,12 @@ function openTournamentWebcamWindow() {
               class="flex w-full shrink-0 flex-col items-center"
             >
               <div class="my-1 h-px w-8 bg-border" />
+              <MessageRequestsRailButton
+                v-if="requestCount > 0"
+                :active="viewingRequests"
+                :count="requestCount"
+                @click="viewingRequests = true"
+              />
               <NewChatRailButton
                 :active="composing"
                 @click="composing = !composing"
@@ -1127,6 +1213,12 @@ function openTournamentWebcamWindow() {
         </TooltipProvider>
         <template v-if="!firstDirectTabId">
           <div class="my-1 h-px w-8 shrink-0 bg-border" />
+          <MessageRequestsRailButton
+            v-if="requestCount > 0"
+            :active="viewingRequests"
+            :count="requestCount"
+            @click="viewingRequests = true"
+          />
           <NewChatRailButton
             :active="composing"
             @click="composing = !composing"
@@ -1141,8 +1233,14 @@ function openTournamentWebcamWindow() {
       </div>
 
       <div v-else class="flex-1" />
+      <MessageRequestsRailButton
+        v-if="!orderedTabs.length && requestCount > 0"
+        :active="viewingRequests"
+        :count="requestCount"
+        @click="viewingRequests = true"
+      />
       <NewChatRailButton
-        v-if="!orderedTabs.length"
+        v-if="!orderedTabs.length && !viewingRequests"
         :active="composing"
         @click="composing = !composing"
       />
@@ -1151,10 +1249,32 @@ function openTournamentWebcamWindow() {
     <!-- Right chat area -->
     <div class="flex-1 min-w-0 flex flex-col">
       <NewConversation v-if="composing" @close="composing = false" />
+      <MessageRequests
+        v-if="viewingRequests"
+        @close="viewingRequests = false"
+        @open="openRequest"
+      />
       <template v-if="orderedTabs.length">
+        <div
+          v-if="activeRequest && !viewingRequests && !composing"
+          class="flex items-center justify-between gap-2 border-b border-border px-3 py-2 text-xs text-muted-foreground"
+        >
+          <span>{{
+            $t("layouts.chat_panel.requests.banner", {
+              name: activeRequest.label,
+            })
+          }}</span>
+          <button
+            type="button"
+            class="shrink-0 hover:text-destructive"
+            @click="denyActiveRequest"
+          >
+            {{ $t("layouts.chat_panel.requests.deny") }}
+          </button>
+        </div>
         <!-- Header with channel title + participants + controls -->
         <div
-          v-show="!composing"
+          v-show="!composing && !viewingRequests"
           class="flex items-center justify-between px-3 py-3 border-b border-border bg-card/30"
         >
           <div class="min-w-0 flex items-center gap-3">
@@ -1330,26 +1450,30 @@ function openTournamentWebcamWindow() {
         <LobbyCallPanel
           v-if="matchmakingTab"
           :lobby-id="matchmakingTab.lobbyId"
-          :show-bar="!composing && activeTab?.id === matchmakingTab.id"
+          :show-bar="
+            !composing &&
+            !viewingRequests &&
+            activeTab?.id === matchmakingTab.id
+          "
           @open-call="openLobbyCallWindow"
           @status="lobbyCallStatus = $event"
         />
 
         <div
           v-if="isParticipantsOpen && activeParticipants.length"
-          v-show="!composing"
+          v-show="!composing && !viewingRequests"
           class="px-3 py-2 border-b border-zinc-800/60 bg-zinc-950/80"
         >
           <ChatParticipantsList :participants="activeParticipants" />
         </div>
 
         <ChatMatchHeader
-          v-if="activeMatch && !composing"
+          v-if="activeMatch && !composing && !viewingRequests"
           :match="activeMatch"
           class="mx-3 mt-2"
         />
         <div
-          v-show="!composing"
+          v-show="!composing && !viewingRequests"
           class="flex-1 min-h-0 flex flex-col overflow-hidden"
         >
           <!-- ChatLobby's root template is a Teleport-or-div pair plus a
@@ -1396,6 +1520,7 @@ function openTournamentWebcamWindow() {
               :disable-auto-focus-on-activate="isMobile || isTeamRoom(tab)"
               :is-active-tab="
                 !composing &&
+                !viewingRequests &&
                 viewId(tab) === activeChatId &&
                 isSidebarOpen &&
                 isTabActive
@@ -1410,7 +1535,10 @@ function openTournamentWebcamWindow() {
           </div>
         </div>
       </template>
-      <div v-else-if="!composing" class="flex-1 flex flex-col">
+      <div
+        v-else-if="!composing && !viewingRequests"
+        class="flex-1 flex flex-col"
+      >
         <Empty>
           <div class="space-y-1">
             <p class="text-sm font-medium text-foreground">

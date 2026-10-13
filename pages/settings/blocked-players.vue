@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import MessageRequestsSetting from "~/components/settings/MessageRequestsSetting.vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "@/components/ui/toast";
@@ -34,6 +35,7 @@ async function handleUnblock(steamId: string) {
 <template>
   <PageTransition :delay="0">
     <div class="grid gap-4 max-w-xl">
+      <MessageRequestsSetting />
       <p class="text-sm text-muted-foreground">
         {{
           $t(
