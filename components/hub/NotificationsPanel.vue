@@ -22,9 +22,13 @@ import LeagueScheduleStack from "~/components/notification/LeagueScheduleStack.v
         <span class="w-2 h-[2px] bg-[hsl(var(--tac-amber))]"></span>
         {{ $t("layouts.hub.notifications") }}
       </div>
-      <!-- Notification settings live behind Alerts, not on the dock (5Stack). -->
+      <!-- Notification settings live behind Alerts, not on the dock (5Stack).
+           /settings/notifications is actually the sound settings page
+           (volume, which alert plays which sound) despite its name --
+           the real notification preferences (what triggers an alert at
+           all) live at /settings/notification-preferences instead. -->
       <NuxtLink
-        to="/settings/notifications"
+        to="/settings/notification-preferences"
         data-alerts-settings
         :aria-label="$t('layouts.notifications.settings')"
         :title="$t('layouts.notifications.settings')"
