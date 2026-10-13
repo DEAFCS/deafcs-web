@@ -13,6 +13,7 @@ import ChatPanel from "../../components/hub/ChatPanel.vue";
 import NewConversation from "../../components/hub/NewConversation.vue";
 import { useChatTabs } from "../../composables/useChatTabs";
 import { useDockShortcutPrefs } from "../../composables/useDockShortcutPrefs";
+import { useMessageRequests } from "../../composables/useMessageRequests";
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
 vi.mock("~/composables/useHubState", () => ({
@@ -43,7 +44,8 @@ vi.mock("~/components/matchmaking-lobby/LobbyCallPanel.vue", () => ({
     setup: () => () => h("div", { "data-lobby-call": "" }),
   }),
 }));
-vi.mock("~/composables/useDirectMessage", () => ({
+vi.mock("~/composables/useDirectMessage", async (original) => ({
+  ...(await original<any>()),
   openDirectMessage: vi.fn(),
 }));
 const navigation = vi.hoisted(() => ({ route: null as any }));
@@ -91,6 +93,10 @@ beforeEach(() => {
     friends: [],
     onlineFriends: [],
   }));
+  vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
+  vi.stubGlobal("useBlockActions", () => ({ isBlocked: () => false }));
+  vi.stubGlobal("useChatTabs", useChatTabs);
+  useMessageRequests().reset();
   tabs.openTab(
     {
       id: "global:global",
@@ -118,6 +124,7 @@ afterEach(() => {
   wrapper?.unmount();
   wrapper = undefined;
   tabs.clearAll();
+  useMessageRequests().reset();
   vi.useRealTimers();
   vi.unstubAllGlobals();
 });
@@ -143,6 +150,26 @@ function panel(realTooltips = false) {
   });
   return wrapper;
 }
+
+describe("Message Requests in the real ChatPanel", () => {
+  it.each(["rooms", "empty", "people"])("renders one inbox entry with %s on the rail", async mode => {
+    if (mode !== "people") tabs.closeTab("direct:1:2");
+    if (mode === "empty") tabs.clearAll();
+    useMessageRequests().addRequest({roomId: "1:3", peer: {steam_id: "3", name: "Requester"}, unread: 1});
+    const w=panel(); await nextTick();
+    const buttons=w.findAll('[aria-label="layouts.chat_panel.requests.open"]');
+    expect(buttons).toHaveLength(1); await buttons[0].trigger("click");
+    expect(w.findComponent({name:"MessageRequests"}).exists()).toBe(true);
+    expect(tabs.activeTabId.value).toBeNull();
+  });
+  it("passes a read-only composer for the awaiting sender and unlocks after API acceptance", async () => {
+    useMessageRequests().setAwaitingReply("1:2", true);
+    const w=panel(); await nextTick();
+    expect(w.get('[data-live-room="1:2"]').attributes("can-send")).toBe("false");
+    useMessageRequests().setAwaitingReply("1:2", false); await nextTick();
+    expect(w.get('[data-live-room="1:2"]').attributes("can-send")).toBe("true");
+  });
+});
 function layout(w: ReturnType<typeof mount>) {
   const rail = w.get('[data-chat-tab-id="direct:1:2"]').element.parentElement!
     .parentElement!.parentElement!.parentElement!.parentElement!;

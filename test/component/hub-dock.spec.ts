@@ -12,6 +12,7 @@ import {
   watch,
 } from "vue";
 import fs from "node:fs";
+import { useMessageRequests } from "../../composables/useMessageRequests";
 import path from "node:path";
 
 // The 5Stack floating dock with DEAFCS temporary clicks and explicit pinning.
@@ -152,6 +153,9 @@ beforeEach(() => {
   useRightSidebar().setRightSidebarOpen(false);
   setActiveHub("social");
   useChatTabs().clearAll();
+  vi.stubGlobal("useChatTabs", useChatTabs);
+  vi.stubGlobal("useBlockActions", () => ({ isBlocked: () => false }));
+  useMessageRequests().reset();
   useDockShortcutPrefs().prefs.value = {
     maxRooms: 2,
     maxPeople: 3,
@@ -172,7 +176,22 @@ beforeEach(() => {
 afterEach(() => {
   wrapper?.unmount();
   wrapper = null;
+  useMessageRequests().reset();
   vi.useRealTimers();
+});
+
+describe("pending request shortcuts", () => {
+  it("keeps a pending preview off the dock and restores an intentional pin after acceptance", async () => {
+    const id="direct:1:2";
+    useChatTabs().openTab({id,type:"direct",instance:"direct",lobbyId:"1:2",label:"Requester",otherSteamId:"2"});
+    useDockShortcutPrefs().prefs.value.pinned=[id];
+    useMessageRequests().addRequest({roomId:"1:2",peer:{steam_id:"2"},unread:1});
+    mountHub(); await nextTick();
+    expect(wrapper!.findAll("[data-dock-shortcut]")).toHaveLength(0);
+    useMessageRequests().setAwaitingReply("1:2",false); await nextTick();
+    expect(wrapper!.findAll("[data-dock-shortcut]")).toHaveLength(1);
+    expect(useDockShortcutPrefs().prefs.value.pinned).toEqual([id]);
+  });
 });
 
 describe("dock order", () => {
