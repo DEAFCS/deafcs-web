@@ -34,6 +34,11 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
   // empty initial value and wiped out legitimate unread badges for
   // tournaments the subscription just hadn't reported back yet.
   const chatTournamentsLoaded = ref(false);
+  // Teams this player is currently on (roster or owner): each has one private
+  // Team Chat room. Same shape and same "loaded" guard as chatTournaments; the
+  // API's canAccessTeamChat stays the real gate.
+  const chatTeams = ref<any[]>([]);
+  const chatTeamsLoaded = ref(false);
 
   const subscribeToLiveMatches = async () => {
     const subscription = getGraphqlClient().subscribe({
@@ -233,6 +238,10 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
     if (!me) {
       return;
     }
+
+    // A new sign-in starts from nothing: never show the previous account's teams.
+    chatTeams.value = [];
+    chatTeamsLoaded.value = false;
 
     const subscription = getGraphqlClient().subscribe({
       query: generateSubscription({
@@ -534,6 +543,8 @@ export const useMatchLobbyStore = defineStore("matchLobby", () => {
     openRegistrationTournamentsCount,
     chatTournaments,
     chatTournamentsLoaded,
+    chatTeams,
+    chatTeamsLoaded,
     currentMatch: computed(() => {
       return myMatches.value.at(0);
     }),
