@@ -2843,6 +2843,8 @@
         "no_matches_description": "Match history will appear here after playing games.",
         "no_matches_self_description": "Jump into a match — your stats, ELO, and match history will start filling in here.",
         "edit_player": "Edit Player",
+        "more_actions": "More actions",
+        "message_requests_disabled": "This player is not accepting new message requests.",
         "friend": "Friend",
         "friend_pending": "Pending",
         "friend_incoming": "Sent you a request",

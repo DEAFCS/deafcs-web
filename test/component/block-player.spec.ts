@@ -95,14 +95,22 @@ describe("Block Player button area (interaction contract)", () => {
 
   it("the block toggle's accessible label changes between Block and Unblock", () => {
     const blocked = mount(BlockButtonArea, {
-      props: { isSelfProfile: false, friendRelationship: "none", isBlockedByMe: true },
+      props: {
+        isSelfProfile: false,
+        friendRelationship: "none",
+        isBlockedByMe: true,
+      },
     });
     const notBlocked = mount(BlockButtonArea, {
-      props: { isSelfProfile: false, friendRelationship: "none", isBlockedByMe: false },
+      props: {
+        isSelfProfile: false,
+        friendRelationship: "none",
+        isBlockedByMe: false,
+      },
     });
-    expect(blocked.find('[data-testid="block-toggle"]').attributes("aria-label")).toBe(
-      "Unblock player",
-    );
+    expect(
+      blocked.find('[data-testid="block-toggle"]').attributes("aria-label"),
+    ).toBe("Unblock player");
     expect(
       notBlocked.find('[data-testid="block-toggle"]').attributes("aria-label"),
     ).toBe("Block player");
@@ -134,44 +142,29 @@ describe("players/[id].vue source: Block Player implementation", () => {
     "utf8",
   );
 
-  it("uses an 80/20 (flex-[4] / flex-1) split for the friend/block row", () => {
-    expect(source).toContain(
-      'const playerHeroActionsRowLeftClasses = "flex-[4] min-w-0";',
-    );
-    expect(source).toContain(
-      'const playerHeroActionsRowRightClasses = "flex-1 min-w-[2.75rem]";',
-    );
+  it("uses upstream compact controls instead of the full-width friend/block split", () => {
+    expect(source).toContain("<PlayerHeroActions");
+    expect(source).not.toContain("playerHeroActionsRowLeftClasses");
   });
 
-  it("uses items-stretch so both columns share equal height, and the row fills the full available width (issue #97: a max-w cap left visible dead space)", () => {
-    expect(source).toContain(
-      'const playerHeroActionsRowClasses = "flex w-full items-stretch gap-2";',
+  it("allows compact controls to wrap without capping the old friend row", () => {
+    const controls = fs.readFileSync(
+      path.resolve("components/player/PlayerHeroActions.vue"),
+      "utf8",
     );
-    expect(source).not.toMatch(/playerHeroActionsRowClasses[\s\S]{0,80}max-w-\[/);
+    expect(controls).toContain("flex flex-wrap items-center gap-2");
   });
 
-  it("gives the friend-state buttons an unconditional w-full so they actually fill the flex-[4] column on desktop (not just max-md:w-full)", () => {
-    for (const name of [
-      "playerHeroAddFriendClasses",
-      "playerHeroFriendBadgeClasses",
-      "playerHeroRemoveFriendClasses",
-      "playerHeroFriendPendingClasses",
-      "playerHeroFriendIncomingClasses",
-    ]) {
-      const declStart = source.indexOf(`const ${name} =`);
-      expect(declStart).toBeGreaterThan(-1);
-      const declEnd = source.indexOf(";", declStart);
-      const decl = source.slice(declStart, declEnd);
-      expect(decl).toMatch(/inline-flex w-full items-center/);
-      expect(decl).not.toContain("max-md:w-full");
-    }
+  it("binds friend action busy state to the upstream component", () => {
+    expect(source).toContain("pending: this.friendActionInFlight");
+    expect(source).toContain('@add="addAsFriend"');
   });
 
-  it("uses the Lucide Ban icon for the (not yet blocked) Block action", () => {
+  it("builds the block/unblock menu from the original handlers", () => {
+    expect(source).toContain("icon: this.isBlockedByMe ? UserCheck : Ban");
     expect(source).toContain(
-      '@click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"',
+      "run: this.isBlockedByMe ? this.unblockPlayerClick : this.requestBlockPlayer",
     );
-    expect(source).toContain('<Ban v-else class="h-4 w-4" />');
   });
 
   it("does not show the block action on your own profile (canShowBlockAction requires !isSelfProfile)", () => {
@@ -196,12 +189,17 @@ describe("players/[id].vue source: Block Player implementation", () => {
   it("unblock does not go through the confirmation dialog", () => {
     expect(source).toContain("async unblockPlayerClick()");
     const unblockMethodStart = source.indexOf("async unblockPlayerClick()");
-    const unblockMethodBody = source.slice(unblockMethodStart, unblockMethodStart + 400);
+    const unblockMethodBody = source.slice(
+      unblockMethodStart,
+      unblockMethodStart + 400,
+    );
     expect(unblockMethodBody).not.toContain("showBlockConfirm");
   });
 
   it("canAddFriend and canMessagePlayer both exclude a blocked relationship", () => {
     expect(source).toMatch(/canAddFriend\(\) \{[\s\S]*?!this\.isBlockedByMe/);
-    expect(source).toMatch(/canMessagePlayer\(\) \{[\s\S]*?!this\.isBlockedByMe/);
+    expect(source).toMatch(
+      /canMessagePlayer\(\) \{[\s\S]*?!this\.isBlockedByMe/,
+    );
   });
 });

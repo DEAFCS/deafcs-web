@@ -5,6 +5,7 @@ import DemoUpload from "~/components/DemoUpload.vue";
 import PlayerIntroDashboard from "~/components/player/PlayerIntroDashboard.vue";
 import PlayerMapsGrid from "~/components/player/PlayerMapsGrid.vue";
 import PlayerWeaponsTable from "~/components/player/PlayerWeaponsTable.vue";
+import PlayerHeroActions from "~/components/player/PlayerHeroActions.vue";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import PlayerTwitchLink from "~/components/player/PlayerTwitchLink.vue";
 import PlayerPreferredRoles from "~/components/player/PlayerPreferredRoles.vue";
@@ -53,18 +54,15 @@ import {
   ExternalLink,
   Settings2,
   Maximize2,
-  UserPlus,
   UserCheck,
   UserX,
   Ban,
-  Clock,
-  X,
   Calendar as CalendarIcon,
   ChevronDown,
-  MessageSquare,
   Video,
 } from "lucide-vue-next";
-import { openDirectMessage } from "~/composables/useDirectMessage";
+import { directChatId, openDirectMessage } from "~/composables/useDirectMessage";
+import { useMessageRequests } from "~/composables/useMessageRequests";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -74,20 +72,6 @@ import {
   AlertDialogTitle,
   AlertDialogCancel,
 } from "~/components/ui/alert-dialog";
-
-// Hover/focus toggle for the FRIEND -> "Remove friend?" hero button; the
-// friend relationship state itself is computed in the Options block below
-// via useFriendActions(), the same live my_friends-subscription source
-// FriendListItem reads from.
-const friendButtonHovered = ref(false);
-
-// Same hover/focus toggle, for the PENDING (outgoing request) -> "Cancel
-// Request" hero button. A separate ref from friendButtonHovered above --
-// only one of the two buttons ever renders at a time (mutually exclusive
-// v-else-if branches on relationship state), but sharing one ref would let
-// a stale hover flag from one bleed into the other if the relationship
-// changes while the pointer is still over the button.
-const pendingButtonHovered = ref(false);
 
 // Block-confirmation dialog open state lives in the Options `data()` below
 // (as `showBlockConfirm`), not here -- requestBlockPlayer/confirmBlockPlayer
@@ -1784,74 +1768,56 @@ definePageMeta({
 
 const { isMobile } = useSidebar();
 const playerHeroClasses =
-  "relative self-start flex min-w-0 flex-col rounded-lg border border-border px-6 py-5 [background:radial-gradient(120%_140%_at_0%_0%,hsl(var(--tac-amber)_/_0.06)_0%,transparent_45%),linear-gradient(180deg,hsl(var(--card)_/_0.5)_0%,hsl(var(--card)_/_0.2)_100%)] [backdrop-filter:blur(6px)] before:pointer-events-none before:absolute before:left-2 before:top-2 before:z-[1] before:h-[14px] before:w-[14px] before:border-l-2 before:border-t-2 before:border-[hsl(var(--tac-amber))] before:content-[''] after:pointer-events-none after:absolute after:bottom-2 after:right-2 after:z-[1] after:h-[14px] after:w-[14px] after:border-b-2 after:border-r-2 after:border-[hsl(var(--tac-amber))] after:content-[''] max-md:px-4 max-md:py-5";
+  "relative flex min-w-0 flex-col rounded-lg border border-border px-6 py-5 [background:radial-gradient(120%_140%_at_0%_0%,hsl(var(--tac-amber)_/_0.06)_0%,transparent_45%),linear-gradient(180deg,hsl(var(--card)_/_0.5)_0%,hsl(var(--card)_/_0.2)_100%)] [backdrop-filter:blur(6px)] max-md:px-4 max-md:py-5";
+// Phones: avatar + label/name form the first row, the meta strip spans the
+// full card width below them.
 const playerHeroBodyClasses =
-  "flex flex-wrap items-center gap-5 max-md:items-start max-md:gap-4";
+  "flex flex-wrap items-center gap-5 max-md:grid max-md:grid-cols-[auto_minmax(0,1fr)] max-md:gap-4";
 const playerHeroInlineRoleChipClasses =
-  "inline-flex h-7 items-center gap-1.5 rounded border border-border bg-card/60 px-2.5 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground";
+  "inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-card/60 px-2.5 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground";
 const playerHeroInlineRoleWrapClasses =
-  "inline-flex [&_button]:inline-flex [&_button]:h-7 [&_button]:items-center [&_button]:gap-1.5 [&_button]:rounded [&_button]:border-[hsl(var(--tac-amber)_/_0.4)] [&_button]:bg-[hsl(var(--tac-amber)_/_0.08)] [&_button]:px-2.5 [&_button]:font-mono [&_button]:text-[0.6rem] [&_button]:font-semibold [&_button]:tracking-[0.14em] [&_button]:text-[hsl(var(--tac-amber))] [&_button]:hover:border-[hsl(var(--tac-amber))] [&_button]:hover:bg-[hsl(var(--tac-amber)_/_0.16)] [&_button>span]:uppercase [&_button>svg]:h-3 [&_button>svg]:w-3 [&_button>svg]:shrink-0";
-const playerHeroNameEditButtonClasses =
-  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded border border-border bg-card/60 text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)_/_0.6)] hover:bg-[hsl(var(--tac-amber)_/_0.1)] hover:text-[hsl(var(--tac-amber))] [&_svg]:h-4 [&_svg]:w-4";
-const playerHeroAddFriendClasses =
-  "group/addfriend relative inline-flex w-full items-center justify-center gap-[0.55rem] overflow-hidden rounded border border-[hsl(var(--tac-amber)_/_0.55)] bg-[hsl(var(--tac-amber)_/_0.12)] px-4 py-[7.04px] font-sans text-[0.8rem] font-bold uppercase tracking-[0.14em] text-[hsl(var(--tac-amber))] transition-[transform,border-color,background-color,box-shadow] duration-150 hover:-translate-y-px hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.2)] hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.45),0_8px_24px_-8px_hsl(var(--tac-amber)/0.5)] disabled:cursor-not-allowed disabled:opacity-60";
-const playerHeroFriendBadgeClasses =
-  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-emerald-500/40 bg-emerald-500/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-emerald-400 transition-colors duration-150 cursor-default";
-const playerHeroRemoveFriendClasses =
-  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-destructive/50 bg-destructive/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-destructive transition-colors duration-150 cursor-pointer";
-const playerHeroFriendPendingClasses =
-  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))] disabled:cursor-not-allowed";
-const playerHeroFriendIncomingClasses =
-  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-[hsl(var(--tac-amber)_/_0.45)] bg-[hsl(var(--tac-amber)_/_0.15)] px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))]";
-const playerHeroBlockedBadgeClasses =
-  "inline-flex w-full items-center justify-center gap-[0.5rem] rounded border border-destructive/50 bg-destructive/15 px-3 py-2 font-mono text-[0.72rem] font-medium uppercase tracking-[0.16em] text-destructive cursor-default";
-// 20% column, equal height with the 80% friend-button column via the
-// parent row's items-stretch (not items-center) -- see playerHeroActionsRowClasses.
-const playerHeroBlockButtonClasses =
-  "inline-flex w-full items-center justify-center rounded border border-destructive/40 bg-card/60 text-destructive/80 transition-colors duration-150 hover:border-destructive hover:bg-destructive/20 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
-const playerHeroBlockButtonActiveClasses =
-  "inline-flex w-full items-center justify-center rounded border border-destructive bg-destructive/25 text-destructive transition-colors duration-150 hover:bg-destructive/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/60 disabled:cursor-not-allowed disabled:opacity-60";
-const playerHeroActionsRowClasses = "flex w-full items-stretch gap-2";
-const playerHeroActionsRowLeftClasses = "flex-[4] min-w-0";
-const playerHeroActionsRowRightClasses = "flex-1 min-w-[2.75rem]";
+  "inline-flex [&_button]:inline-flex [&_button]:h-7 [&_button]:items-center [&_button]:gap-1.5 [&_button]:rounded-md [&_button]:border-[hsl(var(--tac-amber)_/_0.4)] [&_button]:bg-[hsl(var(--tac-amber)_/_0.08)] [&_button]:px-2.5 [&_button]:font-mono [&_button]:text-[0.6rem] [&_button]:font-semibold [&_button]:tracking-[0.14em] [&_button]:text-[hsl(var(--tac-amber))] [&_button]:hover:border-[hsl(var(--tac-amber))] [&_button]:hover:bg-[hsl(var(--tac-amber)_/_0.16)] [&_button>span]:uppercase [&_button>svg]:h-3 [&_button>svg]:w-3 [&_button>svg]:shrink-0";
 const playerHeroAvatarFrameClasses =
-  "relative h-[156px] w-[156px] border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] p-1 max-md:h-24 max-md:w-24";
+  "relative h-[156px] w-[156px] border border-[hsl(var(--tac-amber)_/_0.4)] bg-[hsl(var(--tac-amber)_/_0.12)] p-1 max-md:h-20 max-md:w-20";
 const playerHeroAvatarClasses = "block h-full w-full object-cover";
 const playerHeroAvatarPlaceholderClasses = `${playerHeroAvatarClasses} flex items-center justify-center bg-muted/20 font-sans text-[3.5rem] font-bold text-[hsl(var(--tac-amber))]`;
-const playerHeroAvatarCornerClasses =
-  "absolute h-3 w-3 border-[hsl(var(--tac-amber))]";
-const playerHeroIdentityClasses = "flex min-w-0 flex-1 flex-col gap-2";
+const playerHeroIdentityClasses =
+  "flex min-w-0 flex-1 flex-col gap-2 max-md:contents";
+const playerHeroHeadClasses = "flex min-w-0 flex-col gap-2";
 const playerHeroNameClasses =
   "relative m-0 min-w-0 font-sans font-bold uppercase leading-[0.9] tracking-[0.02em] [overflow-wrap:anywhere] [font-stretch:80%]";
 const playerHeroNameMainClasses = "relative text-foreground";
 const playerHeroNameGhostClasses =
   "pointer-events-none absolute inset-0 text-transparent select-none [-webkit-text-stroke:1px_hsl(var(--tac-amber)_/_0.35)] [transform:translate(4px,4px)]";
-const playerHeroActionsClasses = "flex shrink-0 items-center gap-2";
 const playerHeroMetaStripClasses =
-  "flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[0.76rem] text-muted-foreground";
-const playerHeroMetaDividerClasses = "h-3 w-px shrink-0 bg-border/70";
+  "flex flex-wrap items-center gap-x-3 gap-y-2 font-mono text-[0.76rem] text-muted-foreground max-md:col-span-2 max-md:flex-col max-md:items-start";
+// Desktop flows the groups as one strip; phones give each its own row.
+const playerHeroMetaGroupClasses =
+  "contents max-md:flex max-md:flex-wrap max-md:items-center max-md:gap-2";
 const playerHeroIdentClasses = "inline-flex min-w-0 items-center gap-2";
 const playerHeroSteamIdClasses = "min-w-0 truncate tracking-[0.05em]";
 const playerHeroSteamLinkClasses =
-  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded border border-border bg-card/60 text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)_/_0.6)] hover:bg-[hsl(var(--tac-amber)_/_0.1)] hover:text-[hsl(var(--tac-amber))]";
+  "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-border bg-card/60 text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)_/_0.6)] hover:bg-[hsl(var(--tac-amber)_/_0.1)] hover:text-[hsl(var(--tac-amber))]";
 const playerHeroRightActionsClasses = "flex flex-col items-stretch gap-3";
 const playerHeroPlayClasses =
-  "group/play relative isolate inline-flex w-full cursor-pointer items-center justify-center overflow-hidden border font-sans text-[0.85rem] font-bold uppercase tracking-[0.18em] no-underline transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-px active:translate-y-0 py-[0.7rem] px-4 text-[hsl(var(--tac-amber-foreground))] border-[hsl(var(--tac-amber))] [background:linear-gradient(135deg,var(--tac-amber-cta-from)_0%,hsl(var(--tac-amber))_50%,var(--tac-amber-cta-to)_100%)] shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.4),0_6px_20px_-6px_hsl(var(--tac-amber)/0.6)] hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.6),0_12px_32px_-6px_hsl(var(--tac-amber)/0.8),0_0_24px_hsl(var(--tac-amber)/0.35)]";
+  "group/play relative isolate inline-flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-md border font-sans text-[0.85rem] font-bold uppercase tracking-[0.18em] no-underline transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-px active:translate-y-0 py-[0.7rem] px-4 text-[hsl(var(--tac-amber-foreground))] border-[hsl(var(--tac-amber))] [background:linear-gradient(135deg,var(--tac-amber-cta-from)_0%,hsl(var(--tac-amber))_50%,var(--tac-amber-cta-to)_100%)] shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.4),0_6px_20px_-6px_hsl(var(--tac-amber)/0.6)] hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.6),0_12px_32px_-6px_hsl(var(--tac-amber)/0.8),0_0_24px_hsl(var(--tac-amber)/0.35)]";
 const playerHeroPlayInnerClasses =
   "relative z-[1] inline-flex items-center gap-[0.65rem]";
 const playerHeroPlayIconClasses =
   "h-5 w-5 fill-current transition-transform duration-300 group-hover/play:translate-x-0.5 group-hover/play:scale-110";
 const playerHeroPlayGlowClasses =
   "pointer-events-none absolute inset-0 z-0 -translate-x-full bg-[linear-gradient(90deg,transparent_0%,hsl(0_0%_100%_/_0.4)_50%,transparent_100%)] transition-transform duration-500 group-hover/play:translate-x-full";
-const playerHeroFooterClasses = "mt-4 flex w-full flex-col gap-4";
-const playerHeroFormClasses = "w-full border-t border-border/60 pt-4";
+// pt keeps the first separator off the avatar when the card is no taller than
+// its content (mt-auto only spaces it when the ELO card stretches the row).
+const playerHeroFooterClasses = "mt-auto flex flex-col gap-4 pt-5";
+const playerHeroFormClasses = "border-t border-border/60 pt-4";
 const playerHeroFormLabelClasses =
   "inline-flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.24em] text-muted-foreground";
 const playerHeroFormTickClasses = "h-[2px] w-[10px] bg-[hsl(var(--tac-amber))]";
 const playerHeroFormDotsClasses = "flex flex-wrap items-center gap-1.5";
 const playerHeroFormDotBaseClasses = "h-2.5 w-2.5 rounded-[2px]";
 const playerHeroTeamChipClasses =
-  "inline-flex h-7 items-center gap-1.5 rounded border border-border bg-card/60 px-2 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)_/_0.6)] hover:bg-[hsl(var(--tac-amber)_/_0.1)] hover:text-[hsl(var(--tac-amber))]";
+  "inline-flex h-7 items-center gap-1.5 rounded-md border border-border bg-card/60 px-2 font-mono text-[0.6rem] font-semibold uppercase tracking-[0.12em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber)_/_0.6)] hover:bg-[hsl(var(--tac-amber)_/_0.1)] hover:text-[hsl(var(--tac-amber))]";
 const playerHeroTeamChipDotClasses =
   "h-1.5 w-1.5 shrink-0 rounded-full bg-[hsl(var(--tac-amber))]";
 </script>
@@ -1873,174 +1839,133 @@ const playerHeroTeamChipDotClasses =
                 <div v-else :class="playerHeroAvatarPlaceholderClasses">
                   {{ (player.name || "?").charAt(0).toUpperCase() }}
                 </div>
-                <div
-                  :class="[
-                    playerHeroAvatarCornerClasses,
-                    '-left-[2px] -top-[2px] border-l-2 border-t-2',
-                  ]"
-                ></div>
-                <div
-                  :class="[
-                    playerHeroAvatarCornerClasses,
-                    '-bottom-[2px] -right-[2px] border-b-2 border-r-2',
-                  ]"
-                ></div>
-                <SanctionStatusBadge
-                  v-if="activeSanctionType"
-                  :type="activeSanctionType"
-                  variant="overlay"
-                />
+                <SanctionStatusBadge v-if="activeSanctionType" :type="activeSanctionType" variant="overlay" />
               </div>
             </div>
 
             <div :class="playerHeroIdentityClasses">
-              <div class="flex items-center justify-between gap-3">
-                <div
-                  class="inline-flex items-center gap-2 font-mono text-[0.58rem] uppercase tracking-[0.28em] text-[hsl(var(--tac-amber))]"
+              <div :class="playerHeroHeadClasses">
+                <h1
+                  :class="[playerHeroNameClasses, playerHeroNameSizeClasses]"
                 >
                   <span
-                    class="h-[2px] w-[14px] bg-[hsl(var(--tac-amber))]"
-                  ></span>
-                  {{ $t("pages.players.detail.player_profile") }}
-                </div>
-                <div :class="playerHeroActionsClasses">
-                  <button
-                    v-if="canMessagePlayer"
-                    type="button"
-                    :class="playerHeroNameEditButtonClasses"
-                    :title="$t('matchmaking.friends.message')"
-                    @click="messagePlayer"
+                    v-if="showNameGhost"
+                    :class="playerHeroNameGhostClasses"
+                    aria-hidden="true"
                   >
-                    <MessageSquare />
-                  </button>
-                  <button
-                    v-if="canOpenEditPlayer"
-                    type="button"
-                    :class="playerHeroNameEditButtonClasses"
-                    :title="$t('pages.players.detail.edit_player')"
-                    @click="editPlayerSheet = true"
-                  >
-                    <Pencil />
-                  </button>
-                  <button
-                    v-if="isAdmin && !isSelfProfile"
-                    type="button"
-                    :disabled="callingPlayer"
-                    :class="playerHeroNameEditButtonClasses"
-                    :title="$t('pages.players.call.start', 'Start webcam call')"
-                    @click="startAdminCall"
-                  >
-                    <Video />
-                  </button>
-                  <PlayerSanctions
-                    v-if="playerId"
-                    :playerId="playerId"
-                    :player="player"
-                    variant="panel"
-                  />
-                </div>
+                    {{ player.name }}
+                  </span>
+                  <span :class="playerHeroNameMainClasses">{{
+                    player.name
+                  }}</span>
+                </h1>
               </div>
 
-              <h1 :class="[playerHeroNameClasses, playerHeroNameSizeClasses]">
-                <span
-                  v-if="showNameGhost"
-                  :class="playerHeroNameGhostClasses"
-                  aria-hidden="true"
-                >
-                  {{ player.name }}
-                </span>
-                <span :class="playerHeroNameMainClasses">{{
-                  player.name
-                }}</span>
-              </h1>
-
               <div :class="playerHeroMetaStripClasses">
-                <span :class="playerHeroIdentClasses">
-                  <TimezoneFlag
-                    v-if="player.country"
-                    :country="player.country"
-                    class="h-auto w-[1.2rem] shrink-0"
-                  />
-                  <span :class="playerHeroSteamIdClasses">{{
-                    player.steam_id
-                  }}</span>
-                </span>
+                <div :class="playerHeroMetaGroupClasses">
+                  <span :class="playerHeroIdentClasses">
+                    <TimezoneFlag
+                      v-if="player.country"
+                      :country="player.country"
+                      class="h-auto w-[1.2rem] shrink-0"
+                    />
+                    <span :class="playerHeroSteamIdClasses">{{
+                      player.steam_id
+                    }}</span>
+                  </span>
 
-                <template v-if="player.profile_url">
-                  <span
-                    :class="playerHeroMetaDividerClasses"
-                    aria-hidden="true"
-                  ></span>
-                  <a
-                    :href="player.profile_url"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    :class="playerHeroSteamLinkClasses"
-                    :title="$t('ui.tooltips.view_steam_profile')"
-                  >
-                    <SteamIcon class="h-3.5 w-3.5 fill-current" />
-                  </a>
-                </template>
-
-                <!-- Twitch: only when the player set a channel; the green
-                     dot means the channel is live right now (any game). -->
-                <template v-if="twitch.channel">
-                  <span
-                    :class="playerHeroMetaDividerClasses"
-                    aria-hidden="true"
-                  ></span>
+                  <template v-if="player.profile_url">
+                    <a
+                      :href="player.profile_url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      :class="playerHeroSteamLinkClasses"
+                      :title="$t('ui.tooltips.view_steam_profile')"
+                      :aria-label="$t('ui.tooltips.view_steam_profile')"
+                    >
+                      <SteamIcon class="h-3.5 w-3.5 fill-current" />
+                    </a>
+                  </template>
                   <PlayerTwitchLink
+                    v-if="twitch.channel"
                     :channel="twitch.channel"
                     :live="twitch.live"
                     :link-class="playerHeroSteamLinkClasses"
                   />
-                </template>
+                </div>
 
-                <template v-if="canEditRole || player.role">
-                  <span
-                    :class="playerHeroMetaDividerClasses"
-                    aria-hidden="true"
-                  ></span>
-                  <div
-                    v-if="canEditRole"
-                    :class="playerHeroInlineRoleWrapClasses"
-                  >
-                    <PlayerRoleForm :player="player" />
-                  </div>
-                  <span v-else :class="playerHeroInlineRoleChipClasses">
-                    {{ (player.role || "user").replace("_", " ") }}
-                  </span>
-                </template>
+                <div
+                  v-if="canEditRole || player.role || player.teams?.length"
+                  :class="playerHeroMetaGroupClasses"
+                >
+                  <template v-if="canEditRole || player.role">
+                    <div
+                      v-if="canEditRole"
+                      :class="playerHeroInlineRoleWrapClasses"
+                    >
+                      <PlayerRoleForm :player="player" />
+                    </div>
+                    <span v-else :class="playerHeroInlineRoleChipClasses">
+                      {{ $t(`player_roles.${player.role || "user"}`) }}
+                    </span>
+                  </template>
 
-                <template v-if="player?.teams && player.teams.length > 0">
-                  <span
-                    :class="playerHeroMetaDividerClasses"
-                    aria-hidden="true"
-                  ></span>
-                  <NuxtLink
-                    v-for="team in player.teams"
-                    :key="team.id"
-                    :to="`/teams/${team.id}`"
-                    :class="playerHeroTeamChipClasses"
-                    :title="team.name"
-                  >
-                    <span :class="playerHeroTeamChipDotClasses"></span>
-                    <span>{{ team.short_name || team.name }}</span>
-                  </NuxtLink>
-                </template>
+                  <template v-if="player?.teams && player.teams.length > 0">
+                    <NuxtLink
+                      v-for="team in player.teams"
+                      :key="team.id"
+                      :to="`/teams/${team.id}`"
+                      :class="playerHeroTeamChipClasses"
+                      :title="team.name"
+                    >
+                      <span :class="playerHeroTeamChipDotClasses"></span>
+                      <span>{{ team.short_name || team.name }}</span>
+                    </NuxtLink>
+                  </template>
+                </div>
               </div>
             </div>
           </div>
 
           <div :class="playerHeroFooterClasses">
+
             <div :class="playerHeroFormClasses">
-              <div class="flex items-center justify-between gap-4">
+              <div class="flex flex-wrap items-center justify-between gap-4">
                 <div class="min-w-0 space-y-2.5">
                   <span :class="playerHeroFormLabelClasses">
                     <span :class="playerHeroFormTickClasses"></span>
                     {{ $t("pages.players.detail.recent_form") }}
                     <span class="tabular-nums text-foreground/70">
                       {{ recentForm.wins }}–{{ recentForm.losses }}
+                    </span>
+                    <!-- The ELO those matches moved, muted like the W–L with
+                         only the arrow colored. -->
+                    <span
+                      v-if="recentForm.net !== 0"
+                      class="inline-flex items-center gap-1.5 tabular-nums"
+                      :title="
+                        $t('pages.players.detail.recent_form_elo', {
+                          count: RECENT_FORM_COUNT,
+                        })
+                      "
+                    >
+                      <span class="text-muted-foreground/50" aria-hidden="true">
+                        ·
+                      </span>
+                      <span
+                        :class="
+                          recentForm.net > 0
+                            ? 'text-emerald-400'
+                            : 'text-red-400'
+                        "
+                        aria-hidden="true"
+                      >
+                        {{ recentForm.net > 0 ? "▲" : "▼" }}
+                      </span>
+                      <span class="text-foreground/70">
+                        {{ Math.abs(recentForm.net).toLocaleString() }}
+                      </span>
+                      <span>ELO</span>
                     </span>
                   </span>
                   <div :class="playerHeroFormDotsClasses">
@@ -2060,38 +1985,23 @@ const playerHeroTeamChipDotClasses =
                     ></span>
                   </div>
                 </div>
-                <span
-                  class="shrink-0 font-mono text-sm font-semibold tabular-nums"
-                  :class="
-                    recentForm.net > 0
-                      ? 'text-emerald-400'
-                      : recentForm.net < 0
-                        ? 'text-red-400'
-                        : 'text-muted-foreground'
-                  "
+                <PlayerHeroActions
+                  v-bind="heroActionsBind"
+                  class="max-w-full"
+                  @add="addAsFriend"
+                  @accept="acceptFriendRequest"
+                  @cancel="cancelRequestClick"
+                  @message="messagePlayer"
                 >
-                  <template v-if="recentForm.net > 0">
-                    ▲ +{{ recentForm.net }}
-                  </template>
-                  <template v-else-if="recentForm.net < 0">
-                    ▼ {{ recentForm.net }}
-                  </template>
-                  <template v-else>+0</template>
-                </span>
+                  <PlayerSanctions v-if="playerId" :playerId="playerId" :player="player" variant="panel" />
+                </PlayerHeroActions>
               </div>
             </div>
 
-            <div
-              v-if="hasRightColumn"
-              :class="[
-                playerHeroRightActionsClasses,
-                { 'max-md:hidden': isSelfProfile },
-              ]"
-            >
+            <div v-if="isSelfProfile" :class="playerHeroRightActionsClasses">
               <NuxtLink
-                v-if="isSelfProfile"
                 to="/play"
-                :class="playerHeroPlayClasses"
+                :class="[playerHeroPlayClasses, 'max-md:hidden']"
               >
                 <span :class="playerHeroPlayInnerClasses">
                   <PlayIcon :class="playerHeroPlayIconClasses" />
@@ -2102,111 +2012,6 @@ const playerHeroTeamChipDotClasses =
                   aria-hidden="true"
                 ></span>
               </NuxtLink>
-              <div v-else :class="playerHeroActionsRowClasses">
-                <div :class="playerHeroActionsRowLeftClasses">
-                  <button
-                    v-if="isBlockedByMe"
-                    type="button"
-                    :class="playerHeroBlockedBadgeClasses"
-                    disabled
-                  >
-                    <Ban class="h-3.5 w-3.5" />
-                    <span>{{ $t("pages.players.detail.blocked", "Blocked") }}</span>
-                  </button>
-                  <button
-                    v-else-if="canAddFriend"
-                    type="button"
-                    :class="playerHeroAddFriendClasses"
-                    :disabled="friendActionInFlight"
-                    @click="addAsFriend"
-                  >
-                    <UserPlus class="h-4 w-4" />
-                    <span>{{ $t("player.status.add_friend") }}</span>
-                  </button>
-                  <span
-                    v-else-if="isFriendIncoming"
-                    :class="playerHeroFriendIncomingClasses"
-                  >
-                    <Clock class="h-3.5 w-3.5" />
-                    <span>{{ $t("pages.players.detail.friend_incoming") }}</span>
-                  </span>
-                  <button
-                    v-else-if="isFriendPending"
-                    type="button"
-                    :class="
-                      pendingButtonHovered
-                        ? playerHeroRemoveFriendClasses
-                        : playerHeroFriendPendingClasses
-                    "
-                    :disabled="friendActionInFlight"
-                    @mouseenter="pendingButtonHovered = true"
-                    @mouseleave="pendingButtonHovered = false"
-                    @focus="pendingButtonHovered = true"
-                    @blur="pendingButtonHovered = false"
-                    @click="cancelRequestClick"
-                  >
-                    <X v-if="pendingButtonHovered" class="h-3.5 w-3.5" />
-                    <Clock v-else class="h-3.5 w-3.5" />
-                    <span>{{
-                      pendingButtonHovered
-                        ? $t("pages.players.detail.friend_cancel_request")
-                        : $t("pages.players.detail.friend_pending")
-                    }}</span>
-                  </button>
-                  <button
-                    v-else-if="isFriend"
-                    type="button"
-                    :class="
-                      friendButtonHovered
-                        ? playerHeroRemoveFriendClasses
-                        : playerHeroFriendBadgeClasses
-                    "
-                    :disabled="friendActionInFlight"
-                    @mouseenter="friendButtonHovered = true"
-                    @mouseleave="friendButtonHovered = false"
-                    @focus="friendButtonHovered = true"
-                    @blur="friendButtonHovered = false"
-                    @click="removeFriendClick"
-                  >
-                    <UserX v-if="friendButtonHovered" class="h-3.5 w-3.5" />
-                    <UserCheck v-else class="h-3.5 w-3.5" />
-                    <span>{{
-                      friendButtonHovered
-                        ? $t("pages.players.detail.friend_remove_confirm")
-                        : $t("pages.players.detail.friend")
-                    }}</span>
-                  </button>
-                </div>
-                <div
-                  v-if="canShowBlockAction"
-                  :class="playerHeroActionsRowRightClasses"
-                >
-                  <button
-                    type="button"
-                    :class="[
-                      'h-full',
-                      isBlockedByMe
-                        ? playerHeroBlockButtonActiveClasses
-                        : playerHeroBlockButtonClasses,
-                    ]"
-                    :disabled="blockActionInFlight"
-                    :title="
-                      isBlockedByMe
-                        ? $t('pages.players.detail.unblock_player', 'Unblock player')
-                        : $t('pages.players.detail.block_player', 'Block player')
-                    "
-                    :aria-label="
-                      isBlockedByMe
-                        ? $t('pages.players.detail.unblock_player', 'Unblock player')
-                        : $t('pages.players.detail.block_player', 'Block player')
-                    "
-                    @click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"
-                  >
-                    <UserCheck v-if="isBlockedByMe" class="h-4 w-4" />
-                    <Ban v-else class="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
             </div>
           </div>
         </header>
@@ -3533,6 +3338,35 @@ export default {
     };
   },
   computed: {
+    heroActionsBind(): Record<string, any> {
+      return {
+        actions: this.heroActions,
+        relationship: this.friendRelationshipState,
+        canAddFriend: this.canAddFriend,
+        canMessage: this.canMessagePlayer,
+        messageLabel: this.profileMessageLabel,
+        showMessage: !!(this.me && !this.isSelfProfile && this.player?.steam_id),
+        isBlocked: this.isBlockedByMe,
+        isSelf: this.isSelfProfile,
+        pending: this.friendActionInFlight,
+      };
+    },
+    heroActions(): any[] {
+      const actions: any[] = [];
+      if (this.canOpenEditPlayer) actions.push({ key: "edit", icon: Pencil, label: this.$t("pages.players.detail.edit_player"), run: () => { this.editPlayerSheet = true; } });
+      if (this.isFriend && !this.isBlockedByMe) actions.push({ key: "remove", icon: UserX, label: this.$t("pages.players.detail.friend_remove_confirm"), busy: this.friendActionInFlight, destructive: true, run: this.removeFriendClick });
+      if (this.canShowBlockAction) actions.push({ key: "block", icon: this.isBlockedByMe ? UserCheck : Ban, label: this.$t(this.isBlockedByMe ? "pages.players.detail.unblock_player" : "pages.players.detail.block_player"), busy: this.blockActionInFlight, destructive: !this.isBlockedByMe, run: this.isBlockedByMe ? this.unblockPlayerClick : this.requestBlockPlayer });
+      if (this.isAdmin && !this.isSelfProfile) actions.push({ key: "webcam", icon: Video, label: this.$t("pages.players.call.start", "Start webcam call"), busy: this.callingPlayer, run: this.startAdminCall });
+      return actions;
+    },
+    profileMessageLabel(): string {
+      if (this.isBlockedByMe) return this.$t("pages.players.detail.blocked");
+      if (!this.canMessagePlayer) return this.$t("pages.players.detail.message_requests_disabled");
+      const room = directChatId(String(this.me?.steam_id), String(this.player?.steam_id));
+      if (useMessageRequests().isAwaitingReply(room, String(this.player?.steam_id))) return this.$t("layouts.chat_panel.requests.awaiting_reply", { name: this.player.name });
+      if (useMessageRequests().isRequest(room)) return this.$t("layouts.chat_panel.requests.banner", { name: this.player.name });
+      return this.$t("matchmaking.friends.message");
+    },
     pageContentReady(): boolean {
       if (this.pageContentTimedOut) return true;
       return (
@@ -3646,19 +3480,13 @@ export default {
       if (!this.player?.steam_id) return false;
       return useFriendActions().isBusy(this.player.steam_id);
     },
-    // DMs are restricted to accepted friends, no exceptions -- see
-    // chat.service.ts's ChatLobbyType.Direct join check, which is the
-    // actual enforcement; this only controls whether the button offers
-    // to open one. isBlockedByMe is redundant with !isFriend (blocking
-    // always removes the friendship, server-side -- see ti_v_my_blocks)
-    // but kept explicit so this stays correct even if that coupling ever
-    // changes.
+    // Reuse the committed request policy and accepted conversation state.
     canMessagePlayer() {
       return !!(
         this.me &&
         this.player?.steam_id &&
         !this.isSelfProfile &&
-        (this.isFriend || this.peerAllowsMessageRequests !== false || useMessageRequests().hasConversation(String(this.player?.steam_id))) &&
+        (this.isFriend || this.peerAllowsMessageRequests !== false || useMessageRequests().hasConversation(String(this.player?.steam_id)) || useMessageRequests().isRequest(directChatId(String(this.me.steam_id), String(this.player.steam_id)))) &&
         !this.isBlockedByMe
       );
     },
@@ -3673,22 +3501,9 @@ export default {
       if (!this.player?.steam_id) return false;
       return useBlockActions().isBusy(this.player.steam_id);
     },
-    // The Block icon column shows for any other logged-in-viewer's-eyes
-    // profile, regardless of friend state -- unlike hasRightColumn below,
-    // it doesn't require a friend-button state to also be showing.
+    // Personal blocking remains available on every other player's profile.
     canShowBlockAction() {
       return !!(this.me && this.player?.steam_id && !this.isSelfProfile);
-    },
-    hasRightColumn() {
-      return (
-        this.isSelfProfile ||
-        this.canAddFriend ||
-        this.isFriend ||
-        this.isFriendPending ||
-        this.isFriendIncoming ||
-        this.isBlockedByMe ||
-        this.canShowBlockAction
-      );
     },
     isAdmin() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
@@ -3808,8 +3623,17 @@ export default {
       }
     },
     messagePlayer() {
-      if (!this.player?.steam_id) return;
+      if (!this.canMessagePlayer || !this.player?.steam_id) return;
       openDirectMessage(this.player);
+    },
+    async acceptFriendRequest() {
+      if (!this.player?.steam_id || this.friendRelationshipState !== "incoming" || this.isBlockedByMe) return;
+      try {
+        await useFriendActions().acceptFriend(this.player.steam_id);
+      } catch (error) {
+        console.error("acceptFriend failed", error);
+        toast({ variant: "destructive", title: this.$t("common.error"), description: this.$t("pages.players.detail.friend_add_error") });
+      }
     },
     async addAsFriend() {
       if (!this.player?.steam_id) return;
@@ -3955,7 +3779,7 @@ export default {
     // GlobalAdminCallNotifier.vue) and opens the same call popup
     // window the player will land in.
     async startAdminCall() {
-      if (!this.player?.steam_id || this.callingPlayer) return;
+      if (!this.isAdmin || this.isSelfProfile || !this.player?.steam_id || this.callingPlayer) return;
       this.callingPlayer = true;
       try {
         const result = await ringAdminCallPlayer(String(this.player.steam_id));

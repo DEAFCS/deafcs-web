@@ -63,22 +63,20 @@ test("PlayerRoleForm's canChangeRole is still the fixed administrator-only floor
   );
 });
 
-test("the role slot's divider and its content (form or chip) are still gated by the exact same condition -- fixing the mismatch, not the template structure", () => {
+test("the role group and its content use the same visibility condition without stray dividers", () => {
   assert.match(
     playerProfile,
-    /<template v-if="canEditRole \|\| player\.role">\s*\n\s*<span\s*\n\s*:class="playerHeroMetaDividerClasses"\s*\n\s*aria-hidden="true"\s*\n\s*><\/span>\s*\n\s*<div\s*\n\s*v-if="canEditRole"\s*\n\s*:class="playerHeroInlineRoleWrapClasses"\s*\n\s*>\s*\n\s*<PlayerRoleForm :player="player" \/>\s*\n\s*<\/div>\s*\n\s*<span v-else :class="playerHeroInlineRoleChipClasses">/,
+    /<template v-if="canEditRole \|\| player\.role">\s*<div\s+v-if="canEditRole"\s+:class="playerHeroInlineRoleWrapClasses"\s*>\s*<PlayerRoleForm :player="player" \/>\s*<\/div>\s*<span v-else :class="playerHeroInlineRoleChipClasses">/,
   );
 });
 
-test("no role permission, visibility, link, or styling classes were touched -- only canEditRole's role comparison", () => {
-  // canEditPlayer (which canEditRole feeds into elsewhere) and the other
-  // per-field edit gates are untouched.
+test("role editing keeps its fixed floor and uses the upstream compact role chip", () => {
   assert.match(
     playerProfile,
-    /canEditCountry\(\)\s*\{[\s\S]{0,150}isRoleAbove\(e_player_roles_enum\.match_organizer\)/,
+    /canEditCountry\(\)[\s\S]{0,200}isRoleAbove\(e_player_roles_enum.match_organizer\)/,
   );
   assert.match(
     playerProfile,
-    /const playerHeroInlineRoleChipClasses =\s*\n\s*"inline-flex h-7 items-center gap-1\.5 rounded border border-border bg-card\/60 px-2\.5 font-mono text-\[0\.6rem\] font-semibold uppercase tracking-\[0\.14em\] text-muted-foreground";/,
+    /rounded-md border border-border bg-card\/60 px-2.5/,
   );
 });

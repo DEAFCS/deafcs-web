@@ -58,28 +58,17 @@ describe("players/[id].vue source: Block action no longer uses FiveStackToolTip"
     expect(source).not.toContain("FiveStackToolTip");
   });
 
-  it("the block toggle is a plain native button with :title and :aria-label, and its visible content is icons only", () => {
-    const clickAttr =
-      '@click="isBlockedByMe ? unblockPlayerClick() : requestBlockPlayer()"';
-    const clickIdx = source.indexOf(clickAttr);
-    expect(clickIdx).toBeGreaterThan(-1);
-
-    // Everything from the enclosing <button up to this @click must declare
-    // :title/:aria-label and must not be inside a tooltip wrapper.
-    const openButtonIdx = source.lastIndexOf("<button", clickIdx);
-    const attrsBefore = source.slice(openButtonIdx, clickIdx);
-    expect(attrsBefore).toContain(":title=");
-    expect(attrsBefore).toContain(":aria-label=");
-
-    // Everything between the opening tag's `>` and the matching `</button>`
-    // must be icon markup only -- no bare translated text node.
-    const openTagEnd = source.indexOf(">", clickIdx + clickAttr.length);
-    const closeTagIdx = source.indexOf("</button>", openTagEnd);
-    const inner = source.slice(openTagEnd + 1, closeTagIdx);
-    expect(inner).not.toMatch(/block_player/);
-    expect(inner).not.toMatch(/Block player/);
-    expect(inner).not.toMatch(/Unblock player/);
-    expect(inner).toMatch(/<UserCheck\s/);
-    expect(inner).toMatch(/<Ban\s/);
+  it("a single secondary action stays an accessible native icon-only button", () => {
+    const controls = fs.readFileSync(
+      path.resolve("components/player/PlayerHeroActions.vue"),
+      "utf8",
+    );
+    expect(controls).toMatch(
+      /<button\s+v-if="actions.length === 1"[\s\S]*?:title="actions\[0\].label"[\s\S]*?:aria-label="actions\[0\].label"/,
+    );
+    expect(controls).toContain('<component :is="actions[0].icon" />');
+    expect(source).toContain(
+      "run: this.isBlockedByMe ? this.unblockPlayerClick : this.requestBlockPlayer",
+    );
   });
 });

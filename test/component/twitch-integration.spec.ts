@@ -311,7 +311,7 @@ describe("profile Twitch icon", () => {
 
   it("the profile renders it from the API, next to Steam", () => {
     const profile = read("pages/players/[id].vue");
-    expect(profile).toContain('<PlayerTwitchLink\n                    :channel="twitch.channel"\n                    :live="twitch.live"');
+    expect(profile).toMatch(/<PlayerTwitchLink\s+v-if="twitch.channel"\s+:channel="twitch.channel"\s+:live="twitch.live"/);
     expect(profile).toContain("const data = await fetchPlayerTwitch(id);");
     expect(profile).toContain("this.twitchTimer = window.setInterval(load, 60_000);");
   });
