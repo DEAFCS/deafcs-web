@@ -56,10 +56,11 @@ import { toast } from "@/components/ui/toast";
 
 definePageMeta({ persistQueryKeys: ["invite"] });
 
-// Looks like its TabsTrigger neighbours (components/ui/tabs/TabsTrigger.vue and
-// tacticalTabsTriggerClasses), minus the active state: it is never selected.
+// Exactly the classes of its neighbours: the base of TabsTrigger.vue (this
+// page's tabs use it as is, with no tactical uppercase styling), minus the
+// active state since it is never selected. Kept equal by a test.
 const teamChatEntryClasses =
-  "relative z-[1] inline-flex items-center justify-center gap-[0.45rem] whitespace-nowrap rounded-md px-3 py-1.5 font-sans text-[0.7rem] font-semibold uppercase tracking-[0.14em] ring-offset-background transition-colors duration-150 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
+  "relative z-[1] inline-flex items-center justify-center whitespace-nowrap rounded-md px-3 py-1 text-sm font-medium ring-offset-background transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2";
 // The tournament page's Chat Room badge, unchanged.
 const teamChatUnreadClasses =
   "inline-flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 font-sans text-[0.6rem] font-bold leading-none tracking-normal text-white tabular-nums";
@@ -224,16 +225,18 @@ const scrimNeedsCount = computed(
           data-testid="team-chat-tab"
           @click="openChatRoom"
         >
-          <span class="truncate">{{ $t("team.tabs.chat") }}</span>
-          <span
-            v-if="chatRoomUnreadLabel"
-            :class="teamChatUnreadClasses"
-            data-testid="team-chat-unread"
-            ><span aria-hidden="true">{{ chatRoomUnreadLabel }}</span
-            ><span class="sr-only">{{
-              $t("team.tabs.chat_unread", { count: chatRoomUnread })
-            }}</span></span
-          >
+          <span class="truncate">
+            {{ $t("team.tabs.chat") }}
+            <span
+              v-if="chatRoomUnreadLabel"
+              :class="[teamChatUnreadClasses, 'ml-1.5']"
+              data-testid="team-chat-unread"
+              ><span aria-hidden="true">{{ chatRoomUnreadLabel }}</span
+              ><span class="sr-only">{{
+                $t("team.tabs.chat_unread", { count: chatRoomUnread })
+              }}</span></span
+            >
+          </span>
         </button>
         <TabsTrigger v-if="showScrimTab" value="scrim">
           {{ $t("team.tabs.scrim") }}

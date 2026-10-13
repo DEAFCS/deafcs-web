@@ -939,7 +939,7 @@ function onHubTouchEnd(e: TouchEvent) {
                       :src="tab.avatarUrl"
                       :alt="tab.label"
                       draggable="false"
-                      class="size-full select-none object-cover"
+                      class="size-full select-none object-contain"
                     />
                     <span
                       v-else

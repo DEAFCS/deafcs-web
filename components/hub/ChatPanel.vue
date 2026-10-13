@@ -43,6 +43,7 @@ import ChatMatchHeader from "~/components/chat/ChatMatchHeader.vue";
 import ChatParticipantsList from "~/components/chat/ChatParticipantsList.vue";
 import LiveAvatarImg from "~/components/LiveAvatarImg.vue";
 import ChatDirectProfileLink from "~/components/chat/ChatDirectProfileLink.vue";
+import ChatTeamProfileLink from "~/components/chat/ChatTeamProfileLink.vue";
 import LobbyCallPanel from "~/components/matchmaking-lobby/LobbyCallPanel.vue";
 import { currentHub } from "~/composables/useHubState";
 import { useTournamentWebcamStatus } from "~/composables/useTournamentWebcamStatus";
@@ -1009,22 +1010,15 @@ function openTournamentWebcamWindow() {
                               img-class="w-full h-full object-cover"
                             />
                           </div>
-                          <div
+                          <!-- A team's logo is shown as uploaded: no tile, ring or
+                               crop of our own around it. -->
+                          <img
                             v-else-if="tab.type === 'team' && tab.avatarUrl"
-                            class="flex-shrink-0 w-7 h-7 rounded-md overflow-hidden ring-1 ring-inset bg-zinc-900/80"
-                            :class="
-                              activeChatId === tab.id
-                                ? 'ring-zinc-500'
-                                : 'ring-zinc-700 group-hover:ring-zinc-600'
-                            "
-                          >
-                            <img
-                              :src="tab.avatarUrl"
-                              alt=""
-                              draggable="false"
-                              class="w-full h-full object-cover"
-                            />
-                          </div>
+                            :src="tab.avatarUrl"
+                            alt=""
+                            draggable="false"
+                            class="flex-shrink-0 w-7 h-7 select-none object-contain"
+                          />
                           <div
                             v-else
                             class="flex-shrink-0 w-7 h-7 rounded-md flex items-center justify-center text-inherit transition-colors"
@@ -1172,14 +1166,15 @@ function openTournamentWebcamWindow() {
               :subtitle="getRoomSubtitle(activeTab)"
               @navigate="tooltipEpoch++"
             />
+            <ChatTeamProfileLink
+              v-else-if="activeTab?.type === 'team'"
+              :team-id="activeTab.lobbyId"
+              :name="activeTab.label"
+              :avatar-url="activeTab.avatarUrl"
+              :subtitle="getRoomSubtitle(activeTab)"
+              @navigate="tooltipEpoch++"
+            />
             <template v-else>
-              <img
-                v-if="activeTab?.type === 'team' && activeTab.avatarUrl"
-                :src="activeTab.avatarUrl"
-                alt=""
-                draggable="false"
-                class="h-7 w-7 shrink-0 rounded-md object-cover ring-1 ring-inset ring-zinc-700"
-              />
               <div class="min-w-0">
                 <div class="text-xs font-semibold text-foreground truncate">
                   {{
