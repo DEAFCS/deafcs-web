@@ -93,7 +93,7 @@ test("no em dashes in tournament rules copy", () => {
 });
 
 test("last updated date was bumped", () => {
-  assert.equal(enLocale.pages.info.tournament_rules.last_updated_date, "22 August 2026");
+  assert.equal(enLocale.pages.info.tournament_rules.last_updated_date, "10 October 2026");
 });
 
 test("every $t/i18n-t key referenced by the page exists in en.json", () => {
@@ -106,4 +106,36 @@ test("every $t/i18n-t key referenced by the page exists in en.json", () => {
     }
   }
   assert.deepEqual(missing, []);
+});
+
+test("Roster Images section renders with an anchor for the profile link", () => {
+  assert.ok(sections.roster_images, "roster_images section must exist");
+  assert.match(sections.roster_images.title, /Roster Images/);
+  assert.match(pageSource, /sections\.roster_images\.title/);
+  assert.match(pageSource, /id="roster-images"/);
+  // Placed after Substitutes and before Tournament Check-In & Attendance.
+  assert.ok(
+    pageSource.indexOf("sections.substitutes.title") <
+      pageSource.indexOf("sections.roster_images.title") &&
+      pageSource.indexOf("sections.roster_images.title") <
+        pageSource.indexOf("sections.attendance.title"),
+  );
+});
+
+test("Roster Images rule states what is required, prohibited, allowed and enforced", () => {
+  const ri = sections.roster_images;
+  assert.match(ri.body_1, /Use an image of yourself/);
+  assert.match(ri.body_2, /another person's face/);
+  assert.match(ri.body_2, /celebrity or professional player/);
+  assert.match(ri.body_2, /AI-generated or fake identity/);
+  assert.match(ri.body_3, /cropping.*background removal.*allowed/i);
+  assert.match(ri.body_4, /staff may remove roster images/i);
+});
+
+test("Roster Images and profile hint copy contain no em dash", () => {
+  const copy = JSON.stringify([
+    sections.roster_images,
+    enLocale.avatar.roster_rules_hint,
+  ]);
+  assert.doesNotMatch(copy, /—/);
 });

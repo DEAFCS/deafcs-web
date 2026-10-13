@@ -62,11 +62,15 @@ export type LobbyCallParticipant = {
 
 export async function fetchLobbyCallStatus(
   statusUrl: string,
-): Promise<{ ready: boolean; steamId?: string }> {
+): Promise<{ ready: boolean; steamId?: string; reason?: string }> {
   try {
     const res = await fetch(statusUrl);
     if (!res.ok) return { ready: false };
-    return (await res.json()) as { ready: boolean; steamId?: string };
+    return (await res.json()) as {
+      ready: boolean;
+      steamId?: string;
+      reason?: string;
+    };
   } catch {
     return { ready: false };
   }
