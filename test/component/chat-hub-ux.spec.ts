@@ -69,7 +69,13 @@ const global = {
     MatchmakingLobbyAccess: true,
   },
 };
+let seatSettings: any;
 beforeEach(() => {
+  seatSettings = {
+    isMatchmakingTypeEnabled: () => true,
+    captainPickEnabled: true,
+    maxCompetitivePartySize: 5,
+  };
   vi.stubGlobal("useRuntimeConfig", () => ({
     public: { apiDomain: "api.deafcs.test" },
   }));
@@ -79,6 +85,7 @@ beforeEach(() => {
     eloForPlayer: () => ({ competitive: 1200 }),
   }));
   vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
+  vi.stubGlobal("useApplicationSettingsStore", () => seatSettings);
   auth.me = { steam_id: "1" };
   state.mutate.mockClear();
   state.invite.mockClear();
@@ -202,6 +209,28 @@ describe("upstream compact lobby controls", () => {
     expect(w.findAll("[data-search]")).toHaveLength(2);
     expect(w.findAll("player-elo-stub")).toHaveLength(3);
     w.unmount();
+  });
+  it("sizes the seats to the biggest party an open mode allows, not a fixed five", () => {
+    seatSettings.maxCompetitivePartySize = 3;
+    const capped = mount(PartySeats, {
+      props: { lobby: { id: "l1", players: members().slice(1, 2) } },
+      global,
+    });
+    expect(capped.text()).toContain('"max":3');
+    expect(capped.findAll("[data-search]")).toHaveLength(2);
+    capped.unmount();
+
+    seatSettings.isMatchmakingTypeEnabled = (type: string) =>
+      type !== "competitive";
+    seatSettings.captainPickEnabled = false;
+    const duo = mount(PartySeats, {
+      props: { lobby: { id: "l1", players: members() } },
+      global,
+    });
+    // Wingman's limit is 2, but nobody already in the party loses a seat.
+    expect(duo.text()).toContain('"max":3');
+    expect(duo.findAll("[data-search]")).toHaveLength(0);
+    duo.unmount();
   });
   it("captains invite excluding members and remove through the existing authorized mutation", async () => {
     const w = mount(PartySeats, {

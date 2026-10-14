@@ -10,12 +10,30 @@ import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { generateMutation } from "~/graphql/graphqlGen";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import PlayerElo from "~/components/PlayerElo.vue";
+import {
+  buildMatchmakingModes,
+  modePartyLimit,
+} from "~/utilities/matchmakingModes";
 
 // The top of the party room: who is in it, laid out as seats. Empty seats are
 // where invites go, so the gap in the squad is also the way to fill it.
 const props = defineProps<{ lobby: any }>();
 
-const SEATS = 5;
+// DEAFCS: as many seats as the biggest party any open mode allows (the
+// Competitive cap, or 2 with only Wingman), never fewer than are in it.
+// Upstream's 5 is only the fallback with no mode open.
+const settings = useApplicationSettingsStore();
+const seats = computed(() => {
+  const limits = buildMatchmakingModes({
+    isTypeEnabled: (type) =>
+      settings.isMatchmakingTypeEnabled(type.toLowerCase()),
+    captainPickEnabled: settings.captainPickEnabled,
+  }).map((mode) => modePartyLimit(mode, settings.maxCompetitivePartySize));
+  return Math.max(
+    players.value.length,
+    limits.length ? Math.max(...limits) : 5,
+  );
+});
 const { eloForPlayer } = usePlayerActiveSeasonElo();
 const removing = ref(false);
 
@@ -33,7 +51,9 @@ const players = computed(() =>
 const memberCount = computed(
   () => players.value.filter((slot: any) => slot.status !== "Invited").length,
 );
-const emptySeats = computed(() => Math.max(0, SEATS - players.value.length));
+const emptySeats = computed(() =>
+  Math.max(0, seats.value - players.value.length),
+);
 const isCaptain = computed(
   () =>
     players.value.find(
@@ -88,7 +108,9 @@ async function remove(steamId: string) {
       <span
         class="inline-flex h-5 items-center rounded-sm bg-zinc-800 px-1.5 text-[0.65rem] font-semibold tabular-nums text-zinc-300"
       >
-        {{ $t("layouts.party_room.members", { count: memberCount }) }}
+        {{
+          $t("layouts.party_room.members", { count: memberCount, max: seats })
+        }}
       </span>
       <div class="ml-auto flex items-center gap-1.5">
         <MatchmakingLobbyAccess v-if="isCaptain" :lobby="lobby" />

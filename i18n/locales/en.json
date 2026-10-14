@@ -5129,7 +5129,10 @@
       "cancel": "Cancel",
       "leader_picks": "{name} picks the mode and starts the search",
       "title": "Your squad",
-      "members": "{count}/5",
+      "members": "{count}/{max}",
+      "queue": "Queue",
+      "regions": "Matchmaking regions",
+      "pick_regions": "Pick regions",
       "remove": "Remove {name}",
       "invite": "Invite",
       "open_seat": "Open seat"

@@ -475,11 +475,35 @@ describe("queue line (PartyQueueLine)", () => {
     expect(mocks.socketEvents).toEqual([["matchmaking:leave", undefined]]);
   });
 
-  it("idle leader: starts the search on the Play page", () => {
+  it("idle leader: picks a mode the party can play and queues from the hub", async () => {
     store.currentLobby = lobby("1");
-    const link = line().find("a");
-    expect(link.attributes("data-to")).toBe("/play");
-    expect(link.text()).toContain("layouts.lobby_panel.find_match");
+    store.preferredRegions = [{ value: "EU", description: "Europe" }];
+    store.regionStats = {};
+    window.localStorage.clear();
+    const wrapper = line();
+    // A party of two: Captain Pick and Duel are out, so Competitive leads.
+    const picker = wrapper.get("[data-party-mode-picker]");
+    expect(picker.text()).toContain("matchmaking.match_types.competitive.title");
+    expect(picker.text()).toContain("5v5");
+    expect(picker.attributes("style")).toContain("--mode-rgb: 249 158 47");
+    expect(wrapper.text()).toContain("Europe");
+    await wrapper.get("[data-party-queue]").trigger("click");
+    expect(mocks.socketEvents).toEqual([
+      ["matchmaking:join-queue", { type: "Competitive", regions: ["EU"] }],
+    ]);
+  });
+
+  it("idle leader without matchmaking access: starts the search on the Play page", () => {
+    store.currentLobby = lobby("1");
+    settings.matchmakingAllowed = false;
+    try {
+      const wrapper = line();
+      expect(wrapper.find("[data-party-mode-picker]").exists()).toBe(false);
+      const link = wrapper.get('a[data-to="/play"]');
+      expect(link.text()).toContain("layouts.lobby_panel.find_match");
+    } finally {
+      settings.matchmakingAllowed = true;
+    }
   });
 
   it("idle member: the leader picks", () => {
@@ -571,7 +595,7 @@ describe("Lobby panel", () => {
       wrapper.find('[data-stub="LobbyCallPanel"]').attributes("data-lobby-id"),
     ).toBe("lobby-1");
     expect(wrapper.find('[data-stub="ChatLobby"]').exists()).toBe(true);
-    expect(wrapper.find('a[data-to="/play"]').exists()).toBe(true);
+    expect(wrapper.find("[data-party-queue]").exists()).toBe(true);
   });
 
   it("the webcam button opens the lobby's call window", async () => {

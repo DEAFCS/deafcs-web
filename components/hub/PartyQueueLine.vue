@@ -1,20 +1,43 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { Lock, Play, Swords } from "lucide-vue-next";
+import { Check, ChevronDown, Globe, Lock, Play, Swords } from "lucide-vue-next";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "~/components/ui/dropdown-menu";
 import { useQuickQueue } from "~/composables/useQuickQueue";
 import { useMatchReadyModal } from "~/composables/useMatchReadyModal";
+import { modeColorStyle, modeFormat } from "~/utilities/matchmakingModes";
 
 // The queue, as one line between the seats and the chat (5Stack's
-// PartyQueueLine). It changes with the party: the clock while searching,
-// check-in when a match is found, the match once it starts.
+// PartyQueueLine). It changes with the party: pick-and-queue for the leader,
+// read-only for everyone else, the clock while searching, check-in when a
+// match is found, the match once it starts.
 //
-// DEAFCS: the search itself starts on /play, where Captain Pick and every
-// matchmaking rule live (see useQuickQueue), so the idle leader's line leads
-// there instead of upstream's mode picker. Cancel is offered to everyone in
-// the search, the same as /play offers it.
+// DEAFCS: the picker offers DEAFCS's four modes through useQuickQueue, the
+// same join /play uses, and only while matchmaking is open to this player;
+// otherwise the leader is sent to /play, where verification and the closed
+// notice live. Cancel is offered to everyone in the search, as on /play.
 const props = defineProps<{ lobby: any }>();
 
-const { queue, clock, modeTitle, leave } = useQuickQueue();
+const {
+  modes,
+  quickMode,
+  queue,
+  queueMode,
+  clock,
+  modeTitle,
+  requirementText,
+  join,
+  leave,
+} = useQuickQueue();
+const settings = useApplicationSettingsStore();
+const canPick = computed(
+  () => settings.matchmakingAllowed && !!quickMode.value,
+);
 const matchmakingStore = useMatchmakingStore();
 const { openMatchReadyModal } = useMatchReadyModal();
 
@@ -30,6 +53,23 @@ const isLeader = computed(
 );
 
 const regionLabels = computed(() => queue.value?.regions ?? []);
+const preferredLabels = computed(() =>
+  (
+    matchmakingStore.preferredRegions as Array<{
+      description?: string;
+      value: string;
+    }>
+  ).map((region) => region.description || region.value),
+);
+const regionSummary = computed(() => {
+  const [first, ...rest] = preferredLabels.value;
+  if (!first) return null;
+  return rest.length ? `${first} +${rest.length}` : first;
+});
+const searchInQueue = computed(
+  () =>
+    modes.value.find((mode) => mode.key === queueMode.value?.key)?.inQueue ?? 0,
+);
 
 const confirmation = computed(() => {
   const pending = (matchmakingStore.joinedMatchmakingQueues as any)
@@ -113,14 +153,15 @@ const rowClass =
   <div
     v-else-if="queue"
     data-party-queue-searching
-    :class="[rowClass, 'bg-[hsl(var(--tac-amber)/0.05)]']"
+    :class="[rowClass, 'bg-[rgb(var(--mode-rgb)/0.06)]']"
+    :style="modeColorStyle(queueMode ?? queue)"
   >
     <span class="relative flex size-2 shrink-0" aria-hidden="true">
       <span
-        class="absolute inline-flex size-full animate-ping rounded-full bg-[hsl(var(--tac-amber))] opacity-75 motion-reduce:animate-none"
+        class="absolute inline-flex size-full animate-ping rounded-full bg-[rgb(var(--mode-rgb))] opacity-75 motion-reduce:animate-none"
       />
       <span
-        class="relative inline-flex size-2 rounded-full bg-[hsl(var(--tac-amber))]"
+        class="relative inline-flex size-2 rounded-full bg-[rgb(var(--mode-rgb))]"
       />
     </span>
     <div class="min-w-0 flex-1">
@@ -133,11 +174,10 @@ const rowClass =
           {{ clock }}
         </span>
       </div>
-      <div
-        v-if="regionLabels.length"
-        class="truncate text-[0.7rem] text-muted-foreground"
-      >
-        {{ regionLabels.join(", ") }}
+      <div class="truncate text-[0.7rem] text-muted-foreground">
+        <template v-if="regionLabels.length"
+          >{{ regionLabels.join(", ") }} · </template
+        >{{ $t("layouts.queue.in_queue", { count: searchInQueue }) }}
       </div>
     </div>
     <button
@@ -149,7 +189,90 @@ const rowClass =
     </button>
   </div>
 
-  <!-- Idle, leader: the search starts on /play. -->
+  <!-- Idle, leader: pick a mode and queue. -->
+  <div v-else-if="isLeader && canPick && quickMode" :class="rowClass">
+    <DropdownMenu>
+      <DropdownMenuTrigger as-child>
+        <button
+          type="button"
+          data-party-mode-picker
+          class="inline-flex h-8 min-w-0 flex-1 items-center justify-between gap-2 rounded-md border border-[rgb(var(--mode-rgb)/0.5)] bg-zinc-900/60 px-2.5 text-xs font-medium text-foreground transition-colors hover:border-[rgb(var(--mode-rgb))]"
+          :style="modeColorStyle(quickMode)"
+          :aria-label="$t('layouts.queue.pick_mode')"
+        >
+          <span class="flex min-w-0 items-center gap-2">
+            <span
+              class="size-2 shrink-0 rounded-full bg-[rgb(var(--mode-rgb))]"
+              aria-hidden="true"
+            />
+            <span class="truncate">{{ modeTitle(quickMode) }}</span>
+            <span class="shrink-0 text-muted-foreground">{{
+              modeFormat(quickMode)
+            }}</span>
+          </span>
+          <ChevronDown class="size-3.5 shrink-0 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" class="w-64">
+        <DropdownMenuItem
+          v-for="mode in modes"
+          :key="mode.key"
+          :data-mode-key="mode.key"
+          :disabled="!mode.canQueue"
+          :style="modeColorStyle(mode)"
+          @select="join(mode)"
+        >
+          <span
+            class="size-2 shrink-0 rounded-full bg-[rgb(var(--mode-rgb))]"
+            aria-hidden="true"
+          />
+          <div class="flex min-w-0 flex-1 flex-col">
+            <span class="text-sm">
+              {{ modeTitle(mode) }}
+              <span class="text-muted-foreground">{{ modeFormat(mode) }}</span>
+            </span>
+            <span class="text-[0.7rem] text-muted-foreground">
+              {{
+                mode.canQueue
+                  ? $t("layouts.queue.in_queue", { count: mode.inQueue })
+                  : requirementText(mode)
+              }}
+            </span>
+          </div>
+          <Check
+            v-if="quickMode.key === mode.key"
+            class="text-[rgb(var(--mode-rgb))]"
+          />
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem @select="navigateTo('/play')">
+          {{ $t("layouts.queue.all_modes") }}
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+    <NuxtLink
+      to="/settings/matchmaking"
+      class="inline-flex h-8 max-w-[7.5rem] items-center gap-1.5 rounded-md border border-border px-2 text-xs text-muted-foreground transition-colors hover:text-foreground"
+      :title="preferredLabels.join(', ')"
+      :aria-label="$t('layouts.party_room.regions')"
+    >
+      <Globe class="size-3.5 shrink-0" />
+      <span class="truncate max-[374px]:hidden">
+        {{ regionSummary ?? $t("layouts.party_room.pick_regions") }}
+      </span>
+    </NuxtLink>
+    <button
+      type="button"
+      data-party-queue
+      class="tac-amber-cta inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-3 text-xs font-semibold"
+      @click="join(quickMode)"
+    >
+      <Play class="size-3 fill-current" />
+      {{ $t("layouts.party_room.queue") }}
+    </button>
+  </div>
+
+  <!-- Idle, leader who can't pick here: the search starts on /play. -->
   <div v-else-if="isLeader" :class="rowClass">
     <NuxtLink
       to="/play"
