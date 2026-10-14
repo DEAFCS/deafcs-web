@@ -8,6 +8,14 @@ export const newsArticleListFields = {
   published_at: true,
 } as const;
 
+// List cards show a read time and the lead lists its sections, both worked
+// out from the body.
+export const newsArticleCardFields = {
+  ...newsArticleListFields,
+  content_markdown: true,
+  updated_at: true,
+} as const;
+
 export const newsArticleFields = {
   ...newsArticleListFields,
   content_markdown: true,
@@ -36,5 +44,13 @@ export const newsPostAdminFields = {
   published_at: true,
   created_at: true,
   updated_at: true,
+  view_count: true,
+} as const;
+
+// Views live on the admin actions only — the public news_articles table never
+// exposes view_count — so surfaces that show counts to authors pull this
+// alongside their normal query instead of widening the guest permission.
+export const newsPostViewFields = {
+  id: true,
   view_count: true,
 } as const;

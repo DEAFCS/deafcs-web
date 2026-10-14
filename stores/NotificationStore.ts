@@ -684,6 +684,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     hasPersonalNotifications,
     hasAdminNotifications,
     latestNewsArticle,
+    lastReadNewsAt,
     unreadNewsArticle,
     markNewsRead,
     refreshInAppPreferences,

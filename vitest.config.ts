@@ -7,7 +7,20 @@ import path from "node:path";
 // `node test/foo.test.mjs`, not through this runner, so this config
 // deliberately doesn't touch that convention.
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [
+    vue(),
+    // The News renderer only runs in the browser (`import.meta.client`, which
+    // Nuxt defines and plain Vitest does not). Turn it on for the News modules
+    // alone so their specs render, without changing any other spec.
+    {
+      name: "news-client-flag",
+      transform(code, id) {
+        if (/[\\/](utilities[\\/]newsMarkdown\.ts|components[\\/]news[\\/])/.test(id)) {
+          return code.replaceAll("import.meta.client", "true");
+        }
+      },
+    },
+  ],
   resolve: {
     alias: {
       "~": path.resolve(__dirname, "."),

@@ -2695,7 +2695,46 @@
         "uploading_image": "Uploading image…",
         "upload_video": "Upload video",
         "uploading_video": "Uploading video…",
-        "embed_video_link": "Embed YouTube/Vimeo link"
+        "embed_video_link": "Embed YouTube/Vimeo link",
+        "video": {
+          "title": "Insert Video",
+          "description": "Embed a YouTube, Twitch or Vimeo link, or upload a video.",
+          "tab_link": "Link",
+          "tab_upload": "Upload",
+          "link_hint": "Paste a YouTube, Twitch or Vimeo URL. Other links render as a plain link. Pasting one straight into the body embeds it too.",
+          "will_embed": "Will embed as a player",
+          "will_link": "Not embeddable, will render as a link",
+          "choose_file": "Choose MP4",
+          "upload_hint": "MP4 up to 1GB. A poster frame is captured automatically.",
+          "uploading": "Uploading… {percent}%",
+          "replace_poster": "Replace poster",
+          "insert": "Insert",
+          "auto_embedded": "Video link embedded"
+        }
+      },
+      "new_badge": "New",
+      "read_time": "{count} min read",
+      "new_since_visit": "New since your last visit",
+      "in_this_post": "In this post",
+      "read_post": "Read the post",
+      "copy_link": "Copy link",
+      "earlier": "Earlier posts",
+      "show_older": "Show older posts",
+      "on_this_page": "On this page",
+      "older": "Older",
+      "newer": "Newer",
+      "around": "Older and newer posts",
+      "latest": "Latest posts",
+      "draft_hint": "Only authors see drafts · edited {date}",
+      "section_link": "Copy a link to this section",
+      "write_first": "Write the first post",
+      "editor": {
+        "bold_text": "bold text",
+        "italic_text": "italic text",
+        "heading": "Heading",
+        "list_item": "List item",
+        "quote": "Quote",
+        "code": "code"
       }
     },
     "seasons": {

@@ -1,114 +1,420 @@
-import { marked } from "marked";
+import { Marked, marked, type Token, type Tokens } from "marked";
 import DOMPurify from "dompurify";
+import { parseExternalMedia } from "~/utilities/externalMedia";
 
-// Matches a bare YouTube URL that fills a whole line, capturing the video id.
-const YOUTUBE_RE =
-  /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]{6,15})(?:[&?]\S*)?$/i;
+/**
+ * Shared renderer for news article bodies, used by both the editor preview and
+ * the reader view so a draft can never render differently from what ships.
+ *
+ * On top of plain markdown it understands a block-level video token:
+ *
+ *   @[video](https://youtu.be/abc123)
+ *   @[video](https://api.example/news/video/ab12.mp4 "https://…/poster.webp")
+ *
+ * The optional quoted argument is a poster URL (markdown link-title syntax).
+ * Anything we can't embed degrades to a plain external link.
+ */
 
-// Matches a bare Vimeo URL that fills a whole line, capturing the video id.
-const VIMEO_RE =
-  /^(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d{6,12})(?:[/?]\S*)?$/i;
+// Hosts whose iframes we are willing to keep after sanitizing. Everything the
+// renderer itself produces is in here; the allowlist exists to stop an author
+// hand-writing an <iframe> into the markdown from reaching readers.
+const EMBED_HOSTS = new Set([
+  "www.youtube-nocookie.com",
+  "youtube-nocookie.com",
+  "www.youtube.com",
+  "youtube.com",
+  "player.twitch.tv",
+  "clips.twitch.tv",
+  // DEAFCS: Vimeo embeds, supported before the upstream token existed.
+  "player.vimeo.com",
+]);
 
-// A line that's *only* a YouTube/Vimeo link becomes a responsive embed
-// instead of the usual auto-linked paragraph. Anything else (a link inside a
-// sentence, part of a list, etc.) is left alone.
-function embedForLine(line: string): string | null {
-  const trimmed = line.trim();
+const VIDEO_TOKEN = /^@\[video\]\(\s*([^\s)]+)(?:\s+"([^"]*)")?\s*\)/;
 
-  const yt = YOUTUBE_RE.exec(trimmed);
-  if (yt) {
-    const id = yt[1];
-    return `<div class="news-video-embed"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="YouTube video" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe></div>`;
-  }
-
-  const vimeo = VIMEO_RE.exec(trimmed);
-  if (vimeo) {
-    const id = vimeo[1];
-    return `<div class="news-video-embed"><iframe src="https://player.vimeo.com/video/${id}" title="Vimeo video" loading="lazy" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe></div>`;
-  }
-
-  return null;
+export function videoToken(src: string, poster?: string | null): string {
+  return poster ? `@[video](${src} "${poster}")` : `@[video](${src})`;
 }
 
-function preprocessVideoLinks(markdown: string): string {
-  return markdown
+/*
+ * DEAFCS: compatibility with News written before the upstream @[video] token.
+ *
+ * - The old editor inserted uploaded videos as a raw
+ *   `<video controls preload="metadata" src="…/news/video/…"></video>` line.
+ * - A bare YouTube or Vimeo link alone on a line became an embed.
+ *
+ * Both are rewritten to the token before parsing, so stored articles render
+ * through the same player as new ones and nothing in the database changes.
+ */
+const LEGACY_VIDEO_TAG =
+  /^<video\b[^>]*\bsrc="(https?:\/\/[^"\s]+)"[^>]*>\s*<\/video>$/i;
+const LEGACY_YOUTUBE_LINE =
+  /^(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)[A-Za-z0-9_-]{6,15}(?:[&?]\S*)?$/i;
+const VIMEO_URL =
+  /^(?:https?:\/\/)?(?:www\.)?vimeo\.com\/(\d{6,12})(?:[/?]\S*)?$/i;
+
+function upgradeLegacyVideos(source: string): string {
+  return source
     .split("\n")
-    .map((line) => embedForLine(line) ?? line)
+    .map((line) => {
+      const trimmed = line.trim();
+      const tag = LEGACY_VIDEO_TAG.exec(trimmed);
+      if (tag) {
+        return videoToken(tag[1]);
+      }
+      if (LEGACY_YOUTUBE_LINE.test(trimmed) || VIMEO_URL.test(trimmed)) {
+        return videoToken(
+          /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`,
+        );
+      }
+      return line;
+    })
     .join("\n");
 }
 
-const YOUTUBE_EMBED_SRC_RE =
-  /^https:\/\/www\.youtube-nocookie\.com\/embed\/[A-Za-z0-9_-]+$/;
-const VIMEO_EMBED_SRC_RE = /^https:\/\/player\.vimeo\.com\/video\/\d+$/;
-
-function extractAttr(tag: string, attr: string): string {
-  const match = new RegExp(`\\b${attr}="([^"]*)"`, "i").exec(tag);
-  return match?.[1] ?? "";
+function vimeoEmbedUrl(url: string): string | null {
+  const match = VIMEO_URL.exec(url);
+  return match ? `https://player.vimeo.com/video/${match[1]}` : null;
 }
 
-// Runs on the final sanitized HTML string (not the DOM), so it works
-// identically during SSR and in the browser. Anything DOMPurify let through
-// under the iframe/video/source allowance still has to point at a URL we
-// generated ourselves — a news author typing a raw <iframe src="evil.com">
-// or <video src="evil.com"> directly gets stripped here, same as if they'd
-// never typed it.
-function stripDisallowedEmbeds(html: string, videoOrigin: string): string {
-  const videoPrefix = `${videoOrigin}/news/video/`;
-
-  html = html.replace(/<iframe\b[^>]*>[\s\S]*?<\/iframe>/gi, (tag) => {
-    const src = extractAttr(tag, "src");
-    const allowed =
-      YOUTUBE_EMBED_SRC_RE.test(src) || VIMEO_EMBED_SRC_RE.test(src);
-    return allowed ? tag : "";
-  });
-
-  html = html.replace(/<video\b[^>]*>[\s\S]*?<\/video>/gi, (tag) => {
-    const src = extractAttr(tag, "src");
-    return src.startsWith(videoPrefix) ? tag : "";
-  });
-
-  html = html.replace(/<source\b[^>]*\/?>/gi, (tag) => {
-    const src = extractAttr(tag, "src");
-    return src.startsWith(videoPrefix) ? tag : "";
-  });
-
-  return html;
-}
-
-/**
- * Renders News post markdown to sanitized HTML, with two extra abilities
- * beyond plain markdown:
- *  - a bare YouTube/Vimeo link on its own line becomes an embedded player
- *  - an uploaded video (a <video> tag pointing at our own /news/video/...
- *    URLs, inserted by the editor) is allowed through
- *
- * `videoOrigin` is the API origin (e.g. "https://api.example.com") uploaded
- * videos are served from — used to make sure a <video>/<source> src can only
- * ever point at media we hosted, never an attacker-supplied URL.
+/*
+ * DEAFCS: video files only play from our own News uploads. A file link
+ * anywhere else renders as a plain link, and a hand-written <video>/<source>
+ * pointing elsewhere is stripped.
  */
-export function renderNewsMarkdown(
-  markdown: string | null | undefined,
-  videoOrigin: string,
-): string {
-  if (!markdown) {
+function isHostedVideo(url: string): boolean {
+  let apiDomain = "";
+  try {
+    apiDomain = useRuntimeConfig().public.apiDomain as string;
+  } catch {
+    apiDomain = "";
+  }
+  return !!apiDomain && url.startsWith(`https://${apiDomain}/news/video/`);
+}
+
+function escapeAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+function isSafeUrl(value: string): boolean {
+  return /^https?:\/\//i.test(value);
+}
+
+// True when a bare URL would render as a real player rather than a link, so
+// the editor can auto-convert a pasted link into a video token. Deliberately
+// excludes generic links — those are better left as ordinary markdown links.
+export function isEmbeddableVideoUrl(value: string): boolean {
+  const url = value.trim();
+  if (!isSafeUrl(url) || /\s/.test(url)) {
+    return false;
+  }
+  if (/\.(mp4|webm|mov)(\?|$)/i.test(url)) {
+    return isHostedVideo(url);
+  }
+  const parentHost = import.meta.client ? window.location.hostname : "";
+  return (
+    !!parseExternalMedia(url, parentHost).embedUrl || !!vimeoEmbedUrl(url)
+  );
+}
+
+function renderVideo(src: string, poster: string): string {
+  if (!isSafeUrl(src)) {
     return "";
   }
 
-  const preprocessed = preprocessVideoLinks(markdown);
-  const html = marked.parse(preprocessed, { breaks: true }) as string;
-  const sanitized = DOMPurify.sanitize(html, {
-    ADD_TAGS: ["iframe", "video", "source"],
-    ADD_ATTR: [
-      "allow",
-      "allowfullscreen",
-      "loading",
-      "controls",
-      "preload",
-      "playsinline",
-      "frameborder",
-      "title",
-    ],
-  });
+  const safeSrc = escapeAttribute(src);
+  const parentHost = import.meta.client ? window.location.hostname : "";
+  const media = parseExternalMedia(src, parentHost);
+  const embedUrl = media.embedUrl ?? vimeoEmbedUrl(src);
 
-  return stripDisallowedEmbeds(sanitized, videoOrigin);
+  if (embedUrl) {
+    return [
+      '<div class="news-embed">',
+      `<iframe src="${escapeAttribute(embedUrl)}" loading="lazy"`,
+      ' allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"',
+      ' allowfullscreen frameborder="0"></iframe>',
+      "</div>",
+    ].join("");
+  }
+
+  if (/\.(mp4|webm|mov)(\?|$)/i.test(src) && isHostedVideo(src)) {
+    const posterAttr =
+      poster && isSafeUrl(poster)
+        ? ` poster="${escapeAttribute(poster)}"`
+        : "";
+    return (
+      `<div class="news-embed"><video class="news-video" controls preload="metadata"` +
+      ` playsinline${posterAttr}><source src="${safeSrc}" type="video/mp4"></video></div>`
+    );
+  }
+
+  // Not embeddable and not a file we can play — fall back to a link out so the
+  // article still points somewhere useful.
+  return (
+    `<p class="news-embed-link"><a href="${safeSrc}" target="_blank"` +
+    ` rel="noopener noreferrer">${escapeAttribute(media.watchUrl)}</a></p>`
+  );
+}
+
+interface VideoTokenNode extends Tokens.Generic {
+  type: "newsVideo";
+  raw: string;
+  src: string;
+  poster: string;
+}
+
+const videoExtension = {
+  name: "newsVideo",
+  level: "block" as const,
+  start(src: string) {
+    return src.match(/@\[video\]\(/)?.index;
+  },
+  tokenizer(src: string): VideoTokenNode | undefined {
+    const match = VIDEO_TOKEN.exec(src);
+    // Reject anything non-http(s) at the tokenizer so marked falls back to
+    // ordinary parsing and the author sees their literal text, rather than
+    // the token silently rendering to nothing.
+    if (!match || !isSafeUrl(match[1])) {
+      return undefined;
+    }
+    return {
+      type: "newsVideo",
+      raw: match[0],
+      src: match[1],
+      poster: match[2] ?? "",
+    };
+  },
+  renderer(token: Tokens.Generic) {
+    const node = token as VideoTokenNode;
+    return renderVideo(node.src, node.poster);
+  },
+};
+
+marked.use({ extensions: [videoExtension] });
+
+// DOMPurify's default allowlist already permits <video>/<source> but forbids
+// <iframe> outright, so embeds have to be added back explicitly — narrowed to
+// the hosts above by the hook below.
+let hookInstalled = false;
+function installHook() {
+  if (hookInstalled || !import.meta.client) {
+    return;
+  }
+  hookInstalled = true;
+  DOMPurify.addHook("uponSanitizeElement", (node, data) => {
+    // DEAFCS: <video>/<source> may only play our own uploads.
+    if (data.tagName === "video" || data.tagName === "source") {
+      const src = (node as Element).getAttribute?.("src");
+      if (src && !isHostedVideo(src)) {
+        (node as Element).remove();
+      }
+      return;
+    }
+    if (data.tagName !== "iframe") {
+      return;
+    }
+    const src = (node as Element).getAttribute?.("src") ?? "";
+    let host = "";
+    try {
+      host = new URL(src).hostname;
+    } catch {
+      host = "";
+    }
+    if (!EMBED_HOSTS.has(host)) {
+      (node as Element).remove();
+    }
+  });
+}
+
+function sanitize(html: string): string {
+  installHook();
+  return DOMPurify.sanitize(html, {
+    ADD_TAGS: ["iframe"],
+    // `target` is not in DOMPurify's default allowlist, so the fallback link
+    // would lose its _blank without this; `rel` already survives.
+    ADD_ATTR: ["allow", "allowfullscreen", "frameborder", "loading", "target"],
+  });
+}
+
+export function renderNewsMarkdown(source: string | null | undefined): string {
+  if (!import.meta.client || !source) {
+    return "";
+  }
+  return sanitize(
+    marked.parse(upgradeLegacyVideos(source), { breaks: true }) as string,
+  );
+}
+
+export interface NewsSection {
+  id: string;
+  text: string;
+}
+
+export interface NewsOutline {
+  sections: NewsSection[];
+  minutes: number;
+}
+
+export interface RenderedNewsArticle extends NewsOutline {
+  html: string;
+  closingHtml: string;
+}
+
+const WORDS_PER_MINUTE = 230;
+
+// Posts written for the old layout open with a heading that repeats the title
+// (the page already shows it as the h1), sometimes under an HTML comment left
+// from drafting.
+function stripLead(source: string): string {
+  return upgradeLegacyVideos(source.replace(/\r\n?/g, "\n"))
+    .replace(/^\s*(?:<!--[\s\S]*?-->\s*)*/, "")
+    .replace(/^#{1,2}[ \t][^\n]*(?:\n+|$)/, "")
+    .trimStart();
+}
+
+function plainText(tokens: Token[] | undefined): string {
+  return (tokens ?? [])
+    .map((token) => {
+      const nested = (token as Tokens.Generic).tokens as Token[] | undefined;
+      return nested?.length
+        ? plainText(nested)
+        : ((token as Tokens.Text).text ?? "");
+    })
+    .join("");
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+// DEAFCS: posts written before the upstream layout use `##` for their
+// sections, so a post without any `###` takes its `##` headings instead.
+function sectionDepthOf(tokens: Token[]): number {
+  const depths = tokens
+    .filter((token): token is Tokens.Heading => token.type === "heading")
+    .map((token) => token.depth);
+  return !depths.includes(3) && depths.includes(2) ? 2 : 3;
+}
+
+// `###` headings are the post's sections: they feed the contents list and get
+// ids so a section can be linked to.
+function sectionsOf(tokens: Token[]): NewsSection[] {
+  const seen = new Map<string, number>();
+  const depth = sectionDepthOf(tokens);
+  return tokens
+    .filter(
+      (token): token is Tokens.Heading =>
+        token.type === "heading" && token.depth === depth,
+    )
+    .map((token) => {
+      const text = plainText(token.tokens).trim();
+      const base = slugify(text) || "section";
+      const count = (seen.get(base) ?? 0) + 1;
+      seen.set(base, count);
+      return { id: count > 1 ? `${base}-${count}` : base, text };
+    });
+}
+
+function minutesOf(source: string): number {
+  const words = source
+    .replace(/@\[video\]\([^)]*\)/g, " ")
+    .replace(/[#>*_`~[\]()!|-]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean).length;
+  return Math.max(1, Math.round(words / WORDS_PER_MINUTE));
+}
+
+/** Sections and read time without rendering, for list cards. */
+export function newsOutline(source: string | null | undefined): NewsOutline {
+  const body = stripLead(source ?? "");
+  return {
+    sections: sectionsOf(marked.lexer(body)),
+    minutes: minutesOf(body),
+  };
+}
+
+let pendingSectionIds: string[] = [];
+let pendingSectionDepth = 3;
+let anchorLabel = "";
+
+const articleMarked = new Marked({ breaks: true });
+articleMarked.use({
+  extensions: [videoExtension],
+  renderer: {
+    heading({ tokens, depth }: Tokens.Heading) {
+      const inner = this.parser.parseInline(tokens);
+      const id =
+        depth === pendingSectionDepth ? pendingSectionIds.shift() : undefined;
+      if (!id) {
+        return `<h${depth}>${inner}</h${depth}>\n`;
+      }
+      return (
+        `<h${depth} id="${id}"><a class="news-anchor" href="#${id}" aria-label="${escapeAttribute(anchorLabel)}">#</a>` +
+        `${inner}</h${depth}>\n`
+      );
+    },
+  },
+});
+
+/**
+ * The reader's render of a post: the body without its repeated title, its
+ * sections, a read time, and the closing call to action split out. Posts end
+ * with `---` and one short paragraph ("Ready to …?"), which reads as a sign-off
+ * rather than another section.
+ */
+export function renderNewsArticle(
+  source: string | null | undefined,
+  options: { anchorLabel: string },
+): RenderedNewsArticle {
+  const body = stripLead(source ?? "");
+  const outline = { sections: [] as NewsSection[], minutes: minutesOf(body) };
+  if (!import.meta.client || !body) {
+    return { ...outline, html: "", closingHtml: "" };
+  }
+
+  const tokens = articleMarked.lexer(body);
+  let main: Token[] = tokens;
+  let closing: Token[] = [];
+  const rule = tokens.map((token) => token.type).lastIndexOf("hr");
+  if (rule > -1) {
+    const tail = tokens
+      .slice(rule + 1)
+      .filter((token) => token.type !== "space");
+    if (
+      tail.length > 0 &&
+      tail.length <= 2 &&
+      tail.every((token) => token.type === "paragraph")
+    ) {
+      main = tokens.slice(0, rule);
+      closing = tail;
+    }
+  }
+
+  outline.sections = sectionsOf(main);
+  pendingSectionIds = outline.sections.map((section) => section.id);
+  pendingSectionDepth = sectionDepthOf(main);
+  anchorLabel = options.anchorLabel;
+  const html = articleMarked.parse(
+    main.map((token) => token.raw).join(""),
+  ) as string;
+  pendingSectionIds = [];
+  const closingHtml = closing.length
+    ? (articleMarked.parse(
+        closing.map((token) => token.raw).join("\n\n"),
+      ) as string)
+    : "";
+
+  return {
+    ...outline,
+    html: sanitize(html),
+    closingHtml: closingHtml ? sanitize(closingHtml) : "",
+  };
 }
