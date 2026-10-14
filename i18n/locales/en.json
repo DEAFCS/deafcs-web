@@ -5114,6 +5114,14 @@
     "public_header": {
       "secure_channel": "SECURE CHANNEL"
     },
+    "queue": {
+      "pick_mode": "Pick a mode",
+      "find": "Find match: {mode}",
+      "in_queue": "{count} in queue",
+      "all_modes": "All modes and settings",
+      "cancel": "Cancel search",
+      "searching": "Searching {mode}, {time}"
+    },
     "party_room": {
       "open_match": "Open match",
       "ready_count": "{confirmed} of {players} ready",

@@ -125,6 +125,7 @@ vi.stubGlobal("navigateTo", vi.fn());
 
 import { useQuickQueue } from "../../composables/useQuickQueue";
 import PartyQueueLine from "../../components/hub/PartyQueueLine.vue";
+import QuickPlayButton from "../../components/matchmaking-lobby/QuickPlayButton.vue";
 import LobbyPanel from "../../components/hub/LobbyPanel.vue";
 import { useMatchReadyModal } from "../../composables/useMatchReadyModal";
 import { useRightSidebar } from "../../composables/useRightSidebar";
@@ -358,6 +359,92 @@ describe("shared queue rules (useQuickQueue)", () => {
     expect(api.modes.value.map((mode) => mode.key)).not.toContain(
       "CompetitiveCaptainPick",
     );
+  });
+});
+
+describe("header Play control (QuickPlayButton)", () => {
+  beforeEach(() => {
+    store.preferredRegions = [{ value: "EU" }];
+    store.regionStats = {};
+    settings.captainPickEnabled = true;
+    window.localStorage.clear();
+  });
+  const mountButton = (leader = true) =>
+    mount(QuickPlayButton, {
+      props: { leader },
+      global: {
+        ...global,
+        stubs: {
+          ...global.stubs,
+          DropdownMenu: { template: "<div><slot /></div>" },
+          DropdownMenuTrigger: { template: "<div><slot /></div>" },
+          DropdownMenuContent: { template: "<div><slot /></div>" },
+          DropdownMenuLabel: { template: "<div><slot /></div>" },
+          DropdownMenuSeparator: true,
+          DropdownMenuItem: {
+            props: ["disabled"],
+            emits: ["select"],
+            template:
+              `<div role="menuitem" :aria-disabled="disabled" @click="$emit('select')"><slot /></div>`,
+          },
+        },
+      },
+    });
+
+  it("one click queues the remembered mode, and the menu lists the four modes in order", async () => {
+    window.localStorage.setItem("matchmaking-last-mode", "Wingman");
+    const wrapper = mountButton();
+    const items = wrapper.findAll('[role="menuitem"][data-mode-key]');
+    expect(items.map((item) => item.attributes("data-mode-key"))).toEqual([
+      "CompetitiveCaptainPick",
+      "Competitive",
+      "Wingman",
+      "Duel",
+    ]);
+    expect(
+      items.find((item) => item.attributes("data-picked") === "true")
+        ?.attributes("data-mode-key"),
+    ).toBe("Wingman");
+    await wrapper.get('[data-quick-play="idle"] button').trigger("click");
+    expect(mocks.socketEvents).toEqual([
+      ["matchmaking:join-queue", { type: "Wingman", regions: ["EU"] }],
+    ]);
+  });
+
+  it("each mode carries its own color, and picking Captain Pick sends its variant", async () => {
+    const wrapper = mountButton();
+    const captain = wrapper.get('[data-mode-key="CompetitiveCaptainPick"]');
+    expect(captain.attributes("style")).toContain("--mode-rgb: 250 204 21");
+    expect(
+      wrapper.get('[data-mode-key="Competitive"]').attributes("style"),
+    ).toContain("--mode-rgb: 249 158 47");
+    expect(
+      wrapper.get('[data-mode-key="Wingman"]').attributes("style"),
+    ).toContain("--mode-rgb: 217 70 239");
+    expect(wrapper.get('[data-mode-key="Duel"]').attributes("style")).toContain(
+      "--mode-rgb: 34 211 238",
+    );
+    await captain.trigger("click");
+    expect(mocks.socketEvents.at(-1)).toEqual([
+      "matchmaking:join-queue",
+      { type: "Competitive", regions: ["EU"], variant: "CaptainPick" },
+    ]);
+  });
+
+  it("while searching: the clock for everyone, cancel only for the leader", async () => {
+    search({
+      type: "Competitive",
+      variant: "CaptainPick",
+      joinedAt: new Date(NOW - 65_000).toISOString(),
+    });
+    const member = mountButton(false);
+    expect(member.get('[data-quick-play="searching"]').text()).toContain("1:05");
+    expect(member.find('[aria-label="layouts.queue.cancel"]').exists()).toBe(
+      false,
+    );
+    const leader = mountButton(true);
+    await leader.get('[aria-label="layouts.queue.cancel"]').trigger("click");
+    expect(mocks.socketEvents).toEqual([["matchmaking:leave", undefined]]);
   });
 });
 

@@ -2,6 +2,7 @@
 import { ChevronDown, Merge, Play } from "lucide-vue-next";
 import MatchLobbySelector from "./MatchLobbySelector.vue";
 import MatchLobby from "~/components/matchmaking-lobby/MatchLobby.vue";
+import QuickPlayButton from "~/components/matchmaking-lobby/QuickPlayButton.vue";
 import { currentHub, setActiveHub } from "~/composables/useHubState";
 import { useRightSidebar } from "~/composables/useRightSidebar";
 import { Spinner } from "~/components/ui/spinner";
@@ -75,20 +76,22 @@ function togglePartyRoom() {
         leave-from-class="opacity-100 scale-100 translate-x-0"
         leave-to-class="opacity-0 scale-50 -translate-x-2"
       >
-        <NuxtLink
-          v-if="showPlayButton"
-          to="/play"
-          :title="$t('layouts.lobby_panel.find_match')"
-          class="group/play relative isolate mr-2 inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] no-underline [background:linear-gradient(135deg,var(--tac-amber-cta-from)_0%,hsl(var(--tac-amber))_50%,var(--tac-amber-cta-to)_100%)] shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.4),0_6px_20px_-6px_hsl(var(--tac-amber)/0.6)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-px hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.6),0_12px_32px_-6px_hsl(var(--tac-amber)/0.8),0_0_24px_hsl(var(--tac-amber)/0.35)] active:translate-y-0"
-        >
-          <Play
-            class="relative z-[1] h-4 w-4 fill-current transition-transform duration-300 group-hover/play:scale-110"
+        <!-- 5Stack's header Play control: the leader queues from here, and
+             everyone in the party sees the search clock. -->
+        <div v-if="showQuickPlay" class="mr-2 flex items-center">
+          <QuickPlayButton
+            v-if="matchmakingAllowed || inQueue"
+            :leader="isLobbyLeader"
           />
-          <span
-            class="pointer-events-none absolute inset-0 z-0 -translate-x-full bg-[linear-gradient(90deg,transparent_0%,hsl(0_0%_100%_/_0.4)_50%,transparent_100%)] transition-transform duration-500 group-hover/play:translate-x-full"
-            aria-hidden="true"
-          ></span>
-        </NuxtLink>
+          <NuxtLink
+            v-else
+            to="/play"
+            :title="$t('layouts.lobby_panel.find_match')"
+            class="group/play relative isolate inline-flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] no-underline [background:linear-gradient(135deg,var(--tac-amber-cta-from)_0%,hsl(var(--tac-amber))_50%,var(--tac-amber-cta-to)_100%)] shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.4),0_6px_20px_-6px_hsl(var(--tac-amber)/0.6)] transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-px active:translate-y-0"
+          >
+            <Play class="relative z-[1] h-4 w-4 fill-current" />
+          </NuxtLink>
+        </div>
       </Transition>
 
       <MatchLobby
@@ -99,9 +102,13 @@ function togglePartyRoom() {
       />
     </div>
 
+    <div v-else key="create" class="flex items-center gap-2">
+    <!-- A solo search has no party pill, so its clock sits here instead. -->
+    <QuickPlayButton
+      v-if="inQueue && !inReadyCheckOrDraft && $route.name !== 'play'"
+      :leader="true"
+    />
     <Button
-      v-else
-      key="create"
       variant="ghost"
       @click="
         () => {
@@ -130,6 +137,7 @@ function togglePartyRoom() {
         }}</span>
       </div>
     </Button>
+    </div>
   </Transition>
 </template>
 
@@ -238,13 +246,27 @@ export default {
       });
       return !!me?.captain;
     },
-    showPlayButton() {
+    inQueue() {
+      return !!(useMatchmakingStore().joinedMatchmakingQueues as any)?.details;
+    },
+    // A match-found ready check or a committed Captain Pick draft: nothing
+    // to queue (the API refuses) and the ready modal / draft screen leads.
+    inReadyCheckOrDraft() {
+      return !!(useMatchmakingStore().joinedMatchmakingQueues as any)
+        ?.confirmation;
+    },
+    // Leaders get the Play control; everyone sees the search clock while the
+    // party is queued. The Play page has its own, so the header stays quiet
+    // there (5Stack's showQuickPlay, with DEAFCS's draft checks kept).
+    showQuickPlay() {
       return (
-        this.isLobbyLeader &&
-        (this.matchmakingAllowed || this.canCreateMatch) &&
         this.$route.name !== "play" &&
         this.myMatches.length === 0 &&
-        !this.myDraftGame
+        !this.myDraftGame &&
+        !this.inReadyCheckOrDraft &&
+        (this.inQueue ||
+          (this.isLobbyLeader &&
+            (this.matchmakingAllowed || this.canCreateMatch)))
       );
     },
     myDraftGame() {
