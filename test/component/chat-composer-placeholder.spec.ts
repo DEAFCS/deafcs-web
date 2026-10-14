@@ -140,4 +140,16 @@ describe("mobile-only Chat Hub composer placeholder", () => {
       );
     },
   );
+  it("tightens only the Chat Hub composer below 375px", () => {
+    state.mobile.value = true;
+    const hub = composer("embedded").get("textarea");
+    expect(hub.classes()).toContain("px-3");
+    expect(hub.classes()).toContain("max-[374px]:px-1.5");
+    expect(hub.element.parentElement?.className).toContain(
+      "gap-1.5 p-2 max-[374px]:gap-1 max-[374px]:p-1.5",
+    );
+    wrapper?.unmount();
+    const floating = composer("global").get("textarea");
+    expect(floating.classes()).not.toContain("max-[374px]:px-1.5");
+  });
 });

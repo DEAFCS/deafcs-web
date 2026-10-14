@@ -212,7 +212,7 @@ function autoResize(event: Event) {
     <FormField v-slot="{ componentField }" name="message">
       <FormItem>
         <FormControl>
-          <div class="flex items-center gap-1.5 p-2">
+          <div class="flex items-center gap-1.5 p-2 max-[374px]:gap-1 max-[374px]:p-1.5">
             <ChatComposerMenu
               v-if="attachmentEnabled && !isWebsiteRestricted"
               :live-video-enabled="liveVideoEnabled"
@@ -231,7 +231,7 @@ function autoResize(event: Event) {
               :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
-              class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
+              class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0 max-[374px]:px-1.5"
               :class="{ 'min-w-0 w-0 [&::placeholder]:whitespace-nowrap': isMobile }"
               @keydown="
                 (event) => {
