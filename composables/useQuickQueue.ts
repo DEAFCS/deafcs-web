@@ -226,7 +226,7 @@ export function useQuickQueue() {
     return true;
   }
 
-  // Exactly what /play sends (Matchmaking.vue's leaveMatchmaking): no data.
+  // Exactly what /play always sent to leave: no data.
   function leave() {
     socket.event(
       "matchmaking:leave",

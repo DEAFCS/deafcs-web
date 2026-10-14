@@ -3035,7 +3035,46 @@
         "learn_verification": "Learn about verification",
         "get_verified": "Get Verified",
         "verification_pending": "Verification Pending",
-        "verification_rejected": "Application Rejected"
+        "verification_rejected": "Application Rejected",
+        "label": "Matchmaking",
+        "players_online": "player online | players online",
+        "settings": "Matchmaking settings",
+        "mode_group": "Game mode",
+        "nobody_queued": "Nobody queued",
+        "queue_solo": "Queue solo",
+        "seats": {
+          "format": "{count} versus {count}",
+          "yours": "your party takes {count} seat | your party takes {count} seats",
+          "overflow": "your party of {count} doesn't fit this mode"
+        },
+        "regions": {
+          "edit": "Edit regions",
+          "skipped": "{name} skipped, {ms} ms",
+          "unreachable": "{name} unreachable",
+          "ms": "{ms} ms",
+          "count": "{count} region | {count} regions"
+        },
+        "party": {
+          "solo": "Queuing solo",
+          "invite": "Invite friends",
+          "leader": "Queuing as a party of {count}",
+          "you_lead": "You lead",
+          "member": "In {name}'s party of {count}",
+          "open": "Open party"
+        },
+        "guest_line": "Sign in with Steam to queue. We measure your ping to each region and match you with players nearby.",
+        "sign_in": "Sign in with Steam",
+        "find_match": "Find Match",
+        "waiting_for": "Waiting for {name}",
+        "searching": "Searching for a {mode} match",
+        "first_in_line": "You're first in line",
+        "cancel": "Cancel",
+        "found": "Match found. Accept in the ready check.",
+        "clock": "Time in queue",
+        "no_region": {
+          "title": "Every region is over your {ms} ms limit",
+          "body": "Raise your limit or star a region you'd accept, then queue again."
+        }
       },
       "draft_games": {
         "section_label": "OPEN.MATCHES",

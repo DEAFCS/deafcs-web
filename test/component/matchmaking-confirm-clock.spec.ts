@@ -110,11 +110,14 @@ describe("search timer clock correction", () => {
 describe("search timer wiring", () => {
   const read = (file: string) => readFileSync(path.resolve(__dirname, "../..", file), "utf8");
 
-  it("the search timer and wait text use the corrected join time", () => {
-    const view = read("components/matchmaking/Matchmaking.vue");
-    expect(view).toContain("localServerTime(details?.joinedAt, details)");
-    expect(view).toContain("Math.min(new Date().getTime(), localJoinedAt)");
-    expect(view).not.toContain("new Date(this.matchMakingQueueDetails.joinedAt)");
+  it("the search timer uses the corrected join time", () => {
+    // /play, the header and the hub all show useQuickQueue's clock.
+    const clock = read("composables/useQuickQueue.ts");
+    expect(clock).toContain("localServerTime(queue.value?.joinedAt, queue.value)");
+    expect(clock).toMatch(/Math\.max\(\s*0,/);
+    expect(read("components/play/PlayMatchmaking.vue")).not.toContain(
+      "new Date(queue.value.joinedAt)",
+    );
   });
 
   it("each queue details update is stamped with its arrival time", () => {

@@ -1,136 +1,39 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { Settings2, Lock } from "lucide-vue-next";
 import DraftGames from "~/components/draft-games/DraftGames.vue";
 import MyUpcoming from "~/components/MyUpcoming.vue";
-import Matchmaking from "~/components/matchmaking/Matchmaking.vue";
 import OpenLobbiesList from "~/components/matchmaking/OpenLobbiesList.vue";
-import MatchmakingSettings from "~/components/matchmaking/MatchmakingSettings.vue";
+import PlayMatchmaking from "~/components/play/PlayMatchmaking.vue";
 import TournamentFeatureCard from "~/components/tournament/TournamentFeatureCard.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
-import { Button } from "~/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "~/components/ui/popover";
 import {
   tacticalSectionDescriptionClasses,
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 
+// 5Stack's play page opens on one matchmaking hero (PlayMatchmaking): the
+// mode picker, Find Match, the search and the match it makes, with the
+// matchmaking settings behind its gear. DEAFCS keeps its own sections below
+// it (open lobbies, draft games, upcoming matches, open tournaments).
 const { t } = useI18n();
 
 useHead({
   title: () => t("pages.play.title"),
 });
-
-const settingsOpen = ref(false);
 </script>
 
 <template>
   <PageTransition>
     <TacticalPageHeader inline-actions>
       <template #title>{{ $t("pages.play.title") }}</template>
-      <template
-        v-if="matchmakingAllowed && !inLobbyNotLeader && !isGuest"
-        #actions
-      >
-        <Popover v-model:open="settingsOpen">
-          <PopoverTrigger as-child>
-            <Button
-              variant="outline"
-              class="!py-0 h-[clamp(1.75rem,4.2vw,3rem)] gap-2 px-4 max-sm:aspect-square max-sm:!px-0 bg-card/60 backdrop-blur"
-              :class="{
-                'border-[hsl(var(--tac-amber)/0.55)] text-[hsl(var(--tac-amber))]':
-                  settingsOpen,
-              }"
-            >
-              <Settings2 class="w-4 h-4" />
-              <span class="hidden sm:inline">
-                {{ $t("matchmaking.settings_section.toggle") }}
-              </span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="end"
-            class="w-[min(92vw,520px)] origin-top-right p-4"
-          >
-            <div class="flex items-center justify-between mb-3">
-              <h4
-                class="font-mono text-xs tracking-[0.24em] uppercase text-muted-foreground"
-              >
-                {{ $t("pages.settings.matchmaking.title") }}
-              </h4>
-            </div>
-            <MatchmakingSettings />
-          </PopoverContent>
-        </Popover>
-      </template>
     </TacticalPageHeader>
   </PageTransition>
 
-  <PageTransition v-if="showMatchmaking" :delay="50" class="mt-6">
+  <PageTransition :delay="50" class="mt-6">
     <div>
-      <div :class="tacticalSectionLabelClasses">
-        <span :class="tacticalSectionTickClasses"></span>
-        MATCHMAKING
-      </div>
-      <div :class="tacticalSectionDescriptionClasses">
-        {{ $t("pages.play.matchmaking.description") }}
-      </div>
-
-      <div class="relative mt-4">
-        <div
-          :class="{
-            'pointer-events-none select-none opacity-40 blur-[1px]':
-              matchmakingRestricted,
-          }"
-        >
-          <Matchmaking></Matchmaking>
-        </div>
-        <div
-          v-if="matchmakingRestricted"
-          class="absolute inset-0 z-10 grid place-items-center rounded-lg bg-background/40"
-        >
-          <div
-            class="flex flex-col items-center gap-2 border border-border bg-card/95 px-4 py-2 shadow-lg"
-            :class="notVerifiedForMatchmaking ? 'rounded-lg' : 'rounded-full'"
-          >
-            <div class="flex items-center gap-2">
-              <Lock class="h-3.5 w-3.5 text-muted-foreground" />
-              <span class="text-xs font-medium text-foreground">
-                {{
-                  notVerifiedForMatchmaking
-                    ? $t("pages.play.matchmaking.verification_required")
-                    : matchmakingClosed
-                      ? $t("pages.play.matchmaking.closed")
-                      : $t("pages.play.matchmaking.leader_required")
-                }}
-              </span>
-            </div>
-            <Button
-              v-if="notVerifiedForMatchmaking"
-              as-child
-              size="sm"
-              :class="
-                verificationApplicationStatus === 'pending'
-                  ? 'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.9)]'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-500'
-              "
-            >
-              <NuxtLink :to="verificationCtaLink">
-                <component :is="verificationCtaIcon" class="h-3.5 w-3.5" />
-                {{ verificationCtaLabel }}
-              </NuxtLink>
-            </Button>
-          </div>
-        </div>
-      </div>
-
+      <PlayMatchmaking />
       <OpenLobbiesList class="mt-6" />
     </div>
   </PageTransition>
@@ -169,44 +72,15 @@ const settingsOpen = ref(false);
 </template>
 
 <script lang="ts">
-import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
-import { mapFields } from "~/graphql/mapGraphql";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { $, e_tournament_status_enum, order_by } from "~/generated/zeus";
 import { simpleTournamentFields } from "~/graphql/simpleTournamentFields";
 import { NOT_LEAGUE_TOURNAMENT } from "~/graphql/tournamentFilters";
-import { ShieldCheck, Clock } from "lucide-vue-next";
-import gql from "graphql-tag";
-
-// Raw GraphQL text, not the Zeus object-selector builder -- generated/zeus
-// predates verification_applications (needs a live Hasura codegen run), so
-// Zeus can't resolve order_by's field type and always quotes it as a
-// string, which Hasura rejects. See pages/verify/index.vue for the same
-// workaround.
-const MY_VERIFICATION_STATUS_QUERY = gql`
-  query MyVerificationStatusForPlay($steamId: bigint!) {
-    verification_applications(
-      where: { player_steam_id: { _eq: $steamId } }
-      order_by: { created_at: desc }
-      limit: 1
-    ) {
-      status
-    }
-  }
-`;
 
 export default {
   data() {
     return {
-      page: 1,
-      perPage: 10,
       openRegistrationTournaments: [],
-      // null = no application yet (or not checked): the CTA offers to
-      // apply. "pending"/"rejected" change the button to reflect that
-      // instead (an "approved" applicant no longer sees this overlay at
-      // all, since their role already satisfies matchmaking_min_role by
-      // then).
-      verificationApplicationStatus: null as string | null,
     };
   },
   apollo: {
@@ -250,122 +124,6 @@ export default {
           return !useAuthStore().me?.steam_id;
         },
       },
-    },
-  },
-  async mounted() {
-    if (!this.isGuest) {
-      await this.fetchVerificationStatus();
-    }
-  },
-  computed: {
-    showSeparators() {
-      return useApplicationSettingsStore().showSeparators;
-    },
-    me() {
-      return useAuthStore().me;
-    },
-    isGuest() {
-      return !useAuthStore().me?.steam_id;
-    },
-    regions() {
-      return useApplicationSettingsStore().availableRegions;
-    },
-    matchmakingAllowed() {
-      return useApplicationSettingsStore().matchmakingAllowed;
-    },
-    matchmakingEnabled() {
-      return useApplicationSettingsStore().matchmakingEnabled;
-    },
-    showMatchmaking() {
-      // The section (and the mode cards inside <Matchmaking>) always stays
-      // visible, even while the panel is closed: guests see "fake" cards
-      // that prompt login on click, unverified logged-in users see dimmed
-      // cards behind the verification-required overlay, and everyone sees
-      // a "closed" overlay when the panel itself is off. New players can
-      // always tell matchmaking exists instead of the section just
-      // disappearing.
-      return true;
-    },
-    currentLobby() {
-      return useMatchmakingStore().currentLobby;
-    },
-    isPartyLeader() {
-      const lobby = this.currentLobby as any;
-      if (!lobby) {
-        return true;
-      }
-      const me = lobby.players?.find((p: any) => {
-        return p.player.steam_id === this.me?.steam_id;
-      });
-      return !!me?.captain;
-    },
-    inLobbyNotLeader() {
-      return !!this.currentLobby && !this.isPartyLeader;
-    },
-    // A logged-in account whose role doesn't meet public.matchmaking_min_role.
-    // Guests get the separate "fake card, click prompts login" treatment
-    // instead, not this overlay. Deliberately independent of
-    // matchmakingEnabled: getting verified is still worth doing while the
-    // panel is closed, so this keeps showing even then instead of being
-    // masked by the "closed" message below.
-    notVerifiedForMatchmaking() {
-      return (
-        !this.isGuest &&
-        !useApplicationSettingsStore().matchmakingRoleAllowed
-      );
-    },
-    // The panel is off entirely, for everyone -- shown only once the more
-    // specific reasons above don't already apply, so "you still need to
-    // verify" and "you're not the party leader" both keep taking
-    // precedence over the generic closed message.
-    matchmakingClosed() {
-      return (
-        !this.matchmakingEnabled &&
-        !this.notVerifiedForMatchmaking &&
-        !this.inLobbyNotLeader
-      );
-    },
-    // Verification takes precedence: an unverified account can't queue
-    // regardless of party leadership, so that message wins when both apply.
-    matchmakingRestricted() {
-      return (
-        this.notVerifiedForMatchmaking ||
-        this.inLobbyNotLeader ||
-        this.matchmakingClosed
-      );
-    },
-    verificationCtaLink() {
-      return this.verificationApplicationStatus === "pending" ||
-        this.verificationApplicationStatus === "rejected"
-        ? "/verify/status"
-        : "/verify";
-    },
-    verificationCtaLabel() {
-      if (this.verificationApplicationStatus === "pending") {
-        return this.$t("pages.play.matchmaking.verification_pending");
-      }
-      if (this.verificationApplicationStatus === "rejected") {
-        return this.$t("pages.play.matchmaking.verification_rejected");
-      }
-      return this.$t("pages.play.matchmaking.get_verified");
-    },
-    verificationCtaIcon() {
-      return this.verificationApplicationStatus === "pending" ? Clock : ShieldCheck;
-    },
-  },
-  methods: {
-    async fetchVerificationStatus() {
-      try {
-        const { data } = await (this.$apollo as any).query({
-          query: MY_VERIFICATION_STATUS_QUERY,
-          variables: { steamId: this.me?.steam_id },
-          fetchPolicy: "network-only",
-        });
-        this.verificationApplicationStatus =
-          data?.verification_applications?.[0]?.status ?? null;
-      } catch {
-        // Best-effort -- the CTA just falls back to "Get Verified" / /verify.
-      }
     },
   },
 };

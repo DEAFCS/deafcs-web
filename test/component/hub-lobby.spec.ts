@@ -755,7 +755,8 @@ describe("wiring", () => {
     // /play, the header and the hub all queue through join(); nothing else
     // emits the event, so Captain Pick and the party rules can't diverge.
     for (const file of [
-      "components/matchmaking/Matchmaking.vue",
+      "components/play/PlayMatchmaking.vue",
+      "components/matchmaking-lobby/QuickPlayButton.vue",
       "components/hub/PartyQueueLine.vue",
       "components/hub/LobbyPanel.vue",
       "layouts/components/RightHub.vue",
@@ -777,8 +778,10 @@ describe("wiring", () => {
 
   it("the match-found accept popup and the Play page timer are untouched", () => {
     expect(read("app.vue")).toContain("MatchmakingConfirm");
-    expect(read("components/matchmaking/Matchmaking.vue")).toContain(
-      "localServerTime(details?.joinedAt, details)",
+    // /play's clock is useQuickQueue's, on the server's join time.
+    expect(read("components/play/PlayMatchmaking.vue")).toContain("clock");
+    expect(read("composables/useQuickQueue.ts")).toContain(
+      "localServerTime(queue.value?.joinedAt, queue.value)",
     );
   });
 

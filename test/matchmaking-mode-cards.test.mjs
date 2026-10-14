@@ -2,27 +2,17 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
-const matchmaking = await readFile(
-  new URL("../components/matchmaking/Matchmaking.vue", import.meta.url),
-  "utf8",
-);
-const modes = await readFile(
-  new URL("../utilities/matchmakingModes.ts", import.meta.url),
-  "utf8",
-);
-const competitiveIcon = await readFile(
-  new URL("../public/img/icons/competitive-team.svg", import.meta.url),
-  "utf8",
-);
+// The /play mode tiles (5Stack's PlayModeTile inside PlayMatchmaking). The old
+// icon cards were replaced by upstream's typographic tiles; what DEAFCS kept
+// is checked here: shared mode colors, native buttons and no nested controls.
 
-test("matchmaking mode cards use the intended mode icons", () => {
-  // Standard 5v5 keeps the team icon; Captain Pick (also Competitive) has its own.
-  assert.match(matchmaking, /mode\.key === 'Competitive'/);
-  assert.match(matchmaking, /"CaptainPick"\s*\?\s*Crown/);
-  assert.match(matchmaking, /href="\/img\/icons\/competitive-team\.svg#competitive-team"/);
-  assert.match(matchmaking, /Wingman:\s*UsersRound/);
-  assert.match(matchmaking, /Duel:\s*UserRound/);
-});
+const read = (path) => readFile(new URL(path, import.meta.url), "utf8");
+const [hero, tile, modes, competitiveIcon] = await Promise.all([
+  read("../components/play/PlayMatchmaking.vue"),
+  read("../components/play/PlayModeTile.vue"),
+  read("../utilities/matchmakingModes.ts"),
+  read("../public/img/icons/competitive-team.svg"),
+]);
 
 test("competitive icon is a currentColor three-person outline asset", () => {
   assert.match(competitiveIcon, /<symbol id="competitive-team"/);
@@ -31,56 +21,26 @@ test("competitive icon is a currentColor three-person outline asset", () => {
   assert.doesNotMatch(competitiveIcon, /#[0-9a-f]{3,8}\b/i);
 });
 
-test("mode icons are decorative and anchored in the card corner", () => {
-  assert.match(matchmaking, /<component[\s\S]*absolute bottom-4 right-4/);
-  assert.match(matchmaking, /h-3\.5 w-3\.5 border-r-2 border-t-2/);
+test("mode tiles are native buttons in a radio group", () => {
+  assert.match(tile, /<button\s+type="button"\s+role="radio"/);
+  assert.match(tile, /:aria-checked="checked"/);
+  assert.match(hero, /role="radiogroup"/);
 });
 
-test("decorative icons apply opacity once to avoid darker overlapping strokes", () => {
-  assert.equal(
-    (matchmaking.match(/text-\[rgb\(var\(--mode-rgb\)\)\] opacity-\[0\.18\]/g) ?? [])
-      .length,
-    2,
-  );
-  assert.doesNotMatch(matchmaking, /text-\[rgb\(var\(--mode-rgb\)\/0\.18\)\]/);
-});
-
-test("matchmaking cards preserve native queue behavior", () => {
-  assert.match(matchmaking, /<button[\s\S]*type="button"/);
-  assert.match(matchmaking, /:disabled="!canQueueType\(mode\)"/);
-  assert.match(
-    matchmaking,
-    /@click="handleMatchTypeClick\(mode\)"/,
-  );
-});
-
-test("matchmaking cards reuse shared mode colors without local RGB duplication", () => {
-  // Cards go through modeColorStyle, which uses the shared match type
-  // colors for every real match type.
-  assert.match(
-    matchmaking,
-    /import \{ modeColorStyle \} from "~\/utilities\/matchmakingModes"/,
-  );
+test("mode tiles reuse shared mode colors without local RGB duplication", () => {
+  assert.match(hero, /modeColorStyle\(mode\)/);
   assert.match(
     modes,
     /import \{ matchTypeColorStyle \} from "~\/utilities\/matchTypeColors"/,
   );
   assert.match(modes, /:\s*matchTypeColorStyle\(mode\.type\)/);
   assert.doesNotMatch(modes, /249 158 47|217 70 239|34 211 238/);
-  assert.doesNotMatch(matchmaking, /const matchTypeColors/);
-  assert.doesNotMatch(matchmaking, /249 158 47|217 70 239|34 211 238/);
+  for (const source of [hero, tile]) {
+    assert.doesNotMatch(source, /249 158 47|217 70 239|34 211 238|250 204 21/);
+  }
 });
 
-test("queue CTA is visible text inside the card, not a nested button", () => {
-  const ctaIndex = matchmaking.indexOf(
-    '$t("matchmaking.confirm_selection")',
-  );
-  assert.notEqual(ctaIndex, -1);
-
-  const ctaStart = matchmaking.lastIndexOf("<span", ctaIndex);
-  const ctaEnd = matchmaking.indexOf("</span>", ctaIndex) + "</span>".length;
-  const ctaRegion = matchmaking.slice(ctaStart, ctaEnd);
-  assert.match(ctaRegion, /<span/);
-  assert.match(ctaRegion, /<ArrowRight/);
-  assert.doesNotMatch(ctaRegion, /<button/);
+test("a tile holds no nested button: its whole face picks the mode", () => {
+  const body = tile.slice(tile.indexOf("<button"));
+  assert.equal((body.match(/<button\b/g) ?? []).length, 1);
 });
