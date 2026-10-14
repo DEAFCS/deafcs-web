@@ -96,11 +96,12 @@ async function setMessageRequests(allow: boolean) {
   <FormSection
     :title="$t('pages.settings.blocked_players.message_requests.title')"
   >
-    <div class="flex items-center justify-between gap-4">
-      <p class="flex-1 text-sm text-muted-foreground">
+    <div class="flex items-center gap-4">
+      <p class="min-w-0 max-w-prose flex-1 text-sm text-muted-foreground">
         {{ $t("pages.settings.blocked_players.message_requests.description") }}
       </p>
       <Switch
+        class="shrink-0"
         :aria-label="
           $t('pages.settings.blocked_players.message_requests.title')
         "

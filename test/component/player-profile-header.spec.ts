@@ -301,6 +301,12 @@ describe("profile authorization and preserved DEAFCS integrations", () => {
       $t: t,
     });
     const rows = build.call(ctx);
+    expect(rows.find((r: any) => r.key === "block").label).toBe("Block Player");
+    expect(
+      build
+        .call({ ...ctx, isBlockedByMe: true })
+        .find((r: any) => r.key === "block").label,
+    ).toBe("Unblock Player");
     rows.find((r: any) => r.key === "remove").run();
     rows.find((r: any) => r.key === "block").run();
     expect(removeFriendClick).toHaveBeenCalledOnce();

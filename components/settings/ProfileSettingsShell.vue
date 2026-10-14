@@ -172,7 +172,7 @@ async function unlinkDiscord() {
     }}</template>
   </TacticalPageHeader>
   <Separator v-if="showSeparators" class="my-6" />
-  <div class="flex flex-col space-y-8 lg:flex-row lg:space-x-12 lg:space-y-0">
+  <div class="flex w-full flex-col gap-6 lg:flex-row lg:gap-8">
     <aside class="w-full shrink-0 lg:w-auto">
       <!-- Mobile: single dropdown -->
       <div class="lg:hidden">
@@ -223,7 +223,9 @@ async function unlinkDiscord() {
         </template>
       </SettingsSideTabs>
     </aside>
-    <div class="space-y-6 flex-1 min-w-0">
+    <!-- Upstream's settings measure is 56rem; retain the DEAFCS page header
+         and normal page scrolling rather than replacing the whole shell. -->
+    <div class="w-full max-w-4xl flex-1 min-w-0 space-y-6">
       <slot />
     </div>
   </div>

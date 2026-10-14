@@ -6,7 +6,6 @@ import { toast } from "@/components/ui/toast";
 import { Button } from "@/components/ui/button";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
-import Empty from "~/components/ui/empty/Empty.vue";
 import { Spinner } from "~/components/ui/spinner";
 import { UserX } from "lucide-vue-next";
 
@@ -34,9 +33,9 @@ async function handleUnblock(steamId: string) {
 
 <template>
   <PageTransition :delay="0">
-    <div class="grid gap-4 max-w-xl">
+    <div class="max-w-xl space-y-5">
       <MessageRequestsSetting />
-      <p class="text-sm text-muted-foreground">
+      <p class="max-w-prose text-sm text-muted-foreground">
         {{
           $t(
             "pages.settings.blocked_players.description",
@@ -45,12 +44,20 @@ async function handleUnblock(steamId: string) {
         }}
       </p>
 
-      <Empty v-if="blocked.length === 0" class="text-muted-foreground">
+      <div
+        v-if="blocked.length === 0"
+        class="flex flex-col items-center justify-center gap-4 rounded-lg border border-dashed border-border/60 bg-card/20 px-4 py-14 text-center"
+      >
         <div class="space-y-1">
           <p class="text-sm font-medium text-foreground">
-            {{ $t("pages.settings.blocked_players.empty_title", "No blocked players") }}
+            {{
+              $t(
+                "pages.settings.blocked_players.empty_title",
+                "No blocked players",
+              )
+            }}
           </p>
-          <p class="text-xs text-muted-foreground">
+          <p class="mx-auto max-w-sm text-xs text-muted-foreground">
             {{
               $t(
                 "pages.settings.blocked_players.empty_description",
@@ -59,15 +66,16 @@ async function handleUnblock(steamId: string) {
             }}
           </p>
         </div>
-      </Empty>
+      </div>
 
-      <ul v-else class="divide-y divide-border/60 rounded-lg border border-border bg-card/40">
+      <ul v-else class="space-y-3">
         <li
           v-for="entry in blocked"
           :key="entry.steam_id"
-          class="flex items-center justify-between gap-3 px-4 py-3"
+          class="group flex items-center gap-4 rounded-lg border border-border/60 bg-card/40 p-4 transition-colors hover:border-[hsl(var(--tac-amber))]/40"
         >
           <PlayerDisplay
+            class="min-w-0 flex-1"
             :player="entry"
             :show-role="false"
             :show-flag="false"
