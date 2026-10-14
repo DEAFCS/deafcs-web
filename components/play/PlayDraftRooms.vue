@@ -145,10 +145,14 @@ watch(
       hostedBefore.value = false;
       return;
     }
-    // Unknown stays hidden: the intro is a nicety, not worth an error.
-    hostedBefore.value = await draftGames
-      .hasHostedDraftGame(steamId)
-      .catch(() => null);
+    // Unknown stays hidden: the intro is a nicety, not worth an error. The
+    // try also covers a synchronous throw, which .catch() alone would let
+    // escape and take the whole page down (DEAFCS 2026-10-14 incident).
+    try {
+      hostedBefore.value = await draftGames.hasHostedDraftGame(steamId);
+    } catch {
+      hostedBefore.value = null;
+    }
   },
   { immediate: true },
 );
