@@ -11,6 +11,7 @@
 // embedded routing info, so it routes off the notification's `type` field
 // instead -- see routeNonChatNotification below.
 import { useChatNotificationNavigation } from "~/composables/useChatNotificationNavigation";
+import { newsCommentNotificationPath } from "~/utilities/newsCommentText";
 
 const ADMIN_FACING_VERIFICATION_TYPES = new Set([
   "VerificationApplicationSubmitted",
@@ -58,6 +59,15 @@ async function routeNonChatNotification(
   if (SUPPORT_REQUEST_TYPES.has(type) && entityId) {
     await navigateTo(`/support/${entityId}`);
     return true;
+  }
+
+  // DEAFCS: a reply to your News comment opens that reply on the article.
+  if (type === "NewsCommentReply") {
+    const path = newsCommentNotificationPath(entityId);
+    if (path) {
+      await navigateTo(path);
+      return true;
+    }
   }
 
   return false;

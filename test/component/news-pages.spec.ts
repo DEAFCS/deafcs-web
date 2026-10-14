@@ -36,8 +36,13 @@ beforeAll(() => {
   g.useRuntimeConfig = () => ({ public: { apiDomain: API } });
   g.useApplicationSettingsStore = () => settings;
   g.useNotificationStore = () => notifications;
-  g.useAuthStore = () => auth;
   g.useWebsiteRestrictionStore = () => ({ isRestricted: false });
+  g.useAuthStore = () => ({
+    get me() {
+      return auth.me;
+    },
+    isRoleAbove: () => false,
+  });
   g.useSeoMeta = () => {};
   g.useNuxtApp = () => ({ $i18n: { t: (key: string) => key } });
   g.navigateTo = vi.fn();
@@ -68,6 +73,17 @@ const article = (n: number, extra: Record<string, unknown> = {}) => ({
   content_markdown: `Intro ${n}.\n\n### First part\n\nText.\n\n### Second part\n\nMore.`,
   ...extra,
 });
+
+// The article page also loads its comments (NewsComments); an empty thread.
+const isThread = (query: unknown) =>
+  JSON.stringify(query).includes("NewsCommentThread");
+const emptyThread = {
+  data: {
+    news_comments: [],
+    threads: { aggregate: { count: 0 } },
+    visible: { aggregate: { count: 0 } },
+  },
+};
 
 const Pass = defineComponent({ setup: (_, { slots }) => () => slots.default?.() });
 
@@ -195,7 +211,9 @@ describe("/news/[slug]", () => {
 
   beforeEach(() => {
     route.params = { slug: "deafcs-our-first-10-days" };
-    gql.query.mockResolvedValue({ data: { news_articles: [firstTenDays] } });
+    gql.query.mockImplementation(async ({ query }: any) =>
+      isThread(query) ? emptyThread : { data: { news_articles: [firstTenDays] } },
+    );
   });
 
   it("renders an existing post with its sign-language video", async () => {
@@ -223,14 +241,24 @@ describe("/news/[slug]", () => {
     wrapper.unmount();
   });
 
-  it("ends with the article: no Older/Newer links and no Latest posts grid", async () => {
+  it("ends with the article and its comments: no Older/Newer links and no Latest posts grid", async () => {
     const wrapper = await mountPage("[slug].vue", "/news/deafcs-our-first-10-days");
     expect(wrapper.text()).not.toContain("pages.news.latest");
     expect(wrapper.text()).not.toContain("pages.news.older");
     expect(wrapper.text()).not.toContain("pages.news.newer");
     expect(wrapper.find('nav[aria-label="pages.news.around"]').exists()).toBe(false);
-    // One query: the article. No neighbour or latest-post lookups.
-    expect(gql.query).toHaveBeenCalledTimes(1);
+    // The article and its comments. No neighbour or latest-post lookups.
+    const queries = gql.query.mock.calls.map(([arg]: any) => arg.query);
+    expect(queries.filter((q: unknown) => !isThread(q))).toHaveLength(1);
+    expect(queries.filter(isThread)).toHaveLength(1);
+    // Comments come right after the article body, and nothing after them.
+    const comments = wrapper.find("section#comments");
+    expect(comments.exists()).toBe(true);
+    expect(comments.element.nextElementSibling).toBeNull();
+    expect(
+      wrapper.find(".news-content").element.compareDocumentPosition(comments.element) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
     wrapper.unmount();
   });
 
@@ -242,7 +270,9 @@ describe("/news/[slug]", () => {
 
     settings.canPostNews = true;
     gql.query.mockImplementation(({ query }: any) =>
-      JSON.stringify(query).includes("newsPostAdmin")
+      isThread(query)
+        ? Promise.resolve(emptyThread)
+        : JSON.stringify(query).includes("newsPostAdmin")
         ? Promise.resolve({ data: { newsPostAdmin: { id: "id-1", view_count: "7" } } })
         : Promise.resolve({ data: { news_articles: [firstTenDays] } }),
     );

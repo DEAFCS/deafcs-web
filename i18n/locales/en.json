@@ -1667,6 +1667,10 @@
             "system": {
               "title": "System (admin)",
               "description": "Server and infrastructure status updates"
+            },
+            "news_replies": {
+              "title": "Replies to your comments",
+              "description": "Someone replied to your News comment"
             }
           }
         },
@@ -1730,6 +1734,10 @@
             "PlayerReindex": {
               "title": "Player reindex",
               "description": "Player search reindex finished"
+            },
+            "NewsCommentReply": {
+              "title": "Replies to your comments",
+              "description": "Someone replied to your News comment"
             }
           }
         }
@@ -2735,6 +2743,38 @@
         "list_item": "List item",
         "quote": "Quote",
         "code": "code"
+      },
+      "comments": {
+        "title": "Comments",
+        "placeholder": "Share your thoughts",
+        "post": "Post comment",
+        "reply": "Reply",
+        "reply_placeholder": "Reply to {name}",
+        "save": "Save",
+        "edit": "Edit",
+        "edited": "edited",
+        "delete": "Delete",
+        "delete_confirm": "Delete this comment?",
+        "deleted": "This comment was deleted.",
+        "removed_by_staff": "Removed by staff.",
+        "hidden_badge": "Hidden",
+        "hidden_reason": "Reason: {reason}",
+        "hide": "Hide",
+        "hide_reason_placeholder": "Reason (optional)",
+        "restore": "Restore",
+        "plus_one": "+1",
+        "plus_one_label": "+1, {count} so far",
+        "own_vote": "You can't +1 your own comment",
+        "more_replies": "Show {count} more replies",
+        "show_more": "Show more comments",
+        "sign_in_prompt": "Sign in to join the conversation.",
+        "sign_in": "Sign in",
+        "verified_only": "Only Verified Users can comment and +1.",
+        "closed": "Comments are closed. A post takes comments for 7 days after it's published.",
+        "empty_open": "No comments yet. Be the first.",
+        "empty_closed": "No comments on this post.",
+        "failed": "Something went wrong. Please try again.",
+        "load_failed": "Comments could not be loaded right now."
       }
     },
     "seasons": {

@@ -6,6 +6,7 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import NotificationContext from "~/components/notification/NotificationContext.vue";
 import NotificationMessage from "~/components/notification/NotificationMessage.vue";
 import { useOrphanedScan } from "~/composables/useOrphanedScan";
+import { newsCommentNotificationPath } from "~/utilities/newsCommentText";
 
 // The orphaned-uploads dialog is mounted globally (default layout), so a
 // StorageScan notification can open it in place instead of navigating away.
@@ -88,6 +89,10 @@ const titleLink = computed(() => {
   // entity_id is the requesting player's steam_id (see requestNameChange).
   if (type === "NameChangeRequest" && entity_id) {
     return `/players/${entity_id}`;
+  }
+  // DEAFCS: a reply to your News comment opens that reply on the article.
+  if (type === "NewsCommentReply") {
+    return newsCommentNotificationPath(entity_id);
   }
   return null;
 });

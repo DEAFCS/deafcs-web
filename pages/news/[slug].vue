@@ -5,6 +5,7 @@ import { Skeleton } from "~/components/ui/skeleton";
 import { Avatar, AvatarImage, AvatarFallback } from "~/components/ui/avatar";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import NewsArticleView from "~/components/news/NewsArticleView.vue";
+import NewsComments from "~/components/news/NewsComments.vue";
 import { ArrowLeft, Link2, PencilLine } from "lucide-vue-next";
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
@@ -19,8 +20,9 @@ import { useNewsShare } from "~/composables/useNewsShare";
 import type { NewsFullArticle } from "~/components/news/newsTypes";
 
 // DEAFCS: upstream ends a post with Older/Newer links and a Latest posts grid.
-// DEAFCS ends it with the article itself (Anders' call), so those queries and
-// the footer are left out. /news still lists every post.
+// DEAFCS ends it with the article and its comments (Anders' call), so those
+// queries are left out and the footer slot holds NewsComments instead. /news
+// still lists every post.
 
 const route = useRoute();
 const slug = computed(() => String(route.params.slug));
@@ -226,6 +228,13 @@ onMounted(() => {
               {{ $t("pages.news.manage.edit") }}
             </NuxtLink>
           </Button>
+        </template>
+
+        <template #footer>
+          <NewsComments
+            :article-id="article.id"
+            :published-at="article.published_at"
+          />
         </template>
       </NewsArticleView>
     </div>
