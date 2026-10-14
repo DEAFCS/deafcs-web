@@ -51,6 +51,7 @@ vi.mock("vue-i18n", () => ({
       params ? `${key} ${JSON.stringify(params)}` : key,
   }),
 }));
+vi.mock("~/components/ui/toast", () => ({ toast: vi.fn() }));
 vi.mock("~/web-sockets/Socket", () => ({
   default: {
     event: (name: string, data?: unknown) =>
@@ -97,6 +98,13 @@ const store = reactive<any>({
   createLobby: vi.fn(),
 });
 const matchLobbyStore = reactive<any>({ myMatches: [] });
+const settings = reactive<any>({
+  isMatchmakingTypeEnabled: () => true,
+  captainPickEnabled: true,
+  maxCompetitivePartySize: 5,
+  matchmakingAllowed: true,
+  canCreateMatch: false,
+});
 const auth = reactive<any>({
   me: { steam_id: "1" },
   isRoleAbove: () => false,
@@ -112,6 +120,8 @@ vi.stubGlobal("useMatchLobbyStore", () => matchLobbyStore);
 vi.stubGlobal("useAuthStore", () => auth);
 vi.stubGlobal("useSound", () => ({ playMatchFoundSound: vi.fn() }));
 vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
+vi.stubGlobal("useApplicationSettingsStore", () => settings);
+vi.stubGlobal("navigateTo", vi.fn());
 
 import { useQuickQueue } from "../../composables/useQuickQueue";
 import PartyQueueLine from "../../components/hub/PartyQueueLine.vue";
@@ -264,13 +274,90 @@ describe("search clock (useQuickQueue)", () => {
       "matchmaking.captain_pick.title",
     );
     expect(api.modeTitle({ type: "Competitive", variant: "Standard" })).toBe(
-      "Competitive",
+      "matchmaking.match_types.competitive.title",
     );
   });
 
   it("cancel is the same leave the Play page sends", () => {
     withQueue().api.leave();
     expect(mocks.socketEvents).toEqual([["matchmaking:leave", undefined]]);
+  });
+});
+
+describe("shared queue rules (useQuickQueue)", () => {
+  beforeEach(() => {
+    store.preferredRegions = [{ value: "EU" }];
+    store.regionStats = {};
+    settings.captainPickEnabled = true;
+    settings.maxCompetitivePartySize = 5;
+    window.localStorage.clear();
+  });
+
+  it("offers Captain Pick, Competitive, Wingman, Duel in that order, never Rush", () => {
+    const { api } = withQueue();
+    expect(api.modes.value.map((mode) => mode.key)).toEqual([
+      "CompetitiveCaptainPick",
+      "Competitive",
+      "Wingman",
+      "Duel",
+    ]);
+    expect(api.modes.value.map((mode) => mode.limit)).toEqual([1, 5, 2, 1]);
+    expect(api.modeLabel(api.modes.value[0])).toBe(
+      "matchmaking.captain_pick.title 5v5",
+    );
+  });
+
+  it("keeps the Competitive party cap and Captain Pick solo-only in a party of two", () => {
+    settings.maxCompetitivePartySize = 3;
+    store.currentLobby = lobby();
+    const { api } = withQueue();
+    expect(
+      Object.fromEntries(
+        api.modes.value.map((mode) => [mode.key, [mode.canQueue, mode.limit]]),
+      ),
+    ).toEqual({
+      CompetitiveCaptainPick: [false, 1],
+      Competitive: [true, 3],
+      Wingman: [true, 2],
+      Duel: [false, 1],
+    });
+  });
+
+  it("joins Captain Pick with its own variant, never another mode's queue", () => {
+    const { api } = withQueue();
+    expect(api.join("CompetitiveCaptainPick")).toBe(true);
+    expect(mocks.socketEvents).toEqual([
+      [
+        "matchmaking:join-queue",
+        { type: "Competitive", regions: ["EU"], variant: "CaptainPick" },
+      ],
+    ]);
+  });
+
+  it("remembers the last mode for the one-click Play button", () => {
+    const { api } = withQueue();
+    expect(api.quickMode.value?.key).toBe("CompetitiveCaptainPick");
+    api.join("Wingman");
+    expect(api.quickMode.value?.key).toBe("Wingman");
+    expect(window.localStorage.getItem("matchmaking-last-mode")).toBe("Wingman");
+  });
+
+  it("does not queue a mode the party can't play, or without regions", () => {
+    store.currentLobby = lobby();
+    const { api } = withQueue();
+    expect(api.join("Duel")).toBe(false);
+    store.currentLobby = null;
+    store.preferredRegions = [];
+    expect(api.join("Competitive")).toBe(false);
+    expect(mocks.socketEvents).toEqual([]);
+  });
+
+  it("hides Captain Pick while its switch is off", () => {
+    settings.captainPickEnabled = false;
+    const { api } = withQueue();
+    expect(api.modes.value.map((mode) => mode.key)).not.toContain(
+      "CompetitiveCaptainPick",
+    );
   });
 });
 
@@ -553,14 +640,27 @@ describe("wiring", () => {
     expect(toast).toContain("shouldShow && isMobile && !rightSidebarOpen");
   });
 
-  it("the hub never starts a search: Captain Pick, verified-only modes and the matchmaking switches stay with /play", () => {
+  it("one path starts a search: useQuickQueue's join, with /play's checks", () => {
+    // /play, the header and the hub all queue through join(); nothing else
+    // emits the event, so Captain Pick and the party rules can't diverge.
     for (const file of [
-      "composables/useQuickQueue.ts",
+      "components/matchmaking/Matchmaking.vue",
       "components/hub/PartyQueueLine.vue",
       "components/hub/LobbyPanel.vue",
       "layouts/components/RightHub.vue",
+      "layouts/components/MatchLobbies.vue",
     ]) {
       expect(read(file)).not.toContain("matchmaking:join-queue");
+    }
+    const quick = read("composables/useQuickQueue.ts");
+    expect(quick.split("matchmaking:join-queue").length - 1).toBe(1);
+    expect(quick).toContain("joinQueuePayload(picked, regions.value)");
+    for (const guard of [
+      "restricted.value",
+      "picked.canQueue",
+      "regions.value.length === 0",
+    ]) {
+      expect(quick).toContain(guard);
     }
   });
 

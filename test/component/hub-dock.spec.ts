@@ -105,6 +105,11 @@ vi.stubGlobal("onBeforeUnmount", onBeforeUnmount);
 vi.stubGlobal("useMatchmakingStore", () => store);
 vi.stubGlobal("useNotificationStore", () => notificationStore);
 vi.stubGlobal("useAuthStore", () => ({ me: { steam_id: "1" } }));
+vi.stubGlobal("useApplicationSettingsStore", () => ({
+  isMatchmakingTypeEnabled: () => true,
+  captainPickEnabled: true,
+  maxCompetitivePartySize: 5,
+}));
 vi.stubGlobal("useRuntimeConfig", () => ({ public: { apiDomain: "api" } }));
 
 import RightHub from "../../layouts/components/RightHub.vue";

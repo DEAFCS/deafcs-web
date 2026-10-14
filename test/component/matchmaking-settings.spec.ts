@@ -100,7 +100,7 @@ describe("application matchmaking settings", () => {
       Array.from(grid.element.children).map((tile) =>
         tile.querySelector("h4")?.textContent?.trim(),
       ),
-    ).toEqual(["Competitive - Pick System", "competitive", "wingman", "duel"]);
+    ).toEqual(["Captain Pick", "competitive", "wingman", "duel"]);
     expect(grid.findAll('[data-testid="setting-switch"]')).toHaveLength(4);
     expect(
       grid.find('[data-testid="captain-pick-toggle"]').find("p").exists(),

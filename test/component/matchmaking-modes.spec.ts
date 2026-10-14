@@ -15,7 +15,20 @@ vi.mock("~/web-sockets/Socket", () => ({
   default: { event: mocks.socketEvent },
 }));
 vi.mock("@/components/ui/toast", () => ({ toast: mocks.toast }));
-vi.mock("@vueuse/core", () => ({ useMediaQuery: () => mocks.isMobile }));
+vi.mock("@vueuse/core", () => ({
+  useMediaQuery: () => mocks.isMobile,
+  useNow: () => ref(new Date()),
+}));
+vi.mock("vue-i18n", () => ({
+  useI18n: () => ({
+    t: (key: string, params?: Record<string, unknown>) =>
+      key === "matchmaking.captain_pick.title"
+        ? en.matchmaking.captain_pick.title
+        : params
+          ? `${key}:${JSON.stringify(params)}`
+          : key,
+  }),
+}));
 vi.mock("~/components/match/QuickMatchConnect.vue", () => ({ default: {} }));
 vi.mock("~/components/match/MatchStatus.vue", () => ({ default: {} }));
 vi.mock("../../components/TimeAgo.vue", () => ({ default: {} }));
@@ -134,7 +147,7 @@ describe("/play matchmaking modes", () => {
       "Wingman",
       "Duel",
     ]);
-    expect(labels[0]).toContain("Competitive - Pick System");
+    expect(labels[0]).toContain("Captain Pick");
     expect(
       cardByKey(wrapper, "CompetitiveCaptainPick").find("p").exists(),
     ).toBe(false);
@@ -149,7 +162,7 @@ describe("/play matchmaking modes", () => {
     const wrapper = await mountMatchmaking();
 
     expect(cards(wrapper).map((b) => b.text().trim())).toEqual([
-      "Competitive - Pick System",
+      "Captain Pick",
       "5v5",
       "2v2",
       "1v1",
@@ -161,7 +174,7 @@ describe("/play matchmaking modes", () => {
     const wrapper = await mountMatchmaking();
 
     expect(cards(wrapper)).toHaveLength(3);
-    expect(wrapper.text()).not.toContain("Competitive - Pick System");
+    expect(wrapper.text()).not.toContain("Captain Pick");
   });
 
   it("joins Standard 5v5 with exactly the old payload", async () => {
@@ -178,7 +191,7 @@ describe("/play matchmaking modes", () => {
   it("joins Captain Pick as Competitive with the CaptainPick variant", async () => {
     const wrapper = await mountMatchmaking();
 
-    await cardByLabel(wrapper, "Competitive - Pick System").trigger("click");
+    await cardByLabel(wrapper, "Captain Pick").trigger("click");
 
     expect(mocks.socketEvent).toHaveBeenCalledWith("matchmaking:join-queue", {
       type: "Competitive",
@@ -205,7 +218,7 @@ describe("/play matchmaking modes", () => {
     };
     const wrapper = await mountMatchmaking();
 
-    const captainPick = cardByLabel(wrapper, "Competitive - Pick System");
+    const captainPick = cardByLabel(wrapper, "Captain Pick");
     expect(captainPick.attributes("disabled")).toBeDefined();
     expect(captainPick.text()).toContain("matchmaking.captain_pick.solo_only");
     expect(
@@ -253,7 +266,7 @@ describe("/play matchmaking modes", () => {
     };
     const wrapper = await mountMatchmaking();
 
-    expect(wrapper.text()).toContain("Competitive - Pick System");
+    expect(wrapper.text()).toContain("Captain Pick");
     expect(wrapper.text()).toContain("1 matchmaking.in_queue");
     expect(wrapper.text()).not.toContain("5 matchmaking.in_queue");
   });

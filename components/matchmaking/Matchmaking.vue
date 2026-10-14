@@ -13,6 +13,10 @@ import MatchStatus from "~/components/match/MatchStatus.vue";
 import TimeAgo from "../TimeAgo.vue";
 import { modeColorStyle } from "~/utilities/matchmakingModes";
 import { tacticalCtaButtonClasses } from "~/utilities/tacticalClasses";
+import { useQuickQueue } from "~/composables/useQuickQueue";
+
+// Starting a search goes through the same join as the header and the hub.
+const quickQueue = useQuickQueue();
 
 const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -205,7 +209,7 @@ const mmCardBase =
               !canQueueType(mode) &&
                 '!cursor-not-allowed opacity-45 grayscale hover:!border-border hover:!shadow-none',
             ]"
-            @click="handleMatchTypeClick(mode)"
+            @click="isQueuePreview || quickQueue.join(mode.key)"
           >
             <span
               class="pointer-events-none absolute inset-0 z-0 opacity-0 [background:linear-gradient(135deg,hsl(var(--card)/0.8)_0%,hsl(var(--card)/0.45)_55%,rgb(var(--mode-rgb)/0.10)_100%)] transition-opacity [transition-duration:220ms] [transition-timing-function:ease] group-hover/mmc-enabled:opacity-100 group-focus-visible/mmc-enabled:opacity-100"
@@ -311,7 +315,7 @@ const mmCardBase =
             :disabled="!canQueueType(mode)"
             :style="modeColorStyle(mode)"
             class="flex items-center justify-between gap-3 rounded-lg border border-[rgb(var(--mode-rgb)/0.3)] px-4 py-3 text-left text-foreground [background:linear-gradient(135deg,hsl(var(--card)/0.7)_0%,hsl(var(--card)/0.35)_100%)] disabled:cursor-not-allowed disabled:opacity-45 disabled:grayscale"
-            @click="handleMatchTypeClick(mode)"
+            @click="isQueuePreview || quickQueue.join(mode.key)"
           >
             <span class="flex items-center gap-2.5">
               <svg
@@ -411,14 +415,12 @@ import socket from "~/web-sockets/Socket";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { e_match_types_enum, e_match_status_enum } from "~/generated/zeus";
-import { toast } from "@/components/ui/toast";
 import { EXPECTED_PLAYERS } from "~/utilities/matchmakingPartySize";
 import { localServerTime } from "~/utilities/matchmakingDeadline";
 import {
   CAPTAIN_PICK_MODE_KEY,
   buildMatchmakingModes,
   canQueueMode,
-  joinQueuePayload,
   playersInQueue,
   regionStatsKey,
   type MatchmakingMode,
@@ -636,51 +638,6 @@ export default {
         }
       | undefined {
       return useMatchmakingStore().getRegionlatencyResult(region);
-    },
-    handleMatchTypeClick(mode: MatchmakingMode): void {
-      if (!this.me?.steam_id) {
-        navigateTo("/login?redirect=/play");
-        return;
-      }
-      if (useWebsiteRestrictionStore().isRestricted) {
-        toast({
-          title: this.$t("account_restriction.short") as string,
-          variant: "destructive",
-        });
-        return;
-      }
-      if (!this.canQueueType(mode)) {
-        toast({
-          title: this.partySizeRequirementText(mode),
-          variant: "destructive",
-        });
-        return;
-      }
-      if (this.preferredRegions.length === 0) {
-        toast({
-          title: this.$t("matchmaking.no_preferred_regions") as string,
-          variant: "destructive",
-        });
-        return;
-      }
-      this.joinMatchmaking(mode);
-    },
-    joinMatchmaking(mode: MatchmakingMode): void {
-      if (
-        this.isQueuePreview ||
-        useWebsiteRestrictionStore().isRestricted
-      ) {
-        return;
-      }
-      socket.event(
-        "matchmaking:join-queue",
-        joinQueuePayload(
-          mode,
-          this.preferredRegions.map((region: Region) => {
-            return region.value;
-          }),
-        ),
-      );
     },
     leaveMatchmaking(): void {
       if (this.isQueuePreview) {

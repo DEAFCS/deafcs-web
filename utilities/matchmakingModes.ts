@@ -1,5 +1,8 @@
 import { e_match_types_enum } from "~/generated/zeus";
-import { canPartyQueue } from "~/utilities/matchmakingPartySize";
+import {
+  EXPECTED_PLAYERS,
+  canPartyQueue,
+} from "~/utilities/matchmakingPartySize";
 import { matchTypeColorStyle } from "~/utilities/matchTypeColors";
 
 /**
@@ -104,6 +107,29 @@ export function canQueueMode(
     return partySize === 1;
   }
   return canPartyQueue(mode.type, partySize, maxCompetitivePartySize);
+}
+
+/**
+ * The largest party that can queue a mode: Captain Pick is solo, Competitive
+ * has the admin cap, Wingman and Duel one lineup. Same rules as canQueueMode.
+ */
+export function modePartyLimit(
+  mode: { type: e_match_types_enum; variant: MatchmakingQueueVariant },
+  maxCompetitivePartySize: number,
+): number {
+  if (mode.variant === "CaptainPick") {
+    return 1;
+  }
+  const half = (EXPECTED_PLAYERS[mode.type] ?? 0) / 2;
+  return mode.type === e_match_types_enum.Competitive
+    ? Math.min(half, maxCompetitivePartySize)
+    : half;
+}
+
+/** "5v5", "2v2", "1v1": the short name used in compact UI. */
+export function modeFormat(mode: { type: e_match_types_enum }): string {
+  const perSide = (EXPECTED_PLAYERS[mode.type] ?? 0) / 2;
+  return `${perSide}v${perSide}`;
 }
 
 /**
