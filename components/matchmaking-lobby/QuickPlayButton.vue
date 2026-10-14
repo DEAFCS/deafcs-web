@@ -43,6 +43,12 @@ function openPartyRoom() {
 
 const ctaFill =
   "border border-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] [background:linear-gradient(135deg,var(--tac-amber-cta-from)_0%,hsl(var(--tac-amber))_50%,var(--tac-amber-cta-to)_100%)]";
+// The one-click button wears the mode it queues (Captain Pick gold,
+// Competitive orange, Wingman magenta, Duel cyan), not one amber for all. The
+// name beside the play icon says which mode it is, so color is never the only
+// sign. Dark text reads on all four.
+const modeFill =
+  "border border-[rgb(var(--mode-rgb))] text-zinc-950 [background:linear-gradient(135deg,rgb(var(--mode-rgb)/0.82)_0%,rgb(var(--mode-rgb))_50%,rgb(var(--mode-rgb)/0.88)_100%)]";
 const modeDot =
   "size-2 shrink-0 rounded-full bg-[rgb(var(--mode-rgb))] shadow-[0_0_0_1.5px_rgb(0_0_0/0.35)]";
 </script>
@@ -92,19 +98,20 @@ const modeDot =
   <div
     v-else-if="props.leader && quickMode"
     data-quick-play="idle"
-    class="inline-flex h-8 rounded-md shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.35),0_4px_14px_-4px_hsl(var(--tac-amber)/0.5)] transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[0_0_0_1px_hsl(var(--tac-amber)/0.55),0_8px_22px_-4px_hsl(var(--tac-amber)/0.7)]"
+    :data-mode-key="quickMode.key"
+    :style="modeColorStyle(quickMode)"
+    class="inline-flex h-8 rounded-md shadow-[0_0_0_1px_rgb(var(--mode-rgb)/0.35),0_4px_14px_-4px_rgb(var(--mode-rgb)/0.5)] transition-[transform,box-shadow] duration-200 hover:-translate-y-px hover:shadow-[0_0_0_1px_rgb(var(--mode-rgb)/0.55),0_8px_22px_-4px_rgb(var(--mode-rgb)/0.7)]"
   >
     <button
       type="button"
       class="inline-flex h-8 items-center gap-1.5 rounded-l-md px-3 text-xs font-semibold"
-      :class="ctaFill"
+      :class="modeFill"
       :aria-label="
         $t('layouts.queue.find', { mode: modeLabel(quickMode) })
       "
       @click="join(quickMode)"
     >
       <Play class="size-3.5 fill-current" />
-      <span :class="modeDot" :style="modeColorStyle(quickMode)" />
       <!-- Short labels until the top bar has room: Captain Pick keeps its
            name, the rest read 5v5 / 2v2 / 1v1. -->
       <span
@@ -121,7 +128,7 @@ const modeDot =
         <button
           type="button"
           class="grid h-8 w-7 place-items-center rounded-r-md border-l-black/25"
-          :class="ctaFill"
+          :class="modeFill"
           :aria-label="$t('layouts.queue.pick_mode')"
         >
           <ChevronDown class="size-3.5" />

@@ -486,6 +486,27 @@ describe("header Play control (QuickPlayButton)", () => {
     ]);
   });
 
+  it("the one-click button wears the remembered mode's color, not a fixed amber", () => {
+    const expected: Record<string, string> = {
+      CompetitiveCaptainPick: "250 204 21",
+      Competitive: "249 158 47",
+      Wingman: "217 70 239",
+      Duel: "34 211 238",
+    };
+    for (const [key, rgb] of Object.entries(expected)) {
+      rememberQueueMode(key);
+      const wrapper = mountButton();
+      const idle = wrapper.get('[data-quick-play="idle"]');
+      expect(idle.attributes("data-mode-key")).toBe(key);
+      expect(idle.attributes("style")).toContain(`--mode-rgb: ${rgb}`);
+      expect(idle.find("button").classes().join(" ")).toContain(
+        "border-[rgb(var(--mode-rgb))]",
+      );
+      expect(idle.html()).not.toContain("tac-amber-cta-from");
+      wrapper.unmount();
+    }
+  });
+
   it("each mode carries its own color, and picking Captain Pick sends its variant", async () => {
     const wrapper = mountButton();
     const captain = wrapper.get('[data-mode-key="CompetitiveCaptainPick"]');
