@@ -1,0 +1,276 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { mount } from "@vue/test-utils";
+import { defineComponent, h } from "vue";
+import fs from "node:fs";
+import path from "node:path";
+
+// Draft Room Captain Pick uses matchmaking Captain Pick's layout
+// (MatchOverview + CaptainPickProgress): Team 1 | available players in two
+// columns | Team 2. These mount the real Draft Room and real team panels.
+
+const mocks = vi.hoisted(() => ({
+  me: null as any,
+  pick: vi.fn(() => Promise.resolve()),
+  hubContext: null as any,
+}));
+
+vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
+vi.mock("~/stores/AuthStore", () => ({
+  useAuthStore: () => ({ me: mocks.me, isRoleAbove: () => false }),
+}));
+vi.mock("~/stores/DraftGamesStore", () => ({
+  useDraftGamesStore: () => ({ pick: mocks.pick }),
+}));
+vi.mock("~/stores/ApplicationSettings", () => ({
+  useApplicationSettingsStore: () => ({
+    linkedAccountsEnabled: false,
+    faceitEnabled: false,
+    availableRegions: [{ value: "eu" }],
+  }),
+}));
+vi.mock("~/composables/useChatHubContext", async (importOriginal) => ({
+  ...(await importOriginal<any>()),
+  useChatHubContext: (get: () => unknown) => {
+    mocks.hubContext = get;
+  },
+}));
+
+const blank = (name: string) =>
+  defineComponent({ name, setup: () => () => h("div", { "data-stub": name }) });
+for (const [file, name] of [
+  ["~/components/chat/ChatLobby.vue", "ChatLobby"],
+  ["~/components/match/MatchRegionVeto.vue", "MatchRegionVeto"],
+  ["~/components/match/MatchMapVeto.vue", "MatchMapVeto"],
+  ["~/components/match/MatchInfo.vue", "MatchInfo"],
+  ["~/components/draft-games/DraftSettingsBar.vue", "DraftSettingsBar"],
+  ["~/components/draft-games/DraftBackupsPanel.vue", "DraftBackupsPanel"],
+  ["~/components/draft-games/DraftTurnStatus.vue", "DraftTurnStatus"],
+  ["~/components/draft-games/DraftLog.vue", "DraftLog"],
+  ["~/components/draft-games/DraftRequestQueue.vue", "DraftRequestQueue"],
+  ["~/components/draft-games/DraftSettingsSheet.vue", "DraftSettingsSheet"],
+  ["~/components/draft-games/DraftCoinFlip.vue", "DraftCoinFlip"],
+  ["~/components/match/MatchAdminBottomBar.vue", "MatchAdminBottomBar"],
+  ["~/components/common/AnimatedFilters.vue", "AnimatedFilters"],
+  ["~/components/PlayerDisplay.vue", "PlayerDisplay"],
+  ["~/components/draft-games/DraftOpenSlot.vue", "DraftOpenSlot"],
+] as const) {
+  vi.doMock(file, () => ({ default: blank(name) }));
+}
+vi.mock("~/components/draft-games/DraftPlayerCard.vue", async () => {
+  const { defineComponent, h } = await import("vue");
+  return {
+    default: defineComponent({
+      name: "DraftPlayerCard",
+      props: { member: null, isCaptain: Boolean, accent: null },
+      setup: (props, { slots }) => () =>
+        h(
+          "div",
+          {
+            "data-card": props.member.steam_id,
+            "data-captain": props.isCaptain ? "" : undefined,
+          },
+          [props.member.player.name, slots.action?.()],
+        ),
+    }),
+  };
+});
+
+// After the doMock loop above, so those stand-ins apply.
+const { default: DraftRoom } = await import(
+  "../../components/draft-games/DraftRoom.vue"
+);
+
+const player = (
+  steam: string,
+  lineup: number | null,
+  extra: Record<string, unknown> = {},
+) => ({
+  steam_id: steam,
+  status: "Accepted",
+  lineup,
+  is_captain: false,
+  pick_order: null,
+  joined_at: `2026-10-14T20:00:0${steam.length % 10}Z`,
+  player: { steam_id: steam, name: `Player ${steam}` },
+  ...extra,
+});
+
+// A Captains room mid-draft: captain 1 (Team 1) and captain 2 (Team 2),
+// Team 1 to pick, players 3..n in the pool.
+const room = (perTeam = 5, overrides: Record<string, unknown> = {}) => {
+  const players = [
+    player("1", 1, { is_captain: true, pick_order: 0 }),
+    player("2", 2, { is_captain: true, pick_order: 0 }),
+  ];
+  for (let i = 3; i <= perTeam * 2; i++) players.push(player(String(i), null));
+  return {
+    id: "draft-1",
+    mode: "Captains",
+    status: "Drafting",
+    type: perTeam === 5 ? "Competitive" : perTeam === 2 ? "Wingman" : "Duel",
+    capacity: perTeam * 2,
+    current_pick_lineup: 1,
+    host_steam_id: "1",
+    is_organizer: false,
+    match_id: null,
+    picks: [],
+    players,
+    ...overrides,
+  };
+};
+
+const wrappers: ReturnType<typeof mount>[] = [];
+const render = (self: string | null, r = room()) => {
+  mocks.me = self ? { steam_id: self, teams: [] } : null;
+  const w = mount(DraftRoom, {
+    props: { room: r },
+    global: {
+      stubs: { NuxtLink: { template: "<a><slot /></a>" } },
+      mocks: { $t: (key: string) => key },
+    },
+  });
+  wrappers.push(w);
+  return w;
+};
+
+beforeEach(() => {
+  mocks.pick.mockClear();
+  vi.stubGlobal("navigateTo", vi.fn());
+  vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
+  vi.stubGlobal("usePlayerActiveSeasonElo", () => ({ eloForPlayer: () => null }));
+});
+afterEach(() => {
+  wrappers.splice(0).forEach((w) => w.unmount());
+  vi.unstubAllGlobals();
+});
+
+const mmOverview = fs.readFileSync(
+  path.resolve(__dirname, "../../components/match/overview/MatchOverview.vue"),
+  "utf8",
+);
+const mmPool = fs.readFileSync(
+  path.resolve(__dirname, "../../components/match/CaptainPickProgress.vue"),
+  "utf8",
+);
+const classOf = (source: string, testid: string) =>
+  source.match(
+    new RegExp(`class="([^"]+)"\\s+data-testid="${testid}"`),
+  )?.[1];
+
+describe("Draft Room Captain Pick uses the matchmaking Captain Pick layout", () => {
+  it("lays out Team 1 | available players | Team 2 with MatchOverview's grid", () => {
+    const w = render(null);
+    const board = w.get('[data-testid="draft-board"]');
+    expect(board.attributes("class")).toBe(
+      mmOverview.match(/<div\s+class="(grid min-w-0 grid-cols-1[^"]+)"/)?.[1],
+    );
+    expect(w.get('[data-testid="draft-board-middle"]').attributes("class")).toBe(
+      classOf(mmOverview, "overview-middle"),
+    );
+    // Source order is players, Team 1, Team 2; the order classes put the
+    // players in the middle from 1400px, as in MatchOverview.
+    const kids = board.element.children;
+    expect(kids[0].getAttribute("data-testid")).toBe("draft-board-middle");
+    expect(kids[1].getAttribute("data-testid")).toBe("draft-board-team-1");
+    expect(kids[2].getAttribute("data-testid")).toBe("draft-board-team-2");
+    expect(kids[1].className).toContain("order-2");
+    expect(kids[1].className).toContain("min-[1400px]:order-1");
+    expect(kids[2].className).toContain("order-3");
+    expect(mmOverview).toContain("'order-2 min-[1400px]:order-1' : 'order-3'");
+  });
+
+  it("shows the available players in two columns, like CaptainPickProgress", () => {
+    const w = render(null);
+    const grid = w.get('[data-testid="draft-board-middle"] .grid');
+    expect(grid.classes()).toContain("sm:grid-cols-2");
+    expect(grid.classes()).not.toContain("xl:grid-cols-3");
+    expect(mmPool).toMatch(/class="grid min-w-0 gap-2 sm:grid-cols-2"/);
+    expect(grid.findAll("[data-card]")).toHaveLength(8);
+  });
+
+  it("gives the board the full width and moves chat and queue below it", () => {
+    const w = render("5");
+    expect(w.get('[data-testid="draft-room-layout"]').classes()).not.toContain(
+      "xl:grid-cols-[minmax(0,1fr)_340px]",
+    );
+    expect(w.get('[data-testid="draft-room-side"]').classes()).not.toContain(
+      "xl:sticky",
+    );
+    // The embedded chat stays on the page.
+    expect(w.find('[data-stub="ChatLobby"]').exists()).toBe(true);
+  });
+
+  it("keeps the side column beside the room once the match is underway", () => {
+    const live = mount(DraftRoom, {
+      props: {
+        room: room(5, { match_id: "m1" }),
+        match: { id: "m1", status: "Veto", options: {} },
+      },
+      global: {
+        stubs: { NuxtLink: { template: "<a><slot /></a>" } },
+        mocks: { $t: (key: string) => key },
+      },
+    });
+    wrappers.push(live);
+    expect(live.find('[data-testid="draft-board"]').exists()).toBe(false);
+    expect(live.get('[data-testid="draft-room-layout"]').classes()).toContain(
+      "xl:grid-cols-[minmax(0,1fr)_340px]",
+    );
+  });
+
+  it("uses the shared team panels with captain badge and pick-turn highlight", () => {
+    const w = render(null);
+    const team1 = w.get('[data-testid="draft-board-team-1"]');
+    const team2 = w.get('[data-testid="draft-board-team-2"]');
+    expect(team1.text()).toContain("draft_games.room.team_alpha");
+    expect(team2.text()).toContain("draft_games.room.team_bravo");
+    expect(team1.get('[data-card="1"]').attributes()).toHaveProperty(
+      "data-captain",
+    );
+    expect(team2.get('[data-card="2"]').attributes()).toHaveProperty(
+      "data-captain",
+    );
+    const panels = w.findAllComponents({ name: "DraftTeamPanel" });
+    expect(panels.map((p) => p.props("active"))).toEqual([true, false]);
+    expect(panels.map((p) => p.props("accent"))).toEqual(["amber", "blue"]);
+  });
+
+  it("lets only the captain whose turn it is draft", async () => {
+    const captain = render("1");
+    const buttons = captain
+      .get('[data-testid="draft-board-middle"]')
+      .findAll("button")
+      .filter((b) => b.text().includes("draft_games.room.draft"));
+    expect(buttons).toHaveLength(8);
+    await buttons[0].trigger("click");
+    expect(mocks.pick).toHaveBeenCalledWith("draft-1", "3");
+
+    for (const self of ["2", "5", null]) {
+      const w = render(self);
+      const draftButtons = w
+        .findAll("button")
+        .filter((b) => b.text().includes("draft_games.room.draft"));
+      expect(draftButtons, `viewer ${self}`).toHaveLength(0);
+    }
+  });
+
+  it("is read-only for spectators: no pick, assign or captain controls", () => {
+    const w = render(null, room(5, { status: "Drafting" }));
+    const middle = w.get('[data-testid="draft-board-middle"]');
+    expect(middle.findAll("button")).toHaveLength(0);
+    expect(middle.findAll("[data-card]")).toHaveLength(8);
+  });
+
+  it.each([
+    [5, 8],
+    [2, 2],
+    [1, 0],
+  ])("supports %i-per-team rooms (pool of %i) without fixed sizes", (perTeam, poolSize) => {
+    const w = render(null, room(perTeam));
+    const panels = w.findAllComponents({ name: "DraftTeamPanel" });
+    expect(panels.map((p) => p.props("perTeam"))).toEqual([perTeam, perTeam]);
+    expect(
+      w.get('[data-testid="draft-board-middle"]').findAll("[data-card]"),
+    ).toHaveLength(poolSize);
+  });
+});
