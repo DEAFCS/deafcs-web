@@ -85,17 +85,31 @@ const comment = (id: string, over: Record<string, unknown> = {}) => ({
   ...over,
 });
 
+// Apollo hands query results back read-only (deep-frozen). The mock does the
+// same, so any code that writes into a result fails here as it does in the
+// browser (production incident 2026-10-15: +1 threw "Cannot assign to read
+// only property 'vote_count'").
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    for (const key of Object.keys(value)) deepFreeze((value as any)[key]);
+  }
+  return value;
+}
+
 let lastQuery = "";
 function serve(comments: any[], threads = comments.length, visible = threads) {
   gql.query.mockImplementation(async ({ query, variables }: any) => {
     lastQuery = print(query);
-    return {
+    return deepFreeze({
       data: {
-        news_comments: comments.slice(variables.offset, variables.offset + variables.limit),
+        news_comments: structuredClone(
+          comments.slice(variables.offset, variables.offset + variables.limit),
+        ),
         threads: { aggregate: { count: threads } },
         visible: { aggregate: { count: visible } },
       },
-    };
+    });
   });
 }
 
@@ -448,6 +462,186 @@ describe("load failure", () => {
     const wrapper = await mountComments();
     expect(wrapper.find('[data-testid="comments-failed"]').exists()).toBe(true);
     expect(toast).not.toHaveBeenCalled();
+    wrapper.unmount();
+  });
+});
+
+describe("read-only query results (Apollo freezes them)", () => {
+  const voteButton = (w: any, id: string) =>
+    w.find(`[data-comment-id="${id}"] [data-testid="comment-vote"]`);
+  const voteResult = (comment_id: string, vote_count: number, voted: boolean) => ({
+    data: { toggleNewsCommentVote: { comment_id, vote_count, voted } },
+  });
+
+  beforeEach(() => {
+    auth.me = { steam_id: ME, role: "verified_user" };
+  });
+
+  it("+1 updates the count and the pressed state without writing into the query result", async () => {
+    serve([comment("c1", { vote_count: 2 })]);
+    gql.mutate.mockResolvedValueOnce(voteResult("c1", 3, true));
+    const wrapper = await mountComments();
+
+    await voteButton(wrapper, "c1").trigger("click");
+    await flushPromises();
+
+    expect(toast).not.toHaveBeenCalled();
+    expect(gql.mutate).toHaveBeenCalledTimes(1);
+    expect(voteButton(wrapper, "c1").text()).toContain("+3");
+    expect(voteButton(wrapper, "c1").attributes("aria-pressed")).toBe("true");
+    wrapper.unmount();
+  });
+
+  it("a second click takes the +1 back", async () => {
+    serve([comment("c1", { vote_count: 2 })]);
+    gql.mutate
+      .mockResolvedValueOnce(voteResult("c1", 3, true))
+      .mockResolvedValueOnce(voteResult("c1", 2, false));
+    const wrapper = await mountComments();
+
+    await voteButton(wrapper, "c1").trigger("click");
+    await flushPromises();
+    await voteButton(wrapper, "c1").trigger("click");
+    await flushPromises();
+
+    expect(toast).not.toHaveBeenCalled();
+    expect(gql.mutate).toHaveBeenCalledTimes(2);
+    expect(voteButton(wrapper, "c1").text()).toContain("+2");
+    expect(voteButton(wrapper, "c1").attributes("aria-pressed")).toBe("false");
+    wrapper.unmount();
+  });
+
+  it("keeps the vote after a refetch (the server's state wins)", async () => {
+    const thread = [comment("c1", { vote_count: 2 })];
+    serve(thread);
+    gql.mutate.mockResolvedValueOnce(voteResult("c1", 3, true));
+    const wrapper = await mountComments();
+    await voteButton(wrapper, "c1").trigger("click");
+    await flushPromises();
+
+    // The server now has the vote; posting a comment triggers a refetch.
+    thread[0] = comment("c1", { vote_count: 3, votes: [{ steam_id: ME }] });
+    serve(thread);
+    gql.mutate.mockResolvedValueOnce({ data: { postNewsComment: { id: "n" } } });
+    await wrapper.find('[data-testid="comment-input"]').setValue("hello");
+    await wrapper.find('[data-testid="comment-submit"]').trigger("click");
+    await flushPromises();
+
+    expect(toast).not.toHaveBeenCalled();
+    expect(voteButton(wrapper, "c1").text()).toContain("+3");
+    expect(voteButton(wrapper, "c1").attributes("aria-pressed")).toBe("true");
+    wrapper.unmount();
+  });
+
+  it("shows no vote when the request fails, and says why", async () => {
+    serve([comment("c1", { vote_count: 2 })]);
+    gql.mutate.mockRejectedValueOnce({
+      graphQLErrors: [{ message: "Comments are closed for this article" }],
+    });
+    const wrapper = await mountComments();
+
+    await voteButton(wrapper, "c1").trigger("click");
+    await flushPromises();
+
+    expect(toast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Comments are closed for this article" }),
+    );
+    expect(voteButton(wrapper, "c1").text()).toContain("+2");
+    expect(voteButton(wrapper, "c1").attributes("aria-pressed")).toBe("false");
+    wrapper.unmount();
+  });
+
+  it("sends one request when clicked twice quickly", async () => {
+    serve([comment("c1", { vote_count: 0 })]);
+    let resolve: (value: unknown) => void = () => {};
+    gql.mutate.mockImplementationOnce(() => new Promise((r) => (resolve = r)));
+    const wrapper = await mountComments();
+
+    await voteButton(wrapper, "c1").trigger("click");
+    await voteButton(wrapper, "c1").trigger("click");
+    resolve(voteResult("c1", 1, true));
+    await flushPromises();
+
+    expect(gql.mutate).toHaveBeenCalledTimes(1);
+    expect(toast).not.toHaveBeenCalled();
+    expect(voteButton(wrapper, "c1").text()).toContain("+1");
+    wrapper.unmount();
+  });
+
+  it("supports +1 on replies", async () => {
+    serve([
+      comment("c1", {
+        replies: [comment("r1", { parent_id: "c1", vote_count: 4 })],
+      }),
+    ]);
+    gql.mutate.mockResolvedValueOnce(voteResult("r1", 5, true));
+    const wrapper = await mountComments();
+
+    await voteButton(wrapper, "r1").trigger("click");
+    await flushPromises();
+
+    expect(toast).not.toHaveBeenCalled();
+    expect(gql.mutate.mock.calls[0][0].variables).toEqual({ id: "r1" });
+    expect(voteButton(wrapper, "r1").text()).toContain("+5");
+    expect(voteButton(wrapper, "r1").attributes("aria-pressed")).toBe("true");
+    expect(voteButton(wrapper, "c1").text()).toContain("+0");
+    wrapper.unmount();
+  });
+
+  it("still blocks self-votes, unverified players and closed articles", async () => {
+    serve([comment("mine", { author_steam_id: ME, author: player(ME, "Me") })]);
+    let wrapper = await mountComments();
+    expect(voteButton(wrapper, "mine").attributes("disabled")).toBeDefined();
+    wrapper.unmount();
+
+    auth.me = { steam_id: ME, role: "user" };
+    serve([comment("c1")]);
+    wrapper = await mountComments();
+    expect(voteButton(wrapper, "c1").attributes("disabled")).toBeDefined();
+    wrapper.unmount();
+
+    auth.me = { steam_id: ME, role: "verified_user" };
+    serve([comment("c1")]);
+    wrapper = await mountComments(new Date(Date.now() - 8 * 86_400_000).toISOString());
+    expect(voteButton(wrapper, "c1").attributes("disabled")).toBeDefined();
+    wrapper.unmount();
+    expect(gql.mutate).not.toHaveBeenCalled();
+  });
+
+  it("other actions work on read-only results too (reply, edit, delete, hide)", async () => {
+    auth.me = { steam_id: ME, role: "moderator" };
+    serve([
+      comment("mine", { author_steam_id: ME, author: player(ME, "Me"), created_at: recent(1) }),
+      comment("other"),
+    ]);
+    gql.mutate.mockResolvedValue({ data: {} });
+    const wrapper = await mountComments();
+    const button = (id: string, label: string) =>
+      wrapper
+        .find(`[data-comment-id="${id}"]`)
+        .findAll("button")
+        .find((b: any) => b.text() === label)!;
+
+    await wrapper.find('[data-comment-id="other"] [data-testid="comment-reply"]').trigger("click");
+    await wrapper.find('[data-comment-id="other"] [data-testid="comment-input"]').setValue("re");
+    await wrapper.find('[data-comment-id="other"] [data-testid="comment-submit"]').trigger("click");
+    await flushPromises();
+
+    await wrapper.find('[data-comment-id="mine"] [data-testid="comment-edit"]').trigger("click");
+    await wrapper.find('[data-comment-id="mine"] [data-testid="comment-input"]').setValue("edited");
+    await wrapper.find('[data-comment-id="mine"] [data-testid="comment-submit"]').trigger("click");
+    await flushPromises();
+
+    await wrapper.find('[data-comment-id="mine"] [data-testid="comment-delete"]').trigger("click");
+    await button("mine", "pages.news.comments.delete").trigger("click");
+    await flushPromises();
+
+    await wrapper.find('[data-comment-id="other"] [data-testid="comment-hide"]').trigger("click");
+    await button("other", "pages.news.comments.hide").trigger("click");
+    await flushPromises();
+
+    expect(toast).not.toHaveBeenCalled();
+    expect(gql.mutate).toHaveBeenCalledTimes(4);
     wrapper.unmount();
   });
 });

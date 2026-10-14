@@ -137,6 +137,24 @@ const removeComment = (comment: Comment) =>
 const hideComment = (comment: Comment, hidden: boolean, reason?: string) =>
   run(() => api.setHidden(comment.id, hidden, reason));
 
+// Query results are read-only (Apollo freezes them), so a comment is never
+// written into: it is replaced by an updated copy, inside its parent's
+// replies when it is a reply.
+function patchComment(id: string, patch: Partial<Comment>) {
+  const apply = (comment: Comment): Comment => {
+    if (comment.id === id) {
+      return { ...comment, ...patch };
+    }
+    if (comment.replies?.some((reply) => reply.id === id)) {
+      return { ...comment, replies: comment.replies.map(apply) };
+    }
+    return comment;
+  };
+  comments.value = comments.value.map(apply);
+}
+
+// The count and pressed state come from the server's answer, so a failed
+// request leaves both as they were.
 async function vote(comment: Comment) {
   if (busy.value) {
     return;
@@ -144,8 +162,11 @@ async function vote(comment: Comment) {
   busy.value = true;
   try {
     const result = await api.toggleVote(comment.id);
-    comment.vote_count = result.vote_count;
-    comment.votes = result.voted && meSteamId.value ? [{ steam_id: meSteamId.value }] : [];
+    patchComment(comment.id, {
+      vote_count: result.vote_count,
+      votes:
+        result.voted && meSteamId.value ? [{ steam_id: meSteamId.value }] : [],
+    });
   } catch (error) {
     toast({ title: errorMessage(error), variant: "destructive" });
   } finally {
