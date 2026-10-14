@@ -191,4 +191,33 @@ describe("match page wiring", () => {
   it("keeps the same chat permission inputs (canUseMatchChat, myLineup)", () => {
     expect(page).toMatch(/matchChatHubContext\(\s+this\.match,\s+this\.canUseMatchChat,\s+this\.myLineup,/);
   });
+
+  // Chat lives only in the Hub; the page offers an Open Chat entry for the
+  // same room it gives the Hub, and none to a viewer without a room.
+  it("has no embedded chat and an Open Chat entry for the context's room", () => {
+    expect(page).not.toMatch(/<ChatLobby|ChatLobby\.vue/);
+    expect(page).toMatch(
+      /<div v-if="chatHubFocusId"[\s\S]*?data-testid="match-open-chat"\s+@click="openChatHub"/,
+    );
+    expect(page).toMatch(
+      /chatHubFocusId\(\) \{\s+const context = this\.chatHubContext;\s+if \(!context\?\.rooms\?\.length\) return null;/,
+    );
+    expect(page).toContain("requestChatHubFocus(this.chatHubFocusId)");
+    // No room for a viewer the match chat does not admit, so no entry.
+    expect(matchChatHubContext(match(), false, null, t)).toBeNull();
+  });
+});
+
+describe("Open Chat on the match page", () => {
+  it.each([true, false])("opens the Hub on Match Chat (mobile: %s)", (mobile) => {
+    setViewport(mobile);
+    enterMatchPage(ROLES[0][1]);
+    useRightSidebar().setRightSidebarOpen(false);
+    useChatTabs().setActiveTab("match_team:m1:l1");
+
+    requestChatHubFocus("match:m1");
+    expect(hubOpen()).toBe(true);
+    expect(useChatTabs().activeTabId.value).toBe("match:m1");
+    expect(tabIds()).toEqual(["match:m1", "match_team:m1:l1"]);
+  });
 });

@@ -23,7 +23,8 @@ import LiveStreamPlayer from "~/components/match/LiveStreamPlayer.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import { Alert, AlertTitle, AlertDescription } from "~/components/ui/alert";
 import TimeAgo from "~/components/TimeAgo.vue";
-import { AlertTriangle } from "lucide-vue-next";
+import { AlertTriangle, MessageSquare } from "lucide-vue-next";
+import { Button } from "~/components/ui/button";
 import { useMatchContext } from "~/composables/useMatchContext";
 import {
   nextSelectedStatsMapId,
@@ -467,7 +468,8 @@ const vsBaseClasses =
     >
       <!-- Left column: match info and maps. On desktop it's the first grid
            column; on mobile it drops below the stream. Match Chat and Team
-           Chat live in the Chat Hub (see chatHubContext). -->
+           Chat live in the Chat Hub (see chatHubContext); Open Chat focuses
+           it, which matters on mobile where the Hub does not open itself. -->
       <div
         class="grid grid-cols-1 gap-y-4 md:gap-y-6 min-w-0"
         :class="
@@ -478,6 +480,19 @@ const vsBaseClasses =
               : ''
         "
       >
+        <div v-if="chatHubFocusId" class="flex justify-end">
+          <Button
+            variant="outline"
+            size="sm"
+            class="gap-1.5"
+            data-testid="match-open-chat"
+            @click="openChatHub"
+          >
+            <MessageSquare class="h-3.5 w-3.5" />
+            {{ $t("chat.open_chat") }}
+          </Button>
+        </div>
+
         <PageTransition :delay="100">
           <MatchInfo
             :match="match"
@@ -661,8 +676,10 @@ import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { eloFields } from "~/graphql/eloFields";
 import { useMatchContext } from "~/composables/useMatchContext";
 import {
+  chatHubTabId,
   matchChatHubContext,
   captainPickChatHubContext,
+  requestChatHubFocus,
   useChatHubContext,
   withoutMobileAutoOpen,
 } from "~/composables/useChatHubContext";
@@ -918,6 +935,9 @@ export default {
     },
   },
   methods: {
+    openChatHub() {
+      if (this.chatHubFocusId) requestChatHubFocus(this.chatHubFocusId);
+    },
     refetchMatchStatic() {
       return this.$apollo?.queries?.matchStatic?.refetch();
     },
@@ -1496,6 +1516,15 @@ export default {
               (key, params) => this.$t(key, params),
             );
       return withoutMobileAutoOpen(context, !!this.chatHubMobileLayout);
+    },
+    // The room Open Chat focuses: the context's own focus, else its first
+    // room (Match Chat). Nothing when the viewer has no room here.
+    chatHubFocusId() {
+      const context = this.chatHubContext;
+      if (!context?.rooms?.length) return null;
+      if (context.focus) return context.focus;
+      const room = context.rooms[0];
+      return chatHubTabId(room.type, room.lobbyId);
     },
     // Deliberately stricter than myLineup: is_on_lineup is only true
     // for an actual rostered player row (see is_on_lineup.sql), not a

@@ -8488,6 +8488,7 @@
   },
   "chat": {
     "readonly": "Chat is read-only.",
+    "open_chat": "Open Chat",
     "announcement_readonly": "Only admins can post here.",
     "confirm_delete_announcement": "Remove this announcement?",
     "confirm_delete_message": "Delete this chat message?",
