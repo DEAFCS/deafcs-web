@@ -43,6 +43,7 @@ vi.mock("~/components/chat/ChatLobby.vue", async () => {
       lobbyId: String,
       tabId: String,
       canSend: { type: Boolean, default: true },
+      readonlyHint: String,
       allowChatAttachments: { type: Boolean, default: true },
       isActiveTab: Boolean,
     },
@@ -77,6 +78,7 @@ import { useRightSidebar } from "../../composables/useRightSidebar";
 import { useChatNotificationNavigation } from "../../composables/useChatNotificationNavigation";
 import { useChatTabSetup } from "../../composables/useChatTabSetup";
 import {
+  draftChatHubContext,
   matchChatHubContext,
   useChatHubContext,
 } from "../../composables/useChatHubContext";
@@ -245,6 +247,91 @@ describe("Chat Hub room list", () => {
     expect(wrapper.findAll('[data-chat-tab-id^="captain_pick_team:"]')).toHaveLength(0);
     expect(text).toContain("chat_room_subtitles.draft");
     wrapper.unmount();
+  });
+
+  // Draft room spectators (Open room, drafting started): the same Draft
+  // chat the players use, read-only. Every other room keeps its composer.
+  it("shows a Draft room spectator the same Draft chat, read-only", async () => {
+    const { openTab } = useChatTabs();
+    openTab(room("match", "m1", "Match"), { setActive: false });
+    openTab(room("tournament", "t1", "Cup"), { setActive: false });
+    const Page = defineComponent({
+      setup() {
+        useChatHubContext(() =>
+          draftChatHubContext({
+            room: { id: "d1", match_id: null, host: { name: "Host" } },
+            match: null,
+            matchChatReady: false,
+            signedIn: true,
+            inLineup: false,
+            isOrganizer: false,
+            myLineupNumber: null,
+            t: (key: string) => key,
+            canChat: false,
+            canRead: true,
+            isParticipant: false,
+          }),
+        );
+        return () => h("div");
+      },
+    });
+    const page = mount(Page);
+    useChatTabs().setActiveTab("draft:d1");
+    const wrapper = mountPanel();
+    await flushPromises();
+
+    const draftTabs = useChatTabs().tabs.value.filter((t) => t.type === "draft");
+    expect(draftTabs).toHaveLength(1);
+    const lobbies = mocks.lobbyProps.filter((p) => p.type === "draft");
+    expect(lobbies.length).toBeGreaterThan(0);
+    expect(
+      lobbies.every((p) => p.lobbyId === "d1" && p.canSend === false),
+    ).toBe(true);
+    expect(lobbies[0].readonlyHint).toBe("draft_games.room.chat_players_only");
+    expect(wrapper.find('[data-lobby="draft:d1"]').text()).toContain(
+      "messages for d1",
+    );
+    for (const type of ["match", "tournament"]) {
+      const other = mocks.lobbyProps.filter((p) => p.type === type);
+      expect(other.length, type).toBeGreaterThan(0);
+      expect(other.every((p) => p.canSend === true), type).toBe(true);
+    }
+    wrapper.unmount();
+    page.unmount();
+    expect(useChatTabs().tabs.value.some((t) => t.id === "draft:d1")).toBe(
+      false,
+    );
+  });
+
+  it("keeps the composer for Draft room players", async () => {
+    const Page = defineComponent({
+      setup() {
+        useChatHubContext(() =>
+          draftChatHubContext({
+            room: { id: "d2", match_id: null, host: { name: "Host" } },
+            match: null,
+            matchChatReady: false,
+            signedIn: true,
+            inLineup: false,
+            isOrganizer: false,
+            myLineupNumber: null,
+            t: (key: string) => key,
+            canChat: true,
+            canRead: true,
+            isParticipant: true,
+          }),
+        );
+        return () => h("div");
+      },
+    });
+    const page = mount(Page);
+    const wrapper = mountPanel();
+    await flushPromises();
+    const lobbies = mocks.lobbyProps.filter((p) => p.type === "draft");
+    expect(lobbies.length).toBeGreaterThan(0);
+    expect(lobbies.every((p) => p.canSend === true)).toBe(true);
+    wrapper.unmount();
+    page.unmount();
   });
 
   it("never counts unread for match, team, draft or Captain Pick team rooms, but still does for tournament chat", async () => {

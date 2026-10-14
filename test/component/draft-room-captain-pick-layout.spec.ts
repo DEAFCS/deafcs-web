@@ -111,6 +111,8 @@ const room = (perTeam = 5, overrides: Record<string, unknown> = {}) => {
     capacity: perTeam * 2,
     current_pick_lineup: 1,
     host_steam_id: "1",
+    host: { name: "Player 1" },
+    access: "Open",
     is_organizer: false,
     match_id: null,
     picks: [],
@@ -272,5 +274,45 @@ describe("Draft Room Captain Pick uses the matchmaking Captain Pick layout", () 
     expect(
       w.get('[data-testid="draft-board-middle"]').findAll("[data-card]"),
     ).toHaveLength(poolSize);
+  });
+});
+
+// The Chat Hub offers the Draft chat with the same rules the API applies:
+// players post, Open room spectators read once drafting starts, private
+// rooms stay closed to outsiders.
+describe("Draft Room chat in the Chat Hub", () => {
+  const hubRooms = () => mocks.hubContext().rooms;
+
+  it("offers an Open room spectator the Draft chat read-only while drafting", () => {
+    render("99");
+    expect(hubRooms()).toEqual([
+      expect.objectContaining({ type: "draft", lobbyId: "draft-1", readOnly: true }),
+    ]);
+    expect(mocks.hubContext().autoOpen).toBe(false);
+  });
+
+  it("gives players, the host and organizers the writable room", () => {
+    for (const self of ["1", "2", "5"]) {
+      render(self);
+      expect(hubRooms(), self).toEqual([
+        expect.not.objectContaining({ readOnly: true }),
+      ]);
+      expect(hubRooms()[0].lobbyId).toBe("draft-1");
+    }
+    render("99", room(5, { is_organizer: true }));
+    expect(hubRooms()[0].readOnly).toBeUndefined();
+  });
+
+  it.each(["Private", "Invite", "Friends"])(
+    "offers a %s room spectator nothing",
+    (access) => {
+      render("99", room(5, { access }));
+      expect(hubRooms()).toEqual([]);
+    },
+  );
+
+  it("offers nothing when signed out", () => {
+    render(null);
+    expect(hubRooms()).toEqual([]);
   });
 });

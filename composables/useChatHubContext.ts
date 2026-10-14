@@ -32,6 +32,8 @@ export interface ChatHubContextRoom {
   lobbyId: string;
   label: string;
   parentMatchId?: string;
+  // Offered for reading only (see ChatTab.readOnly).
+  readOnly?: boolean;
 }
 
 export interface ChatHubContext {
@@ -123,15 +125,18 @@ export function captainPickChatHubContext(
 
 // Draft room. The Draft chat while there is no match yet, then the match's
 // Match Chat plus the viewer's own Team Chat once its lineups exist
-// (organizers get Match Chat only). Rooms are only offered to viewers who
-// can post in them; the Hub only opens by itself for the room's players,
-// its host and organizers.
+// (organizers get Match Chat only). The Draft chat is offered to viewers who
+// can post in it and, read-only, to signed-in viewers the API lets read it
+// but not post (`canRead`: a spectator of an Open room once drafting
+// starts). The Hub only opens by itself for the room's players, its host
+// and organizers.
 export function draftChatHubContext(input: {
   room: any;
   match: any;
   matchChatReady: boolean;
   signedIn: boolean;
   canChat: boolean;
+  canRead?: boolean;
   inLineup: boolean;
   isOrganizer: boolean;
   isParticipant: boolean;
@@ -163,13 +168,14 @@ export function draftChatHubContext(input: {
         label: lineup?.name || t("chat_tab_labels.match_team"),
       });
     }
-  } else if (input.signedIn && input.canChat) {
+  } else if (input.signedIn && (input.canChat || input.canRead)) {
     rooms.push({
       type: "draft",
       lobbyId: room.id,
       label: room.host?.name
         ? t("draft_games.room.host_room", { name: room.host.name })
         : t("chat_tab_labels.draft"),
+      ...(input.canChat ? {} : { readOnly: true }),
     });
   }
   return {
@@ -302,6 +308,12 @@ export function useChatHubContext(
       const tab = tabs.value.find((t) => t.id === id);
       if (tab?.type === "captain_pick_team") {
         tab.parentMatchId = room.parentMatchId;
+      }
+      // Follows the context as it changes (an Open lobby becoming a draft,
+      // a spectator joining the room) without a second tab for the room.
+      if (tab && !!tab.readOnly !== !!room.readOnly) {
+        if (room.readOnly) tab.readOnly = true;
+        else delete tab.readOnly;
       }
     }
 

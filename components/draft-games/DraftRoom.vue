@@ -174,6 +174,17 @@ const canChat = computed(() => {
   }
   return isLobbyPhase.value || isMember.value || isOrganizer.value;
 });
+// Who the API lets read the Draft chat (chat.service joinMatchLobby, as
+// upstream): Open rooms, the host, anyone with a row in the room, and
+// organizers. Private, Friends and Invite rooms stay closed to everyone
+// else.
+const canReadDraftChat = computed(
+  () =>
+    props.room.access === "Open" ||
+    isHost.value ||
+    !!myMembership.value ||
+    isOrganizer.value,
+);
 // Chat Hub: the Draft chat until the match exists, then the Match Chat of
 // that match plus the own Team Chat of the viewer (see draftChatHubContext).
 useChatHubContext(() =>
@@ -183,6 +194,7 @@ useChatHubContext(() =>
     matchChatReady: matchChatReady.value,
     signedIn: !!me.value,
     canChat: canChat.value,
+    canRead: canReadDraftChat.value,
     inLineup: inLineup.value,
     isOrganizer: isOrganizer.value,
     isParticipant: isMember.value || isHost.value,

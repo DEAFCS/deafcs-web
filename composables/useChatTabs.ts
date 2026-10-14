@@ -42,6 +42,10 @@ export interface ChatTab {
   unopened?: boolean;
   // An explicitly opened pending request is temporary until the server accepts it.
   requestPreview?: boolean;
+  // Offered by a page context for reading only (a Draft room spectator):
+  // the Hub shows its history without a composer. The API still decides
+  // who may post; this only hides controls it would refuse anyway.
+  readOnly?: boolean;
 }
 
 const DM_TABS_STORAGE_KEY = "chat-open-dm-tabs";

@@ -483,6 +483,73 @@ describe("Draft room", () => {
     // Same context: the manual close stands.
     expect(useRightSidebar().rightSidebarOpen.value).toBe(false);
   });
+  // Spectators: offered the same Draft chat read-only where the API lets
+  // them read it (Open rooms), never a second room, never private rooms.
+  const spectator = {
+    ...base,
+    canChat: false,
+    canRead: true,
+    isParticipant: false,
+  };
+
+  it("offers an Open room spectator the same Draft chat, read-only", () => {
+    const context = draftChatHubContext(spectator);
+    expect(context.rooms).toEqual([
+      {
+        type: "draft",
+        lobbyId: "d1",
+        label: "draft_games.room.host_room(Host)",
+        readOnly: true,
+      },
+    ]);
+    expect(context.autoOpen).toBe(false);
+  });
+
+  it("offers nothing to a spectator of a private or invite-only room, or when signed out", () => {
+    expect(draftChatHubContext({ ...spectator, canRead: false }).rooms).toEqual(
+      [],
+    );
+    expect(
+      draftChatHubContext({ ...spectator, signedIn: false }).rooms,
+    ).toEqual([]);
+  });
+
+  it("offers a spectator no Match or Team Chat once the match exists", () => {
+    const ready = {
+      ...spectator,
+      room: { ...room, match_id: MATCH_ID },
+      match: match(),
+      matchChatReady: true,
+    };
+    expect(draftChatHubContext(ready).rooms).toEqual([]);
+  });
+
+  it("keeps one Draft tab whose read-only flag follows the room", async () => {
+    // Open lobby: everyone in the room may post (upstream), so no flag.
+    const { context } = mountContext(
+      draftChatHubContext({ ...spectator, canChat: true }),
+    );
+    const draftTab = () =>
+      useChatTabs().tabs.value.filter((t) => t.id === "draft:d1");
+    expect(draftTab()).toHaveLength(1);
+    expect(draftTab()[0].readOnly).toBeUndefined();
+
+    // Drafting starts: read-only, same tab.
+    context.value = draftChatHubContext(spectator);
+    await flush();
+    expect(draftTab()).toHaveLength(1);
+    expect(draftTab()[0].readOnly).toBe(true);
+
+    // Joins as a player: writable, same tab.
+    context.value = draftChatHubContext({
+      ...spectator,
+      canChat: true,
+      isParticipant: true,
+    });
+    await flush();
+    expect(draftTab()).toHaveLength(1);
+    expect(draftTab()[0].readOnly).toBeUndefined();
+  });
 });
 
 describe("notification focus", () => {

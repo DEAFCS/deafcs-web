@@ -164,8 +164,11 @@ const isAdmin = computed(() =>
 // Everyone can read Announcements (see joinMatchLobby's Announcement
 // case), but only admins can post -- every other channel type is
 // unrestricted here (ChatLobby's own `canSend` prop defaults to true).
+// A room a page offers read-only (a Draft room spectator, see
+// draftChatHubContext) shows its history with no composer.
 function canSendToTab(tab: ChatTab) {
   if (awaitingReply(tab)) return false;
+  if (tab.readOnly) return false;
   if (tab.type === "announcement") return isAdmin.value;
   return true;
 }
@@ -173,6 +176,9 @@ function canSendToTab(tab: ChatTab) {
 function readonlyHintFor(tab: ChatTab) {
   if (awaitingReply(tab))
     return t("layouts.chat_panel.requests.awaiting_reply", { name: tab.label });
+  if (tab.readOnly && tab.type === "draft") {
+    return t("draft_games.room.chat_players_only");
+  }
   if (tab.type === "announcement") {
     return t("chat.announcement_readonly", "Only admins can post here.");
   }
