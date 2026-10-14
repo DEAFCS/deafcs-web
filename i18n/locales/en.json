@@ -3086,11 +3086,139 @@
         "in_minutes": "in {count} min",
         "in_hours": "in {count} h",
         "tomorrow": "tomorrow",
-        "in_days": "in {count} days"
+        "in_days": "in {count} days",
+        "check_in": "Check in",
+        "connect": "Connect",
+        "details": "Details",
+        "open_match": "Open match",
+        "live_round": "Live · Round {round}",
+        "live": "Live",
+        "check_in_progress": "Check-in {checked}/{total}",
+        "checked_in": "Checked in · {checked}/{total}",
+        "check_in_closes": "closes {time}",
+        "veto": "Map veto",
+        "waiting_for_server": "Waiting for server",
+        "picking_players": "Picking players",
+        "scheduled": "Scheduled",
+        "now": "Now",
+        "check_in_open": "Check-in open",
+        "check_in_opens": "Check-in opens {time}",
+        "registered": "Registered",
+        "teams": "{count} teams"
       },
       "more_ways": {
         "scrims": {
-          "find": "Find a scrim"
+          "find": "Find a scrim",
+          "title": "Scrims",
+          "teams_today": "team looking for a scrim today | teams looking for a scrim today",
+          "none_today": "No teams looking for a scrim today",
+          "needs_team": "Needs a team you manage",
+          "post_hint": "Post when your team is free and others can request a scrim.",
+          "post": "Post availability"
+        },
+        "title": "More ways to play",
+        "drop_in": {
+          "playing": "playing on public servers | playing on public servers",
+          "all_servers": "All servers ({count})",
+          "players": "players",
+          "connect": "Connect",
+          "copy": "Copy the connect command"
+        },
+        "tournaments": {
+          "all": "All tournaments"
+        },
+        "league": {
+          "title": "League",
+          "open_until": "Registration open until {date}",
+          "open": "Registration open",
+          "teams_in": "{count} team in | {count} teams in",
+          "sign_in": "Sign in to register",
+          "register": "Register a team"
+        }
+      },
+      "draft_rooms": {
+        "sort": {
+          "filling": "Filling up first",
+          "newest": "Newest",
+          "rank_high": "Highest average rank",
+          "rank_low": "Lowest average rank"
+        },
+        "title": "Draft rooms",
+        "description": "Pick-up games other players host. Captains or the host split the teams.",
+        "format_label": "Format",
+        "search_placeholder": "Search players",
+        "clear_search": "Clear search",
+        "filters": "Filters",
+        "filters_title": "Filter and sort",
+        "has_space": "Only rooms with space",
+        "avg_rank": "Average rank",
+        "any_rank": "Any",
+        "sort_label": "Sort by",
+        "empty": "No open draft rooms right now.",
+        "no_results": "No rooms match these filters.",
+        "clear_filters": "Clear filters",
+        "drafting": "Drafting",
+        "host_elo": "Host · {elo} ELO",
+        "subs": "+{count} subs",
+        "host_bar": {
+          "seats": "{count} seats",
+          "rehost_detail": "{format} {mode}, {access}",
+          "title": "Host a room",
+          "draft": "Draft style",
+          "access": "Who can join",
+          "all_settings": "All settings",
+          "back_to_room": "Back to your room",
+          "open": "Open {format} Room",
+          "sign_in": "Sign in to host",
+          "phrase": {
+            "captains": "Top 2 by rank captain, snake order",
+            "host": "You put players on teams",
+            "pug": "Teams auto-balance when the room fills"
+          }
+        },
+        "rehost": "Re-host last",
+        "intro": {
+          "dismiss": "Dismiss",
+          "title": "Run your own pick-up game.",
+          "body": "Open a room, let players fill it, and captains draft the teams. Standard rules count toward ELO.",
+          "board_label": "How a captains draft works",
+          "you": "You",
+          "captain": "Captain",
+          "your_pick": "Your pick",
+          "picking": "Picking",
+          "pool": "Still in the pool",
+          "steps": {
+            "open": "Open a room",
+            "join": "Players join",
+            "draft": "Captains draft",
+            "play": "Match starts"
+          }
+        },
+        "teams_title": "{team1} vs {team2}",
+        "open_team": "open team",
+        "avg": "Avg {rank}",
+        "custom_mode": "{mode} mode, unranked",
+        "reasons": {
+          "spots_left": "{count} spot left | {count} spots left",
+          "youre_in": "You're in",
+          "waiting_for_host": "Waiting for the host",
+          "subs_waiting": "{count} sub waiting | {count} subs waiting",
+          "full": "Full",
+          "host_approves": "The host approves",
+          "no_room_for_party": "No room for your party"
+        },
+        "sign_in_to_join": "Sign in to join",
+        "join_party": "Join with party ({count})",
+        "types": {
+          "captains": "Captains draft",
+          "host": "Host assigns",
+          "pug": "Auto-split",
+          "teams": "Pre-made teams"
+        },
+        "access": {
+          "friends": "Friends only",
+          "invite": "Invite only",
+          "private": "Private"
         }
       }
     },

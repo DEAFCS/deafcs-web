@@ -105,9 +105,12 @@ test("homepage, Play, and Tournaments retain their header titles", () => {
     homepage,
     /<TacticalPageHeader inline-actions>[\s\S]*<template #title>DEAFCS<\/template>/,
   );
+  // Play follows 5Stack like Watch: no banner, the title stays for assistive
+  // tech.
+  assert.doesNotMatch(play, /TacticalPageHeader/);
   assert.match(
     play,
-    /<TacticalPageHeader inline-actions>[\s\S]*<template #title>\{\{ \$t\("pages\.play\.title"\) \}\}<\/template>/,
+    /<h1 class="sr-only">\{\{ \$t\("pages\.play\.title"\) \}\}<\/h1>/,
   );
   assert.match(
     tournaments,

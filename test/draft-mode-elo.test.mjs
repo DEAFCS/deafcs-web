@@ -35,10 +35,11 @@ const draftOpenSlot = await source(
 const draftSettingsBar = await source(
   "components/draft-games/DraftSettingsBar.vue",
 );
-const draftGameCard = await source(
-  "components/draft-games/DraftGameCard.vue",
-);
-const draftGames = await source("components/draft-games/DraftGames.vue");
+// /play's draft rooms are 5Stack's PlayDraftRooms (the old DraftGames list
+// and DraftGameCard were removed with that port).
+const playDraftRooms = await source("components/play/PlayDraftRooms.vue");
+const playDraftRoomRow = await source("components/play/PlayDraftRoomRow.vue");
+const draftRoomRow = await source("components/play/draftRoomRow.ts");
 const draftRequestQueue = await source(
   "components/draft-games/DraftRequestQueue.vue",
 );
@@ -142,18 +143,34 @@ test("overall and team Draft averages use active-season mode ELO without snapsho
   assert.doesNotMatch(draftTeamPanel, /elo_snapshot/);
 });
 
-test("Play-page Draft cards and rank filtering share active-season mode ELO", () => {
-  const matchTypeBindings = draftGameCard.match(
-    /:match-type="draftGame\.type"/g,
+test("Play-page Draft rooms and rank filtering share active-season mode ELO", () => {
+  // The room's average and one player's rating come from the room's own
+  // type, over accepted players, through the active-season resolver.
+  assert.match(
+    draftRoomRow,
+    /averageActiveSeasonEloForMode\(\s*acceptedPlayers\(game\),\s*game\?\.type,/,
   );
-  assert.equal(matchTypeBindings?.length, 2);
-  assert.match(draftGameCard, /averageActiveSeasonEloForMode\(/);
-  assert.match(draftGameCard, /activeSeasonEloForMode\(/);
-  assert.doesNotMatch(draftGameCard, /playerWithElo|elo_snapshot/);
+  assert.match(
+    draftRoomRow,
+    /activeSeasonEloForMode\(eloFor\(row\?\.player\), game\?\.type\)/,
+  );
+  assert.match(draftRoomRow, /p\.status === "Accepted"/);
 
-  assert.match(draftGames, /averageActiveSeasonEloForMode\(/);
-  assert.match(draftGames, /p\.status === "Accepted"/);
-  assert.doesNotMatch(draftGames, /elo_snapshot/);
+  // Filtering, sorting, the meta line, host rating and face order all pass
+  // the viewer's resolver, so none falls back to join-time snapshots.
+  assert.match(playDraftRooms, /usePlayerActiveSeasonElo\(\)/);
+  assert.match(
+    playDraftRooms,
+    /filterDraftRooms\(rooms\.value, filters\.value, eloForPlayer\)/,
+  );
+  assert.match(playDraftRoomRow, /usePlayerActiveSeasonElo\(\)/);
+  assert.match(
+    playDraftRoomRow,
+    /draftMetaParts\(props\.draftGame, t, locale\.value, eloForPlayer\)/,
+  );
+  assert.match(playDraftRoomRow, /draftPlayerElo\(props\.draftGame, row, eloForPlayer\)/);
+  assert.doesNotMatch(playDraftRoomRow, /elo_snapshot|elo\?\.competitive/);
+  assert.doesNotMatch(playDraftRooms, /elo_snapshot/);
 });
 
 test("Draft request display, filter, and sort use current Draft-mode ELO", () => {
@@ -179,8 +196,9 @@ test("current Draft and Play-Draft paths never opt into historical match ELO", (
     playerRanks,
     draftOpenSlot,
     draftSettingsBar,
-    draftGameCard,
-    draftGames,
+    playDraftRooms,
+    playDraftRoomRow,
+    draftRoomRow,
     draftRequestQueue,
   ].join("\n");
   assert.doesNotMatch(currentUi, /historical[-_A-Za-z]*elo/i);
