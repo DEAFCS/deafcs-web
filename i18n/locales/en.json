@@ -8317,6 +8317,7 @@
     "match_chat": "Match Chat",
     "source_website": "DEAFCS",
     "message_placeholder": "Type a message...",
+    "message_placeholder_mobile": "Message...",
     "message_placeholder_global": "Message everyone...",
     "message_placeholder_team": "Message your team...",
     "new_since_last_visit": "New",

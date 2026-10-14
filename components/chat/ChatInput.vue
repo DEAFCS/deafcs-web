@@ -2,6 +2,9 @@
 import { Film, RotateCw, SendHorizontal, X } from "lucide-vue-next";
 import { Textarea } from "~/components/ui/textarea";
 import { chatEnterAction } from "~/utilities/chatInputKeys";
+import { useMediaQuery } from "@vueuse/core";
+
+const isMobile = useMediaQuery("(max-width: 768px)");
 
 // Enter sends; Shift+Enter inserts a real line break instead -- native
 // <textarea> already does that on its own, so this only needs to
@@ -101,12 +104,13 @@ function autoResize(event: Event) {
               :placeholder="
                 isWebsiteRestricted
                   ? $t('account_restriction.short')
-                  : placeholder || $t('chat.message_placeholder')
+                  : placeholder || $t(isMobile ? 'chat.message_placeholder_mobile' : 'chat.message_placeholder')
               "
               :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none transition-all duration-200"
+              :class="{ 'min-w-0 w-0 [&::placeholder]:whitespace-nowrap': isMobile }"
               @keydown="
                 (event) => {
                   if (event.isComposing) return;
@@ -222,12 +226,13 @@ function autoResize(event: Event) {
               :placeholder="
                 isWebsiteRestricted
                   ? $t('account_restriction.short')
-                  : placeholder || $t('chat.message_placeholder')
+                  : placeholder || $t(isMobile ? 'chat.message_placeholder_mobile' : 'chat.message_placeholder')
               "
               :disabled="isWebsiteRestricted"
               autocomplete="off"
               v-bind="componentField"
               class="flex-1 min-h-0 resize-none border-0 shadow-none focus-visible:ring-0"
+              :class="{ 'min-w-0 w-0 [&::placeholder]:whitespace-nowrap': isMobile }"
               @keydown="
                 (event) => {
                   if (event.isComposing) return;
