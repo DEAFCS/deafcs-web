@@ -8,19 +8,9 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import InstallAppQrDialog from "~/components/InstallAppQrDialog.vue";
 import {
-  Settings,
-  LogOut,
   ChevronsUpDown,
   CheckCircle2,
   Info,
@@ -32,7 +22,6 @@ import {
   ShieldCheck,
   FileText,
   MessagesSquare,
-  LifeBuoy,
   Menu,
 } from "lucide-vue-next";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
@@ -42,6 +31,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PlayerPendingImports from "~/components/PlayerPendingImports.vue";
 import { useAuthStore } from "~/stores/AuthStore";
 import Logout from "./Logout.vue";
+import ProfileMenu from "./ProfileMenu.vue";
 import MatchLobbies from "./MatchLobbies.vue";
 import DraftRoomNav from "./DraftRoomNav.vue";
 import SystemStatus from "./SystemStatus.vue";
@@ -1356,8 +1346,14 @@ const socialLinkClasses =
             }}</span>
           </Button>
 
-          <DropdownMenu v-model:open="profileMenuOpen">
-            <DropdownMenuTrigger as-child>
+          <!-- 5Stack's shared account menu (ProfileMenu). -->
+          <ProfileMenu
+            v-model:open="profileMenuOpen"
+            side="bottom"
+            align="end"
+            @logout="showLogoutModal = true"
+          >
+            <template #trigger>
               <button type="button" :class="profileButtonClasses">
                 <PlayerDisplay
                   :player="me"
@@ -1372,61 +1368,10 @@ const socialLinkClasses =
                   v-if="pendingMatchImports.length > 0"
                   :imports="pendingMatchImports"
                 />
-                <ChevronsUpDown class="h-4 w-4" />
+                <ChevronsUpDown class="h-4 w-4 max-sm:hidden" />
               </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              class="w-56 rounded-lg border border-topnav-border bg-topnav shadow-lg"
-              align="end"
-              :side-offset="4"
-            >
-              <DropdownMenuItem
-                class="p-3 font-normal transition-colors hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-topnav-accent focus:bg-[hsl(var(--tac-amber)/0.08)]"
-                as-child
-              >
-                <NuxtLink
-                  :to="{
-                    name: 'players-id',
-                    params: { id: me.steam_id },
-                  }"
-                >
-                  <PlayerDisplay :player="me" :show-online="false" />
-                </NuxtLink>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator class="bg-topnav-border" />
-              <DropdownMenuGroup>
-                <DropdownMenuItem
-                  class="flex gap-2 p-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-topnav-accent focus:bg-[hsl(var(--tac-amber)/0.08)]"
-                  as-child
-                >
-                  <NuxtLink
-                    :to="{ name: 'settings' }"
-                    class="flex items-center gap-2"
-                  >
-                    <Settings class="h-4 w-4" />
-                    {{ $t("layouts.app_nav.profile.my_account") }}
-                  </NuxtLink>
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  class="flex gap-2 p-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-topnav-accent focus:bg-[hsl(var(--tac-amber)/0.08)]"
-                  as-child
-                >
-                  <NuxtLink to="/support" class="flex items-center gap-2">
-                    <LifeBuoy class="h-4 w-4" />
-                    My Support Requests
-                  </NuxtLink>
-                </DropdownMenuItem>
-              </DropdownMenuGroup>
-              <DropdownMenuSeparator class="bg-topnav-border" />
-              <DropdownMenuItem
-                class="flex gap-2 p-3 transition-colors hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-topnav-accent focus:bg-[hsl(var(--tac-amber)/0.08)]"
-                @click="showLogoutModal = true"
-              >
-                <LogOut />
-                {{ $t("layouts.app_nav.profile.logout") }}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            </template>
+          </ProfileMenu>
 
           <div
             id="right-sidebar-trigger"

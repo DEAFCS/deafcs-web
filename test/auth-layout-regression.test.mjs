@@ -19,6 +19,13 @@ const authStore = await readFile(
   new URL("../stores/AuthStore.ts", import.meta.url),
   "utf8",
 );
+const profileMenu = await readFile(
+  new URL("../layouts/components/ProfileMenu.vue", import.meta.url),
+  "utf8",
+);
+const en = JSON.parse(
+  await readFile(new URL("../i18n/locales/en.json", import.meta.url), "utf8"),
+);
 const topNav = await readFile(
   new URL("../layouts/components/TopNav.vue", import.meta.url),
   "utf8",
@@ -104,12 +111,17 @@ test("all logged-in navigation variants show My Support Requests", () => {
   );
   const guestTopNav = topNav.slice(guestTopNavStart);
 
+  // The top nav's account menu is the shared ProfileMenu (5Stack); My Support
+  // Requests is its row in place of upstream's Help & FAQ.
+  assert.match(loggedInTopNav, /<ProfileMenu[\s\S]*?@logout="showLogoutModal = true"/);
   assert.match(
-    loggedInTopNav,
-    /<NuxtLink to="\/support"[^>]*>[\s\S]*My Support Requests/,
+    profileMenu,
+    /to="\/support"[\s\S]*?layouts\.app_nav\.profile\.support_requests/,
   );
+  assert.equal(en.layouts.app_nav.profile.support_requests, "My Support Requests");
+  assert.doesNotMatch(profileMenu, /isAdmin|administrator|name: 'faq'/);
   assert.doesNotMatch(loggedInTopNav, /isAdmin|administrator/);
-  assert.doesNotMatch(guestTopNav, /My Support Requests|to="\/support"/);
+  assert.doesNotMatch(guestTopNav, /My Support Requests|to="\/support"|<ProfileMenu/);
   assert.match(
     leftNav,
     /<NuxtLink[\s\S]*?to="\/support"[\s\S]*?My Support Requests/,

@@ -4902,7 +4902,10 @@
       },
       "profile": {
         "my_account": "My Settings",
-        "logout": "Logout"
+        "logout": "Logout",
+        "section": "Account",
+        "view_profile": "View profile",
+        "support_requests": "My Support Requests"
       },
       "footer": {
         "report_issue": "Report an Issue",
