@@ -103,6 +103,8 @@ const settings = reactive<any>({
   captainPickEnabled: true,
   maxCompetitivePartySize: 5,
   matchmakingAllowed: true,
+  matchmakingEnabled: true,
+  matchmakingRoleAllowed: true,
   canCreateMatch: false,
 });
 const auth = reactive<any>({
@@ -123,7 +125,11 @@ vi.stubGlobal("useWebsiteRestrictionStore", () => ({ isRestricted: false }));
 vi.stubGlobal("useApplicationSettingsStore", () => settings);
 vi.stubGlobal("navigateTo", vi.fn());
 
-import { useQuickQueue } from "../../composables/useQuickQueue";
+import {
+  rememberQueueMode,
+  useQuickQueue,
+} from "../../composables/useQuickQueue";
+import { clearPendingJoin } from "../../utilities/matchmakingJoinPending";
 import PartyQueueLine from "../../components/hub/PartyQueueLine.vue";
 import QuickPlayButton from "../../components/matchmaking-lobby/QuickPlayButton.vue";
 import LobbyPanel from "../../components/hub/LobbyPanel.vue";
@@ -179,6 +185,7 @@ function search(details: Record<string, unknown>) {
 beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(NOW);
+  clearPendingJoin();
   mocks.socketEvents.length = 0;
   store.currentLobby = null;
   store.lobbyInvites = [];
@@ -353,6 +360,74 @@ describe("shared queue rules (useQuickQueue)", () => {
     expect(mocks.socketEvents).toEqual([]);
   });
 
+  it("a repeated click sends one join until the server answers", () => {
+    const { api } = withQueue();
+    expect(api.join("Competitive")).toBe(true);
+    expect(api.join("Competitive")).toBe(false);
+    expect(api.join("Wingman")).toBe(false);
+    expect(mocks.socketEvents).toHaveLength(1);
+    clearPendingJoin(); // matchmaking:error or matchmaking:details arrived
+    expect(api.join("Wingman")).toBe(true);
+    expect(mocks.socketEvents).toHaveLength(2);
+  });
+
+  it("two entry points at once (e.g. /play and the hub) still send one join", () => {
+    const first = withQueue().api;
+    const second = withQueue().api;
+    expect(first.join("Competitive")).toBe(true);
+    expect(second.join("CompetitiveCaptainPick")).toBe(false);
+    expect(mocks.socketEvents).toEqual([
+      ["matchmaking:join-queue", { type: "Competitive", regions: ["EU"] }],
+    ]);
+  });
+
+  it("a lost answer does not block queueing forever", () => {
+    const { api } = withQueue();
+    api.join("Competitive");
+    vi.advanceTimersByTime(8001);
+    expect(api.join("Competitive")).toBe(true);
+  });
+
+  it("never joins while searching, in a ready check or a Captain Pick draft", () => {
+    const { api } = withQueue();
+    search({ type: "Competitive", joinedAt: new Date(NOW).toISOString() });
+    expect(api.join("Wingman")).toBe(false);
+    store.joinedMatchmakingQueues = {
+      confirmation: { confirmationId: "c1", confirmed: 0, players: 10 },
+    };
+    expect(api.join("Wingman")).toBe(false);
+    expect(mocks.socketEvents).toEqual([]);
+  });
+
+  it("only the leader joins, and only while matchmaking is open to them", () => {
+    store.currentLobby = lobby("2");
+    const { api } = withQueue();
+    expect(api.join("Competitive")).toBe(false);
+    store.currentLobby = null;
+    settings.matchmakingRoleAllowed = false;
+    expect(api.join("Competitive")).toBe(false);
+    settings.matchmakingRoleAllowed = true;
+    settings.matchmakingEnabled = false;
+    expect(api.join("Competitive")).toBe(false);
+    settings.matchmakingEnabled = true;
+    expect(mocks.socketEvents).toEqual([]);
+  });
+
+  it("the socket clears the pending join on both server answers", () => {
+    const socketSource = fs.readFileSync(
+      path.resolve(__dirname, "../../web-sockets/Socket.ts"),
+      "utf8",
+    );
+    const errorAt = socketSource.indexOf('socket.listen("matchmaking:error"');
+    const detailsAt = socketSource.indexOf('"matchmaking:details"');
+    expect(socketSource.indexOf("clearPendingJoin()", errorAt)).toBeLessThan(
+      errorAt + 120,
+    );
+    expect(socketSource.indexOf("clearPendingJoin()", detailsAt)).toBeLessThan(
+      detailsAt + 500,
+    );
+  });
+
   it("hides Captain Pick while its switch is off", () => {
     settings.captainPickEnabled = false;
     const { api } = withQueue();
@@ -392,7 +467,7 @@ describe("header Play control (QuickPlayButton)", () => {
     });
 
   it("one click queues the remembered mode, and the menu lists the four modes in order", async () => {
-    window.localStorage.setItem("matchmaking-last-mode", "Wingman");
+    rememberQueueMode("Wingman");
     const wrapper = mountButton();
     const items = wrapper.findAll('[role="menuitem"][data-mode-key]');
     expect(items.map((item) => item.attributes("data-mode-key"))).toEqual([

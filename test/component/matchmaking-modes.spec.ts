@@ -64,6 +64,7 @@ vi.mock("~/components/matchmaking/MatchmakingSettingsPanel.vue", async () => {
 });
 
 import PlayMatchmaking from "../../components/play/PlayMatchmaking.vue";
+import { clearPendingJoin } from "../../utilities/matchmakingJoinPending";
 
 const passthrough = (tag: string) =>
   defineComponent({
@@ -142,6 +143,7 @@ async function queue(wrapper: ReturnType<typeof mount>, key: string) {
 }
 
 beforeEach(() => {
+  clearPendingJoin();
   mocks.socketEvent.mockClear();
   mocks.toast.mockClear();
   mocks.navigateTo.mockClear();
@@ -253,6 +255,7 @@ describe("/play matchmaking hero", () => {
   it("leaves 2v2 and 1v1 unchanged", async () => {
     const wrapper = await mountHero();
     await queue(wrapper, "Wingman");
+    clearPendingJoin(); // the server answered the first join
     await queue(wrapper, "Duel");
 
     expect(mocks.socketEvent.mock.calls).toEqual([

@@ -5,6 +5,7 @@ import { CHAT_REACTIONS, type ChatReaction } from "~/utils/chatReactions";
 import type { ChatAttachment, ChatGif } from "~/utilities/chatAttachments";
 
 import guid from "~/utilities/uuid";
+import { clearPendingJoin } from "~/utilities/matchmakingJoinPending";
 import { isTeamChatHidden } from "~/composables/useTeamChatRoom";
 import {
   toastChatError,
@@ -1020,6 +1021,7 @@ socket.listen("players-online", (onlinePlayerSteamIds) => {
 });
 
 socket.listen("matchmaking:error", (data: { message: string }) => {
+  clearPendingJoin();
   toast({
     variant: "destructive",
     title: useNuxtApp().$i18n.t("common.error"),
@@ -1051,6 +1053,7 @@ socket.listen(
     if (received?.details) {
       received.details.receivedAt = Date.now();
     }
+    clearPendingJoin();
     useMatchmakingStore().joinedMatchmakingQueues = data;
   },
 );

@@ -7,6 +7,10 @@ import { e_match_types_enum } from "~/generated/zeus";
 import { localServerTime } from "~/utilities/matchmakingDeadline";
 import { EXPECTED_PLAYERS } from "~/utilities/matchmakingPartySize";
 import {
+  isJoinPending,
+  markJoinPending,
+} from "~/utilities/matchmakingJoinPending";
+import {
   buildMatchmakingModes,
   canQueueMode,
   joinQueuePayload,
@@ -199,8 +203,40 @@ export function useQuickQueue() {
         ? modes.value.find((candidate) => candidate.key === mode)
         : modes.value.find((candidate) => candidate.key === mode.key);
     if (!picked) return false;
-    if (!useAuthStore().me?.steam_id) {
+    const me = useAuthStore().me;
+    if (!me?.steam_id) {
       navigateTo("/login?redirect=/play");
+      return false;
+    }
+    // Already searching, in a ready check or a Captain Pick draft, or a
+    // join is on its way: nothing new to start.
+    const current = matchmakingStore.joinedMatchmakingQueues as any;
+    if (current?.details || current?.confirmation || isJoinPending()) {
+      return false;
+    }
+    // Only the party leader queues (the API refuses everyone else).
+    const lobby = matchmakingStore.currentLobby as any;
+    if (
+      lobby?.players?.length &&
+      !lobby.players.some(
+        (slot: any) =>
+          slot.captain && String(slot.player?.steam_id) === String(me.steam_id),
+      )
+    ) {
+      return false;
+    }
+    if (!settings.matchmakingRoleAllowed) {
+      toast({
+        title: t("pages.play.matchmaking.verification_required"),
+        variant: "destructive",
+      });
+      return false;
+    }
+    if (!settings.matchmakingEnabled) {
+      toast({
+        title: t("pages.play.matchmaking.closed"),
+        variant: "destructive",
+      });
       return false;
     }
     if (restricted.value) {
@@ -219,6 +255,7 @@ export function useQuickQueue() {
       return false;
     }
     rememberQueueMode(picked.key);
+    markJoinPending();
     socket.event(
       "matchmaking:join-queue",
       joinQueuePayload(picked, regions.value),
