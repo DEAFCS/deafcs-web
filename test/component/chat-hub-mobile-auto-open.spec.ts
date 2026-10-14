@@ -192,23 +192,62 @@ describe("match page wiring", () => {
     expect(page).toMatch(/matchChatHubContext\(\s+this\.match,\s+this\.canUseMatchChat,\s+this\.myLineup,/);
   });
 
-  // Chat lives only in the Hub; the page offers an Open Chat entry for the
-  // same room it gives the Hub, and none to a viewer without a room.
-  it("has no embedded chat and an Open Chat entry for the context's room", () => {
+  // Chat lives only in the Hub, reached from the Chat Hub icon. Anders
+  // 2026-10-14: no page-level Open Chat button.
+  it("has no embedded chat and no Open Chat button", () => {
     expect(page).not.toMatch(/<ChatLobby|ChatLobby\.vue/);
-    expect(page).toMatch(
-      /<div v-if="chatHubFocusId"[\s\S]*?data-testid="match-open-chat"\s+@click="openChatHub"/,
-    );
-    expect(page).toMatch(
-      /chatHubFocusId\(\) \{\s+const context = this\.chatHubContext;\s+if \(!context\?\.rooms\?\.length\) return null;/,
-    );
-    expect(page).toContain("requestChatHubFocus(this.chatHubFocusId)");
-    // No room for a viewer the match chat does not admit, so no entry.
+    expect(page).not.toContain("match-open-chat");
+    expect(page).not.toContain("openChatHub");
+    expect(page).not.toContain("chat.open_chat");
+    // The rooms still go to the Hub through the page's context.
+    expect(page).toContain("useChatHubContext(");
+    // No room for a viewer the match chat does not admit.
     expect(matchChatHubContext(match(), false, null, t)).toBeNull();
   });
 });
 
-describe("Open Chat on the match page", () => {
+// The navigation's Chat Hub icon is the one way in: on a phone the header
+// chat icon opens the Hub sheet (with the same dock), and Chat holds the
+// page's rooms. Notification clicks still focus a room directly (below).
+describe("Chat Hub icon reaches the page's rooms without an Open Chat button", () => {
+  it.each([true, false])(
+    "opening Chat from the Hub shows Match Chat and Team Chat (mobile: %s)",
+    (mobile) => {
+      setViewport(mobile);
+      enterMatchPage(ROLES[0][1]);
+      useRightSidebar().setRightSidebarOpen(false);
+
+      // The header chat icon (phones) or the dock opens the Hub; Chat then
+      // lists the page's rooms (dock switching: hub-dock.spec.ts).
+      useRightSidebar().setRightSidebarOpen(true);
+      expect(hubOpen()).toBe(true);
+      expect(tabIds()).toEqual(["match:m1", "match_team:m1:l1"]);
+    },
+  );
+
+  it.each([true, false])(
+    "Captain Pick rooms are there too (mobile: %s)",
+    (mobile) => {
+      setViewport(mobile);
+      enterMatchPage(ROLES[2][1]);
+      useRightSidebar().setRightSidebarOpen(true);
+      expect(hubOpen()).toBe(true);
+      expect(tabIds()).toEqual(["match:m1", "captain_pick_team:draft-1:1"]);
+    },
+  );
+
+  it("keeps the phone header's chat icon wired to the Hub", () => {
+    const nav = fs.readFileSync(
+      path.resolve(__dirname, "../../layouts/components/TopNav.vue"),
+      "utf8",
+    );
+    expect(nav).toMatch(
+      /class="relative h-7 w-7 md:hidden"\s+@click="openLastOrDefaultHub\(\)"[\s\S]{0,200}<MessageSquare/,
+    );
+  });
+});
+
+describe("focusing a room (notification click)", () => {
   it.each([true, false])("opens the Hub on Match Chat (mobile: %s)", (mobile) => {
     setViewport(mobile);
     enterMatchPage(ROLES[0][1]);

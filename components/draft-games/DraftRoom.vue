@@ -7,7 +7,6 @@ import {
   Play,
   X,
   Inbox,
-  MessageSquare,
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
@@ -29,9 +28,7 @@ import {
 import { Spinner } from "~/components/ui/spinner";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import {
-  chatHubTabId,
   draftChatHubContext,
-  requestChatHubFocus,
   useChatHubContext,
 } from "~/composables/useChatHubContext";
 import MatchOverview from "~/components/match/overview/MatchOverview.vue";
@@ -188,7 +185,8 @@ const canReadDraftChat = computed(
 );
 // Chat Hub: the Draft chat until the match exists, then the Match Chat of
 // that match plus the own Team Chat of the viewer (see draftChatHubContext).
-// It is the room's only chat; the page links to it with Open Chat.
+// It is the room's only chat, reached through the Chat Hub icon like every
+// other chat (no page-level Open Chat button, Anders 2026-10-14).
 const chatHubContext = computed(() =>
   draftChatHubContext({
     room: props.room,
@@ -205,11 +203,6 @@ const chatHubContext = computed(() =>
   }),
 );
 useChatHubContext(() => chatHubContext.value);
-const chatHubRoom = computed(() => chatHubContext.value.rooms[0] ?? null);
-const openChatHub = () => {
-  const room = chatHubRoom.value;
-  if (room) requestChatHubFocus(chatHubTabId(room.type, room.lobbyId));
-};
 
 const isWaitlisted = computed(() => myMembership.value?.status === "Waitlist");
 const hasRequested = computed(() => myMembership.value?.status === "Requested");
@@ -584,11 +577,13 @@ const boardWide = computed(
     !!matchOverviewStage.value ||
     (stage.value === "assemble" && showTeamPanels.value),
 );
-// What the side column still has to show once the board is the match
-// Overview: only these banners and the join queue; chat is in the Chat Hub.
+// What the side column has to show: the self-status banners, the join queue
+// and, before the match Overview, a signed-out viewer's login prompt. Chat
+// is in the Chat Hub, so a signed-in viewer with none of these gets no
+// column at all.
 const sideHasContent = computed(
   () =>
-    !matchOverviewStage.value ||
+    (!matchOverviewStage.value && !me.value) ||
     canJoin.value ||
     hasRequested.value ||
     isWaitlisted.value ||
@@ -801,7 +796,11 @@ const start = () => {
          Team 2); the queue and chat column moves below it. -->
     <div
       class="grid gap-4 xl:items-start"
-      :class="boardWide ? '' : 'xl:grid-cols-[minmax(0,1fr)_340px]'"
+      :class="
+        boardWide || !sideHasContent
+          ? ''
+          : 'xl:grid-cols-[minmax(0,1fr)_340px]'
+      "
       data-testid="draft-room-layout"
     >
       <div class="min-w-0 space-y-4">
@@ -813,22 +812,6 @@ const start = () => {
             :hide-connect="matchOverviewStage === 'pre-match'"
           />
         </Transition>
-
-        <div
-          v-if="matchOverviewStage && chatHubRoom"
-          class="flex justify-end"
-        >
-          <Button
-            variant="outline"
-            size="sm"
-            class="gap-1.5"
-            data-testid="draft-room-open-chat"
-            @click="openChatHub"
-          >
-            <MessageSquare class="h-3.5 w-3.5" />
-            {{ $t("draft_games.room.open_chat") }}
-          </Button>
-        </div>
 
         <Transition name="stage" mode="out-in">
           <div :key="stage" class="space-y-4">
@@ -1664,39 +1647,23 @@ const start = () => {
         </div>
 
         <!-- The room's chat lives in the Chat Hub (draftChatHubContext):
-             the same rooms and history, read-only for spectators. -->
+             the same rooms and history, read-only for spectators, opened
+             from the Chat Hub icon. Signed-out viewers are told to log in. -->
         <div
-          v-if="!matchOverviewStage && (chatHubRoom || !me)"
+          v-if="!matchOverviewStage && !me"
           class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card/40 px-4 py-4 text-center"
           :class="showQueue ? 'mt-3' : ''"
           data-testid="draft-room-chat-entry"
         >
-          <template v-if="me">
-            <p class="text-xs text-muted-foreground">
-              {{ $t("draft_games.room.chat_in_hub") }}
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              class="gap-1.5"
-              data-testid="draft-room-open-chat"
-              @click="openChatHub"
-            >
-              <MessageSquare class="h-3.5 w-3.5" />
-              {{ $t("draft_games.room.open_chat") }}
-            </Button>
-          </template>
-          <template v-else>
-            <p class="text-xs text-muted-foreground">
-              {{ $t("draft_games.room.login_to_chat") }}
-            </p>
-            <NuxtLink
-              :to="`/login?redirect=/draft-room/${room.id}`"
-              class="text-xs font-medium text-[hsl(var(--tac-amber))] underline underline-offset-4"
-            >
-              {{ $t("draft_games.room.login") }}
-            </NuxtLink>
-          </template>
+          <p class="text-xs text-muted-foreground">
+            {{ $t("draft_games.room.login_to_chat") }}
+          </p>
+          <NuxtLink
+            :to="`/login?redirect=/draft-room/${room.id}`"
+            class="text-xs font-medium text-[hsl(var(--tac-amber))] underline underline-offset-4"
+          >
+            {{ $t("draft_games.room.login") }}
+          </NuxtLink>
         </div>
       </div>
     </div>

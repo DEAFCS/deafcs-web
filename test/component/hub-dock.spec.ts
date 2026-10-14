@@ -224,6 +224,24 @@ describe("dock order", () => {
     mountHub();
     expect(wrapper!.find("nav button[aria-pressed]").exists()).toBe(true);
   });
+
+  // Anders 2026-10-14: the Draft Room and match pages no longer have their
+  // own Open Chat buttons, so on a phone the Hub sheet's dock is the way to
+  // Chat (and the rooms the page offers).
+  it("keeps Chat on the dock on a phone, and a tap opens it", async () => {
+    mocks.state.mobile = true;
+    mountHub();
+    await nextTick();
+    const apps = wrapper!
+      .findAll("[data-dock-app]")
+      .map((item) => item.attributes("data-dock-app"));
+    expect(apps).toContain("chat");
+
+    await wrapper!.get('[data-dock-app="chat"] button').trigger("click");
+    await nextTick();
+    expect(useRightSidebar().rightSidebarOpen.value).toBe(true);
+    expect(currentHub()).toBe("chat");
+  });
 });
 
 const pinButton = () => wrapper!.find("nav button[aria-pressed]");

@@ -191,17 +191,16 @@ describe("Draft Room Captain Pick uses the matchmaking Captain Pick layout", () 
     expect(grid.findAll("[data-card]")).toHaveLength(8);
   });
 
-  it("gives the board the full width and moves chat and queue below it", () => {
+  it("gives the board the full width, with no chat column for a signed-in player", () => {
     const w = render("5");
     expect(w.get('[data-testid="draft-room-layout"]').classes()).not.toContain(
       "xl:grid-cols-[minmax(0,1fr)_340px]",
     );
-    expect(w.get('[data-testid="draft-room-side"]').classes()).not.toContain(
-      "xl:sticky",
-    );
-    // The chat itself is in the Chat Hub; the column links to it.
+    // The chat itself is in the Chat Hub, opened from the Chat Hub icon:
+    // no embedded chat and no Open Chat button on the page.
     expect(w.find('[data-stub="ChatLobby"]').exists()).toBe(false);
-    expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(true);
+    expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(false);
+    expect(w.find('[data-testid="draft-room-side"]').exists()).toBe(false);
   });
 
   // Veto and server start: the match Overview takes the full-width board
@@ -323,20 +322,25 @@ describe("Draft Room chat in the Chat Hub", () => {
 });
 
 // The embedded chat is gone: the room's only chat is the Chat Hub room
-// above, which the page opens with Open Chat.
+// above, reached from the Chat Hub icon. Anders 2026-10-14: no page-level
+// Open Chat button either.
 describe("Draft Room chat entry", () => {
   beforeEach(() => mocks.focus.mockClear());
 
-  it("has no embedded chat, and Open Chat focuses the Draft chat in the Hub", async () => {
+  it("has no embedded chat and no Open Chat button, and still gives the Hub the Draft chat", () => {
     for (const self of ["1", "5", "99"]) {
       const w = render(self);
       expect(w.find('[data-stub="ChatLobby"]').exists(), self).toBe(false);
-      await w.get('[data-testid="draft-room-open-chat"]').trigger("click");
-      expect(mocks.focus, self).toHaveBeenLastCalledWith("draft:draft-1");
+      expect(w.find('[data-testid="draft-room-open-chat"]').exists(), self).toBe(false);
+      expect(w.find('[data-testid="draft-room-chat-entry"]').exists(), self).toBe(false);
+      expect(w.text(), self).not.toContain("open_chat");
+      expect(w.text(), self).not.toContain("chat_in_hub");
+      expect(mocks.hubContext().rooms[0].lobbyId, self).toBe("draft-1");
     }
+    expect(mocks.focus).not.toHaveBeenCalled();
   });
 
-  it("opens the Match Chat once the match has taken over", async () => {
+  it("hands the Hub the Match Chat once the match has taken over, without a button", async () => {
     mocks.me = { steam_id: "1", teams: [] };
     const w = mount(DraftRoom, {
       props: {
@@ -361,8 +365,8 @@ describe("Draft Room chat entry", () => {
       "match",
       "match_team",
     ]);
-    await w.get('[data-testid="draft-room-open-chat"]').trigger("click");
-    expect(mocks.focus).toHaveBeenLastCalledWith("match:m1");
+    expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(false);
+    expect(mocks.focus).not.toHaveBeenCalled();
   });
 
   it("offers no entry to a private room outsider, and a login prompt when signed out", () => {
@@ -378,7 +382,7 @@ describe("Draft Room chat entry", () => {
     );
   });
 
-  it("keeps the join queue beside the chat entry", () => {
+  it("keeps the join queue in the side column", () => {
     const players = [
       ...room(5).players,
       { ...room(5).players[2], steam_id: "50", status: "Requested" },
@@ -393,6 +397,7 @@ describe("Draft Room chat entry", () => {
       }),
     );
     expect(w.find('[data-testid="draft-room-queue"]').exists()).toBe(true);
-    expect(w.find('[data-testid="draft-room-chat-entry"]').exists()).toBe(true);
+    expect(w.find('[data-testid="draft-room-side"]').exists()).toBe(true);
+    expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(false);
   });
 });

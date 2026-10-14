@@ -12,6 +12,7 @@ import path from "node:path";
 const mocks = vi.hoisted(() => ({
   me: null as any,
   focus: vi.fn(),
+  hubContext: (() => null) as () => any,
   leaves: [] as Array<{ name: string; props: Record<string, unknown> }>,
 }));
 
@@ -32,7 +33,9 @@ vi.mock("~/stores/ApplicationSettings", () => ({
 vi.mock("~/composables/useChatHubContext", async (importOriginal) => ({
   ...(await importOriginal<any>()),
   requestChatHubFocus: (id: string) => mocks.focus(id),
-  useChatHubContext: () => {},
+  useChatHubContext: (context: () => any) => {
+    mocks.hubContext = context;
+  },
 }));
 vi.mock("~/composables/useCaptainPickPlayers", async () => {
   const { ref } = await import("vue");
@@ -243,20 +246,29 @@ describe("Draft Room veto uses the matchmaking/tournament match Overview", () =>
     expect(w.find('[data-testid="draft-room-side"]').exists()).toBe(true);
   });
 
-  it("keeps Open Chat into the Hub above the board", async () => {
+  // Anders 2026-10-14: the Chat Hub icon is the one way into chat, so the
+  // board has no Open Chat button; the rooms are still handed to the Hub.
+  it("has no Open Chat button, and still gives the Hub the Match Chat", () => {
     // A drafted player: once the match exists the room's chat is its Match
-    // Chat (plus Team Chat), and Open Chat focuses it.
+    // Chat (plus Team Chat).
     const w = render(match("Veto"), "101", room(5, {
       players: [{ steam_id: "101", status: "Accepted", lineup: 1, player: { steam_id: "101", name: "P101" } }],
     }));
-    await w.get('[data-testid="draft-room-open-chat"]').trigger("click");
-    expect(mocks.focus).toHaveBeenCalledWith("match:m1");
+    expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(false);
+    expect(w.text()).not.toContain("open_chat");
+    expect(mocks.hubContext()?.rooms?.[0]?.type).toBe("match");
+    expect(mocks.focus).not.toHaveBeenCalled();
   });
 
-  it("offers a spectator no Open Chat once Match Chat has taken over", () => {
-    const w = render(match("Veto"), "999");
-    expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(false);
-  });
+  it.each(["Veto", "WaitingForServer"])(
+    "shows no Open Chat to anyone during %s",
+    (status) => {
+      for (const self of ["101", "999", null]) {
+        const w = render(match(status), self as any);
+        expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(false);
+      }
+    },
+  );
 });
 
 describe("Draft Room after the veto uses the Overview's pre-match view", () => {
