@@ -28,15 +28,18 @@ import {
 } from "~/components/ui/alert-dialog";
 import { Spinner } from "~/components/ui/spinner";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
-import mapLabel from "~/utilities/mapLabel";
 import {
   chatHubTabId,
   draftChatHubContext,
   requestChatHubFocus,
   useChatHubContext,
 } from "~/composables/useChatHubContext";
-import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
-import MatchMapVeto from "~/components/match/MatchMapVeto.vue";
+import MatchOverview from "~/components/match/overview/MatchOverview.vue";
+import {
+  matchServerReady,
+  overviewStage,
+  rememberServerReadyAt,
+} from "~/utilities/matchLifecycle";
 import MatchInfo from "~/components/match/MatchInfo.vue";
 import DraftSettingsBar from "~/components/draft-games/DraftSettingsBar.vue";
 import DraftTeamPanel from "~/components/draft-games/DraftTeamPanel.vue";
@@ -64,16 +67,34 @@ const inVeto = computed(
   () => !!props.room.match_id && props.match?.status === "Veto",
 );
 
-const vetoPhaseLabel = computed(() =>
-  props.match?.options?.region_veto && !props.match?.region
-    ? "draft_games.bar.region_veto"
-    : "draft_games.bar.map_veto",
-);
-
 const inMatchStarting = computed(
   () =>
     !!props.room.match_id &&
     ["WaitingForServer", "CreatingMatch", "Live"].includes(props.match?.status),
+);
+
+// Once the match exists, its veto and server start use the match page's own
+// Overview (MatchOverview, as for matchmaking and tournament matches):
+// Team 1 | map veto, then maps and server | Team 2. The page hands over to
+// the match page (and its Scoreboard timing) shortly after the match goes
+// Live.
+const matchOverviewStage = computed(() => {
+  if (!props.room.match_id || props.match?.id !== props.room.match_id) {
+    return null;
+  }
+  const stage = overviewStage(props.match, { captainPickActive: false });
+  return stage === "veto" || stage === "pre-match" ? stage : null;
+});
+// The match page shows the Overview for 30 seconds after the server is ready,
+// then its Scoreboard, timed from the moment this device first saw the
+// server ready. Noting that moment here too lets the match page continue
+// the same window after the hand-over instead of starting a new one.
+watch(
+  () => (matchServerReady(props.match) ? props.match.id : null),
+  (matchId) => {
+    if (matchId) rememberServerReadyAt(matchId, Date.now());
+  },
+  { immediate: true },
 );
 
 const checkInBySteamId = computed(() => {
@@ -559,7 +580,20 @@ const stage = computed(() => {
 // match Overview does for matchmaking Captain Pick, and the side column
 // (join queue, chat) moves below it.
 const boardWide = computed(
-  () => stage.value === "assemble" && showTeamPanels.value,
+  () =>
+    !!matchOverviewStage.value ||
+    (stage.value === "assemble" && showTeamPanels.value),
+);
+// What the side column still has to show once the board is the match
+// Overview: only these banners and the join queue; chat is in the Chat Hub.
+const sideHasContent = computed(
+  () =>
+    !matchOverviewStage.value ||
+    canJoin.value ||
+    hasRequested.value ||
+    isWaitlisted.value ||
+    isInvited.value ||
+    showQueue.value,
 );
 
 const teamForSide = (lineup: number): string | undefined => {
@@ -772,63 +806,38 @@ const start = () => {
     >
       <div class="min-w-0 space-y-4">
         <Transition name="phase">
-          <MatchInfo v-if="match" :match="match" hide-booting />
+          <MatchInfo
+            v-if="match"
+            :match="match"
+            hide-booting
+            :hide-connect="matchOverviewStage === 'pre-match'"
+          />
         </Transition>
+
+        <div
+          v-if="matchOverviewStage && chatHubRoom"
+          class="flex justify-end"
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            class="gap-1.5"
+            data-testid="draft-room-open-chat"
+            @click="openChatHub"
+          >
+            <MessageSquare class="h-3.5 w-3.5" />
+            {{ $t("draft_games.room.open_chat") }}
+          </Button>
+        </div>
 
         <Transition name="stage" mode="out-in">
           <div :key="stage" class="space-y-4">
-        <div
-          v-if="inVeto"
-          class="veto-stage rounded-xl border border-[hsl(var(--tac-amber)/0.25)] bg-card/40 p-6 [backdrop-filter:blur(8px)]"
-        >
-          <div class="mb-5 flex items-center justify-center gap-2">
-            <h3
-              class="font-sans text-base font-bold uppercase tracking-[0.2em]"
-            >
-              {{ $t(vetoPhaseLabel) }}
-            </h3>
-          </div>
-          <MatchRegionVeto
-            :match="match"
-            :match-id="room.match_id"
-            class="pb-6"
-          />
-          <MatchMapVeto :match="match" :match-id="room.match_id" />
-        </div>
-
-        <div
-          v-else-if="inMatchStarting"
-          class="rounded-xl border border-[hsl(var(--tac-amber)/0.25)] bg-card/40 p-8 [backdrop-filter:blur(8px)]"
-        >
-          <div class="flex flex-col items-center gap-5 text-center">
-            <div class="flex flex-wrap justify-center gap-3">
-              <div
-                v-for="(m, i) in match.match_maps"
-                :key="m.id"
-                class="starting-map relative h-24 w-40 overflow-hidden rounded-lg border border-border"
-                :style="{ '--i': i }"
-              >
-                <img
-                  v-if="m.map?.poster"
-                  :src="m.map.poster"
-                  class="h-full w-full object-cover"
-                  :alt="mapLabel(m.map)"
-                />
-                <span
-                  class="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1 text-center font-mono text-[0.6rem] font-bold uppercase tracking-[0.16em] text-white"
-                >
-                  {{ mapLabel(m.map) }}
-                </span>
-              </div>
-            </div>
-            <div
-              class="inline-flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-[0.2em] text-[hsl(var(--tac-amber))]"
-            >
-              <Spinner class="h-4 w-4" />
-              {{ $t("draft_games.room.match_starting") }}
-            </div>
-          </div>
-        </div>
+        <MatchOverview
+          v-if="matchOverviewStage"
+          :match="match"
+          :stage="matchOverviewStage"
+          data-testid="draft-match-overview"
+        />
 
         <div v-else-if="isTeamsMode" class="space-y-4">
           <div
@@ -1536,6 +1545,7 @@ const start = () => {
            they appear and disappear as the lobby fills, and full width they
            shoved the whole roster down every time. -->
       <div
+        v-if="sideHasContent"
         class="flex flex-col"
         :class="
           boardWide ? '' : 'xl:sticky xl:top-4 xl:max-h-[calc(100vh-2rem)]'
@@ -1656,7 +1666,7 @@ const start = () => {
         <!-- The room's chat lives in the Chat Hub (draftChatHubContext):
              the same rooms and history, read-only for spectators. -->
         <div
-          v-if="chatHubRoom || !me"
+          v-if="!matchOverviewStage && (chatHubRoom || !me)"
           class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card/40 px-4 py-4 text-center"
           :class="showQueue ? 'mt-3' : ''"
           data-testid="draft-room-chat-entry"
@@ -2012,23 +2022,8 @@ const start = () => {
   transform: translateY(-8px) scale(0.99);
 }
 
-.starting-map {
-  animation: starting-map-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
-  animation-delay: calc(var(--i) * 90ms + 150ms);
-}
-@keyframes starting-map-in {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.92);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
-  .slot--next,
-  .starting-map {
+  .slot--next {
     animation: none;
   }
   .stage-enter-active,

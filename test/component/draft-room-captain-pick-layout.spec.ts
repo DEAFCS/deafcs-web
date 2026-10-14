@@ -41,8 +41,7 @@ const blank = (name: string) =>
   defineComponent({ name, setup: () => () => h("div", { "data-stub": name }) });
 for (const [file, name] of [
   ["~/components/chat/ChatLobby.vue", "ChatLobby"],
-  ["~/components/match/MatchRegionVeto.vue", "MatchRegionVeto"],
-  ["~/components/match/MatchMapVeto.vue", "MatchMapVeto"],
+  ["~/components/match/overview/MatchOverview.vue", "MatchOverview"],
   ["~/components/match/MatchInfo.vue", "MatchInfo"],
   ["~/components/draft-games/DraftSettingsBar.vue", "DraftSettingsBar"],
   ["~/components/draft-games/DraftBackupsPanel.vue", "DraftBackupsPanel"],
@@ -205,7 +204,9 @@ describe("Draft Room Captain Pick uses the matchmaking Captain Pick layout", () 
     expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(true);
   });
 
-  it("keeps the side column beside the room once the match is underway", () => {
+  // Veto and server start: the match Overview takes the full-width board
+  // (see draft-room-match-overview.spec.ts), Captain Pick's board is gone.
+  it("hands the full-width board to the match Overview once the match is underway", () => {
     const live = mount(DraftRoom, {
       props: {
         room: room(5, { match_id: "m1" }),
@@ -218,7 +219,8 @@ describe("Draft Room Captain Pick uses the matchmaking Captain Pick layout", () 
     });
     wrappers.push(live);
     expect(live.find('[data-testid="draft-board"]').exists()).toBe(false);
-    expect(live.get('[data-testid="draft-room-layout"]').classes()).toContain(
+    expect(live.find('[data-stub="MatchOverview"]').exists()).toBe(true);
+    expect(live.get('[data-testid="draft-room-layout"]').classes()).not.toContain(
       "xl:grid-cols-[minmax(0,1fr)_340px]",
     );
   });

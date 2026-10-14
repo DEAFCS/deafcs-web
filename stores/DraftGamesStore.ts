@@ -7,6 +7,8 @@ import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery, generateSubscription } from "~/graphql/graphqlGen";
 import { playerFields } from "~/graphql/playerFields";
 import { mapFields } from "~/graphql/mapGraphql";
+import { matchLineups } from "~/graphql/matchLineupsGraphql";
+import { matchOptionsFields } from "~/graphql/matchOptionsFields";
 import { useAuthStore } from "~/stores/AuthStore";
 
 export const useDraftGamesStore = defineStore("draft-games", () => {
@@ -242,6 +244,9 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
 
   const currentMatch = ref<any | undefined>(undefined);
 
+  // Newer than the generated client (see pages/matches/[id]/index.vue).
+  const mapVetoSequenceField: any = { map_veto_sequence: true };
+
   const subscribeToMatch = async (matchId: string) => {
     const subscription = getGraphqlClient().subscribe({
       query: generateSubscription({
@@ -250,6 +255,8 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
           {
             id: true,
             status: true,
+            started_at: true,
+            source: true,
             region: true,
             e_region: { description: true },
             is_captain: true,
@@ -285,14 +292,23 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
               },
             ],
             map_veto_type: true,
+            ...mapVetoSequenceField,
             map_veto_picking_lineup_id: true,
             map_veto_pick_expires_at: true,
+            // The Overview's server panel (MatchInfo / QuickMatchConnect).
+            // Hasura returns these only to viewers allowed to see them.
+            connection_link: true,
+            connection_string: true,
+            tv_connection_string: true,
+            server_error: true,
+            cancels_at: true,
             region_veto_picking_lineup_id: true,
             region_veto_picks: {
               type: true,
               region: true,
             },
             options: {
+              ...matchOptionsFields,
               mr: true,
               best_of: true,
               overtime: true,
@@ -331,30 +347,8 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
                 demos: [{}, { id: true }],
               },
             ],
-            lineup_1: [
-              {},
-              {
-                id: true,
-                name: true,
-                is_picking_map_veto: true,
-                can_pick_map_veto: true,
-                is_picking_region_veto: true,
-                can_pick_region_veto: true,
-                lineup_players: [{}, { steam_id: true, checked_in: true }],
-              },
-            ],
-            lineup_2: [
-              {},
-              {
-                id: true,
-                name: true,
-                is_picking_map_veto: true,
-                can_pick_map_veto: true,
-                is_picking_region_veto: true,
-                can_pick_region_veto: true,
-                lineup_players: [{}, { steam_id: true, checked_in: true }],
-              },
-            ],
+            lineup_1: [{}, matchLineups],
+            lineup_2: [{}, matchLineups],
             streams: [
               {},
               {
@@ -371,6 +365,7 @@ export const useDraftGamesStore = defineStore("draft-games", () => {
       }),
       variables: {
         matchId,
+        order_by_name: order_by.asc,
       },
     });
 
