@@ -101,7 +101,7 @@ const authorFields = `
   avatar_url
   custom_avatar_url
   country
-  team_members(where: { status: { _neq: "Benched" } }) {
+  team_members(where: { status: { _neq: Benched } }) {
     team { id name short_name avatar_url }
   }
 `;

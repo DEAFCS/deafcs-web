@@ -387,8 +387,12 @@ describe("players", () => {
     expect(wrapper.find('[data-comment-id="two"] [data-testid="comment-team"]').exists()).toBe(false);
     expect(wrapper.find('[data-comment-id="none"] [data-testid="comment-team"]').exists()).toBe(false);
     expect(wrapper.find('[data-comment-id="none"] [data-testid="comment-flag"]').exists()).toBe(false);
-    // Benched rosters are filtered out in the query itself.
-    expect(lastQuery).toContain('status: {_neq: "Benched"}');
+    // Benched rosters are filtered out in the query itself. The status is a
+    // Hasura enum (e_team_roster_statuses_enum), so it must be the bare enum
+    // value: a quoted "Benched" fails validation for every viewer (the
+    // 2026-10-14 release incident).
+    expect(lastQuery).toContain("status: {_neq: Benched}");
+    expect(lastQuery).not.toMatch(/_neq: "Benched"/);
     wrapper.unmount();
   });
 });
