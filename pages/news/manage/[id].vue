@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import { Label } from "~/components/ui/label";
@@ -10,15 +10,28 @@ import NewsArticleView from "~/components/news/NewsArticleView.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
 import {
   ArrowLeft,
+  Save,
   Send,
   Undo2,
   Eye,
   PencilLine,
+  Trash2,
 } from "lucide-vue-next";
 import { toast } from "@/components/ui/toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery, generateMutation } from "~/graphql/graphqlGen";
 import { newsPostAdminFields } from "~/graphql/newsGraphql";
+import NewsViewCount from "~/components/news/NewsViewCount.vue";
 
 interface NewsPost {
   id: string;
@@ -49,7 +62,9 @@ const clearCover = async () => {
 };
 
 const canPostNews = computed(() => useApplicationSettingsStore().canPostNews);
+const newsLabel = computed(() => useApplicationSettingsStore().newsLabel);
 const saving = ref(false);
+const confirmingDelete = ref(false);
 const previewMode = ref(false);
 
 const fetchPost = async () => {
@@ -63,7 +78,7 @@ const fetchPost = async () => {
     });
     const post = (data as { newsPostAdmin: NewsPost | null }).newsPostAdmin;
     if (!post) {
-      return navigateTo("/news/manage");
+      return navigateTo("/news");
     }
     title.value = post.title;
     teaser.value = post.teaser ?? "";
@@ -149,7 +164,7 @@ const publish = async () => {
     }
     await setStatus(post.id, "published");
     toast({ title: useNuxtApp().$i18n.t("pages.news.manage.published_toast") });
-    navigateTo("/news/manage");
+    navigateTo(post.slug ? `/news/${post.slug}` : "/news");
   } finally {
     saving.value = false;
   }
@@ -173,24 +188,55 @@ const unpublish = async () => {
   }
 };
 
+const deletePost = async () => {
+  if (!id.value) {
+    return;
+  }
+  await getGraphqlClient().mutate({
+    mutation: generateMutation({
+      deleteNewsPost: [{ id: id.value }, { success: true }],
+    }),
+  });
+  toast({ title: useNuxtApp().$i18n.t("pages.news.manage.deleted") });
+  navigateTo("/news");
+};
+
+// ⌘S / Ctrl+S saves without publishing, from anywhere on the page (the body
+// textarea has focus most of the time). Never changes publish state.
+const onSaveShortcut = (event: KeyboardEvent) => {
+  if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") {
+    return;
+  }
+  event.preventDefault();
+  if (loading.value || saving.value) {
+    return;
+  }
+  saveChanges();
+};
+
 onMounted(() => {
   if (!canPostNews.value) {
     navigateTo("/news");
     return;
   }
+  window.addEventListener("keydown", onSaveShortcut);
   if (!isNew.value) {
     fetchPost();
   }
+});
+
+onBeforeUnmount(() => {
+  window.removeEventListener("keydown", onSaveShortcut);
 });
 </script>
 
 <template>
   <PageTransition>
     <div class="flex items-center justify-between">
-      <NuxtLink to="/news/manage">
+      <NuxtLink to="/news">
         <Button variant="ghost" size="sm" class="gap-1">
           <ArrowLeft class="h-4 w-4" />
-          {{ $t("pages.news.manage.title") }}
+          {{ newsLabel || $t("pages.news.title") }}
         </Button>
       </NuxtLink>
       <div v-if="!loading" class="flex items-center gap-4">
@@ -207,14 +253,7 @@ onMounted(() => {
               : $t("pages.news.form.preview_full")
           }}
         </Button>
-        <span
-          v-if="!isNew"
-          class="inline-flex items-center gap-1 text-xs text-muted-foreground"
-          :title="$t('pages.news.manage.views')"
-        >
-          <Eye class="h-3.5 w-3.5" />
-          {{ viewCount.toLocaleString() }}
-        </span>
+        <NewsViewCount v-if="!isNew" :count="viewCount" />
         <span
           class="inline-flex items-center gap-1.5 text-[0.62rem] font-bold uppercase tracking-[0.16em]"
           :class="
@@ -249,10 +288,7 @@ onMounted(() => {
     </template>
 
     <template v-else>
-      <div
-        v-if="previewMode"
-        class="mx-auto w-full max-w-3xl rounded-lg border border-border/60 bg-card/40 p-6 sm:p-8"
-      >
+      <div v-if="previewMode">
         <NewsArticleView
           :title="title"
           :teaser="teaser"
@@ -278,6 +314,7 @@ onMounted(() => {
             <textarea
               v-model="teaser"
               rows="3"
+              autocomplete="off"
               class="w-full resize-y rounded-md border border-input bg-background p-3 text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               :placeholder="$t('pages.news.form.teaser_placeholder')"
             />
@@ -311,9 +348,21 @@ onMounted(() => {
       <div
         class="sticky bottom-0 -mx-1 flex flex-wrap items-center justify-end gap-2 border-t border-border/60 bg-background/80 px-1 py-3 backdrop-blur"
       >
+        <Button
+          v-if="!isNew"
+          variant="ghost"
+          class="mr-auto gap-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+          :disabled="saving"
+          @click="confirmingDelete = true"
+        >
+          <Trash2 class="h-4 w-4" />
+          {{ $t("pages.news.manage.delete") }}
+        </Button>
+        <!-- Both buttons take a solid fill: an outline variant next to the
+             filled primary measures the same but reads as smaller. -->
         <template v-if="status === 'published'">
           <Button
-            variant="outline"
+            variant="secondary"
             class="gap-2"
             :disabled="saving"
             @click="unpublish"
@@ -322,15 +371,18 @@ onMounted(() => {
             {{ $t("pages.news.manage.unpublish") }}
           </Button>
           <Button class="gap-2" :loading="saving" @click="saveChanges">
+            <Save class="h-4 w-4" />
             {{ $t("pages.news.form.save_changes") }}
           </Button>
         </template>
         <template v-else>
           <Button
-            variant="outline"
+            variant="secondary"
+            class="gap-2"
             :disabled="saving"
             @click="saveChanges"
           >
+            <Save class="h-4 w-4" />
             {{ $t("pages.news.form.save_draft") }}
           </Button>
           <Button class="gap-2" :loading="saving" @click="publish">
@@ -343,4 +395,22 @@ onMounted(() => {
     </div>
   </PageTransition>
 
+  <AlertDialog v-model:open="confirmingDelete">
+    <AlertDialogContent>
+      <AlertDialogHeader>
+        <AlertDialogTitle>
+          {{ $t("pages.news.manage.delete_confirm_title") }}
+        </AlertDialogTitle>
+        <AlertDialogDescription>
+          {{ $t("pages.news.manage.delete_confirm_description") }}
+        </AlertDialogDescription>
+      </AlertDialogHeader>
+      <AlertDialogFooter>
+        <AlertDialogCancel>{{ $t("common.cancel") }}</AlertDialogCancel>
+        <AlertDialogAction @click="deletePost">
+          {{ $t("pages.news.manage.delete") }}
+        </AlertDialogAction>
+      </AlertDialogFooter>
+    </AlertDialogContent>
+  </AlertDialog>
 </template>

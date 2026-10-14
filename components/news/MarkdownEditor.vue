@@ -1,8 +1,14 @@
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from "vue";
-import { renderNewsMarkdown } from "~/utilities/newsMarkdown";
 import { Button } from "~/components/ui/button";
 import { Spinner } from "~/components/ui/spinner";
+import NewsVideoDialog from "~/components/news/NewsVideoDialog.vue";
+import { toast } from "@/components/ui/toast";
+import {
+  isEmbeddableVideoUrl,
+  renderNewsMarkdown,
+  videoToken,
+} from "~/utilities/newsMarkdown";
 import {
   Bold,
   Italic,
@@ -13,8 +19,7 @@ import {
   Link as LinkIcon,
   Code,
   Image as ImageIcon,
-  Video as VideoIcon,
-  Youtube,
+  Film,
 } from "lucide-vue-next";
 
 const props = defineProps<{
@@ -27,19 +32,8 @@ const emit = defineEmits<{
 
 const textarea = ref<HTMLTextAreaElement | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
-const videoFileInput = ref<HTMLInputElement | null>(null);
 
 const { upload, uploading: isUploading, accept: ACCEPT } = useNewsImageUpload();
-const {
-  upload: uploadVideo,
-  uploading: isUploadingVideo,
-  progress: videoProgress,
-  accept: VIDEO_ACCEPT,
-} = useNewsVideoUpload();
-
-const videoOrigin = computed(
-  () => `https://${useRuntimeConfig().public.apiDomain}`,
-);
 
 const debouncedValue = ref(props.modelValue);
 let renderTimer: ReturnType<typeof setTimeout> | null = null;
@@ -60,12 +54,7 @@ onBeforeUnmount(() => {
   }
 });
 
-const rendered = computed(() => {
-  if (!import.meta.client) {
-    return "";
-  }
-  return renderNewsMarkdown(debouncedValue.value, videoOrigin.value);
-});
+const rendered = computed(() => renderNewsMarkdown(debouncedValue.value));
 
 function replaceSelection(
   transform: (selected: string) => { text: string; selectStart?: number; selectEnd?: number },
@@ -133,27 +122,6 @@ function triggerImagePicker() {
   fileInput.value?.click();
 }
 
-function triggerVideoPicker() {
-  if (isUploadingVideo.value) {
-    return;
-  }
-  videoFileInput.value?.click();
-}
-
-// A bare YouTube/Vimeo link on its own line auto-embeds (see
-// utilities/newsMarkdown.ts), so this just drops in a template for the
-// author to paste their video's id into.
-function insertVideoLink() {
-  replaceSelection(() => {
-    const text = "\nhttps://www.youtube.com/watch?v=\n";
-    return {
-      text,
-      selectStart: text.length - 1,
-      selectEnd: text.length - 1,
-    };
-  });
-}
-
 let uploadSeq = 0;
 
 async function onFileSelected(event: Event) {
@@ -176,53 +144,53 @@ async function onFileSelected(event: Event) {
   emit("update:modelValue", (props.modelValue || "").replace(token, replacement));
 }
 
-let uploadVideoSeq = 0;
+const videoDialogOpen = ref(false);
 
-async function onVideoFileSelected(event: Event) {
-  const input = event.target as HTMLInputElement;
-  const file = input.files?.[0];
-  input.value = "";
-  if (!file) {
+// The token is a block, so keep it on its own line regardless of where the
+// caret happened to be.
+function insertVideo(videoMarkdown: string) {
+  replaceSelection(() => {
+    const text = `\n${videoMarkdown}\n`;
+    return { text };
+  });
+}
+
+// Pasting a YouTube/Twitch link (or a direct video file) turns straight into an
+// embed instead of a bare link. Only URLs that actually produce a player are
+// converted — ordinary links paste through untouched.
+function onPaste(event: ClipboardEvent) {
+  const pasted = event.clipboardData?.getData("text/plain")?.trim();
+  if (!pasted || !isEmbeddableVideoUrl(pasted)) {
     return;
   }
-
-  const token = `_(uploading video #${++uploadVideoSeq}…)_`;
-  replaceSelection(() => ({
-    text: token,
-    selectStart: token.length,
-    selectEnd: token.length,
-  }));
-
-  const filename = await uploadVideo(file);
-  const replacement = filename
-    ? `\n<video controls preload="metadata" src="${videoOrigin.value}/news/video/${filename}"></video>\n`
-    : "";
-  emit("update:modelValue", (props.modelValue || "").replace(token, replacement));
+  event.preventDefault();
+  insertVideo(videoToken(pasted));
+  toast({ title: useNuxtApp().$i18n.t("pages.news.form.video.auto_embedded") });
 }
 </script>
 
 <template>
   <div class="space-y-2">
     <div class="flex flex-wrap items-center gap-1 rounded-md border border-border/60 bg-muted/30 p-1">
-      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="wrap('**', 'bold text')">
+      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="wrap('**', $t('pages.news.editor.bold_text'))">
         <Bold class="h-4 w-4" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="wrap('*', 'italic text')">
+      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="wrap('*', $t('pages.news.editor.italic_text'))">
         <Italic class="h-4 w-4" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('## ', 'Heading')">
+      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('## ', $t('pages.news.editor.heading'))">
         <Heading2 class="h-4 w-4" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('### ', 'Heading')">
+      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('### ', $t('pages.news.editor.heading'))">
         <Heading3 class="h-4 w-4" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('- ', 'List item')">
+      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('- ', $t('pages.news.editor.list_item'))">
         <List class="h-4 w-4" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('> ', 'Quote')">
+      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="linePrefix('> ', $t('pages.news.editor.quote'))">
         <Quote class="h-4 w-4" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="wrap('`', 'code')">
+      <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="wrap('`', $t('pages.news.editor.code'))">
         <Code class="h-4 w-4" />
       </Button>
       <Button type="button" variant="ghost" size="icon" class="h-8 w-8" @click="insertLink">
@@ -240,6 +208,16 @@ async function onVideoFileSelected(event: Event) {
         <Spinner v-if="isUploading" class="h-4 w-4" />
         <ImageIcon v-else class="h-4 w-4" />
       </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        class="h-8 w-8"
+        :title="$t('pages.news.form.video.title')"
+        @click="videoDialogOpen = true"
+      >
+        <Film class="h-4 w-4" />
+      </Button>
       <input
         ref="fileInput"
         type="file"
@@ -247,36 +225,9 @@ async function onVideoFileSelected(event: Event) {
         :accept="ACCEPT"
         @change="onFileSelected"
       />
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        class="h-8 w-8"
-        :disabled="isUploadingVideo"
-        :title="$t('pages.news.form.upload_video')"
-        @click="triggerVideoPicker"
-      >
-        <Spinner v-if="isUploadingVideo" class="h-4 w-4" />
-        <VideoIcon v-else class="h-4 w-4" />
-      </Button>
-      <input
-        ref="videoFileInput"
-        type="file"
-        class="hidden"
-        :accept="VIDEO_ACCEPT"
-        @change="onVideoFileSelected"
-      />
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        class="h-8 w-8"
-        :title="$t('pages.news.form.embed_video_link')"
-        @click="insertVideoLink"
-      >
-        <Youtube class="h-4 w-4" />
-      </Button>
     </div>
+
+    <NewsVideoDialog v-model:open="videoDialogOpen" @insert="insertVideo" />
 
     <div
       v-if="isUploading"
@@ -284,14 +235,6 @@ async function onVideoFileSelected(event: Event) {
     >
       <Spinner class="h-4 w-4" />
       {{ $t("pages.news.form.uploading_image") }}
-    </div>
-
-    <div
-      v-if="isUploadingVideo"
-      class="flex items-center gap-2 rounded-md border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.08)] px-3 py-2 text-sm text-[hsl(var(--tac-amber))]"
-    >
-      <Spinner class="h-4 w-4" />
-      {{ $t("pages.news.form.uploading_video") }} ({{ videoProgress }}%)
     </div>
 
     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
@@ -302,8 +245,10 @@ async function onVideoFileSelected(event: Event) {
         <textarea
           ref="textarea"
           :value="modelValue"
+          autocomplete="off"
           class="h-[60vh] min-h-[24rem] w-full resize-y rounded-md border border-input bg-background p-3 font-mono text-sm text-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           @input="emit('update:modelValue', ($event.target as HTMLTextAreaElement).value)"
+          @paste="onPaste"
         />
       </div>
       <div class="space-y-1">

@@ -1,17 +1,19 @@
 import { ref } from "vue";
 import { toast } from "@/components/ui/toast";
+import { captureVideoSnapshot } from "~/composables/useEventMediaUpload";
 
-// Anything at or under this posts through the API exactly like news images.
-// Only bigger files (long mp4s) take the multipart bypass — Cloudflare caps
-// proxied request bodies at ~100MB and times slow ones out.
+// Routing is by SIZE: anything ≤ DIRECT_MAX_SIZE posts through the API exactly
+// like a news image. Bigger files take the S3 multipart bypass — Cloudflare
+// caps proxied request bodies at ~100MB and times slow ones out.
+// DEAFCS: the API accepts up to 1GB (upstream 512MB).
+const MAX_SIZE = 1024 * 1024 * 1024;
 const DIRECT_MAX_SIZE = 90 * 1024 * 1024;
-const VIDEO_MAX_SIZE = 1024 * 1024 * 1024; // 1GB
 
 export const NEWS_VIDEO_ACCEPT = "video/mp4";
 
-export function newsVideoUrl(filename: string): string {
-  const apiDomain = useRuntimeConfig().public.apiDomain;
-  return `https://${apiDomain}/news/video/${filename}`;
+export interface NewsVideoUploadResult {
+  src: string;
+  poster: string | null;
 }
 
 function putChunk(
@@ -43,10 +45,15 @@ export function useNewsVideoUpload() {
   const uploading = ref(false);
   const progress = ref(0);
 
+  const { upload: uploadImage } = useNewsImageUpload();
+
+  const videoUrl = (filename: string) =>
+    `https://${useRuntimeConfig().public.apiDomain}/news/video/${filename}`;
+
   const upload = async (
     file: File,
     opts?: { onProgress?: (percent: number) => void },
-  ): Promise<string | null> => {
+  ): Promise<NewsVideoUploadResult | null> => {
     const t = useNuxtApp().$i18n.t;
     const report = (percent: number) => {
       progress.value = percent;
@@ -61,10 +68,10 @@ export function useNewsVideoUpload() {
       return null;
     }
 
-    if (file.size > VIDEO_MAX_SIZE) {
+    if (file.size > MAX_SIZE) {
       toast({
         title: t("avatar.too_large", {
-          size: Math.round(VIDEO_MAX_SIZE / 1024 / 1024),
+          size: Math.round(MAX_SIZE / 1024 / 1024),
         }) as string,
         variant: "destructive",
       });
@@ -74,11 +81,22 @@ export function useNewsVideoUpload() {
     uploading.value = true;
     report(0);
     try {
+      // Poster capture decodes the local file — start it alongside the upload
+      // instead of after, so it doesn't extend the "processing" tail.
+      const snapshotPromise = captureVideoSnapshot(file).catch(() => null);
+
       const filename =
         file.size > DIRECT_MAX_SIZE
           ? await uploadMultipart(file, report)
           : await uploadDirect(file, report);
-      return filename;
+
+      // Best-effort poster; the player falls back to a black first frame.
+      const snapshot = await snapshotPromise;
+      const poster = snapshot
+        ? await uploadImage(snapshot).catch(() => null)
+        : null;
+
+      return { src: videoUrl(filename), poster };
     } catch (error: any) {
       toast({
         title: t("avatar.upload_failed") as string,
@@ -91,8 +109,8 @@ export function useNewsVideoUpload() {
     }
   };
 
-  // XMLHttpRequest instead of fetch: fetch cannot report upload progress,
-  // and without it the bar sits at 0% until the whole body has been sent.
+  // XMLHttpRequest instead of fetch: fetch cannot report upload progress, and
+  // without it the bar sits at 0% until the whole body has been sent.
   const uploadDirect = (
     file: File,
     report: (percent: number) => void,
@@ -103,6 +121,7 @@ export function useNewsVideoUpload() {
 
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
+      // DEAFCS: images and small videos share POST /news/upload.
       xhr.open("POST", `https://${apiDomain}/news/upload`);
       xhr.withCredentials = true;
       xhr.upload.onprogress = (e) => {
@@ -113,7 +132,9 @@ export function useNewsVideoUpload() {
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
           report(100);
-          resolve((JSON.parse(xhr.responseText) as { filename: string }).filename);
+          resolve(
+            (JSON.parse(xhr.responseText) as { filename: string }).filename,
+          );
         } else {
           reject(
             new Error(xhr.responseText || `upload failed (${xhr.status})`),
@@ -130,18 +151,19 @@ export function useNewsVideoUpload() {
     report: (percent: number) => void,
   ): Promise<string> => {
     const apiDomain = useRuntimeConfig().public.apiDomain;
-    const base = `https://${apiDomain}/news`;
+    // DEAFCS: multipart routes are /news/video/{initiate,complete,abort}.
+    const base = `https://${apiDomain}/news/video`;
 
-    const initiate = await fetch(`${base}/video/initiate`, {
+    const initiate = await fetch(`${base}/initiate`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
+      // DEAFCS: the API checks the .mp4 extension from fileName.
       body: JSON.stringify({ fileName: file.name, fileSize: file.size }),
     });
     if (!initiate.ok) {
       throw new Error(
-        (await initiate.text()) ||
-          `could not start upload (${initiate.status})`,
+        (await initiate.text()) || `could not start upload (${initiate.status})`,
       );
     }
     const session = (await initiate.json()) as {
@@ -163,7 +185,7 @@ export function useNewsVideoUpload() {
       }
       report(100);
 
-      const complete = await fetch(`${base}/video/complete`, {
+      const complete = await fetch(`${base}/complete`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -177,9 +199,9 @@ export function useNewsVideoUpload() {
           (await complete.text()) || `upload failed (${complete.status})`,
         );
       }
-      return ((await complete.json()) as { filename: string }).filename;
+      return (await complete.json() as { filename: string }).filename;
     } catch (error) {
-      void fetch(`${base}/video/abort`, {
+      void fetch(`${base}/abort`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
