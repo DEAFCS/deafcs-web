@@ -9173,6 +9173,8 @@
       "comms": "Lobby Chat",
       "chat_players_only": "Only players can chat during the draft.",
       "login_to_chat": "Log in to join the conversation.",
+      "open_chat": "Open Chat",
+      "chat_in_hub": "Lobby chat is in the Chat Hub.",
       "login": "Log In",
       "host_label": "Host",
       "avg_rank": "Avg Rank",

@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   me: null as any,
   pick: vi.fn(() => Promise.resolve()),
   hubContext: null as any,
+  focus: vi.fn(),
 }));
 
 vi.mock("vue-i18n", () => ({ useI18n: () => ({ t: (key: string) => key }) }));
@@ -30,6 +31,7 @@ vi.mock("~/stores/ApplicationSettings", () => ({
 }));
 vi.mock("~/composables/useChatHubContext", async (importOriginal) => ({
   ...(await importOriginal<any>()),
+  requestChatHubFocus: (id: string) => mocks.focus(id),
   useChatHubContext: (get: () => unknown) => {
     mocks.hubContext = get;
   },
@@ -198,8 +200,9 @@ describe("Draft Room Captain Pick uses the matchmaking Captain Pick layout", () 
     expect(w.get('[data-testid="draft-room-side"]').classes()).not.toContain(
       "xl:sticky",
     );
-    // The embedded chat stays on the page.
-    expect(w.find('[data-stub="ChatLobby"]').exists()).toBe(true);
+    // The chat itself is in the Chat Hub; the column links to it.
+    expect(w.find('[data-stub="ChatLobby"]').exists()).toBe(false);
+    expect(w.find('[data-testid="draft-room-open-chat"]').exists()).toBe(true);
   });
 
   it("keeps the side column beside the room once the match is underway", () => {
@@ -314,5 +317,80 @@ describe("Draft Room chat in the Chat Hub", () => {
   it("offers nothing when signed out", () => {
     render(null);
     expect(hubRooms()).toEqual([]);
+  });
+});
+
+// The embedded chat is gone: the room's only chat is the Chat Hub room
+// above, which the page opens with Open Chat.
+describe("Draft Room chat entry", () => {
+  beforeEach(() => mocks.focus.mockClear());
+
+  it("has no embedded chat, and Open Chat focuses the Draft chat in the Hub", async () => {
+    for (const self of ["1", "5", "99"]) {
+      const w = render(self);
+      expect(w.find('[data-stub="ChatLobby"]').exists(), self).toBe(false);
+      await w.get('[data-testid="draft-room-open-chat"]').trigger("click");
+      expect(mocks.focus, self).toHaveBeenLastCalledWith("draft:draft-1");
+    }
+  });
+
+  it("opens the Match Chat once the match has taken over", async () => {
+    mocks.me = { steam_id: "1", teams: [] };
+    const w = mount(DraftRoom, {
+      props: {
+        room: room(5, { match_id: "m1", status: "Completed" }),
+        match: {
+          id: "m1",
+          status: "Finished",
+          options: {},
+          lineup_1_id: "l1",
+          lineup_2_id: "l2",
+          lineup_1: { lineup_players: [{ steam_id: "1" }] },
+          lineup_2: { lineup_players: [] },
+        },
+      },
+      global: {
+        stubs: { NuxtLink: { template: "<a><slot /></a>" } },
+        mocks: { $t: (key: string) => key },
+      },
+    });
+    wrappers.push(w);
+    expect(mocks.hubContext().rooms.map((r: any) => r.type)).toEqual([
+      "match",
+      "match_team",
+    ]);
+    await w.get('[data-testid="draft-room-open-chat"]').trigger("click");
+    expect(mocks.focus).toHaveBeenLastCalledWith("match:m1");
+  });
+
+  it("offers no entry to a private room outsider, and a login prompt when signed out", () => {
+    const outsider = render("99", room(5, { access: "Private" }));
+    expect(
+      outsider.find('[data-testid="draft-room-chat-entry"]').exists(),
+    ).toBe(false);
+    const guest = render(null);
+    const entry = guest.get('[data-testid="draft-room-chat-entry"]');
+    expect(entry.text()).toContain("draft_games.room.login_to_chat");
+    expect(entry.find('[data-testid="draft-room-open-chat"]').exists()).toBe(
+      false,
+    );
+  });
+
+  it("keeps the join queue beside the chat entry", () => {
+    const players = [
+      ...room(5).players,
+      { ...room(5).players[2], steam_id: "50", status: "Requested" },
+    ];
+    const w = render(
+      "1",
+      room(5, {
+        is_organizer: true,
+        status: "Open",
+        require_approval: true,
+        players,
+      }),
+    );
+    expect(w.find('[data-testid="draft-room-queue"]').exists()).toBe(true);
+    expect(w.find('[data-testid="draft-room-chat-entry"]').exists()).toBe(true);
   });
 });

@@ -7,6 +7,7 @@ import {
   Play,
   X,
   Inbox,
+  MessageSquare,
 } from "lucide-vue-next";
 import { useI18n } from "vue-i18n";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
@@ -28,9 +29,10 @@ import {
 import { Spinner } from "~/components/ui/spinner";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import mapLabel from "~/utilities/mapLabel";
-import ChatLobby from "~/components/chat/ChatLobby.vue";
 import {
+  chatHubTabId,
   draftChatHubContext,
+  requestChatHubFocus,
   useChatHubContext,
 } from "~/composables/useChatHubContext";
 import MatchRegionVeto from "~/components/match/MatchRegionVeto.vue";
@@ -141,28 +143,6 @@ const matchChatReady = computed(
     ((props.match?.lineup_1?.lineup_players?.length ?? 0) > 0 ||
       (props.match?.lineup_2?.lineup_players?.length ?? 0) > 0),
 );
-const chatType = computed(() => (matchChatReady.value ? "match" : "draft"));
-const chatLobbyId = computed(() =>
-  matchChatReady.value ? props.room.match_id : props.room.id,
-);
-// Reported gap: once veto/match phase starts (matchChatReady), the room
-// only ever offered the single global/match conversation -- no team-only
-// channel, unlike the regular match page (pages/matches/[id]/index.vue).
-// Mirrors that page's own approach exactly: a second, separate chat box
-// (same non-frameless ChatLobby styling -- fixed height, doesn't grow
-// per message) rather than a tab toggle. myMembership already tracks
-// which side -- 1 or 2 -- the viewer is on, once accepted onto a lineup.
-const myMatchLineupId = computed(() => {
-  if (!matchChatReady.value || myMembership.value?.lineup == null) {
-    return null;
-  }
-  return myMembership.value.lineup === 1
-    ? props.match?.lineup_1_id
-    : props.match?.lineup_2_id;
-});
-const teamChatLobbyId = computed(() =>
-  myMatchLineupId.value ? `${props.match.id}:${myMatchLineupId.value}` : null,
-);
 const inLineup = computed(
   () =>
     myMembership.value?.lineup != null &&
@@ -187,7 +167,8 @@ const canReadDraftChat = computed(
 );
 // Chat Hub: the Draft chat until the match exists, then the Match Chat of
 // that match plus the own Team Chat of the viewer (see draftChatHubContext).
-useChatHubContext(() =>
+// It is the room's only chat; the page links to it with Open Chat.
+const chatHubContext = computed(() =>
   draftChatHubContext({
     room: props.room,
     match: props.match,
@@ -202,6 +183,12 @@ useChatHubContext(() =>
     t,
   }),
 );
+useChatHubContext(() => chatHubContext.value);
+const chatHubRoom = computed(() => chatHubContext.value.rooms[0] ?? null);
+const openChatHub = () => {
+  const room = chatHubRoom.value;
+  if (room) requestChatHubFocus(chatHubTabId(room.type, room.lobbyId));
+};
 
 const isWaitlisted = computed(() => myMembership.value?.status === "Waitlist");
 const hasRequested = computed(() => myMembership.value?.status === "Requested");
@@ -1638,9 +1625,10 @@ const start = () => {
         </Transition>
 
         <div
-          class="flex min-h-[440px] flex-col overflow-hidden rounded-xl border border-border bg-card/40 xl:min-h-0 xl:flex-1"
+          v-if="showQueue"
+          class="flex min-h-[220px] flex-col overflow-hidden rounded-xl border border-border bg-card/40 xl:min-h-0 xl:flex-1"
+          data-testid="draft-room-queue"
         >
-        <div v-if="showQueue" class="flex min-h-0 flex-1 flex-col">
           <div
             class="flex items-center gap-2 border-b border-border/60 px-4 py-2.5"
           >
@@ -1665,42 +1653,30 @@ const start = () => {
           </div>
         </div>
 
-        <!-- Same format/size as the match page's chats
-             (pages/matches/[id]/index.vue): two separate, labeled,
-             non-frameless ChatLobby boxes -- fixed height, doesn't grow
-             per message, unlike the old single frameless panel here. -->
+        <!-- The room's chat lives in the Chat Hub (draftChatHubContext):
+             the same rooms and history, read-only for spectators. -->
         <div
-          class="flex flex-col gap-4 p-4"
-          :class="showQueue ? 'border-t border-border/60' : ''"
+          v-if="chatHubRoom || !me"
+          class="flex flex-col items-center gap-2 rounded-xl border border-border bg-card/40 px-4 py-4 text-center"
+          :class="showQueue ? 'mt-3' : ''"
+          data-testid="draft-room-chat-entry"
         >
-          <div v-if="me" class="flex flex-col gap-2">
-            <span class="text-sm font-medium text-muted-foreground">
-              {{ $t("chat.global_chat") }}
-            </span>
-            <ChatLobby
-              instance="draft-room"
-              :type="chatType"
-              :lobby-id="chatLobbyId"
-              :can-send="canChat"
-              :readonly-hint="$t('draft_games.room.chat_players_only')"
-            />
-          </div>
-          <div v-if="me && teamChatLobbyId" class="flex flex-col gap-2">
-            <span class="text-sm font-medium text-muted-foreground">
-              {{ $t("chat.team_chat") }}
-            </span>
-            <ChatLobby
-              instance="draft-room"
-              type="match_team"
-              :lobby-id="teamChatLobbyId"
-              :can-send="inLineup || isOrganizer"
-              :readonly-hint="$t('draft_games.room.chat_players_only')"
-            />
-          </div>
-          <div
-            v-if="!me"
-            class="flex flex-col items-center justify-center gap-2 px-4 py-6 text-center"
-          >
+          <template v-if="me">
+            <p class="text-xs text-muted-foreground">
+              {{ $t("draft_games.room.chat_in_hub") }}
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              class="gap-1.5"
+              data-testid="draft-room-open-chat"
+              @click="openChatHub"
+            >
+              <MessageSquare class="h-3.5 w-3.5" />
+              {{ $t("draft_games.room.open_chat") }}
+            </Button>
+          </template>
+          <template v-else>
             <p class="text-xs text-muted-foreground">
               {{ $t("draft_games.room.login_to_chat") }}
             </p>
@@ -1710,8 +1686,7 @@ const start = () => {
             >
               {{ $t("draft_games.room.login") }}
             </NuxtLink>
-          </div>
-        </div>
+          </template>
         </div>
       </div>
     </div>
