@@ -1,3 +1,4 @@
+import { dateLocale } from "../../utilities/dateLocale";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { defineComponent, h } from "vue";
 import { flushPromises, mount } from "@vue/test-utils";
@@ -66,7 +67,7 @@ const auth = {
   },
 };
 const apollo = { mutate: vi.fn().mockResolvedValue({}), query: vi.fn() };
-const local = (value: string) => new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+const local = (value: string) => new Date(value).toLocaleString(dateLocale(), { dateStyle: "medium", timeStyle: "short" });
 
 beforeEach(() => {
   auth.me = null;

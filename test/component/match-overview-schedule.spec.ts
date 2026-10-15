@@ -1,3 +1,4 @@
+import { dateLocale } from "../../utilities/dateLocale";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
 import { readFileSync } from "node:fs";
@@ -120,7 +121,7 @@ const withProposals = (proposals: any[], extra: Record<string, any> = {}) => {
   return match;
 };
 const local = (value: string) =>
-  new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+  new Date(value).toLocaleString(dateLocale(), { dateStyle: "medium", timeStyle: "short" });
 
 describe("schedule stage selection", () => {
   it("a future Scheduled match opens on the Overview, not the empty Scoreboard", () => {
