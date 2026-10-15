@@ -8739,7 +8739,8 @@
     "edit_rate_limited": "You're editing too fast.",
     "react_timeout": "The server didn't answer. Your reaction may still go through.",
     "react_rate_limited": "You're reacting too fast.",
-    "awaiting_reply": "Your message request hasn't been answered yet. You can write again once they reply."
+    "awaiting_reply": "Your message request hasn't been answered yet. You can write again once they reply.",
+    "match_staff_readonly": "You can read this Match Chat as staff. Only the match's players, coaches and organizers can post."
   },
   "charts": {
     "usage": "Usage",

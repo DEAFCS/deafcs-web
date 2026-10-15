@@ -63,13 +63,34 @@ function matchLabel(match: any, t: Translate) {
 // (active match + lineup player, coach or organizer/admin); `myLineup` is
 // the viewer's own lineup as player or coach. Only an actual lineup player
 // gets Team Chat in the Hub; a coach or admin observer gets Match Chat only.
+// `staffReadOnly`: a moderator who is none of those reads the shared Match
+// Chat only (the API refuses their messages), and never gets a Team Chat.
 export function matchChatHubContext(
   match: any,
   canJoin: boolean,
   myLineup: { id: string; name?: string | null } | null | undefined,
   t: Translate,
+  staffReadOnly = false,
 ): ChatHubContext | null {
-  if (!match?.id || !canJoin) return null;
+  if (!match?.id) return null;
+  if (!canJoin) {
+    return staffReadOnly
+      ? {
+          key: `match:${match.id}`,
+          rooms: [
+            {
+              type: "match",
+              lobbyId: match.id,
+              label: matchLabel(match, t),
+              readOnly: true,
+            },
+          ],
+          // Offered, not pushed: a moderator looking at matches opens it
+          // from the Chat Hub icon when they want it.
+          autoOpen: false,
+        }
+      : null;
+  }
   const rooms: ChatHubContextRoom[] = [
     { type: "match", lobbyId: match.id, label: matchLabel(match, t) },
   ];

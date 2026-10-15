@@ -1404,6 +1404,24 @@ export default {
     // is never enough server-side (non-staff players organize their own
     // scrims routinely), so gating the floating Admin/RCON bar on
     // is_organizer alone exposed it to regular verified users.
+    // Moderators may read a running match's shared Match Chat (Anders
+    // 2026-10-15); posting stays with the match's own people and the API
+    // enforces both. Never a Team Chat: see matchChatHubContext.
+    canStaffReadMatchChat() {
+      return (
+        !!this.match &&
+        !this.canUseMatchChat &&
+        [
+          e_match_status_enum.Live,
+          e_match_status_enum.PickingPlayers,
+          e_match_status_enum.Scheduled,
+          e_match_status_enum.Veto,
+          e_match_status_enum.WaitingForCheckIn,
+          e_match_status_enum.WaitingForServer,
+        ].includes(this.match.status) &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
+      );
+    },
     canViewMatchAdminBar() {
       return (
         !!this.match?.is_organizer &&
@@ -1496,6 +1514,7 @@ export default {
               this.canUseMatchChat,
               this.myLineup,
               (key, params) => this.$t(key, params),
+              this.canStaffReadMatchChat,
             );
       return withoutMobileAutoOpen(context, !!this.chatHubMobileLayout);
     },

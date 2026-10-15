@@ -179,6 +179,10 @@ function readonlyHintFor(tab: ChatTab) {
   if (tab.readOnly && tab.type === "draft") {
     return t("draft_games.room.chat_players_only");
   }
+  // A moderator reading a running match's Match Chat (matchChatHubContext).
+  if (tab.readOnly && tab.type === "match") {
+    return t("chat.match_staff_readonly");
+  }
   if (tab.type === "announcement") {
     return t("chat.announcement_readonly", "Only admins can post here.");
   }
