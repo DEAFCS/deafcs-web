@@ -69,6 +69,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
         labelKey: "pages.settings.application.events.title",
         order: 4,
       },
+      {
+        path: "/settings/application/utility",
+        labelKey: "pages.settings.application.utility.title",
+        order: 5,
+      },
     ],
   },
   {

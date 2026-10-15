@@ -84,6 +84,9 @@ const containContent = computed(() => {
     case "apps-slug":
     case "news-manage-id":
     case "matches-id":
+    // Upstream 5Stack: the utility board and the maps index need the full width.
+    case "utility":
+    case "utility-map":
     case "map-pools":
     case "game-server-nodes":
     case "system-metrics":

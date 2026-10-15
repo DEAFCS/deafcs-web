@@ -1,0 +1,845 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef } from "vue";
+import { useI18n } from "vue-i18n";
+import {
+  AlertCircle,
+  CheckCircle2,
+  CircleSlash,
+  Clock,
+  Loader2,
+  MinusCircle,
+  Play,
+  RotateCw,
+  Trash2,
+  Server,
+  Upload,
+  X,
+} from "lucide-vue-next";
+import { useNuxtApp } from "#app";
+import getGraphqlClient from "~/graphql/getGraphqlClient";
+import {
+  RENDER_IN_FLIGHT_STATUSES,
+  RENDER_TERMINAL_STATUSES,
+  cancelUtilityLineupRenderMutation,
+  clearFinishedUtilityLineupRendersMutation,
+  deleteUtilityLineupRenderMutation,
+  renderUtilityLineupPreviewMutation,
+  utilityRendersFinishedSubscription,
+  utilityRendersInFlightSubscription,
+} from "~/graphql/utilityRenderGraphql";
+import BootSequence from "~/components/match/BootSequence.vue";
+import SnapshotQuickView from "~/components/match/SnapshotQuickView.vue";
+import UtilityPreviewDialog from "~/components/utility/UtilityPreviewDialog.vue";
+import DeleteRenderDialog from "~/components/utility/DeleteRenderDialog.vue";
+import UtilityRenderCoverage from "~/components/utility/UtilityRenderCoverage.vue";
+import UtilityRenderVersion from "~/components/utility/UtilityRenderVersion.vue";
+import UtilityRenderWarn from "~/components/utility/UtilityRenderWarn.vue";
+import { Button } from "~/components/ui/button";
+import { Skeleton } from "~/components/ui/skeleton";
+import { Spinner } from "~/components/ui/spinner";
+import { useBootStages } from "~/composables/useBootStages";
+import { useUtilityRenderCoverage } from "~/composables/useUtilityRenderCoverage";
+import { useAuthStore } from "~/stores/AuthStore";
+import cleanMapName from "~/utilities/cleanMapName";
+import { utilityLineupRoute } from "~/utilities/utilityDisplay";
+import {
+  liveUtilityRenderIds,
+  utilityLineupsRendering,
+  utilityRenderFilmedAt,
+  utilityRenderQueueView,
+  type UtilityRenderQueueRow,
+} from "~/utilities/utilityRenderQueue";
+import { toast } from "~/components/ui/toast";
+import type { UtilityLineupRender } from "~/types/utility";
+
+const FINISHED_LIMIT = 200;
+
+const { t } = useI18n();
+const nuxtApp = useNuxtApp();
+const isAdmin = computed(() => useAuthStore().isAdmin);
+
+const inFlight = shallowRef<UtilityLineupRender[]>([]);
+const finished = shallowRef<UtilityLineupRender[]>([]);
+const loading = ref(true);
+const busy = ref<Record<string, boolean>>({});
+
+// Elapsed is the whole point of this panel -- "queued" tells you nothing,
+// "queued for 9 minutes with no pod" tells you the dispatch is broken. One
+// ticker for the panel rather than a timer per row.
+const now = ref(Date.now());
+const ticker = import.meta.client
+  ? window.setInterval(() => {
+      now.value = Date.now();
+    }, 1000)
+  : null;
+
+const {
+  coverage,
+  failed: coverageFailed,
+  map: coverageMap,
+  refresh: refreshCoverage,
+  refreshSoon: refreshCoverageSoon,
+} = useUtilityRenderCoverage();
+
+onMounted(() => void refreshCoverage());
+
+// A render joining or leaving either list changes what the library is
+// missing; one moving on within its list does not.
+function sameRenders(a: UtilityLineupRender[], b: UtilityLineupRender[]) {
+  return (
+    a.length === b.length &&
+    a.every((render, index) => render.id === b[index].id)
+  );
+}
+
+// The latest the pod was seen filming, kept because the row that showed it
+// leaves the list the moment it is done.
+const seenFilmingAt = ref(0);
+let finishedHeard = false;
+
+let inFlightSub: { unsubscribe: () => void } | null = null;
+let finishedSub: { unsubscribe: () => void } | null = null;
+
+// Split the same way the clip queue splits: the finished list is history and
+// wants a limit, the in-flight list is state and must not have one.
+inFlightSub = getGraphqlClient()
+  .subscribe({
+    query: utilityRendersInFlightSubscription,
+    variables: {
+      statuses: [...RENDER_IN_FLIGHT_STATUSES],
+      mapOrder: "asc",
+      sortOrder: "asc",
+      createdOrder: "asc",
+    },
+  })
+  .subscribe({
+    next: ({ data }: any) => {
+      const rows: UtilityLineupRender[] = data?.utility_lineup_renders ?? [];
+      if (!loading.value && !sameRenders(inFlight.value, rows)) {
+        refreshCoverageSoon();
+      }
+      inFlight.value = rows;
+      seenFilmingAt.value = Math.max(
+        seenFilmingAt.value,
+        utilityRenderFilmedAt(rows),
+      );
+      loading.value = false;
+    },
+    error: (error: any) => {
+      console.error("[utility-render-queue] in-flight subscription:", error);
+      loading.value = false;
+    },
+  });
+
+finishedSub = getGraphqlClient()
+  .subscribe({
+    query: utilityRendersFinishedSubscription,
+    variables: {
+      statuses: [...RENDER_TERMINAL_STATUSES],
+      order: "desc",
+      limit: FINISHED_LIMIT,
+    },
+  })
+  .subscribe({
+    next: ({ data }: any) => {
+      const rows: UtilityLineupRender[] = data?.utility_lineup_renders ?? [];
+      if (finishedHeard && !sameRenders(finished.value, rows)) {
+        refreshCoverageSoon();
+      }
+      finished.value = rows;
+      finishedHeard = true;
+    },
+    error: (error: any) => {
+      console.error("[utility-render-queue] finished subscription:", error);
+    },
+  });
+
+onBeforeUnmount(() => {
+  inFlightSub?.unsubscribe();
+  finishedSub?.unsubscribe();
+  if (ticker !== null) {
+    window.clearInterval(ticker);
+  }
+});
+
+const { stagesFor } = useBootStages();
+const nadeStages = computed(() => stagesFor("nades"));
+
+const stageLabels = computed(() => {
+  const labels = new Map<string, string>();
+  for (const stage of nadeStages.value) {
+    if (stage.label) {
+      labels.set(stage.key, stage.label);
+    }
+  }
+  return labels;
+});
+
+const stageKinds = computed(() => {
+  const boot = new Set<string>();
+  const wait = new Set<string>();
+  for (const stage of nadeStages.value) {
+    (stage.meta === "wait" ? wait : boot).add(stage.key);
+  }
+  return { boot, wait };
+});
+
+const filmedAt = computed(() =>
+  Math.max(seenFilmingAt.value, utilityRenderFilmedAt(finished.value)),
+);
+
+// One pod films the whole queue, map after map, so there is one queue here
+// and not a card per map.
+const queue = computed(() =>
+  utilityRenderQueueView(inFlight.value, {
+    now: now.value,
+    filmedAt: filmedAt.value,
+    stages: stageKinds.value,
+  }),
+);
+
+type QueueRow = UtilityRenderQueueRow<UtilityLineupRender>;
+
+const STATUS_TONE: Record<string, string> = {
+  queued: "text-muted-foreground",
+  rendering: "text-[hsl(var(--tac-amber))]",
+  uploading: "text-[hsl(var(--tac-amber))]",
+  done: "text-success",
+  error: "text-destructive",
+  // Not a failure: the lineup cannot be filmed exactly, and saying so is the
+  // whole answer. Tone it apart from the red so a reviewer can tell at a glance
+  // which rows are worth retrying.
+  skipped: "text-muted-foreground",
+  cancelled: "text-muted-foreground",
+};
+
+function statusIcon(status: string) {
+  switch (status) {
+    case "queued":
+      return Clock;
+    case "rendering":
+      return Loader2;
+    case "uploading":
+      return Upload;
+    case "done":
+      return CheckCircle2;
+    case "error":
+      return AlertCircle;
+    case "skipped":
+      return MinusCircle;
+    default:
+      return CircleSlash;
+  }
+}
+
+// The icon carries the tone, the word carries the fact. A queue read at a
+// glance needs both — an amber spinner alone doesn't say render vs upload.
+function statusLabel(status: string) {
+  return t(`pages.utility.render_queue.statuses.${status}`);
+}
+
+// A row reads "queued" from the moment it is asked for until it is filmed:
+// the api leaves row.status alone for everything before that. Its own latest
+// stage is what says which of those minutes it is in.
+function rowStatusLabel(row: QueueRow): string {
+  const stage = row.stage;
+  const label = stage ? stageLabels.value.get(stage.key) : undefined;
+  if (row.render.status !== "queued" || !stage || !label) {
+    return statusLabel(row.render.status);
+  }
+  if (stage.key === "changing_map") {
+    return stage.sub
+      ? t("live_stages.changing_map_to", { map: cleanMapName(stage.sub) })
+      : label;
+  }
+  const sub = stage.sub ? ` · ${stage.sub}` : "";
+  return stage.progress === null
+    ? `${label}${sub}`
+    : `${label}${sub} ${Math.round(stage.progress * 100)}%`;
+}
+
+function progressPct(render: UtilityLineupRender) {
+  return Math.round(Number(render.progress ?? 0) * 100);
+}
+
+// Compact and mono so it sits in a column of numbers: 45S, 6M, 1H04.
+function since(iso: string | null | undefined): string {
+  if (!iso) {
+    return "";
+  }
+  const started = Date.parse(iso);
+  if (!Number.isFinite(started)) {
+    return "";
+  }
+
+  const seconds = Math.max(0, Math.round((now.value - started) / 1000));
+  if (seconds < 60) {
+    return `${seconds}s`;
+  }
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) {
+    return `${minutes}m`;
+  }
+  return `${Math.floor(minutes / 60)}h${String(minutes % 60).padStart(2, "0")}`;
+}
+
+/**
+ * The status column says where a render is; this says how it got there and
+ * how long each leg took. The pod's boot is folded into one leg -- the
+ * stepper above shows it stage by stage -- but a row's own waits are legs of
+ * their own: ten minutes waiting for a map is not ten minutes of booting.
+ */
+function timeline(
+  render: UtilityLineupRender,
+): Array<{ leg: string; held: string }> {
+  const history = Array.isArray(render.status_history)
+    ? render.status_history
+    : [];
+
+  const stamped = history
+    .map((entry) => {
+      const stage = String(entry?.boot_stage ?? "").split(":")[0];
+      return {
+        leg:
+          entry?.status === "booting" && stageKinds.value.wait.has(stage)
+            ? stage
+            : String(entry?.status ?? ""),
+        at: Date.parse(String(entry?.at ?? "")),
+      };
+    })
+    .filter((entry) => entry.leg && Number.isFinite(entry.at))
+    .filter(
+      (entry, index, all) => index === 0 || entry.leg !== all[index - 1].leg,
+    );
+
+  return stamped.map((entry, index) => {
+    // The last leg is still running, so it is measured against the clock.
+    const until = stamped[index + 1]?.at ?? now.value;
+    const seconds = Math.max(0, Math.round((until - entry.at) / 1000));
+    return {
+      leg: entry.leg,
+      held: seconds < 60 ? `${seconds}s` : `${Math.floor(seconds / 60)}m`,
+    };
+  });
+}
+
+function legLabel(leg: string): string {
+  if (leg === "booting") {
+    return t("pages.utility.render_queue.render_pod_booting");
+  }
+  return stageLabels.value.get(leg) ?? statusLabel(leg);
+}
+
+async function rerender(render: UtilityLineupRender) {
+  busy.value = { ...busy.value, [render.id]: true };
+  try {
+    const { data } = await nuxtApp.$apollo.defaultClient.mutate({
+      mutation: renderUtilityLineupPreviewMutation,
+      variables: { utility_lineup_id: render.utility_lineup_id },
+    });
+    const result = (data as any)?.renderUtilityLineupPreview;
+    toast({
+      title: result?.success
+        ? t("pages.utility.render_queue.requeued")
+        : t("pages.utility.render_queue.not_requeued"),
+      description: result?.reason ?? undefined,
+      variant: result?.success ? undefined : "destructive",
+    });
+  } catch (error: any) {
+    toast({
+      title: t("pages.utility.render_queue.not_requeued"),
+      description: error?.message,
+      variant: "destructive",
+    });
+  } finally {
+    busy.value = { ...busy.value, [render.id]: false };
+    void refreshCoverage();
+  }
+}
+
+async function cancel(render: UtilityLineupRender) {
+  busy.value = { ...busy.value, [render.id]: true };
+  try {
+    await nuxtApp.$apollo.defaultClient.mutate({
+      mutation: cancelUtilityLineupRenderMutation,
+      variables: { render_id: render.id },
+    });
+  } catch (error: any) {
+    toast({
+      title: t("pages.utility.render_queue.cancel_failed"),
+      description: error?.message,
+      variant: "destructive",
+    });
+  } finally {
+    busy.value = { ...busy.value, [render.id]: false };
+  }
+}
+
+const clearing = ref(false);
+
+// The finished render, watched full-size like a highlight. Its clip is the
+// lineup's own preview_url, so it opens this small player rather than the
+// match-clip modal.
+const previewOpen = ref(false);
+const previewRender = shallowRef<UtilityLineupRender | null>(null);
+
+function openPreview(render: UtilityLineupRender) {
+  previewRender.value = render;
+  previewOpen.value = true;
+}
+
+// A DONE render whose clip actually landed -- the only rows worth a play button.
+function hasPreview(render: UtilityLineupRender): boolean {
+  return render.status === "done" && Boolean(render.lineup?.preview_url);
+}
+
+// The render whose clip and stills the lineup shows right now. Deleting it
+// takes the lineup's public preview down; deleting any other row does not.
+const live = computed(() => liveUtilityRenderIds(finished.value));
+
+// One render per lineup at a time -- the api turns a second one down.
+const rendering = computed(() => utilityLineupsRendering(inFlight.value));
+
+function canRerender(render: UtilityLineupRender): boolean {
+  return render.status !== "done" || live.value.has(render.id);
+}
+
+function lineupRoute(render: UtilityLineupRender) {
+  return utilityLineupRoute(render.map_name ?? null, render.utility_lineup_id);
+}
+
+// Delete goes through the same DeleteRenderDialog the highlights delete flow
+// uses -- a proper confirm, not an inline gamble.
+const deleteOpen = ref(false);
+const deleteTarget = shallowRef<UtilityLineupRender | null>(null);
+
+async function remove(render: UtilityLineupRender) {
+  if (live.value.has(render.id)) {
+    deleteTarget.value = render;
+    deleteOpen.value = true;
+    return;
+  }
+  busy.value = { ...busy.value, [`delete-${render.id}`]: true };
+  try {
+    await nuxtApp.$apollo.defaultClient.mutate({
+      mutation: deleteUtilityLineupRenderMutation,
+      variables: { render_id: render.id },
+    });
+  } catch (error: any) {
+    toast({
+      title: t("pages.utility.render_queue.delete_failed"),
+      description: error?.message,
+      variant: "destructive",
+    });
+  } finally {
+    busy.value = { ...busy.value, [`delete-${render.id}`]: false };
+  }
+}
+
+async function clearFinished() {
+  clearing.value = true;
+  try {
+    await nuxtApp.$apollo.defaultClient.mutate({
+      mutation: clearFinishedUtilityLineupRendersMutation,
+    });
+  } catch (error: any) {
+    toast({
+      title: t("pages.utility.render_queue.clear_failed"),
+      description: error?.message,
+      variant: "destructive",
+    });
+  } finally {
+    clearing.value = false;
+  }
+}
+</script>
+
+<template>
+  <section>
+    <UtilityRenderCoverage
+      v-model:map="coverageMap"
+      :coverage="coverage"
+      :failed="coverageFailed"
+      @enqueued="refreshCoverage()"
+    />
+
+    <div v-if="loading" class="mt-3 space-y-2">
+      <Skeleton class="h-16 w-full" />
+      <Skeleton class="h-16 w-full" />
+    </div>
+
+    <p
+      v-else-if="!queue.count && !finished.length"
+      class="mt-3 font-mono text-[0.62rem] uppercase tracking-[0.14em] text-muted-foreground"
+    >
+      {{ $t("pages.utility.render_queue.empty") }}
+    </p>
+
+    <div
+      v-if="queue.count"
+      data-render-queue
+      class="relative mt-3 overflow-hidden rounded-md border border-border bg-card/40"
+    >
+      <!-- The sweep is what says the pod is at work right now -- filming or
+           booting. With neither it holds still, so the queue reads as
+           waiting rather than as running slowly. -->
+      <span
+        v-if="queue.active || queue.booting"
+        aria-hidden="true"
+        class="pointer-events-none absolute left-0 right-0 top-0 h-[2px] overflow-hidden"
+      >
+        <span
+          class="tac-scan-sweep block h-full text-[hsl(var(--tac-amber))]"
+        ></span>
+      </span>
+
+      <div class="flex items-center justify-between gap-2 p-3">
+        <span
+          class="flex items-center gap-2 font-mono text-[0.72rem] uppercase tracking-[0.18em] text-foreground"
+        >
+          {{ $t("pages.utility.render_queue.pod") }}
+          <!-- Queued rows nobody is working on look exactly like rows waiting
+               their turn until something says so. -->
+          <UtilityRenderWarn
+            v-if="queue.unclaimed"
+            data-queue-unclaimed
+            :title="$t('pages.utility.render_queue.no_pod')"
+            :note="$t('pages.utility.render_queue.no_pod_hint')"
+          />
+        </span>
+        <span
+          class="font-mono text-[0.62rem] uppercase tabular-nums tracking-[0.14em] text-muted-foreground"
+        >
+          {{ $t("pages.utility.render_queue.lineups", { count: queue.count }) }}
+          <span aria-hidden="true" class="mx-1 text-border">/</span>
+          {{
+            $t("pages.utility.render_queue.maps", { count: queue.maps.length })
+          }}
+        </span>
+      </div>
+
+      <!-- The pod's boot, stage by stage, beside what its screen shows. Same
+           BootSequence the highlights queue mounts; the "nades" mode adds the
+           three api-side phases that happen before any pod exists. -->
+      <div
+        v-if="queue.booting || queue.active"
+        class="border-t border-border/40 bg-primary/[0.03] px-3 py-3"
+      >
+        <div class="mb-2 flex items-center gap-2">
+          <span
+            class="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-md border border-[hsl(var(--tac-amber)/0.4)] bg-[hsl(var(--tac-amber)/0.1)]"
+          >
+            <Server class="h-3 w-3 text-[hsl(var(--tac-amber))]" />
+          </span>
+          <span
+            class="font-mono text-[0.62rem] uppercase tracking-[0.14em] text-foreground"
+          >
+            {{
+              queue.active
+                ? $t("pages.utility.render_queue.statuses.rendering")
+                : $t("pages.utility.render_queue.render_pod_booting")
+            }}
+          </span>
+        </div>
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <BootSequence
+            v-if="queue.booting"
+            mode="nades"
+            :histories="inFlight.map((render) => render.status_history)"
+            :card="false"
+            class="flex-1"
+          />
+          <div
+            v-if="queue.sample"
+            class="w-full shrink-0 overflow-hidden rounded-md border border-border/50 sm:w-64 lg:w-80"
+          >
+            <SnapshotQuickView kind="nades" :id="queue.sample.id" />
+          </div>
+        </div>
+      </div>
+
+      <!-- In the order the pod films them: the map it is on, then each map
+           it will change the server to. -->
+      <template v-for="map of queue.maps" :key="map.mapName">
+        <div
+          data-queue-map
+          class="flex items-center justify-between gap-2 border-t border-border/40 bg-muted/20 px-3 py-1.5"
+        >
+          <span
+            class="flex items-center gap-1.5 font-mono text-[0.66rem] uppercase tracking-[0.18em]"
+            :class="map.here ? 'text-foreground' : 'text-muted-foreground'"
+          >
+            <span
+              v-if="map.here"
+              data-queue-here
+              role="img"
+              class="h-1.5 w-1.5 rounded-full bg-[hsl(var(--tac-amber))]"
+              :title="$t('pages.utility.render_queue.pod_here')"
+              :aria-label="$t('pages.utility.render_queue.pod_here')"
+            />
+            {{ cleanMapName(map.mapName) }}
+          </span>
+          <span
+            class="font-mono text-[0.6rem] uppercase tabular-nums tracking-[0.14em] text-muted-foreground"
+          >
+            {{
+              $t("pages.utility.render_queue.lineups", {
+                count: map.rows.length,
+              })
+            }}
+          </span>
+        </div>
+
+        <ul class="divide-y divide-border/40 border-t border-border/40 px-3">
+          <li
+            v-for="row of map.rows"
+            :key="row.render.id"
+            data-queue-row
+            class="py-1.5"
+          >
+            <div class="flex items-center gap-2">
+              <component
+                :is="statusIcon(row.render.status)"
+                class="h-3.5 w-3.5 shrink-0"
+                :class="[
+                  STATUS_TONE[row.render.status],
+                  row.render.status === 'rendering' ? 'animate-spin' : '',
+                ]"
+              />
+              <span class="min-w-0 flex-1 truncate text-xs">
+                {{ row.render.lineup?.name ?? row.render.utility_lineup_id }}
+              </span>
+              <!-- Said to have stopped only where silence means it: a row
+                   waiting its turn has nothing to say. -->
+              <UtilityRenderWarn
+                v-if="row.stale"
+                data-queue-stale
+                :title="
+                  $t('pages.utility.render_queue.stale', {
+                    since: since(row.render.last_status_at),
+                  })
+                "
+              />
+              <span
+                class="shrink-0 font-mono text-[0.6rem] uppercase tabular-nums tracking-[0.14em]"
+                :class="STATUS_TONE[row.render.status]"
+              >
+                <span data-queue-status>{{ rowStatusLabel(row) }}</span>
+                <template v-if="row.render.status !== 'queued'">
+                  <span aria-hidden="true" class="mx-1 text-border">/</span>
+                  {{ progressPct(row.render) }}%
+                </template>
+                <span aria-hidden="true" class="mx-1 text-border">/</span>
+                <span class="text-muted-foreground">
+                  {{ since(row.render.created_at) }}
+                </span>
+              </span>
+              <Button
+                size="sm"
+                variant="ghost"
+                class="h-6 shrink-0 px-1.5"
+                :loading="busy[row.render.id]"
+                :title="$t('pages.utility.render_queue.cancel')"
+                :aria-label="$t('pages.utility.render_queue.cancel')"
+                @click="cancel(row.render)"
+              >
+                <X class="h-3.5 w-3.5" />
+              </Button>
+            </div>
+
+            <!-- Second line: how it got here and where it is running. All of
+                 it is already on the row. -->
+            <div
+              class="mt-0.5 flex flex-wrap items-center gap-x-1.5 pl-[1.375rem] font-mono text-[0.58rem] uppercase tracking-[0.12em] text-muted-foreground/80"
+            >
+              <template
+                v-for="(leg, index) of timeline(row.render)"
+                :key="index"
+              >
+                <span v-if="index > 0" aria-hidden="true" class="text-border">
+                  →
+                </span>
+                <span>
+                  {{ legLabel(leg.leg) }}
+                  <span class="tabular-nums text-muted-foreground/60">
+                    {{ leg.held }}
+                  </span>
+                </span>
+              </template>
+
+              <template v-if="row.render.k8s_job_name">
+                <span aria-hidden="true" class="text-border">/</span>
+                <span class="truncate normal-case tracking-normal">
+                  {{ row.render.k8s_job_name }}
+                </span>
+              </template>
+            </div>
+
+            <!-- The pod's own words while the render is still queued: the
+                 batch job captures the log of a silent boot two minutes in.
+                 This is the line that replaces guessing. -->
+            <p
+              v-if="row.render.error_message"
+              class="mt-0.5 break-words pl-[1.375rem] font-mono text-[0.6rem] text-[hsl(var(--tac-amber))]"
+            >
+              {{ row.render.error_message }}
+            </p>
+          </li>
+        </ul>
+      </template>
+    </div>
+
+    <header
+      v-if="isAdmin && finished.length"
+      class="mt-3 flex items-center justify-end gap-2"
+    >
+      <Button
+        size="sm"
+        variant="ghost"
+        class="h-7 font-mono text-[0.62rem] uppercase tracking-[0.14em]"
+        :loading="clearing"
+        @click="clearFinished()"
+      >
+        {{ $t("pages.utility.render_queue.clear_finished") }}
+      </Button>
+    </header>
+
+    <div
+      v-if="finished.length"
+      class="rounded-md border border-border"
+      :class="isAdmin ? 'mt-1' : 'mt-3'"
+    >
+      <ul class="divide-y divide-border">
+        <li
+          v-for="render of finished"
+          :key="render.id"
+          class="flex items-start gap-2 px-3 py-2"
+        >
+          <component
+            :is="statusIcon(render.status)"
+            class="mt-0.5 h-3.5 w-3.5 shrink-0"
+            :class="STATUS_TONE[render.status]"
+          />
+          <div class="min-w-0 flex-1">
+            <div class="flex items-baseline gap-2">
+              <NuxtLink
+                :to="lineupRoute(render)"
+                class="truncate text-xs transition-colors hover:text-[hsl(var(--tac-amber))]"
+              >
+                {{ render.lineup?.name ?? render.utility_lineup_id }}
+              </NuxtLink>
+              <span
+                v-if="live.has(render.id)"
+                class="inline-flex h-4 shrink-0 items-center rounded-sm bg-success/15 px-1 font-mono text-[0.55rem] font-bold uppercase leading-none tracking-[0.12em] text-success"
+                :title="$t('pages.utility.render_queue.live_hint')"
+              >
+                {{ $t("pages.utility.render_queue.live") }}
+              </span>
+              <span
+                class="shrink-0 font-mono text-[0.6rem] uppercase tabular-nums tracking-[0.14em] text-muted-foreground"
+              >
+                {{ cleanMapName(render.map_name) }}
+                <span aria-hidden="true" class="mx-1 text-border">/</span>
+                <span :class="STATUS_TONE[render.status]">
+                  {{ statusLabel(render.status) }}
+                </span>
+                <template v-if="render.duration_ms">
+                  <span aria-hidden="true" class="mx-1 text-border">/</span>
+                  {{ Math.round(Number(render.duration_ms) / 1000) }}s
+                </template>
+                <template v-if="render.status === 'done'">
+                  <span aria-hidden="true" class="mx-1 text-border">/</span>
+                  <UtilityRenderVersion
+                    :version="render.render_version"
+                    :expected="coverage?.version"
+                  />
+                </template>
+              </span>
+            </div>
+            <p
+              v-if="render.skip_reason || render.error_message"
+              class="mt-0.5 break-words font-mono text-[0.62rem]"
+              :class="
+                render.skip_reason ? 'text-muted-foreground' : 'text-destructive'
+              "
+            >
+              {{ render.skip_reason ?? render.error_message }}
+            </p>
+          </div>
+          <Button
+            v-if="hasPreview(render)"
+            size="sm"
+            variant="ghost"
+            class="h-6 shrink-0 gap-1 px-1.5 text-[hsl(var(--tac-amber))]"
+            :title="$t('pages.utility.preview.play')"
+            @click="openPreview(render)"
+          >
+            <Play class="h-3.5 w-3.5 fill-current" />
+          </Button>
+          <span
+            v-if="canRerender(render)"
+            class="inline-flex shrink-0"
+            :title="
+              rendering.has(render.utility_lineup_id)
+                ? $t('pages.utility.render_queue.in_flight')
+                : render.status === 'done'
+                  ? $t('pages.utility.render_queue.rerender')
+                  : $t('pages.utility.render_queue.retry')
+            "
+          >
+            <Button
+              size="sm"
+              variant="ghost"
+              class="h-6 px-1.5"
+              :loading="busy[render.id]"
+              :disabled="rendering.has(render.utility_lineup_id)"
+              :aria-label="
+                render.status === 'done'
+                  ? $t('pages.utility.render_queue.rerender')
+                  : $t('pages.utility.render_queue.retry')
+              "
+              @click="rerender(render)"
+            >
+              <Spinner
+                v-if="rendering.has(render.utility_lineup_id)"
+                class="h-3.5 w-3.5"
+              />
+              <RotateCw v-else class="h-3.5 w-3.5" />
+            </Button>
+          </span>
+
+          <Button
+            v-if="isAdmin"
+            size="sm"
+            variant="ghost"
+            class="h-6 shrink-0 px-1.5 text-muted-foreground hover:text-destructive"
+            :loading="busy[`delete-${render.id}`]"
+            :title="$t('pages.utility.render_queue.delete')"
+            :aria-label="$t('pages.utility.render_queue.delete')"
+            @click="remove(render)"
+          >
+            <Trash2 class="h-3.5 w-3.5" />
+          </Button>
+        </li>
+      </ul>
+    </div>
+
+    <UtilityPreviewDialog
+      v-model:open="previewOpen"
+      :render-id="previewRender?.id ?? null"
+      :src="previewRender?.lineup?.preview_url ?? null"
+      :poster="previewRender?.lineup?.preview_thumbnail_url ?? null"
+      :title="previewRender?.lineup?.name ?? null"
+      :map-name="previewRender?.map_name ?? null"
+      :lineup-id="previewRender?.utility_lineup_id ?? null"
+      :duration-ms="previewRender?.duration_ms ?? null"
+      :can-manage="isAdmin"
+    />
+
+    <DeleteRenderDialog
+      v-model="deleteOpen"
+      :render-id="deleteTarget?.id ?? null"
+      :title="deleteTarget?.lineup?.name ?? null"
+    />
+  </section>
+</template>

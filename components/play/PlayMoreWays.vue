@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import gql from "graphql-tag";
 import PlayMoreWaysView from "~/components/play/PlayMoreWaysView.vue";
 import { useCurrentLeagueSeason } from "~/composables/useCurrentLeagueSeason";
@@ -53,6 +53,12 @@ watch(
   { immediate: true },
 );
 
+const practiceEnabled = computed(
+  () =>
+    settings.settings.find(
+      (setting) => setting.name === "public.utility_practice_enabled",
+    )?.value === "true",
+);
 </script>
 
 <template>
@@ -62,6 +68,7 @@ watch(
     :league="leagueCard(league)"
     :scrims="scrimsCard"
     :servers="serverTiles"
+    :practice-enabled="practiceEnabled"
   />
 </template>
 

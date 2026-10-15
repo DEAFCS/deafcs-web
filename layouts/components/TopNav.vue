@@ -546,6 +546,40 @@ const socialLinkClasses =
                         </li>
                       </ul>
                     </div>
+
+                    <!-- Upstream 5Stack TopNav: Library > Utility. -->
+                    <div class="min-w-[160px] flex-1">
+                      <div :class="navGroupLabelClasses">
+                        <span :class="navGroupLabelTickClasses"></span>
+                        {{ $t("layouts.top_nav.community.library.title") }}
+                      </div>
+                      <ul class="flex flex-col gap-1">
+                        <li>
+                          <NavigationMenuLink as-child>
+                            <NuxtLink
+                              to="/utility"
+                              :class="[navItemClasses, navItemStackedClasses]"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span :class="navItemLabelClasses">
+                                  {{
+                                    $t("layouts.top_nav.community.utility.title")
+                                  }}
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.community.utility.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                      </ul>
+                    </div>
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>

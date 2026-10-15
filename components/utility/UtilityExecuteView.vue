@@ -1,0 +1,674 @@
+<script setup lang="ts">
+import { computed, onBeforeUnmount, watch } from "vue";
+import { useI18n } from "vue-i18n";
+import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
+import PlayerDisplay from "~/components/PlayerDisplay.vue";
+import UtilityAuthorByline from "~/components/utility/UtilityAuthorByline.vue";
+import TimeAgo from "~/components/TimeAgo.vue";
+import Fold from "~/components/ui/transitions/Fold.vue";
+import UtilityExecuteTransport from "~/components/utility/UtilityExecuteTransport.vue";
+import UtilityExecuteViewer3D from "~/components/utility/UtilityExecuteViewer3D.vue";
+import UtilityThrowStrip from "~/components/utility/UtilityThrowStrip.vue";
+import type { PlaybackClock } from "~/composables/usePlaybackClock";
+import { useSidebar } from "~/components/ui/sidebar/utils";
+import { useUtilityCardViews } from "~/composables/useUtilityCardViews";
+import {
+  UTILITY_CARRY_LIMITS,
+  UTILITY_CARRY_TOTAL,
+  UTILITY_TYPE_ICONS,
+  utilityThrowButtonsKey,
+} from "~/utilities/utilityDisplay";
+import type {
+  UtilityAuthorRef,
+  UtilityLineup,
+  UtilityPlaybook,
+  UtilityPlaybookStep,
+  UtilityType,
+} from "~/types/utility";
+
+/** One step of an execute, resolved to everything a reader is shown. */
+export type UtilityExecuteBeat = {
+  key: string;
+  /** 0-based: one less than the number the step wears. */
+  index: number;
+  step: UtilityPlaybookStep;
+  /** Null when the step points at a lineup this viewer cannot see. */
+  lineup: UtilityLineup | null;
+  seconds: number;
+  color: string;
+  /** Only the first beat at a given second prints it. */
+  showTime: boolean;
+  /** The step, 1-based, this lineup was first thrown at. */
+  repeatOf: number | null;
+  /** Who throws it, by name. */
+  who: string | null;
+  /** And as a face, when the roster knows them. */
+  player?: UtilityAuthorRef | null;
+  mine: boolean;
+};
+
+/**
+ * An execute, read rather than edited: when each throw goes, who throws it and
+ * how. The timeline comes first because that is the question you open one
+ * with; Mine cuts it down to your own steps with the throw at full size.
+ */
+const props = withDefaults(
+  defineProps<{
+    playbook: UtilityPlaybook;
+    beats: UtilityExecuteBeat[];
+    /** Whose it is, and the team it belongs to, by name. */
+    owner?: string | null;
+    ownerPlayer?: UtilityAuthorRef | null;
+    team?: string | null;
+    /** The execute's run: its clock, and its play bar's length. */
+    run: PlaybackClock;
+    /** The clock is running, or the scene is flying in to start it. */
+    running?: boolean;
+    // Play has been pressed on a map with a mesh, so the execute is thrown in
+    // 3D. Off until then: a three.js scene per execute you open to read is
+    // waste. Once on it stays, showing the run it last played.
+    scene?: boolean;
+    hoveredLineupId?: string | null;
+    // Steps arrive before the lineups they point at; until those land, a
+    // missing one is not yet a lineup you cannot see.
+    lineupsLoading?: boolean;
+  }>(),
+  {
+    owner: null,
+    ownerPlayer: null,
+    team: null,
+    running: false,
+    scene: false,
+    hoveredLineupId: null,
+    lineupsLoading: false,
+  },
+);
+
+const emit = defineEmits<{
+  (e: "step", index: number): void;
+  (e: "hover", id: string | null): void;
+  // The scene's camera has arrived: a run started now is one you can see.
+  (e: "framed"): void;
+  // Put the map back where the scene was.
+  (e: "close-scene"): void;
+  (e: "toggle"): void;
+  (e: "seek", seconds: number): void;
+}>();
+
+const mine = defineModel<boolean>("mine", { default: false });
+
+const { t, locale } = useI18n();
+
+const duration = computed(() =>
+  Math.max(0, ...props.beats.map((beat) => beat.seconds)),
+);
+
+const stats = computed(() => [
+  {
+    key: "steps",
+    value: String(props.beats.length),
+    label: t("pages.utility.playbooks.step_word", props.beats.length),
+  },
+  {
+    key: "duration",
+    value: t("pages.utility.playbooks.duration", {
+      seconds: duration.value.toFixed(1),
+    }),
+    label: t("pages.utility.playbooks.start_to_finish"),
+  },
+  {
+    key: "players",
+    value: players.value.length ? String(players.value.length) : t("common.any"),
+    label: t("pages.utility.playbooks.player_word", players.value.length || 2),
+  },
+]);
+
+const players = computed(() => {
+  const names = new Set<string>();
+  for (const beat of props.beats) {
+    if (beat.who) {
+      names.add(beat.who);
+    }
+  }
+  return [...names];
+});
+
+const mineBeats = computed(() =>
+  props.beats.filter((beat) => beat.mine && beat.lineup),
+);
+
+// Only worth a switch when a step is yours.
+const showMine = computed(() => mine.value && mineBeats.value.length > 0);
+
+const whoseOptions = computed(() => [
+  { key: "everyone", label: t("pages.utility.playbooks.everyone") },
+  {
+    key: "mine",
+    label: t("pages.utility.playbooks.mine"),
+    count: mineBeats.value.length,
+  },
+]);
+
+const whoseModel = computed<string>({
+  get: () => (showMine.value ? "mine" : "everyone"),
+  set: (value) => (mine.value = value === "mine"),
+});
+
+const others = computed(() => {
+  const names = new Set<string>();
+  for (const beat of props.beats) {
+    if (!beat.mine && beat.who) {
+      names.add(beat.who);
+    }
+  }
+  return [...names];
+});
+
+function listNames(names: string[]) {
+  try {
+    return new Intl.ListFormat(locale.value, {
+      style: "long",
+      type: "conjunction",
+    }).format(names);
+  } catch {
+    return names.join(", ");
+  }
+}
+
+const restLine = computed(() => {
+  const count = props.beats.length - mineBeats.value.length;
+  if (count <= 0) {
+    return "";
+  }
+  return others.value.length
+    ? t(
+        "pages.utility.playbooks.more_steps_by",
+        { count, players: listNames(others.value) },
+        count,
+      )
+    : t("pages.utility.playbooks.more_steps", { count }, count);
+});
+
+/**
+ * What is wrong with the execute as written: a step nobody here can read, and
+ * a player handed more than a player carries. One list, so it reads as a
+ * checklist rather than as a stack of alarms.
+ */
+const notices = computed(() => {
+  const out: Array<{ key: string; text: string }> = [];
+
+  if (!props.lineupsLoading) {
+    for (const beat of props.beats) {
+      if (!beat.lineup) {
+        out.push({
+          key: `unreadable-${beat.key}`,
+          text: t("pages.utility.playbooks.step_unreadable", {
+            step: beat.index + 1,
+          }),
+        });
+      }
+    }
+  }
+
+  type Tally = { name: string; total: number; byType: Map<UtilityType, number> };
+  const tallies = new Map<string, Tally>();
+  for (const beat of props.beats) {
+    const steamId = beat.step.assigned_steam_id;
+    if (!steamId || !beat.lineup) {
+      continue;
+    }
+    const tally = tallies.get(String(steamId)) ?? {
+      name: beat.who ?? String(steamId),
+      total: 0,
+      byType: new Map(),
+    };
+    const type = beat.lineup.utility_type;
+    tally.total += 1;
+    tally.byType.set(type, (tally.byType.get(type) ?? 0) + 1);
+    tallies.set(String(steamId), tally);
+  }
+
+  for (const [steamId, tally] of tallies) {
+    for (const [type, count] of tally.byType) {
+      const limit = UTILITY_CARRY_LIMITS[type] ?? 1;
+      if (count > limit) {
+        out.push({
+          key: `${steamId}-${type}`,
+          text: t("pages.utility.playbooks.carry_over_type", {
+            player: tally.name,
+            count,
+            type: t(`pages.utility.types.${type}`),
+            limit,
+          }),
+        });
+      }
+    }
+    if (tally.total > UTILITY_CARRY_TOTAL) {
+      out.push({
+        key: `${steamId}-total`,
+        text: t("pages.utility.playbooks.carry_over_total", {
+          player: tally.name,
+          count: tally.total,
+          limit: UTILITY_CARRY_TOTAL,
+        }),
+      });
+    }
+  }
+
+  return out;
+});
+
+// Steps light as the run reaches them, which needs only its tenths: the rows
+// are not redrawn every frame.
+const clock = computed(() => props.run.tenths.value);
+
+function waiting(beat: UtilityExecuteBeat) {
+  return clock.value !== null && beat.seconds > clock.value;
+}
+
+function lit(beat: UtilityExecuteBeat) {
+  return clock.value !== null && beat.seconds <= clock.value;
+}
+
+// What is said when it is thrown, and whether it is a second helping of a
+// lineup the execute already spent: throwing the same smoke twice is a
+// re-smoke, and the row owes you which step you first threw it at.
+function call(beat: UtilityExecuteBeat) {
+  const parts: string[] = [];
+  if (beat.repeatOf) {
+    parts.push(
+      t("pages.utility.playbooks.again_from", { step: beat.repeatOf }),
+    );
+  }
+  if (beat.step.note) {
+    parts.push(`\u201c${beat.step.note}\u201d`);
+  }
+  return parts.join(" ");
+}
+
+// Where on the run's clock a step falls, as a share of the whole run.
+function along(beat: UtilityExecuteBeat) {
+  return duration.value > 0 ? (beat.seconds / duration.value) * 100 : 0;
+}
+
+// The badge says which step; the icon says which grenade, in its colour.
+function typeIcon(beat: UtilityExecuteBeat) {
+  const src = beat.lineup ? UTILITY_TYPE_ICONS[beat.lineup.utility_type] : null;
+  return src
+    ? {
+        backgroundColor: beat.color,
+        maskImage: `url(${src})`,
+        WebkitMaskImage: `url(${src})`,
+      }
+    : null;
+}
+
+function throwShort(lineup: UtilityLineup) {
+  return t(
+    `pages.utility.throw_buttons.${utilityThrowButtonsKey(lineup.throw_strength)}_short`,
+  );
+}
+
+// The map's square, when the page has one beside the card.
+const layers = useUtilityCardViews();
+const { isMobile } = useSidebar();
+const staged = computed(() => !!layers?.stage.value && !isMobile.value);
+
+watch(
+  () => staged.value && props.scene,
+  (on) => {
+    if (layers) {
+      layers.staged.value = on;
+    }
+  },
+  { immediate: true },
+);
+
+onBeforeUnmount(() => {
+  if (layers) {
+    layers.staged.value = false;
+  }
+});
+</script>
+
+<template>
+  <!-- Play throws the execute on the map's own square, the biggest thing on
+       the page, in the map's place; the card keeps the timeline beside it.
+       A phone has no square beside the card, so there it opens under the row
+       it was pressed in. -->
+  <Teleport v-if="staged && layers?.stage.value" :to="layers.stage.value">
+    <Transition
+      enter-active-class="transition-[opacity,transform] [transition-duration:240ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] motion-reduce:![transition-duration:1ms]"
+      leave-active-class="transition-[opacity,transform] [transition-duration:110ms] ease-in motion-reduce:![transition-duration:1ms]"
+      enter-from-class="scale-[0.98] opacity-0"
+      leave-to-class="scale-[0.98] opacity-0"
+    >
+      <div v-if="scene" class="pointer-events-auto absolute inset-0">
+        <UtilityExecuteViewer3D
+          :map-name="playbook.map_name"
+          :beats="beats"
+          :run="run"
+          :controls="64"
+          fill
+          @framed="emit('framed')"
+        >
+          <UtilityExecuteTransport
+            class="absolute inset-x-3 bottom-3 z-[11]"
+            :run="run"
+            :running="running"
+            :beats="beats"
+            @toggle="emit('toggle')"
+            @seek="(seconds) => emit('seek', seconds)"
+          />
+        </UtilityExecuteViewer3D>
+        <button
+          type="button"
+          class="absolute left-3 top-3 z-[11] inline-flex h-8 items-center rounded-md border border-border/60 bg-black/60 px-3 text-xs font-semibold text-foreground backdrop-blur transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+          @click="emit('close-scene')"
+        >
+          {{ $t("pages.utility.playbooks.show_map") }}
+        </button>
+      </div>
+    </Transition>
+  </Teleport>
+
+  <!-- The gap under the scene rides inside the fold (the negative margin
+       cancels the column's own), so it opens with the scene instead of
+       snapping in. -->
+  <div v-else class="-mb-3.5">
+    <Fold :open="scene">
+      <div class="pb-3.5">
+        <UtilityExecuteViewer3D
+          :map-name="playbook.map_name"
+          :beats="beats"
+          :run="run"
+          :controls="56"
+          @framed="emit('framed')"
+        >
+          <UtilityExecuteTransport
+            class="absolute inset-x-2 bottom-2 z-[11]"
+            :run="run"
+            :running="running"
+            :beats="beats"
+            @toggle="emit('toggle')"
+            @seek="(seconds) => emit('seek', seconds)"
+          />
+        </UtilityExecuteViewer3D>
+      </div>
+    </Fold>
+  </div>
+
+  <h2 class="text-lg font-bold leading-tight [text-wrap:balance]">
+    {{ playbook.name }}
+  </h2>
+
+  <div
+    v-if="ownerPlayer || owner || team"
+    data-execute-by
+    class="-mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground"
+  >
+    <UtilityAuthorByline v-if="ownerPlayer" :author="ownerPlayer" />
+    <span v-else-if="owner" class="min-w-0 truncate">{{ owner }}</span>
+    <span v-if="(ownerPlayer || owner) && team" aria-hidden="true">·</span>
+    <span v-if="team" class="min-w-0 truncate">{{ team }}</span>
+  </div>
+
+  <p
+    v-if="playbook.description"
+    class="whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground"
+  >
+    {{ playbook.description }}
+  </p>
+
+  <div
+    data-execute-stats
+    class="flex divide-x divide-border/60 overflow-hidden rounded border border-border/60 bg-background/50"
+  >
+    <div v-for="stat of stats" :key="stat.key" class="min-w-0 flex-1 px-2.5 pb-1.5 pt-1">
+      <span class="block truncate text-sm font-bold leading-tight tabular-nums">
+        {{ stat.value }}
+      </span>
+      <span
+        class="block truncate font-mono text-[0.5rem] uppercase tracking-[0.16em] text-muted-foreground/70"
+      >
+        {{ stat.label }}
+      </span>
+    </div>
+  </div>
+
+  <div v-if="mineBeats.length" class="flex">
+    <AnimatedFilters v-model="whoseModel" :options="whoseOptions" square />
+  </div>
+
+  <ul
+    v-if="notices.length"
+    class="flex flex-col gap-1 rounded-md border border-[hsl(var(--tac-amber)/0.45)] bg-[hsl(var(--tac-amber)/0.1)] px-2.5 py-2 text-xs leading-snug text-[hsl(var(--tac-amber))]"
+  >
+    <li v-for="notice of notices" :key="notice.key" class="flex gap-2">
+      <span
+        aria-hidden="true"
+        class="mt-[0.4rem] size-1 shrink-0 rounded-full bg-current"
+      />
+      <span class="min-w-0">{{ notice.text }}</span>
+    </li>
+  </ul>
+
+  <!-- Your steps, with how each is thrown at the size you read it at between
+       rounds. Everybody else's are one line under them. -->
+  <template v-if="showMine">
+    <div
+      v-for="beat of mineBeats"
+      :key="beat.key"
+      class="flex flex-col gap-2"
+    >
+      <button
+        type="button"
+        class="-mx-1 flex min-w-0 items-center gap-2 rounded-md px-1 py-0.5 text-left transition-colors duration-200 hover:bg-white/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+        :class="hoveredLineupId === beat.lineup?.id ? 'bg-white/[0.04]' : ''"
+        @click="emit('step', beat.index)"
+        @mouseenter="emit('hover', beat.lineup?.id ?? null)"
+        @mouseleave="emit('hover', null)"
+      >
+        <span
+          aria-hidden="true"
+          class="grid h-[1.375rem] min-w-[1.375rem] shrink-0 place-items-center rounded-full px-1 text-[0.69rem] font-bold leading-none tabular-nums text-[#05070b]"
+          :style="{ backgroundColor: beat.color }"
+        >
+          {{ beat.index + 1 }}
+        </span>
+        <span class="min-w-0 flex-1 truncate text-sm font-semibold">
+          {{ beat.lineup?.name }}
+        </span>
+        <span
+          class="shrink-0 font-mono text-[0.69rem] font-semibold tabular-nums text-muted-foreground"
+        >
+          {{
+            $t("pages.utility.playbooks.duration", {
+              seconds: beat.seconds.toFixed(1),
+            })
+          }}
+        </span>
+      </button>
+      <UtilityThrowStrip
+        :technique="beat.lineup?.technique"
+        :strength="beat.lineup?.throw_strength"
+      />
+      <p v-if="beat.step.note" class="text-xs italic text-muted-foreground">
+        “{{ beat.step.note }}”
+      </p>
+    </div>
+    <p v-if="restLine" class="text-xs leading-relaxed text-muted-foreground">
+      {{ restLine }}
+    </p>
+  </template>
+
+  <!-- A run sheet: when, what, who, and where on the clock. A second that
+       repeats prints once, so four throws on one call read as one moment. -->
+  <div
+    v-else
+    data-run-sheet
+    class="overflow-hidden rounded-[10px] border border-border"
+  >
+    <div
+      class="grid h-7 grid-cols-[2.5rem_minmax(0,1fr)_5.5rem] items-center gap-2 border-b border-border bg-card/60 px-2.5 font-mono text-[0.56rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground/70 max-[480px]:grid-cols-[2.25rem_minmax(0,1fr)]"
+    >
+      <span class="text-right">T+</span>
+      <span>{{ $t("pages.utility.playbooks.sheet_throw") }}</span>
+      <span class="tabular-nums max-[480px]:hidden">
+        0 ···
+        {{
+          $t("pages.utility.playbooks.duration", {
+            seconds: duration.toFixed(1),
+          })
+        }}
+      </span>
+    </div>
+    <ol class="flex flex-col">
+      <li
+        v-for="beat of beats"
+        :key="beat.key"
+        class="border-b border-border last:border-b-0"
+      >
+        <component
+          :is="beat.lineup ? 'button' : 'div'"
+          :type="beat.lineup ? 'button' : undefined"
+          class="grid w-full grid-cols-[2.5rem_minmax(0,1fr)_5.5rem] items-center gap-2 px-2.5 py-2 text-left transition-[opacity,background-color] duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-white/70 motion-reduce:transition-none max-[480px]:grid-cols-[2.25rem_minmax(0,1fr)]"
+          :class="[
+            beat.lineup ? 'hover:bg-white/[0.04]' : '',
+            waiting(beat) ? 'opacity-40' : '',
+            lit(beat) || (beat.lineup && hoveredLineupId === beat.lineup.id)
+              ? 'bg-white/[0.04]'
+              : '',
+          ]"
+          @click="beat.lineup ? emit('step', beat.index) : undefined"
+          @mouseenter="beat.lineup ? emit('hover', beat.lineup.id) : undefined"
+          @mouseleave="beat.lineup ? emit('hover', null) : undefined"
+        >
+          <span
+            class="self-start pt-[3px] text-right font-mono text-[0.75rem] font-bold leading-none tabular-nums"
+            :class="beat.showTime ? 'text-foreground/80' : 'text-transparent'"
+            :aria-hidden="!beat.showTime"
+          >
+            {{ beat.seconds.toFixed(1) }}
+          </span>
+
+          <span class="flex min-w-0 items-start gap-2">
+            <span
+              aria-hidden="true"
+              class="grid size-5 shrink-0 place-items-center rounded-[5px] text-[0.69rem] font-extrabold leading-none tabular-nums"
+              :class="beat.lineup ? 'text-[#05070b]' : 'text-muted-foreground'"
+              :style="{ backgroundColor: beat.lineup ? beat.color : '#3f3f46' }"
+            >
+              {{ beat.index + 1 }}
+            </span>
+
+            <span v-if="beat.lineup" class="flex min-w-0 flex-col gap-[3px]">
+              <span class="flex min-w-0 items-center gap-1.5">
+                <span
+                  v-if="typeIcon(beat)"
+                  data-type-icon
+                  aria-hidden="true"
+                  class="size-3.5 shrink-0 [mask-position:center] [mask-repeat:no-repeat] [mask-size:contain]"
+                  :style="typeIcon(beat)!"
+                />
+                <span
+                  class="min-w-0 truncate text-[0.82rem] font-semibold leading-tight"
+                >
+                  {{ beat.lineup.name }}
+                </span>
+              </span>
+              <span
+                class="truncate font-mono text-[0.6rem] uppercase leading-relaxed tracking-[0.1em] text-muted-foreground"
+              >
+                {{ $t(`pages.utility.techniques.${beat.lineup.technique}`) }}
+                <span aria-hidden="true" class="mx-1 text-border">/</span>
+                {{ throwShort(beat.lineup) }}
+              </span>
+              <PlayerDisplay
+                v-if="beat.player"
+                data-thrower
+                :player="beat.player"
+                size="xs"
+                compact
+                truncate-name
+                :show-elo="false"
+                :show-role="false"
+                :show-online="false"
+                :context-menu="false"
+                class="min-w-0"
+                :class="
+                  beat.mine
+                    ? 'text-[hsl(var(--tac-amber))]'
+                    : 'text-muted-foreground'
+                "
+              />
+              <span
+                v-else
+                data-thrower
+                class="truncate text-xs text-muted-foreground"
+              >
+                {{ beat.who ?? $t("pages.utility.playbooks.unassigned") }}
+              </span>
+              <span
+                v-if="call(beat)"
+                class="truncate text-xs italic text-muted-foreground"
+              >
+                {{ call(beat) }}
+              </span>
+            </span>
+
+            <span v-else class="flex min-w-0 flex-col gap-[3px]">
+              <span
+                class="truncate text-[0.82rem] font-semibold leading-tight text-muted-foreground"
+              >
+                {{
+                  lineupsLoading
+                    ? $t("pages.utility.playbooks.step_loading")
+                    : $t("pages.utility.playbooks.step_hidden")
+                }}
+              </span>
+              <span
+                v-if="!lineupsLoading"
+                class="truncate text-xs italic text-muted-foreground"
+              >
+                {{ $t("pages.utility.playbooks.step_hidden_note") }}
+              </span>
+            </span>
+          </span>
+
+          <span
+            aria-hidden="true"
+            class="relative h-3.5 rounded-[3px] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.05)_0_1px,transparent_1px_25%)] max-[480px]:hidden"
+          >
+            <span
+              class="absolute left-0 top-1/2 h-0.5 -translate-y-1/2 opacity-40"
+              :style="{ width: `${along(beat)}%`, backgroundColor: beat.color }"
+            />
+            <span
+              class="absolute top-1/2 size-[9px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              :style="{
+                left: `${along(beat)}%`,
+                backgroundColor: beat.color,
+                boxShadow: `0 0 8px ${beat.color}`,
+              }"
+            />
+          </span>
+        </component>
+      </li>
+    </ol>
+  </div>
+
+  <!-- When it last changed is what you read last, if at all. -->
+  <div
+    class="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 border-t border-white/[0.06] pt-3 text-xs text-muted-foreground"
+  >
+    <span class="flex-1" />
+    <span
+      v-if="playbook.updated_at"
+      class="inline-flex shrink-0 items-center gap-1"
+    >
+      {{ $t("pages.utility.playbooks.updated") }}
+      <TimeAgo :date="playbook.updated_at" hide-icon />
+    </span>
+  </div>
+</template>

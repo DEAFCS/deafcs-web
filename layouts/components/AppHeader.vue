@@ -5,6 +5,7 @@ import { Separator } from "~/components/ui/separator";
 import BreadCrumbs from "~/components/BreadCrumbs.vue";
 import SystemStatus from "./SystemStatus.vue";
 import MatchLobbies from "./MatchLobbies.vue";
+import UtilityPracticeNav from "~/components/utility/UtilityPracticeNav.vue";
 import DraftRoomNav from "./DraftRoomNav.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import SpotlightPlayerSearch from "~/components/SpotlightPlayerSearch.vue";
@@ -37,6 +38,8 @@ const chatBadgeLabel = computed(() =>
 
       <div class="flex items-center gap-4 shrink-0">
         <SpotlightPlayerSearch v-if="me" />
+
+        <UtilityPracticeNav v-if="!isMobile" />
 
         <DraftRoomNav v-if="!isMobile"></DraftRoomNav>
 

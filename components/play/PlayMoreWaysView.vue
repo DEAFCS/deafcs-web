@@ -1,7 +1,4 @@
 <script setup lang="ts">
-// 5Stack's "More ways to play" (5stackgg/web d12ef01b). DEAFCS: no practice
-// tile; upstream's practice servers (StartPracticeDialog) are not part of
-// DEAFCS.
 import { computed } from "vue";
 import { ArrowRight, Shield, Swords } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
@@ -10,6 +7,7 @@ import WatchTournamentCard from "~/components/watch/WatchTournamentCard.vue";
 import PlayServerTile, {
   type PlayServerTileModel,
 } from "~/components/play/PlayServerTile.vue";
+import PlayPracticeTile from "~/components/play/PlayPracticeTile.vue";
 import {
   formatDay,
   MAX_SERVER_TILES,
@@ -42,6 +40,7 @@ const props = defineProps<{
   league: PlayWaysLeague | null;
   scrims: PlayWaysScrims | null;
   servers: PlayServerTileModel[];
+  practiceEnabled: boolean;
 }>();
 
 const serverTiles = computed(() => pickServerTiles(props.servers));
@@ -49,7 +48,8 @@ const tileCount = computed(
   () =>
     Number(!!props.league) +
     Number(!!props.scrims) +
-    serverTiles.value.length,
+    serverTiles.value.length +
+    Number(props.practiceEnabled),
 );
 const layout = computed(() => waysLayout(!!props.tournament, tileCount.value));
 
@@ -246,6 +246,7 @@ const secondaryClasses = [
           :key="server.id"
           :server="server"
         />
+        <PlayPracticeTile v-if="practiceEnabled" />
       </div>
     </div>
   </section>

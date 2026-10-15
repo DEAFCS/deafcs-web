@@ -4031,7 +4031,11 @@
                                                  "search":  "Find en bane",
                                                  "none":  "Ingen baner med radar",
                                                  "count_public":  "Offentlige lineups på denne bane",
-                                                 "count_private":  "Ikke offentlige, men synlige for dig — dine, dit holds eller afventer gennemsyn. Arkiverede tælles ikke med."
+                                                 "count_private":  "Ikke offentlige, men synlige for dig — dine, dit holds eller afventer gennemsyn. Arkiverede tælles ikke med.",
+                                                 "label": "Baner",
+                                                 "all_maps": "Alle baner",
+                                                 "legend": "Et mærke er der, hvor gemte opstillinger lander. Jo flere der lander samme sted, jo større bliver det.",
+                                                 "total": "{count} opstilling gemt indtil nu. | {count} opstillinger gemt indtil nu."
                                              },
                                   "back_to_map":  "Tilbage til banen",
                                   "empty":  {
@@ -4081,7 +4085,9 @@
                                                          "plugin":  "I spillet",
                                                          "demo":  "Demo",
                                                          "editor":  "Editor",
-                                                         "import":  "Import"
+                                                         "import":  "Import",
+                                                         "fork": "Forgrening",
+                                                         "discovery": "Opdag"
                                                      },
                                   "confidence":  {
                                                      "exact":  "Optaget",
@@ -4143,11 +4149,17 @@
                                                "flight_time_hint":  "Hvor længe granaten er i luften efter kastet.",
                                                "stat_hit_rate":  "Min træfprocent",
                                                "stat_flight":  "Flugt",
-                                               "stat_difficulty":  "Sværhed"
+                                               "stat_difficulty":  "Sværhed",
+                                               "rendering": "Renderer forhåndsvisning…",
+                                               "rendering_progress": "Renderer forhåndsvisning… {percent}%",
+                                               "has_video": "Har video",
+                                               "load_in_game": "Indlæs i spillet",
+                                               "yours": "Din · {status}"
                                            },
                                   "viewer":  {
                                                  "replay_throw":  "Afspil kastet",
-                                                 "roof":  "Tag"
+                                                 "roof":  "Tag",
+                                                 "timeline": "Tidslinje for kastet"
                                              },
                                   "detail":  {
                                                  "previous":  "Forrige opstilling",
@@ -4170,7 +4182,24 @@
                                                  "precision_failed":  "Kunne ikke ændre sigtepræcisionen",
                                                  "favorite_failed":  "Kunne ikke opdatere dine gemte opstillinger",
                                                  "aim_delta":  "Udledt vs optaget sigte",
-                                                 "technical":  "Tekniske detaljer"
+                                                 "technical":  "Tekniske detaljer",
+                                                 "mark_bad": "Markér som dårlig",
+                                                 "copy_link": "Kopiér link til opstillingen",
+                                                 "watch_3d": "Se i 3D",
+                                                 "watch_clip": "Se klippet",
+                                                 "share": "Del opstillingen",
+                                                 "stills": {
+                                                   "landing": "Hvor den lander",
+                                                   "viewer": "Billeder af opstillingen, brug piletasterne til at skifte mellem dem",
+                                                   "title": "Stillbilleder",
+                                                   "open": "Vis {still}",
+                                                   "stance": "Hvor du skal stå",
+                                                   "stance_eyes": "Fra stedet",
+                                                   "aim": "Sigte",
+                                                   "aim_pin": "Opstilling",
+                                                   "aim_close": "Sigte tæt på"
+                                                 },
+                                                 "download_clip": "Download klip"
                                              },
                                   "practice":  {
                                                    "title":  "Træningsserver",
@@ -4296,7 +4325,44 @@
                                                       "deleted":  "Slettede {name}",
                                                       "delete_failed":  "Kunne ikke slette samlingen",
                                                       "confirm_delete":  "Slet {name}?",
-                                                      "confirm_delete_description":  "Opstillingerne bliver i biblioteket; kun samlingen forsvinder."
+                                                      "confirm_delete_description":  "Opstillingerne bliver i biblioteket; kun samlingen forsvinder.",
+                                                      "add_kicker": "Føj til samling",
+                                                      "add_hint": "Sæt flueben ved en opstilling for at tilføje den. Fjern det for at tage den ud.",
+                                                      "add_empty": "Ingen opstillinger på {map} matcher.",
+                                                      "types_hidden": "Ingen af disse opstillinger er af en type, du har valgt.",
+                                                      "show_all_types": "Vis alle typer",
+                                                      "add_count": "{count} i {name}",
+                                                      "facts_here": "{count} på {map}",
+                                                      "facts_total": "{count} i alt",
+                                                      "facts_yours": "din",
+                                                      "by_owner": "af {name}",
+                                                      "view_only": "Kun visning",
+                                                      "team_named": "Hold: {name}",
+                                                      "kicker": "Samling · {map}",
+                                                      "name_placeholder": "Navngiv samlingen",
+                                                      "none_here": "Intet fra {map} i denne samling endnu.",
+                                                      "more_elsewhere": "{count} opstilling mere på {maps}. | {count} opstillinger mere på {maps}.",
+                                                      "not_found": "Samlingen blev ikke fundet",
+                                                      "not_found_description": "Den er slettet, eller også er den privat for en anden.",
+                                                      "confirm_dock": "Slet den? Dens opstillinger bliver.",
+                                                      "save_name": "Gem navn",
+                                                      "add_lineups": "Tilføj opstillinger",
+                                                      "save_copy": "Gem en kopi",
+                                                      "duplicate": "Dupliker",
+                                                      "who_can_see": "Hvem kan se den",
+                                                      "on_map": "På {map}",
+                                                      "none_on_map": "Intet på {map}",
+                                                      "lineup_context": "I samlingen **{name}**.",
+                                                      "copy_name": "{name} (kopi)",
+                                                      "copied": "Kopieret til dine samlinger",
+                                                      "copy_failed": "Kunne ikke kopiere samlingen",
+                                                      "search_placeholder": "Søg i samlinger",
+                                                      "new_short": "Ny",
+                                                      "empty_line": "Ingen samlinger endnu. Navngiv en, og gem så opstillinger i den fra handlingsbjælken på en hvilken som helst opstilling.",
+                                                      "no_match": "Ingen samling matcher den søgning.",
+                                                      "all_on": "alle på {maps}",
+                                                      "of_total": "af {count}",
+                                                      "lineups_unit": "opstilling | opstillinger"
                                                   },
                                   "progress":  {
                                                    "drilled":  "Trænet",
@@ -4343,7 +4409,33 @@
                                                "copy_aim":  "Kopiér setang",
                                                "aim_copied":  "Sigtet kopieret",
                                                "aim_copy_failed":  "Kunne ikke kopiere det",
-                                               "write_up_hint":  "Udfylder sted + sigte på forhånd"
+                                               "write_up_hint":  "Udfylder sted + sigte på forhånd",
+                                               "types": "Type",
+                                               "scope_all": "Alle steder",
+                                               "scope_unwritten": "Uskrevne",
+                                               "scope_written": "Skrevne",
+                                               "unnamed": "Unavngivet {type}",
+                                               "scope_label": "Hvilke steder",
+                                               "none_at_threshold": "Intet sted har {count}+ spillere endnu.",
+                                               "show_threshold": "Vis {label}",
+                                               "none_written": "Ingen af disse steder er skrevet ned endnu.",
+                                               "all_written": "Alle steder her er skrevet ned.",
+                                               "unwritten_description": "Hop ind, kast den, og gem den så.",
+                                               "written_up": "Skrevet ned",
+                                               "lineup_count": "{count} opstilling | {count} opstillinger",
+                                               "lineup_context": "Skrevet til stedet **{name}**, som {count} spillere kaster i kampe.",
+                                               "setpos_copied": "Position og sigte kopieret",
+                                               "link_copied": "Link kopieret",
+                                               "spot_kicker": "Meta-sted",
+                                               "last_seen_label": "Sidst set",
+                                               "spot_lineups": "Opstillinger til dette sted",
+                                               "unwritten_title": "Ingen har skrevet denne ned endnu",
+                                               "aim_short": "Sigte",
+                                               "sign_in": "Log ind",
+                                               "sign_in_hint": "for at skrive den ned eller hoppe ind",
+                                               "copy_setpos": "Kopiér setpos og sigte",
+                                               "write_another": "Skriv endnu en opstilling til dette sted",
+                                               "copy_link": "Kopiér link til dette sted"
                                            },
                                   "playbooks":  {
                                                     "title":  "Playbooks",
@@ -4399,7 +4491,62 @@
                                                     "editing":  "Rediger execute",
                                                     "back":  "Tilbage til executes",
                                                     "done":  "Færdig",
-                                                    "added_count":  "{count} tilføjet"
+                                                    "added_count":  "{count} tilføjet",
+                                                    "add_throw": "Tilføj et kast",
+                                                    "pick_hint": "Klik på en opstilling for at tilføje den som næste trin. Klik igen for at tage den ud.",
+                                                    "pick_empty": "Ingen opstillinger for {side}-siden på denne bane endnu.",
+                                                    "pause": "Pause",
+                                                    "play": "Kør",
+                                                    "clock_of": "{now}s af {total}s",
+                                                    "seek": "Tidslinje for execute",
+                                                    "step_word": "Trin | Trin",
+                                                    "start_to_finish": "Start til slut",
+                                                    "player_word": "Spiller | Spillere",
+                                                    "everyone": "Alle",
+                                                    "mine": "Mine",
+                                                    "more_steps_by": "{count} trin mere af {players}. | {count} trin mere af {players}.",
+                                                    "more_steps": "{count} trin mere. | {count} trin mere.",
+                                                    "step_unreadable": "Trin {step} peger på en opstilling, du ikke kan se.",
+                                                    "again_from": "Igen fra trin {step}.",
+                                                    "show_map": "Vis kortet",
+                                                    "sheet_throw": "Kast",
+                                                    "step_loading": "Indlæser opstilling…",
+                                                    "step_hidden": "En opstilling, du ikke kan se",
+                                                    "step_hidden_note": "Privat for en anden eller slettet.",
+                                                    "updated": "Opdateret",
+                                                    "steps_required": "Tilføj mindst ét kast, før du gemmer den",
+                                                    "deleted": "Execute slettet. Dens opstillinger bliver.",
+                                                    "steps": "Trin",
+                                                    "steps_of": "{count} af {max}",
+                                                    "retime_all": "Tidsæt alle igen",
+                                                    "land_together": "Land samtidig",
+                                                    "land_together_hint": "Kastetiderne regnes baglæns ud fra hver granats flyvetid: røgene lander på én gang og resten {seconds}s senere. En tid, du selv sætter, låses og bevares, når trinene ændres.",
+                                                    "unlock_step": "Sat i hånden. Lås op for at tidsætte den med resten.",
+                                                    "offset_label": "Sekunder for trin {step}",
+                                                    "step_number": "Trin {step}",
+                                                    "reorder_label": "Flyt trin {step}",
+                                                    "who_label": "Hvem kaster trin {step}",
+                                                    "note_label": "Call-note til trin {step}",
+                                                    "throw_again": "Igen",
+                                                    "delete_ask": "Slet den? Dens opstillinger bliver.",
+                                                    "delete": "Slet execute",
+                                                    "you": "Dig",
+                                                    "step_context_you": "Trin {step} af {count} i {name}. Kastes ved {seconds}s af dig.",
+                                                    "step_context_by": "Trin {step} af {count} i {name}. Kastes ved {seconds}s af {player}.",
+                                                    "step_context": "Trin {step} af {count} i {name}. Kastes ved {seconds}s.",
+                                                    "copy_name": "{name} (kopi)",
+                                                    "copied": "Kopieret til dine executes",
+                                                    "copy_failed": "Kunne ikke kopiere executen",
+                                                    "new_short": "Ny",
+                                                    "empty_side": "Ingen executes for {side}-siden på {map} endnu.",
+                                                    "view_only": "Kun visning",
+                                                    "kicker": "Execute · {map}",
+                                                    "stop": "Stop",
+                                                    "duplicate": "Dupliker",
+                                                    "copy_link": "Kopiér link",
+                                                    "save_copy": "Gem en kopi",
+                                                    "empty_line": "Ingen executes på {map} endnu. Byg en af de opstillinger, du allerede har.",
+                                                    "empty_public": "Ingen offentlige executes på {map} endnu."
                                                 },
                                   "sightline":  {
                                                     "eyebrow":  "Dækningstjek",
@@ -4620,7 +4767,39 @@
                                                "everyone":  "Alle",
                                                "global_landing_rate":  "{percent}% rammer den",
                                                "global_players":  "{count} spillere",
-                                               "global_attempts":  "{count} forsøg"
+                                               "global_attempts":  "{count} forsøg",
+                                               "skip": "Spring over",
+                                               "progress": {
+                                                 "fresh": "Intet trænet endnu",
+                                                 "mastered_of": "{mastered} af {total} mestret på {map}",
+                                                 "mastered": "{mastered} mestret på {map}",
+                                                 "rule": "{count} i træk mestrer en",
+                                                 "bar": "{mastered} mestret, {going} i gang, {rest} ikke kastet",
+                                                 "none_of": "0 af {total} mestret",
+                                                 "order": "Mest kastede først",
+                                                 "going": "{count} i gang",
+                                                 "rest": "{count} ikke kastet endnu"
+                                               },
+                                               "new": "ny",
+                                               "why": {
+                                                 "never_attempted": "Du har ikke kastet denne endnu.",
+                                                 "popular_unmastered": "{count} spiller kaster denne i kampe, og du mestrer den ikke. | {count} spillere kaster denne i kampe, og du mestrer den ikke.",
+                                                 "unmastered": "Du er på {streak} af {count} på vej mod at mestre den.",
+                                                 "mastered_slipping": "Du havde mestret denne. Din række er tilbage på {streak}.",
+                                                 "record": "{successes} af {attempts} har ramt indtil nu.",
+                                                 "rate": "{percent}% af de spillere, der træner den, rammer den.",
+                                                 "no_rate": "Ingen andre har trænet den endnu."
+                                               },
+                                               "kicker": "Plan · {rank} af {total}",
+                                               "empty_side": "Intet i kø for {side}-siden.",
+                                               "empty_map": "Intet i kø på {map}. Gem eller træn en opstilling, så fyldes planen.",
+                                               "failed_line": "Kunne ikke indlæse planen. Prøv igen om lidt.",
+                                               "not_analysed_line": "Ingen plan endnu. Intet på denne bane kunne rangeres.",
+                                               "empty_type": "Intet i kø for de typer, du har valgt.",
+                                               "next": "Næste",
+                                               "no_data": "ingen data endnu",
+                                               "next_up": "Næste: {name}",
+                                               "practice_next": "Træn næste"
                                            },
                                   "repair":  {
                                                  "action":  "Reparer",
@@ -4711,7 +4890,8 @@
                                                   "reject":  "Afvis",
                                                   "approved":  "Offentliggjort i biblioteket",
                                                   "rejected":  "Holdt uden for biblioteket",
-                                                  "review_failed":  "Kunne ikke gennemgå den opstilling"
+                                                  "review_failed":  "Kunne ikke gennemgå den opstilling",
+                                                  "in_review": "Til gennemgang"
                                               },
                                   "archive":  {
                                                   "action":  "Arkivér opstillingen",
@@ -4837,7 +5017,8 @@
                                                                   "unknown":  "Opgørelsen beskrev dette mønster med et ord, siden ikke kender. Det vises præcis som det kom."
                                                               },
                                                "below_floor":  "{samples} kast optaget indtil videre.",
-                                               "means":  "Målte gennemsnit"
+                                               "means":  "Målte gennemsnit",
+                                               "waiting": "Ikke nok kast endnu"
                                            },
                                   "save":  {
                                                "title_demo":  "Gem denne granat som en opstilling",
@@ -4910,7 +5091,49 @@
                                                                              "description":  "Det fjerner gengivelsen og dens forhåndsvisningsklip. Det kan ikke fortrydes.",
                                                                              "delete":  "Slet",
                                                                              "deleting":  "Sletter…"
-                                                                         }
+                                                                         },
+                                                       "in_flight": "En rendering af denne opstilling kører allerede",
+                                                       "gaps": {
+                                                         "all": "Alle",
+                                                         "title": "Mangler en gengivelse",
+                                                         "capped": "Viser de første {shown} af {total}.",
+                                                         "empty_filtered": "Ingen på listen i denne tilstand.",
+                                                         "empty": "Alle forhåndsvisninger er opdaterede.",
+                                                         "render": "Gengiv forhåndsvisning"
+                                                       },
+                                                       "coverage": {
+                                                         "confirm_map": "Kun opstillinger på {map}.",
+                                                         "queued_toast": "{count} gengivelse sat i kø | {count} gengivelser sat i kø",
+                                                         "none_toast": "Intet blev sat i kø",
+                                                         "left_toast": "{count} blev ikke sat i kø denne gang. Tryk igen for at tage næste portion. | {count} blev ikke sat i kø denne gang. Tryk igen for at tage næste portion.",
+                                                         "failed_toast": "Kunne ikke sætte de gengivelser i kø",
+                                                         "title": "Dækning af forhåndsvisninger",
+                                                         "version": "Renderversion",
+                                                         "pipeline_behind": "Render-podden er bagud i forhold til denne API",
+                                                         "pipeline_behind_hint": "Den render-pod, der bruges, optager version {pipeline}, som er ældre end den version {version}, denne API forventer. En ny gengivelse bringer ikke forhåndsvisningerne ajour, før game-server- og game-streamer-imagene er opdateret.",
+                                                         "load_failed": "Kunne ikke hente dækningen af forhåndsvisninger",
+                                                         "map_filter": "Filtrér efter bane",
+                                                         "render_missing": "Gengiv manglende ({total})",
+                                                         "rerender_outdated": "Gengiv forældede igen ({total})",
+                                                         "unrenderable": "Kan ikke optages",
+                                                         "confirm_queue": "Sæt gengivelser i kø",
+                                                         "current": "Opdateret",
+                                                         "missing": "Mangler",
+                                                         "outdated": "Forældet",
+                                                         "queued": "I kø",
+                                                         "confirm_missing_title": "Gengiv manglende forhåndsvisninger?",
+                                                         "confirm_missing": "Dette sætter en gengivelse i kø for {count} opstilling uden forhåndsvisning. | Dette sætter en gengivelse i kø for {count} opstillinger uden forhåndsvisning.",
+                                                         "confirm_outdated_title": "Gengiv forældede forhåndsvisninger igen?",
+                                                         "confirm_outdated": "Dette sætter en ny gengivelse i kø for {count} opstilling, der er optaget med en ældre renderversion. Forhåndsvisningen erstattes, når gengivelsen er færdig. | Dette sætter en ny gengivelse i kø for {count} opstillinger, der er optaget med en ældre renderversion. Hver forhåndsvisning erstattes, når dens gengivelse er færdig."
+                                                       },
+                                                       "pod": "Render-pod",
+                                                       "no_pod_hint": "Ingen server bliver reserveret til disse, og ingen pod har fået en af dem. Hvis det ikke ændrer sig, kører render-workeren ikke.",
+                                                       "maps": "{count} bane | {count} baner",
+                                                       "pod_here": "Render-podden er på denne bane",
+                                                       "live_hint": "Denne rendering er opstillingens forhåndsvisning lige nu",
+                                                       "live": "Live",
+                                                       "version_outdated": "Optaget med renderversion {version}. Version {expected} er den aktuelle.",
+                                                       "version_unreported": "Ingen renderversion oplyst: optaget før forhåndsvisninger havde en, eller af en ældre pod."
                                                    },
                                   "load":  {
                                                "action":  "Sæt mig derhen",
@@ -4942,7 +5165,118 @@
                                                "failed":  "Kunne ikke gemme det",
                                                "public_note":  "At gøre den offentlig kræver et gennemsyn — brug Send til gennemsyn i rækkemenuen.",
                                                "geometry_note":  "Hvor du står, hvor du sigter, og hvor langt den flyver, kan ikke redigeres. Forgren den for at ændre selve kastet."
-                                           }
+                                           },
+                                  "discover": {
+                                    "nothing_found": "Intet fra det område lander der. Prøv et større område, flere måder at kaste på eller en løsere landing.",
+                                    "failed": "Kunne ikke starte søgningen",
+                                    "saved": "Gemt i dine opstillinger",
+                                    "landing_short": "LANDER",
+                                    "new_search": "Ny søgning",
+                                    "loading": "Indlæser søgningen…",
+                                    "progress": "{verified} landede · {missed} missede · {predicted} foreslået",
+                                    "cancel": "Stop",
+                                    "hold_keys": "Hold {keys}",
+                                    "unmeasured_tip": "Kast i bevægelse foreslås ud fra anslåede hastigheder. Serveren kaster stadig hvert enkelt, men de kan være sværere for en person at gentage.",
+                                    "distance": "{distance}u fra stedet",
+                                    "new_tip": "Ingen offentlig opstilling eller almindeligt kast går derfra og hertil",
+                                    "new": "Ny",
+                                    "aim": "Sigte yaw {yaw}° · pitch {pitch}°",
+                                    "open_lineup": "Åbn opstilling",
+                                    "save_name": "Navn (står det tomt, navngives den efter kortet)",
+                                    "save": "Gem som opstilling",
+                                    "predicted_note": "Kun forudsagt. Den kan gemmes, når serveren har landet den.",
+                                    "missed_count": "{count} foreslåede kast missede på serveren",
+                                    "intro": "Vælg, hvor du vil have smoken, og et område, du kunne kaste fra. Kastene forudsiges på få sekunder, og derefter kaster en server hvert enkelt for alvor.",
+                                    "no_floor": "Der er intet gulv der, som en smoke kan lande på.",
+                                    "previewing": "Måler smoken der…",
+                                    "radius": "Land inden for",
+                                    "ways": "Måder at kaste på",
+                                    "moving": "I bevægelse",
+                                    "walk": "Gå",
+                                    "run": "Løb",
+                                    "with_jump": "+ Jumpthrow",
+                                    "submit": "Opdag kast",
+                                    "recent": "Dine seneste søgninger",
+                                    "recent_counts": "{verified} af {predicted} landede",
+                                    "tab": "Opdag",
+                                    "hint": "Find kast, der lægger en smoke på et sted",
+                                    "status": {
+                                      "Predicting": "Forudsiger kast",
+                                      "Queued": "Venter på en server",
+                                      "Verifying": "Kaster dem på en server",
+                                      "Done": "Færdig",
+                                      "Failed": "Mislykkedes",
+                                      "Cancelled": "Stoppet"
+                                    },
+                                    "ease": {
+                                      "easy": "Let",
+                                      "medium": "Middel",
+                                      "hard": "Svær",
+                                      "unknown": "Utestet"
+                                    },
+                                    "result_status": {
+                                      "predicted": "Forudsagt",
+                                      "verified": "Landede",
+                                      "missed": "Missede"
+                                    },
+                                    "step_landing": "Landing",
+                                    "step_area": "Kast fra",
+                                    "pick_landing": "Klik på kortet, hvor smoken skal lande.",
+                                    "pick_area": "Klik på kortet, hvor du kunne kaste fra, og træk så i hjørnerne.",
+                                    "radius_tight": "Stramt {units}u",
+                                    "radius_close": "Tæt {units}u",
+                                    "radius_loose": "Løst {units}u",
+                                    "standing": "Stående",
+                                    "jump_throw": "Jumpthrow",
+                                    "direction": {
+                                      "forward": "Frem",
+                                      "back": "Tilbage",
+                                      "left": "Venstre",
+                                      "right": "Højre"
+                                    }
+                                  },
+                                  "mine": {
+                                    "rejected_line": "Afvist: {note}",
+                                    "state": {
+                                      "private": "Privat",
+                                      "team": "Hold",
+                                      "review": "Under gennemgang",
+                                      "public": "Offentlig",
+                                      "rejected": "Afvist",
+                                      "archived": "Arkiveret"
+                                    },
+                                    "tip": {
+                                      "private": "Privat: kun du kan se den. Indsend den til offentlig, når den lander hver gang.",
+                                      "team": "Hold: dit hold kan se den. Indsend den til offentlig, når den er klar til alle.",
+                                      "review": "Under gennemgang: en anmelder tjekker, at den lander. Intet at gøre; du kan stadig redigere den.",
+                                      "public": "Offentlig: i det offentlige bibliotek. Alle kan træne den og stemme på den.",
+                                      "rejected": "Afvist: en anmelder sendte den tilbage. Åbn den for at læse hvorfor, ret den og indsend den igen.",
+                                      "archived": "Arkiveret: skjult overalt. Gendan den fra fanen Arkiveret, eller slet den for altid."
+                                    }
+                                  },
+                                  "sheet": {
+                                    "collapse": "Vis mere af kortet",
+                                    "expand": "Vis mere af listen"
+                                  },
+                                  "review": {
+                                    "lands": "Lander",
+                                    "reject_because": "Afvis fordi",
+                                    "reasons": {
+                                      "no_land": "Lander ikke",
+                                      "duplicate": "Allerede i biblioteket",
+                                      "bad_name": "Navnet siger ikke hvor",
+                                      "needs_clip": "Mangler et klip"
+                                    }
+                                  },
+                                  "run_up": {
+                                    "first": "Hold {keys} {seconds}s først",
+                                    "summary_jump": "Hold {keys} nede i {seconds}s, og hopkast så",
+                                    "summary_throw": "Hold {keys} nede i {seconds}s, og kast så"
+                                  },
+                                  "live": {
+                                    "saved": "Lineup gemt: {name}",
+                                    "show": "Vis"
+                                  }
                               }
               },
     "custom_match":  {
@@ -7724,7 +8058,8 @@
                                 "loading":  "Indlæser",
                                 "settings_section":  "Indstillingssektion",
                                 "match_section":  "Kampsektion",
-                                "database_section":  "Databasesektion"
+                                "database_section":  "Databasesektion",
+                                "zoom_reset": "Nulstil zoom"
                             },
                "logs":  {
                             "follow":  "Følg",
@@ -9603,7 +9938,8 @@
                         "booking_server":  "Reserverer en træningsserver",
                         "server_starting":  "Træningsserveren starter",
                         "dispatching_pod":  "Starter render-podden",
-                        "joining_practice_server":  "Forbinder til træningsserveren"
+                        "joining_practice_server":  "Forbinder til træningsserveren",
+                        "changing_map_to": "Skifter bane til {map}"
                     },
     "stream_status":  {
                           "errored":  "Fejlet",
@@ -10352,7 +10688,12 @@
                                "play_by":  "Afspil {title} af {player}",
                                "visibility":  "Synlighed: {value}",
                                "visibility_match":  "Kun kampen"
-                           }
+                           },
+                  "share_menu": {
+                    "button": "Del",
+                    "share_native": "Del…",
+                    "copy_link": "Kopiér link"
+                  }
               },
     "time_ago":  {
                      "just_now":  "lige nu",
