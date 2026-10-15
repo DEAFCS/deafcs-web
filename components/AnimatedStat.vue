@@ -42,11 +42,17 @@ const chars = computed(() => {
    permanent hint would pin a compositor layer per character at idle. The flip is
    a one-shot transform/opacity animation, which the compositor promotes on its
    own while it runs — so the hint costs memory without buying smoothness. */
+/* DEAFCS: `backwards`, not upstream's `both`, and no backface-visibility. A
+   finished `both` animation keeps filling its last keyframe (rotateX(0deg)),
+   and Chrome keeps every such character, plus everything overlapping it, on
+   its own compositor layer for as long as the page is open: a finished match
+   page held ~530 layers instead of ~55, which made scrolling lag on tablets
+   and phones. The last keyframe equals the resting style, so nothing changes
+   visually, and the leaf never turns past 90deg, so its back is never seen. */
 .flip-stat__char {
   display: inline-block;
   transform-origin: top center;
-  backface-visibility: hidden;
-  animation: flip-char 440ms cubic-bezier(0.2, 0.78, 0.32, 1) both;
+  animation: flip-char 440ms cubic-bezier(0.2, 0.78, 0.32, 1) backwards;
 }
 
 @keyframes flip-char {
