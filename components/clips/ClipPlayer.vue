@@ -50,8 +50,10 @@ const props = withDefaults(
     initialMuted?: boolean;
     canPrev?: boolean;
     canNext?: boolean;
+    // Upstream 5Stack: loop the clip (utility lineup previews).
+    loop?: boolean;
   }>(),
-  { initialMuted: false, canPrev: false, canNext: false },
+  { initialMuted: false, canPrev: false, canNext: false, loop: false },
 );
 
 const emit = defineEmits<{
@@ -754,6 +756,7 @@ defineExpose({ play, pause, toggle, videoEl: videoRef, isFullscreen });
           :poster="poster ?? undefined"
           class="absolute inset-0 h-full w-full cursor-pointer object-contain"
           :muted="muted"
+          :loop="loop"
           playsinline
           preload="metadata"
           @ended="onVideoEnded"

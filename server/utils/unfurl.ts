@@ -12,6 +12,20 @@ export const DEAFCS_DESCRIPTION =
 export const DEAFCS_IMAGE =
   "https://deafcs.net/branding/deafcs-logo.png";
 
+// What a URL that answers a crawler and a person differently sends with the
+// crawler's card. Private: a shared cache that kept the card would hand it to
+// people, and anyone can ask with a crawler's user-agent, which makes that a
+// way to poison it. Vary says the same to a cache that ignores private.
+// (Upstream 5Stack server/utils/unfurl.ts, used by the utility lineup unfurl.)
+export function unfurlCacheHeaders(
+  maxAgeSeconds: number,
+): Record<string, string> {
+  return {
+    "Cache-Control": `private, max-age=${maxAgeSeconds}`,
+    Vary: "User-Agent",
+  };
+}
+
 export function escapeHtml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
@@ -42,6 +56,42 @@ export interface UnfurlOptions {
   type?: string;
   /** raw extra <meta> lines injected into <head> */
   extraMeta?: string;
+  /** a direct mp4 the card plays inline; og:type then defaults to "video.other" */
+  video?: UnfurlVideo | null;
+}
+
+export interface UnfurlVideo {
+  url: string;
+  width: number;
+  height: number;
+  durationSec?: number;
+}
+
+// The same tag set upstream's clip share route emits, which is what Discord
+// plays inline.
+function renderVideoMeta(video: UnfurlVideo): string {
+  const safeVideo = escapeHtml(video.url);
+  const duration =
+    video.durationSec && video.durationSec > 0
+      ? `<meta property="og:video:duration" content="${Math.round(video.durationSec)}" />`
+      : "";
+
+  return `<meta property="og:video" content="${safeVideo}" />
+    <meta property="og:video:secure_url" content="${safeVideo}" />
+    <meta property="og:video:type" content="video/mp4" />
+    <meta property="og:video:width" content="${video.width}" />
+    <meta property="og:video:height" content="${video.height}" />
+    ${duration}`;
+}
+
+function renderTwitterPlayerMeta(video: UnfurlVideo): string {
+  const safeVideo = escapeHtml(video.url);
+
+  return `<meta name="twitter:player" content="${safeVideo}" />
+    <meta name="twitter:player:width" content="${video.width}" />
+    <meta name="twitter:player:height" content="${video.height}" />
+    <meta name="twitter:player:stream" content="${safeVideo}" />
+    <meta name="twitter:player:stream:content_type" content="video/mp4" />`;
 }
 
 export function renderUnfurl(opts: UnfurlOptions): string {
@@ -51,7 +101,13 @@ export function renderUnfurl(opts: UnfurlOptions): string {
   const safeAlt = escapeHtml(opts.imageAlt || opts.title);
   const safePage = escapeHtml(opts.pageUrl);
   const safeHuman = escapeHtml(opts.humanUrl);
-  const type = escapeHtml(opts.type || "website");
+  const video = opts.video?.url ? opts.video : null;
+  const type = escapeHtml(opts.type || (video ? "video.other" : "website"));
+  const twitterCard = video
+    ? "player"
+    : opts.image
+      ? "summary_large_image"
+      : "summary";
 
   return `<!doctype html>
 <html lang="en">
@@ -70,10 +126,12 @@ export function renderUnfurl(opts: UnfurlOptions): string {
     ${opts.imageWidth ? `<meta property="og:image:width" content="${opts.imageWidth}" />` : ""}
     ${opts.imageHeight ? `<meta property="og:image:height" content="${opts.imageHeight}" />` : ""}
     <meta property="og:image:alt" content="${safeAlt}" />
+    ${video ? renderVideoMeta(video) : ""}
 
-    <meta name="twitter:card" content="${opts.image ? "summary_large_image" : "summary"}" />
+    <meta name="twitter:card" content="${twitterCard}" />
     <meta name="twitter:title" content="${safeTitle}" />
     <meta name="twitter:description" content="${safeDesc}" />
+    ${video ? renderTwitterPlayerMeta(video) : ""}
     <meta name="twitter:image" content="${safeImage}" />
     ${opts.extraMeta || ""}
 

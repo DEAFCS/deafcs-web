@@ -647,6 +647,16 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     });
   }
 
+  // Upstream 5Stack keeps a per-region probe state ("measuring" |
+  // "unreachable") for RegionLatency.vue, used by the utility practice region
+  // picker. DEAFCS keeps its own latency probing unchanged, so nothing writes
+  // this map and every region reads as settled.
+  const probeStates = ref(new Map<string, "measuring" | "unreachable">());
+
+  function getRegionProbeState(region: string) {
+    return probeStates.value.get(region);
+  }
+
   function getRegionlatencyResult(region: string):
     | {
         isLan: boolean;
@@ -769,6 +779,7 @@ export const useMatchmakingStore = defineStore("matchmaking", () => {
     refreshLatencies,
     isRefreshing,
     getRegionlatencyResult,
+    getRegionProbeState,
     togglePreferredRegion,
     updateMaxAcceptableLatency,
 
