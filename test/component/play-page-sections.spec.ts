@@ -50,15 +50,15 @@ describe("/play page structure", () => {
     }
   });
 
-  it("does not ship upstream's practice tile (no practice servers in DEAFCS)", () => {
-    expect(read("components/play/PlayMoreWaysView.vue")).not.toMatch(
-      /import PlayPracticeTile|<PlayPracticeTile|practiceEnabled/,
+  // Utility Library Phase 2: upstream's practice tile is back, but only shows
+  // while public.utility_practice_enabled is "true" (seeded "false" in DEAFCS).
+  it("shows upstream's practice tile only when practice is enabled", () => {
+    expect(read("components/play/PlayMoreWaysView.vue")).toMatch(
+      /<PlayPracticeTile v-if="practiceEnabled" \/>/,
     );
-    expect(
-      fs.existsSync(
-        path.resolve(__dirname, "../../components/play/PlayPracticeTile.vue"),
-      ),
-    ).toBe(false);
+    expect(read("components/play/PlayMoreWays.vue")).toMatch(
+      /setting\.name === "public\.utility_practice_enabled",\s*\)\?\.value === "true"/,
+    );
   });
 });
 
