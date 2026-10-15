@@ -1,3 +1,4 @@
+import { dateLocale } from "~/utilities/dateLocale";
 // Shared "tournament attendance" check-in window -- computed purely from
 // tournament.start plus the two configurable offsets
 // (attendance_check_in_open_before_minutes / _close_before_minutes), the
@@ -49,7 +50,7 @@ export function attendanceWindow(
 }
 
 export function formatClockTime(date: Date): string {
-  return date.toLocaleTimeString(undefined, {
+  return date.toLocaleTimeString(dateLocale(), {
     hour: "numeric",
     minute: "2-digit",
   });

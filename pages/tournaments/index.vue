@@ -1,5 +1,6 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
@@ -303,7 +304,7 @@ const lanHero = computed(() => !live.value.length);
 // The agenda's month headings, in the order the list already runs.
 function byMonth(tournaments: any[]) {
   const months: Array<{ key: string; label: string; tournaments: any[] }> = [];
-  const format = new Intl.DateTimeFormat(undefined, {
+  const format = new Intl.DateTimeFormat(dateLocale(), {
     month: "long",
     year: "numeric",
   });

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { dateLocale } from "~/utilities/dateLocale";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -490,7 +491,7 @@ export default {
                 if (!item) return "";
                 const ts = self.unifiedTimestamps?.[item.dataIndex];
                 if (!ts) return "";
-                return new Date(ts).toLocaleString(navigator.language, {
+                return new Date(ts).toLocaleString(dateLocale(), {
                   month: "short",
                   day: "numeric",
                   year: "numeric",
@@ -571,7 +572,7 @@ export default {
                 if (index >= labels.length) return "";
                 const ts = labels[index];
                 if (!ts) return "";
-                return new Date(ts).toLocaleDateString(navigator.language, {
+                return new Date(ts).toLocaleDateString(dateLocale(), {
                   month: "short",
                   day: "numeric",
                 });

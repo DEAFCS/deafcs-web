@@ -1,4 +1,5 @@
 // Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE.
+import { dateLocale } from "~/utilities/dateLocale";
 import { tournamentRegistrationCount } from "~/utilities/tournamentRegistrationCount";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -98,13 +99,13 @@ export function useTournamentDisplay(source: () => any) {
   const start = computed(() =>
     tournament.value?.start ? new Date(tournament.value.start) : null,
   );
-  // "en-GB" rather than the viewer's browser/UI locale: DEAFCS always shows
-  // weekday/month names in English and time in 24-hour form (no AM/PM),
+  // dateLocale() rather than the viewer's device locale: weekday/month names
+  // in the DEAFCS language and time in 24-hour form (no AM/PM),
   // while still formatting in the viewer's own local timezone -- Intl only
   // ever localizes the text, never the moment in time.
   const startDay = computed(() =>
     start.value
-      ? new Intl.DateTimeFormat("en-GB", {
+      ? new Intl.DateTimeFormat(dateLocale(), {
           weekday: "short",
           month: "short",
           day: "numeric",
@@ -113,7 +114,7 @@ export function useTournamentDisplay(source: () => any) {
   );
   const startTime = computed(() =>
     start.value
-      ? new Intl.DateTimeFormat("en-GB", {
+      ? new Intl.DateTimeFormat(dateLocale(), {
           hour: "numeric",
           minute: "2-digit",
         }).format(start.value)

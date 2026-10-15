@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { dateLocale } from "~/utilities/dateLocale";
 import { Button } from "~/components/ui/button";
 import ScheduleMatch from "~/components/match/ScheduleMatch.vue";
 import { CalendarClock, Check, X } from "lucide-vue-next";
@@ -157,7 +158,7 @@ export default {
   },
   methods: {
     formatTime(value: string) {
-      return new Date(value).toLocaleString(undefined, {
+      return new Date(value).toLocaleString(dateLocale(), {
         dateStyle: "medium",
         timeStyle: "short",
       });

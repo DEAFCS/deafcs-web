@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { dateLocale } from "~/utilities/dateLocale";
 import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
@@ -217,7 +218,7 @@ const chartOptions = computed(() => ({
       callbacks: {
         title: (items: any[]) => {
           const r = rows.value[items[0]?.dataIndex];
-          return r?.played_at ? new Date(r.played_at).toLocaleDateString() : "";
+          return r?.played_at ? new Date(r.played_at).toLocaleDateString(dateLocale()) : "";
         },
         label: (item: any) =>
           `${t("player.performance.consistency.overall")}: ${item.raw}`,

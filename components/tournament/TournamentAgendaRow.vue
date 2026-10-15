@@ -1,5 +1,6 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed } from "vue";
 import { NuxtLink } from "#components";
 import { ChevronRight, Trophy } from "lucide-vue-next";
@@ -36,19 +37,16 @@ const cancelled = computed(
 
 const day = computed(() =>
   start.value
-    ? new Intl.DateTimeFormat(undefined, { day: "numeric" }).format(start.value)
+    ? new Intl.DateTimeFormat(dateLocale(), { day: "numeric" }).format(start.value)
     : "—",
 );
 // The month is already in the agenda's own group heading ("September
 // 2026") right above this row, so repeating it here is redundant -- just
-// the weekday. Always English regardless of the viewer's UI language (the
-// surrounding date/time itself stays in the viewer's own timezone): "en-GB"
-// rather than "en-US" because it also defaults to a 24-hour clock, which
-// matters for the other time-of-day labels this same pattern is used for
-// elsewhere -- DEAFCS doesn't use AM/PM anywhere.
+// the weekday, in the DEAFCS language (dateLocale) and the viewer's own
+// timezone.
 const weekday = computed(() =>
   start.value
-    ? new Intl.DateTimeFormat("en-GB", { weekday: "short" }).format(
+    ? new Intl.DateTimeFormat(dateLocale(), { weekday: "short" }).format(
         start.value,
       )
     : "",

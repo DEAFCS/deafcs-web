@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { dateLocale } from "~/utilities/dateLocale";
 import { useI18n } from "vue-i18n";
 import PlayerMatchesTable from "~/components/player/PlayerMatchesTable.vue";
 import DemoUpload from "~/components/DemoUpload.vue";
@@ -261,7 +262,7 @@ function seasonRange(s: {
   ends_at: string | null;
 }): string {
   const fmt = (iso: string) =>
-    new Date(iso).toLocaleDateString(undefined, {
+    new Date(iso).toLocaleDateString(dateLocale(), {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -1754,7 +1755,7 @@ function fmtSignedStat(n: number | null | undefined): string {
 
 function fmtDateShort(iso: string | null | undefined): string {
   if (!iso) return "—";
-  return new Date(iso).toLocaleDateString(undefined, {
+  return new Date(iso).toLocaleDateString(dateLocale(), {
     month: "short",
     day: "numeric",
     year: "numeric",

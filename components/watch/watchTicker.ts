@@ -7,6 +7,7 @@
 // DEAFCS card shows (mode, best-of, map backgrounds, stream count).
 
 import { autoPovEligible } from "~/utilities/matchStreams";
+import { dateLocale } from "~/utilities/dateLocale";
 import cleanMapName from "~/utilities/cleanMapName";
 import { matchSeriesLabel } from "~/utilities/matchSeriesLabel";
 
@@ -107,7 +108,10 @@ function sameDay(a: Date, b: Date) {
 }
 
 // "21:30" today, "Sat 12:00" this week, "Oct 31, 19:00" beyond that.
-export function formatStartTime(iso: string, now: Date, locale: string) {
+// DEAFCS: `locale` is the DEAFCS language (or left out to read it from i18n);
+// dateLocale() turns it into the date locale (en reads as en-GB, 24-hour).
+export function formatStartTime(iso: string, now: Date, language?: string) {
+  const locale = dateLocale(language);
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   const time: Intl.DateTimeFormatOptions = { hour: "numeric", minute: "2-digit" };
@@ -124,8 +128,9 @@ export function resultDayLabel(
   iso: string | null | undefined,
   now: Date,
   t: Translate,
-  locale: string,
+  language?: string,
 ) {
+  const locale = dateLocale(language);
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";

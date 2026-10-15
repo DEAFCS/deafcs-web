@@ -1,4 +1,5 @@
 <script lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { $, order_by } from "~/generated/zeus";
 import mapLabel from "~/utilities/mapLabel";
 import teamAvatarSrc from "~/utilities/teamAvatar";
@@ -323,7 +324,7 @@ export default {
       this.mapsById = byId;
     },
     formatTime(date: Date): string {
-      return date.toLocaleTimeString([], {
+      return date.toLocaleTimeString(dateLocale(), {
         hour: "numeric",
         minute: "2-digit",
       });

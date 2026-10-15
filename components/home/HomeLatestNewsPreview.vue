@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, ref, watch } from "vue";
 import { ArrowRight, Newspaper } from "lucide-vue-next";
 import { order_by } from "~/generated/zeus";
@@ -53,7 +54,7 @@ function formatDate(value: string | null): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
 
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString(dateLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",

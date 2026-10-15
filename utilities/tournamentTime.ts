@@ -1,3 +1,5 @@
+import { dateLocale } from "~/utilities/dateLocale";
+
 export type TournamentTimeInput = string | number | Date | null | undefined;
 
 export const COPENHAGEN_TIME_ZONE = "Europe/Copenhagen";
@@ -35,13 +37,13 @@ function formatDateTime(
   timeZone?: string,
   includeYear = false,
 ): string {
-  const dateLabel = new Intl.DateTimeFormat(locale, {
+  const dateLabel = new Intl.DateTimeFormat(locale ?? dateLocale(), {
     ...zoneOptions(timeZone),
     day: "numeric",
     month: "short",
     ...(includeYear ? { year: "numeric" as const } : {}),
   }).format(date);
-  const timeLabel = new Intl.DateTimeFormat(locale, {
+  const timeLabel = new Intl.DateTimeFormat(locale ?? dateLocale(), {
     ...zoneOptions(timeZone),
     hour: "2-digit",
     minute: "2-digit",
@@ -68,7 +70,7 @@ export function formatLocalTournamentClock(
   const date = parseTime(value);
   if (!date) return "";
 
-  return new Intl.DateTimeFormat(locale, {
+  return new Intl.DateTimeFormat(locale ?? dateLocale(), {
     ...zoneOptions(localTimeZone),
     hour: "2-digit",
     minute: "2-digit",

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { X, Download, Trophy, Users, Eye, EyeOff } from "lucide-vue-next";
 import { Button } from "~/components/ui/button";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -22,7 +23,7 @@ function formatEventDate(value?: string | null): string | null {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(dateLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",

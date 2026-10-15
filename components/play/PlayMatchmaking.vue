@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useResizeObserver } from "@vueuse/core";
 import { useI18n } from "vue-i18n";
@@ -238,7 +239,7 @@ const maxLatency = computed(() => matchmaking.playerMaxAcceptableLatency);
 function formatExpiry(value: unknown) {
   const date = value instanceof Date ? value : new Date(String(value));
   if (Number.isNaN(date.getTime())) return "";
-  return date.toLocaleString(undefined, {
+  return date.toLocaleString(dateLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",

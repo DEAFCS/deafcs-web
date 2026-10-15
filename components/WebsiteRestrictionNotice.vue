@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, onMounted } from "vue";
 import { ShieldAlert } from "lucide-vue-next";
 import { useWebsiteRestrictionStore } from "~/stores/WebsiteRestrictionStore";
@@ -8,7 +9,7 @@ onMounted(() => store.start());
 
 const expiration = computed(() =>
   store.status.expiresAt
-    ? new Intl.DateTimeFormat(undefined, {
+    ? new Intl.DateTimeFormat(dateLocale(), {
         dateStyle: "medium",
         timeStyle: "short",
       }).format(new Date(store.status.expiresAt))

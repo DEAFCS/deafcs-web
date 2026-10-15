@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, onUnmounted, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useApolloClient } from "@vue/apollo-composable";
@@ -1637,7 +1638,7 @@ export default {
       const when = this.match?.scheduled_at || this.match?.ended_at;
       if (!when) return null;
       try {
-        return new Date(when).toLocaleString(undefined, {
+        return new Date(when).toLocaleString(dateLocale(), {
           dateStyle: "medium",
           timeStyle: "short",
         });

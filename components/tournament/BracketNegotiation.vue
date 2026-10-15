@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { dateLocale } from "~/utilities/dateLocale";
 import {
   Dialog,
   DialogContent,
@@ -166,7 +167,7 @@ export default {
   },
   methods: {
     formatTime(value: string) {
-      return new Date(value).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+      return new Date(value).toLocaleString(dateLocale(), { dateStyle: "medium", timeStyle: "short" });
     },
     async loadManagedTeams() {
       const steamId = useAuthStore().me?.steam_id;

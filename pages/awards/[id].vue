@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import gql from "graphql-tag";
 import { computed, onMounted, ref } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
@@ -141,7 +142,7 @@ function formatDate(value?: string | null) {
   if (!value) return "—";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "—";
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(dateLocale(), {
     year: "numeric",
     month: "short",
     day: "numeric",

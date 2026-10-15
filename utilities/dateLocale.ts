@@ -1,15 +1,25 @@
-// Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE.
+// Adapted from 5Stack WEB d18c33db and 538e796e; MIT Copyright (c) 2025 5Stack.gg; see LICENSE.
 import { tryUseNuxtApp } from "#app";
 
-// `toLocale*(undefined, …)` formats using the *browser's* locale, not the app's.
-// A player reading the UI in Japanese from an en-US browser still got American
-// date formats — which stopped being defensible once all 16 locales were filled
-// in. The configured locale codes are already valid BCP-47 tags (en, de,
-// zh-Hans, …), so they can be handed straight to Intl.
+// `toLocale*(undefined, …)` formats using the *device's* locale, not the
+// app's. A Danish iPad reading DEAFCS in English got "lør. 13. okt. 14.00".
 //
-// Returns undefined — i.e. the previous browser-locale behaviour — whenever
-// there is no Nuxt context to read from, so this can never throw at render.
-export function dateLocale(): string | undefined {
+// DEAFCS rule (differs from upstream 538e796e, which takes the 12/24-hour
+// clock and, for a same-language browser, the region from the browser):
+// - the DEAFCS language picks the words and their order,
+// - English reads as en-GB ("Sat 13 Oct, 14:00"),
+// - the clock is always 24-hour, also in English (DEAFCS never shows AM/PM),
+// - the device only supplies the time zone (Intl never changes the moment),
+// - the device language is used only when there is no DEAFCS language.
+const DATE_LOCALE_FOR_LANGUAGE: Record<string, string> = {
+  en: "en-GB",
+};
+
+let resolvedCache:
+  | { ui: string | undefined; browser: string | null; value: string | undefined }
+  | undefined;
+
+function uiLocale(): string | undefined {
   const locale = (tryUseNuxtApp()?.$i18n as { locale?: unknown } | undefined)
     ?.locale;
   const value =
@@ -20,32 +30,52 @@ export function dateLocale(): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-// The clock the viewer's own browser uses: 24-hour for locales that normally
-// show it (most of Europe), 12-hour with AM/PM for the ones that do not (the
-// US). dateLocale() is the app's UI language, and "en" resolves to en-US
-// everywhere, so a European reading the site in English got AM/PM. The
-// language of the text stays the app's; only the hour cycle follows the
-// browser. The time zone is the browser's own, as before.
-export function browserUses12HourClock(browserLocale?: string): boolean {
+function browserLanguage(): string | null {
+  if (typeof navigator === "undefined") {
+    return null;
+  }
+  return navigator.languages?.[0] || navigator.language || null;
+}
+
+export function resolveDateLocale(
+  ui: string | undefined,
+  browser: string | null,
+): string | undefined {
+  const base = ui ? (DATE_LOCALE_FOR_LANGUAGE[ui] ?? ui) : browser;
+  if (!base) {
+    return undefined;
+  }
   try {
-    const cycle = new Intl.DateTimeFormat(browserLocale, {
-      hour: "numeric",
-    }).resolvedOptions().hourCycle;
-    return cycle === "h11" || cycle === "h12";
+    return new Intl.Locale(base, { hourCycle: "h23" }).toString();
   } catch {
-    return false;
+    return undefined;
   }
 }
 
+// `language` overrides the DEAFCS language read from i18n (for helpers that
+// are handed `locale.value`); left out, it is read from the Nuxt app.
+// Returns undefined (the device locale) only when nothing is known at all,
+// so this can never throw at render.
+export function dateLocale(language?: string): string | undefined {
+  const ui = language || uiLocale();
+  const browser = ui ? null : browserLanguage();
+  if (
+    !resolvedCache ||
+    resolvedCache.ui !== ui ||
+    resolvedCache.browser !== browser
+  ) {
+    resolvedCache = { ui, browser, value: resolveDateLocale(ui, browser) };
+  }
+  return resolvedCache.value;
+}
+
+// "21:25" in the viewer's own time zone, in the DEAFCS language.
 export function formatLocalClock(
   date: Date,
-  options: { locale?: string; browserLocale?: string } = {},
+  options: { locale?: string } = {},
 ): string {
-  const twelveHour = browserUses12HourClock(options.browserLocale);
-
-  return date.toLocaleTimeString(options.locale ?? dateLocale(), {
-    hour: twelveHour ? "numeric" : "2-digit",
+  return date.toLocaleTimeString(dateLocale(options.locale), {
+    hour: "2-digit",
     minute: "2-digit",
-    hourCycle: twelveHour ? "h12" : "h23",
   });
 }

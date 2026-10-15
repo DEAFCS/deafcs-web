@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import type { Component } from "vue";
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
@@ -1027,7 +1028,7 @@ const STATUS_ACTIONS: Record<
 };
 
 function formatDate(value: string | null): string {
-  return value ? new Date(value).toLocaleString() : "—";
+  return value ? new Date(value).toLocaleString(dateLocale()) : "—";
 }
 </script>
 
@@ -1690,7 +1691,7 @@ function formatDate(value: string | null): string {
                       size="sm"
                       class="font-mono"
                     >
-                      {{ new Date(bracket.scheduled_at).toLocaleString() }}
+                      {{ new Date(bracket.scheduled_at).toLocaleString(dateLocale()) }}
                     </Badge>
                     <Button
                       v-if="
@@ -1728,7 +1729,7 @@ function formatDate(value: string | null): string {
                     >
                       <span>
                         <span class="font-mono">{{
-                          new Date(proposal.proposed_time).toLocaleString()
+                          new Date(proposal.proposed_time).toLocaleString(dateLocale())
                         }}</span>
                         <span class="ml-1.5 text-muted-foreground">
                           {{ $t("league.schedule.proposed_by") }}

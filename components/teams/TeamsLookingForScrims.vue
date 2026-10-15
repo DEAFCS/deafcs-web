@@ -1,5 +1,6 @@
 <!-- Adapted from 5Stack WEB bd6c8150; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { useI18n } from "vue-i18n";
@@ -158,7 +159,7 @@ function sameDate(a: Date, b: Date) {
 }
 
 function time(date: Date) {
-  return date.toLocaleTimeString(locale.value, {
+  return date.toLocaleTimeString(dateLocale(locale.value), {
     hour: "numeric",
     minute: "2-digit",
   });
@@ -204,7 +205,7 @@ function availability(posting: any): { label: string; today: boolean } {
       .sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7))
       .map((day) =>
         // 2023-01-01 was a Sunday, so day 0..6 lands on the right weekday.
-        new Date(2023, 0, 1 + day).toLocaleDateString(locale.value, {
+        new Date(2023, 0, 1 + day).toLocaleDateString(dateLocale(locale.value), {
           weekday: "short",
         }),
       );

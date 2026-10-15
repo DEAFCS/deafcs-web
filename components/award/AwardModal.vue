@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed } from "vue";
 import AwardArtwork from "./AwardArtwork.vue";
 import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
@@ -75,7 +76,7 @@ const formattedDate = computed(() => {
   const d = new Date(props.trophy.tournament.start);
   if (Number.isNaN(d.getTime())) return null;
   return d
-    .toLocaleDateString(undefined, {
+    .toLocaleDateString(dateLocale(), {
       year: "numeric",
       month: "short",
       day: "numeric",

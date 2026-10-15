@@ -70,7 +70,7 @@ watch(
 
 const founded = computed(() =>
   createdAt.value
-    ? new Date(createdAt.value).toLocaleDateString(locale.value, {
+    ? new Date(createdAt.value).toLocaleDateString(dateLocale(locale.value), {
         month: "short",
         year: "numeric",
       })

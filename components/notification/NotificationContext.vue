@@ -1,4 +1,5 @@
 <script lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { defineComponent } from "vue";
 import { Swords, Server, HardDrive, UserCheck } from "lucide-vue-next";
 import { Spinner } from "~/components/ui/spinner";
@@ -451,7 +452,7 @@ export default defineComponent({
     scrimTime(): string {
       if (!this.scrim?.proposed_scheduled_at) return "";
       return new Date(this.scrim.proposed_scheduled_at).toLocaleString(
-        undefined,
+        dateLocale(),
         {
           weekday: "short",
           month: "short",

@@ -1,4 +1,5 @@
 <script lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { $, order_by } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { generateMutation } from "~/graphql/graphqlGen";
@@ -63,6 +64,9 @@ export default {
     },
   },
   methods: {
+    formatProposedTime(value: string): string {
+      return new Date(value).toLocaleString(dateLocale());
+    },
     isAwaitingUs(request: any): boolean {
       return request.awaiting_team_id === this.teamId;
     },
@@ -174,7 +178,7 @@ export default {
 
       <div class="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
         <span class="text-foreground">
-          {{ new Date(request.proposed_scheduled_at).toLocaleString() }}
+          {{ formatProposedTime(request.proposed_scheduled_at) }}
         </span>
         <span v-if="request.match_options" class="text-muted-foreground">
           {{ $t("scrim.best_of_indicator", { bestOf: request.match_options.best_of }) }}

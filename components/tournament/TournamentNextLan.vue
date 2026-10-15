@@ -1,5 +1,6 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 import { MapPin, Trophy, Users } from "lucide-vue-next";
@@ -51,11 +52,11 @@ const sectionLabel = computed(() => {
   return t("pages.tournaments.sections.next_online");
 });
 
-// Always English, regardless of the viewer's UI language -- the moment
-// itself still renders in their own local timezone.
+// In the DEAFCS language (dateLocale), not the device's; the moment itself
+// still renders in the viewer's own local timezone.
 const longDay = computed(() =>
   start.value
-    ? new Intl.DateTimeFormat("en-GB", {
+    ? new Intl.DateTimeFormat(dateLocale(), {
         weekday: "long",
         month: "long",
         day: "numeric",
@@ -83,7 +84,7 @@ const until = computed(() => {
 
 const month = computed(() =>
   start.value
-    ? new Intl.DateTimeFormat("en-GB", { month: "short" }).format(start.value)
+    ? new Intl.DateTimeFormat(dateLocale(), { month: "short" }).format(start.value)
     : null,
 );
 

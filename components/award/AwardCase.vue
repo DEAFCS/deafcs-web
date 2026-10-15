@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, ref } from "vue";
 import AwardArtwork from "./AwardArtwork.vue";
 import AwardModal from "./AwardModal.vue";
@@ -86,7 +87,7 @@ function formatAwardDate(iso?: string | null) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
   return d
-    .toLocaleDateString(undefined, {
+    .toLocaleDateString(dateLocale(), {
       month: "short",
       day: "numeric",
       year: "numeric",

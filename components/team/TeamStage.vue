@@ -1,5 +1,6 @@
 <!-- Adapted from 5Stack WEB bd6c8150; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { computed, onBeforeUnmount, ref, watch } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
 import { useI18n } from "vue-i18n";
@@ -143,7 +144,7 @@ function vsLabel(match: any) {
 
 function startLabel(iso: string | null) {
   if (!iso) return t("match.stream.card.scheduled");
-  return new Date(iso).toLocaleString(locale.value, {
+  return new Date(iso).toLocaleString(dateLocale(locale.value), {
     weekday: "short",
     month: "short",
     day: "numeric",

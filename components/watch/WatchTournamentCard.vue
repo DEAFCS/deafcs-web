@@ -1,5 +1,6 @@
 <!-- Adapted from 5Stack WEB d18c33db; MIT Copyright (c) 2025 5Stack.gg; see LICENSE. -->
 <script setup lang="ts">
+import { dateLocale } from "~/utilities/dateLocale";
 import { tournamentRegistrationCount } from "~/utilities/tournamentRegistrationCount";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -102,14 +103,14 @@ const sub = computed(() => {
 const startsAt = computed(() => {
   if (!props.tournament.start) return null;
   const start = new Date(props.tournament.start);
-  // "en-GB": English weekday/month text, 24-hour time, still the viewer's
+  // dateLocale(): DEAFCS-language weekday/month text, 24-hour time, still the viewer's
   // own local timezone.
-  const day = new Intl.DateTimeFormat("en-GB", {
+  const day = new Intl.DateTimeFormat(dateLocale(), {
     weekday: "short",
     month: "short",
     day: "numeric",
   }).format(start);
-  const time = new Intl.DateTimeFormat("en-GB", {
+  const time = new Intl.DateTimeFormat(dateLocale(), {
     hour: "numeric",
     minute: "2-digit",
   }).format(start);
