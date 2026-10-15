@@ -5,6 +5,8 @@ import {
   fetchReplayBlob,
   normalizeBlobGrenades,
 } from "~/composables/useReplayBlob";
+import { normalizeRoundInventory } from "~/utilities/demoWeaponNames";
+import { Loader2 } from "lucide-vue-next";
 import ReplayViewer from "~/components/match/ReplayViewer.vue";
 
 const matchMapForPopoutQuery = typedGql("query")({
@@ -13,7 +15,7 @@ const matchMapForPopoutQuery = typedGql("query")({
     {
       id: true,
       match_id: true,
-      map: { name: true },
+      map: { name: true, label: true },
       demos: [{ limit: 1 }, { playback_url: true }],
       // Per-round team money — drives full-buy detection for the
       // buy-round overlay. The replay blob carries loadout but no money.
@@ -61,7 +63,7 @@ const matchMapForPopoutQuery = typedGql("query")({
 });
 
 export default {
-  components: { ReplayViewer },
+  components: { Loader2, ReplayViewer },
   props: {
     matchMapId: { type: String, required: true },
     initialView: { type: String, default: "2d" },
@@ -72,6 +74,10 @@ export default {
       positions: null as null | any[],
       grenades: null as null | any[],
       grenadeTrajectories: [] as any[],
+      smokeVolumes: [] as any[],
+      infernos: [] as any[],
+      smokeVoxels: [] as any[],
+      flashes: undefined as undefined | any[],
       shots: null as null | any[],
       damages: null as null | any[],
       demoPlayers: [] as any[],
@@ -84,49 +90,13 @@ export default {
       tickRate: 64 as number,
       blobLoading: false as boolean,
       blobLoaded: false as boolean,
-      // Set true when we successfully consume handoff data from the
-      // opener window — skips the Apollo query entirely.
-      hydratedFromOpener: false,
-      handoffMatch: null as any,
-      handoffMapName: null as null | string,
     };
-  },
-  created() {
-    const self = this as any;
-    if (typeof window === "undefined") return;
-    try {
-      const opener: any = window.opener;
-      const data = opener?.__replayHandoff?.[self.matchMapId];
-      if (!data) return;
-      self.handoffMatch = data.match ?? null;
-      self.handoffMapName = data.mapName ?? null;
-      self.positions = data.positions ?? [];
-      self.grenades = data.grenades ?? [];
-      self.grenadeTrajectories = data.grenadeTrajectories ?? [];
-      self.shots = data.shots ?? [];
-      self.damages = data.damages ?? [];
-      self.demoPlayers = data.demoPlayers ?? [];
-      self.demoKills = data.demoKills ?? [];
-      self.demoBombs = data.demoBombs ?? [];
-      self.demoKitDrops = data.demoKitDrops ?? [];
-      self.demoRoundTicks = data.demoRoundTicks ?? [];
-      self.roundInventory = data.roundInventory ?? [];
-      self.roundEconomy = data.roundEconomy ?? [];
-      self.tickRate = data.tickRate ?? 64;
-      self.hydratedFromOpener = true;
-      self.blobLoaded = true;
-    } catch {
-      // Opener may be closed or unavailable — fall through to Apollo.
-    }
   },
   apollo: {
     matchMap: {
       query: matchMapForPopoutQuery,
       variables(): any {
         return { matchMapId: (this as any).matchMapId };
-      },
-      skip(): boolean {
-        return (this as any).hydratedFromOpener;
       },
       manual: true,
       async result({ data }: { data: any }) {
@@ -151,6 +121,10 @@ export default {
           self.positions = blob.positions ?? [];
           self.grenades = normalizeBlobGrenades(blob.grenade_throws ?? []);
           self.grenadeTrajectories = blob.grenade_trajectories ?? [];
+          self.smokeVolumes = blob.smoke_volumes ?? [];
+          self.infernos = blob.infernos ?? [];
+          self.smokeVoxels = blob.smoke_voxels ?? [];
+          self.flashes = blob.flashes;
           self.shots = blob.shots_fired ?? [];
           self.damages = blob.damages ?? [];
           self.demoPlayers = blob.players ?? [];
@@ -158,7 +132,9 @@ export default {
           self.demoBombs = blob.bombs ?? [];
           self.demoKitDrops = blob.kit_drops ?? [];
           self.demoRoundTicks = blob.round_ticks ?? [];
-          self.roundInventory = blob.round_inventory ?? [];
+          self.roundInventory = normalizeRoundInventory(
+            blob.round_inventory ?? [],
+          );
           self.tickRate = blob.tick_rate || 64;
         } catch (error) {
           // eslint-disable-next-line no-console
@@ -173,18 +149,17 @@ export default {
   },
   computed: {
     match(): any {
-      // Prefer the handoff payload from the opener — it already has
-      // the full match object with lineup_1/lineup_2 + match_maps.
-      if (this.handoffMatch) return this.handoffMatch;
       const m = this.matchMap?.match ?? null;
       const maps = this.matchMap ? [this.matchMap] : [];
       return m ? { ...m, match_maps: maps } : { match_maps: maps };
     },
     mapName(): string | null {
-      return this.handoffMapName ?? this.matchMap?.map?.name ?? null;
+      return this.matchMap?.map?.name ?? null;
+    },
+    mapTitle(): string | null {
+      return this.matchMap?.map?.label ?? null;
     },
     loading(): boolean {
-      if (this.hydratedFromOpener) return false;
       return this.blobLoading || (!this.blobLoaded && this.positions === null);
     },
   },
@@ -195,8 +170,9 @@ export default {
   <div class="flex h-full w-full flex-col overflow-hidden">
     <div
       v-if="loading"
-      class="py-10 text-center font-mono text-xs tracking-[0.2em] uppercase text-muted-foreground"
+      class="flex flex-1 items-center justify-center gap-2 text-sm text-muted-foreground"
     >
+      <Loader2 class="h-4 w-4 animate-spin" />
       {{ $t("match.replay.loading") }}
     </div>
     <div
@@ -211,18 +187,22 @@ export default {
       :positions="positions"
       :grenades="grenades || []"
       :grenade-trajectories="grenadeTrajectories || []"
+      :smoke-volumes="smokeVolumes || []"
+      :infernos="infernos || []"
+      :smoke-voxels="smokeVoxels"
+      :flashes="flashes"
       :shots="shots || []"
       :damages="damages || []"
       :demo-players="demoPlayers"
       :demo-kills="demoKills"
       :demo-bombs="demoBombs"
       :demo-kit-drops="demoKitDrops"
-      :is-popout="true"
       :demo-round-ticks="demoRoundTicks"
       :round-inventory="roundInventory"
       :round-economy="roundEconomy"
       :tick-rate="tickRate"
       :map-name="mapName"
+      :map-title="mapTitle"
       :initial-view="initialView as '2d' | '3d'"
     />
   </div>

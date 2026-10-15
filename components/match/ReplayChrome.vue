@@ -3,9 +3,26 @@
 // ONE player looks identical in 2D and 3D. Purely presentational: it renders
 // HUD / kill feed / play-by-play / scoreboard / transport over whatever map
 // the host (ReplayViewer) shows underneath. All data + actions come via props.
-import { Skull } from "lucide-vue-next";
+import {
+  ArrowLeftRight,
+  FastForward,
+  RotateCcw,
+  Skull,
+  Snail,
+  Tags,
+} from "lucide-vue-next";
 import AnimatedStat from "~/components/AnimatedStat.vue";
+import ReplayBuyBadge from "~/components/match/ReplayBuyBadge.vue";
+import ReplayRoundAnalysis from "~/components/match/ReplayRoundAnalysis.vue";
+import { TRADE_WINDOW_SEC } from "~/utilities/replayAnalysis/trades";
+import { formatMoney, formatMoneyShort } from "~/utilities/replayAnalysis/buy";
+import type {
+  ReplayFlashNote,
+  ReplayKillTrade,
+  ReplayRoundAnalysis as RoundAnalysis,
+} from "~/composables/useReplayAnalysis";
 import { weaponIconPath } from "~/utilities/weaponIcon";
+import { UTILITY_MARKER_COLORS } from "~/utilities/replayStage/teamColors";
 import Kbd from "~/components/ui/kbd/Kbd.vue";
 import KbdGroup from "~/components/ui/kbd/KbdGroup.vue";
 import {
@@ -35,11 +52,12 @@ type Row = {
   a: number;
   dmg: number;
   weapon: string | null;
-  nades: string[];
+  utility: string[];
   bomb: boolean;
   kit: boolean;
   avatarUrl: string | null;
   blinded?: number; // 0..1 flash blind strength at the cursor
+  value?: number | null; // what their freeze-end loadout is worth
 };
 type PbpEvent = {
   time: string;
@@ -54,6 +72,8 @@ type PbpEvent = {
   gi?: number;
   thrower?: string;
   tc?: string;
+  trade?: ReplayKillTrade;
+  flash?: ReplayFlashNote;
 };
 
 const props = defineProps<{
@@ -67,9 +87,6 @@ const props = defineProps<{
   };
   teamA: Row[];
   teamB: Row[];
-  sideA: number;
-  aliveA: number;
-  aliveB: number;
   feed: Array<{
     k: string;
     v: string;
@@ -79,11 +96,13 @@ const props = defineProps<{
     vc: string;
   }>;
   pbp: PbpEvent[];
-  roundSummary?: string;
+  // the round's buys, trades and flash report up to the playhead
+  analysis?: RoundAnalysis;
   rounds: Array<{ i: number; n: number; win: number }>;
   activeRoundUI: number;
   utilMarkers: Array<{ frac: number; icon: string; gi?: number }>;
-  tickMarkers: Array<{ frac: number; cls: string }>;
+  // `width`: a span (a defuse attempt) as a share of the bar.
+  tickMarkers: Array<{ frac: number; cls: string; width?: number }>;
   typeFilter: Record<string, boolean>;
   selectedGi: number[];
   playing: boolean;
@@ -93,17 +112,21 @@ const props = defineProps<{
   // 2D/3D map toggle (the only difference between the two views)
   view?: "2d" | "3d";
   onView?: (v: "2d" | "3d") => void;
+  // The storeys of a stacked map on the stage (ids, top first), the one in
+  // view, and picking one; empty on a one-storey map.
+  levels?: string[];
+  level?: string | null;
+  onLevel?: (id: string) => void;
+  // Both storeys laid side by side (the default) rather than one at a time.
+  levelsSide?: boolean;
+  onLevelsSide?: (v: boolean) => void;
+  // The replay stage is drawing (its camera keys go in the shortcuts list).
+  stage?: boolean;
   // buy-round overlay active — hides round-relative seek markers (they don't
   // map onto the shared window clock).
   overlay?: boolean;
-  // 3D-only controls (camera dock); hidden in 2D
-  show3d?: boolean;
-  camMode?: string;
   showPbp?: boolean;
   heatOn?: boolean;
-  // ceiling cut (3D): 0..100, 100 = full map / no cut
-  ceiling?: number;
-  onCeiling?: (v: number) => void;
   followName?: string | null;
   ctHex?: string;
   tHex?: string;
@@ -119,7 +142,14 @@ const props = defineProps<{
   // scoreboard-side toggles
   showAvatars?: boolean;
   traceOn?: boolean;
+  // stage: fog of war and who sees whom; whose sight it shows, and whether
+  // that side was picked (otherwise it follows the followed player)
+  visionOn?: boolean;
+  visionSide?: "ct" | "t" | "both";
+  visionSidePinned?: boolean;
   showDeaths?: boolean;
+  showCallouts?: boolean;
+  hasCallouts?: boolean;
   // mobile: compact the floating panels for phone-sized touch screens
   mobile?: boolean;
   // scoreboard visibility — collapsible so there's room to move around the map
@@ -137,14 +167,34 @@ const props = defineProps<{
   onToggleType: (ty: string) => void;
   onTogglePbp?: () => void;
   onToggleHeat?: () => void;
-  onMode?: (m: string) => void;
   onPbpUtil?: (gi: number) => void;
   onClearSel?: () => void;
   onToggleOverlay?: () => void;
   onToggleOverlayRound?: (rn: number) => void;
   onToggleAvatars?: () => void;
   onToggleTrace?: () => void;
+  onToggleVision?: () => void;
+  onVisionSide?: (side: "ct" | "t" | "both") => void;
   onToggleDeaths?: () => void;
+  onToggleCallouts?: () => void;
+  // A clip's mark in / out as shares of the seek bar; absent where clips
+  // cannot be exported.
+  clipMarks?: { in: number | null; out: number | null };
+  // Broadcast mode (the stage's director): off, on, or paused by camera
+  // input; the shot it is on ("Duel · B Apartments"); and whether its big
+  // moments play in slow motion.
+  broadcast?: "off" | "on" | "paused";
+  broadcastShot?: string | null;
+  slowmo?: boolean;
+  onBroadcast?: () => void;
+  onSlowmo?: () => void;
+  // An instant replay of a multi-kill is on offer.
+  broadcastReplay?: boolean;
+  onBroadcastReplay?: () => void;
+  // The story coming up, during a lull; and hurrying through quiet stretches.
+  broadcastNext?: string | null;
+  condensed?: boolean;
+  onCondensed?: () => void;
 }>();
 
 const UTIL_TYPES = ["Smoke", "Molotov", "HE", "Flash", "Decoy"] as const;
@@ -155,15 +205,19 @@ const UTIL_ICON: Record<string, string> = {
   molotov: "/img/equipment/molotov.svg",
   decoy: "/img/equipment/decoy.svg",
 };
+// The stage's markers share these hues, so the legend names what it shows.
+const legendHex = (hex: number) => `#${hex.toString(16).padStart(6, "0")}`;
 const UTIL_LEGEND: Record<string, string> = {
-  Smoke: "#32d6e0",
-  Molotov: "#ff6a1a",
-  HE: "#ff3b3b",
-  Flash: "#ffd21a",
-  Decoy: "#66dd55",
+  Smoke: legendHex(UTILITY_MARKER_COLORS.smoke),
+  Molotov: legendHex(UTILITY_MARKER_COLORS.molotov),
+  HE: legendHex(UTILITY_MARKER_COLORS.he),
+  Flash: legendHex(UTILITY_MARKER_COLORS.flash),
+  Decoy: legendHex(UTILITY_MARKER_COLORS.decoy),
 };
 const sideHex = (s: number) =>
-  s === 0 ? props.ctHex || "#57cdff" : props.tHex || "#ffb049";
+  s === 0
+    ? props.ctHex || "hsl(210, 80%, 60%)"
+    : props.tHex || "hsl(33, 94%, 58%)";
 const utilIcon = (ty: string) => UTIL_ICON[ty.toLowerCase()] || "";
 const legendCol = (ty: string) => UTIL_LEGEND[ty] || "#9fb0c0";
 const selIncludes = (gi: number | undefined) =>
@@ -178,10 +232,31 @@ const pbpKey = (e: PbpEvent) =>
       ? `b${e.time}-${e.bomb}`
       : `k${e.time}-${e.killer}-${e.victim}-${e.weapon}`;
 const SPEEDS = [0.5, 1, 2, 4, 8];
+const VISION_SIDES = ["ct", "t", "both"] as const;
+const visionSideHex = (side: string) =>
+  side === "ct" ? sideHex(0) : side === "t" ? sideHex(1) : "#c9d3dc";
 
 // Cluster utility throws that land at (nearly) the same point on the timeline
 // so several thrown on the same second can each be fanned out + clicked.
 import { computed, ref, watch, nextTick, onMounted, onBeforeUnmount } from "vue";
+import { useI18n } from "vue-i18n";
+
+// Hovering a death or the kill that traded it lights up both rows.
+const pairHover = ref<string[]>([]);
+const pairHit = (e: PbpEvent) =>
+  !!e.trade?.pairs?.some((p) => pairHover.value.includes(p));
+const { t } = useI18n();
+const tradeTitle = (tr: ReplayKillTrade) =>
+  [
+    tr.state === "traded"
+      ? t("match.replay.analysis.traded_by", { name: tr.by, sec: tr.sec })
+      : "",
+    tr.avenges?.length
+      ? t("match.replay.analysis.trade_for", { names: tr.avenges.join(", ") })
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
 
 // Measure the live transport-bar height (round selector + seek + safe-area) so
 // the floating scoreboard can cap its height to JUST above it and scroll the
@@ -239,67 +314,91 @@ const scorePanelStyle = computed(() => {
 // so we drive seeking ourselves from pointer position on the whole track.
 const seekWrapEl = ref<HTMLElement | null>(null);
 let scrubbing = false;
+// While dragging, the bar shows where the pointer is at once; the replay is
+// sought at most once a frame, with the latest position, so a slow frame
+// never leaves the playhead trailing the pointer.
+const dragFrac = ref<number | null>(null);
+const shownSeekFrac = computed(() => dragFrac.value ?? props.seekFrac);
+let seekFrame = 0;
 function seekFromEvent(e: PointerEvent) {
   const rect = seekWrapEl.value?.getBoundingClientRect();
   if (!rect || rect.width === 0) return;
-  props.onSeek(Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width)));
+  dragFrac.value = Math.min(
+    1,
+    Math.max(0, (e.clientX - rect.left) / rect.width),
+  );
+  if (!seekFrame) {
+    seekFrame = requestAnimationFrame(flushSeek);
+  }
+}
+function flushSeek() {
+  seekFrame = 0;
+  if (dragFrac.value !== null) props.onSeek(dragFrac.value);
 }
 let resumeAfterScrub = false;
-function onScrubDown(e: PointerEvent) {
-  // Let taps on the stacked utility icons through to their own click handler.
-  if ((e.target as Element)?.closest?.(".mk-util-icon")) return;
-  scrubbing = true;
+// A press on a utility icon is a click on it until the pointer moves; then it
+// is a drag along the bar like anywhere else.
+const DRAG_SLOP_PX = 4;
+let scrubStartX = 0;
+let scrubArmed = false;
+let swallowIconClick = false;
+function armScrub() {
+  scrubArmed = true;
   // Pause while scrubbing so the playhead doesn't fight the drag, then resume
   // on release if it was playing — feels natural on touch and desktop alike.
   resumeAfterScrub = !!props.playing;
   if (props.playing) props.onPlay();
-  seekFromEvent(e);
+}
+function onScrubDown(e: PointerEvent) {
+  if (e.button !== 0) return;
+  scrubbing = true;
+  scrubStartX = e.clientX;
+  swallowIconClick = false;
+  scrubArmed = false;
+  if (!(e.target as Element)?.closest?.(".mk-util-icon")) {
+    armScrub();
+    seekFromEvent(e);
+  }
   window.addEventListener("pointermove", onScrubMove);
   window.addEventListener("pointerup", onScrubUp);
   window.addEventListener("pointercancel", onScrubUp);
 }
 function onScrubMove(e: PointerEvent) {
-  if (scrubbing) seekFromEvent(e);
+  if (!scrubbing) return;
+  if (!scrubArmed) {
+    if (Math.abs(e.clientX - scrubStartX) < DRAG_SLOP_PX) return;
+    swallowIconClick = true;
+    armScrub();
+  }
+  seekFromEvent(e);
 }
 function onScrubUp() {
   scrubbing = false;
   window.removeEventListener("pointermove", onScrubMove);
   window.removeEventListener("pointerup", onScrubUp);
   window.removeEventListener("pointercancel", onScrubUp);
-  if (resumeAfterScrub && !props.playing) props.onPlay();
+  if (seekFrame) {
+    cancelAnimationFrame(seekFrame);
+    flushSeek();
+  }
+  dragFrac.value = null;
+  if (scrubArmed && resumeAfterScrub && !props.playing) props.onPlay();
   resumeAfterScrub = false;
+  scrubArmed = false;
 }
+function onUtilIconClick(gi: number | null | undefined) {
+  if (swallowIconClick) {
+    swallowIconClick = false;
+    return;
+  }
+  if (gi != null && props.onPbpUtil) props.onPbpUtil(gi);
+}
+onBeforeUnmount(() => {
+  if (seekFrame) cancelAnimationFrame(seekFrame);
+});
 
-// Same deal for the 3D ROOF slider in the mobile overflow menu — drive it from
-// pointer position so it can be dragged on touch, not just tapped.
-let ceilScrubbing = false;
-let ceilScrubEl: HTMLElement | null = null;
-function ceilFromEvent(e: PointerEvent) {
-  const rect = ceilScrubEl?.getBoundingClientRect();
-  if (!rect || rect.width === 0) return;
-  const frac = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-  props.onCeiling?.(Math.round(frac * 100));
-}
-function onCeilScrubDown(e: PointerEvent) {
-  ceilScrubEl = e.currentTarget as HTMLElement;
-  ceilScrubbing = true;
-  ceilFromEvent(e);
-  window.addEventListener("pointermove", onCeilScrubMove);
-  window.addEventListener("pointerup", onCeilScrubUp);
-  window.addEventListener("pointercancel", onCeilScrubUp);
-}
-function onCeilScrubMove(e: PointerEvent) {
-  if (ceilScrubbing) ceilFromEvent(e);
-}
-function onCeilScrubUp() {
-  ceilScrubbing = false;
-  ceilScrubEl = null;
-  window.removeEventListener("pointermove", onCeilScrubMove);
-  window.removeEventListener("pointerup", onCeilScrubUp);
-  window.removeEventListener("pointercancel", onCeilScrubUp);
-}
 const utilClusters = computed(() => {
-  // Respect the util-type filter so toggling a type also drops its nade icons
+  // Respect the util-type filter so toggling a type also drops its utility icons
   // from the seek bar (2D + 3D), not just the map.
   const sorted = [...(props.utilMarkers || [])]
     .filter((m) => props.typeFilter?.[(m as any).type] !== false)
@@ -341,7 +440,7 @@ const utilClusters = computed(() => {
         >
       </div>
 
-      <!-- left column: controls row (2D/3D | cam dock) + play-by-play -->
+      <!-- left column: controls row (2D/3D | camera) + play-by-play -->
       <div class="bp-left">
         <div class="bp-controls">
           <div class="bp-viewtoggle">
@@ -369,66 +468,89 @@ const utilClusters = computed(() => {
                 $t("match.replay.chrome.view_3d")
               }}</TooltipContent></Tooltip
             >
+            <template v-if="stage && levels?.length">
+              <span class="bp-viewsep" />
+              <Tooltip
+                ><TooltipTrigger as-child
+                  ><button
+                    :class="{ on: levelsSide }"
+                    @click="onLevelsSide && onLevelsSide(true)"
+                  >
+                    {{ $t("match.replay.chrome.level_side") }}
+                  </button></TooltipTrigger
+                ><TooltipContent>{{
+                  $t("match.replay.chrome.level_side_tip")
+                }}</TooltipContent></Tooltip
+              >
+              <Tooltip v-for="id in levels" :key="id"
+                ><TooltipTrigger as-child
+                  ><button
+                    :class="{ on: !levelsSide && level === id }"
+                    @click="
+                      onLevelsSide && onLevelsSide(false);
+                      onLevel && onLevel(id);
+                    "
+                  >
+                    {{
+                      id === "lower"
+                        ? $t("match.replay.chrome.level_lower")
+                        : $t("match.replay.chrome.level_upper")
+                    }}
+                  </button></TooltipTrigger
+                ><TooltipContent>{{
+                  $t("match.replay.chrome.level_tip")
+                }}</TooltipContent></Tooltip
+              >
+            </template>
           </div>
           <span class="bp-pipe">|</span>
           <div class="bp-cam">
-            <template v-if="show3d && !mobile">
+            <!-- Broadcast camera (the stage's director) and its slow motion. -->
+            <template v-if="stage && onBroadcast && !overlay && !mobile">
               <Tooltip
                 ><TooltipTrigger as-child
                   ><button
-                    :class="{ on: camMode === 'orbit' }"
-                    @click="onMode && onMode('orbit')"
+                    :class="{
+                      on: broadcast === 'on',
+                      'bp-paused': broadcast === 'paused',
+                    }"
+                    :aria-pressed="broadcast === 'on'"
+                    @click="onBroadcast()"
                   >
-                    {{ $t("match.replay.chrome.cam_orbit") }}
+                    {{ $t("match.replay.chrome.broadcast") }}
                   </button></TooltipTrigger
                 ><TooltipContent>{{
-                  $t("match.replay.chrome.cam_orbit_tip")
+                  broadcast === "paused"
+                    ? $t("match.replay.chrome.broadcast_paused_tip")
+                    : $t("match.replay.chrome.broadcast_tip")
                 }}</TooltipContent></Tooltip
               >
-              <Tooltip
+              <Tooltip v-if="broadcast !== 'off' && onSlowmo"
                 ><TooltipTrigger as-child
                   ><button
-                    :class="{ on: camMode === 'top' }"
-                    @click="onMode && onMode('top')"
+                    class="bp-slowmo"
+                    :class="{ on: slowmo }"
+                    :aria-pressed="!!slowmo"
+                    :aria-label="$t('match.replay.chrome.slowmo_tip')"
+                    @click="onSlowmo()"
                   >
-                    {{ $t("match.replay.chrome.cam_top") }}
-                  </button></TooltipTrigger
+                    <Snail class="h-3.5 w-3.5" /></button></TooltipTrigger
                 ><TooltipContent>{{
-                  $t("match.replay.chrome.cam_top_tip")
+                  $t("match.replay.chrome.slowmo_tip")
                 }}</TooltipContent></Tooltip
               >
-              <Tooltip v-if="followName"
+              <Tooltip v-if="broadcast !== 'off' && onCondensed"
                 ><TooltipTrigger as-child
                   ><button
-                    :class="{ on: camMode === 'follow' }"
-                    @click="onMode && onMode('follow')"
+                    class="bp-slowmo"
+                    :class="{ on: condensed }"
+                    :aria-pressed="!!condensed"
+                    :aria-label="$t('match.replay.chrome.condensed_tip')"
+                    @click="onCondensed()"
                   >
-                    {{ $t("match.replay.chrome.cam_chase") }}
-                  </button></TooltipTrigger
+                    <FastForward class="h-3.5 w-3.5" /></button></TooltipTrigger
                 ><TooltipContent>{{
-                  $t("match.replay.chrome.cam_chase_tip")
-                }}</TooltipContent></Tooltip
-              >
-              <Tooltip
-                ><TooltipTrigger as-child>
-                  <label class="bp-ceil" :class="{ on: (ceiling ?? 50) < 100 }">
-                    <span>{{ $t("match.replay.chrome.roof") }}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      :value="ceiling ?? 50"
-                      @input="
-                        onCeiling &&
-                        onCeiling(
-                          Number(($event.target as HTMLInputElement).value),
-                        )
-                      "
-                    />
-                  </label> </TooltipTrigger
-                ><TooltipContent>{{
-                  $t("match.replay.chrome.roof_tip")
+                  $t("match.replay.chrome.condensed_tip")
                 }}</TooltipContent></Tooltip
               >
             </template>
@@ -484,53 +606,35 @@ const utilClusters = computed(() => {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" :side-offset="6" class="bp-dd">
-                <template v-if="show3d">
+                <template v-if="stage && onBroadcast && !overlay">
                   <DropdownMenuItem
                     class="bp-dd-item"
-                    :class="{ 'bp-dd-on': camMode === 'orbit' }"
-                    @select.prevent="onMode && onMode('orbit')"
+                    :class="{
+                      'bp-dd-on': broadcast === 'on',
+                      'bp-paused': broadcast === 'paused',
+                    }"
+                    @select.prevent="onBroadcast()"
                   >
-                    {{ $t("match.replay.chrome.cam_orbit") }}
+                    {{ $t("match.replay.chrome.broadcast") }}
                   </DropdownMenuItem>
                   <DropdownMenuItem
+                    v-if="broadcast !== 'off' && onSlowmo"
                     class="bp-dd-item"
-                    :class="{ 'bp-dd-on': camMode === 'top' }"
-                    @select.prevent="onMode && onMode('top')"
+                    :class="{ 'bp-dd-on': slowmo }"
+                    @select.prevent="onSlowmo()"
                   >
-                    {{ $t("match.replay.chrome.cam_top") }}
+                    <Snail class="h-3.5 w-3.5" />
+                    {{ $t("match.replay.chrome.slowmo_tip") }}
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    v-if="followName"
+                    v-if="broadcast !== 'off' && onCondensed"
                     class="bp-dd-item"
-                    :class="{ 'bp-dd-on': camMode === 'follow' }"
-                    @select.prevent="onMode && onMode('follow')"
+                    :class="{ 'bp-dd-on': condensed }"
+                    @select.prevent="onCondensed()"
                   >
-                    {{ $t("match.replay.chrome.cam_chase") }}
+                    <FastForward class="h-3.5 w-3.5" />
+                    {{ $t("match.replay.chrome.condensed_tip") }}
                   </DropdownMenuItem>
-                  <!-- ROOF slider: let the slider own pointer + keys instead of
-                       the menu's navigation/close. -->
-                  <div
-                    class="bp-dd-item bp-dd-roof"
-                    :class="{ 'bp-dd-on': (ceiling ?? 50) < 100 }"
-                    @pointerdown.stop
-                    @keydown.stop
-                  >
-                    <span>{{ $t("match.replay.chrome.roof") }}</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      :value="ceiling ?? 50"
-                      @pointerdown="onCeilScrubDown"
-                      @input="
-                        onCeiling &&
-                        onCeiling(
-                          Number(($event.target as HTMLInputElement).value),
-                        )
-                      "
-                    />
-                  </div>
                 </template>
                 <DropdownMenuItem
                   class="bp-dd-item"
@@ -551,6 +655,27 @@ const utilClusters = computed(() => {
             </DropdownMenu>
           </div>
         </div>
+        <div
+          v-if="stage && broadcast === 'on' && broadcastShot"
+          class="bp-shot"
+        >
+          <span aria-live="polite">{{ broadcastShot }}</span>
+          <button
+            v-if="broadcastReplay && onBroadcastReplay"
+            type="button"
+            class="bp-replay"
+            @click="onBroadcastReplay()"
+          >
+            <RotateCcw class="h-3 w-3" />
+            {{ $t("match.replay.chrome.broadcast_replay") }}
+          </button>
+        </div>
+        <div
+          v-if="stage && broadcast === 'on' && broadcastShot && broadcastNext"
+          class="bp-shot bp-shot-next"
+        >
+          <span>{{ broadcastNext }}</span>
+        </div>
         <div v-if="showPbp !== false" class="bp-pbp">
           <div class="bp-pbp-h">
             <span>{{
@@ -568,7 +693,12 @@ const utilClusters = computed(() => {
               }}
             </button>
           </div>
-          <div v-if="roundSummary" class="bp-pbp-sum">{{ roundSummary }}</div>
+          <ReplayRoundAnalysis
+            v-if="analysis && !overlay && !mobile"
+            :analysis="analysis"
+            :ct-hex="sideHex(0)"
+            :t-hex="sideHex(1)"
+          />
           <div v-if="!pbp.length" class="bp-pbp-empty">
             {{ $t("match.replay.chrome.no_events") }}
           </div>
@@ -577,10 +707,16 @@ const utilClusters = computed(() => {
               v-for="e in pbp"
               :key="pbpKey(e)"
               class="bp-pbp-row"
-              :class="{ util: e.util != null, hl: selIncludes(e.gi) }"
+              :class="{
+                util: e.util != null,
+                hl: selIncludes(e.gi),
+                pair: pairHit(e),
+              }"
               @click="
                 e.util != null && onPbpUtil && e.gi != null && onPbpUtil(e.gi)
               "
+              @mouseenter="pairHover = e.trade?.pairs ?? []"
+              @mouseleave="pairHover = []"
             >
               <span class="tt">{{ e.time }}</span>
               <template v-if="e.bomb"
@@ -591,6 +727,22 @@ const utilClusters = computed(() => {
                 <span class="nm" :style="{ color: e.tc }">{{ e.thrower }}</span>
                 <span class="utl">{{ e.util }}</span>
                 <span class="pin" v-if="selIncludes(e.gi)">●</span>
+                <span v-if="e.flash" class="fl-note"
+                  ><span>{{
+                    $t(
+                      "match.replay.analysis.flash_note",
+                      { count: e.flash.enemies, sec: e.flash.sec },
+                      e.flash.enemies,
+                    )
+                  }}</span
+                  ><span v-if="e.flash.teammates" class="fl-team">{{
+                    $t(
+                      "match.replay.analysis.flash_teammates",
+                      { count: e.flash.teammates },
+                      e.flash.teammates,
+                    )
+                  }}</span></span
+                >
               </template>
               <template v-else>
                 <span class="nm" :style="{ color: e.kc }">{{ e.killer }}</span>
@@ -601,6 +753,24 @@ const utilClusters = computed(() => {
                 />
                 <span v-if="e.hs" class="hs">⊕</span>
                 <span class="nm" :style="{ color: e.vc }">{{ e.victim }}</span>
+                <span
+                  v-if="e.trade?.state === 'traded' || e.trade?.avenges?.length"
+                  class="trd"
+                  :title="tradeTitle(e.trade)"
+                  ><ArrowLeftRight :size="11" /><template
+                    v-if="e.trade.state === 'traded'"
+                    >{{ e.trade.sec }}s</template
+                  ></span
+                >
+                <span
+                  v-if="e.trade?.state === 'untraded'"
+                  class="untrd"
+                  :title="
+                    $t('match.replay.analysis.untraded', {
+                      sec: TRADE_WINDOW_SEC,
+                    })
+                  "
+                />
               </template>
             </div>
           </TransitionGroup>
@@ -617,18 +787,21 @@ const utilClusters = computed(() => {
         <div
           class="bp-team"
           v-for="(team, ti) in [
-            { rows: teamA, side: sideA, score: hud.ct, alive: aliveA },
-            { rows: teamB, side: 1 - sideA, score: hud.t, alive: aliveB },
+            { rows: teamA, side: 0, score: hud.ct },
+            { rows: teamB, side: 1, score: hud.t },
           ]"
           :key="ti"
         >
           <div class="bp-team-h">
-            <span class="th-side" :style="{ color: sideHex(team.side) }">{{
-              team.side === 0 ? "CT" : "T"
-            }}</span>
-            <span class="th-alive">{{
-              $t("match.replay.chrome.alive_count", { count: team.alive })
-            }}</span>
+            <span class="th-lead"
+              ><span class="th-side" :style="{ color: sideHex(team.side) }">{{
+                team.side === 0 ? "CT" : "T"
+              }}</span
+              ><ReplayBuyBadge
+                v-if="!overlay && analysis?.buy[team.side === 0 ? 'ct' : 't']"
+                :buy="analysis.buy[team.side === 0 ? 'ct' : 't']!"
+                :compact="mobile"
+            /></span>
             <span class="th-score" :style="{ color: sideHex(team.side) }"
               ><AnimatedStat :value="team.score"
             /></span>
@@ -734,12 +907,22 @@ const utilClusters = computed(() => {
                   >{{ r.weapon }}</span
                 >
               </Transition>
+              <span
+                v-if="r.value && !overlay"
+                class="buyv"
+                :title="
+                  $t('match.replay.analysis.equipment_value', {
+                    value: formatMoney(r.value),
+                  })
+                "
+                >{{ formatMoneyShort(r.value) }}</span
+              >
               <span class="util">
                 <img
-                  v-for="(u, ui) in r.nades"
+                  v-for="(u, ui) in r.utility"
                   :key="ui"
                   :src="UTIL_ICON[u.toLowerCase()]"
-                  class="eq nade"
+                  class="eq utility"
                   :title="u"
                 />
               </span>
@@ -829,7 +1012,7 @@ const utilClusters = computed(() => {
               : $t("match.replay.chrome.showing_numbers")
           }}</TooltipContent>
         </Tooltip>
-        <Tooltip v-if="view === '2d'">
+        <Tooltip v-if="stage">
           <TooltipTrigger as-child>
             <button
               class="sbt"
@@ -843,7 +1026,50 @@ const utilClusters = computed(() => {
             $t("match.replay.chrome.trace_tip")
           }}</TooltipContent>
         </Tooltip>
-        <Tooltip v-if="view === '2d'">
+        <div v-if="stage" class="sbt-vision">
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button
+                class="sbt"
+                :class="{ on: visionOn }"
+                @click="onToggleVision && onToggleVision()"
+              >
+                VISION
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>{{
+              $t("match.replay.chrome.vision_tip")
+            }}</TooltipContent>
+          </Tooltip>
+          <Tooltip v-if="visionOn && onVisionSide">
+            <TooltipTrigger as-child>
+              <div class="sbt-seg" role="group">
+                <button
+                  v-for="side in VISION_SIDES"
+                  :key="side"
+                  class="sbt-seg-opt"
+                  :class="{
+                    on: visionSide === side,
+                    pinned: visionSidePinned && visionSide === side,
+                  }"
+                  :style="{ '--seg': visionSideHex(side) }"
+                  :aria-pressed="visionSide === side"
+                  @click="onVisionSide(side)"
+                >
+                  {{
+                    side === "both"
+                      ? $t("match.replay.chrome.vision_both")
+                      : side.toUpperCase()
+                  }}
+                </button>
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>{{
+              $t("match.replay.chrome.vision_side_tip")
+            }}</TooltipContent>
+          </Tooltip>
+        </div>
+        <Tooltip v-if="stage">
           <TooltipTrigger as-child>
             <button
               class="sbt sbt-icon"
@@ -855,6 +1081,20 @@ const utilClusters = computed(() => {
           </TooltipTrigger>
           <TooltipContent>{{
             $t("match.replay.chrome.deaths_tip")
+          }}</TooltipContent>
+        </Tooltip>
+        <Tooltip v-if="stage && hasCallouts">
+          <TooltipTrigger as-child>
+            <button
+              class="sbt sbt-icon"
+              :class="{ on: showCallouts }"
+              @click="onToggleCallouts && onToggleCallouts()"
+            >
+              <Tags :size="15" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>{{
+            $t("match.replay.chrome.callouts_tip")
           }}</TooltipContent>
         </Tooltip>
       </div>
@@ -1067,7 +1307,7 @@ const utilClusters = computed(() => {
                       class="mk-util-icon"
                       :class="{ hl: selIncludes(m.gi) }"
                       :style="{ bottom: mi * 21 + 'px' }"
-                      @click.stop="m.gi != null && onPbpUtil && onPbpUtil(m.gi)"
+                      @click.stop="onUtilIconClick(m.gi)"
                     >
                       <img :src="m.icon" />
                     </button>
@@ -1091,7 +1331,7 @@ const utilClusters = computed(() => {
             <div class="seek-rail">
               <div
                 class="seek-fill"
-                :style="{ width: seekFrac * 100 + '%' }"
+                :style="{ width: shownSeekFrac * 100 + '%' }"
               ></div>
             </div>
             <input
@@ -1099,7 +1339,7 @@ const utilClusters = computed(() => {
               type="range"
               min="0"
               max="1000"
-              :value="Math.round(seekFrac * 1000)"
+              :value="Math.round(shownSeekFrac * 1000)"
               @input="(e: any) => onSeek(+e.target.value / 1000)"
             />
             <span
@@ -1108,12 +1348,36 @@ const utilClusters = computed(() => {
               :key="'k' + i"
               class="mk"
               :class="m.cls"
-              :style="{ left: m.frac * 100 + '%' }"
+              :style="{
+                left: m.frac * 100 + '%',
+                width: m.width != null ? m.width * 100 + '%' : undefined,
+              }"
             ></span>
+            <template v-if="clipMarks && !overlay">
+              <span
+                v-if="clipMarks.in !== null && clipMarks.out !== null"
+                class="mk-clip"
+                :style="{
+                  left: clipMarks.in * 100 + '%',
+                  width: (clipMarks.out - clipMarks.in) * 100 + '%',
+                }"
+              ></span>
+              <span
+                v-if="clipMarks.in !== null"
+                class="mk-clip-edge"
+                :style="{ left: clipMarks.in * 100 + '%' }"
+              ></span>
+              <span
+                v-if="clipMarks.out !== null"
+                class="mk-clip-edge"
+                :style="{ left: clipMarks.out * 100 + '%' }"
+              ></span>
+            </template>
           </div>
           <span v-if="timeLabel" class="tl"
             ><AnimatedStat :value="timeLabel"
           /></span>
+          <slot name="share" />
           <Tooltip v-if="onFullscreen && !mobile">
             <TooltipTrigger as-child>
               <button class="fs" @click="onFullscreen && onFullscreen()">
@@ -1197,34 +1461,68 @@ const utilClusters = computed(() => {
                 <KbdGroup><Kbd>1</Kbd><Kbd>–</Kbd><Kbd>5</Kbd></KbdGroup
                 ><span>{{ $t("match.replay.chrome.kb_speed") }}</span>
               </div>
-              <template v-if="show3d">
+              <div v-if="clipMarks" class="hk">
+                <KbdGroup><Kbd>I</Kbd><Kbd>O</Kbd></KbdGroup
+                ><span>{{ $t("match.replay.share.kb_marks") }}</span>
+              </div>
+              <template v-if="stage">
                 <div class="hk hk-sep">
-                  {{ $t("match.replay.chrome.kb_3d_camera") }}
+                  {{ $t("match.replay.chrome.kb_camera") }}
                 </div>
                 <div class="hk">
-                  <KbdGroup><Kbd>L-drag</Kbd></KbdGroup
-                  ><span>{{ $t("match.replay.chrome.kb_look") }}</span>
-                </div>
-                <div class="hk">
-                  <KbdGroup><Kbd>R-drag</Kbd></KbdGroup
-                  ><span>{{ $t("match.replay.chrome.kb_orbit") }}</span>
-                </div>
-                <div class="hk">
-                  <KbdGroup><Kbd>Scroll</Kbd></KbdGroup
-                  ><span>{{ $t("match.replay.chrome.kb_zoom") }}</span>
+                  <KbdGroup><Kbd>Click</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_follow_player") }}</span>
                 </div>
                 <div class="hk">
                   <KbdGroup
                     ><Kbd>W</Kbd><Kbd>A</Kbd><Kbd>S</Kbd><Kbd>D</Kbd></KbdGroup
-                  ><span>{{ $t("match.replay.chrome.kb_fly") }}</span>
+                  ><span>{{ $t("match.replay.chrome.kb_pan") }}</span>
                 </div>
                 <div class="hk">
-                  <KbdGroup><Kbd>Shift</Kbd><Kbd>Ctrl</Kbd></KbdGroup
-                  ><span>{{ $t("match.replay.chrome.kb_up_down") }}</span>
+                  <KbdGroup><Kbd>Z</Kbd><Kbd>X</Kbd><Kbd>Scroll</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_zoom") }}</span>
+                </div>
+                <template v-if="view === '3d'">
+                  <div class="hk">
+                    <KbdGroup><Kbd>Q</Kbd><Kbd>E</Kbd></KbdGroup
+                    ><span>{{ $t("match.replay.chrome.kb_rotate") }}</span>
+                  </div>
+                  <div class="hk">
+                    <KbdGroup><Kbd>R</Kbd><Kbd>F</Kbd></KbdGroup
+                    ><span>{{ $t("match.replay.chrome.kb_tilt") }}</span>
+                  </div>
+                  <div class="hk">
+                    <KbdGroup><Kbd>R-drag</Kbd></KbdGroup
+                    ><span>{{ $t("match.replay.chrome.kb_orbit") }}</span>
+                  </div>
+                </template>
+                <div class="hk">
+                  <KbdGroup><Kbd>Shift</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_faster") }}</span>
                 </div>
                 <div class="hk">
-                  <KbdGroup><Kbd>Q</Kbd><Kbd>E</Kbd></KbdGroup
-                  ><span>{{ $t("match.replay.chrome.kb_up_down") }}</span>
+                  <KbdGroup><Kbd>C</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_follow") }}</span>
+                </div>
+                <div class="hk">
+                  <KbdGroup><Kbd>0</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_frame_map") }}</span>
+                </div>
+                <div class="hk">
+                  <KbdGroup><Kbd>V</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_switch_view") }}</span>
+                </div>
+                <div v-if="onBroadcast" class="hk">
+                  <KbdGroup><Kbd>B</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_broadcast") }}</span>
+                </div>
+                <div v-if="onToggleVision" class="hk">
+                  <KbdGroup><Kbd>G</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_vision") }}</span>
+                </div>
+                <div v-if="levels?.length" class="hk">
+                  <KbdGroup><Kbd>L</Kbd></KbdGroup
+                  ><span>{{ $t("match.replay.chrome.kb_level") }}</span>
                 </div>
               </template>
             </div>
@@ -1243,9 +1541,9 @@ const utilClusters = computed(() => {
   color: #d6e0ea;
   font-family: "Oxanium", system-ui, sans-serif;
   user-select: none;
-  --accent: #57cdff;
-  --ct: #57cdff;
-  --t: #ffb049;
+  --accent: hsl(var(--tac-amber));
+  --ct: hsl(210, 80%, 60%);
+  --t: hsl(var(--tac-amber));
   --panel: rgba(12, 15, 20, 0.82);
   --line: rgba(120, 140, 165, 0.18);
 }
@@ -1404,16 +1702,9 @@ const utilClusters = computed(() => {
   font-size: 9px;
   letter-spacing: 1px;
   padding: 2px 7px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   text-transform: uppercase;
-}
-.bp-pbp-sum {
-  font-size: 11px;
-  color: #cfe0f2;
-  margin-bottom: 7px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--line);
 }
 .bp-pbp-empty {
   font-size: 11px;
@@ -1502,6 +1793,58 @@ const utilClusters = computed(() => {
   margin-left: auto;
   font-size: 9px;
 }
+.bp-pbp-row .nm {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.bp-pbp-row > :not(.nm) {
+  flex-shrink: 0;
+}
+.bp-pbp-row.pair {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+}
+/* trade pairing: the traded death and the kill that traded it */
+.bp-pbp-row .trd {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 10px;
+  color: hsl(var(--success) / 0.85);
+  font-variant-numeric: tabular-nums;
+}
+.bp-pbp-row .untrd {
+  margin-left: auto;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: hsl(var(--destructive) / 0.5);
+}
+.bp-pbp-row .trd + .untrd {
+  margin-left: 2px;
+}
+.bp-pbp-row.util:has(.fl-note) {
+  flex-wrap: wrap;
+  row-gap: 0;
+}
+.bp-pbp-row .fl-note {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 8px;
+  padding-left: 56px;
+  font-size: 10px;
+  color: #8a98a8;
+}
+.bp-pbp-row .fl-note > span {
+  white-space: nowrap;
+}
+.bp-pbp-row .fl-team {
+  color: hsl(var(--destructive) / 0.9);
+}
 /* scoreboard */
 .bp-score-panel {
   position: absolute;
@@ -1547,22 +1890,21 @@ const utilClusters = computed(() => {
 }
 .bp-team-h {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   font-size: 11px;
   letter-spacing: 1px;
   padding: 2px 4px 6px;
   font-weight: 700;
 }
-.bp-team-h .th-alive {
-  text-align: center;
-  color: #6b7785;
-  font-weight: 400;
-  letter-spacing: 0;
-  font-size: 10px;
-}
 .bp-team-h .th-score {
   font-size: 15px;
+}
+.bp-team-h .th-lead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
 }
 .bp-prow {
   position: relative;
@@ -1693,7 +2035,7 @@ const utilClusters = computed(() => {
 .eq.gun {
   height: 20px;
 }
-.eq.nade {
+.eq.utility {
   height: 16px;
 }
 .eq.kit {
@@ -1735,6 +2077,11 @@ const utilClusters = computed(() => {
   display: flex;
   gap: 3px;
 }
+.prow-gear .buyv {
+  font-size: 10px;
+  color: #7f8fa0;
+  font-variant-numeric: tabular-nums;
+}
 /* controls row: 2D/3D | cam dock — single line (overflows the 264px column) */
 .bp-controls {
   display: flex;
@@ -1754,7 +2101,7 @@ const utilClusters = computed(() => {
   padding: 5px 7px;
   color: #9fb0c0;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 6px;
   background: var(--panel);
   cursor: pointer;
   outline: none;
@@ -1791,7 +2138,7 @@ const utilClusters = computed(() => {
   font-weight: 700;
   letter-spacing: 1px;
   padding: 5px 14px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   backdrop-filter: blur(6px);
 }
@@ -1803,6 +2150,11 @@ const utilClusters = computed(() => {
   background: color-mix(in srgb, var(--accent) 18%, transparent);
   border-color: var(--accent);
   color: #fff;
+}
+.bp-viewsep {
+  width: 1px;
+  margin: 3px 2px;
+  background: var(--line);
 }
 /* camera dock */
 .bp-cam {
@@ -1820,7 +2172,7 @@ const utilClusters = computed(() => {
   font-size: 10px;
   letter-spacing: 1px;
   padding: 6px 4px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   backdrop-filter: blur(6px);
 }
@@ -1833,54 +2185,59 @@ const utilClusters = computed(() => {
   border-color: var(--accent);
   color: #fff;
 }
-.bp-ceil {
+/* Broadcast paused by camera input: outlined, not lit. */
+.bp-cam button.bp-paused {
+  border-style: dashed;
+  border-color: color-mix(in srgb, var(--accent) 60%, transparent);
+  color: #c9d4de;
+}
+.bp-cam button.bp-slowmo {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  background: var(--panel);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  padding: 5px 8px;
-  cursor: pointer;
-  backdrop-filter: blur(6px);
+  justify-content: center;
 }
-.bp-ceil span {
-  font-size: 10px;
-  letter-spacing: 1px;
+/* The shot the broadcast camera is on, under the controls. */
+.bp-shot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding-left: 2px;
+  font-size: 11px;
+  line-height: 1.2;
   color: #9fb0c0;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
 }
-.bp-ceil.on {
+.bp-shot > span {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.bp-replay {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  color: #d6e0ea;
+  font-family: inherit;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  text-shadow: none;
+}
+.bp-replay:hover {
   border-color: var(--accent);
-}
-.bp-ceil.on span {
   color: #fff;
 }
-.bp-ceil input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 64px;
-  height: 3px;
-  border-radius: 3px;
-  background: var(--line);
-  outline: none;
-  cursor: pointer;
-}
-.bp-ceil input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: none;
-}
-.bp-ceil input[type="range"]::-moz-range-thumb {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--accent);
-  border: none;
+.bp-shot-next {
+  margin-top: -4px;
+  font-size: 10px;
+  color: #7d8b99;
 }
 .bp-foll {
   font-size: 11px;
@@ -1957,7 +2314,7 @@ const utilClusters = computed(() => {
 .bp-filters .fbtn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 3px 5px;
   cursor: pointer;
   display: flex;
@@ -1993,7 +2350,7 @@ const utilClusters = computed(() => {
   font-family: inherit;
   font-size: 10px;
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   margin-left: 4px;
 }
@@ -2007,7 +2364,7 @@ const utilClusters = computed(() => {
   font-size: 11px;
   font-variant-numeric: tabular-nums;
   padding: 3px 8px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   flex-shrink: 0;
 }
@@ -2067,7 +2424,7 @@ const utilClusters = computed(() => {
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 1px;
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   backdrop-filter: blur(6px);
 }
@@ -2079,6 +2436,52 @@ const utilClusters = computed(() => {
   background: color-mix(in srgb, var(--accent) 18%, transparent);
   border-color: var(--accent);
   color: #fff;
+}
+/* VISION's side picker opens to its left, on the same row. */
+.bp-sb-tools .sbt-vision {
+  position: relative;
+  display: flex;
+}
+.bp-sb-tools .sbt-vision > .sbt {
+  flex: 1;
+}
+.bp-sb-tools .sbt-seg {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(100% + 5px);
+  display: flex;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
+  backdrop-filter: blur(6px);
+}
+.bp-sb-tools .sbt-seg-opt {
+  padding: 0 7px;
+  background: transparent;
+  border: 0;
+  color: #9fb0c0;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bp-sb-tools .sbt-seg-opt + .sbt-seg-opt {
+  border-left: 1px solid var(--line);
+}
+.bp-sb-tools .sbt-seg-opt:hover {
+  color: #f0f6fc;
+}
+.bp-sb-tools .sbt-seg-opt.on {
+  background: color-mix(in srgb, var(--seg) 22%, transparent);
+  color: #fff;
+}
+/* Picked by hand rather than following the followed player. */
+.bp-sb-tools .sbt-seg-opt.pinned {
+  box-shadow: inset 0 -2px 0 var(--seg);
 }
 /* Scoreboard collapsed: the tools strip slides to the screen edge so its
    show/hide button stays put after the 256px panel is gone. */
@@ -2127,8 +2530,8 @@ const utilClusters = computed(() => {
   gap: 4px;
 }
 /* On touch the seek bar keeps its normal height (so the transport row stays
-   vertically centered), and the nade lane drops into reserved space BELOW it
-   via padding — a finger dragging the bar never lands on a nade. Desktop keeps
+   vertically centered), and the utility lane drops into reserved space BELOW it
+   via padding — a finger dragging the bar never lands on a utility. Desktop keeps
    them overlaid since a mouse can thread between them. */
 .bp-chrome.is-mobile .seek-wrap {
   height: 38px;
@@ -2163,6 +2566,10 @@ const utilClusters = computed(() => {
 .bp-chrome.is-mobile .bp-sb-tools .sbt {
   min-width: 40px;
   height: 34px;
+  font-size: 12px;
+}
+.bp-chrome.is-mobile .bp-sb-tools .sbt-seg-opt {
+  padding: 0 10px;
   font-size: 12px;
 }
 .bp-chrome.is-mobile .bp-toprow .rt {
@@ -2227,7 +2634,7 @@ const utilClusters = computed(() => {
   border: 1px solid var(--line);
   color: #d6e0ea;
   font-family: inherit;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 5px 10px;
   cursor: pointer;
 }
@@ -2266,7 +2673,7 @@ const utilClusters = computed(() => {
   color: var(--accent);
   border: 1px solid var(--accent);
   background: color-mix(in srgb, var(--accent) 14%, transparent);
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 4px 8px;
   cursor: pointer;
   font-family: inherit;
@@ -2283,7 +2690,7 @@ const utilClusters = computed(() => {
   gap: 2px;
   padding: 3px 8px;
   border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  border-radius: 4px;
+  border-radius: 6px;
   flex-shrink: 0;
 }
 .bp-buywin .bw-row {
@@ -2314,7 +2721,7 @@ const utilClusters = computed(() => {
   font-weight: 700;
   letter-spacing: 0.5px;
   padding: 1px 8px;
-  border-radius: 3px;
+  border-radius: 4px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.05);
   color: #9fb0c0;
@@ -2439,7 +2846,7 @@ const utilClusters = computed(() => {
   transform: translateX(-50%);
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(14, 18, 24, 0.92);
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
   pointer-events: auto;
   transition:
@@ -2493,6 +2900,51 @@ const utilClusters = computed(() => {
   z-index: 5;
   box-shadow: 0 0 7px #ff5a4d;
 }
+.seek-wrap .mk.mk-defused {
+  background: var(--ct);
+  box-shadow: 0 0 7px var(--ct);
+}
+/* white-hot with an orange glow, apart from the amber T kills */
+.seek-wrap .mk.mk-exploded {
+  width: 4.5px;
+  background: #fff1c2;
+  box-shadow:
+    0 0 6px #ff9a2e,
+    0 0 12px #ff5a1a;
+}
+/* a defuse attempt: a band from its start to where it was let go */
+.seek-wrap .mk.mk-defuse {
+  transform: none;
+  top: auto;
+  bottom: 2px;
+  height: 5px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ct) 45%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ct) 70%, transparent);
+  opacity: 1;
+  z-index: 4;
+}
+/* a clip's marked range: a band along the bottom between its in / out ticks */
+.seek-wrap .mk-clip {
+  position: absolute;
+  bottom: 5px;
+  height: 3px;
+  background: #e6edf3;
+  opacity: 0.55;
+  pointer-events: none;
+  z-index: 4;
+}
+.seek-wrap .mk-clip-edge {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  transform: translateX(-50%);
+  background: #e6edf3;
+  border-radius: 1px;
+  pointer-events: none;
+  z-index: 5;
+}
 .bp-transport .tl {
   font-size: 14px;
   font-weight: 600;
@@ -2517,7 +2969,7 @@ const utilClusters = computed(() => {
   height: 44px;
   color: #9fb0c0;
   border: 1px solid var(--line);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: help;
   background: rgba(255, 255, 255, 0.05);
 }
@@ -2609,27 +3061,18 @@ const utilClusters = computed(() => {
 .bp-dd-item:hover,
 .bp-dd-item:focus,
 .bp-dd-item[data-highlighted] {
-  border-color: #57cdff;
+  border-color: hsl(var(--tac-amber));
   color: #f0f6fc !important;
   background: rgba(255, 255, 255, 0.08) !important;
   outline: none;
 }
 .bp-dd-item.bp-dd-on {
-  background: color-mix(in srgb, #57cdff 20%, transparent) !important;
-  border-color: #57cdff;
+  background: hsl(var(--tac-amber) / 0.2) !important;
+  border-color: hsl(var(--tac-amber));
   color: #fff !important;
 }
-.bp-dd-roof {
-  justify-content: space-between;
-  gap: 10px;
-}
-.bp-dd-roof span {
-  font-size: 10px;
-}
-.bp-dd-roof input[type="range"] {
-  width: 96px;
-  accent-color: #57cdff;
-  touch-action: none;
-  cursor: pointer;
+.bp-dd-item.bp-paused {
+  border-style: dashed;
+  border-color: hsl(var(--tac-amber) / 0.6);
 }
 </style>
