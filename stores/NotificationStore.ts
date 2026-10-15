@@ -8,6 +8,12 @@ import { playerFields } from "~/graphql/playerFields";
 import { useSubscriptionManager } from "~/composables/useSubscriptionManager";
 import { MY_SCHEDULE_TASKS_SUBSCRIPTION } from "~/graphql/leagues";
 import { fetchInAppNotificationPreferences } from "~/composables/useInAppNotificationPreferences";
+import {
+  activeFeatureSpotlight,
+  dismissFeatureSpotlight,
+  resetFeatureSpotlights,
+  syncFeatureSpotlights,
+} from "~/composables/useFeatureSpotlights";
 
 export type LeagueScheduleTask = {
   id: string;
@@ -285,9 +291,12 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
         .length,
   );
 
+  const featureSpotlight = computed(() => activeFeatureSpotlight());
+
   const hasPersonalNotifications = computed(
     () =>
       !!unreadNewsArticle.value ||
+      !!featureSpotlight.value ||
       team_invites.value.length > 0 ||
       tournament_registration_invites.value.length +
       tournament_team_invites.value.length > 0 ||
@@ -301,6 +310,7 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
   const unreadNotificationCount = computed(
     () =>
       (unreadNewsArticle.value ? 1 : 0) +
+      (featureSpotlight.value ? 1 : 0) +
       team_invites.value.length +
       tournament_registration_invites.value.length +
       tournament_team_invites.value.length +
@@ -669,6 +679,25 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     { immediate: true },
   );
 
+  // Only where linking an account really does get a player highlights; the
+  // spotlight says so, and both switches are the operator's.
+  watch(
+    [
+      () => useAuthStore().me?.steam_id,
+      () =>
+        useApplicationSettingsStore().linkedAccountsEnabled &&
+        useApplicationSettingsStore().importedHighlightsSupported,
+    ],
+    ([steamId, available]) => {
+      if (steamId && available) {
+        void syncFeatureSpotlights(steamId);
+      } else {
+        resetFeatureSpotlights();
+      }
+    },
+    { immediate: true },
+  );
+
   return {
     team_invites,
     tournament_team_invites,
@@ -686,6 +715,8 @@ export const useNotificationStore = defineStore("notifaicationStore", () => {
     latestNewsArticle,
     lastReadNewsAt,
     unreadNewsArticle,
+    featureSpotlight,
+    dismissFeatureSpotlight,
     markNewsRead,
     refreshInAppPreferences,
   };

@@ -8,6 +8,7 @@ import Empty from "~/components/ui/empty/Empty.vue";
 import NotificationItem from "~/components/notification/NotificationItem.vue";
 import NotificationStack from "~/components/notification/NotificationStack.vue";
 import NewsNotification from "~/components/notification/NewsNotification.vue";
+import FeatureSpotlightNotification from "~/components/notification/FeatureSpotlightNotification.vue";
 import LeagueScheduleStack from "~/components/notification/LeagueScheduleStack.vue";
 </script>
 
@@ -39,6 +40,20 @@ import LeagueScheduleStack from "~/components/notification/LeagueScheduleStack.v
     </div>
     <div class="flex-1 overflow-y-auto p-3 flex flex-col">
       <NewsNotification />
+      <Transition
+        enter-active-class="notif-fold"
+        enter-from-class="notif-fold-collapsed"
+        leave-active-class="notif-fold"
+        leave-to-class="notif-fold-collapsed"
+      >
+        <div v-if="featureSpotlight" class="grid grid-rows-[1fr]">
+          <div class="min-h-0">
+            <div class="mb-3">
+              <FeatureSpotlightNotification :spotlight="featureSpotlight" />
+            </div>
+          </div>
+        </div>
+      </Transition>
       <template
         v-if="
           scheduleTasks.length > 0 ||
@@ -124,7 +139,7 @@ import LeagueScheduleStack from "~/components/notification/LeagueScheduleStack.v
           />
         </template>
       </template>
-      <template v-else-if="!unreadNewsArticle">
+      <template v-else-if="!unreadNewsArticle && !featureSpotlight">
         <Empty>
           <div class="space-y-1">
             <p class="text-sm font-medium text-foreground">
@@ -187,6 +202,9 @@ export default {
     },
     stackedNotifications() {
       return useNotificationStore().stackedNotifications;
+    },
+    featureSpotlight() {
+      return useNotificationStore().featureSpotlight;
     },
     unreadNewsArticle() {
       return useNotificationStore().unreadNewsArticle;
@@ -298,3 +316,25 @@ export default {
   },
 };
 </script>
+
+<style scoped>
+/* From 5Stack's NotificationsPanel: the Feature Spotlight folds its height in
+   place when it appears or is dismissed. */
+.notif-fold {
+  transition:
+    grid-template-rows 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.15s ease;
+}
+.notif-fold > * {
+  overflow: hidden;
+}
+.notif-fold-collapsed {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .notif-fold {
+    transition-duration: 1ms;
+  }
+}
+</style>

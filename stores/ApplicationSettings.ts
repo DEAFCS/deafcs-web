@@ -439,6 +439,14 @@ export const useApplicationSettingsStore = defineStore(
       );
     });
 
+    const importedHighlightsSupported = computed(() => {
+      return (
+        settings.value?.find(
+          (setting) => setting.name === "public.supports_imported_highlights",
+        )?.value === "true"
+      );
+    });
+
     const faceitEnabled = computed(() => {
       return (
         settings.value?.find(
@@ -708,6 +716,7 @@ export const useApplicationSettingsStore = defineStore(
       postNewsRole,
       canPostNews,
       linkedAccountsEnabled,
+      importedHighlightsSupported,
       faceitEnabled,
       scrimFinderEnabled,
       pluginsEnabled,

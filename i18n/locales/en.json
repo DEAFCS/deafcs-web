@@ -11495,5 +11495,15 @@
     },
     "cancelled": "The organizer cancelled it before it started.",
     "cancelled_min_teams": "Not enough teams signed up, so it was called off."
+  },
+  "feature_spotlights": {
+    "label": "Feature Spotlight",
+    "auto_highlights": {
+      "cover_top": "Auto",
+      "cover_bottom": "Highlights",
+      "title": "Highlights From Every Match You Play",
+      "teaser": "Link your Steam match history. Your Premier and Competitive games import on their own and your best rounds get clipped.",
+      "action": "Link Account"
+    }
   }
 }
