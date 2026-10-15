@@ -45,6 +45,12 @@ const motion = usePreferredReducedMotion();
 const still = computed(() => motion.value === "reduce");
 const ANIMATED = ["image/gif", "image/webp"];
 
+// DEAFCS: a player whose device asks for less motion (Reduce Motion on iOS,
+// Animation effects off or "best performance" on Windows) gets the still
+// GIF, as upstream, but can tap it to play. Nothing moves until they do.
+const gifPlaying = ref(false);
+const gifStill = computed(() => still.value && !gifPlaying.value);
+
 const gif = computed(() =>
   props.message.gif &&
   (props.message.gif.url
@@ -215,10 +221,26 @@ const tileClasses =
       :style="{ aspectRatio: ratio(gif) }"
     >
       <FadeImage
-        :src="gif.url || chatGifUrl(gif.id, 'full', still)"
+        :src="gif.url || chatGifUrl(gif.id, 'full', gifStill)"
         :alt="$t('chat.gifs.label')"
-        :still="!!gif.url && still"
+        :still="!!gif.url && gifStill"
       />
+      <button
+        v-if="still"
+        type="button"
+        data-gif-play
+        class="absolute inset-0 flex items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[hsl(var(--tac-amber))]"
+        :aria-label="$t(gifPlaying ? 'chat.gifs.pause' : 'chat.gifs.play')"
+        :aria-pressed="gifPlaying"
+        @click="gifPlaying = !gifPlaying"
+      >
+        <span
+          v-if="!gifPlaying"
+          class="flex h-10 w-10 items-center justify-center rounded-full border border-[hsl(var(--tac-amber)/0.6)] bg-black/60 text-[hsl(var(--tac-amber))]"
+        >
+          <Play class="ml-0.5 h-4 w-4" />
+        </span>
+      </button>
       <span
         class="pointer-events-none absolute left-1.5 top-1.5 rounded-sm bg-black/60 px-1 py-0.5 font-mono text-[0.5rem] font-bold uppercase tracking-wider text-white/90"
       >

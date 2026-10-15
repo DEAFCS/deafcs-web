@@ -8394,6 +8394,8 @@
                                  },
                  "gifs":  {
                               "label":  "GIF",
+                              "play":  "Afspil GIF",
+                              "pause":  "Sæt GIF på pause",
                               "open":  "Send en GIF",
                               "search":  "Søg på GIPHY",
                               "trending":  "Populære",

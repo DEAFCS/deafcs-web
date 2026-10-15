@@ -8724,7 +8724,9 @@
       "unavailable": "No longer available"
     },
     "gifs": {
-      "label": "GIF"
+      "label": "GIF",
+      "play": "Play GIF",
+      "pause": "Pause GIF"
     },
     "message_already_gone": "Message already removed",
     "delete_failed": "Failed to delete message",
