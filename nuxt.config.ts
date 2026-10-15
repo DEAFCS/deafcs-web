@@ -221,11 +221,12 @@ export default defineNuxtConfig({
       webDomain: "",
       demosDomain: "",
       relayDomain: "",
-      // CDN base for 3D-replay collision meshes (.tri). Pin the awpy build tag so
-      // the URL is immutable/cache-forever. Override with NUXT_PUBLIC_MAP_MESH_CDN
-      // to swap to cdn.5stack.gg (R2) later — no code change needed.
-      mapMeshCdn:
-        "https://cdn.jsdelivr.net/gh/5stackgg/replay-map-meshes@17595823-5",
+      // Map meshes (3D replay) are resolved from the published asset manifest,
+      // https://demo-dl.5stack.gg/maps/latest.json → maps/<build>/manifest.json,
+      // falling back to the pinned pre-manifest build (utilities/mapAssets.ts).
+      // Setting NUXT_PUBLIC_MAP_MESH_CDN pins every map to <cdn>/<map>.tri.gz
+      // (and <cdn>/<map>.view.bin.gz when present) instead.
+      mapMeshCdn: "",
     },
   },
 

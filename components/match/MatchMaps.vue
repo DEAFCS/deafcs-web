@@ -92,6 +92,8 @@ import mapLabel from "~/utilities/mapLabel";
                 size="xs"
                 variant="ghost"
                 class="inline-flex h-6 w-6 p-0 text-white/70 hover:text-white"
+                @pointerenter="prefetchReplay()"
+                @focus="prefetchReplay()"
                 @click.stop="openReplay2d()"
               >
                 <span
@@ -109,6 +111,8 @@ import mapLabel from "~/utilities/mapLabel";
                 size="xs"
                 variant="ghost"
                 class="inline-flex h-6 w-6 p-0 text-[#38e1ff]/80 hover:text-[#38e1ff]"
+                @pointerenter="prefetchReplay()"
+                @focus="prefetchReplay()"
                 @click.stop="openReplay3d()"
               >
                 <span
@@ -333,7 +337,11 @@ import {
 } from "~/generated/zeus";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useGpuPoolStatusStore } from "~/stores/GpuPoolStatusStore";
-import { hasMeshForMap, hasRadarForMap } from "~/utilities/mapAssets";
+import {
+  hasMeshForMap,
+  hasRadarForMap,
+  prefetchMapAssets,
+} from "~/utilities/mapAssets";
 import { isStatsEligibleMatchMap } from "~/utilities/matchMapScope";
 
 export default {
@@ -372,6 +380,14 @@ export default {
       name,
     ).then((v) => {
       this.mapHasMesh = v;
+      if (v && this.hasDemo && this.hasDemoMetadata && this.fastConnection()) {
+        // Warm the replay's files once the page is quiet.
+        if ("requestIdleCallback" in window) {
+          requestIdleCallback(() => this.prefetchReplay());
+        } else {
+          setTimeout(() => this.prefetchReplay(), 2000);
+        }
+      }
     });
   },
   computed: {
@@ -533,6 +549,20 @@ export default {
       const popup = window.open(url, name, features);
       if (popup) {
         popup.focus();
+      }
+    },
+    fastConnection() {
+      const connection = (
+        navigator as Navigator & {
+          connection?: { saveData?: boolean; effectiveType?: string };
+        }
+      ).connection;
+      return !connection?.saveData && !/(^|-)2g|3g/.test(connection?.effectiveType ?? "");
+    },
+    prefetchReplay() {
+      const name = this.matchMap?.map?.name;
+      if (name) {
+        prefetchMapAssets(name, useRuntimeConfig().public.mapMeshCdn as string);
       }
     },
     openReplay2d() {
