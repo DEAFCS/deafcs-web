@@ -568,9 +568,16 @@ watch(composing, (isComposing) => {
 });
 
 watch(viewingRequests, (viewing) => {
-  setActiveTab(viewing ? null : composing.value ? null : activeChatId.value);
   if (viewing) {
+    setActiveTab(null);
     composing.value = false;
+    return;
+  }
+  // Leaving the list puts the previous room back, unless something already
+  // chose one in the same tick (opening a request, or a tab click). That
+  // choice must win, or opening a request lands on Global instead.
+  if (!composing.value && !activeTabId.value) {
+    setActiveTab(activeChatId.value);
   }
 });
 
