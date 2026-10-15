@@ -8909,6 +8909,84 @@ export const AllTypesProps: Record<string,any> = {
 		invited_by_steam_id:"order_by",
 		steam_id:"order_by"
 	},
+	map_callouts:{
+		boxes:{
+
+		}
+	},
+	map_callouts_aggregate_fields:{
+		count:{
+			columns:"map_callouts_select_column"
+		}
+	},
+	map_callouts_append_input:{
+		boxes:"jsonb"
+	},
+	map_callouts_bool_exp:{
+		_and:"map_callouts_bool_exp",
+		_not:"map_callouts_bool_exp",
+		_or:"map_callouts_bool_exp",
+		boxes:"jsonb_comparison_exp",
+		map_name:"String_comparison_exp",
+		name:"String_comparison_exp",
+		source:"String_comparison_exp",
+		updated_at:"timestamptz_comparison_exp"
+	},
+	map_callouts_constraint: "enum" as const,
+	map_callouts_delete_at_path_input:{
+
+	},
+	map_callouts_delete_elem_input:{
+
+	},
+	map_callouts_delete_key_input:{
+
+	},
+	map_callouts_insert_input:{
+		boxes:"jsonb",
+		updated_at:"timestamptz"
+	},
+	map_callouts_on_conflict:{
+		constraint:"map_callouts_constraint",
+		update_columns:"map_callouts_update_column",
+		where:"map_callouts_bool_exp"
+	},
+	map_callouts_order_by:{
+		boxes:"order_by",
+		map_name:"order_by",
+		name:"order_by",
+		source:"order_by",
+		updated_at:"order_by"
+	},
+	map_callouts_pk_columns_input:{
+
+	},
+	map_callouts_prepend_input:{
+		boxes:"jsonb"
+	},
+	map_callouts_select_column: "enum" as const,
+	map_callouts_set_input:{
+		boxes:"jsonb",
+		updated_at:"timestamptz"
+	},
+	map_callouts_stream_cursor_input:{
+		initial_value:"map_callouts_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	map_callouts_stream_cursor_value_input:{
+		boxes:"jsonb",
+		updated_at:"timestamptz"
+	},
+	map_callouts_update_column: "enum" as const,
+	map_callouts_updates:{
+		_append:"map_callouts_append_input",
+		_delete_at_path:"map_callouts_delete_at_path_input",
+		_delete_elem:"map_callouts_delete_elem_input",
+		_delete_key:"map_callouts_delete_key_input",
+		_prepend:"map_callouts_prepend_input",
+		_set:"map_callouts_set_input",
+		where:"map_callouts_bool_exp"
+	},
 	map_pools:{
 		maps:{
 			distinct_on:"v_pool_maps_select_column",
@@ -10207,7 +10285,9 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	match_map_demos_avg_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
@@ -10237,9 +10317,11 @@ export const AllTypesProps: Record<string,any> = {
 		match_map:"match_maps_bool_exp",
 		match_map_id:"uuid_comparison_exp",
 		metadata_parsed_at:"timestamptz_comparison_exp",
+		parser_version:"Int_comparison_exp",
 		playback_file:"String_comparison_exp",
 		playback_size:"Int_comparison_exp",
 		playback_url:"String_comparison_exp",
+		playback_version:"Int_comparison_exp",
 		players:"jsonb_comparison_exp",
 		round_ticks:"jsonb_comparison_exp",
 		size:"Int_comparison_exp",
@@ -10286,8 +10368,10 @@ export const AllTypesProps: Record<string,any> = {
 		match_id:"order_by",
 		match_map_id:"order_by",
 		metadata_parsed_at:"order_by",
+		parser_version:"order_by",
 		playback_file:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by",
@@ -10303,8 +10387,10 @@ export const AllTypesProps: Record<string,any> = {
 		match_id:"order_by",
 		match_map_id:"order_by",
 		metadata_parsed_at:"order_by",
+		parser_version:"order_by",
 		playback_file:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by",
@@ -10338,9 +10424,11 @@ export const AllTypesProps: Record<string,any> = {
 		match_map:"match_maps_order_by",
 		match_map_id:"order_by",
 		metadata_parsed_at:"order_by",
+		parser_version:"order_by",
 		playback_file:"order_by",
 		playback_size:"order_by",
 		playback_url:"order_by",
+		playback_version:"order_by",
 		players:"order_by",
 		round_ticks:"order_by",
 		size:"order_by",
@@ -10373,21 +10461,27 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	match_map_demos_stddev_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
 	},
 	match_map_demos_stddev_pop_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
 	},
 	match_map_demos_stddev_samp_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
@@ -10409,7 +10503,9 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	match_map_demos_sum_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
@@ -10427,21 +10523,27 @@ export const AllTypesProps: Record<string,any> = {
 	},
 	match_map_demos_var_pop_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
 	},
 	match_map_demos_var_samp_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
 	},
 	match_map_demos_variance_order_by:{
 		duration_seconds:"order_by",
+		parser_version:"order_by",
 		playback_size:"order_by",
+		playback_version:"order_by",
 		size:"order_by",
 		tick_rate:"order_by",
 		total_ticks:"order_by"
@@ -12408,6 +12510,10 @@ export const AllTypesProps: Record<string,any> = {
 		PreviewTournamentMatchReset:{
 			match_id:"uuid"
 		},
+		RecreateTournamentBracketMatch:{
+			bracket_id:"uuid",
+			scheduled_at:"timestamptz"
+		},
 		ResetTournamentMatch:{
 			match_id:"uuid",
 			scheduled_at:"timestamptz",
@@ -12536,6 +12642,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		deleteMatch:{
 
+		},
+		deleteNewsComment:{
+			id:"uuid"
 		},
 		deleteNewsPost:{
 			id:"uuid"
@@ -13104,6 +13213,12 @@ export const AllTypesProps: Record<string,any> = {
 			lobby_id:"uuid",
 			steam_id:"bigint"
 		},
+		delete_map_callouts:{
+			where:"map_callouts_bool_exp"
+		},
+		delete_map_callouts_by_pk:{
+
+		},
 		delete_map_pools:{
 			where:"map_pools_bool_exp"
 		},
@@ -13216,6 +13331,19 @@ export const AllTypesProps: Record<string,any> = {
 			where:"news_articles_bool_exp"
 		},
 		delete_news_articles_by_pk:{
+			id:"uuid"
+		},
+		delete_news_comment_votes:{
+			where:"news_comment_votes_bool_exp"
+		},
+		delete_news_comment_votes_by_pk:{
+			comment_id:"uuid",
+			steam_id:"bigint"
+		},
+		delete_news_comments:{
+			where:"news_comments_bool_exp"
+		},
+		delete_news_comments_by_pk:{
 			id:"uuid"
 		},
 		delete_notifications:{
@@ -13341,7 +13469,6 @@ export const AllTypesProps: Record<string,any> = {
 			where:"player_sanctions_bool_exp"
 		},
 		delete_player_sanctions_by_pk:{
-			created_at:"timestamptz",
 			id:"uuid"
 		},
 		delete_player_season_stats:{
@@ -13699,6 +13826,9 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		draftTournamentTeams:{
 			tournament_id:"uuid"
+		},
+		editNewsComment:{
+			id:"uuid"
 		},
 		extendTournamentCheckIn:{
 			tournament_id:"uuid"
@@ -14447,6 +14577,14 @@ export const AllTypesProps: Record<string,any> = {
 			object:"lobby_players_insert_input",
 			on_conflict:"lobby_players_on_conflict"
 		},
+		insert_map_callouts:{
+			objects:"map_callouts_insert_input",
+			on_conflict:"map_callouts_on_conflict"
+		},
+		insert_map_callouts_one:{
+			object:"map_callouts_insert_input",
+			on_conflict:"map_callouts_on_conflict"
+		},
 		insert_map_pools:{
 			objects:"map_pools_insert_input",
 			on_conflict:"map_pools_on_conflict"
@@ -14602,6 +14740,22 @@ export const AllTypesProps: Record<string,any> = {
 		insert_news_articles_one:{
 			object:"news_articles_insert_input",
 			on_conflict:"news_articles_on_conflict"
+		},
+		insert_news_comment_votes:{
+			objects:"news_comment_votes_insert_input",
+			on_conflict:"news_comment_votes_on_conflict"
+		},
+		insert_news_comment_votes_one:{
+			object:"news_comment_votes_insert_input",
+			on_conflict:"news_comment_votes_on_conflict"
+		},
+		insert_news_comments:{
+			objects:"news_comments_insert_input",
+			on_conflict:"news_comments_on_conflict"
+		},
+		insert_news_comments_one:{
+			object:"news_comments_insert_input",
+			on_conflict:"news_comments_on_conflict"
 		},
 		insert_notifications:{
 			objects:"notifications_insert_input",
@@ -15244,6 +15398,10 @@ export const AllTypesProps: Record<string,any> = {
 		pauseClipRenderBatch:{
 			match_map_id:"uuid"
 		},
+		postNewsComment:{
+			article_id:"uuid",
+			parent_id:"uuid"
+		},
 		previewDraftGame:{
 			draftGameId:"uuid"
 		},
@@ -15406,6 +15564,9 @@ export const AllTypesProps: Record<string,any> = {
 			match_id:"uuid",
 			winning_lineup_id:"uuid"
 		},
+		setNewsCommentHidden:{
+			id:"uuid"
+		},
 		setNewsPostStatus:{
 			id:"uuid"
 		},
@@ -15481,6 +15642,9 @@ export const AllTypesProps: Record<string,any> = {
 		switchLiveMatch:{
 			from_match_id:"uuid",
 			to_match_id:"uuid"
+		},
+		toggleNewsCommentVote:{
+			id:"uuid"
 		},
 		unsanctionServerPlayer:{
 
@@ -16619,6 +16783,27 @@ export const AllTypesProps: Record<string,any> = {
 		update_lobby_players_many:{
 			updates:"lobby_players_updates"
 		},
+		update_map_callouts:{
+			_append:"map_callouts_append_input",
+			_delete_at_path:"map_callouts_delete_at_path_input",
+			_delete_elem:"map_callouts_delete_elem_input",
+			_delete_key:"map_callouts_delete_key_input",
+			_prepend:"map_callouts_prepend_input",
+			_set:"map_callouts_set_input",
+			where:"map_callouts_bool_exp"
+		},
+		update_map_callouts_by_pk:{
+			_append:"map_callouts_append_input",
+			_delete_at_path:"map_callouts_delete_at_path_input",
+			_delete_elem:"map_callouts_delete_elem_input",
+			_delete_key:"map_callouts_delete_key_input",
+			_prepend:"map_callouts_prepend_input",
+			_set:"map_callouts_set_input",
+			pk_columns:"map_callouts_pk_columns_input"
+		},
+		update_map_callouts_many:{
+			updates:"map_callouts_updates"
+		},
 		update_map_pools:{
 			_set:"map_pools_set_input",
 			where:"map_pools_bool_exp"
@@ -16883,6 +17068,32 @@ export const AllTypesProps: Record<string,any> = {
 		},
 		update_news_articles_many:{
 			updates:"news_articles_updates"
+		},
+		update_news_comment_votes:{
+			_inc:"news_comment_votes_inc_input",
+			_set:"news_comment_votes_set_input",
+			where:"news_comment_votes_bool_exp"
+		},
+		update_news_comment_votes_by_pk:{
+			_inc:"news_comment_votes_inc_input",
+			_set:"news_comment_votes_set_input",
+			pk_columns:"news_comment_votes_pk_columns_input"
+		},
+		update_news_comment_votes_many:{
+			updates:"news_comment_votes_updates"
+		},
+		update_news_comments:{
+			_inc:"news_comments_inc_input",
+			_set:"news_comments_set_input",
+			where:"news_comments_bool_exp"
+		},
+		update_news_comments_by_pk:{
+			_inc:"news_comments_inc_input",
+			_set:"news_comments_set_input",
+			pk_columns:"news_comments_pk_columns_input"
+		},
+		update_news_comments_many:{
+			updates:"news_comments_updates"
 		},
 		update_notifications:{
 			_append:"notifications_append_input",
@@ -18188,6 +18399,10 @@ export const AllTypesProps: Record<string,any> = {
 		updated_at:"timestamptz",
 		view_count:"bigint"
 	},
+	news_articles_obj_rel_insert_input:{
+		data:"news_articles_insert_input",
+		on_conflict:"news_articles_on_conflict"
+	},
 	news_articles_on_conflict:{
 		constraint:"news_articles_constraint",
 		update_columns:"news_articles_update_column",
@@ -18237,6 +18452,363 @@ export const AllTypesProps: Record<string,any> = {
 		_inc:"news_articles_inc_input",
 		_set:"news_articles_set_input",
 		where:"news_articles_bool_exp"
+	},
+	news_comment_votes_aggregate_bool_exp:{
+		count:"news_comment_votes_aggregate_bool_exp_count"
+	},
+	news_comment_votes_aggregate_bool_exp_count:{
+		arguments:"news_comment_votes_select_column",
+		filter:"news_comment_votes_bool_exp",
+		predicate:"Int_comparison_exp"
+	},
+	news_comment_votes_aggregate_fields:{
+		count:{
+			columns:"news_comment_votes_select_column"
+		}
+	},
+	news_comment_votes_aggregate_order_by:{
+		avg:"news_comment_votes_avg_order_by",
+		count:"order_by",
+		max:"news_comment_votes_max_order_by",
+		min:"news_comment_votes_min_order_by",
+		stddev:"news_comment_votes_stddev_order_by",
+		stddev_pop:"news_comment_votes_stddev_pop_order_by",
+		stddev_samp:"news_comment_votes_stddev_samp_order_by",
+		sum:"news_comment_votes_sum_order_by",
+		var_pop:"news_comment_votes_var_pop_order_by",
+		var_samp:"news_comment_votes_var_samp_order_by",
+		variance:"news_comment_votes_variance_order_by"
+	},
+	news_comment_votes_arr_rel_insert_input:{
+		data:"news_comment_votes_insert_input",
+		on_conflict:"news_comment_votes_on_conflict"
+	},
+	news_comment_votes_avg_order_by:{
+		steam_id:"order_by"
+	},
+	news_comment_votes_bool_exp:{
+		_and:"news_comment_votes_bool_exp",
+		_not:"news_comment_votes_bool_exp",
+		_or:"news_comment_votes_bool_exp",
+		comment:"news_comments_bool_exp",
+		comment_id:"uuid_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		steam_id:"bigint_comparison_exp"
+	},
+	news_comment_votes_constraint: "enum" as const,
+	news_comment_votes_inc_input:{
+		steam_id:"bigint"
+	},
+	news_comment_votes_insert_input:{
+		comment:"news_comments_obj_rel_insert_input",
+		comment_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	news_comment_votes_max_order_by:{
+		comment_id:"order_by",
+		created_at:"order_by",
+		steam_id:"order_by"
+	},
+	news_comment_votes_min_order_by:{
+		comment_id:"order_by",
+		created_at:"order_by",
+		steam_id:"order_by"
+	},
+	news_comment_votes_on_conflict:{
+		constraint:"news_comment_votes_constraint",
+		update_columns:"news_comment_votes_update_column",
+		where:"news_comment_votes_bool_exp"
+	},
+	news_comment_votes_order_by:{
+		comment:"news_comments_order_by",
+		comment_id:"order_by",
+		created_at:"order_by",
+		steam_id:"order_by"
+	},
+	news_comment_votes_pk_columns_input:{
+		comment_id:"uuid",
+		steam_id:"bigint"
+	},
+	news_comment_votes_select_column: "enum" as const,
+	news_comment_votes_set_input:{
+		comment_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	news_comment_votes_stddev_order_by:{
+		steam_id:"order_by"
+	},
+	news_comment_votes_stddev_pop_order_by:{
+		steam_id:"order_by"
+	},
+	news_comment_votes_stddev_samp_order_by:{
+		steam_id:"order_by"
+	},
+	news_comment_votes_stream_cursor_input:{
+		initial_value:"news_comment_votes_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	news_comment_votes_stream_cursor_value_input:{
+		comment_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	news_comment_votes_sum_order_by:{
+		steam_id:"order_by"
+	},
+	news_comment_votes_update_column: "enum" as const,
+	news_comment_votes_updates:{
+		_inc:"news_comment_votes_inc_input",
+		_set:"news_comment_votes_set_input",
+		where:"news_comment_votes_bool_exp"
+	},
+	news_comment_votes_var_pop_order_by:{
+		steam_id:"order_by"
+	},
+	news_comment_votes_var_samp_order_by:{
+		steam_id:"order_by"
+	},
+	news_comment_votes_variance_order_by:{
+		steam_id:"order_by"
+	},
+	news_comments:{
+		replies:{
+			distinct_on:"news_comments_select_column",
+			order_by:"news_comments_order_by",
+			where:"news_comments_bool_exp"
+		},
+		replies_aggregate:{
+			distinct_on:"news_comments_select_column",
+			order_by:"news_comments_order_by",
+			where:"news_comments_bool_exp"
+		},
+		votes:{
+			distinct_on:"news_comment_votes_select_column",
+			order_by:"news_comment_votes_order_by",
+			where:"news_comment_votes_bool_exp"
+		},
+		votes_aggregate:{
+			distinct_on:"news_comment_votes_select_column",
+			order_by:"news_comment_votes_order_by",
+			where:"news_comment_votes_bool_exp"
+		}
+	},
+	news_comments_aggregate_bool_exp:{
+		count:"news_comments_aggregate_bool_exp_count"
+	},
+	news_comments_aggregate_bool_exp_count:{
+		arguments:"news_comments_select_column",
+		filter:"news_comments_bool_exp",
+		predicate:"Int_comparison_exp"
+	},
+	news_comments_aggregate_fields:{
+		count:{
+			columns:"news_comments_select_column"
+		}
+	},
+	news_comments_aggregate_order_by:{
+		avg:"news_comments_avg_order_by",
+		count:"order_by",
+		max:"news_comments_max_order_by",
+		min:"news_comments_min_order_by",
+		stddev:"news_comments_stddev_order_by",
+		stddev_pop:"news_comments_stddev_pop_order_by",
+		stddev_samp:"news_comments_stddev_samp_order_by",
+		sum:"news_comments_sum_order_by",
+		var_pop:"news_comments_var_pop_order_by",
+		var_samp:"news_comments_var_samp_order_by",
+		variance:"news_comments_variance_order_by"
+	},
+	news_comments_arr_rel_insert_input:{
+		data:"news_comments_insert_input",
+		on_conflict:"news_comments_on_conflict"
+	},
+	news_comments_avg_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_bool_exp:{
+		_and:"news_comments_bool_exp",
+		_not:"news_comments_bool_exp",
+		_or:"news_comments_bool_exp",
+		article:"news_articles_bool_exp",
+		article_id:"uuid_comparison_exp",
+		author:"players_bool_exp",
+		author_steam_id:"bigint_comparison_exp",
+		body:"String_comparison_exp",
+		created_at:"timestamptz_comparison_exp",
+		deleted_at:"timestamptz_comparison_exp",
+		edited_at:"timestamptz_comparison_exp",
+		hidden_at:"timestamptz_comparison_exp",
+		hidden_by_steam_id:"bigint_comparison_exp",
+		hidden_reason:"String_comparison_exp",
+		id:"uuid_comparison_exp",
+		parent:"news_comments_bool_exp",
+		parent_id:"uuid_comparison_exp",
+		replies:"news_comments_bool_exp",
+		replies_aggregate:"news_comments_aggregate_bool_exp",
+		reply_notified_at:"timestamptz_comparison_exp",
+		text:"String_comparison_exp",
+		vote_count:"Int_comparison_exp",
+		votes:"news_comment_votes_bool_exp",
+		votes_aggregate:"news_comment_votes_aggregate_bool_exp"
+	},
+	news_comments_constraint: "enum" as const,
+	news_comments_inc_input:{
+		author_steam_id:"bigint",
+		hidden_by_steam_id:"bigint"
+	},
+	news_comments_insert_input:{
+		article:"news_articles_obj_rel_insert_input",
+		article_id:"uuid",
+		author:"players_obj_rel_insert_input",
+		author_steam_id:"bigint",
+		created_at:"timestamptz",
+		deleted_at:"timestamptz",
+		edited_at:"timestamptz",
+		hidden_at:"timestamptz",
+		hidden_by_steam_id:"bigint",
+		id:"uuid",
+		parent:"news_comments_obj_rel_insert_input",
+		parent_id:"uuid",
+		replies:"news_comments_arr_rel_insert_input",
+		reply_notified_at:"timestamptz",
+		votes:"news_comment_votes_arr_rel_insert_input"
+	},
+	news_comments_max_order_by:{
+		article_id:"order_by",
+		author_steam_id:"order_by",
+		body:"order_by",
+		created_at:"order_by",
+		deleted_at:"order_by",
+		edited_at:"order_by",
+		hidden_at:"order_by",
+		hidden_by_steam_id:"order_by",
+		hidden_reason:"order_by",
+		id:"order_by",
+		parent_id:"order_by",
+		reply_notified_at:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_min_order_by:{
+		article_id:"order_by",
+		author_steam_id:"order_by",
+		body:"order_by",
+		created_at:"order_by",
+		deleted_at:"order_by",
+		edited_at:"order_by",
+		hidden_at:"order_by",
+		hidden_by_steam_id:"order_by",
+		hidden_reason:"order_by",
+		id:"order_by",
+		parent_id:"order_by",
+		reply_notified_at:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_obj_rel_insert_input:{
+		data:"news_comments_insert_input",
+		on_conflict:"news_comments_on_conflict"
+	},
+	news_comments_on_conflict:{
+		constraint:"news_comments_constraint",
+		update_columns:"news_comments_update_column",
+		where:"news_comments_bool_exp"
+	},
+	news_comments_order_by:{
+		article:"news_articles_order_by",
+		article_id:"order_by",
+		author:"players_order_by",
+		author_steam_id:"order_by",
+		body:"order_by",
+		created_at:"order_by",
+		deleted_at:"order_by",
+		edited_at:"order_by",
+		hidden_at:"order_by",
+		hidden_by_steam_id:"order_by",
+		hidden_reason:"order_by",
+		id:"order_by",
+		parent:"news_comments_order_by",
+		parent_id:"order_by",
+		replies_aggregate:"news_comments_aggregate_order_by",
+		reply_notified_at:"order_by",
+		text:"order_by",
+		vote_count:"order_by",
+		votes_aggregate:"news_comment_votes_aggregate_order_by"
+	},
+	news_comments_pk_columns_input:{
+		id:"uuid"
+	},
+	news_comments_select_column: "enum" as const,
+	news_comments_set_input:{
+		article_id:"uuid",
+		author_steam_id:"bigint",
+		created_at:"timestamptz",
+		deleted_at:"timestamptz",
+		edited_at:"timestamptz",
+		hidden_at:"timestamptz",
+		hidden_by_steam_id:"bigint",
+		id:"uuid",
+		parent_id:"uuid",
+		reply_notified_at:"timestamptz"
+	},
+	news_comments_stddev_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_stddev_pop_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_stddev_samp_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_stream_cursor_input:{
+		initial_value:"news_comments_stream_cursor_value_input",
+		ordering:"cursor_ordering"
+	},
+	news_comments_stream_cursor_value_input:{
+		article_id:"uuid",
+		author_steam_id:"bigint",
+		created_at:"timestamptz",
+		deleted_at:"timestamptz",
+		edited_at:"timestamptz",
+		hidden_at:"timestamptz",
+		hidden_by_steam_id:"bigint",
+		id:"uuid",
+		parent_id:"uuid",
+		reply_notified_at:"timestamptz"
+	},
+	news_comments_sum_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_update_column: "enum" as const,
+	news_comments_updates:{
+		_inc:"news_comments_inc_input",
+		_set:"news_comments_set_input",
+		where:"news_comments_bool_exp"
+	},
+	news_comments_var_pop_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_var_samp_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
+	},
+	news_comments_variance_order_by:{
+		author_steam_id:"order_by",
+		hidden_by_steam_id:"order_by",
+		vote_count:"order_by"
 	},
 	notifications:{
 		actions:{
@@ -22978,7 +23550,6 @@ export const AllTypesProps: Record<string,any> = {
 		type:"order_by"
 	},
 	player_sanctions_pk_columns_input:{
-		created_at:"timestamptz",
 		id:"uuid"
 	},
 	player_sanctions_select_column: "enum" as const,
@@ -24526,6 +25097,7 @@ export const AllTypesProps: Record<string,any> = {
 		abandoned_matches_aggregate:"abandoned_matches_aggregate_bool_exp",
 		aim_weapon_stats:"player_aim_weapon_stats_bool_exp",
 		aim_weapon_stats_aggregate:"player_aim_weapon_stats_aggregate_bool_exp",
+		allow_message_requests:"Boolean_comparison_exp",
 		api_key_enabled:"Boolean_comparison_exp",
 		assists:"player_assists_bool_exp",
 		assists_aggregate:"player_assists_aggregate_bool_exp",
@@ -24731,6 +25303,7 @@ export const AllTypesProps: Record<string,any> = {
 	players_order_by:{
 		abandoned_matches_aggregate:"abandoned_matches_aggregate_order_by",
 		aim_weapon_stats_aggregate:"player_aim_weapon_stats_aggregate_order_by",
+		allow_message_requests:"order_by",
 		api_key_enabled:"order_by",
 		assists_aggregate:"player_assists_aggregate_order_by",
 		assited_by_players_aggregate:"player_assists_aggregate_order_by",
@@ -26346,6 +26919,19 @@ export const AllTypesProps: Record<string,any> = {
 			lobby_id:"uuid",
 			steam_id:"bigint"
 		},
+		map_callouts:{
+			distinct_on:"map_callouts_select_column",
+			order_by:"map_callouts_order_by",
+			where:"map_callouts_bool_exp"
+		},
+		map_callouts_aggregate:{
+			distinct_on:"map_callouts_select_column",
+			order_by:"map_callouts_order_by",
+			where:"map_callouts_bool_exp"
+		},
+		map_callouts_by_pk:{
+
+		},
 		map_pools:{
 			distinct_on:"map_pools_select_column",
 			order_by:"map_pools_order_by",
@@ -26601,6 +27187,33 @@ export const AllTypesProps: Record<string,any> = {
 			where:"news_articles_bool_exp"
 		},
 		news_articles_by_pk:{
+			id:"uuid"
+		},
+		news_comment_votes:{
+			distinct_on:"news_comment_votes_select_column",
+			order_by:"news_comment_votes_order_by",
+			where:"news_comment_votes_bool_exp"
+		},
+		news_comment_votes_aggregate:{
+			distinct_on:"news_comment_votes_select_column",
+			order_by:"news_comment_votes_order_by",
+			where:"news_comment_votes_bool_exp"
+		},
+		news_comment_votes_by_pk:{
+			comment_id:"uuid",
+			steam_id:"bigint"
+		},
+		news_comments:{
+			distinct_on:"news_comments_select_column",
+			order_by:"news_comments_order_by",
+			where:"news_comments_bool_exp"
+		},
+		news_comments_aggregate:{
+			distinct_on:"news_comments_select_column",
+			order_by:"news_comments_order_by",
+			where:"news_comments_bool_exp"
+		},
+		news_comments_by_pk:{
 			id:"uuid"
 		},
 		notifications:{
@@ -26892,7 +27505,6 @@ export const AllTypesProps: Record<string,any> = {
 			where:"player_sanctions_bool_exp"
 		},
 		player_sanctions_by_pk:{
-			created_at:"timestamptz",
 			id:"uuid"
 		},
 		player_season_stats:{
@@ -30279,6 +30891,23 @@ export const AllTypesProps: Record<string,any> = {
 			cursor:"lobby_players_stream_cursor_input",
 			where:"lobby_players_bool_exp"
 		},
+		map_callouts:{
+			distinct_on:"map_callouts_select_column",
+			order_by:"map_callouts_order_by",
+			where:"map_callouts_bool_exp"
+		},
+		map_callouts_aggregate:{
+			distinct_on:"map_callouts_select_column",
+			order_by:"map_callouts_order_by",
+			where:"map_callouts_bool_exp"
+		},
+		map_callouts_by_pk:{
+
+		},
+		map_callouts_stream:{
+			cursor:"map_callouts_stream_cursor_input",
+			where:"map_callouts_bool_exp"
+		},
 		map_pools:{
 			distinct_on:"map_pools_select_column",
 			order_by:"map_pools_order_by",
@@ -30612,6 +31241,41 @@ export const AllTypesProps: Record<string,any> = {
 		news_articles_stream:{
 			cursor:"news_articles_stream_cursor_input",
 			where:"news_articles_bool_exp"
+		},
+		news_comment_votes:{
+			distinct_on:"news_comment_votes_select_column",
+			order_by:"news_comment_votes_order_by",
+			where:"news_comment_votes_bool_exp"
+		},
+		news_comment_votes_aggregate:{
+			distinct_on:"news_comment_votes_select_column",
+			order_by:"news_comment_votes_order_by",
+			where:"news_comment_votes_bool_exp"
+		},
+		news_comment_votes_by_pk:{
+			comment_id:"uuid",
+			steam_id:"bigint"
+		},
+		news_comment_votes_stream:{
+			cursor:"news_comment_votes_stream_cursor_input",
+			where:"news_comment_votes_bool_exp"
+		},
+		news_comments:{
+			distinct_on:"news_comments_select_column",
+			order_by:"news_comments_order_by",
+			where:"news_comments_bool_exp"
+		},
+		news_comments_aggregate:{
+			distinct_on:"news_comments_select_column",
+			order_by:"news_comments_order_by",
+			where:"news_comments_bool_exp"
+		},
+		news_comments_by_pk:{
+			id:"uuid"
+		},
+		news_comments_stream:{
+			cursor:"news_comments_stream_cursor_input",
+			where:"news_comments_bool_exp"
 		},
 		notifications:{
 			distinct_on:"notifications_select_column",
@@ -30986,7 +31650,6 @@ export const AllTypesProps: Record<string,any> = {
 			where:"player_sanctions_bool_exp"
 		},
 		player_sanctions_by_pk:{
-			created_at:"timestamptz",
 			id:"uuid"
 		},
 		player_sanctions_stream:{
@@ -42429,6 +43092,22 @@ export const ReturnTypes: Record<string,any> = {
 		nics:"NicStat",
 		time:"timestamp"
 	},
+	NewsCommentOutput:{
+		article_id:"uuid",
+		created_at:"String",
+		deleted_at:"String",
+		edited_at:"String",
+		hidden_at:"String",
+		id:"uuid",
+		parent_id:"uuid",
+		text:"String",
+		vote_count:"Int"
+	},
+	NewsCommentVoteOutput:{
+		comment_id:"uuid",
+		vote_count:"Int",
+		voted:"Boolean"
+	},
 	NewsPost:{
 		author_steam_id:"String",
 		content_markdown:"String",
@@ -42531,6 +43210,10 @@ export const ReturnTypes: Record<string,any> = {
 		running:"Boolean",
 		started_at:"String",
 		total:"Int"
+	},
+	RecreateTournamentBracketMatchOutput:{
+		match_id:"uuid",
+		success:"Boolean"
 	},
 	ReindexStartedOutput:{
 		running:"Boolean",
@@ -47575,6 +48258,38 @@ export const ReturnTypes: Record<string,any> = {
 		invited_by_steam_id:"Float",
 		steam_id:"Float"
 	},
+	map_callouts:{
+		boxes:"jsonb",
+		map_name:"String",
+		name:"String",
+		source:"String",
+		updated_at:"timestamptz"
+	},
+	map_callouts_aggregate:{
+		aggregate:"map_callouts_aggregate_fields",
+		nodes:"map_callouts"
+	},
+	map_callouts_aggregate_fields:{
+		count:"Int",
+		max:"map_callouts_max_fields",
+		min:"map_callouts_min_fields"
+	},
+	map_callouts_max_fields:{
+		map_name:"String",
+		name:"String",
+		source:"String",
+		updated_at:"timestamptz"
+	},
+	map_callouts_min_fields:{
+		map_name:"String",
+		name:"String",
+		source:"String",
+		updated_at:"timestamptz"
+	},
+	map_callouts_mutation_response:{
+		affected_rows:"Int",
+		returning:"map_callouts"
+	},
 	map_pools:{
 		e_type:"e_map_pool_types",
 		enabled:"Boolean",
@@ -48159,9 +48874,11 @@ export const ReturnTypes: Record<string,any> = {
 		match_map:"match_maps",
 		match_map_id:"uuid",
 		metadata_parsed_at:"timestamptz",
+		parser_version:"Int",
 		playback_file:"String",
 		playback_size:"Int",
 		playback_url:"String",
+		playback_version:"Int",
 		players:"jsonb",
 		round_ticks:"jsonb",
 		size:"Int",
@@ -48188,7 +48905,9 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	match_map_demos_avg_fields:{
 		duration_seconds:"Float",
+		parser_version:"Float",
 		playback_size:"Float",
+		playback_version:"Float",
 		size:"Float",
 		tick_rate:"Float",
 		total_ticks:"Float"
@@ -48204,9 +48923,11 @@ export const ReturnTypes: Record<string,any> = {
 		match_id:"uuid",
 		match_map_id:"uuid",
 		metadata_parsed_at:"timestamptz",
+		parser_version:"Int",
 		playback_file:"String",
 		playback_size:"Int",
 		playback_url:"String",
+		playback_version:"Int",
 		size:"Int",
 		tick_rate:"Float",
 		total_ticks:"Int",
@@ -48223,9 +48944,11 @@ export const ReturnTypes: Record<string,any> = {
 		match_id:"uuid",
 		match_map_id:"uuid",
 		metadata_parsed_at:"timestamptz",
+		parser_version:"Int",
 		playback_file:"String",
 		playback_size:"Int",
 		playback_url:"String",
+		playback_version:"Int",
 		size:"Int",
 		tick_rate:"Float",
 		total_ticks:"Int",
@@ -48237,49 +48960,63 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	match_map_demos_stddev_fields:{
 		duration_seconds:"Float",
+		parser_version:"Float",
 		playback_size:"Float",
+		playback_version:"Float",
 		size:"Float",
 		tick_rate:"Float",
 		total_ticks:"Float"
 	},
 	match_map_demos_stddev_pop_fields:{
 		duration_seconds:"Float",
+		parser_version:"Float",
 		playback_size:"Float",
+		playback_version:"Float",
 		size:"Float",
 		tick_rate:"Float",
 		total_ticks:"Float"
 	},
 	match_map_demos_stddev_samp_fields:{
 		duration_seconds:"Float",
+		parser_version:"Float",
 		playback_size:"Float",
+		playback_version:"Float",
 		size:"Float",
 		tick_rate:"Float",
 		total_ticks:"Float"
 	},
 	match_map_demos_sum_fields:{
 		duration_seconds:"Float",
+		parser_version:"Int",
 		playback_size:"Int",
+		playback_version:"Int",
 		size:"Int",
 		tick_rate:"Float",
 		total_ticks:"Int"
 	},
 	match_map_demos_var_pop_fields:{
 		duration_seconds:"Float",
+		parser_version:"Float",
 		playback_size:"Float",
+		playback_version:"Float",
 		size:"Float",
 		tick_rate:"Float",
 		total_ticks:"Float"
 	},
 	match_map_demos_var_samp_fields:{
 		duration_seconds:"Float",
+		parser_version:"Float",
 		playback_size:"Float",
+		playback_version:"Float",
 		size:"Float",
 		tick_rate:"Float",
 		total_ticks:"Float"
 	},
 	match_map_demos_variance_fields:{
 		duration_seconds:"Float",
+		parser_version:"Float",
 		playback_size:"Float",
+		playback_version:"Float",
 		size:"Float",
 		tick_rate:"Float",
 		total_ticks:"Float"
@@ -49264,6 +50001,7 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	mutation_root:{
 		PreviewTournamentMatchReset:"PreviewTournamentMatchResetOutput",
+		RecreateTournamentBracketMatch:"RecreateTournamentBracketMatchOutput",
 		ResetTournamentMatch:"SuccessOutput",
 		acceptInvite:"SuccessOutput",
 		acceptTerms:"SuccessOutput",
@@ -49312,6 +50050,7 @@ export const ReturnTypes: Record<string,any> = {
 		deleteAward:"SuccessOutput",
 		deleteClip:"SuccessOutput",
 		deleteMatch:"SuccessOutput",
+		deleteNewsComment:"SuccessOutput",
 		deleteNewsPost:"SuccessOutput",
 		deleteOrphanedDemos:"DeleteOrphansOutput",
 		deleteServerItem:"SuccessOutput",
@@ -49497,6 +50236,8 @@ export const ReturnTypes: Record<string,any> = {
 		delete_lobby_camera_tokens_by_pk:"lobby_camera_tokens",
 		delete_lobby_players:"lobby_players_mutation_response",
 		delete_lobby_players_by_pk:"lobby_players",
+		delete_map_callouts:"map_callouts_mutation_response",
+		delete_map_callouts_by_pk:"map_callouts",
 		delete_map_pools:"map_pools_mutation_response",
 		delete_map_pools_by_pk:"map_pools",
 		delete_maps:"maps_mutation_response",
@@ -49535,6 +50276,10 @@ export const ReturnTypes: Record<string,any> = {
 		delete_my_friends:"my_friends_mutation_response",
 		delete_news_articles:"news_articles_mutation_response",
 		delete_news_articles_by_pk:"news_articles",
+		delete_news_comment_votes:"news_comment_votes_mutation_response",
+		delete_news_comment_votes_by_pk:"news_comment_votes",
+		delete_news_comments:"news_comments_mutation_response",
+		delete_news_comments_by_pk:"news_comments",
 		delete_notifications:"notifications_mutation_response",
 		delete_notifications_by_pk:"notifications",
 		delete_pending_match_import_players:"pending_match_import_players_mutation_response",
@@ -49685,6 +50430,7 @@ export const ReturnTypes: Record<string,any> = {
 		denyInvite:"SuccessOutput",
 		denyNameChange:"SuccessOutput",
 		draftTournamentTeams:"TournamentDraftOutput",
+		editNewsComment:"NewsCommentOutput",
 		extendTournamentCheckIn:"SuccessOutput",
 		forfeitMatch:"SuccessOutput",
 		generateTournamentTeams:"GenerateTournamentTeamsOutput",
@@ -49873,6 +50619,8 @@ export const ReturnTypes: Record<string,any> = {
 		insert_lobby_camera_tokens_one:"lobby_camera_tokens",
 		insert_lobby_players:"lobby_players_mutation_response",
 		insert_lobby_players_one:"lobby_players",
+		insert_map_callouts:"map_callouts_mutation_response",
+		insert_map_callouts_one:"map_callouts",
 		insert_map_pools:"map_pools_mutation_response",
 		insert_map_pools_one:"map_pools",
 		insert_maps:"maps_mutation_response",
@@ -49913,6 +50661,10 @@ export const ReturnTypes: Record<string,any> = {
 		insert_my_friends_one:"my_friends",
 		insert_news_articles:"news_articles_mutation_response",
 		insert_news_articles_one:"news_articles",
+		insert_news_comment_votes:"news_comment_votes_mutation_response",
+		insert_news_comment_votes_one:"news_comment_votes",
+		insert_news_comments:"news_comments_mutation_response",
+		insert_news_comments_one:"news_comments",
 		insert_notifications:"notifications_mutation_response",
 		insert_notifications_one:"notifications",
 		insert_pending_match_import_players:"pending_match_import_players_mutation_response",
@@ -50083,6 +50835,7 @@ export const ReturnTypes: Record<string,any> = {
 		orphanedDemosScanResult:"OrphanScanResultOutput",
 		pauseClipRenderBatch:"SuccessOutput",
 		pollSteamMatchHistory:"SteamMatchHistoryPollOutput",
+		postNewsComment:"NewsCommentOutput",
 		previewDraftGame:"DraftGamePreviewOutput",
 		queueClipFromPreset:"CreateClipRenderOutput",
 		randomizeTeams:"SuccessOutput",
@@ -50136,6 +50889,7 @@ export const ReturnTypes: Record<string,any> = {
 		setMapWinner:"SuccessOutput",
 		setMatchStartingLineup:"SuccessOutput",
 		setMatchWinner:"SuccessOutput",
+		setNewsCommentHidden:"NewsCommentOutput",
 		setNewsPostStatus:"NewsPost",
 		setTournamentAward:"TournamentAward",
 		setTournamentMvp:"SuccessOutput",
@@ -50164,6 +50918,7 @@ export const ReturnTypes: Record<string,any> = {
 		syncSteamFriends:"SuccessOutput",
 		testFaceitIntegration:"FaceitTestOutput",
 		testUpload:"TestUploadResponse",
+		toggleNewsCommentVote:"NewsCommentVoteOutput",
 		unlinkDiscord:"SuccessOutput",
 		unlinkSteamMatchHistory:"SuccessOutput",
 		unsanctionServerPlayer:"SanctionResult",
@@ -50443,6 +51198,9 @@ export const ReturnTypes: Record<string,any> = {
 		update_lobby_players:"lobby_players_mutation_response",
 		update_lobby_players_by_pk:"lobby_players",
 		update_lobby_players_many:"lobby_players_mutation_response",
+		update_map_callouts:"map_callouts_mutation_response",
+		update_map_callouts_by_pk:"map_callouts",
+		update_map_callouts_many:"map_callouts_mutation_response",
 		update_map_pools:"map_pools_mutation_response",
 		update_map_pools_by_pk:"map_pools",
 		update_map_pools_many:"map_pools_mutation_response",
@@ -50499,6 +51257,12 @@ export const ReturnTypes: Record<string,any> = {
 		update_news_articles:"news_articles_mutation_response",
 		update_news_articles_by_pk:"news_articles",
 		update_news_articles_many:"news_articles_mutation_response",
+		update_news_comment_votes:"news_comment_votes_mutation_response",
+		update_news_comment_votes_by_pk:"news_comment_votes",
+		update_news_comment_votes_many:"news_comment_votes_mutation_response",
+		update_news_comments:"news_comments_mutation_response",
+		update_news_comments_by_pk:"news_comments",
+		update_news_comments_many:"news_comments_mutation_response",
 		update_notifications:"notifications_mutation_response",
 		update_notifications_by_pk:"notifications",
 		update_notifications_many:"notifications_mutation_response",
@@ -51024,6 +51788,183 @@ export const ReturnTypes: Record<string,any> = {
 	news_articles_variance_fields:{
 		author_steam_id:"Float",
 		view_count:"Float"
+	},
+	news_comment_votes:{
+		comment:"news_comments",
+		comment_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	news_comment_votes_aggregate:{
+		aggregate:"news_comment_votes_aggregate_fields",
+		nodes:"news_comment_votes"
+	},
+	news_comment_votes_aggregate_fields:{
+		avg:"news_comment_votes_avg_fields",
+		count:"Int",
+		max:"news_comment_votes_max_fields",
+		min:"news_comment_votes_min_fields",
+		stddev:"news_comment_votes_stddev_fields",
+		stddev_pop:"news_comment_votes_stddev_pop_fields",
+		stddev_samp:"news_comment_votes_stddev_samp_fields",
+		sum:"news_comment_votes_sum_fields",
+		var_pop:"news_comment_votes_var_pop_fields",
+		var_samp:"news_comment_votes_var_samp_fields",
+		variance:"news_comment_votes_variance_fields"
+	},
+	news_comment_votes_avg_fields:{
+		steam_id:"Float"
+	},
+	news_comment_votes_max_fields:{
+		comment_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	news_comment_votes_min_fields:{
+		comment_id:"uuid",
+		created_at:"timestamptz",
+		steam_id:"bigint"
+	},
+	news_comment_votes_mutation_response:{
+		affected_rows:"Int",
+		returning:"news_comment_votes"
+	},
+	news_comment_votes_stddev_fields:{
+		steam_id:"Float"
+	},
+	news_comment_votes_stddev_pop_fields:{
+		steam_id:"Float"
+	},
+	news_comment_votes_stddev_samp_fields:{
+		steam_id:"Float"
+	},
+	news_comment_votes_sum_fields:{
+		steam_id:"bigint"
+	},
+	news_comment_votes_var_pop_fields:{
+		steam_id:"Float"
+	},
+	news_comment_votes_var_samp_fields:{
+		steam_id:"Float"
+	},
+	news_comment_votes_variance_fields:{
+		steam_id:"Float"
+	},
+	news_comments:{
+		article:"news_articles",
+		article_id:"uuid",
+		author:"players",
+		author_steam_id:"bigint",
+		body:"String",
+		created_at:"timestamptz",
+		deleted_at:"timestamptz",
+		edited_at:"timestamptz",
+		hidden_at:"timestamptz",
+		hidden_by_steam_id:"bigint",
+		hidden_reason:"String",
+		id:"uuid",
+		parent:"news_comments",
+		parent_id:"uuid",
+		replies:"news_comments",
+		replies_aggregate:"news_comments_aggregate",
+		reply_notified_at:"timestamptz",
+		text:"String",
+		vote_count:"Int",
+		votes:"news_comment_votes",
+		votes_aggregate:"news_comment_votes_aggregate"
+	},
+	news_comments_aggregate:{
+		aggregate:"news_comments_aggregate_fields",
+		nodes:"news_comments"
+	},
+	news_comments_aggregate_fields:{
+		avg:"news_comments_avg_fields",
+		count:"Int",
+		max:"news_comments_max_fields",
+		min:"news_comments_min_fields",
+		stddev:"news_comments_stddev_fields",
+		stddev_pop:"news_comments_stddev_pop_fields",
+		stddev_samp:"news_comments_stddev_samp_fields",
+		sum:"news_comments_sum_fields",
+		var_pop:"news_comments_var_pop_fields",
+		var_samp:"news_comments_var_samp_fields",
+		variance:"news_comments_variance_fields"
+	},
+	news_comments_avg_fields:{
+		author_steam_id:"Float",
+		hidden_by_steam_id:"Float",
+		vote_count:"Float"
+	},
+	news_comments_max_fields:{
+		article_id:"uuid",
+		author_steam_id:"bigint",
+		body:"String",
+		created_at:"timestamptz",
+		deleted_at:"timestamptz",
+		edited_at:"timestamptz",
+		hidden_at:"timestamptz",
+		hidden_by_steam_id:"bigint",
+		hidden_reason:"String",
+		id:"uuid",
+		parent_id:"uuid",
+		reply_notified_at:"timestamptz",
+		text:"String",
+		vote_count:"Int"
+	},
+	news_comments_min_fields:{
+		article_id:"uuid",
+		author_steam_id:"bigint",
+		body:"String",
+		created_at:"timestamptz",
+		deleted_at:"timestamptz",
+		edited_at:"timestamptz",
+		hidden_at:"timestamptz",
+		hidden_by_steam_id:"bigint",
+		hidden_reason:"String",
+		id:"uuid",
+		parent_id:"uuid",
+		reply_notified_at:"timestamptz",
+		text:"String",
+		vote_count:"Int"
+	},
+	news_comments_mutation_response:{
+		affected_rows:"Int",
+		returning:"news_comments"
+	},
+	news_comments_stddev_fields:{
+		author_steam_id:"Float",
+		hidden_by_steam_id:"Float",
+		vote_count:"Float"
+	},
+	news_comments_stddev_pop_fields:{
+		author_steam_id:"Float",
+		hidden_by_steam_id:"Float",
+		vote_count:"Float"
+	},
+	news_comments_stddev_samp_fields:{
+		author_steam_id:"Float",
+		hidden_by_steam_id:"Float",
+		vote_count:"Float"
+	},
+	news_comments_sum_fields:{
+		author_steam_id:"bigint",
+		hidden_by_steam_id:"bigint",
+		vote_count:"Int"
+	},
+	news_comments_var_pop_fields:{
+		author_steam_id:"Float",
+		hidden_by_steam_id:"Float",
+		vote_count:"Float"
+	},
+	news_comments_var_samp_fields:{
+		author_steam_id:"Float",
+		hidden_by_steam_id:"Float",
+		vote_count:"Float"
+	},
+	news_comments_variance_fields:{
+		author_steam_id:"Float",
+		hidden_by_steam_id:"Float",
+		vote_count:"Float"
 	},
 	notifications:{
 		actions:"jsonb",
@@ -56091,6 +57032,7 @@ export const ReturnTypes: Record<string,any> = {
 		abandoned_matches_aggregate:"abandoned_matches_aggregate",
 		aim_weapon_stats:"player_aim_weapon_stats",
 		aim_weapon_stats_aggregate:"player_aim_weapon_stats_aggregate",
+		allow_message_requests:"Boolean",
 		api_key_enabled:"Boolean",
 		assists:"player_assists",
 		assists_aggregate:"player_assists_aggregate",
@@ -56993,6 +57935,9 @@ export const ReturnTypes: Record<string,any> = {
 		lobby_players:"lobby_players",
 		lobby_players_aggregate:"lobby_players_aggregate",
 		lobby_players_by_pk:"lobby_players",
+		map_callouts:"map_callouts",
+		map_callouts_aggregate:"map_callouts_aggregate",
+		map_callouts_by_pk:"map_callouts",
 		map_pools:"map_pools",
 		map_pools_aggregate:"map_pools_aggregate",
 		map_pools_by_pk:"map_pools",
@@ -57054,6 +57999,12 @@ export const ReturnTypes: Record<string,any> = {
 		news_articles:"news_articles",
 		news_articles_aggregate:"news_articles_aggregate",
 		news_articles_by_pk:"news_articles",
+		news_comment_votes:"news_comment_votes",
+		news_comment_votes_aggregate:"news_comment_votes_aggregate",
+		news_comment_votes_by_pk:"news_comment_votes",
+		news_comments:"news_comments",
+		news_comments_aggregate:"news_comments_aggregate",
+		news_comments_by_pk:"news_comments",
 		notifications:"notifications",
 		notifications_aggregate:"notifications_aggregate",
 		notifications_by_pk:"notifications",
@@ -58182,6 +59133,10 @@ export const ReturnTypes: Record<string,any> = {
 		lobby_players_aggregate:"lobby_players_aggregate",
 		lobby_players_by_pk:"lobby_players",
 		lobby_players_stream:"lobby_players",
+		map_callouts:"map_callouts",
+		map_callouts_aggregate:"map_callouts_aggregate",
+		map_callouts_by_pk:"map_callouts",
+		map_callouts_stream:"map_callouts",
 		map_pools:"map_pools",
 		map_pools_aggregate:"map_pools_aggregate",
 		map_pools_by_pk:"map_pools",
@@ -58260,6 +59215,14 @@ export const ReturnTypes: Record<string,any> = {
 		news_articles_aggregate:"news_articles_aggregate",
 		news_articles_by_pk:"news_articles",
 		news_articles_stream:"news_articles",
+		news_comment_votes:"news_comment_votes",
+		news_comment_votes_aggregate:"news_comment_votes_aggregate",
+		news_comment_votes_by_pk:"news_comment_votes",
+		news_comment_votes_stream:"news_comment_votes",
+		news_comments:"news_comments",
+		news_comments_aggregate:"news_comments_aggregate",
+		news_comments_by_pk:"news_comments",
+		news_comments_stream:"news_comments",
 		notifications:"notifications",
 		notifications_aggregate:"notifications_aggregate",
 		notifications_by_pk:"notifications",

@@ -1331,6 +1331,24 @@ export type ValueTypes = {
 	time?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["NewsCommentOutput"]: AliasType<{
+	article_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	parent_id?:boolean | `@${string}`,
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["NewsCommentVoteOutput"]: AliasType<{
+	comment_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+	voted?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["NewsPost"]: AliasType<{
 	author_steam_id?:boolean | `@${string}`,
 	content_markdown?:boolean | `@${string}`,
@@ -1445,6 +1463,11 @@ export type ValueTypes = {
 	running?:boolean | `@${string}`,
 	started_at?:boolean | `@${string}`,
 	total?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["RecreateTournamentBracketMatchOutput"]: AliasType<{
+	match_id?:boolean | `@${string}`,
+	success?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["ReindexStartedOutput"]: AliasType<{
@@ -19490,6 +19513,156 @@ count?: [{	columns?: Array<ValueTypes["lobby_players_select_column"]> | undefine
 	invited_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
 };
+	/** columns and relationships of "map_callouts" */
+["map_callouts"]: AliasType<{
+boxes?: [{	/** JSON select path */
+	path?: string | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	map_name?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	source?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "map_callouts" */
+["map_callouts_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["map_callouts_aggregate_fields"],
+	nodes?:ValueTypes["map_callouts"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "map_callouts" */
+["map_callouts_aggregate_fields"]: AliasType<{
+count?: [{	columns?: Array<ValueTypes["map_callouts_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["map_callouts_max_fields"],
+	min?:ValueTypes["map_callouts_min_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** append existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_append_input"]: {
+	boxes?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>
+};
+	/** Boolean expression to filter rows from the table "map_callouts". All fields are combined with a logical 'AND'. */
+["map_callouts_bool_exp"]: {
+	_and?: Array<ValueTypes["map_callouts_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["map_callouts_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["map_callouts_bool_exp"]> | undefined | null | Variable<any, string>,
+	boxes?: ValueTypes["jsonb_comparison_exp"] | undefined | null | Variable<any, string>,
+	map_name?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	name?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	source?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "map_callouts" */
+["map_callouts_constraint"]:map_callouts_constraint;
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+["map_callouts_delete_at_path_input"]: {
+	boxes?: Array<string> | undefined | null | Variable<any, string>
+};
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+["map_callouts_delete_elem_input"]: {
+	boxes?: number | undefined | null | Variable<any, string>
+};
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+["map_callouts_delete_key_input"]: {
+	boxes?: string | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "map_callouts" */
+["map_callouts_insert_input"]: {
+	boxes?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
+	map_name?: string | undefined | null | Variable<any, string>,
+	name?: string | undefined | null | Variable<any, string>,
+	source?: string | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["map_callouts_max_fields"]: AliasType<{
+	map_name?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	source?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["map_callouts_min_fields"]: AliasType<{
+	map_name?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	source?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "map_callouts" */
+["map_callouts_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["map_callouts"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "map_callouts" */
+["map_callouts_on_conflict"]: {
+	constraint: ValueTypes["map_callouts_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["map_callouts_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["map_callouts_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "map_callouts". */
+["map_callouts_order_by"]: {
+	boxes?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	map_name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	name?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	source?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: map_callouts */
+["map_callouts_pk_columns_input"]: {
+	map_name: string | Variable<any, string>,
+	name: string | Variable<any, string>
+};
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_prepend_input"]: {
+	boxes?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>
+};
+	/** select columns of table "map_callouts" */
+["map_callouts_select_column"]:map_callouts_select_column;
+	/** input type for updating data in table "map_callouts" */
+["map_callouts_set_input"]: {
+	boxes?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
+	map_name?: string | undefined | null | Variable<any, string>,
+	name?: string | undefined | null | Variable<any, string>,
+	source?: string | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** Streaming cursor of the table "map_callouts" */
+["map_callouts_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["map_callouts_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["map_callouts_stream_cursor_value_input"]: {
+	boxes?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
+	map_name?: string | undefined | null | Variable<any, string>,
+	name?: string | undefined | null | Variable<any, string>,
+	source?: string | undefined | null | Variable<any, string>,
+	updated_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>
+};
+	/** update columns of table "map_callouts" */
+["map_callouts_update_column"]:map_callouts_update_column;
+	["map_callouts_updates"]: {
+	/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: ValueTypes["map_callouts_append_input"] | undefined | null | Variable<any, string>,
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: ValueTypes["map_callouts_delete_at_path_input"] | undefined | null | Variable<any, string>,
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: ValueTypes["map_callouts_delete_elem_input"] | undefined | null | Variable<any, string>,
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: ValueTypes["map_callouts_delete_key_input"] | undefined | null | Variable<any, string>,
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: ValueTypes["map_callouts_prepend_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["map_callouts_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["map_callouts_bool_exp"] | Variable<any, string>
+};
 	/** columns and relationships of "map_pools" */
 ["map_pools"]: AliasType<{
 	/** An object relationship */
@@ -21793,10 +21966,12 @@ match_clips_aggregate?: [{	/** distinct select on columns */
 	match_map?:ValueTypes["match_maps"],
 	match_map_id?:boolean | `@${string}`,
 	metadata_parsed_at?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_file?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 players?: [{	/** JSON select path */
 	path?: string | undefined | null | Variable<any, string>},boolean | `@${string}`],
 round_ticks?: [{	/** JSON select path */
@@ -21881,7 +22056,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate avg on columns */
 ["match_map_demos_avg_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -21890,7 +22067,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by avg() on columns of table "match_map_demos" */
 ["match_map_demos_avg_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -21921,9 +22100,11 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_map?: ValueTypes["match_maps_bool_exp"] | undefined | null | Variable<any, string>,
 	match_map_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
 	metadata_parsed_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	playback_file?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	playback_url?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
 	players?: ValueTypes["jsonb_comparison_exp"] | undefined | null | Variable<any, string>,
 	round_ticks?: ValueTypes["jsonb_comparison_exp"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
@@ -21956,7 +22137,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 };
 	/** input type for incrementing numeric columns in table "match_map_demos" */
 ["match_map_demos_inc_input"]: {
+	parser_version?: number | undefined | null | Variable<any, string>,
 	playback_size?: number | undefined | null | Variable<any, string>,
+	playback_version?: number | undefined | null | Variable<any, string>,
 	size?: number | undefined | null | Variable<any, string>,
 	tick_rate?: number | undefined | null | Variable<any, string>,
 	total_ticks?: number | undefined | null | Variable<any, string>
@@ -21979,8 +22162,10 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_map?: ValueTypes["match_maps_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
 	match_map_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	metadata_parsed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	parser_version?: number | undefined | null | Variable<any, string>,
 	playback_file?: string | undefined | null | Variable<any, string>,
 	playback_size?: number | undefined | null | Variable<any, string>,
+	playback_version?: number | undefined | null | Variable<any, string>,
 	players?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	round_ticks?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	size?: number | undefined | null | Variable<any, string>,
@@ -22001,10 +22186,12 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_id?:boolean | `@${string}`,
 	match_map_id?:boolean | `@${string}`,
 	metadata_parsed_at?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_file?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22022,8 +22209,10 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	match_map_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	metadata_parsed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_file?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -22042,10 +22231,12 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_id?:boolean | `@${string}`,
 	match_map_id?:boolean | `@${string}`,
 	metadata_parsed_at?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_file?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22063,8 +22254,10 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	match_map_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	metadata_parsed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_file?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -22110,9 +22303,11 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_map?: ValueTypes["match_maps_order_by"] | undefined | null | Variable<any, string>,
 	match_map_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	metadata_parsed_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_file?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_url?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	players?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	round_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
@@ -22150,8 +22345,10 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	match_map_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	metadata_parsed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	parser_version?: number | undefined | null | Variable<any, string>,
 	playback_file?: string | undefined | null | Variable<any, string>,
 	playback_size?: number | undefined | null | Variable<any, string>,
+	playback_version?: number | undefined | null | Variable<any, string>,
 	players?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	round_ticks?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	size?: number | undefined | null | Variable<any, string>,
@@ -22162,7 +22359,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate stddev on columns */
 ["match_map_demos_stddev_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22171,7 +22370,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by stddev() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -22179,7 +22380,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate stddev_pop on columns */
 ["match_map_demos_stddev_pop_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22188,7 +22391,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by stddev_pop() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_pop_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -22196,7 +22401,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate stddev_samp on columns */
 ["match_map_demos_stddev_samp_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22205,7 +22412,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by stddev_samp() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_samp_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -22231,8 +22440,10 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	match_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	match_map_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
 	metadata_parsed_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	parser_version?: number | undefined | null | Variable<any, string>,
 	playback_file?: string | undefined | null | Variable<any, string>,
 	playback_size?: number | undefined | null | Variable<any, string>,
+	playback_version?: number | undefined | null | Variable<any, string>,
 	players?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	round_ticks?: ValueTypes["jsonb"] | undefined | null | Variable<any, string>,
 	size?: number | undefined | null | Variable<any, string>,
@@ -22243,7 +22454,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate sum on columns */
 ["match_map_demos_sum_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22252,7 +22465,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by sum() on columns of table "match_map_demos" */
 ["match_map_demos_sum_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -22280,7 +22495,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate var_pop on columns */
 ["match_map_demos_var_pop_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22289,7 +22506,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by var_pop() on columns of table "match_map_demos" */
 ["match_map_demos_var_pop_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -22297,7 +22516,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate var_samp on columns */
 ["match_map_demos_var_samp_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22306,7 +22527,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by var_samp() on columns of table "match_map_demos" */
 ["match_map_demos_var_samp_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -22314,7 +22537,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** aggregate variance on columns */
 ["match_map_demos_variance_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -22323,7 +22548,9 @@ count?: [{	columns?: Array<ValueTypes["match_map_demos_select_column"]> | undefi
 	/** order by variance() on columns of table "match_map_demos" */
 ["match_map_demos_variance_order_by"]: {
 	duration_seconds?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parser_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	playback_size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	playback_version?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	size?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	tick_rate?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	total_ticks?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
@@ -25985,6 +26212,7 @@ count?: [{	columns?: Array<ValueTypes["migration_hashes_hashes_select_column"]> 
 	/** mutation root */
 ["mutation_root"]: AliasType<{
 PreviewTournamentMatchReset?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["PreviewTournamentMatchResetOutput"]],
+RecreateTournamentBracketMatch?: [{	bracket_id: ValueTypes["uuid"] | Variable<any, string>,	scheduled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>},ValueTypes["RecreateTournamentBracketMatchOutput"]],
 ResetTournamentMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	reset_status?: string | undefined | null | Variable<any, string>,	scheduled_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,	winning_lineup_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
 acceptInvite?: [{	invite_id: ValueTypes["uuid"] | Variable<any, string>,	type: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 	/** accept the current Terms of Service / Rules version for the authenticated player */
@@ -26054,6 +26282,7 @@ createTournamentInviteCode?: [{	expires_in_minutes?: number | undefined | null |
 deleteAward?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 deleteClip?: [{	clip_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 deleteMatch?: [{	match_id: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
+deleteNewsComment?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 deleteNewsPost?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 deleteOrphanedDemos?: [{	keys?: Array<string> | undefined | null | Variable<any, string>},ValueTypes["DeleteOrphansOutput"]],
 deleteServerItem?: [{	node_id: string | Variable<any, string>,	path: string | Variable<any, string>,	server_id?: string | undefined | null | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -26330,6 +26559,9 @@ delete_lobby_camera_tokens_by_pk?: [{	token: ValueTypes["uuid"] | Variable<any, 
 delete_lobby_players?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["lobby_players_bool_exp"] | Variable<any, string>},ValueTypes["lobby_players_mutation_response"]],
 delete_lobby_players_by_pk?: [{	lobby_id: ValueTypes["uuid"] | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["lobby_players"]],
+delete_map_callouts?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["map_callouts_bool_exp"] | Variable<any, string>},ValueTypes["map_callouts_mutation_response"]],
+delete_map_callouts_by_pk?: [{	map_name: string | Variable<any, string>,	name: string | Variable<any, string>},ValueTypes["map_callouts"]],
 delete_map_pools?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["map_pools_bool_exp"] | Variable<any, string>},ValueTypes["map_pools_mutation_response"]],
 delete_map_pools_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["map_pools"]],
@@ -26388,6 +26620,12 @@ delete_my_friends?: [{	/** filter the rows which have to be deleted */
 delete_news_articles?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["news_articles_bool_exp"] | Variable<any, string>},ValueTypes["news_articles_mutation_response"]],
 delete_news_articles_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["news_articles"]],
+delete_news_comment_votes?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["news_comment_votes_bool_exp"] | Variable<any, string>},ValueTypes["news_comment_votes_mutation_response"]],
+delete_news_comment_votes_by_pk?: [{	comment_id: ValueTypes["uuid"] | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["news_comment_votes"]],
+delete_news_comments?: [{	/** filter the rows which have to be deleted */
+	where: ValueTypes["news_comments_bool_exp"] | Variable<any, string>},ValueTypes["news_comments_mutation_response"]],
+delete_news_comments_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["news_comments"]],
 delete_notifications?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["notifications_bool_exp"] | Variable<any, string>},ValueTypes["notifications_mutation_response"]],
 delete_notifications_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["notifications"]],
@@ -26440,7 +26678,7 @@ delete_player_premier_rank_history?: [{	/** filter the rows which have to be del
 delete_player_premier_rank_history_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_premier_rank_history"]],
 delete_player_sanctions?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["player_sanctions_bool_exp"] | Variable<any, string>},ValueTypes["player_sanctions_mutation_response"]],
-delete_player_sanctions_by_pk?: [{	created_at: ValueTypes["timestamptz"] | Variable<any, string>,	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_sanctions"]],
+delete_player_sanctions_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_sanctions"]],
 delete_player_season_stats?: [{	/** filter the rows which have to be deleted */
 	where: ValueTypes["player_season_stats_bool_exp"] | Variable<any, string>},ValueTypes["player_season_stats_mutation_response"]],
 delete_player_season_stats_by_pk?: [{	player_steam_id: ValueTypes["bigint"] | Variable<any, string>,	season_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_season_stats"]],
@@ -26616,6 +26854,7 @@ delete_verification_call_tokens_by_pk?: [{	token: ValueTypes["uuid"] | Variable<
 denyInvite?: [{	invite_id: ValueTypes["uuid"] | Variable<any, string>,	type: string | Variable<any, string>},ValueTypes["SuccessOutput"]],
 denyNameChange?: [{	name: string | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 draftTournamentTeams?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["TournamentDraftOutput"]],
+editNewsComment?: [{	body: string | Variable<any, string>,	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["NewsCommentOutput"]],
 extendTournamentCheckIn?: [{	minutes: number | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 forfeitMatch?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	winning_lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 generateTournamentTeams?: [{	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["GenerateTournamentTeamsOutput"]],
@@ -27166,6 +27405,12 @@ insert_lobby_players?: [{	/** the rows to be inserted */
 insert_lobby_players_one?: [{	/** the row to be inserted */
 	object: ValueTypes["lobby_players_insert_input"] | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["lobby_players_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["lobby_players"]],
+insert_map_callouts?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["map_callouts_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["map_callouts_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["map_callouts_mutation_response"]],
+insert_map_callouts_one?: [{	/** the row to be inserted */
+	object: ValueTypes["map_callouts_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["map_callouts_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["map_callouts"]],
 insert_map_pools?: [{	/** the rows to be inserted */
 	objects: Array<ValueTypes["map_pools_insert_input"]> | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["map_pools_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["map_pools_mutation_response"]],
@@ -27282,6 +27527,18 @@ insert_news_articles?: [{	/** the rows to be inserted */
 insert_news_articles_one?: [{	/** the row to be inserted */
 	object: ValueTypes["news_articles_insert_input"] | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["news_articles_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["news_articles"]],
+insert_news_comment_votes?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["news_comment_votes_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["news_comment_votes_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes_mutation_response"]],
+insert_news_comment_votes_one?: [{	/** the row to be inserted */
+	object: ValueTypes["news_comment_votes_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["news_comment_votes_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes"]],
+insert_news_comments?: [{	/** the rows to be inserted */
+	objects: Array<ValueTypes["news_comments_insert_input"]> | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["news_comments_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["news_comments_mutation_response"]],
+insert_news_comments_one?: [{	/** the row to be inserted */
+	object: ValueTypes["news_comments_insert_input"] | Variable<any, string>,	/** upsert condition */
+	on_conflict?: ValueTypes["news_comments_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["news_comments"]],
 insert_notifications?: [{	/** the rows to be inserted */
 	objects: Array<ValueTypes["notifications_insert_input"]> | Variable<any, string>,	/** upsert condition */
 	on_conflict?: ValueTypes["notifications_on_conflict"] | undefined | null | Variable<any, string>},ValueTypes["notifications_mutation_response"]],
@@ -27757,6 +28014,7 @@ moveServerItem?: [{	dest_path: string | Variable<any, string>,	node_id: string |
 	orphanedDemosScanResult?:ValueTypes["OrphanScanResultOutput"],
 pauseClipRenderBatch?: [{	match_map_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 	pollSteamMatchHistory?:ValueTypes["SteamMatchHistoryPollOutput"],
+postNewsComment?: [{	article_id: ValueTypes["uuid"] | Variable<any, string>,	body: string | Variable<any, string>,	parent_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>},ValueTypes["NewsCommentOutput"]],
 previewDraftGame?: [{	draftGameId: ValueTypes["uuid"] | Variable<any, string>,	inviteCode?: string | undefined | null | Variable<any, string>},ValueTypes["DraftGamePreviewOutput"]],
 queueClipFromPreset?: [{	fps?: number | undefined | null | Variable<any, string>,	match_map_id: ValueTypes["uuid"] | Variable<any, string>,	preset: string | Variable<any, string>,	resolution?: string | undefined | null | Variable<any, string>,	target_name?: string | undefined | null | Variable<any, string>,	target_steam_id: string | Variable<any, string>,	title?: string | undefined | null | Variable<any, string>},ValueTypes["CreateClipRenderOutput"]],
 randomizeTeams?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -27855,6 +28113,7 @@ setHudMode?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	mode: stri
 setMapWinner?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	match_map_id: ValueTypes["uuid"] | Variable<any, string>,	winning_lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
 setMatchStartingLineup?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	match_lineup_id: ValueTypes["uuid"] | Variable<any, string>,	steam_ids: Array<string> | Variable<any, string>},ValueTypes["SuccessOutput"]],
 setMatchWinner?: [{	match_id: ValueTypes["uuid"] | Variable<any, string>,	winning_lineup_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
+setNewsCommentHidden?: [{	hidden: boolean | Variable<any, string>,	id: ValueTypes["uuid"] | Variable<any, string>,	reason?: string | undefined | null | Variable<any, string>},ValueTypes["NewsCommentOutput"]],
 setNewsPostStatus?: [{	id: ValueTypes["uuid"] | Variable<any, string>,	status: string | Variable<any, string>},ValueTypes["NewsPost"]],
 setTournamentAward?: [{	award_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,	custom_name?: string | undefined | null | Variable<any, string>,	placement: number | Variable<any, string>,	silhouette?: number | undefined | null | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["TournamentAward"]],
 setTournamentMvp?: [{	note?: string | undefined | null | Variable<any, string>,	player_steam_id: ValueTypes["bigint"] | Variable<any, string>,	tournament_id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["SuccessOutput"]],
@@ -27884,6 +28143,7 @@ switchLiveMatch?: [{	from_match_id: ValueTypes["uuid"] | Variable<any, string>,	
 	/** Test FACEIT Data + Downloads API connectivity for the current admin */
 	testFaceitIntegration?:ValueTypes["FaceitTestOutput"],
 	testUpload?:ValueTypes["TestUploadResponse"],
+toggleNewsCommentVote?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["NewsCommentVoteOutput"]],
 	unlinkDiscord?:ValueTypes["SuccessOutput"],
 	unlinkSteamMatchHistory?:ValueTypes["SuccessOutput"],
 unsanctionServerPlayer?: [{	serverId?: string | undefined | null | Variable<any, string>,	steam_id: string | Variable<any, string>,	type: string | Variable<any, string>},ValueTypes["SanctionResult"]],
@@ -28653,6 +28913,23 @@ update_lobby_players_by_pk?: [{	/** increments the numeric columns with given va
 	_set?: ValueTypes["lobby_players_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["lobby_players_pk_columns_input"] | Variable<any, string>},ValueTypes["lobby_players"]],
 update_lobby_players_many?: [{	/** updates to execute, in order */
 	updates: Array<ValueTypes["lobby_players_updates"]> | Variable<any, string>},ValueTypes["lobby_players_mutation_response"]],
+update_map_callouts?: [{	/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: ValueTypes["map_callouts_append_input"] | undefined | null | Variable<any, string>,	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: ValueTypes["map_callouts_delete_at_path_input"] | undefined | null | Variable<any, string>,	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: ValueTypes["map_callouts_delete_elem_input"] | undefined | null | Variable<any, string>,	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: ValueTypes["map_callouts_delete_key_input"] | undefined | null | Variable<any, string>,	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: ValueTypes["map_callouts_prepend_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["map_callouts_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["map_callouts_bool_exp"] | Variable<any, string>},ValueTypes["map_callouts_mutation_response"]],
+update_map_callouts_by_pk?: [{	/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: ValueTypes["map_callouts_append_input"] | undefined | null | Variable<any, string>,	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: ValueTypes["map_callouts_delete_at_path_input"] | undefined | null | Variable<any, string>,	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: ValueTypes["map_callouts_delete_elem_input"] | undefined | null | Variable<any, string>,	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: ValueTypes["map_callouts_delete_key_input"] | undefined | null | Variable<any, string>,	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: ValueTypes["map_callouts_prepend_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["map_callouts_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["map_callouts_pk_columns_input"] | Variable<any, string>},ValueTypes["map_callouts"]],
+update_map_callouts_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["map_callouts_updates"]> | Variable<any, string>},ValueTypes["map_callouts_mutation_response"]],
 update_map_pools?: [{	/** sets the columns of the filtered rows to the given values */
 	_set?: ValueTypes["map_pools_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
 	where: ValueTypes["map_pools_bool_exp"] | Variable<any, string>},ValueTypes["map_pools_mutation_response"]],
@@ -28844,6 +29121,24 @@ update_news_articles_by_pk?: [{	/** increments the numeric columns with given va
 	_set?: ValueTypes["news_articles_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["news_articles_pk_columns_input"] | Variable<any, string>},ValueTypes["news_articles"]],
 update_news_articles_many?: [{	/** updates to execute, in order */
 	updates: Array<ValueTypes["news_articles_updates"]> | Variable<any, string>},ValueTypes["news_articles_mutation_response"]],
+update_news_comment_votes?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["news_comment_votes_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["news_comment_votes_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["news_comment_votes_bool_exp"] | Variable<any, string>},ValueTypes["news_comment_votes_mutation_response"]],
+update_news_comment_votes_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["news_comment_votes_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["news_comment_votes_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["news_comment_votes_pk_columns_input"] | Variable<any, string>},ValueTypes["news_comment_votes"]],
+update_news_comment_votes_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["news_comment_votes_updates"]> | Variable<any, string>},ValueTypes["news_comment_votes_mutation_response"]],
+update_news_comments?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["news_comments_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["news_comments_set_input"] | undefined | null | Variable<any, string>,	/** filter the rows which have to be updated */
+	where: ValueTypes["news_comments_bool_exp"] | Variable<any, string>},ValueTypes["news_comments_mutation_response"]],
+update_news_comments_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["news_comments_inc_input"] | undefined | null | Variable<any, string>,	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["news_comments_set_input"] | undefined | null | Variable<any, string>,	pk_columns: ValueTypes["news_comments_pk_columns_input"] | Variable<any, string>},ValueTypes["news_comments"]],
+update_news_comments_many?: [{	/** updates to execute, in order */
+	updates: Array<ValueTypes["news_comments_updates"]> | Variable<any, string>},ValueTypes["news_comments_mutation_response"]],
 update_notifications?: [{	/** append existing jsonb value of filtered columns with new jsonb value */
 	_append?: ValueTypes["notifications_append_input"] | undefined | null | Variable<any, string>,	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 	_delete_at_path?: ValueTypes["notifications_delete_at_path_input"] | undefined | null | Variable<any, string>,	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
@@ -30272,6 +30567,12 @@ count?: [{	columns?: Array<ValueTypes["news_articles_select_column"]> | undefine
 	returning?:ValueTypes["news_articles"],
 		__typename?: boolean | `@${string}`
 }>;
+	/** input type for inserting object relation for remote table "news_articles" */
+["news_articles_obj_rel_insert_input"]: {
+	data: ValueTypes["news_articles_insert_input"] | Variable<any, string>,
+	/** upsert condition */
+	on_conflict?: ValueTypes["news_articles_on_conflict"] | undefined | null | Variable<any, string>
+};
 	/** on_conflict condition type for table "news_articles" */
 ["news_articles_on_conflict"]: {
 	constraint: ValueTypes["news_articles_constraint"] | Variable<any, string>,
@@ -30389,6 +30690,669 @@ count?: [{	columns?: Array<ValueTypes["news_articles_select_column"]> | undefine
 	view_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	/** columns and relationships of "news_comment_votes" */
+["news_comment_votes"]: AliasType<{
+	/** An object relationship */
+	comment?:ValueTypes["news_comments"],
+	comment_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "news_comment_votes" */
+["news_comment_votes_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["news_comment_votes_aggregate_fields"],
+	nodes?:ValueTypes["news_comment_votes"],
+		__typename?: boolean | `@${string}`
+}>;
+	["news_comment_votes_aggregate_bool_exp"]: {
+	count?: ValueTypes["news_comment_votes_aggregate_bool_exp_count"] | undefined | null | Variable<any, string>
+};
+	["news_comment_votes_aggregate_bool_exp_count"]: {
+	arguments?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Int_comparison_exp"] | Variable<any, string>
+};
+	/** aggregate fields of "news_comment_votes" */
+["news_comment_votes_aggregate_fields"]: AliasType<{
+	avg?:ValueTypes["news_comment_votes_avg_fields"],
+count?: [{	columns?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["news_comment_votes_max_fields"],
+	min?:ValueTypes["news_comment_votes_min_fields"],
+	stddev?:ValueTypes["news_comment_votes_stddev_fields"],
+	stddev_pop?:ValueTypes["news_comment_votes_stddev_pop_fields"],
+	stddev_samp?:ValueTypes["news_comment_votes_stddev_samp_fields"],
+	sum?:ValueTypes["news_comment_votes_sum_fields"],
+	var_pop?:ValueTypes["news_comment_votes_var_pop_fields"],
+	var_samp?:ValueTypes["news_comment_votes_var_samp_fields"],
+	variance?:ValueTypes["news_comment_votes_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by aggregate values of table "news_comment_votes" */
+["news_comment_votes_aggregate_order_by"]: {
+	avg?: ValueTypes["news_comment_votes_avg_order_by"] | undefined | null | Variable<any, string>,
+	count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	max?: ValueTypes["news_comment_votes_max_order_by"] | undefined | null | Variable<any, string>,
+	min?: ValueTypes["news_comment_votes_min_order_by"] | undefined | null | Variable<any, string>,
+	stddev?: ValueTypes["news_comment_votes_stddev_order_by"] | undefined | null | Variable<any, string>,
+	stddev_pop?: ValueTypes["news_comment_votes_stddev_pop_order_by"] | undefined | null | Variable<any, string>,
+	stddev_samp?: ValueTypes["news_comment_votes_stddev_samp_order_by"] | undefined | null | Variable<any, string>,
+	sum?: ValueTypes["news_comment_votes_sum_order_by"] | undefined | null | Variable<any, string>,
+	var_pop?: ValueTypes["news_comment_votes_var_pop_order_by"] | undefined | null | Variable<any, string>,
+	var_samp?: ValueTypes["news_comment_votes_var_samp_order_by"] | undefined | null | Variable<any, string>,
+	variance?: ValueTypes["news_comment_votes_variance_order_by"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting array relation for remote table "news_comment_votes" */
+["news_comment_votes_arr_rel_insert_input"]: {
+	data: Array<ValueTypes["news_comment_votes_insert_input"]> | Variable<any, string>,
+	/** upsert condition */
+	on_conflict?: ValueTypes["news_comment_votes_on_conflict"] | undefined | null | Variable<any, string>
+};
+	/** aggregate avg on columns */
+["news_comment_votes_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by avg() on columns of table "news_comment_votes" */
+["news_comment_votes_avg_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** Boolean expression to filter rows from the table "news_comment_votes". All fields are combined with a logical 'AND'. */
+["news_comment_votes_bool_exp"]: {
+	_and?: Array<ValueTypes["news_comment_votes_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["news_comment_votes_bool_exp"]> | undefined | null | Variable<any, string>,
+	comment?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>,
+	comment_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "news_comment_votes" */
+["news_comment_votes_constraint"]:news_comment_votes_constraint;
+	/** input type for incrementing numeric columns in table "news_comment_votes" */
+["news_comment_votes_inc_input"]: {
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "news_comment_votes" */
+["news_comment_votes_insert_input"]: {
+	comment?: ValueTypes["news_comments_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	comment_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["news_comment_votes_max_fields"]: AliasType<{
+	comment_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by max() on columns of table "news_comment_votes" */
+["news_comment_votes_max_order_by"]: {
+	comment_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate min on columns */
+["news_comment_votes_min_fields"]: AliasType<{
+	comment_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by min() on columns of table "news_comment_votes" */
+["news_comment_votes_min_order_by"]: {
+	comment_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** response of any mutation on the table "news_comment_votes" */
+["news_comment_votes_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["news_comment_votes"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "news_comment_votes" */
+["news_comment_votes_on_conflict"]: {
+	constraint: ValueTypes["news_comment_votes_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["news_comment_votes_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "news_comment_votes". */
+["news_comment_votes_order_by"]: {
+	comment?: ValueTypes["news_comments_order_by"] | undefined | null | Variable<any, string>,
+	comment_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: news_comment_votes */
+["news_comment_votes_pk_columns_input"]: {
+	comment_id: ValueTypes["uuid"] | Variable<any, string>,
+	steam_id: ValueTypes["bigint"] | Variable<any, string>
+};
+	/** select columns of table "news_comment_votes" */
+["news_comment_votes_select_column"]:news_comment_votes_select_column;
+	/** input type for updating data in table "news_comment_votes" */
+["news_comment_votes_set_input"]: {
+	comment_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev on columns */
+["news_comment_votes_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev_pop on columns */
+["news_comment_votes_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_pop_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev_samp on columns */
+["news_comment_votes_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_samp_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** Streaming cursor of the table "news_comment_votes" */
+["news_comment_votes_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["news_comment_votes_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comment_votes_stream_cursor_value_input"]: {
+	comment_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>
+};
+	/** aggregate sum on columns */
+["news_comment_votes_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by sum() on columns of table "news_comment_votes" */
+["news_comment_votes_sum_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** update columns of table "news_comment_votes" */
+["news_comment_votes_update_column"]:news_comment_votes_update_column;
+	["news_comment_votes_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["news_comment_votes_inc_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["news_comment_votes_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["news_comment_votes_bool_exp"] | Variable<any, string>
+};
+	/** aggregate var_pop on columns */
+["news_comment_votes_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_var_pop_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate var_samp on columns */
+["news_comment_votes_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_var_samp_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate variance on columns */
+["news_comment_votes_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by variance() on columns of table "news_comment_votes" */
+["news_comment_votes_variance_order_by"]: {
+	steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** columns and relationships of "news_comments" */
+["news_comments"]: AliasType<{
+	/** An object relationship */
+	article?:ValueTypes["news_articles"],
+	article_id?:boolean | `@${string}`,
+	/** An object relationship */
+	author?:ValueTypes["players"],
+	author_steam_id?:boolean | `@${string}`,
+	body?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	hidden_reason?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	/** An object relationship */
+	parent?:ValueTypes["news_comments"],
+	parent_id?:boolean | `@${string}`,
+replies?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comments_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comments"]],
+replies_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comments_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comments_aggregate"]],
+	reply_notified_at?:boolean | `@${string}`,
+	/** The comment text as this viewer may see it. */
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+votes?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comment_votes_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes"]],
+votes_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comment_votes_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes_aggregate"]],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "news_comments" */
+["news_comments_aggregate"]: AliasType<{
+	aggregate?:ValueTypes["news_comments_aggregate_fields"],
+	nodes?:ValueTypes["news_comments"],
+		__typename?: boolean | `@${string}`
+}>;
+	["news_comments_aggregate_bool_exp"]: {
+	count?: ValueTypes["news_comments_aggregate_bool_exp_count"] | undefined | null | Variable<any, string>
+};
+	["news_comments_aggregate_bool_exp_count"]: {
+	arguments?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,
+	distinct?: boolean | undefined | null | Variable<any, string>,
+	filter?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>,
+	predicate: ValueTypes["Int_comparison_exp"] | Variable<any, string>
+};
+	/** aggregate fields of "news_comments" */
+["news_comments_aggregate_fields"]: AliasType<{
+	avg?:ValueTypes["news_comments_avg_fields"],
+count?: [{	columns?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,	distinct?: boolean | undefined | null | Variable<any, string>},boolean | `@${string}`],
+	max?:ValueTypes["news_comments_max_fields"],
+	min?:ValueTypes["news_comments_min_fields"],
+	stddev?:ValueTypes["news_comments_stddev_fields"],
+	stddev_pop?:ValueTypes["news_comments_stddev_pop_fields"],
+	stddev_samp?:ValueTypes["news_comments_stddev_samp_fields"],
+	sum?:ValueTypes["news_comments_sum_fields"],
+	var_pop?:ValueTypes["news_comments_var_pop_fields"],
+	var_samp?:ValueTypes["news_comments_var_samp_fields"],
+	variance?:ValueTypes["news_comments_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by aggregate values of table "news_comments" */
+["news_comments_aggregate_order_by"]: {
+	avg?: ValueTypes["news_comments_avg_order_by"] | undefined | null | Variable<any, string>,
+	count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	max?: ValueTypes["news_comments_max_order_by"] | undefined | null | Variable<any, string>,
+	min?: ValueTypes["news_comments_min_order_by"] | undefined | null | Variable<any, string>,
+	stddev?: ValueTypes["news_comments_stddev_order_by"] | undefined | null | Variable<any, string>,
+	stddev_pop?: ValueTypes["news_comments_stddev_pop_order_by"] | undefined | null | Variable<any, string>,
+	stddev_samp?: ValueTypes["news_comments_stddev_samp_order_by"] | undefined | null | Variable<any, string>,
+	sum?: ValueTypes["news_comments_sum_order_by"] | undefined | null | Variable<any, string>,
+	var_pop?: ValueTypes["news_comments_var_pop_order_by"] | undefined | null | Variable<any, string>,
+	var_samp?: ValueTypes["news_comments_var_samp_order_by"] | undefined | null | Variable<any, string>,
+	variance?: ValueTypes["news_comments_variance_order_by"] | undefined | null | Variable<any, string>
+};
+	/** input type for inserting array relation for remote table "news_comments" */
+["news_comments_arr_rel_insert_input"]: {
+	data: Array<ValueTypes["news_comments_insert_input"]> | Variable<any, string>,
+	/** upsert condition */
+	on_conflict?: ValueTypes["news_comments_on_conflict"] | undefined | null | Variable<any, string>
+};
+	/** aggregate avg on columns */
+["news_comments_avg_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by avg() on columns of table "news_comments" */
+["news_comments_avg_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** Boolean expression to filter rows from the table "news_comments". All fields are combined with a logical 'AND'. */
+["news_comments_bool_exp"]: {
+	_and?: Array<ValueTypes["news_comments_bool_exp"]> | undefined | null | Variable<any, string>,
+	_not?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>,
+	_or?: Array<ValueTypes["news_comments_bool_exp"]> | undefined | null | Variable<any, string>,
+	article?: ValueTypes["news_articles_bool_exp"] | undefined | null | Variable<any, string>,
+	article_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	author?: ValueTypes["players_bool_exp"] | undefined | null | Variable<any, string>,
+	author_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	body?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	deleted_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	edited_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	hidden_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["bigint_comparison_exp"] | undefined | null | Variable<any, string>,
+	hidden_reason?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	parent?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>,
+	parent_id?: ValueTypes["uuid_comparison_exp"] | undefined | null | Variable<any, string>,
+	replies?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>,
+	replies_aggregate?: ValueTypes["news_comments_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
+	reply_notified_at?: ValueTypes["timestamptz_comparison_exp"] | undefined | null | Variable<any, string>,
+	text?: ValueTypes["String_comparison_exp"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["Int_comparison_exp"] | undefined | null | Variable<any, string>,
+	votes?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>,
+	votes_aggregate?: ValueTypes["news_comment_votes_aggregate_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** unique or primary key constraints on table "news_comments" */
+["news_comments_constraint"]:news_comments_constraint;
+	/** input type for incrementing numeric columns in table "news_comments" */
+["news_comments_inc_input"]: {
+	author_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	vote_count?: number | undefined | null | Variable<any, string>
+};
+	/** input type for inserting data into table "news_comments" */
+["news_comments_insert_input"]: {
+	article?: ValueTypes["news_articles_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	article_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	author?: ValueTypes["players_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	author_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	body?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	edited_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	hidden_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	hidden_reason?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	parent?: ValueTypes["news_comments_obj_rel_insert_input"] | undefined | null | Variable<any, string>,
+	parent_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	replies?: ValueTypes["news_comments_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
+	reply_notified_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	vote_count?: number | undefined | null | Variable<any, string>,
+	votes?: ValueTypes["news_comment_votes_arr_rel_insert_input"] | undefined | null | Variable<any, string>
+};
+	/** aggregate max on columns */
+["news_comments_max_fields"]: AliasType<{
+	article_id?:boolean | `@${string}`,
+	author_steam_id?:boolean | `@${string}`,
+	body?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	hidden_reason?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	parent_id?:boolean | `@${string}`,
+	reply_notified_at?:boolean | `@${string}`,
+	/** The comment text as this viewer may see it. */
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by max() on columns of table "news_comments" */
+["news_comments_max_order_by"]: {
+	article_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	body?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	deleted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	edited_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_reason?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parent_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	reply_notified_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate min on columns */
+["news_comments_min_fields"]: AliasType<{
+	article_id?:boolean | `@${string}`,
+	author_steam_id?:boolean | `@${string}`,
+	body?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	hidden_reason?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	parent_id?:boolean | `@${string}`,
+	reply_notified_at?:boolean | `@${string}`,
+	/** The comment text as this viewer may see it. */
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by min() on columns of table "news_comments" */
+["news_comments_min_order_by"]: {
+	article_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	body?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	deleted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	edited_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_reason?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parent_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	reply_notified_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** response of any mutation on the table "news_comments" */
+["news_comments_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ValueTypes["news_comments"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** input type for inserting object relation for remote table "news_comments" */
+["news_comments_obj_rel_insert_input"]: {
+	data: ValueTypes["news_comments_insert_input"] | Variable<any, string>,
+	/** upsert condition */
+	on_conflict?: ValueTypes["news_comments_on_conflict"] | undefined | null | Variable<any, string>
+};
+	/** on_conflict condition type for table "news_comments" */
+["news_comments_on_conflict"]: {
+	constraint: ValueTypes["news_comments_constraint"] | Variable<any, string>,
+	update_columns: Array<ValueTypes["news_comments_update_column"]> | Variable<any, string>,
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>
+};
+	/** Ordering options when selecting data from "news_comments". */
+["news_comments_order_by"]: {
+	article?: ValueTypes["news_articles_order_by"] | undefined | null | Variable<any, string>,
+	article_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	author?: ValueTypes["players_order_by"] | undefined | null | Variable<any, string>,
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	body?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	deleted_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	edited_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_reason?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	parent?: ValueTypes["news_comments_order_by"] | undefined | null | Variable<any, string>,
+	parent_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	replies_aggregate?: ValueTypes["news_comments_aggregate_order_by"] | undefined | null | Variable<any, string>,
+	reply_notified_at?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	text?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	votes_aggregate?: ValueTypes["news_comment_votes_aggregate_order_by"] | undefined | null | Variable<any, string>
+};
+	/** primary key columns input for table: news_comments */
+["news_comments_pk_columns_input"]: {
+	id: ValueTypes["uuid"] | Variable<any, string>
+};
+	/** select columns of table "news_comments" */
+["news_comments_select_column"]:news_comments_select_column;
+	/** input type for updating data in table "news_comments" */
+["news_comments_set_input"]: {
+	article_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	author_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	body?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	edited_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	hidden_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	hidden_reason?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	parent_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	reply_notified_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	vote_count?: number | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev on columns */
+["news_comments_stddev_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev() on columns of table "news_comments" */
+["news_comments_stddev_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev_pop on columns */
+["news_comments_stddev_pop_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_pop() on columns of table "news_comments" */
+["news_comments_stddev_pop_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate stddev_samp on columns */
+["news_comments_stddev_samp_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_samp() on columns of table "news_comments" */
+["news_comments_stddev_samp_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** Streaming cursor of the table "news_comments" */
+["news_comments_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ValueTypes["news_comments_stream_cursor_value_input"] | Variable<any, string>,
+	/** cursor ordering */
+	ordering?: ValueTypes["cursor_ordering"] | undefined | null | Variable<any, string>
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comments_stream_cursor_value_input"]: {
+	article_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	author_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	body?: string | undefined | null | Variable<any, string>,
+	created_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	deleted_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	edited_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	hidden_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["bigint"] | undefined | null | Variable<any, string>,
+	hidden_reason?: string | undefined | null | Variable<any, string>,
+	id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	parent_id?: ValueTypes["uuid"] | undefined | null | Variable<any, string>,
+	reply_notified_at?: ValueTypes["timestamptz"] | undefined | null | Variable<any, string>,
+	vote_count?: number | undefined | null | Variable<any, string>
+};
+	/** aggregate sum on columns */
+["news_comments_sum_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by sum() on columns of table "news_comments" */
+["news_comments_sum_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** update columns of table "news_comments" */
+["news_comments_update_column"]:news_comments_update_column;
+	["news_comments_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ValueTypes["news_comments_inc_input"] | undefined | null | Variable<any, string>,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ValueTypes["news_comments_set_input"] | undefined | null | Variable<any, string>,
+	/** filter the rows which have to be updated */
+	where: ValueTypes["news_comments_bool_exp"] | Variable<any, string>
+};
+	/** aggregate var_pop on columns */
+["news_comments_var_pop_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_pop() on columns of table "news_comments" */
+["news_comments_var_pop_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate var_samp on columns */
+["news_comments_var_samp_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_samp() on columns of table "news_comments" */
+["news_comments_var_samp_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
+	/** aggregate variance on columns */
+["news_comments_variance_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by variance() on columns of table "news_comments" */
+["news_comments_variance_order_by"]: {
+	author_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	hidden_by_steam_id?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
+	vote_count?: ValueTypes["order_by"] | undefined | null | Variable<any, string>
+};
 	/** columns and relationships of "notifications" */
 ["notifications"]: AliasType<{
 actions?: [{	/** JSON select path */
@@ -41235,7 +42199,6 @@ count?: [{	columns?: Array<ValueTypes["player_sanctions_select_column"]> | undef
 };
 	/** primary key columns input for table: player_sanctions */
 ["player_sanctions_pk_columns_input"]: {
-	created_at: ValueTypes["timestamptz"] | Variable<any, string>,
 	id: ValueTypes["uuid"] | Variable<any, string>
 };
 	/** select columns of table "player_sanctions" */
@@ -43652,6 +44615,7 @@ aim_weapon_stats_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["player_aim_weapon_stats_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["player_aim_weapon_stats_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["player_aim_weapon_stats_aggregate"]],
+	allow_message_requests?:boolean | `@${string}`,
 	api_key_enabled?:boolean | `@${string}`,
 assists?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["player_assists_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
@@ -44255,6 +45219,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 	abandoned_matches_aggregate?: ValueTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats?: ValueTypes["player_aim_weapon_stats_bool_exp"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats_aggregate?: ValueTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
+	allow_message_requests?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	api_key_enabled?: ValueTypes["Boolean_comparison_exp"] | undefined | null | Variable<any, string>,
 	assists?: ValueTypes["player_assists_bool_exp"] | undefined | null | Variable<any, string>,
 	assists_aggregate?: ValueTypes["player_assists_aggregate_bool_exp"] | undefined | null | Variable<any, string>,
@@ -44407,6 +45372,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 ["players_insert_input"]: {
 	abandoned_matches?: ValueTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats?: ValueTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
+	allow_message_requests?: boolean | undefined | null | Variable<any, string>,
 	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	assists?: ValueTypes["player_assists_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
 	assited_by_players?: ValueTypes["player_assists_arr_rel_insert_input"] | undefined | null | Variable<any, string>,
@@ -44627,6 +45593,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 ["players_order_by"]: {
 	abandoned_matches_aggregate?: ValueTypes["abandoned_matches_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	aim_weapon_stats_aggregate?: ValueTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null | Variable<any, string>,
+	allow_message_requests?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	api_key_enabled?: ValueTypes["order_by"] | undefined | null | Variable<any, string>,
 	assists_aggregate?: ValueTypes["player_assists_aggregate_order_by"] | undefined | null | Variable<any, string>,
 	assited_by_players_aggregate?: ValueTypes["player_assists_aggregate_order_by"] | undefined | null | Variable<any, string>,
@@ -44733,6 +45700,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 ["players_select_column"]:players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
+	allow_message_requests?: boolean | undefined | null | Variable<any, string>,
 	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	country?: string | undefined | null | Variable<any, string>,
@@ -44870,6 +45838,7 @@ count?: [{	columns?: Array<ValueTypes["players_select_column"]> | undefined | nu
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
+	allow_message_requests?: boolean | undefined | null | Variable<any, string>,
 	api_key_enabled?: boolean | undefined | null | Variable<any, string>,
 	avatar_url?: string | undefined | null | Variable<any, string>,
 	country?: string | undefined | null | Variable<any, string>,
@@ -46863,6 +47832,19 @@ lobby_players_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ValueTypes["lobby_players_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["lobby_players_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobby_players_aggregate"]],
 lobby_players_by_pk?: [{	lobby_id: ValueTypes["uuid"] | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["lobby_players"]],
+map_callouts?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["map_callouts_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["map_callouts_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["map_callouts_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["map_callouts"]],
+map_callouts_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["map_callouts_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["map_callouts_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["map_callouts_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["map_callouts_aggregate"]],
+map_callouts_by_pk?: [{	map_name: string | Variable<any, string>,	name: string | Variable<any, string>},ValueTypes["map_callouts"]],
 map_pools?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["map_pools_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -47126,6 +48108,32 @@ news_articles_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ValueTypes["news_articles_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["news_articles_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_articles_aggregate"]],
 news_articles_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["news_articles"]],
+news_comment_votes?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comment_votes_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes"]],
+news_comment_votes_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comment_votes_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes_aggregate"]],
+news_comment_votes_by_pk?: [{	comment_id: ValueTypes["uuid"] | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["news_comment_votes"]],
+news_comments?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comments_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comments"]],
+news_comments_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comments_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comments_aggregate"]],
+news_comments_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["news_comments"]],
 notifications?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["notifications_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -47406,7 +48414,7 @@ player_sanctions_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["player_sanctions_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["player_sanctions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["player_sanctions_aggregate"]],
-player_sanctions_by_pk?: [{	created_at: ValueTypes["timestamptz"] | Variable<any, string>,	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_sanctions"]],
+player_sanctions_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_sanctions"]],
 player_season_stats?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["player_season_stats_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -51691,6 +52699,23 @@ lobby_players_stream?: [{	/** maximum number of rows returned in a single batch 
 	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
 	cursor: Array<ValueTypes["lobby_players_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["lobby_players_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["lobby_players"]],
+map_callouts?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["map_callouts_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["map_callouts_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["map_callouts_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["map_callouts"]],
+map_callouts_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["map_callouts_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["map_callouts_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["map_callouts_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["map_callouts_aggregate"]],
+map_callouts_by_pk?: [{	map_name: string | Variable<any, string>,	name: string | Variable<any, string>},ValueTypes["map_callouts"]],
+map_callouts_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["map_callouts_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["map_callouts_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["map_callouts"]],
 map_pools?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["map_pools_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -52029,6 +53054,40 @@ news_articles_stream?: [{	/** maximum number of rows returned in a single batch 
 	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
 	cursor: Array<ValueTypes["news_articles_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["news_articles_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_articles"]],
+news_comment_votes?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comment_votes_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes"]],
+news_comment_votes_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comment_votes_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comment_votes_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes_aggregate"]],
+news_comment_votes_by_pk?: [{	comment_id: ValueTypes["uuid"] | Variable<any, string>,	steam_id: ValueTypes["bigint"] | Variable<any, string>},ValueTypes["news_comment_votes"]],
+news_comment_votes_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["news_comment_votes_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comment_votes_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comment_votes"]],
+news_comments?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comments_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comments"]],
+news_comments_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ValueTypes["news_comments_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
+	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
+	order_by?: Array<ValueTypes["news_comments_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comments_aggregate"]],
+news_comments_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["news_comments"]],
+news_comments_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
+	cursor: Array<ValueTypes["news_comments_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
+	where?: ValueTypes["news_comments_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["news_comments"]],
 notifications?: [{	/** distinct select on columns */
 	distinct_on?: Array<ValueTypes["notifications_select_column"]> | undefined | null | Variable<any, string>,	/** limit the number of rows returned */
 	limit?: number | undefined | null | Variable<any, string>,	/** skip the first n rows. Use only with order_by */
@@ -52393,7 +53452,7 @@ player_sanctions_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null | Variable<any, string>,	/** sort the rows by one or more columns */
 	order_by?: Array<ValueTypes["player_sanctions_order_by"]> | undefined | null | Variable<any, string>,	/** filter the rows returned */
 	where?: ValueTypes["player_sanctions_bool_exp"] | undefined | null | Variable<any, string>},ValueTypes["player_sanctions_aggregate"]],
-player_sanctions_by_pk?: [{	created_at: ValueTypes["timestamptz"] | Variable<any, string>,	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_sanctions"]],
+player_sanctions_by_pk?: [{	id: ValueTypes["uuid"] | Variable<any, string>},ValueTypes["player_sanctions"]],
 player_sanctions_stream?: [{	/** maximum number of rows returned in a single batch */
 	batch_size: number | Variable<any, string>,	/** cursor to stream the results returned by the query */
 	cursor: Array<ValueTypes["player_sanctions_stream_cursor_input"] | undefined | null> | Variable<any, string>,	/** filter the rows returned */
@@ -75636,6 +76695,24 @@ export type ResolverInputTypes = {
 	time?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	["NewsCommentOutput"]: AliasType<{
+	article_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	parent_id?:boolean | `@${string}`,
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["NewsCommentVoteOutput"]: AliasType<{
+	comment_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+	voted?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
 	["NewsPost"]: AliasType<{
 	author_steam_id?:boolean | `@${string}`,
 	content_markdown?:boolean | `@${string}`,
@@ -75750,6 +76827,11 @@ export type ResolverInputTypes = {
 	running?:boolean | `@${string}`,
 	started_at?:boolean | `@${string}`,
 	total?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	["RecreateTournamentBracketMatchOutput"]: AliasType<{
+	match_id?:boolean | `@${string}`,
+	success?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
 	["ReindexStartedOutput"]: AliasType<{
@@ -93795,6 +94877,156 @@ count?: [{	columns?: Array<ResolverInputTypes["lobby_players_select_column"]> | 
 	invited_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
 	steam_id?: ResolverInputTypes["order_by"] | undefined | null
 };
+	/** columns and relationships of "map_callouts" */
+["map_callouts"]: AliasType<{
+boxes?: [{	/** JSON select path */
+	path?: string | undefined | null},boolean | `@${string}`],
+	map_name?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	source?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "map_callouts" */
+["map_callouts_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["map_callouts_aggregate_fields"],
+	nodes?:ResolverInputTypes["map_callouts"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate fields of "map_callouts" */
+["map_callouts_aggregate_fields"]: AliasType<{
+count?: [{	columns?: Array<ResolverInputTypes["map_callouts_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["map_callouts_max_fields"],
+	min?:ResolverInputTypes["map_callouts_min_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** append existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_append_input"]: {
+	boxes?: ResolverInputTypes["jsonb"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "map_callouts". All fields are combined with a logical 'AND'. */
+["map_callouts_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["map_callouts_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["map_callouts_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["map_callouts_bool_exp"]> | undefined | null,
+	boxes?: ResolverInputTypes["jsonb_comparison_exp"] | undefined | null,
+	map_name?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	name?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	source?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "map_callouts" */
+["map_callouts_constraint"]:map_callouts_constraint;
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+["map_callouts_delete_at_path_input"]: {
+	boxes?: Array<string> | undefined | null
+};
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+["map_callouts_delete_elem_input"]: {
+	boxes?: number | undefined | null
+};
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+["map_callouts_delete_key_input"]: {
+	boxes?: string | undefined | null
+};
+	/** input type for inserting data into table "map_callouts" */
+["map_callouts_insert_input"]: {
+	boxes?: ResolverInputTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["map_callouts_max_fields"]: AliasType<{
+	map_name?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	source?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregate min on columns */
+["map_callouts_min_fields"]: AliasType<{
+	map_name?:boolean | `@${string}`,
+	name?:boolean | `@${string}`,
+	source?:boolean | `@${string}`,
+	updated_at?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** response of any mutation on the table "map_callouts" */
+["map_callouts_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["map_callouts"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "map_callouts" */
+["map_callouts_on_conflict"]: {
+	constraint: ResolverInputTypes["map_callouts_constraint"],
+	update_columns: Array<ResolverInputTypes["map_callouts_update_column"]>,
+	where?: ResolverInputTypes["map_callouts_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "map_callouts". */
+["map_callouts_order_by"]: {
+	boxes?: ResolverInputTypes["order_by"] | undefined | null,
+	map_name?: ResolverInputTypes["order_by"] | undefined | null,
+	name?: ResolverInputTypes["order_by"] | undefined | null,
+	source?: ResolverInputTypes["order_by"] | undefined | null,
+	updated_at?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: map_callouts */
+["map_callouts_pk_columns_input"]: {
+	map_name: string,
+	name: string
+};
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_prepend_input"]: {
+	boxes?: ResolverInputTypes["jsonb"] | undefined | null
+};
+	/** select columns of table "map_callouts" */
+["map_callouts_select_column"]:map_callouts_select_column;
+	/** input type for updating data in table "map_callouts" */
+["map_callouts_set_input"]: {
+	boxes?: ResolverInputTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** Streaming cursor of the table "map_callouts" */
+["map_callouts_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["map_callouts_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["map_callouts_stream_cursor_value_input"]: {
+	boxes?: ResolverInputTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ResolverInputTypes["timestamptz"] | undefined | null
+};
+	/** update columns of table "map_callouts" */
+["map_callouts_update_column"]:map_callouts_update_column;
+	["map_callouts_updates"]: {
+	/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: ResolverInputTypes["map_callouts_append_input"] | undefined | null,
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: ResolverInputTypes["map_callouts_delete_at_path_input"] | undefined | null,
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: ResolverInputTypes["map_callouts_delete_elem_input"] | undefined | null,
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: ResolverInputTypes["map_callouts_delete_key_input"] | undefined | null,
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: ResolverInputTypes["map_callouts_prepend_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["map_callouts_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["map_callouts_bool_exp"]
+};
 	/** columns and relationships of "map_pools" */
 ["map_pools"]: AliasType<{
 	/** An object relationship */
@@ -96098,10 +97330,12 @@ match_clips_aggregate?: [{	/** distinct select on columns */
 	match_map?:ResolverInputTypes["match_maps"],
 	match_map_id?:boolean | `@${string}`,
 	metadata_parsed_at?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_file?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 players?: [{	/** JSON select path */
 	path?: string | undefined | null},boolean | `@${string}`],
 round_ticks?: [{	/** JSON select path */
@@ -96186,7 +97420,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate avg on columns */
 ["match_map_demos_avg_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96195,7 +97431,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by avg() on columns of table "match_map_demos" */
 ["match_map_demos_avg_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -96226,9 +97464,11 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_map?: ResolverInputTypes["match_maps_bool_exp"] | undefined | null,
 	match_map_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
 	metadata_parsed_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	parser_version?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	playback_file?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
 	playback_size?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	playback_url?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	playback_version?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
 	players?: ResolverInputTypes["jsonb_comparison_exp"] | undefined | null,
 	round_ticks?: ResolverInputTypes["jsonb_comparison_exp"] | undefined | null,
 	size?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
@@ -96261,7 +97501,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 };
 	/** input type for incrementing numeric columns in table "match_map_demos" */
 ["match_map_demos_inc_input"]: {
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -96284,8 +97526,10 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_map?: ResolverInputTypes["match_maps_obj_rel_insert_input"] | undefined | null,
 	match_map_id?: ResolverInputTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: ResolverInputTypes["jsonb"] | undefined | null,
 	round_ticks?: ResolverInputTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -96306,10 +97550,12 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_id?:boolean | `@${string}`,
 	match_map_id?:boolean | `@${string}`,
 	metadata_parsed_at?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_file?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96327,8 +97573,10 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_id?: ResolverInputTypes["order_by"] | undefined | null,
 	match_map_id?: ResolverInputTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_file?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null,
@@ -96347,10 +97595,12 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_id?:boolean | `@${string}`,
 	match_map_id?:boolean | `@${string}`,
 	metadata_parsed_at?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_file?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96368,8 +97618,10 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_id?: ResolverInputTypes["order_by"] | undefined | null,
 	match_map_id?: ResolverInputTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_file?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null,
@@ -96415,9 +97667,11 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_map?: ResolverInputTypes["match_maps_order_by"] | undefined | null,
 	match_map_id?: ResolverInputTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_file?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_url?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	players?: ResolverInputTypes["order_by"] | undefined | null,
 	round_ticks?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
@@ -96455,8 +97709,10 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_id?: ResolverInputTypes["uuid"] | undefined | null,
 	match_map_id?: ResolverInputTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: ResolverInputTypes["jsonb"] | undefined | null,
 	round_ticks?: ResolverInputTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -96467,7 +97723,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate stddev on columns */
 ["match_map_demos_stddev_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96476,7 +97734,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by stddev() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -96484,7 +97744,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate stddev_pop on columns */
 ["match_map_demos_stddev_pop_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96493,7 +97755,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by stddev_pop() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_pop_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -96501,7 +97765,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate stddev_samp on columns */
 ["match_map_demos_stddev_samp_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96510,7 +97776,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by stddev_samp() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_samp_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -96536,8 +97804,10 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	match_id?: ResolverInputTypes["uuid"] | undefined | null,
 	match_map_id?: ResolverInputTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: ResolverInputTypes["jsonb"] | undefined | null,
 	round_ticks?: ResolverInputTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -96548,7 +97818,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate sum on columns */
 ["match_map_demos_sum_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96557,7 +97829,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by sum() on columns of table "match_map_demos" */
 ["match_map_demos_sum_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -96585,7 +97859,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate var_pop on columns */
 ["match_map_demos_var_pop_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96594,7 +97870,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by var_pop() on columns of table "match_map_demos" */
 ["match_map_demos_var_pop_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -96602,7 +97880,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate var_samp on columns */
 ["match_map_demos_var_samp_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96611,7 +97891,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by var_samp() on columns of table "match_map_demos" */
 ["match_map_demos_var_samp_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -96619,7 +97901,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** aggregate variance on columns */
 ["match_map_demos_variance_fields"]: AliasType<{
 	duration_seconds?:boolean | `@${string}`,
+	parser_version?:boolean | `@${string}`,
 	playback_size?:boolean | `@${string}`,
+	playback_version?:boolean | `@${string}`,
 	size?:boolean | `@${string}`,
 	tick_rate?:boolean | `@${string}`,
 	total_ticks?:boolean | `@${string}`,
@@ -96628,7 +97912,9 @@ count?: [{	columns?: Array<ResolverInputTypes["match_map_demos_select_column"]> 
 	/** order by variance() on columns of table "match_map_demos" */
 ["match_map_demos_variance_order_by"]: {
 	duration_seconds?: ResolverInputTypes["order_by"] | undefined | null,
+	parser_version?: ResolverInputTypes["order_by"] | undefined | null,
 	playback_size?: ResolverInputTypes["order_by"] | undefined | null,
+	playback_version?: ResolverInputTypes["order_by"] | undefined | null,
 	size?: ResolverInputTypes["order_by"] | undefined | null,
 	tick_rate?: ResolverInputTypes["order_by"] | undefined | null,
 	total_ticks?: ResolverInputTypes["order_by"] | undefined | null
@@ -100290,6 +101576,7 @@ count?: [{	columns?: Array<ResolverInputTypes["migration_hashes_hashes_select_co
 	/** mutation root */
 ["mutation_root"]: AliasType<{
 PreviewTournamentMatchReset?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["PreviewTournamentMatchResetOutput"]],
+RecreateTournamentBracketMatch?: [{	bracket_id: ResolverInputTypes["uuid"],	scheduled_at?: ResolverInputTypes["timestamptz"] | undefined | null},ResolverInputTypes["RecreateTournamentBracketMatchOutput"]],
 ResetTournamentMatch?: [{	match_id: ResolverInputTypes["uuid"],	reset_status?: string | undefined | null,	scheduled_at?: ResolverInputTypes["timestamptz"] | undefined | null,	winning_lineup_id?: ResolverInputTypes["uuid"] | undefined | null},ResolverInputTypes["SuccessOutput"]],
 acceptInvite?: [{	invite_id: ResolverInputTypes["uuid"],	type: string},ResolverInputTypes["SuccessOutput"]],
 	/** accept the current Terms of Service / Rules version for the authenticated player */
@@ -100359,6 +101646,7 @@ createTournamentInviteCode?: [{	expires_in_minutes?: number | undefined | null,	
 deleteAward?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 deleteClip?: [{	clip_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 deleteMatch?: [{	match_id: string},ResolverInputTypes["SuccessOutput"]],
+deleteNewsComment?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 deleteNewsPost?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 deleteOrphanedDemos?: [{	keys?: Array<string> | undefined | null},ResolverInputTypes["DeleteOrphansOutput"]],
 deleteServerItem?: [{	node_id: string,	path: string,	server_id?: string | undefined | null},ResolverInputTypes["SuccessOutput"]],
@@ -100635,6 +101923,9 @@ delete_lobby_camera_tokens_by_pk?: [{	token: ResolverInputTypes["uuid"]},Resolve
 delete_lobby_players?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["lobby_players_bool_exp"]},ResolverInputTypes["lobby_players_mutation_response"]],
 delete_lobby_players_by_pk?: [{	lobby_id: ResolverInputTypes["uuid"],	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["lobby_players"]],
+delete_map_callouts?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["map_callouts_bool_exp"]},ResolverInputTypes["map_callouts_mutation_response"]],
+delete_map_callouts_by_pk?: [{	map_name: string,	name: string},ResolverInputTypes["map_callouts"]],
 delete_map_pools?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["map_pools_bool_exp"]},ResolverInputTypes["map_pools_mutation_response"]],
 delete_map_pools_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["map_pools"]],
@@ -100693,6 +101984,12 @@ delete_my_friends?: [{	/** filter the rows which have to be deleted */
 delete_news_articles?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["news_articles_bool_exp"]},ResolverInputTypes["news_articles_mutation_response"]],
 delete_news_articles_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["news_articles"]],
+delete_news_comment_votes?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["news_comment_votes_bool_exp"]},ResolverInputTypes["news_comment_votes_mutation_response"]],
+delete_news_comment_votes_by_pk?: [{	comment_id: ResolverInputTypes["uuid"],	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["news_comment_votes"]],
+delete_news_comments?: [{	/** filter the rows which have to be deleted */
+	where: ResolverInputTypes["news_comments_bool_exp"]},ResolverInputTypes["news_comments_mutation_response"]],
+delete_news_comments_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["news_comments"]],
 delete_notifications?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["notifications_bool_exp"]},ResolverInputTypes["notifications_mutation_response"]],
 delete_notifications_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["notifications"]],
@@ -100745,7 +102042,7 @@ delete_player_premier_rank_history?: [{	/** filter the rows which have to be del
 delete_player_premier_rank_history_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_premier_rank_history"]],
 delete_player_sanctions?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["player_sanctions_bool_exp"]},ResolverInputTypes["player_sanctions_mutation_response"]],
-delete_player_sanctions_by_pk?: [{	created_at: ResolverInputTypes["timestamptz"],	id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_sanctions"]],
+delete_player_sanctions_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_sanctions"]],
 delete_player_season_stats?: [{	/** filter the rows which have to be deleted */
 	where: ResolverInputTypes["player_season_stats_bool_exp"]},ResolverInputTypes["player_season_stats_mutation_response"]],
 delete_player_season_stats_by_pk?: [{	player_steam_id: ResolverInputTypes["bigint"],	season_id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_season_stats"]],
@@ -100921,6 +102218,7 @@ delete_verification_call_tokens_by_pk?: [{	token: ResolverInputTypes["uuid"]},Re
 denyInvite?: [{	invite_id: ResolverInputTypes["uuid"],	type: string},ResolverInputTypes["SuccessOutput"]],
 denyNameChange?: [{	name: string,	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["SuccessOutput"]],
 draftTournamentTeams?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["TournamentDraftOutput"]],
+editNewsComment?: [{	body: string,	id: ResolverInputTypes["uuid"]},ResolverInputTypes["NewsCommentOutput"]],
 extendTournamentCheckIn?: [{	minutes: number,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 forfeitMatch?: [{	match_id: ResolverInputTypes["uuid"],	winning_lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 generateTournamentTeams?: [{	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["GenerateTournamentTeamsOutput"]],
@@ -101471,6 +102769,12 @@ insert_lobby_players?: [{	/** the rows to be inserted */
 insert_lobby_players_one?: [{	/** the row to be inserted */
 	object: ResolverInputTypes["lobby_players_insert_input"],	/** upsert condition */
 	on_conflict?: ResolverInputTypes["lobby_players_on_conflict"] | undefined | null},ResolverInputTypes["lobby_players"]],
+insert_map_callouts?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["map_callouts_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["map_callouts_on_conflict"] | undefined | null},ResolverInputTypes["map_callouts_mutation_response"]],
+insert_map_callouts_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["map_callouts_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["map_callouts_on_conflict"] | undefined | null},ResolverInputTypes["map_callouts"]],
 insert_map_pools?: [{	/** the rows to be inserted */
 	objects: Array<ResolverInputTypes["map_pools_insert_input"]>,	/** upsert condition */
 	on_conflict?: ResolverInputTypes["map_pools_on_conflict"] | undefined | null},ResolverInputTypes["map_pools_mutation_response"]],
@@ -101587,6 +102891,18 @@ insert_news_articles?: [{	/** the rows to be inserted */
 insert_news_articles_one?: [{	/** the row to be inserted */
 	object: ResolverInputTypes["news_articles_insert_input"],	/** upsert condition */
 	on_conflict?: ResolverInputTypes["news_articles_on_conflict"] | undefined | null},ResolverInputTypes["news_articles"]],
+insert_news_comment_votes?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["news_comment_votes_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_comment_votes_on_conflict"] | undefined | null},ResolverInputTypes["news_comment_votes_mutation_response"]],
+insert_news_comment_votes_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["news_comment_votes_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_comment_votes_on_conflict"] | undefined | null},ResolverInputTypes["news_comment_votes"]],
+insert_news_comments?: [{	/** the rows to be inserted */
+	objects: Array<ResolverInputTypes["news_comments_insert_input"]>,	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_comments_on_conflict"] | undefined | null},ResolverInputTypes["news_comments_mutation_response"]],
+insert_news_comments_one?: [{	/** the row to be inserted */
+	object: ResolverInputTypes["news_comments_insert_input"],	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_comments_on_conflict"] | undefined | null},ResolverInputTypes["news_comments"]],
 insert_notifications?: [{	/** the rows to be inserted */
 	objects: Array<ResolverInputTypes["notifications_insert_input"]>,	/** upsert condition */
 	on_conflict?: ResolverInputTypes["notifications_on_conflict"] | undefined | null},ResolverInputTypes["notifications_mutation_response"]],
@@ -102062,6 +103378,7 @@ moveServerItem?: [{	dest_path: string,	node_id: string,	server_id?: string | und
 	orphanedDemosScanResult?:ResolverInputTypes["OrphanScanResultOutput"],
 pauseClipRenderBatch?: [{	match_map_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 	pollSteamMatchHistory?:ResolverInputTypes["SteamMatchHistoryPollOutput"],
+postNewsComment?: [{	article_id: ResolverInputTypes["uuid"],	body: string,	parent_id?: ResolverInputTypes["uuid"] | undefined | null},ResolverInputTypes["NewsCommentOutput"]],
 previewDraftGame?: [{	draftGameId: ResolverInputTypes["uuid"],	inviteCode?: string | undefined | null},ResolverInputTypes["DraftGamePreviewOutput"]],
 queueClipFromPreset?: [{	fps?: number | undefined | null,	match_map_id: ResolverInputTypes["uuid"],	preset: string,	resolution?: string | undefined | null,	target_name?: string | undefined | null,	target_steam_id: string,	title?: string | undefined | null},ResolverInputTypes["CreateClipRenderOutput"]],
 randomizeTeams?: [{	match_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -102160,6 +103477,7 @@ setHudMode?: [{	match_id: ResolverInputTypes["uuid"],	mode: string},ResolverInpu
 setMapWinner?: [{	match_id: ResolverInputTypes["uuid"],	match_map_id: ResolverInputTypes["uuid"],	winning_lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
 setMatchStartingLineup?: [{	match_id: ResolverInputTypes["uuid"],	match_lineup_id: ResolverInputTypes["uuid"],	steam_ids: Array<string>},ResolverInputTypes["SuccessOutput"]],
 setMatchWinner?: [{	match_id: ResolverInputTypes["uuid"],	winning_lineup_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
+setNewsCommentHidden?: [{	hidden: boolean,	id: ResolverInputTypes["uuid"],	reason?: string | undefined | null},ResolverInputTypes["NewsCommentOutput"]],
 setNewsPostStatus?: [{	id: ResolverInputTypes["uuid"],	status: string},ResolverInputTypes["NewsPost"]],
 setTournamentAward?: [{	award_id?: ResolverInputTypes["uuid"] | undefined | null,	custom_name?: string | undefined | null,	placement: number,	silhouette?: number | undefined | null,	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["TournamentAward"]],
 setTournamentMvp?: [{	note?: string | undefined | null,	player_steam_id: ResolverInputTypes["bigint"],	tournament_id: ResolverInputTypes["uuid"]},ResolverInputTypes["SuccessOutput"]],
@@ -102189,6 +103507,7 @@ switchLiveMatch?: [{	from_match_id: ResolverInputTypes["uuid"],	mode: string,	to
 	/** Test FACEIT Data + Downloads API connectivity for the current admin */
 	testFaceitIntegration?:ResolverInputTypes["FaceitTestOutput"],
 	testUpload?:ResolverInputTypes["TestUploadResponse"],
+toggleNewsCommentVote?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["NewsCommentVoteOutput"]],
 	unlinkDiscord?:ResolverInputTypes["SuccessOutput"],
 	unlinkSteamMatchHistory?:ResolverInputTypes["SuccessOutput"],
 unsanctionServerPlayer?: [{	serverId?: string | undefined | null,	steam_id: string,	type: string},ResolverInputTypes["SanctionResult"]],
@@ -102958,6 +104277,23 @@ update_lobby_players_by_pk?: [{	/** increments the numeric columns with given va
 	_set?: ResolverInputTypes["lobby_players_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["lobby_players_pk_columns_input"]},ResolverInputTypes["lobby_players"]],
 update_lobby_players_many?: [{	/** updates to execute, in order */
 	updates: Array<ResolverInputTypes["lobby_players_updates"]>},ResolverInputTypes["lobby_players_mutation_response"]],
+update_map_callouts?: [{	/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: ResolverInputTypes["map_callouts_append_input"] | undefined | null,	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: ResolverInputTypes["map_callouts_delete_at_path_input"] | undefined | null,	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: ResolverInputTypes["map_callouts_delete_elem_input"] | undefined | null,	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: ResolverInputTypes["map_callouts_delete_key_input"] | undefined | null,	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: ResolverInputTypes["map_callouts_prepend_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["map_callouts_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["map_callouts_bool_exp"]},ResolverInputTypes["map_callouts_mutation_response"]],
+update_map_callouts_by_pk?: [{	/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: ResolverInputTypes["map_callouts_append_input"] | undefined | null,	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: ResolverInputTypes["map_callouts_delete_at_path_input"] | undefined | null,	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: ResolverInputTypes["map_callouts_delete_elem_input"] | undefined | null,	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: ResolverInputTypes["map_callouts_delete_key_input"] | undefined | null,	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: ResolverInputTypes["map_callouts_prepend_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["map_callouts_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["map_callouts_pk_columns_input"]},ResolverInputTypes["map_callouts"]],
+update_map_callouts_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["map_callouts_updates"]>},ResolverInputTypes["map_callouts_mutation_response"]],
 update_map_pools?: [{	/** sets the columns of the filtered rows to the given values */
 	_set?: ResolverInputTypes["map_pools_set_input"] | undefined | null,	/** filter the rows which have to be updated */
 	where: ResolverInputTypes["map_pools_bool_exp"]},ResolverInputTypes["map_pools_mutation_response"]],
@@ -103149,6 +104485,24 @@ update_news_articles_by_pk?: [{	/** increments the numeric columns with given va
 	_set?: ResolverInputTypes["news_articles_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["news_articles_pk_columns_input"]},ResolverInputTypes["news_articles"]],
 update_news_articles_many?: [{	/** updates to execute, in order */
 	updates: Array<ResolverInputTypes["news_articles_updates"]>},ResolverInputTypes["news_articles_mutation_response"]],
+update_news_comment_votes?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["news_comment_votes_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["news_comment_votes_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["news_comment_votes_bool_exp"]},ResolverInputTypes["news_comment_votes_mutation_response"]],
+update_news_comment_votes_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["news_comment_votes_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["news_comment_votes_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["news_comment_votes_pk_columns_input"]},ResolverInputTypes["news_comment_votes"]],
+update_news_comment_votes_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["news_comment_votes_updates"]>},ResolverInputTypes["news_comment_votes_mutation_response"]],
+update_news_comments?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["news_comments_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["news_comments_set_input"] | undefined | null,	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["news_comments_bool_exp"]},ResolverInputTypes["news_comments_mutation_response"]],
+update_news_comments_by_pk?: [{	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["news_comments_inc_input"] | undefined | null,	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["news_comments_set_input"] | undefined | null,	pk_columns: ResolverInputTypes["news_comments_pk_columns_input"]},ResolverInputTypes["news_comments"]],
+update_news_comments_many?: [{	/** updates to execute, in order */
+	updates: Array<ResolverInputTypes["news_comments_updates"]>},ResolverInputTypes["news_comments_mutation_response"]],
 update_notifications?: [{	/** append existing jsonb value of filtered columns with new jsonb value */
 	_append?: ResolverInputTypes["notifications_append_input"] | undefined | null,	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
 	_delete_at_path?: ResolverInputTypes["notifications_delete_at_path_input"] | undefined | null,	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
@@ -104577,6 +105931,12 @@ count?: [{	columns?: Array<ResolverInputTypes["news_articles_select_column"]> | 
 	returning?:ResolverInputTypes["news_articles"],
 		__typename?: boolean | `@${string}`
 }>;
+	/** input type for inserting object relation for remote table "news_articles" */
+["news_articles_obj_rel_insert_input"]: {
+	data: ResolverInputTypes["news_articles_insert_input"],
+	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_articles_on_conflict"] | undefined | null
+};
 	/** on_conflict condition type for table "news_articles" */
 ["news_articles_on_conflict"]: {
 	constraint: ResolverInputTypes["news_articles_constraint"],
@@ -104694,6 +106054,669 @@ count?: [{	columns?: Array<ResolverInputTypes["news_articles_select_column"]> | 
 	view_count?:boolean | `@${string}`,
 		__typename?: boolean | `@${string}`
 }>;
+	/** columns and relationships of "news_comment_votes" */
+["news_comment_votes"]: AliasType<{
+	/** An object relationship */
+	comment?:ResolverInputTypes["news_comments"],
+	comment_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "news_comment_votes" */
+["news_comment_votes_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["news_comment_votes_aggregate_fields"],
+	nodes?:ResolverInputTypes["news_comment_votes"],
+		__typename?: boolean | `@${string}`
+}>;
+	["news_comment_votes_aggregate_bool_exp"]: {
+	count?: ResolverInputTypes["news_comment_votes_aggregate_bool_exp_count"] | undefined | null
+};
+	["news_comment_votes_aggregate_bool_exp_count"]: {
+	arguments?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "news_comment_votes" */
+["news_comment_votes_aggregate_fields"]: AliasType<{
+	avg?:ResolverInputTypes["news_comment_votes_avg_fields"],
+count?: [{	columns?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["news_comment_votes_max_fields"],
+	min?:ResolverInputTypes["news_comment_votes_min_fields"],
+	stddev?:ResolverInputTypes["news_comment_votes_stddev_fields"],
+	stddev_pop?:ResolverInputTypes["news_comment_votes_stddev_pop_fields"],
+	stddev_samp?:ResolverInputTypes["news_comment_votes_stddev_samp_fields"],
+	sum?:ResolverInputTypes["news_comment_votes_sum_fields"],
+	var_pop?:ResolverInputTypes["news_comment_votes_var_pop_fields"],
+	var_samp?:ResolverInputTypes["news_comment_votes_var_samp_fields"],
+	variance?:ResolverInputTypes["news_comment_votes_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by aggregate values of table "news_comment_votes" */
+["news_comment_votes_aggregate_order_by"]: {
+	avg?: ResolverInputTypes["news_comment_votes_avg_order_by"] | undefined | null,
+	count?: ResolverInputTypes["order_by"] | undefined | null,
+	max?: ResolverInputTypes["news_comment_votes_max_order_by"] | undefined | null,
+	min?: ResolverInputTypes["news_comment_votes_min_order_by"] | undefined | null,
+	stddev?: ResolverInputTypes["news_comment_votes_stddev_order_by"] | undefined | null,
+	stddev_pop?: ResolverInputTypes["news_comment_votes_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: ResolverInputTypes["news_comment_votes_stddev_samp_order_by"] | undefined | null,
+	sum?: ResolverInputTypes["news_comment_votes_sum_order_by"] | undefined | null,
+	var_pop?: ResolverInputTypes["news_comment_votes_var_pop_order_by"] | undefined | null,
+	var_samp?: ResolverInputTypes["news_comment_votes_var_samp_order_by"] | undefined | null,
+	variance?: ResolverInputTypes["news_comment_votes_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "news_comment_votes" */
+["news_comment_votes_arr_rel_insert_input"]: {
+	data: Array<ResolverInputTypes["news_comment_votes_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_comment_votes_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["news_comment_votes_avg_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by avg() on columns of table "news_comment_votes" */
+["news_comment_votes_avg_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "news_comment_votes". All fields are combined with a logical 'AND'. */
+["news_comment_votes_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["news_comment_votes_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["news_comment_votes_bool_exp"]> | undefined | null,
+	comment?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null,
+	comment_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "news_comment_votes" */
+["news_comment_votes_constraint"]:news_comment_votes_constraint;
+	/** input type for incrementing numeric columns in table "news_comment_votes" */
+["news_comment_votes_inc_input"]: {
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "news_comment_votes" */
+["news_comment_votes_insert_input"]: {
+	comment?: ResolverInputTypes["news_comments_obj_rel_insert_input"] | undefined | null,
+	comment_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** aggregate max on columns */
+["news_comment_votes_max_fields"]: AliasType<{
+	comment_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by max() on columns of table "news_comment_votes" */
+["news_comment_votes_max_order_by"]: {
+	comment_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["news_comment_votes_min_fields"]: AliasType<{
+	comment_id?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by min() on columns of table "news_comment_votes" */
+["news_comment_votes_min_order_by"]: {
+	comment_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "news_comment_votes" */
+["news_comment_votes_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["news_comment_votes"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** on_conflict condition type for table "news_comment_votes" */
+["news_comment_votes_on_conflict"]: {
+	constraint: ResolverInputTypes["news_comment_votes_constraint"],
+	update_columns: Array<ResolverInputTypes["news_comment_votes_update_column"]>,
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "news_comment_votes". */
+["news_comment_votes_order_by"]: {
+	comment?: ResolverInputTypes["news_comments_order_by"] | undefined | null,
+	comment_id?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: news_comment_votes */
+["news_comment_votes_pk_columns_input"]: {
+	comment_id: ResolverInputTypes["uuid"],
+	steam_id: ResolverInputTypes["bigint"]
+};
+	/** select columns of table "news_comment_votes" */
+["news_comment_votes_select_column"]:news_comment_votes_select_column;
+	/** input type for updating data in table "news_comment_votes" */
+["news_comment_votes_set_input"]: {
+	comment_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["news_comment_votes_stddev_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["news_comment_votes_stddev_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_pop_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["news_comment_votes_stddev_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_samp_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "news_comment_votes" */
+["news_comment_votes_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["news_comment_votes_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comment_votes_stream_cursor_value_input"]: {
+	comment_id?: ResolverInputTypes["uuid"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	steam_id?: ResolverInputTypes["bigint"] | undefined | null
+};
+	/** aggregate sum on columns */
+["news_comment_votes_sum_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by sum() on columns of table "news_comment_votes" */
+["news_comment_votes_sum_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** update columns of table "news_comment_votes" */
+["news_comment_votes_update_column"]:news_comment_votes_update_column;
+	["news_comment_votes_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["news_comment_votes_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["news_comment_votes_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["news_comment_votes_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["news_comment_votes_var_pop_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_var_pop_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["news_comment_votes_var_samp_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_var_samp_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["news_comment_votes_variance_fields"]: AliasType<{
+	steam_id?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by variance() on columns of table "news_comment_votes" */
+["news_comment_votes_variance_order_by"]: {
+	steam_id?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** columns and relationships of "news_comments" */
+["news_comments"]: AliasType<{
+	/** An object relationship */
+	article?:ResolverInputTypes["news_articles"],
+	article_id?:boolean | `@${string}`,
+	/** An object relationship */
+	author?:ResolverInputTypes["players"],
+	author_steam_id?:boolean | `@${string}`,
+	body?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	hidden_reason?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	/** An object relationship */
+	parent?:ResolverInputTypes["news_comments"],
+	parent_id?:boolean | `@${string}`,
+replies?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comments_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null},ResolverInputTypes["news_comments"]],
+replies_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comments_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null},ResolverInputTypes["news_comments_aggregate"]],
+	reply_notified_at?:boolean | `@${string}`,
+	/** The comment text as this viewer may see it. */
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+votes?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comment_votes_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null},ResolverInputTypes["news_comment_votes"]],
+votes_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comment_votes_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null},ResolverInputTypes["news_comment_votes_aggregate"]],
+		__typename?: boolean | `@${string}`
+}>;
+	/** aggregated selection of "news_comments" */
+["news_comments_aggregate"]: AliasType<{
+	aggregate?:ResolverInputTypes["news_comments_aggregate_fields"],
+	nodes?:ResolverInputTypes["news_comments"],
+		__typename?: boolean | `@${string}`
+}>;
+	["news_comments_aggregate_bool_exp"]: {
+	count?: ResolverInputTypes["news_comments_aggregate_bool_exp_count"] | undefined | null
+};
+	["news_comments_aggregate_bool_exp_count"]: {
+	arguments?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null,
+	predicate: ResolverInputTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "news_comments" */
+["news_comments_aggregate_fields"]: AliasType<{
+	avg?:ResolverInputTypes["news_comments_avg_fields"],
+count?: [{	columns?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,	distinct?: boolean | undefined | null},boolean | `@${string}`],
+	max?:ResolverInputTypes["news_comments_max_fields"],
+	min?:ResolverInputTypes["news_comments_min_fields"],
+	stddev?:ResolverInputTypes["news_comments_stddev_fields"],
+	stddev_pop?:ResolverInputTypes["news_comments_stddev_pop_fields"],
+	stddev_samp?:ResolverInputTypes["news_comments_stddev_samp_fields"],
+	sum?:ResolverInputTypes["news_comments_sum_fields"],
+	var_pop?:ResolverInputTypes["news_comments_var_pop_fields"],
+	var_samp?:ResolverInputTypes["news_comments_var_samp_fields"],
+	variance?:ResolverInputTypes["news_comments_variance_fields"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by aggregate values of table "news_comments" */
+["news_comments_aggregate_order_by"]: {
+	avg?: ResolverInputTypes["news_comments_avg_order_by"] | undefined | null,
+	count?: ResolverInputTypes["order_by"] | undefined | null,
+	max?: ResolverInputTypes["news_comments_max_order_by"] | undefined | null,
+	min?: ResolverInputTypes["news_comments_min_order_by"] | undefined | null,
+	stddev?: ResolverInputTypes["news_comments_stddev_order_by"] | undefined | null,
+	stddev_pop?: ResolverInputTypes["news_comments_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: ResolverInputTypes["news_comments_stddev_samp_order_by"] | undefined | null,
+	sum?: ResolverInputTypes["news_comments_sum_order_by"] | undefined | null,
+	var_pop?: ResolverInputTypes["news_comments_var_pop_order_by"] | undefined | null,
+	var_samp?: ResolverInputTypes["news_comments_var_samp_order_by"] | undefined | null,
+	variance?: ResolverInputTypes["news_comments_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "news_comments" */
+["news_comments_arr_rel_insert_input"]: {
+	data: Array<ResolverInputTypes["news_comments_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_comments_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["news_comments_avg_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by avg() on columns of table "news_comments" */
+["news_comments_avg_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "news_comments". All fields are combined with a logical 'AND'. */
+["news_comments_bool_exp"]: {
+	_and?: Array<ResolverInputTypes["news_comments_bool_exp"]> | undefined | null,
+	_not?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null,
+	_or?: Array<ResolverInputTypes["news_comments_bool_exp"]> | undefined | null,
+	article?: ResolverInputTypes["news_articles_bool_exp"] | undefined | null,
+	article_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	author?: ResolverInputTypes["players_bool_exp"] | undefined | null,
+	author_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	body?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	deleted_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	edited_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	hidden_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["bigint_comparison_exp"] | undefined | null,
+	hidden_reason?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	parent?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null,
+	parent_id?: ResolverInputTypes["uuid_comparison_exp"] | undefined | null,
+	replies?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null,
+	replies_aggregate?: ResolverInputTypes["news_comments_aggregate_bool_exp"] | undefined | null,
+	reply_notified_at?: ResolverInputTypes["timestamptz_comparison_exp"] | undefined | null,
+	text?: ResolverInputTypes["String_comparison_exp"] | undefined | null,
+	vote_count?: ResolverInputTypes["Int_comparison_exp"] | undefined | null,
+	votes?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null,
+	votes_aggregate?: ResolverInputTypes["news_comment_votes_aggregate_bool_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "news_comments" */
+["news_comments_constraint"]:news_comments_constraint;
+	/** input type for incrementing numeric columns in table "news_comments" */
+["news_comments_inc_input"]: {
+	author_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** input type for inserting data into table "news_comments" */
+["news_comments_insert_input"]: {
+	article?: ResolverInputTypes["news_articles_obj_rel_insert_input"] | undefined | null,
+	article_id?: ResolverInputTypes["uuid"] | undefined | null,
+	author?: ResolverInputTypes["players_obj_rel_insert_input"] | undefined | null,
+	author_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	edited_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	hidden_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	parent?: ResolverInputTypes["news_comments_obj_rel_insert_input"] | undefined | null,
+	parent_id?: ResolverInputTypes["uuid"] | undefined | null,
+	replies?: ResolverInputTypes["news_comments_arr_rel_insert_input"] | undefined | null,
+	reply_notified_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null,
+	votes?: ResolverInputTypes["news_comment_votes_arr_rel_insert_input"] | undefined | null
+};
+	/** aggregate max on columns */
+["news_comments_max_fields"]: AliasType<{
+	article_id?:boolean | `@${string}`,
+	author_steam_id?:boolean | `@${string}`,
+	body?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	hidden_reason?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	parent_id?:boolean | `@${string}`,
+	reply_notified_at?:boolean | `@${string}`,
+	/** The comment text as this viewer may see it. */
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by max() on columns of table "news_comments" */
+["news_comments_max_order_by"]: {
+	article_id?: ResolverInputTypes["order_by"] | undefined | null,
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	body?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	deleted_at?: ResolverInputTypes["order_by"] | undefined | null,
+	edited_at?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_at?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_reason?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	parent_id?: ResolverInputTypes["order_by"] | undefined | null,
+	reply_notified_at?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["news_comments_min_fields"]: AliasType<{
+	article_id?:boolean | `@${string}`,
+	author_steam_id?:boolean | `@${string}`,
+	body?:boolean | `@${string}`,
+	created_at?:boolean | `@${string}`,
+	deleted_at?:boolean | `@${string}`,
+	edited_at?:boolean | `@${string}`,
+	hidden_at?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	hidden_reason?:boolean | `@${string}`,
+	id?:boolean | `@${string}`,
+	parent_id?:boolean | `@${string}`,
+	reply_notified_at?:boolean | `@${string}`,
+	/** The comment text as this viewer may see it. */
+	text?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by min() on columns of table "news_comments" */
+["news_comments_min_order_by"]: {
+	article_id?: ResolverInputTypes["order_by"] | undefined | null,
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	body?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	deleted_at?: ResolverInputTypes["order_by"] | undefined | null,
+	edited_at?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_at?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_reason?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	parent_id?: ResolverInputTypes["order_by"] | undefined | null,
+	reply_notified_at?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "news_comments" */
+["news_comments_mutation_response"]: AliasType<{
+	/** number of rows affected by the mutation */
+	affected_rows?:boolean | `@${string}`,
+	/** data from the rows affected by the mutation */
+	returning?:ResolverInputTypes["news_comments"],
+		__typename?: boolean | `@${string}`
+}>;
+	/** input type for inserting object relation for remote table "news_comments" */
+["news_comments_obj_rel_insert_input"]: {
+	data: ResolverInputTypes["news_comments_insert_input"],
+	/** upsert condition */
+	on_conflict?: ResolverInputTypes["news_comments_on_conflict"] | undefined | null
+};
+	/** on_conflict condition type for table "news_comments" */
+["news_comments_on_conflict"]: {
+	constraint: ResolverInputTypes["news_comments_constraint"],
+	update_columns: Array<ResolverInputTypes["news_comments_update_column"]>,
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "news_comments". */
+["news_comments_order_by"]: {
+	article?: ResolverInputTypes["news_articles_order_by"] | undefined | null,
+	article_id?: ResolverInputTypes["order_by"] | undefined | null,
+	author?: ResolverInputTypes["players_order_by"] | undefined | null,
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	body?: ResolverInputTypes["order_by"] | undefined | null,
+	created_at?: ResolverInputTypes["order_by"] | undefined | null,
+	deleted_at?: ResolverInputTypes["order_by"] | undefined | null,
+	edited_at?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_at?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_reason?: ResolverInputTypes["order_by"] | undefined | null,
+	id?: ResolverInputTypes["order_by"] | undefined | null,
+	parent?: ResolverInputTypes["news_comments_order_by"] | undefined | null,
+	parent_id?: ResolverInputTypes["order_by"] | undefined | null,
+	replies_aggregate?: ResolverInputTypes["news_comments_aggregate_order_by"] | undefined | null,
+	reply_notified_at?: ResolverInputTypes["order_by"] | undefined | null,
+	text?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null,
+	votes_aggregate?: ResolverInputTypes["news_comment_votes_aggregate_order_by"] | undefined | null
+};
+	/** primary key columns input for table: news_comments */
+["news_comments_pk_columns_input"]: {
+	id: ResolverInputTypes["uuid"]
+};
+	/** select columns of table "news_comments" */
+["news_comments_select_column"]:news_comments_select_column;
+	/** input type for updating data in table "news_comments" */
+["news_comments_set_input"]: {
+	article_id?: ResolverInputTypes["uuid"] | undefined | null,
+	author_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	edited_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	hidden_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	parent_id?: ResolverInputTypes["uuid"] | undefined | null,
+	reply_notified_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** aggregate stddev on columns */
+["news_comments_stddev_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev() on columns of table "news_comments" */
+["news_comments_stddev_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["news_comments_stddev_pop_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_pop() on columns of table "news_comments" */
+["news_comments_stddev_pop_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["news_comments_stddev_samp_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by stddev_samp() on columns of table "news_comments" */
+["news_comments_stddev_samp_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "news_comments" */
+["news_comments_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ResolverInputTypes["news_comments_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ResolverInputTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comments_stream_cursor_value_input"]: {
+	article_id?: ResolverInputTypes["uuid"] | undefined | null,
+	author_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	deleted_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	edited_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	hidden_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ResolverInputTypes["uuid"] | undefined | null,
+	parent_id?: ResolverInputTypes["uuid"] | undefined | null,
+	reply_notified_at?: ResolverInputTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** aggregate sum on columns */
+["news_comments_sum_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by sum() on columns of table "news_comments" */
+["news_comments_sum_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** update columns of table "news_comments" */
+["news_comments_update_column"]:news_comments_update_column;
+	["news_comments_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ResolverInputTypes["news_comments_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ResolverInputTypes["news_comments_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ResolverInputTypes["news_comments_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["news_comments_var_pop_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_pop() on columns of table "news_comments" */
+["news_comments_var_pop_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["news_comments_var_samp_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by var_samp() on columns of table "news_comments" */
+["news_comments_var_samp_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["news_comments_variance_fields"]: AliasType<{
+	author_steam_id?:boolean | `@${string}`,
+	hidden_by_steam_id?:boolean | `@${string}`,
+	vote_count?:boolean | `@${string}`,
+		__typename?: boolean | `@${string}`
+}>;
+	/** order by variance() on columns of table "news_comments" */
+["news_comments_variance_order_by"]: {
+	author_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ResolverInputTypes["order_by"] | undefined | null,
+	vote_count?: ResolverInputTypes["order_by"] | undefined | null
+};
 	/** columns and relationships of "notifications" */
 ["notifications"]: AliasType<{
 actions?: [{	/** JSON select path */
@@ -115540,7 +117563,6 @@ count?: [{	columns?: Array<ResolverInputTypes["player_sanctions_select_column"]>
 };
 	/** primary key columns input for table: player_sanctions */
 ["player_sanctions_pk_columns_input"]: {
-	created_at: ResolverInputTypes["timestamptz"],
 	id: ResolverInputTypes["uuid"]
 };
 	/** select columns of table "player_sanctions" */
@@ -117957,6 +119979,7 @@ aim_weapon_stats_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["player_aim_weapon_stats_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["player_aim_weapon_stats_bool_exp"] | undefined | null},ResolverInputTypes["player_aim_weapon_stats_aggregate"]],
+	allow_message_requests?:boolean | `@${string}`,
 	api_key_enabled?:boolean | `@${string}`,
 assists?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["player_assists_select_column"]> | undefined | null,	/** limit the number of rows returned */
@@ -118560,6 +120583,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 	abandoned_matches_aggregate?: ResolverInputTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null,
 	aim_weapon_stats?: ResolverInputTypes["player_aim_weapon_stats_bool_exp"] | undefined | null,
 	aim_weapon_stats_aggregate?: ResolverInputTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null,
+	allow_message_requests?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	api_key_enabled?: ResolverInputTypes["Boolean_comparison_exp"] | undefined | null,
 	assists?: ResolverInputTypes["player_assists_bool_exp"] | undefined | null,
 	assists_aggregate?: ResolverInputTypes["player_assists_aggregate_bool_exp"] | undefined | null,
@@ -118712,6 +120736,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 ["players_insert_input"]: {
 	abandoned_matches?: ResolverInputTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null,
 	aim_weapon_stats?: ResolverInputTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null,
+	allow_message_requests?: boolean | undefined | null,
 	api_key_enabled?: boolean | undefined | null,
 	assists?: ResolverInputTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	assited_by_players?: ResolverInputTypes["player_assists_arr_rel_insert_input"] | undefined | null,
@@ -118932,6 +120957,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 ["players_order_by"]: {
 	abandoned_matches_aggregate?: ResolverInputTypes["abandoned_matches_aggregate_order_by"] | undefined | null,
 	aim_weapon_stats_aggregate?: ResolverInputTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null,
+	allow_message_requests?: ResolverInputTypes["order_by"] | undefined | null,
 	api_key_enabled?: ResolverInputTypes["order_by"] | undefined | null,
 	assists_aggregate?: ResolverInputTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: ResolverInputTypes["player_assists_aggregate_order_by"] | undefined | null,
@@ -119038,6 +121064,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 ["players_select_column"]:players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
+	allow_message_requests?: boolean | undefined | null,
 	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
@@ -119175,6 +121202,7 @@ count?: [{	columns?: Array<ResolverInputTypes["players_select_column"]> | undefi
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
+	allow_message_requests?: boolean | undefined | null,
 	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
@@ -121168,6 +123196,19 @@ lobby_players_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ResolverInputTypes["lobby_players_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["lobby_players_bool_exp"] | undefined | null},ResolverInputTypes["lobby_players_aggregate"]],
 lobby_players_by_pk?: [{	lobby_id: ResolverInputTypes["uuid"],	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["lobby_players"]],
+map_callouts?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["map_callouts_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["map_callouts_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["map_callouts_bool_exp"] | undefined | null},ResolverInputTypes["map_callouts"]],
+map_callouts_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["map_callouts_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["map_callouts_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["map_callouts_bool_exp"] | undefined | null},ResolverInputTypes["map_callouts_aggregate"]],
+map_callouts_by_pk?: [{	map_name: string,	name: string},ResolverInputTypes["map_callouts"]],
 map_pools?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["map_pools_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -121431,6 +123472,32 @@ news_articles_aggregate?: [{	/** distinct select on columns */
 	order_by?: Array<ResolverInputTypes["news_articles_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["news_articles_bool_exp"] | undefined | null},ResolverInputTypes["news_articles_aggregate"]],
 news_articles_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["news_articles"]],
+news_comment_votes?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comment_votes_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null},ResolverInputTypes["news_comment_votes"]],
+news_comment_votes_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comment_votes_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null},ResolverInputTypes["news_comment_votes_aggregate"]],
+news_comment_votes_by_pk?: [{	comment_id: ResolverInputTypes["uuid"],	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["news_comment_votes"]],
+news_comments?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comments_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null},ResolverInputTypes["news_comments"]],
+news_comments_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comments_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null},ResolverInputTypes["news_comments_aggregate"]],
+news_comments_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["news_comments"]],
 notifications?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["notifications_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -121711,7 +123778,7 @@ player_sanctions_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["player_sanctions_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["player_sanctions_bool_exp"] | undefined | null},ResolverInputTypes["player_sanctions_aggregate"]],
-player_sanctions_by_pk?: [{	created_at: ResolverInputTypes["timestamptz"],	id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_sanctions"]],
+player_sanctions_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_sanctions"]],
 player_season_stats?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["player_season_stats_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -125996,6 +128063,23 @@ lobby_players_stream?: [{	/** maximum number of rows returned in a single batch 
 	batch_size: number,	/** cursor to stream the results returned by the query */
 	cursor: Array<ResolverInputTypes["lobby_players_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
 	where?: ResolverInputTypes["lobby_players_bool_exp"] | undefined | null},ResolverInputTypes["lobby_players"]],
+map_callouts?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["map_callouts_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["map_callouts_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["map_callouts_bool_exp"] | undefined | null},ResolverInputTypes["map_callouts"]],
+map_callouts_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["map_callouts_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["map_callouts_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["map_callouts_bool_exp"] | undefined | null},ResolverInputTypes["map_callouts_aggregate"]],
+map_callouts_by_pk?: [{	map_name: string,	name: string},ResolverInputTypes["map_callouts"]],
+map_callouts_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["map_callouts_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["map_callouts_bool_exp"] | undefined | null},ResolverInputTypes["map_callouts"]],
 map_pools?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["map_pools_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -126334,6 +128418,40 @@ news_articles_stream?: [{	/** maximum number of rows returned in a single batch 
 	batch_size: number,	/** cursor to stream the results returned by the query */
 	cursor: Array<ResolverInputTypes["news_articles_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
 	where?: ResolverInputTypes["news_articles_bool_exp"] | undefined | null},ResolverInputTypes["news_articles"]],
+news_comment_votes?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comment_votes_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null},ResolverInputTypes["news_comment_votes"]],
+news_comment_votes_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comment_votes_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comment_votes_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null},ResolverInputTypes["news_comment_votes_aggregate"]],
+news_comment_votes_by_pk?: [{	comment_id: ResolverInputTypes["uuid"],	steam_id: ResolverInputTypes["bigint"]},ResolverInputTypes["news_comment_votes"]],
+news_comment_votes_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["news_comment_votes_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comment_votes_bool_exp"] | undefined | null},ResolverInputTypes["news_comment_votes"]],
+news_comments?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comments_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null},ResolverInputTypes["news_comments"]],
+news_comments_aggregate?: [{	/** distinct select on columns */
+	distinct_on?: Array<ResolverInputTypes["news_comments_select_column"]> | undefined | null,	/** limit the number of rows returned */
+	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
+	offset?: number | undefined | null,	/** sort the rows by one or more columns */
+	order_by?: Array<ResolverInputTypes["news_comments_order_by"]> | undefined | null,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null},ResolverInputTypes["news_comments_aggregate"]],
+news_comments_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["news_comments"]],
+news_comments_stream?: [{	/** maximum number of rows returned in a single batch */
+	batch_size: number,	/** cursor to stream the results returned by the query */
+	cursor: Array<ResolverInputTypes["news_comments_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
+	where?: ResolverInputTypes["news_comments_bool_exp"] | undefined | null},ResolverInputTypes["news_comments"]],
 notifications?: [{	/** distinct select on columns */
 	distinct_on?: Array<ResolverInputTypes["notifications_select_column"]> | undefined | null,	/** limit the number of rows returned */
 	limit?: number | undefined | null,	/** skip the first n rows. Use only with order_by */
@@ -126698,7 +128816,7 @@ player_sanctions_aggregate?: [{	/** distinct select on columns */
 	offset?: number | undefined | null,	/** sort the rows by one or more columns */
 	order_by?: Array<ResolverInputTypes["player_sanctions_order_by"]> | undefined | null,	/** filter the rows returned */
 	where?: ResolverInputTypes["player_sanctions_bool_exp"] | undefined | null},ResolverInputTypes["player_sanctions_aggregate"]],
-player_sanctions_by_pk?: [{	created_at: ResolverInputTypes["timestamptz"],	id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_sanctions"]],
+player_sanctions_by_pk?: [{	id: ResolverInputTypes["uuid"]},ResolverInputTypes["player_sanctions"]],
 player_sanctions_stream?: [{	/** maximum number of rows returned in a single batch */
 	batch_size: number,	/** cursor to stream the results returned by the query */
 	cursor: Array<ResolverInputTypes["player_sanctions_stream_cursor_input"] | undefined | null>,	/** filter the rows returned */
@@ -149897,6 +152015,22 @@ export type ModelTypes = {
 		nics?: Array<ModelTypes["NicStat"] | undefined | null> | undefined | null,
 	time?: ModelTypes["timestamp"] | undefined | null
 };
+	["NewsCommentOutput"]: {
+		article_id: ModelTypes["uuid"],
+	created_at: string,
+	deleted_at?: string | undefined | null,
+	edited_at?: string | undefined | null,
+	hidden_at?: string | undefined | null,
+	id: ModelTypes["uuid"],
+	parent_id?: ModelTypes["uuid"] | undefined | null,
+	text?: string | undefined | null,
+	vote_count: number
+};
+	["NewsCommentVoteOutput"]: {
+		comment_id: ModelTypes["uuid"],
+	vote_count: number,
+	voted: boolean
+};
 	["NewsPost"]: {
 		author_steam_id?: string | undefined | null,
 	content_markdown: string,
@@ -149999,6 +152133,10 @@ export type ModelTypes = {
 	running: boolean,
 	started_at?: string | undefined | null,
 	total: number
+};
+	["RecreateTournamentBracketMatchOutput"]: {
+		match_id?: ModelTypes["uuid"] | undefined | null,
+	success: boolean
 };
 	["ReindexStartedOutput"]: {
 		running: boolean,
@@ -166516,6 +168654,146 @@ export type ModelTypes = {
 	invited_by_steam_id?: ModelTypes["order_by"] | undefined | null,
 	steam_id?: ModelTypes["order_by"] | undefined | null
 };
+	/** columns and relationships of "map_callouts" */
+["map_callouts"]: {
+		boxes: ModelTypes["jsonb"],
+	map_name: string,
+	name: string,
+	source: string,
+	updated_at: ModelTypes["timestamptz"]
+};
+	/** aggregated selection of "map_callouts" */
+["map_callouts_aggregate"]: {
+		aggregate?: ModelTypes["map_callouts_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["map_callouts"]>
+};
+	/** aggregate fields of "map_callouts" */
+["map_callouts_aggregate_fields"]: {
+		count: number,
+	max?: ModelTypes["map_callouts_max_fields"] | undefined | null,
+	min?: ModelTypes["map_callouts_min_fields"] | undefined | null
+};
+	/** append existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_append_input"]: {
+	boxes?: ModelTypes["jsonb"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "map_callouts". All fields are combined with a logical 'AND'. */
+["map_callouts_bool_exp"]: {
+	_and?: Array<ModelTypes["map_callouts_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["map_callouts_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["map_callouts_bool_exp"]> | undefined | null,
+	boxes?: ModelTypes["jsonb_comparison_exp"] | undefined | null,
+	map_name?: ModelTypes["String_comparison_exp"] | undefined | null,
+	name?: ModelTypes["String_comparison_exp"] | undefined | null,
+	source?: ModelTypes["String_comparison_exp"] | undefined | null,
+	updated_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	["map_callouts_constraint"]:map_callouts_constraint;
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+["map_callouts_delete_at_path_input"]: {
+	boxes?: Array<string> | undefined | null
+};
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+["map_callouts_delete_elem_input"]: {
+	boxes?: number | undefined | null
+};
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+["map_callouts_delete_key_input"]: {
+	boxes?: string | undefined | null
+};
+	/** input type for inserting data into table "map_callouts" */
+["map_callouts_insert_input"]: {
+	boxes?: ModelTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["map_callouts_max_fields"]: {
+		map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** aggregate min on columns */
+["map_callouts_min_fields"]: {
+		map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** response of any mutation on the table "map_callouts" */
+["map_callouts_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["map_callouts"]>
+};
+	/** on_conflict condition type for table "map_callouts" */
+["map_callouts_on_conflict"]: {
+	constraint: ModelTypes["map_callouts_constraint"],
+	update_columns: Array<ModelTypes["map_callouts_update_column"]>,
+	where?: ModelTypes["map_callouts_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "map_callouts". */
+["map_callouts_order_by"]: {
+	boxes?: ModelTypes["order_by"] | undefined | null,
+	map_name?: ModelTypes["order_by"] | undefined | null,
+	name?: ModelTypes["order_by"] | undefined | null,
+	source?: ModelTypes["order_by"] | undefined | null,
+	updated_at?: ModelTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: map_callouts */
+["map_callouts_pk_columns_input"]: {
+	map_name: string,
+	name: string
+};
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_prepend_input"]: {
+	boxes?: ModelTypes["jsonb"] | undefined | null
+};
+	["map_callouts_select_column"]:map_callouts_select_column;
+	/** input type for updating data in table "map_callouts" */
+["map_callouts_set_input"]: {
+	boxes?: ModelTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	/** Streaming cursor of the table "map_callouts" */
+["map_callouts_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["map_callouts_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["map_callouts_stream_cursor_value_input"]: {
+	boxes?: ModelTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: ModelTypes["timestamptz"] | undefined | null
+};
+	["map_callouts_update_column"]:map_callouts_update_column;
+	["map_callouts_updates"]: {
+	/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: ModelTypes["map_callouts_append_input"] | undefined | null,
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: ModelTypes["map_callouts_delete_at_path_input"] | undefined | null,
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: ModelTypes["map_callouts_delete_elem_input"] | undefined | null,
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: ModelTypes["map_callouts_delete_key_input"] | undefined | null,
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: ModelTypes["map_callouts_prepend_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["map_callouts_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["map_callouts_bool_exp"]
+};
 	/** columns and relationships of "map_pools" */
 ["map_pools"]: {
 		/** An object relationship */
@@ -168637,10 +170915,12 @@ export type ModelTypes = {
 	match_map: ModelTypes["match_maps"],
 	match_map_id: ModelTypes["uuid"],
 	metadata_parsed_at?: ModelTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?: string | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: ModelTypes["jsonb"] | undefined | null,
 	round_ticks?: ModelTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -168720,7 +171000,9 @@ export type ModelTypes = {
 	/** aggregate avg on columns */
 ["match_map_demos_avg_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -168728,7 +171010,9 @@ export type ModelTypes = {
 	/** order by avg() on columns of table "match_map_demos" */
 ["match_map_demos_avg_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -168759,9 +171043,11 @@ export type ModelTypes = {
 	match_map?: ModelTypes["match_maps_bool_exp"] | undefined | null,
 	match_map_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	parser_version?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	playback_file?: ModelTypes["String_comparison_exp"] | undefined | null,
 	playback_size?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	playback_url?: ModelTypes["String_comparison_exp"] | undefined | null,
+	playback_version?: ModelTypes["Int_comparison_exp"] | undefined | null,
 	players?: ModelTypes["jsonb_comparison_exp"] | undefined | null,
 	round_ticks?: ModelTypes["jsonb_comparison_exp"] | undefined | null,
 	size?: ModelTypes["Int_comparison_exp"] | undefined | null,
@@ -168793,7 +171079,9 @@ export type ModelTypes = {
 };
 	/** input type for incrementing numeric columns in table "match_map_demos" */
 ["match_map_demos_inc_input"]: {
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -168816,8 +171104,10 @@ export type ModelTypes = {
 	match_map?: ModelTypes["match_maps_obj_rel_insert_input"] | undefined | null,
 	match_map_id?: ModelTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: ModelTypes["jsonb"] | undefined | null,
 	round_ticks?: ModelTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -168838,10 +171128,12 @@ export type ModelTypes = {
 	match_id?: ModelTypes["uuid"] | undefined | null,
 	match_map_id?: ModelTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?: string | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null,
@@ -168858,8 +171150,10 @@ export type ModelTypes = {
 	match_id?: ModelTypes["order_by"] | undefined | null,
 	match_map_id?: ModelTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_file?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null,
@@ -168878,10 +171172,12 @@ export type ModelTypes = {
 	match_id?: ModelTypes["uuid"] | undefined | null,
 	match_map_id?: ModelTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?: string | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null,
@@ -168898,8 +171194,10 @@ export type ModelTypes = {
 	match_id?: ModelTypes["order_by"] | undefined | null,
 	match_map_id?: ModelTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_file?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null,
@@ -168944,9 +171242,11 @@ export type ModelTypes = {
 	match_map?: ModelTypes["match_maps_order_by"] | undefined | null,
 	match_map_id?: ModelTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_file?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
 	playback_url?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	players?: ModelTypes["order_by"] | undefined | null,
 	round_ticks?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
@@ -168981,8 +171281,10 @@ export type ModelTypes = {
 	match_id?: ModelTypes["uuid"] | undefined | null,
 	match_map_id?: ModelTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: ModelTypes["jsonb"] | undefined | null,
 	round_ticks?: ModelTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -168993,7 +171295,9 @@ export type ModelTypes = {
 	/** aggregate stddev on columns */
 ["match_map_demos_stddev_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -169001,7 +171305,9 @@ export type ModelTypes = {
 	/** order by stddev() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -169009,7 +171315,9 @@ export type ModelTypes = {
 	/** aggregate stddev_pop on columns */
 ["match_map_demos_stddev_pop_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -169017,7 +171325,9 @@ export type ModelTypes = {
 	/** order by stddev_pop() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_pop_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -169025,7 +171335,9 @@ export type ModelTypes = {
 	/** aggregate stddev_samp on columns */
 ["match_map_demos_stddev_samp_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -169033,7 +171345,9 @@ export type ModelTypes = {
 	/** order by stddev_samp() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_samp_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -169059,8 +171373,10 @@ export type ModelTypes = {
 	match_id?: ModelTypes["uuid"] | undefined | null,
 	match_map_id?: ModelTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: ModelTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: ModelTypes["jsonb"] | undefined | null,
 	round_ticks?: ModelTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -169071,7 +171387,9 @@ export type ModelTypes = {
 	/** aggregate sum on columns */
 ["match_map_demos_sum_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -169079,7 +171397,9 @@ export type ModelTypes = {
 	/** order by sum() on columns of table "match_map_demos" */
 ["match_map_demos_sum_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -169106,7 +171426,9 @@ export type ModelTypes = {
 	/** aggregate var_pop on columns */
 ["match_map_demos_var_pop_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -169114,7 +171436,9 @@ export type ModelTypes = {
 	/** order by var_pop() on columns of table "match_map_demos" */
 ["match_map_demos_var_pop_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -169122,7 +171446,9 @@ export type ModelTypes = {
 	/** aggregate var_samp on columns */
 ["match_map_demos_var_samp_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -169130,7 +171456,9 @@ export type ModelTypes = {
 	/** order by var_samp() on columns of table "match_map_demos" */
 ["match_map_demos_var_samp_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -169138,7 +171466,9 @@ export type ModelTypes = {
 	/** aggregate variance on columns */
 ["match_map_demos_variance_fields"]: {
 		duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -169146,7 +171476,9 @@ export type ModelTypes = {
 	/** order by variance() on columns of table "match_map_demos" */
 ["match_map_demos_variance_order_by"]: {
 	duration_seconds?: ModelTypes["order_by"] | undefined | null,
+	parser_version?: ModelTypes["order_by"] | undefined | null,
 	playback_size?: ModelTypes["order_by"] | undefined | null,
+	playback_version?: ModelTypes["order_by"] | undefined | null,
 	size?: ModelTypes["order_by"] | undefined | null,
 	tick_rate?: ModelTypes["order_by"] | undefined | null,
 	total_ticks?: ModelTypes["order_by"] | undefined | null
@@ -172422,6 +174754,8 @@ export type ModelTypes = {
 	/** mutation root */
 ["mutation_root"]: {
 		PreviewTournamentMatchReset: ModelTypes["PreviewTournamentMatchResetOutput"],
+	/** Recreate the match of a tournament bracket slot whose match was deleted (organizers and site administrators; checked by the API) */
+	RecreateTournamentBracketMatch?: ModelTypes["RecreateTournamentBracketMatchOutput"] | undefined | null,
 	ResetTournamentMatch?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** accept team invite */
 	acceptInvite?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -172512,6 +174846,8 @@ export type ModelTypes = {
 	/** Delete a saved clip and its underlying S3 object */
 	deleteClip?: ModelTypes["SuccessOutput"] | undefined | null,
 	deleteMatch?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** DEAFCS News comments. Delete your own comment (soft delete). */
+	deleteNewsComment?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Delete a news post. Caller role is verified against public.post_news_role. */
 	deleteNewsPost?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Delete orphaned S3 objects found by the last scan (admin only). Each key is re-verified against the database before removal. */
@@ -172882,6 +175218,10 @@ export type ModelTypes = {
 	delete_lobby_players?: ModelTypes["lobby_players_mutation_response"] | undefined | null,
 	/** delete single row from the table: "lobby_players" */
 	delete_lobby_players_by_pk?: ModelTypes["lobby_players"] | undefined | null,
+	/** delete data from the table: "map_callouts" */
+	delete_map_callouts?: ModelTypes["map_callouts_mutation_response"] | undefined | null,
+	/** delete single row from the table: "map_callouts" */
+	delete_map_callouts_by_pk?: ModelTypes["map_callouts"] | undefined | null,
 	/** delete data from the table: "map_pools" */
 	delete_map_pools?: ModelTypes["map_pools_mutation_response"] | undefined | null,
 	/** delete single row from the table: "map_pools" */
@@ -172958,6 +175298,14 @@ export type ModelTypes = {
 	delete_news_articles?: ModelTypes["news_articles_mutation_response"] | undefined | null,
 	/** delete single row from the table: "news_articles" */
 	delete_news_articles_by_pk?: ModelTypes["news_articles"] | undefined | null,
+	/** delete data from the table: "news_comment_votes" */
+	delete_news_comment_votes?: ModelTypes["news_comment_votes_mutation_response"] | undefined | null,
+	/** delete single row from the table: "news_comment_votes" */
+	delete_news_comment_votes_by_pk?: ModelTypes["news_comment_votes"] | undefined | null,
+	/** delete data from the table: "news_comments" */
+	delete_news_comments?: ModelTypes["news_comments_mutation_response"] | undefined | null,
+	/** delete single row from the table: "news_comments" */
+	delete_news_comments_by_pk?: ModelTypes["news_comments"] | undefined | null,
 	/** delete data from the table: "notifications" */
 	delete_notifications?: ModelTypes["notifications_mutation_response"] | undefined | null,
 	/** delete single row from the table: "notifications" */
@@ -173257,6 +175605,8 @@ export type ModelTypes = {
 	denyNameChange?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** Organizer regenerates the free agent teams and re-seeds */
 	draftTournamentTeams?: ModelTypes["TournamentDraftOutput"] | undefined | null,
+	/** DEAFCS News comments. Edit your own comment within 10 minutes of posting. */
+	editNewsComment?: ModelTypes["NewsCommentOutput"] | undefined | null,
 	/** Organizer pushes the check-in deadline out and reopens registration */
 	extendTournamentCheckIn?: ModelTypes["SuccessOutput"] | undefined | null,
 	forfeitMatch?: ModelTypes["SuccessOutput"] | undefined | null,
@@ -173631,6 +175981,10 @@ export type ModelTypes = {
 	insert_lobby_players?: ModelTypes["lobby_players_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "lobby_players" */
 	insert_lobby_players_one?: ModelTypes["lobby_players"] | undefined | null,
+	/** insert data into the table: "map_callouts" */
+	insert_map_callouts?: ModelTypes["map_callouts_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "map_callouts" */
+	insert_map_callouts_one?: ModelTypes["map_callouts"] | undefined | null,
 	/** insert data into the table: "map_pools" */
 	insert_map_pools?: ModelTypes["map_pools_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "map_pools" */
@@ -173711,6 +176065,14 @@ export type ModelTypes = {
 	insert_news_articles?: ModelTypes["news_articles_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "news_articles" */
 	insert_news_articles_one?: ModelTypes["news_articles"] | undefined | null,
+	/** insert data into the table: "news_comment_votes" */
+	insert_news_comment_votes?: ModelTypes["news_comment_votes_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "news_comment_votes" */
+	insert_news_comment_votes_one?: ModelTypes["news_comment_votes"] | undefined | null,
+	/** insert data into the table: "news_comments" */
+	insert_news_comments?: ModelTypes["news_comments_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "news_comments" */
+	insert_news_comments_one?: ModelTypes["news_comments"] | undefined | null,
 	/** insert data into the table: "notifications" */
 	insert_notifications?: ModelTypes["notifications_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "notifications" */
@@ -174047,6 +176409,8 @@ export type ModelTypes = {
 	/** Flag in-flight clip_render_jobs paused; pod halts after current highlight. */
 	pauseClipRenderBatch?: ModelTypes["SuccessOutput"] | undefined | null,
 	pollSteamMatchHistory?: ModelTypes["SteamMatchHistoryPollOutput"] | undefined | null,
+	/** DEAFCS News comments. Post a comment or a reply. Verified User and above, not banned/restricted/chat-muted, article open (first 7 days). Notifies the parent author of a reply. */
+	postNewsComment?: ModelTypes["NewsCommentOutput"] | undefined | null,
 	/** previewDraftGame */
 	previewDraftGame?: ModelTypes["DraftGamePreviewOutput"] | undefined | null,
 	/** Build a multi-segment ClipSpec from a player+preset and queue it via the batch render path (no live demo session required) */
@@ -174141,6 +176505,8 @@ export type ModelTypes = {
 	setMatchStartingLineup?: ModelTypes["SuccessOutput"] | undefined | null,
 	/** setMatchWinner */
 	setMatchWinner?: ModelTypes["SuccessOutput"] | undefined | null,
+	/** DEAFCS News comments. Staff (moderator and above) hide or restore a comment. */
+	setNewsCommentHidden?: ModelTypes["NewsCommentOutput"] | undefined | null,
 	/** Publish or unpublish a news post. Caller role is verified against public.post_news_role. */
 	setNewsPostStatus?: ModelTypes["NewsPost"] | undefined | null,
 	/** Configure a tournament award slot */
@@ -174177,6 +176543,8 @@ export type ModelTypes = {
 	/** Test FACEIT Data + Downloads API connectivity for the current admin */
 	testFaceitIntegration?: ModelTypes["FaceitTestOutput"] | undefined | null,
 	testUpload?: ModelTypes["TestUploadResponse"] | undefined | null,
+	/** DEAFCS News comments. Add or take back your +1 (not on your own comment, article open). */
+	toggleNewsCommentVote?: ModelTypes["NewsCommentVoteOutput"] | undefined | null,
 	unlinkDiscord?: ModelTypes["SuccessOutput"] | undefined | null,
 	unlinkSteamMatchHistory?: ModelTypes["SuccessOutput"] | undefined | null,
 	unsanctionServerPlayer: ModelTypes["SanctionResult"],
@@ -174730,6 +177098,12 @@ export type ModelTypes = {
 	update_lobby_players_by_pk?: ModelTypes["lobby_players"] | undefined | null,
 	/** update multiples rows of table: "lobby_players" */
 	update_lobby_players_many?: Array<ModelTypes["lobby_players_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "map_callouts" */
+	update_map_callouts?: ModelTypes["map_callouts_mutation_response"] | undefined | null,
+	/** update single row of the table: "map_callouts" */
+	update_map_callouts_by_pk?: ModelTypes["map_callouts"] | undefined | null,
+	/** update multiples rows of table: "map_callouts" */
+	update_map_callouts_many?: Array<ModelTypes["map_callouts_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "map_pools" */
 	update_map_pools?: ModelTypes["map_pools_mutation_response"] | undefined | null,
 	/** update single row of the table: "map_pools" */
@@ -174842,6 +177216,18 @@ export type ModelTypes = {
 	update_news_articles_by_pk?: ModelTypes["news_articles"] | undefined | null,
 	/** update multiples rows of table: "news_articles" */
 	update_news_articles_many?: Array<ModelTypes["news_articles_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "news_comment_votes" */
+	update_news_comment_votes?: ModelTypes["news_comment_votes_mutation_response"] | undefined | null,
+	/** update single row of the table: "news_comment_votes" */
+	update_news_comment_votes_by_pk?: ModelTypes["news_comment_votes"] | undefined | null,
+	/** update multiples rows of table: "news_comment_votes" */
+	update_news_comment_votes_many?: Array<ModelTypes["news_comment_votes_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "news_comments" */
+	update_news_comments?: ModelTypes["news_comments_mutation_response"] | undefined | null,
+	/** update single row of the table: "news_comments" */
+	update_news_comments_by_pk?: ModelTypes["news_comments"] | undefined | null,
+	/** update multiples rows of table: "news_comments" */
+	update_news_comments_many?: Array<ModelTypes["news_comments_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "notifications" */
 	update_notifications?: ModelTypes["notifications_mutation_response"] | undefined | null,
 	/** update single row of the table: "notifications" */
@@ -175991,6 +178377,12 @@ export type ModelTypes = {
 	/** data from the rows affected by the mutation */
 	returning: Array<ModelTypes["news_articles"]>
 };
+	/** input type for inserting object relation for remote table "news_articles" */
+["news_articles_obj_rel_insert_input"]: {
+	data: ModelTypes["news_articles_insert_input"],
+	/** upsert condition */
+	on_conflict?: ModelTypes["news_articles_on_conflict"] | undefined | null
+};
 	/** on_conflict condition type for table "news_articles" */
 ["news_articles_on_conflict"]: {
 	constraint: ModelTypes["news_articles_constraint"],
@@ -176098,6 +178490,619 @@ export type ModelTypes = {
 ["news_articles_variance_fields"]: {
 		author_steam_id?: number | undefined | null,
 	view_count?: number | undefined | null
+};
+	/** columns and relationships of "news_comment_votes" */
+["news_comment_votes"]: {
+		/** An object relationship */
+	comment: ModelTypes["news_comments"],
+	comment_id: ModelTypes["uuid"],
+	created_at: ModelTypes["timestamptz"],
+	steam_id: ModelTypes["bigint"]
+};
+	/** aggregated selection of "news_comment_votes" */
+["news_comment_votes_aggregate"]: {
+		aggregate?: ModelTypes["news_comment_votes_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["news_comment_votes"]>
+};
+	["news_comment_votes_aggregate_bool_exp"]: {
+	count?: ModelTypes["news_comment_votes_aggregate_bool_exp_count"] | undefined | null
+};
+	["news_comment_votes_aggregate_bool_exp_count"]: {
+	arguments?: Array<ModelTypes["news_comment_votes_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["news_comment_votes_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "news_comment_votes" */
+["news_comment_votes_aggregate_fields"]: {
+		avg?: ModelTypes["news_comment_votes_avg_fields"] | undefined | null,
+	count: number,
+	max?: ModelTypes["news_comment_votes_max_fields"] | undefined | null,
+	min?: ModelTypes["news_comment_votes_min_fields"] | undefined | null,
+	stddev?: ModelTypes["news_comment_votes_stddev_fields"] | undefined | null,
+	stddev_pop?: ModelTypes["news_comment_votes_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: ModelTypes["news_comment_votes_stddev_samp_fields"] | undefined | null,
+	sum?: ModelTypes["news_comment_votes_sum_fields"] | undefined | null,
+	var_pop?: ModelTypes["news_comment_votes_var_pop_fields"] | undefined | null,
+	var_samp?: ModelTypes["news_comment_votes_var_samp_fields"] | undefined | null,
+	variance?: ModelTypes["news_comment_votes_variance_fields"] | undefined | null
+};
+	/** order by aggregate values of table "news_comment_votes" */
+["news_comment_votes_aggregate_order_by"]: {
+	avg?: ModelTypes["news_comment_votes_avg_order_by"] | undefined | null,
+	count?: ModelTypes["order_by"] | undefined | null,
+	max?: ModelTypes["news_comment_votes_max_order_by"] | undefined | null,
+	min?: ModelTypes["news_comment_votes_min_order_by"] | undefined | null,
+	stddev?: ModelTypes["news_comment_votes_stddev_order_by"] | undefined | null,
+	stddev_pop?: ModelTypes["news_comment_votes_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: ModelTypes["news_comment_votes_stddev_samp_order_by"] | undefined | null,
+	sum?: ModelTypes["news_comment_votes_sum_order_by"] | undefined | null,
+	var_pop?: ModelTypes["news_comment_votes_var_pop_order_by"] | undefined | null,
+	var_samp?: ModelTypes["news_comment_votes_var_samp_order_by"] | undefined | null,
+	variance?: ModelTypes["news_comment_votes_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "news_comment_votes" */
+["news_comment_votes_arr_rel_insert_input"]: {
+	data: Array<ModelTypes["news_comment_votes_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: ModelTypes["news_comment_votes_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["news_comment_votes_avg_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** order by avg() on columns of table "news_comment_votes" */
+["news_comment_votes_avg_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "news_comment_votes". All fields are combined with a logical 'AND'. */
+["news_comment_votes_bool_exp"]: {
+	_and?: Array<ModelTypes["news_comment_votes_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["news_comment_votes_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["news_comment_votes_bool_exp"]> | undefined | null,
+	comment?: ModelTypes["news_comments_bool_exp"] | undefined | null,
+	comment_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null
+};
+	["news_comment_votes_constraint"]:news_comment_votes_constraint;
+	/** input type for incrementing numeric columns in table "news_comment_votes" */
+["news_comment_votes_inc_input"]: {
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "news_comment_votes" */
+["news_comment_votes_insert_input"]: {
+	comment?: ModelTypes["news_comments_obj_rel_insert_input"] | undefined | null,
+	comment_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** aggregate max on columns */
+["news_comment_votes_max_fields"]: {
+		comment_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** order by max() on columns of table "news_comment_votes" */
+["news_comment_votes_max_order_by"]: {
+	comment_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["news_comment_votes_min_fields"]: {
+		comment_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** order by min() on columns of table "news_comment_votes" */
+["news_comment_votes_min_order_by"]: {
+	comment_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "news_comment_votes" */
+["news_comment_votes_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["news_comment_votes"]>
+};
+	/** on_conflict condition type for table "news_comment_votes" */
+["news_comment_votes_on_conflict"]: {
+	constraint: ModelTypes["news_comment_votes_constraint"],
+	update_columns: Array<ModelTypes["news_comment_votes_update_column"]>,
+	where?: ModelTypes["news_comment_votes_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "news_comment_votes". */
+["news_comment_votes_order_by"]: {
+	comment?: ModelTypes["news_comments_order_by"] | undefined | null,
+	comment_id?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: news_comment_votes */
+["news_comment_votes_pk_columns_input"]: {
+	comment_id: ModelTypes["uuid"],
+	steam_id: ModelTypes["bigint"]
+};
+	["news_comment_votes_select_column"]:news_comment_votes_select_column;
+	/** input type for updating data in table "news_comment_votes" */
+["news_comment_votes_set_input"]: {
+	comment_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["news_comment_votes_stddev_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** order by stddev() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["news_comment_votes_stddev_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** order by stddev_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_pop_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["news_comment_votes_stddev_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** order by stddev_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_samp_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "news_comment_votes" */
+["news_comment_votes_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["news_comment_votes_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comment_votes_stream_cursor_value_input"]: {
+	comment_id?: ModelTypes["uuid"] | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** aggregate sum on columns */
+["news_comment_votes_sum_fields"]: {
+		steam_id?: ModelTypes["bigint"] | undefined | null
+};
+	/** order by sum() on columns of table "news_comment_votes" */
+["news_comment_votes_sum_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	["news_comment_votes_update_column"]:news_comment_votes_update_column;
+	["news_comment_votes_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ModelTypes["news_comment_votes_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["news_comment_votes_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["news_comment_votes_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["news_comment_votes_var_pop_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** order by var_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_var_pop_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["news_comment_votes_var_samp_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** order by var_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_var_samp_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["news_comment_votes_variance_fields"]: {
+		steam_id?: number | undefined | null
+};
+	/** order by variance() on columns of table "news_comment_votes" */
+["news_comment_votes_variance_order_by"]: {
+	steam_id?: ModelTypes["order_by"] | undefined | null
+};
+	/** columns and relationships of "news_comments" */
+["news_comments"]: {
+		/** An object relationship */
+	article: ModelTypes["news_articles"],
+	article_id: ModelTypes["uuid"],
+	/** An object relationship */
+	author: ModelTypes["players"],
+	author_steam_id: ModelTypes["bigint"],
+	body: string,
+	created_at: ModelTypes["timestamptz"],
+	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
+	edited_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id: ModelTypes["uuid"],
+	/** An object relationship */
+	parent?: ModelTypes["news_comments"] | undefined | null,
+	parent_id?: ModelTypes["uuid"] | undefined | null,
+	/** An array relationship */
+	replies: Array<ModelTypes["news_comments"]>,
+	/** An aggregate relationship */
+	replies_aggregate: ModelTypes["news_comments_aggregate"],
+	reply_notified_at?: ModelTypes["timestamptz"] | undefined | null,
+	/** The comment text as this viewer may see it. */
+	text?: string | undefined | null,
+	vote_count: number,
+	/** An array relationship */
+	votes: Array<ModelTypes["news_comment_votes"]>,
+	/** An aggregate relationship */
+	votes_aggregate: ModelTypes["news_comment_votes_aggregate"]
+};
+	/** aggregated selection of "news_comments" */
+["news_comments_aggregate"]: {
+		aggregate?: ModelTypes["news_comments_aggregate_fields"] | undefined | null,
+	nodes: Array<ModelTypes["news_comments"]>
+};
+	["news_comments_aggregate_bool_exp"]: {
+	count?: ModelTypes["news_comments_aggregate_bool_exp_count"] | undefined | null
+};
+	["news_comments_aggregate_bool_exp_count"]: {
+	arguments?: Array<ModelTypes["news_comments_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: ModelTypes["news_comments_bool_exp"] | undefined | null,
+	predicate: ModelTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "news_comments" */
+["news_comments_aggregate_fields"]: {
+		avg?: ModelTypes["news_comments_avg_fields"] | undefined | null,
+	count: number,
+	max?: ModelTypes["news_comments_max_fields"] | undefined | null,
+	min?: ModelTypes["news_comments_min_fields"] | undefined | null,
+	stddev?: ModelTypes["news_comments_stddev_fields"] | undefined | null,
+	stddev_pop?: ModelTypes["news_comments_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: ModelTypes["news_comments_stddev_samp_fields"] | undefined | null,
+	sum?: ModelTypes["news_comments_sum_fields"] | undefined | null,
+	var_pop?: ModelTypes["news_comments_var_pop_fields"] | undefined | null,
+	var_samp?: ModelTypes["news_comments_var_samp_fields"] | undefined | null,
+	variance?: ModelTypes["news_comments_variance_fields"] | undefined | null
+};
+	/** order by aggregate values of table "news_comments" */
+["news_comments_aggregate_order_by"]: {
+	avg?: ModelTypes["news_comments_avg_order_by"] | undefined | null,
+	count?: ModelTypes["order_by"] | undefined | null,
+	max?: ModelTypes["news_comments_max_order_by"] | undefined | null,
+	min?: ModelTypes["news_comments_min_order_by"] | undefined | null,
+	stddev?: ModelTypes["news_comments_stddev_order_by"] | undefined | null,
+	stddev_pop?: ModelTypes["news_comments_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: ModelTypes["news_comments_stddev_samp_order_by"] | undefined | null,
+	sum?: ModelTypes["news_comments_sum_order_by"] | undefined | null,
+	var_pop?: ModelTypes["news_comments_var_pop_order_by"] | undefined | null,
+	var_samp?: ModelTypes["news_comments_var_samp_order_by"] | undefined | null,
+	variance?: ModelTypes["news_comments_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "news_comments" */
+["news_comments_arr_rel_insert_input"]: {
+	data: Array<ModelTypes["news_comments_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: ModelTypes["news_comments_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["news_comments_avg_fields"]: {
+		author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by avg() on columns of table "news_comments" */
+["news_comments_avg_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "news_comments". All fields are combined with a logical 'AND'. */
+["news_comments_bool_exp"]: {
+	_and?: Array<ModelTypes["news_comments_bool_exp"]> | undefined | null,
+	_not?: ModelTypes["news_comments_bool_exp"] | undefined | null,
+	_or?: Array<ModelTypes["news_comments_bool_exp"]> | undefined | null,
+	article?: ModelTypes["news_articles_bool_exp"] | undefined | null,
+	article_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	author?: ModelTypes["players_bool_exp"] | undefined | null,
+	author_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	body?: ModelTypes["String_comparison_exp"] | undefined | null,
+	created_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	deleted_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	edited_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	hidden_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint_comparison_exp"] | undefined | null,
+	hidden_reason?: ModelTypes["String_comparison_exp"] | undefined | null,
+	id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	parent?: ModelTypes["news_comments_bool_exp"] | undefined | null,
+	parent_id?: ModelTypes["uuid_comparison_exp"] | undefined | null,
+	replies?: ModelTypes["news_comments_bool_exp"] | undefined | null,
+	replies_aggregate?: ModelTypes["news_comments_aggregate_bool_exp"] | undefined | null,
+	reply_notified_at?: ModelTypes["timestamptz_comparison_exp"] | undefined | null,
+	text?: ModelTypes["String_comparison_exp"] | undefined | null,
+	vote_count?: ModelTypes["Int_comparison_exp"] | undefined | null,
+	votes?: ModelTypes["news_comment_votes_bool_exp"] | undefined | null,
+	votes_aggregate?: ModelTypes["news_comment_votes_aggregate_bool_exp"] | undefined | null
+};
+	["news_comments_constraint"]:news_comments_constraint;
+	/** input type for incrementing numeric columns in table "news_comments" */
+["news_comments_inc_input"]: {
+	author_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** input type for inserting data into table "news_comments" */
+["news_comments_insert_input"]: {
+	article?: ModelTypes["news_articles_obj_rel_insert_input"] | undefined | null,
+	article_id?: ModelTypes["uuid"] | undefined | null,
+	author?: ModelTypes["players_obj_rel_insert_input"] | undefined | null,
+	author_steam_id?: ModelTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
+	edited_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	parent?: ModelTypes["news_comments_obj_rel_insert_input"] | undefined | null,
+	parent_id?: ModelTypes["uuid"] | undefined | null,
+	replies?: ModelTypes["news_comments_arr_rel_insert_input"] | undefined | null,
+	reply_notified_at?: ModelTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null,
+	votes?: ModelTypes["news_comment_votes_arr_rel_insert_input"] | undefined | null
+};
+	/** aggregate max on columns */
+["news_comments_max_fields"]: {
+		article_id?: ModelTypes["uuid"] | undefined | null,
+	author_steam_id?: ModelTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
+	edited_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	parent_id?: ModelTypes["uuid"] | undefined | null,
+	reply_notified_at?: ModelTypes["timestamptz"] | undefined | null,
+	/** The comment text as this viewer may see it. */
+	text?: string | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by max() on columns of table "news_comments" */
+["news_comments_max_order_by"]: {
+	article_id?: ModelTypes["order_by"] | undefined | null,
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	body?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	deleted_at?: ModelTypes["order_by"] | undefined | null,
+	edited_at?: ModelTypes["order_by"] | undefined | null,
+	hidden_at?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_reason?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	parent_id?: ModelTypes["order_by"] | undefined | null,
+	reply_notified_at?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["news_comments_min_fields"]: {
+		article_id?: ModelTypes["uuid"] | undefined | null,
+	author_steam_id?: ModelTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
+	edited_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	parent_id?: ModelTypes["uuid"] | undefined | null,
+	reply_notified_at?: ModelTypes["timestamptz"] | undefined | null,
+	/** The comment text as this viewer may see it. */
+	text?: string | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by min() on columns of table "news_comments" */
+["news_comments_min_order_by"]: {
+	article_id?: ModelTypes["order_by"] | undefined | null,
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	body?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	deleted_at?: ModelTypes["order_by"] | undefined | null,
+	edited_at?: ModelTypes["order_by"] | undefined | null,
+	hidden_at?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_reason?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	parent_id?: ModelTypes["order_by"] | undefined | null,
+	reply_notified_at?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "news_comments" */
+["news_comments_mutation_response"]: {
+		/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<ModelTypes["news_comments"]>
+};
+	/** input type for inserting object relation for remote table "news_comments" */
+["news_comments_obj_rel_insert_input"]: {
+	data: ModelTypes["news_comments_insert_input"],
+	/** upsert condition */
+	on_conflict?: ModelTypes["news_comments_on_conflict"] | undefined | null
+};
+	/** on_conflict condition type for table "news_comments" */
+["news_comments_on_conflict"]: {
+	constraint: ModelTypes["news_comments_constraint"],
+	update_columns: Array<ModelTypes["news_comments_update_column"]>,
+	where?: ModelTypes["news_comments_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "news_comments". */
+["news_comments_order_by"]: {
+	article?: ModelTypes["news_articles_order_by"] | undefined | null,
+	article_id?: ModelTypes["order_by"] | undefined | null,
+	author?: ModelTypes["players_order_by"] | undefined | null,
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	body?: ModelTypes["order_by"] | undefined | null,
+	created_at?: ModelTypes["order_by"] | undefined | null,
+	deleted_at?: ModelTypes["order_by"] | undefined | null,
+	edited_at?: ModelTypes["order_by"] | undefined | null,
+	hidden_at?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_reason?: ModelTypes["order_by"] | undefined | null,
+	id?: ModelTypes["order_by"] | undefined | null,
+	parent?: ModelTypes["news_comments_order_by"] | undefined | null,
+	parent_id?: ModelTypes["order_by"] | undefined | null,
+	replies_aggregate?: ModelTypes["news_comments_aggregate_order_by"] | undefined | null,
+	reply_notified_at?: ModelTypes["order_by"] | undefined | null,
+	text?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null,
+	votes_aggregate?: ModelTypes["news_comment_votes_aggregate_order_by"] | undefined | null
+};
+	/** primary key columns input for table: news_comments */
+["news_comments_pk_columns_input"]: {
+	id: ModelTypes["uuid"]
+};
+	["news_comments_select_column"]:news_comments_select_column;
+	/** input type for updating data in table "news_comments" */
+["news_comments_set_input"]: {
+	article_id?: ModelTypes["uuid"] | undefined | null,
+	author_steam_id?: ModelTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
+	edited_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	parent_id?: ModelTypes["uuid"] | undefined | null,
+	reply_notified_at?: ModelTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** aggregate stddev on columns */
+["news_comments_stddev_fields"]: {
+		author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by stddev() on columns of table "news_comments" */
+["news_comments_stddev_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["news_comments_stddev_pop_fields"]: {
+		author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by stddev_pop() on columns of table "news_comments" */
+["news_comments_stddev_pop_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["news_comments_stddev_samp_fields"]: {
+		author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by stddev_samp() on columns of table "news_comments" */
+["news_comments_stddev_samp_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "news_comments" */
+["news_comments_stream_cursor_input"]: {
+	/** Stream column input with initial value */
+	initial_value: ModelTypes["news_comments_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: ModelTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comments_stream_cursor_value_input"]: {
+	article_id?: ModelTypes["uuid"] | undefined | null,
+	author_steam_id?: ModelTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: ModelTypes["timestamptz"] | undefined | null,
+	deleted_at?: ModelTypes["timestamptz"] | undefined | null,
+	edited_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_at?: ModelTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: ModelTypes["uuid"] | undefined | null,
+	parent_id?: ModelTypes["uuid"] | undefined | null,
+	reply_notified_at?: ModelTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** aggregate sum on columns */
+["news_comments_sum_fields"]: {
+		author_steam_id?: ModelTypes["bigint"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["bigint"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by sum() on columns of table "news_comments" */
+["news_comments_sum_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	["news_comments_update_column"]:news_comments_update_column;
+	["news_comments_updates"]: {
+	/** increments the numeric columns with given value of the filtered values */
+	_inc?: ModelTypes["news_comments_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: ModelTypes["news_comments_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: ModelTypes["news_comments_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["news_comments_var_pop_fields"]: {
+		author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by var_pop() on columns of table "news_comments" */
+["news_comments_var_pop_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["news_comments_var_samp_fields"]: {
+		author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by var_samp() on columns of table "news_comments" */
+["news_comments_var_samp_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["news_comments_variance_fields"]: {
+		author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by variance() on columns of table "news_comments" */
+["news_comments_variance_order_by"]: {
+	author_steam_id?: ModelTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: ModelTypes["order_by"] | undefined | null,
+	vote_count?: ModelTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "notifications" */
 ["notifications"]: {
@@ -186576,7 +189581,6 @@ export type ModelTypes = {
 };
 	/** primary key columns input for table: player_sanctions */
 ["player_sanctions_pk_columns_input"]: {
-	created_at: ModelTypes["timestamptz"],
 	id: ModelTypes["uuid"]
 };
 	["player_sanctions_select_column"]:player_sanctions_select_column;
@@ -188824,6 +191828,7 @@ export type ModelTypes = {
 	aim_weapon_stats: Array<ModelTypes["player_aim_weapon_stats"]>,
 	/** An aggregate relationship */
 	aim_weapon_stats_aggregate: ModelTypes["player_aim_weapon_stats_aggregate"],
+	allow_message_requests: boolean,
 	api_key_enabled: boolean,
 	/** An array relationship */
 	assists: Array<ModelTypes["player_assists"]>,
@@ -189119,6 +192124,7 @@ export type ModelTypes = {
 	abandoned_matches_aggregate?: ModelTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null,
 	aim_weapon_stats?: ModelTypes["player_aim_weapon_stats_bool_exp"] | undefined | null,
 	aim_weapon_stats_aggregate?: ModelTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null,
+	allow_message_requests?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	api_key_enabled?: ModelTypes["Boolean_comparison_exp"] | undefined | null,
 	assists?: ModelTypes["player_assists_bool_exp"] | undefined | null,
 	assists_aggregate?: ModelTypes["player_assists_aggregate_bool_exp"] | undefined | null,
@@ -189270,6 +192276,7 @@ export type ModelTypes = {
 ["players_insert_input"]: {
 	abandoned_matches?: ModelTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null,
 	aim_weapon_stats?: ModelTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null,
+	allow_message_requests?: boolean | undefined | null,
 	api_key_enabled?: boolean | undefined | null,
 	assists?: ModelTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	assited_by_players?: ModelTypes["player_assists_arr_rel_insert_input"] | undefined | null,
@@ -189487,6 +192494,7 @@ export type ModelTypes = {
 ["players_order_by"]: {
 	abandoned_matches_aggregate?: ModelTypes["abandoned_matches_aggregate_order_by"] | undefined | null,
 	aim_weapon_stats_aggregate?: ModelTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null,
+	allow_message_requests?: ModelTypes["order_by"] | undefined | null,
 	api_key_enabled?: ModelTypes["order_by"] | undefined | null,
 	assists_aggregate?: ModelTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: ModelTypes["player_assists_aggregate_order_by"] | undefined | null,
@@ -189592,6 +192600,7 @@ export type ModelTypes = {
 	["players_select_column"]:players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
+	allow_message_requests?: boolean | undefined | null,
 	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
@@ -189726,6 +192735,7 @@ export type ModelTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
+	allow_message_requests?: boolean | undefined | null,
 	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
@@ -190976,6 +193986,12 @@ export type ModelTypes = {
 	lobby_players_aggregate: ModelTypes["lobby_players_aggregate"],
 	/** fetch data from the table: "lobby_players" using primary key columns */
 	lobby_players_by_pk?: ModelTypes["lobby_players"] | undefined | null,
+	/** fetch data from the table: "map_callouts" */
+	map_callouts: Array<ModelTypes["map_callouts"]>,
+	/** fetch aggregated fields from the table: "map_callouts" */
+	map_callouts_aggregate: ModelTypes["map_callouts_aggregate"],
+	/** fetch data from the table: "map_callouts" using primary key columns */
+	map_callouts_by_pk?: ModelTypes["map_callouts"] | undefined | null,
 	/** fetch data from the table: "map_pools" */
 	map_pools: Array<ModelTypes["map_pools"]>,
 	/** fetch aggregated fields from the table: "map_pools" */
@@ -191098,6 +194114,18 @@ export type ModelTypes = {
 	news_articles_aggregate: ModelTypes["news_articles_aggregate"],
 	/** fetch data from the table: "news_articles" using primary key columns */
 	news_articles_by_pk?: ModelTypes["news_articles"] | undefined | null,
+	/** fetch data from the table: "news_comment_votes" */
+	news_comment_votes: Array<ModelTypes["news_comment_votes"]>,
+	/** fetch aggregated fields from the table: "news_comment_votes" */
+	news_comment_votes_aggregate: ModelTypes["news_comment_votes_aggregate"],
+	/** fetch data from the table: "news_comment_votes" using primary key columns */
+	news_comment_votes_by_pk?: ModelTypes["news_comment_votes"] | undefined | null,
+	/** fetch data from the table: "news_comments" */
+	news_comments: Array<ModelTypes["news_comments"]>,
+	/** fetch aggregated fields from the table: "news_comments" */
+	news_comments_aggregate: ModelTypes["news_comments_aggregate"],
+	/** fetch data from the table: "news_comments" using primary key columns */
+	news_comments_by_pk?: ModelTypes["news_comments"] | undefined | null,
 	/** An array relationship */
 	notifications: Array<ModelTypes["notifications"]>,
 	/** An aggregate relationship */
@@ -193854,6 +196882,14 @@ export type ModelTypes = {
 	lobby_players_by_pk?: ModelTypes["lobby_players"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "lobby_players" */
 	lobby_players_stream: Array<ModelTypes["lobby_players"]>,
+	/** fetch data from the table: "map_callouts" */
+	map_callouts: Array<ModelTypes["map_callouts"]>,
+	/** fetch aggregated fields from the table: "map_callouts" */
+	map_callouts_aggregate: ModelTypes["map_callouts_aggregate"],
+	/** fetch data from the table: "map_callouts" using primary key columns */
+	map_callouts_by_pk?: ModelTypes["map_callouts"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "map_callouts" */
+	map_callouts_stream: Array<ModelTypes["map_callouts"]>,
 	/** fetch data from the table: "map_pools" */
 	map_pools: Array<ModelTypes["map_pools"]>,
 	/** fetch aggregated fields from the table: "map_pools" */
@@ -194010,6 +197046,22 @@ export type ModelTypes = {
 	news_articles_by_pk?: ModelTypes["news_articles"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "news_articles" */
 	news_articles_stream: Array<ModelTypes["news_articles"]>,
+	/** fetch data from the table: "news_comment_votes" */
+	news_comment_votes: Array<ModelTypes["news_comment_votes"]>,
+	/** fetch aggregated fields from the table: "news_comment_votes" */
+	news_comment_votes_aggregate: ModelTypes["news_comment_votes_aggregate"],
+	/** fetch data from the table: "news_comment_votes" using primary key columns */
+	news_comment_votes_by_pk?: ModelTypes["news_comment_votes"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "news_comment_votes" */
+	news_comment_votes_stream: Array<ModelTypes["news_comment_votes"]>,
+	/** fetch data from the table: "news_comments" */
+	news_comments: Array<ModelTypes["news_comments"]>,
+	/** fetch aggregated fields from the table: "news_comments" */
+	news_comments_aggregate: ModelTypes["news_comments_aggregate"],
+	/** fetch data from the table: "news_comments" using primary key columns */
+	news_comments_by_pk?: ModelTypes["news_comments"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "news_comments" */
+	news_comments_stream: Array<ModelTypes["news_comments"]>,
 	/** An array relationship */
 	notifications: Array<ModelTypes["notifications"]>,
 	/** An aggregate relationship */
@@ -215195,6 +218247,24 @@ export type GraphQLTypes = {
 	nics?: Array<GraphQLTypes["NicStat"] | undefined | null> | undefined | null,
 	time?: GraphQLTypes["timestamp"] | undefined | null
 };
+	["NewsCommentOutput"]: {
+	__typename: "NewsCommentOutput",
+	article_id: GraphQLTypes["uuid"],
+	created_at: string,
+	deleted_at?: string | undefined | null,
+	edited_at?: string | undefined | null,
+	hidden_at?: string | undefined | null,
+	id: GraphQLTypes["uuid"],
+	parent_id?: GraphQLTypes["uuid"] | undefined | null,
+	text?: string | undefined | null,
+	vote_count: number
+};
+	["NewsCommentVoteOutput"]: {
+	__typename: "NewsCommentVoteOutput",
+	comment_id: GraphQLTypes["uuid"],
+	vote_count: number,
+	voted: boolean
+};
 	["NewsPost"]: {
 	__typename: "NewsPost",
 	author_steam_id?: string | undefined | null,
@@ -215310,6 +218380,11 @@ export type GraphQLTypes = {
 	running: boolean,
 	started_at?: string | undefined | null,
 	total: number
+};
+	["RecreateTournamentBracketMatchOutput"]: {
+	__typename: "RecreateTournamentBracketMatchOutput",
+	match_id?: GraphQLTypes["uuid"] | undefined | null,
+	success: boolean
 };
 	["ReindexStartedOutput"]: {
 	__typename: "ReindexStartedOutput",
@@ -232977,6 +236052,155 @@ export type GraphQLTypes = {
 		invited_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
 	steam_id?: GraphQLTypes["order_by"] | undefined | null
 };
+	/** columns and relationships of "map_callouts" */
+["map_callouts"]: {
+	__typename: "map_callouts",
+	boxes: GraphQLTypes["jsonb"],
+	map_name: string,
+	name: string,
+	source: string,
+	updated_at: GraphQLTypes["timestamptz"]
+};
+	/** aggregated selection of "map_callouts" */
+["map_callouts_aggregate"]: {
+	__typename: "map_callouts_aggregate",
+	aggregate?: GraphQLTypes["map_callouts_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["map_callouts"]>
+};
+	/** aggregate fields of "map_callouts" */
+["map_callouts_aggregate_fields"]: {
+	__typename: "map_callouts_aggregate_fields",
+	count: number,
+	max?: GraphQLTypes["map_callouts_max_fields"] | undefined | null,
+	min?: GraphQLTypes["map_callouts_min_fields"] | undefined | null
+};
+	/** append existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_append_input"]: {
+		boxes?: GraphQLTypes["jsonb"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "map_callouts". All fields are combined with a logical 'AND'. */
+["map_callouts_bool_exp"]: {
+		_and?: Array<GraphQLTypes["map_callouts_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["map_callouts_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["map_callouts_bool_exp"]> | undefined | null,
+	boxes?: GraphQLTypes["jsonb_comparison_exp"] | undefined | null,
+	map_name?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	name?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	source?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "map_callouts" */
+["map_callouts_constraint"]: map_callouts_constraint;
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+["map_callouts_delete_at_path_input"]: {
+		boxes?: Array<string> | undefined | null
+};
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+["map_callouts_delete_elem_input"]: {
+		boxes?: number | undefined | null
+};
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+["map_callouts_delete_key_input"]: {
+		boxes?: string | undefined | null
+};
+	/** input type for inserting data into table "map_callouts" */
+["map_callouts_insert_input"]: {
+		boxes?: GraphQLTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate max on columns */
+["map_callouts_max_fields"]: {
+	__typename: "map_callouts_max_fields",
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** aggregate min on columns */
+["map_callouts_min_fields"]: {
+	__typename: "map_callouts_min_fields",
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** response of any mutation on the table "map_callouts" */
+["map_callouts_mutation_response"]: {
+	__typename: "map_callouts_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["map_callouts"]>
+};
+	/** on_conflict condition type for table "map_callouts" */
+["map_callouts_on_conflict"]: {
+		constraint: GraphQLTypes["map_callouts_constraint"],
+	update_columns: Array<GraphQLTypes["map_callouts_update_column"]>,
+	where?: GraphQLTypes["map_callouts_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "map_callouts". */
+["map_callouts_order_by"]: {
+		boxes?: GraphQLTypes["order_by"] | undefined | null,
+	map_name?: GraphQLTypes["order_by"] | undefined | null,
+	name?: GraphQLTypes["order_by"] | undefined | null,
+	source?: GraphQLTypes["order_by"] | undefined | null,
+	updated_at?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: map_callouts */
+["map_callouts_pk_columns_input"]: {
+		map_name: string,
+	name: string
+};
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+["map_callouts_prepend_input"]: {
+		boxes?: GraphQLTypes["jsonb"] | undefined | null
+};
+	/** select columns of table "map_callouts" */
+["map_callouts_select_column"]: map_callouts_select_column;
+	/** input type for updating data in table "map_callouts" */
+["map_callouts_set_input"]: {
+		boxes?: GraphQLTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** Streaming cursor of the table "map_callouts" */
+["map_callouts_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["map_callouts_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["map_callouts_stream_cursor_value_input"]: {
+		boxes?: GraphQLTypes["jsonb"] | undefined | null,
+	map_name?: string | undefined | null,
+	name?: string | undefined | null,
+	source?: string | undefined | null,
+	updated_at?: GraphQLTypes["timestamptz"] | undefined | null
+};
+	/** update columns of table "map_callouts" */
+["map_callouts_update_column"]: map_callouts_update_column;
+	["map_callouts_updates"]: {
+		/** append existing jsonb value of filtered columns with new jsonb value */
+	_append?: GraphQLTypes["map_callouts_append_input"] | undefined | null,
+	/** delete the field or element with specified path (for JSON arrays, negative integers count from the end) */
+	_delete_at_path?: GraphQLTypes["map_callouts_delete_at_path_input"] | undefined | null,
+	/** delete the array element with specified index (negative integers count from the end). throws an error if top level container is not an array */
+	_delete_elem?: GraphQLTypes["map_callouts_delete_elem_input"] | undefined | null,
+	/** delete key/value pair or string element. key/value pairs are matched based on their key value */
+	_delete_key?: GraphQLTypes["map_callouts_delete_key_input"] | undefined | null,
+	/** prepend existing jsonb value of filtered columns with new jsonb value */
+	_prepend?: GraphQLTypes["map_callouts_prepend_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["map_callouts_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["map_callouts_bool_exp"]
+};
 	/** columns and relationships of "map_pools" */
 ["map_pools"]: {
 	__typename: "map_pools",
@@ -235206,10 +238430,12 @@ export type GraphQLTypes = {
 	match_map: GraphQLTypes["match_maps"],
 	match_map_id: GraphQLTypes["uuid"],
 	metadata_parsed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?: string | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: GraphQLTypes["jsonb"] | undefined | null,
 	round_ticks?: GraphQLTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -235292,7 +238518,9 @@ export type GraphQLTypes = {
 ["match_map_demos_avg_fields"]: {
 	__typename: "match_map_demos_avg_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235300,7 +238528,9 @@ export type GraphQLTypes = {
 	/** order by avg() on columns of table "match_map_demos" */
 ["match_map_demos_avg_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -235331,9 +238561,11 @@ export type GraphQLTypes = {
 	match_map?: GraphQLTypes["match_maps_bool_exp"] | undefined | null,
 	match_map_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	parser_version?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	playback_file?: GraphQLTypes["String_comparison_exp"] | undefined | null,
 	playback_size?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	playback_url?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	playback_version?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
 	players?: GraphQLTypes["jsonb_comparison_exp"] | undefined | null,
 	round_ticks?: GraphQLTypes["jsonb_comparison_exp"] | undefined | null,
 	size?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
@@ -235366,7 +238598,9 @@ export type GraphQLTypes = {
 };
 	/** input type for incrementing numeric columns in table "match_map_demos" */
 ["match_map_demos_inc_input"]: {
-		playback_size?: number | undefined | null,
+		parser_version?: number | undefined | null,
+	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235389,8 +238623,10 @@ export type GraphQLTypes = {
 	match_map?: GraphQLTypes["match_maps_obj_rel_insert_input"] | undefined | null,
 	match_map_id?: GraphQLTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: GraphQLTypes["jsonb"] | undefined | null,
 	round_ticks?: GraphQLTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -235412,10 +238648,12 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
 	match_map_id?: GraphQLTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?: string | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null,
@@ -235432,8 +238670,10 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["order_by"] | undefined | null,
 	match_map_id?: GraphQLTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_file?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null,
@@ -235453,10 +238693,12 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
 	match_map_id?: GraphQLTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
 	/** A computed field, executes function "demo_playback_url" */
 	playback_url?: string | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null,
@@ -235473,8 +238715,10 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["order_by"] | undefined | null,
 	match_map_id?: GraphQLTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_file?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null,
@@ -235520,9 +238764,11 @@ export type GraphQLTypes = {
 	match_map?: GraphQLTypes["match_maps_order_by"] | undefined | null,
 	match_map_id?: GraphQLTypes["order_by"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_file?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
 	playback_url?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	players?: GraphQLTypes["order_by"] | undefined | null,
 	round_ticks?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
@@ -235560,8 +238806,10 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
 	match_map_id?: GraphQLTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: GraphQLTypes["jsonb"] | undefined | null,
 	round_ticks?: GraphQLTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -235573,7 +238821,9 @@ export type GraphQLTypes = {
 ["match_map_demos_stddev_fields"]: {
 	__typename: "match_map_demos_stddev_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235581,7 +238831,9 @@ export type GraphQLTypes = {
 	/** order by stddev() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -235590,7 +238842,9 @@ export type GraphQLTypes = {
 ["match_map_demos_stddev_pop_fields"]: {
 	__typename: "match_map_demos_stddev_pop_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235598,7 +238852,9 @@ export type GraphQLTypes = {
 	/** order by stddev_pop() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_pop_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -235607,7 +238863,9 @@ export type GraphQLTypes = {
 ["match_map_demos_stddev_samp_fields"]: {
 	__typename: "match_map_demos_stddev_samp_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235615,7 +238873,9 @@ export type GraphQLTypes = {
 	/** order by stddev_samp() on columns of table "match_map_demos" */
 ["match_map_demos_stddev_samp_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -235641,8 +238901,10 @@ export type GraphQLTypes = {
 	match_id?: GraphQLTypes["uuid"] | undefined | null,
 	match_map_id?: GraphQLTypes["uuid"] | undefined | null,
 	metadata_parsed_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_file?: string | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	players?: GraphQLTypes["jsonb"] | undefined | null,
 	round_ticks?: GraphQLTypes["jsonb"] | undefined | null,
 	size?: number | undefined | null,
@@ -235654,7 +238916,9 @@ export type GraphQLTypes = {
 ["match_map_demos_sum_fields"]: {
 	__typename: "match_map_demos_sum_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235662,7 +238926,9 @@ export type GraphQLTypes = {
 	/** order by sum() on columns of table "match_map_demos" */
 ["match_map_demos_sum_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -235691,7 +238957,9 @@ export type GraphQLTypes = {
 ["match_map_demos_var_pop_fields"]: {
 	__typename: "match_map_demos_var_pop_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235699,7 +238967,9 @@ export type GraphQLTypes = {
 	/** order by var_pop() on columns of table "match_map_demos" */
 ["match_map_demos_var_pop_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -235708,7 +238978,9 @@ export type GraphQLTypes = {
 ["match_map_demos_var_samp_fields"]: {
 	__typename: "match_map_demos_var_samp_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235716,7 +238988,9 @@ export type GraphQLTypes = {
 	/** order by var_samp() on columns of table "match_map_demos" */
 ["match_map_demos_var_samp_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -235725,7 +238999,9 @@ export type GraphQLTypes = {
 ["match_map_demos_variance_fields"]: {
 	__typename: "match_map_demos_variance_fields",
 	duration_seconds?: number | undefined | null,
+	parser_version?: number | undefined | null,
 	playback_size?: number | undefined | null,
+	playback_version?: number | undefined | null,
 	size?: number | undefined | null,
 	tick_rate?: number | undefined | null,
 	total_ticks?: number | undefined | null
@@ -235733,7 +239009,9 @@ export type GraphQLTypes = {
 	/** order by variance() on columns of table "match_map_demos" */
 ["match_map_demos_variance_order_by"]: {
 		duration_seconds?: GraphQLTypes["order_by"] | undefined | null,
+	parser_version?: GraphQLTypes["order_by"] | undefined | null,
 	playback_size?: GraphQLTypes["order_by"] | undefined | null,
+	playback_version?: GraphQLTypes["order_by"] | undefined | null,
 	size?: GraphQLTypes["order_by"] | undefined | null,
 	tick_rate?: GraphQLTypes["order_by"] | undefined | null,
 	total_ticks?: GraphQLTypes["order_by"] | undefined | null
@@ -239135,6 +242413,8 @@ export type GraphQLTypes = {
 ["mutation_root"]: {
 	__typename: "mutation_root",
 	PreviewTournamentMatchReset: GraphQLTypes["PreviewTournamentMatchResetOutput"],
+	/** Recreate the match of a tournament bracket slot whose match was deleted (organizers and site administrators; checked by the API) */
+	RecreateTournamentBracketMatch?: GraphQLTypes["RecreateTournamentBracketMatchOutput"] | undefined | null,
 	ResetTournamentMatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** accept team invite */
 	acceptInvite?: GraphQLTypes["SuccessOutput"] | undefined | null,
@@ -239225,6 +242505,8 @@ export type GraphQLTypes = {
 	/** Delete a saved clip and its underlying S3 object */
 	deleteClip?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	deleteMatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** DEAFCS News comments. Delete your own comment (soft delete). */
+	deleteNewsComment?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Delete a news post. Caller role is verified against public.post_news_role. */
 	deleteNewsPost?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Delete orphaned S3 objects found by the last scan (admin only). Each key is re-verified against the database before removal. */
@@ -239595,6 +242877,10 @@ export type GraphQLTypes = {
 	delete_lobby_players?: GraphQLTypes["lobby_players_mutation_response"] | undefined | null,
 	/** delete single row from the table: "lobby_players" */
 	delete_lobby_players_by_pk?: GraphQLTypes["lobby_players"] | undefined | null,
+	/** delete data from the table: "map_callouts" */
+	delete_map_callouts?: GraphQLTypes["map_callouts_mutation_response"] | undefined | null,
+	/** delete single row from the table: "map_callouts" */
+	delete_map_callouts_by_pk?: GraphQLTypes["map_callouts"] | undefined | null,
 	/** delete data from the table: "map_pools" */
 	delete_map_pools?: GraphQLTypes["map_pools_mutation_response"] | undefined | null,
 	/** delete single row from the table: "map_pools" */
@@ -239671,6 +242957,14 @@ export type GraphQLTypes = {
 	delete_news_articles?: GraphQLTypes["news_articles_mutation_response"] | undefined | null,
 	/** delete single row from the table: "news_articles" */
 	delete_news_articles_by_pk?: GraphQLTypes["news_articles"] | undefined | null,
+	/** delete data from the table: "news_comment_votes" */
+	delete_news_comment_votes?: GraphQLTypes["news_comment_votes_mutation_response"] | undefined | null,
+	/** delete single row from the table: "news_comment_votes" */
+	delete_news_comment_votes_by_pk?: GraphQLTypes["news_comment_votes"] | undefined | null,
+	/** delete data from the table: "news_comments" */
+	delete_news_comments?: GraphQLTypes["news_comments_mutation_response"] | undefined | null,
+	/** delete single row from the table: "news_comments" */
+	delete_news_comments_by_pk?: GraphQLTypes["news_comments"] | undefined | null,
 	/** delete data from the table: "notifications" */
 	delete_notifications?: GraphQLTypes["notifications_mutation_response"] | undefined | null,
 	/** delete single row from the table: "notifications" */
@@ -239970,6 +243264,8 @@ export type GraphQLTypes = {
 	denyNameChange?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** Organizer regenerates the free agent teams and re-seeds */
 	draftTournamentTeams?: GraphQLTypes["TournamentDraftOutput"] | undefined | null,
+	/** DEAFCS News comments. Edit your own comment within 10 minutes of posting. */
+	editNewsComment?: GraphQLTypes["NewsCommentOutput"] | undefined | null,
 	/** Organizer pushes the check-in deadline out and reopens registration */
 	extendTournamentCheckIn?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	forfeitMatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
@@ -240344,6 +243640,10 @@ export type GraphQLTypes = {
 	insert_lobby_players?: GraphQLTypes["lobby_players_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "lobby_players" */
 	insert_lobby_players_one?: GraphQLTypes["lobby_players"] | undefined | null,
+	/** insert data into the table: "map_callouts" */
+	insert_map_callouts?: GraphQLTypes["map_callouts_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "map_callouts" */
+	insert_map_callouts_one?: GraphQLTypes["map_callouts"] | undefined | null,
 	/** insert data into the table: "map_pools" */
 	insert_map_pools?: GraphQLTypes["map_pools_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "map_pools" */
@@ -240424,6 +243724,14 @@ export type GraphQLTypes = {
 	insert_news_articles?: GraphQLTypes["news_articles_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "news_articles" */
 	insert_news_articles_one?: GraphQLTypes["news_articles"] | undefined | null,
+	/** insert data into the table: "news_comment_votes" */
+	insert_news_comment_votes?: GraphQLTypes["news_comment_votes_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "news_comment_votes" */
+	insert_news_comment_votes_one?: GraphQLTypes["news_comment_votes"] | undefined | null,
+	/** insert data into the table: "news_comments" */
+	insert_news_comments?: GraphQLTypes["news_comments_mutation_response"] | undefined | null,
+	/** insert a single row into the table: "news_comments" */
+	insert_news_comments_one?: GraphQLTypes["news_comments"] | undefined | null,
 	/** insert data into the table: "notifications" */
 	insert_notifications?: GraphQLTypes["notifications_mutation_response"] | undefined | null,
 	/** insert a single row into the table: "notifications" */
@@ -240760,6 +244068,8 @@ export type GraphQLTypes = {
 	/** Flag in-flight clip_render_jobs paused; pod halts after current highlight. */
 	pauseClipRenderBatch?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	pollSteamMatchHistory?: GraphQLTypes["SteamMatchHistoryPollOutput"] | undefined | null,
+	/** DEAFCS News comments. Post a comment or a reply. Verified User and above, not banned/restricted/chat-muted, article open (first 7 days). Notifies the parent author of a reply. */
+	postNewsComment?: GraphQLTypes["NewsCommentOutput"] | undefined | null,
 	/** previewDraftGame */
 	previewDraftGame?: GraphQLTypes["DraftGamePreviewOutput"] | undefined | null,
 	/** Build a multi-segment ClipSpec from a player+preset and queue it via the batch render path (no live demo session required) */
@@ -240854,6 +244164,8 @@ export type GraphQLTypes = {
 	setMatchStartingLineup?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	/** setMatchWinner */
 	setMatchWinner?: GraphQLTypes["SuccessOutput"] | undefined | null,
+	/** DEAFCS News comments. Staff (moderator and above) hide or restore a comment. */
+	setNewsCommentHidden?: GraphQLTypes["NewsCommentOutput"] | undefined | null,
 	/** Publish or unpublish a news post. Caller role is verified against public.post_news_role. */
 	setNewsPostStatus?: GraphQLTypes["NewsPost"] | undefined | null,
 	/** Configure a tournament award slot */
@@ -240890,6 +244202,8 @@ export type GraphQLTypes = {
 	/** Test FACEIT Data + Downloads API connectivity for the current admin */
 	testFaceitIntegration?: GraphQLTypes["FaceitTestOutput"] | undefined | null,
 	testUpload?: GraphQLTypes["TestUploadResponse"] | undefined | null,
+	/** DEAFCS News comments. Add or take back your +1 (not on your own comment, article open). */
+	toggleNewsCommentVote?: GraphQLTypes["NewsCommentVoteOutput"] | undefined | null,
 	unlinkDiscord?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	unlinkSteamMatchHistory?: GraphQLTypes["SuccessOutput"] | undefined | null,
 	unsanctionServerPlayer: GraphQLTypes["SanctionResult"],
@@ -241443,6 +244757,12 @@ export type GraphQLTypes = {
 	update_lobby_players_by_pk?: GraphQLTypes["lobby_players"] | undefined | null,
 	/** update multiples rows of table: "lobby_players" */
 	update_lobby_players_many?: Array<GraphQLTypes["lobby_players_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "map_callouts" */
+	update_map_callouts?: GraphQLTypes["map_callouts_mutation_response"] | undefined | null,
+	/** update single row of the table: "map_callouts" */
+	update_map_callouts_by_pk?: GraphQLTypes["map_callouts"] | undefined | null,
+	/** update multiples rows of table: "map_callouts" */
+	update_map_callouts_many?: Array<GraphQLTypes["map_callouts_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "map_pools" */
 	update_map_pools?: GraphQLTypes["map_pools_mutation_response"] | undefined | null,
 	/** update single row of the table: "map_pools" */
@@ -241555,6 +244875,18 @@ export type GraphQLTypes = {
 	update_news_articles_by_pk?: GraphQLTypes["news_articles"] | undefined | null,
 	/** update multiples rows of table: "news_articles" */
 	update_news_articles_many?: Array<GraphQLTypes["news_articles_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "news_comment_votes" */
+	update_news_comment_votes?: GraphQLTypes["news_comment_votes_mutation_response"] | undefined | null,
+	/** update single row of the table: "news_comment_votes" */
+	update_news_comment_votes_by_pk?: GraphQLTypes["news_comment_votes"] | undefined | null,
+	/** update multiples rows of table: "news_comment_votes" */
+	update_news_comment_votes_many?: Array<GraphQLTypes["news_comment_votes_mutation_response"] | undefined | null> | undefined | null,
+	/** update data of the table: "news_comments" */
+	update_news_comments?: GraphQLTypes["news_comments_mutation_response"] | undefined | null,
+	/** update single row of the table: "news_comments" */
+	update_news_comments_by_pk?: GraphQLTypes["news_comments"] | undefined | null,
+	/** update multiples rows of table: "news_comments" */
+	update_news_comments_many?: Array<GraphQLTypes["news_comments_mutation_response"] | undefined | null> | undefined | null,
 	/** update data of the table: "notifications" */
 	update_notifications?: GraphQLTypes["notifications_mutation_response"] | undefined | null,
 	/** update single row of the table: "notifications" */
@@ -242744,6 +246076,12 @@ export type GraphQLTypes = {
 	/** data from the rows affected by the mutation */
 	returning: Array<GraphQLTypes["news_articles"]>
 };
+	/** input type for inserting object relation for remote table "news_articles" */
+["news_articles_obj_rel_insert_input"]: {
+		data: GraphQLTypes["news_articles_insert_input"],
+	/** upsert condition */
+	on_conflict?: GraphQLTypes["news_articles_on_conflict"] | undefined | null
+};
 	/** on_conflict condition type for table "news_articles" */
 ["news_articles_on_conflict"]: {
 		constraint: GraphQLTypes["news_articles_constraint"],
@@ -242860,6 +246198,653 @@ export type GraphQLTypes = {
 	__typename: "news_articles_variance_fields",
 	author_steam_id?: number | undefined | null,
 	view_count?: number | undefined | null
+};
+	/** columns and relationships of "news_comment_votes" */
+["news_comment_votes"]: {
+	__typename: "news_comment_votes",
+	/** An object relationship */
+	comment: GraphQLTypes["news_comments"],
+	comment_id: GraphQLTypes["uuid"],
+	created_at: GraphQLTypes["timestamptz"],
+	steam_id: GraphQLTypes["bigint"]
+};
+	/** aggregated selection of "news_comment_votes" */
+["news_comment_votes_aggregate"]: {
+	__typename: "news_comment_votes_aggregate",
+	aggregate?: GraphQLTypes["news_comment_votes_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["news_comment_votes"]>
+};
+	["news_comment_votes_aggregate_bool_exp"]: {
+		count?: GraphQLTypes["news_comment_votes_aggregate_bool_exp_count"] | undefined | null
+};
+	["news_comment_votes_aggregate_bool_exp_count"]: {
+		arguments?: Array<GraphQLTypes["news_comment_votes_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["news_comment_votes_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "news_comment_votes" */
+["news_comment_votes_aggregate_fields"]: {
+	__typename: "news_comment_votes_aggregate_fields",
+	avg?: GraphQLTypes["news_comment_votes_avg_fields"] | undefined | null,
+	count: number,
+	max?: GraphQLTypes["news_comment_votes_max_fields"] | undefined | null,
+	min?: GraphQLTypes["news_comment_votes_min_fields"] | undefined | null,
+	stddev?: GraphQLTypes["news_comment_votes_stddev_fields"] | undefined | null,
+	stddev_pop?: GraphQLTypes["news_comment_votes_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: GraphQLTypes["news_comment_votes_stddev_samp_fields"] | undefined | null,
+	sum?: GraphQLTypes["news_comment_votes_sum_fields"] | undefined | null,
+	var_pop?: GraphQLTypes["news_comment_votes_var_pop_fields"] | undefined | null,
+	var_samp?: GraphQLTypes["news_comment_votes_var_samp_fields"] | undefined | null,
+	variance?: GraphQLTypes["news_comment_votes_variance_fields"] | undefined | null
+};
+	/** order by aggregate values of table "news_comment_votes" */
+["news_comment_votes_aggregate_order_by"]: {
+		avg?: GraphQLTypes["news_comment_votes_avg_order_by"] | undefined | null,
+	count?: GraphQLTypes["order_by"] | undefined | null,
+	max?: GraphQLTypes["news_comment_votes_max_order_by"] | undefined | null,
+	min?: GraphQLTypes["news_comment_votes_min_order_by"] | undefined | null,
+	stddev?: GraphQLTypes["news_comment_votes_stddev_order_by"] | undefined | null,
+	stddev_pop?: GraphQLTypes["news_comment_votes_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: GraphQLTypes["news_comment_votes_stddev_samp_order_by"] | undefined | null,
+	sum?: GraphQLTypes["news_comment_votes_sum_order_by"] | undefined | null,
+	var_pop?: GraphQLTypes["news_comment_votes_var_pop_order_by"] | undefined | null,
+	var_samp?: GraphQLTypes["news_comment_votes_var_samp_order_by"] | undefined | null,
+	variance?: GraphQLTypes["news_comment_votes_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "news_comment_votes" */
+["news_comment_votes_arr_rel_insert_input"]: {
+		data: Array<GraphQLTypes["news_comment_votes_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: GraphQLTypes["news_comment_votes_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["news_comment_votes_avg_fields"]: {
+	__typename: "news_comment_votes_avg_fields",
+	steam_id?: number | undefined | null
+};
+	/** order by avg() on columns of table "news_comment_votes" */
+["news_comment_votes_avg_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "news_comment_votes". All fields are combined with a logical 'AND'. */
+["news_comment_votes_bool_exp"]: {
+		_and?: Array<GraphQLTypes["news_comment_votes_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["news_comment_votes_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["news_comment_votes_bool_exp"]> | undefined | null,
+	comment?: GraphQLTypes["news_comments_bool_exp"] | undefined | null,
+	comment_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "news_comment_votes" */
+["news_comment_votes_constraint"]: news_comment_votes_constraint;
+	/** input type for incrementing numeric columns in table "news_comment_votes" */
+["news_comment_votes_inc_input"]: {
+		steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** input type for inserting data into table "news_comment_votes" */
+["news_comment_votes_insert_input"]: {
+		comment?: GraphQLTypes["news_comments_obj_rel_insert_input"] | undefined | null,
+	comment_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** aggregate max on columns */
+["news_comment_votes_max_fields"]: {
+	__typename: "news_comment_votes_max_fields",
+	comment_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** order by max() on columns of table "news_comment_votes" */
+["news_comment_votes_max_order_by"]: {
+		comment_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["news_comment_votes_min_fields"]: {
+	__typename: "news_comment_votes_min_fields",
+	comment_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** order by min() on columns of table "news_comment_votes" */
+["news_comment_votes_min_order_by"]: {
+		comment_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "news_comment_votes" */
+["news_comment_votes_mutation_response"]: {
+	__typename: "news_comment_votes_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["news_comment_votes"]>
+};
+	/** on_conflict condition type for table "news_comment_votes" */
+["news_comment_votes_on_conflict"]: {
+		constraint: GraphQLTypes["news_comment_votes_constraint"],
+	update_columns: Array<GraphQLTypes["news_comment_votes_update_column"]>,
+	where?: GraphQLTypes["news_comment_votes_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "news_comment_votes". */
+["news_comment_votes_order_by"]: {
+		comment?: GraphQLTypes["news_comments_order_by"] | undefined | null,
+	comment_id?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** primary key columns input for table: news_comment_votes */
+["news_comment_votes_pk_columns_input"]: {
+		comment_id: GraphQLTypes["uuid"],
+	steam_id: GraphQLTypes["bigint"]
+};
+	/** select columns of table "news_comment_votes" */
+["news_comment_votes_select_column"]: news_comment_votes_select_column;
+	/** input type for updating data in table "news_comment_votes" */
+["news_comment_votes_set_input"]: {
+		comment_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** aggregate stddev on columns */
+["news_comment_votes_stddev_fields"]: {
+	__typename: "news_comment_votes_stddev_fields",
+	steam_id?: number | undefined | null
+};
+	/** order by stddev() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["news_comment_votes_stddev_pop_fields"]: {
+	__typename: "news_comment_votes_stddev_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** order by stddev_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_pop_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["news_comment_votes_stddev_samp_fields"]: {
+	__typename: "news_comment_votes_stddev_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** order by stddev_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_stddev_samp_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "news_comment_votes" */
+["news_comment_votes_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["news_comment_votes_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comment_votes_stream_cursor_value_input"]: {
+		comment_id?: GraphQLTypes["uuid"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** aggregate sum on columns */
+["news_comment_votes_sum_fields"]: {
+	__typename: "news_comment_votes_sum_fields",
+	steam_id?: GraphQLTypes["bigint"] | undefined | null
+};
+	/** order by sum() on columns of table "news_comment_votes" */
+["news_comment_votes_sum_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** update columns of table "news_comment_votes" */
+["news_comment_votes_update_column"]: news_comment_votes_update_column;
+	["news_comment_votes_updates"]: {
+		/** increments the numeric columns with given value of the filtered values */
+	_inc?: GraphQLTypes["news_comment_votes_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["news_comment_votes_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["news_comment_votes_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["news_comment_votes_var_pop_fields"]: {
+	__typename: "news_comment_votes_var_pop_fields",
+	steam_id?: number | undefined | null
+};
+	/** order by var_pop() on columns of table "news_comment_votes" */
+["news_comment_votes_var_pop_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["news_comment_votes_var_samp_fields"]: {
+	__typename: "news_comment_votes_var_samp_fields",
+	steam_id?: number | undefined | null
+};
+	/** order by var_samp() on columns of table "news_comment_votes" */
+["news_comment_votes_var_samp_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["news_comment_votes_variance_fields"]: {
+	__typename: "news_comment_votes_variance_fields",
+	steam_id?: number | undefined | null
+};
+	/** order by variance() on columns of table "news_comment_votes" */
+["news_comment_votes_variance_order_by"]: {
+		steam_id?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** columns and relationships of "news_comments" */
+["news_comments"]: {
+	__typename: "news_comments",
+	/** An object relationship */
+	article: GraphQLTypes["news_articles"],
+	article_id: GraphQLTypes["uuid"],
+	/** An object relationship */
+	author: GraphQLTypes["players"],
+	author_steam_id: GraphQLTypes["bigint"],
+	body: string,
+	created_at: GraphQLTypes["timestamptz"],
+	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	edited_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id: GraphQLTypes["uuid"],
+	/** An object relationship */
+	parent?: GraphQLTypes["news_comments"] | undefined | null,
+	parent_id?: GraphQLTypes["uuid"] | undefined | null,
+	/** An array relationship */
+	replies: Array<GraphQLTypes["news_comments"]>,
+	/** An aggregate relationship */
+	replies_aggregate: GraphQLTypes["news_comments_aggregate"],
+	reply_notified_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	/** The comment text as this viewer may see it. */
+	text?: string | undefined | null,
+	vote_count: number,
+	/** An array relationship */
+	votes: Array<GraphQLTypes["news_comment_votes"]>,
+	/** An aggregate relationship */
+	votes_aggregate: GraphQLTypes["news_comment_votes_aggregate"]
+};
+	/** aggregated selection of "news_comments" */
+["news_comments_aggregate"]: {
+	__typename: "news_comments_aggregate",
+	aggregate?: GraphQLTypes["news_comments_aggregate_fields"] | undefined | null,
+	nodes: Array<GraphQLTypes["news_comments"]>
+};
+	["news_comments_aggregate_bool_exp"]: {
+		count?: GraphQLTypes["news_comments_aggregate_bool_exp_count"] | undefined | null
+};
+	["news_comments_aggregate_bool_exp_count"]: {
+		arguments?: Array<GraphQLTypes["news_comments_select_column"]> | undefined | null,
+	distinct?: boolean | undefined | null,
+	filter?: GraphQLTypes["news_comments_bool_exp"] | undefined | null,
+	predicate: GraphQLTypes["Int_comparison_exp"]
+};
+	/** aggregate fields of "news_comments" */
+["news_comments_aggregate_fields"]: {
+	__typename: "news_comments_aggregate_fields",
+	avg?: GraphQLTypes["news_comments_avg_fields"] | undefined | null,
+	count: number,
+	max?: GraphQLTypes["news_comments_max_fields"] | undefined | null,
+	min?: GraphQLTypes["news_comments_min_fields"] | undefined | null,
+	stddev?: GraphQLTypes["news_comments_stddev_fields"] | undefined | null,
+	stddev_pop?: GraphQLTypes["news_comments_stddev_pop_fields"] | undefined | null,
+	stddev_samp?: GraphQLTypes["news_comments_stddev_samp_fields"] | undefined | null,
+	sum?: GraphQLTypes["news_comments_sum_fields"] | undefined | null,
+	var_pop?: GraphQLTypes["news_comments_var_pop_fields"] | undefined | null,
+	var_samp?: GraphQLTypes["news_comments_var_samp_fields"] | undefined | null,
+	variance?: GraphQLTypes["news_comments_variance_fields"] | undefined | null
+};
+	/** order by aggregate values of table "news_comments" */
+["news_comments_aggregate_order_by"]: {
+		avg?: GraphQLTypes["news_comments_avg_order_by"] | undefined | null,
+	count?: GraphQLTypes["order_by"] | undefined | null,
+	max?: GraphQLTypes["news_comments_max_order_by"] | undefined | null,
+	min?: GraphQLTypes["news_comments_min_order_by"] | undefined | null,
+	stddev?: GraphQLTypes["news_comments_stddev_order_by"] | undefined | null,
+	stddev_pop?: GraphQLTypes["news_comments_stddev_pop_order_by"] | undefined | null,
+	stddev_samp?: GraphQLTypes["news_comments_stddev_samp_order_by"] | undefined | null,
+	sum?: GraphQLTypes["news_comments_sum_order_by"] | undefined | null,
+	var_pop?: GraphQLTypes["news_comments_var_pop_order_by"] | undefined | null,
+	var_samp?: GraphQLTypes["news_comments_var_samp_order_by"] | undefined | null,
+	variance?: GraphQLTypes["news_comments_variance_order_by"] | undefined | null
+};
+	/** input type for inserting array relation for remote table "news_comments" */
+["news_comments_arr_rel_insert_input"]: {
+		data: Array<GraphQLTypes["news_comments_insert_input"]>,
+	/** upsert condition */
+	on_conflict?: GraphQLTypes["news_comments_on_conflict"] | undefined | null
+};
+	/** aggregate avg on columns */
+["news_comments_avg_fields"]: {
+	__typename: "news_comments_avg_fields",
+	author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by avg() on columns of table "news_comments" */
+["news_comments_avg_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** Boolean expression to filter rows from the table "news_comments". All fields are combined with a logical 'AND'. */
+["news_comments_bool_exp"]: {
+		_and?: Array<GraphQLTypes["news_comments_bool_exp"]> | undefined | null,
+	_not?: GraphQLTypes["news_comments_bool_exp"] | undefined | null,
+	_or?: Array<GraphQLTypes["news_comments_bool_exp"]> | undefined | null,
+	article?: GraphQLTypes["news_articles_bool_exp"] | undefined | null,
+	article_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	author?: GraphQLTypes["players_bool_exp"] | undefined | null,
+	author_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	body?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	created_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	deleted_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	edited_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	hidden_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint_comparison_exp"] | undefined | null,
+	hidden_reason?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	parent?: GraphQLTypes["news_comments_bool_exp"] | undefined | null,
+	parent_id?: GraphQLTypes["uuid_comparison_exp"] | undefined | null,
+	replies?: GraphQLTypes["news_comments_bool_exp"] | undefined | null,
+	replies_aggregate?: GraphQLTypes["news_comments_aggregate_bool_exp"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["timestamptz_comparison_exp"] | undefined | null,
+	text?: GraphQLTypes["String_comparison_exp"] | undefined | null,
+	vote_count?: GraphQLTypes["Int_comparison_exp"] | undefined | null,
+	votes?: GraphQLTypes["news_comment_votes_bool_exp"] | undefined | null,
+	votes_aggregate?: GraphQLTypes["news_comment_votes_aggregate_bool_exp"] | undefined | null
+};
+	/** unique or primary key constraints on table "news_comments" */
+["news_comments_constraint"]: news_comments_constraint;
+	/** input type for incrementing numeric columns in table "news_comments" */
+["news_comments_inc_input"]: {
+		author_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** input type for inserting data into table "news_comments" */
+["news_comments_insert_input"]: {
+		article?: GraphQLTypes["news_articles_obj_rel_insert_input"] | undefined | null,
+	article_id?: GraphQLTypes["uuid"] | undefined | null,
+	author?: GraphQLTypes["players_obj_rel_insert_input"] | undefined | null,
+	author_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	edited_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	parent?: GraphQLTypes["news_comments_obj_rel_insert_input"] | undefined | null,
+	parent_id?: GraphQLTypes["uuid"] | undefined | null,
+	replies?: GraphQLTypes["news_comments_arr_rel_insert_input"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null,
+	votes?: GraphQLTypes["news_comment_votes_arr_rel_insert_input"] | undefined | null
+};
+	/** aggregate max on columns */
+["news_comments_max_fields"]: {
+	__typename: "news_comments_max_fields",
+	article_id?: GraphQLTypes["uuid"] | undefined | null,
+	author_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	edited_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	parent_id?: GraphQLTypes["uuid"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	/** The comment text as this viewer may see it. */
+	text?: string | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by max() on columns of table "news_comments" */
+["news_comments_max_order_by"]: {
+		article_id?: GraphQLTypes["order_by"] | undefined | null,
+	author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	body?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	deleted_at?: GraphQLTypes["order_by"] | undefined | null,
+	edited_at?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_at?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_reason?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	parent_id?: GraphQLTypes["order_by"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate min on columns */
+["news_comments_min_fields"]: {
+	__typename: "news_comments_min_fields",
+	article_id?: GraphQLTypes["uuid"] | undefined | null,
+	author_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	edited_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	parent_id?: GraphQLTypes["uuid"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	/** The comment text as this viewer may see it. */
+	text?: string | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by min() on columns of table "news_comments" */
+["news_comments_min_order_by"]: {
+		article_id?: GraphQLTypes["order_by"] | undefined | null,
+	author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	body?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	deleted_at?: GraphQLTypes["order_by"] | undefined | null,
+	edited_at?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_at?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_reason?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	parent_id?: GraphQLTypes["order_by"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** response of any mutation on the table "news_comments" */
+["news_comments_mutation_response"]: {
+	__typename: "news_comments_mutation_response",
+	/** number of rows affected by the mutation */
+	affected_rows: number,
+	/** data from the rows affected by the mutation */
+	returning: Array<GraphQLTypes["news_comments"]>
+};
+	/** input type for inserting object relation for remote table "news_comments" */
+["news_comments_obj_rel_insert_input"]: {
+		data: GraphQLTypes["news_comments_insert_input"],
+	/** upsert condition */
+	on_conflict?: GraphQLTypes["news_comments_on_conflict"] | undefined | null
+};
+	/** on_conflict condition type for table "news_comments" */
+["news_comments_on_conflict"]: {
+		constraint: GraphQLTypes["news_comments_constraint"],
+	update_columns: Array<GraphQLTypes["news_comments_update_column"]>,
+	where?: GraphQLTypes["news_comments_bool_exp"] | undefined | null
+};
+	/** Ordering options when selecting data from "news_comments". */
+["news_comments_order_by"]: {
+		article?: GraphQLTypes["news_articles_order_by"] | undefined | null,
+	article_id?: GraphQLTypes["order_by"] | undefined | null,
+	author?: GraphQLTypes["players_order_by"] | undefined | null,
+	author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	body?: GraphQLTypes["order_by"] | undefined | null,
+	created_at?: GraphQLTypes["order_by"] | undefined | null,
+	deleted_at?: GraphQLTypes["order_by"] | undefined | null,
+	edited_at?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_at?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_reason?: GraphQLTypes["order_by"] | undefined | null,
+	id?: GraphQLTypes["order_by"] | undefined | null,
+	parent?: GraphQLTypes["news_comments_order_by"] | undefined | null,
+	parent_id?: GraphQLTypes["order_by"] | undefined | null,
+	replies_aggregate?: GraphQLTypes["news_comments_aggregate_order_by"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["order_by"] | undefined | null,
+	text?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null,
+	votes_aggregate?: GraphQLTypes["news_comment_votes_aggregate_order_by"] | undefined | null
+};
+	/** primary key columns input for table: news_comments */
+["news_comments_pk_columns_input"]: {
+		id: GraphQLTypes["uuid"]
+};
+	/** select columns of table "news_comments" */
+["news_comments_select_column"]: news_comments_select_column;
+	/** input type for updating data in table "news_comments" */
+["news_comments_set_input"]: {
+		article_id?: GraphQLTypes["uuid"] | undefined | null,
+	author_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	edited_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	parent_id?: GraphQLTypes["uuid"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** aggregate stddev on columns */
+["news_comments_stddev_fields"]: {
+	__typename: "news_comments_stddev_fields",
+	author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by stddev() on columns of table "news_comments" */
+["news_comments_stddev_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_pop on columns */
+["news_comments_stddev_pop_fields"]: {
+	__typename: "news_comments_stddev_pop_fields",
+	author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by stddev_pop() on columns of table "news_comments" */
+["news_comments_stddev_pop_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate stddev_samp on columns */
+["news_comments_stddev_samp_fields"]: {
+	__typename: "news_comments_stddev_samp_fields",
+	author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by stddev_samp() on columns of table "news_comments" */
+["news_comments_stddev_samp_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** Streaming cursor of the table "news_comments" */
+["news_comments_stream_cursor_input"]: {
+		/** Stream column input with initial value */
+	initial_value: GraphQLTypes["news_comments_stream_cursor_value_input"],
+	/** cursor ordering */
+	ordering?: GraphQLTypes["cursor_ordering"] | undefined | null
+};
+	/** Initial value of the column from where the streaming should start */
+["news_comments_stream_cursor_value_input"]: {
+		article_id?: GraphQLTypes["uuid"] | undefined | null,
+	author_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	body?: string | undefined | null,
+	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	deleted_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	edited_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_reason?: string | undefined | null,
+	id?: GraphQLTypes["uuid"] | undefined | null,
+	parent_id?: GraphQLTypes["uuid"] | undefined | null,
+	reply_notified_at?: GraphQLTypes["timestamptz"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** aggregate sum on columns */
+["news_comments_sum_fields"]: {
+	__typename: "news_comments_sum_fields",
+	author_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["bigint"] | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by sum() on columns of table "news_comments" */
+["news_comments_sum_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** update columns of table "news_comments" */
+["news_comments_update_column"]: news_comments_update_column;
+	["news_comments_updates"]: {
+		/** increments the numeric columns with given value of the filtered values */
+	_inc?: GraphQLTypes["news_comments_inc_input"] | undefined | null,
+	/** sets the columns of the filtered rows to the given values */
+	_set?: GraphQLTypes["news_comments_set_input"] | undefined | null,
+	/** filter the rows which have to be updated */
+	where: GraphQLTypes["news_comments_bool_exp"]
+};
+	/** aggregate var_pop on columns */
+["news_comments_var_pop_fields"]: {
+	__typename: "news_comments_var_pop_fields",
+	author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by var_pop() on columns of table "news_comments" */
+["news_comments_var_pop_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate var_samp on columns */
+["news_comments_var_samp_fields"]: {
+	__typename: "news_comments_var_samp_fields",
+	author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by var_samp() on columns of table "news_comments" */
+["news_comments_var_samp_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
+};
+	/** aggregate variance on columns */
+["news_comments_variance_fields"]: {
+	__typename: "news_comments_variance_fields",
+	author_steam_id?: number | undefined | null,
+	hidden_by_steam_id?: number | undefined | null,
+	vote_count?: number | undefined | null
+};
+	/** order by variance() on columns of table "news_comments" */
+["news_comments_variance_order_by"]: {
+		author_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	hidden_by_steam_id?: GraphQLTypes["order_by"] | undefined | null,
+	vote_count?: GraphQLTypes["order_by"] | undefined | null
 };
 	/** columns and relationships of "notifications" */
 ["notifications"]: {
@@ -253698,8 +257683,7 @@ export type GraphQLTypes = {
 };
 	/** primary key columns input for table: player_sanctions */
 ["player_sanctions_pk_columns_input"]: {
-		created_at: GraphQLTypes["timestamptz"],
-	id: GraphQLTypes["uuid"]
+		id: GraphQLTypes["uuid"]
 };
 	/** select columns of table "player_sanctions" */
 ["player_sanctions_select_column"]: player_sanctions_select_column;
@@ -256099,6 +260083,7 @@ export type GraphQLTypes = {
 	aim_weapon_stats: Array<GraphQLTypes["player_aim_weapon_stats"]>,
 	/** An aggregate relationship */
 	aim_weapon_stats_aggregate: GraphQLTypes["player_aim_weapon_stats_aggregate"],
+	allow_message_requests: boolean,
 	api_key_enabled: boolean,
 	/** An array relationship */
 	assists: Array<GraphQLTypes["player_assists"]>,
@@ -256397,6 +260382,7 @@ export type GraphQLTypes = {
 	abandoned_matches_aggregate?: GraphQLTypes["abandoned_matches_aggregate_bool_exp"] | undefined | null,
 	aim_weapon_stats?: GraphQLTypes["player_aim_weapon_stats_bool_exp"] | undefined | null,
 	aim_weapon_stats_aggregate?: GraphQLTypes["player_aim_weapon_stats_aggregate_bool_exp"] | undefined | null,
+	allow_message_requests?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	api_key_enabled?: GraphQLTypes["Boolean_comparison_exp"] | undefined | null,
 	assists?: GraphQLTypes["player_assists_bool_exp"] | undefined | null,
 	assists_aggregate?: GraphQLTypes["player_assists_aggregate_bool_exp"] | undefined | null,
@@ -256549,6 +260535,7 @@ export type GraphQLTypes = {
 ["players_insert_input"]: {
 		abandoned_matches?: GraphQLTypes["abandoned_matches_arr_rel_insert_input"] | undefined | null,
 	aim_weapon_stats?: GraphQLTypes["player_aim_weapon_stats_arr_rel_insert_input"] | undefined | null,
+	allow_message_requests?: boolean | undefined | null,
 	api_key_enabled?: boolean | undefined | null,
 	assists?: GraphQLTypes["player_assists_arr_rel_insert_input"] | undefined | null,
 	assited_by_players?: GraphQLTypes["player_assists_arr_rel_insert_input"] | undefined | null,
@@ -256769,6 +260756,7 @@ export type GraphQLTypes = {
 ["players_order_by"]: {
 		abandoned_matches_aggregate?: GraphQLTypes["abandoned_matches_aggregate_order_by"] | undefined | null,
 	aim_weapon_stats_aggregate?: GraphQLTypes["player_aim_weapon_stats_aggregate_order_by"] | undefined | null,
+	allow_message_requests?: GraphQLTypes["order_by"] | undefined | null,
 	api_key_enabled?: GraphQLTypes["order_by"] | undefined | null,
 	assists_aggregate?: GraphQLTypes["player_assists_aggregate_order_by"] | undefined | null,
 	assited_by_players_aggregate?: GraphQLTypes["player_assists_aggregate_order_by"] | undefined | null,
@@ -256875,7 +260863,8 @@ export type GraphQLTypes = {
 ["players_select_column"]: players_select_column;
 	/** input type for updating data in table "players" */
 ["players_set_input"]: {
-		api_key_enabled?: boolean | undefined | null,
+		allow_message_requests?: boolean | undefined | null,
+	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -257012,7 +261001,8 @@ export type GraphQLTypes = {
 };
 	/** Initial value of the column from where the streaming should start */
 ["players_stream_cursor_value_input"]: {
-		api_key_enabled?: boolean | undefined | null,
+		allow_message_requests?: boolean | undefined | null,
+	api_key_enabled?: boolean | undefined | null,
 	avatar_url?: string | undefined | null,
 	country?: string | undefined | null,
 	created_at?: GraphQLTypes["timestamptz"] | undefined | null,
@@ -258319,6 +262309,12 @@ export type GraphQLTypes = {
 	lobby_players_aggregate: GraphQLTypes["lobby_players_aggregate"],
 	/** fetch data from the table: "lobby_players" using primary key columns */
 	lobby_players_by_pk?: GraphQLTypes["lobby_players"] | undefined | null,
+	/** fetch data from the table: "map_callouts" */
+	map_callouts: Array<GraphQLTypes["map_callouts"]>,
+	/** fetch aggregated fields from the table: "map_callouts" */
+	map_callouts_aggregate: GraphQLTypes["map_callouts_aggregate"],
+	/** fetch data from the table: "map_callouts" using primary key columns */
+	map_callouts_by_pk?: GraphQLTypes["map_callouts"] | undefined | null,
 	/** fetch data from the table: "map_pools" */
 	map_pools: Array<GraphQLTypes["map_pools"]>,
 	/** fetch aggregated fields from the table: "map_pools" */
@@ -258441,6 +262437,18 @@ export type GraphQLTypes = {
 	news_articles_aggregate: GraphQLTypes["news_articles_aggregate"],
 	/** fetch data from the table: "news_articles" using primary key columns */
 	news_articles_by_pk?: GraphQLTypes["news_articles"] | undefined | null,
+	/** fetch data from the table: "news_comment_votes" */
+	news_comment_votes: Array<GraphQLTypes["news_comment_votes"]>,
+	/** fetch aggregated fields from the table: "news_comment_votes" */
+	news_comment_votes_aggregate: GraphQLTypes["news_comment_votes_aggregate"],
+	/** fetch data from the table: "news_comment_votes" using primary key columns */
+	news_comment_votes_by_pk?: GraphQLTypes["news_comment_votes"] | undefined | null,
+	/** fetch data from the table: "news_comments" */
+	news_comments: Array<GraphQLTypes["news_comments"]>,
+	/** fetch aggregated fields from the table: "news_comments" */
+	news_comments_aggregate: GraphQLTypes["news_comments_aggregate"],
+	/** fetch data from the table: "news_comments" using primary key columns */
+	news_comments_by_pk?: GraphQLTypes["news_comments"] | undefined | null,
 	/** An array relationship */
 	notifications: Array<GraphQLTypes["notifications"]>,
 	/** An aggregate relationship */
@@ -261286,6 +265294,14 @@ export type GraphQLTypes = {
 	lobby_players_by_pk?: GraphQLTypes["lobby_players"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "lobby_players" */
 	lobby_players_stream: Array<GraphQLTypes["lobby_players"]>,
+	/** fetch data from the table: "map_callouts" */
+	map_callouts: Array<GraphQLTypes["map_callouts"]>,
+	/** fetch aggregated fields from the table: "map_callouts" */
+	map_callouts_aggregate: GraphQLTypes["map_callouts_aggregate"],
+	/** fetch data from the table: "map_callouts" using primary key columns */
+	map_callouts_by_pk?: GraphQLTypes["map_callouts"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "map_callouts" */
+	map_callouts_stream: Array<GraphQLTypes["map_callouts"]>,
 	/** fetch data from the table: "map_pools" */
 	map_pools: Array<GraphQLTypes["map_pools"]>,
 	/** fetch aggregated fields from the table: "map_pools" */
@@ -261442,6 +265458,22 @@ export type GraphQLTypes = {
 	news_articles_by_pk?: GraphQLTypes["news_articles"] | undefined | null,
 	/** fetch data from the table in a streaming manner: "news_articles" */
 	news_articles_stream: Array<GraphQLTypes["news_articles"]>,
+	/** fetch data from the table: "news_comment_votes" */
+	news_comment_votes: Array<GraphQLTypes["news_comment_votes"]>,
+	/** fetch aggregated fields from the table: "news_comment_votes" */
+	news_comment_votes_aggregate: GraphQLTypes["news_comment_votes_aggregate"],
+	/** fetch data from the table: "news_comment_votes" using primary key columns */
+	news_comment_votes_by_pk?: GraphQLTypes["news_comment_votes"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "news_comment_votes" */
+	news_comment_votes_stream: Array<GraphQLTypes["news_comment_votes"]>,
+	/** fetch data from the table: "news_comments" */
+	news_comments: Array<GraphQLTypes["news_comments"]>,
+	/** fetch aggregated fields from the table: "news_comments" */
+	news_comments_aggregate: GraphQLTypes["news_comments_aggregate"],
+	/** fetch data from the table: "news_comments" using primary key columns */
+	news_comments_by_pk?: GraphQLTypes["news_comments"] | undefined | null,
+	/** fetch data from the table in a streaming manner: "news_comments" */
+	news_comments_stream: Array<GraphQLTypes["news_comments"]>,
 	/** An array relationship */
 	notifications: Array<GraphQLTypes["notifications"]>,
 	/** An aggregate relationship */
@@ -284427,6 +288459,7 @@ export enum e_notification_types_enum {
 	NameChangeApproved = "NameChangeApproved",
 	NameChangeDenied = "NameChangeDenied",
 	NameChangeRequest = "NameChangeRequest",
+	NewsCommentReply = "NewsCommentReply",
 	NewsPublished = "NewsPublished",
 	OrganizerChatMessage = "OrganizerChatMessage",
 	PlayerReindex = "PlayerReindex",
@@ -285665,6 +289698,26 @@ export enum lobby_players_update_column {
 	status = "status",
 	steam_id = "steam_id"
 }
+/** unique or primary key constraints on table "map_callouts" */
+export enum map_callouts_constraint {
+	map_callouts_pkey = "map_callouts_pkey"
+}
+/** select columns of table "map_callouts" */
+export enum map_callouts_select_column {
+	boxes = "boxes",
+	map_name = "map_name",
+	name = "name",
+	source = "source",
+	updated_at = "updated_at"
+}
+/** update columns of table "map_callouts" */
+export enum map_callouts_update_column {
+	boxes = "boxes",
+	map_name = "map_name",
+	name = "name",
+	source = "source",
+	updated_at = "updated_at"
+}
 /** unique or primary key constraints on table "map_pools" */
 export enum map_pools_constraint {
 	map_pools_pkey = "map_pools_pkey"
@@ -285914,8 +289967,10 @@ export enum match_map_demos_select_column {
 	match_id = "match_id",
 	match_map_id = "match_map_id",
 	metadata_parsed_at = "metadata_parsed_at",
+	parser_version = "parser_version",
 	playback_file = "playback_file",
 	playback_size = "playback_size",
+	playback_version = "playback_version",
 	players = "players",
 	round_ticks = "round_ticks",
 	size = "size",
@@ -285944,8 +289999,10 @@ export enum match_map_demos_update_column {
 	match_id = "match_id",
 	match_map_id = "match_map_id",
 	metadata_parsed_at = "metadata_parsed_at",
+	parser_version = "parser_version",
 	playback_file = "playback_file",
 	playback_size = "playback_size",
+	playback_version = "playback_version",
 	players = "players",
 	round_ticks = "round_ticks",
 	size = "size",
@@ -286387,6 +290444,58 @@ export enum news_articles_update_column {
 	title = "title",
 	updated_at = "updated_at",
 	view_count = "view_count"
+}
+/** unique or primary key constraints on table "news_comment_votes" */
+export enum news_comment_votes_constraint {
+	news_comment_votes_pkey = "news_comment_votes_pkey"
+}
+/** select columns of table "news_comment_votes" */
+export enum news_comment_votes_select_column {
+	comment_id = "comment_id",
+	created_at = "created_at",
+	steam_id = "steam_id"
+}
+/** update columns of table "news_comment_votes" */
+export enum news_comment_votes_update_column {
+	comment_id = "comment_id",
+	created_at = "created_at",
+	steam_id = "steam_id"
+}
+/** unique or primary key constraints on table "news_comments" */
+export enum news_comments_constraint {
+	news_comments_pkey = "news_comments_pkey"
+}
+/** select columns of table "news_comments" */
+export enum news_comments_select_column {
+	article_id = "article_id",
+	author_steam_id = "author_steam_id",
+	body = "body",
+	created_at = "created_at",
+	deleted_at = "deleted_at",
+	edited_at = "edited_at",
+	hidden_at = "hidden_at",
+	hidden_by_steam_id = "hidden_by_steam_id",
+	hidden_reason = "hidden_reason",
+	id = "id",
+	parent_id = "parent_id",
+	reply_notified_at = "reply_notified_at",
+	vote_count = "vote_count"
+}
+/** update columns of table "news_comments" */
+export enum news_comments_update_column {
+	article_id = "article_id",
+	author_steam_id = "author_steam_id",
+	body = "body",
+	created_at = "created_at",
+	deleted_at = "deleted_at",
+	edited_at = "edited_at",
+	hidden_at = "hidden_at",
+	hidden_by_steam_id = "hidden_by_steam_id",
+	hidden_reason = "hidden_reason",
+	id = "id",
+	parent_id = "parent_id",
+	reply_notified_at = "reply_notified_at",
+	vote_count = "vote_count"
 }
 /** unique or primary key constraints on table "notifications" */
 export enum notifications_constraint {
@@ -287488,6 +291597,7 @@ export enum players_constraint {
 }
 /** select columns of table "players" */
 export enum players_select_column {
+	allow_message_requests = "allow_message_requests",
 	api_key_enabled = "api_key_enabled",
 	avatar_url = "avatar_url",
 	country = "country",
@@ -287526,6 +291636,7 @@ export enum players_select_column {
 }
 /** update columns of table "players" */
 export enum players_update_column {
+	allow_message_requests = "allow_message_requests",
 	api_key_enabled = "api_key_enabled",
 	avatar_url = "avatar_url",
 	country = "country",
@@ -291450,6 +295561,23 @@ type ZEUS_VARIABLES = {
 	["lobby_players_var_pop_order_by"]: ValueTypes["lobby_players_var_pop_order_by"];
 	["lobby_players_var_samp_order_by"]: ValueTypes["lobby_players_var_samp_order_by"];
 	["lobby_players_variance_order_by"]: ValueTypes["lobby_players_variance_order_by"];
+	["map_callouts_append_input"]: ValueTypes["map_callouts_append_input"];
+	["map_callouts_bool_exp"]: ValueTypes["map_callouts_bool_exp"];
+	["map_callouts_constraint"]: ValueTypes["map_callouts_constraint"];
+	["map_callouts_delete_at_path_input"]: ValueTypes["map_callouts_delete_at_path_input"];
+	["map_callouts_delete_elem_input"]: ValueTypes["map_callouts_delete_elem_input"];
+	["map_callouts_delete_key_input"]: ValueTypes["map_callouts_delete_key_input"];
+	["map_callouts_insert_input"]: ValueTypes["map_callouts_insert_input"];
+	["map_callouts_on_conflict"]: ValueTypes["map_callouts_on_conflict"];
+	["map_callouts_order_by"]: ValueTypes["map_callouts_order_by"];
+	["map_callouts_pk_columns_input"]: ValueTypes["map_callouts_pk_columns_input"];
+	["map_callouts_prepend_input"]: ValueTypes["map_callouts_prepend_input"];
+	["map_callouts_select_column"]: ValueTypes["map_callouts_select_column"];
+	["map_callouts_set_input"]: ValueTypes["map_callouts_set_input"];
+	["map_callouts_stream_cursor_input"]: ValueTypes["map_callouts_stream_cursor_input"];
+	["map_callouts_stream_cursor_value_input"]: ValueTypes["map_callouts_stream_cursor_value_input"];
+	["map_callouts_update_column"]: ValueTypes["map_callouts_update_column"];
+	["map_callouts_updates"]: ValueTypes["map_callouts_updates"];
 	["map_pools_bool_exp"]: ValueTypes["map_pools_bool_exp"];
 	["map_pools_constraint"]: ValueTypes["map_pools_constraint"];
 	["map_pools_insert_input"]: ValueTypes["map_pools_insert_input"];
@@ -291908,6 +296036,7 @@ type ZEUS_VARIABLES = {
 	["news_articles_constraint"]: ValueTypes["news_articles_constraint"];
 	["news_articles_inc_input"]: ValueTypes["news_articles_inc_input"];
 	["news_articles_insert_input"]: ValueTypes["news_articles_insert_input"];
+	["news_articles_obj_rel_insert_input"]: ValueTypes["news_articles_obj_rel_insert_input"];
 	["news_articles_on_conflict"]: ValueTypes["news_articles_on_conflict"];
 	["news_articles_order_by"]: ValueTypes["news_articles_order_by"];
 	["news_articles_pk_columns_input"]: ValueTypes["news_articles_pk_columns_input"];
@@ -291917,6 +296046,61 @@ type ZEUS_VARIABLES = {
 	["news_articles_stream_cursor_value_input"]: ValueTypes["news_articles_stream_cursor_value_input"];
 	["news_articles_update_column"]: ValueTypes["news_articles_update_column"];
 	["news_articles_updates"]: ValueTypes["news_articles_updates"];
+	["news_comment_votes_aggregate_bool_exp"]: ValueTypes["news_comment_votes_aggregate_bool_exp"];
+	["news_comment_votes_aggregate_bool_exp_count"]: ValueTypes["news_comment_votes_aggregate_bool_exp_count"];
+	["news_comment_votes_aggregate_order_by"]: ValueTypes["news_comment_votes_aggregate_order_by"];
+	["news_comment_votes_arr_rel_insert_input"]: ValueTypes["news_comment_votes_arr_rel_insert_input"];
+	["news_comment_votes_avg_order_by"]: ValueTypes["news_comment_votes_avg_order_by"];
+	["news_comment_votes_bool_exp"]: ValueTypes["news_comment_votes_bool_exp"];
+	["news_comment_votes_constraint"]: ValueTypes["news_comment_votes_constraint"];
+	["news_comment_votes_inc_input"]: ValueTypes["news_comment_votes_inc_input"];
+	["news_comment_votes_insert_input"]: ValueTypes["news_comment_votes_insert_input"];
+	["news_comment_votes_max_order_by"]: ValueTypes["news_comment_votes_max_order_by"];
+	["news_comment_votes_min_order_by"]: ValueTypes["news_comment_votes_min_order_by"];
+	["news_comment_votes_on_conflict"]: ValueTypes["news_comment_votes_on_conflict"];
+	["news_comment_votes_order_by"]: ValueTypes["news_comment_votes_order_by"];
+	["news_comment_votes_pk_columns_input"]: ValueTypes["news_comment_votes_pk_columns_input"];
+	["news_comment_votes_select_column"]: ValueTypes["news_comment_votes_select_column"];
+	["news_comment_votes_set_input"]: ValueTypes["news_comment_votes_set_input"];
+	["news_comment_votes_stddev_order_by"]: ValueTypes["news_comment_votes_stddev_order_by"];
+	["news_comment_votes_stddev_pop_order_by"]: ValueTypes["news_comment_votes_stddev_pop_order_by"];
+	["news_comment_votes_stddev_samp_order_by"]: ValueTypes["news_comment_votes_stddev_samp_order_by"];
+	["news_comment_votes_stream_cursor_input"]: ValueTypes["news_comment_votes_stream_cursor_input"];
+	["news_comment_votes_stream_cursor_value_input"]: ValueTypes["news_comment_votes_stream_cursor_value_input"];
+	["news_comment_votes_sum_order_by"]: ValueTypes["news_comment_votes_sum_order_by"];
+	["news_comment_votes_update_column"]: ValueTypes["news_comment_votes_update_column"];
+	["news_comment_votes_updates"]: ValueTypes["news_comment_votes_updates"];
+	["news_comment_votes_var_pop_order_by"]: ValueTypes["news_comment_votes_var_pop_order_by"];
+	["news_comment_votes_var_samp_order_by"]: ValueTypes["news_comment_votes_var_samp_order_by"];
+	["news_comment_votes_variance_order_by"]: ValueTypes["news_comment_votes_variance_order_by"];
+	["news_comments_aggregate_bool_exp"]: ValueTypes["news_comments_aggregate_bool_exp"];
+	["news_comments_aggregate_bool_exp_count"]: ValueTypes["news_comments_aggregate_bool_exp_count"];
+	["news_comments_aggregate_order_by"]: ValueTypes["news_comments_aggregate_order_by"];
+	["news_comments_arr_rel_insert_input"]: ValueTypes["news_comments_arr_rel_insert_input"];
+	["news_comments_avg_order_by"]: ValueTypes["news_comments_avg_order_by"];
+	["news_comments_bool_exp"]: ValueTypes["news_comments_bool_exp"];
+	["news_comments_constraint"]: ValueTypes["news_comments_constraint"];
+	["news_comments_inc_input"]: ValueTypes["news_comments_inc_input"];
+	["news_comments_insert_input"]: ValueTypes["news_comments_insert_input"];
+	["news_comments_max_order_by"]: ValueTypes["news_comments_max_order_by"];
+	["news_comments_min_order_by"]: ValueTypes["news_comments_min_order_by"];
+	["news_comments_obj_rel_insert_input"]: ValueTypes["news_comments_obj_rel_insert_input"];
+	["news_comments_on_conflict"]: ValueTypes["news_comments_on_conflict"];
+	["news_comments_order_by"]: ValueTypes["news_comments_order_by"];
+	["news_comments_pk_columns_input"]: ValueTypes["news_comments_pk_columns_input"];
+	["news_comments_select_column"]: ValueTypes["news_comments_select_column"];
+	["news_comments_set_input"]: ValueTypes["news_comments_set_input"];
+	["news_comments_stddev_order_by"]: ValueTypes["news_comments_stddev_order_by"];
+	["news_comments_stddev_pop_order_by"]: ValueTypes["news_comments_stddev_pop_order_by"];
+	["news_comments_stddev_samp_order_by"]: ValueTypes["news_comments_stddev_samp_order_by"];
+	["news_comments_stream_cursor_input"]: ValueTypes["news_comments_stream_cursor_input"];
+	["news_comments_stream_cursor_value_input"]: ValueTypes["news_comments_stream_cursor_value_input"];
+	["news_comments_sum_order_by"]: ValueTypes["news_comments_sum_order_by"];
+	["news_comments_update_column"]: ValueTypes["news_comments_update_column"];
+	["news_comments_updates"]: ValueTypes["news_comments_updates"];
+	["news_comments_var_pop_order_by"]: ValueTypes["news_comments_var_pop_order_by"];
+	["news_comments_var_samp_order_by"]: ValueTypes["news_comments_var_samp_order_by"];
+	["news_comments_variance_order_by"]: ValueTypes["news_comments_variance_order_by"];
 	["notifications_aggregate_bool_exp"]: ValueTypes["notifications_aggregate_bool_exp"];
 	["notifications_aggregate_bool_exp_bool_and"]: ValueTypes["notifications_aggregate_bool_exp_bool_and"];
 	["notifications_aggregate_bool_exp_bool_or"]: ValueTypes["notifications_aggregate_bool_exp_bool_or"];
