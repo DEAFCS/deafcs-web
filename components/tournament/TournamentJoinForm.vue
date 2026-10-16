@@ -426,7 +426,23 @@ export default {
           role: this.$t(`player_roles.${this.tournament.min_role}`),
         });
       }
+      // DEAFCS: one entry per tournament. A Free Agent cannot also register a
+      // team; the API refuses it (tbi_tournament_team_single_entry).
+      if (this.isFreeAgent) {
+        return this.$t("tournament.join.free_agent_already");
+      }
       return null;
+    },
+    isFreeAgent() {
+      const steamId = String(this.me?.steam_id ?? "");
+      return (
+        !!steamId &&
+        ((this.tournament as any)?.free_agents ?? []).some(
+          (agent: any) =>
+            String(agent.player_steam_id) === steamId &&
+            agent.status !== "withdrawn",
+        )
+      );
     },
     isIndividualRegistration() {
       return (this.tournament as any)?.registration_version !== 2 && !!(this.tournament as any)?.options?.individual_registration_enabled;
