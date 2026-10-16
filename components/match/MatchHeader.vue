@@ -1,7 +1,8 @@
 <!-- Adapted from 5Stack WEB 85b4f0f9 (components/match/MatchHeader.vue); MIT
      Copyright (c) 2025 5Stack.gg; see LICENSE. DEAFCS changes: avatars are
      requested at their stored size (the DEAFCS API has no ?w= resize, 5Stack
-     api#862), and the DEAFCS match-type badge stays next to the source badge. -->
+     api#862), the DEAFCS match-type badge stays next to the source badge, and
+     the small auto-cancel clock keeps the DEAFCS rule (hidden in Veto/Live). -->
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -10,6 +11,7 @@ import { NuxtLink } from "#components";
 import MatchLineupScoreDisplay from "~/components/match/MatchLineupScoreDisplay.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import MatchActions from "~/components/match/MatchActions.vue";
+import MatchHeaderVeto from "~/components/match/MatchHeaderVeto.vue";
 import MatchSourceBadge from "~/components/MatchSourceBadge.vue";
 import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
@@ -656,6 +658,8 @@ const resultText = computed(() =>
           </span>
         </Transition>
       </div>
+
+      <MatchHeaderVeto :match="match" />
     </div>
   </div>
 </template>

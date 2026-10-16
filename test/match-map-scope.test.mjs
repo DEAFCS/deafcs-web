@@ -264,15 +264,14 @@ test("the canonical selector is hidden for BO1 and drives map-aware tabs", () =>
   assert.match(matchTabs, /<MatchRoles[\s\S]*?:selected-map-id="activeMap\?\.id"/);
 });
 
-test("map-specific sidebar hides unused slots and veto while Overall restores the complete context", () => {
+test("map-specific sidebar hides unused slots while Overall restores the complete context", () => {
   assert.match(
     matchDetail,
     /selectedStatsMapId\s*\? statsEligibleMatchMaps\(match\.match_maps\)\s*:\s*mapSlots/,
   );
-  assert.match(
-    matchDetail,
-    /v-show="\s*!selectedStatsMapId && showVetoPicks && vetoPickCount !== 0\s*"/,
-  );
+  // The veto's order of play moved from a sidebar card into the match header
+  // (5Stack WEB 85b4f0f9, MatchHeaderVeto), where it stays for every map.
+  assert.doesNotMatch(matchDetail, /<MatchPicksDisplay/);
 });
 
 test("Economy and Map Analysis no longer own independent map selectors", () => {

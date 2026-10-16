@@ -14,7 +14,6 @@ import MatchHighlightsReel from "~/components/match/MatchHighlightsReel.vue";
 import MatchHeader from "~/components/match/MatchHeader.vue";
 import CameraRequirementOverlay from "~/components/match/CameraRequirementOverlay.vue";
 import { e_match_status_enum } from "~/generated/zeus";
-import MatchPicksDisplay from "~/components/match/MatchPicksDisplay.vue";
 import StreamEmbed from "~/components/StreamEmbed.vue";
 import LiveStreamPlayer from "~/components/match/LiveStreamPlayer.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
@@ -235,23 +234,6 @@ onUnmounted(() => rankSub?.unsubscribe());
                   </div>
                 </div>
               </div>
-            </div>
-            <div
-              v-show="
-                !selectedStatsMapId && showVetoPicks && vetoPickCount !== 0
-              "
-              class="rounded-xl border border-border/40 bg-card/40 px-1.5 py-1.5"
-            >
-              <div
-                class="font-mono text-[0.6rem] font-bold tracking-[0.28em] uppercase text-muted-foreground/70 text-center mb-1"
-              >
-                {{ $t("common.map_veto") }}
-              </div>
-              <MatchPicksDisplay
-                v-if="showVetoPicks"
-                :match="match"
-                @update:count="vetoPickCount = $event"
-              />
             </div>
           </div>
         </PageTransition>
@@ -481,7 +463,6 @@ export default {
       lifecycleHandoffTimer: undefined as
         | ReturnType<typeof setTimeout>
         | undefined,
-      vetoPickCount: undefined,
       // Tracks CameraRequirementOverlay's own live/continuously-polled
       // status (see @update:ready) — informational only. The overlay
       // now decides its own visibility internally, in both directions,
@@ -1199,14 +1180,6 @@ export default {
         !!this.match?.options?.camera_required &&
         ["Veto", "Live", "WaitingForServer"].includes(this.match?.status)
       );
-    },
-    showVetoPicks() {
-      if (!this.match) return false;
-      if (this.match.source && this.match.source !== "5stack") return false;
-      const hasVeto =
-        this.match.options?.map_veto || this.match.options?.region_veto;
-      if (!hasVeto) return false;
-      return this.match.status !== e_match_status_enum.Veto;
     },
     mapSlots() {
       if (!this.match || !this.match.options?.best_of) {

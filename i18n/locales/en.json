@@ -7449,7 +7449,8 @@
       "action_side": "{team} chose {side} on {map}",
       "action_decider": "{map} was the decider",
       "side_picked_by": "{team} chose {side}",
-      "starts_on": "{team} starts {side}"
+      "starts_on": "{team} starts {side}",
+      "auto_picked": "Auto"
     },
     "decider": "Decider",
     "map_veto": {
@@ -8095,6 +8096,21 @@
       "final": "Final",
       "winner": "Winner",
       "veto": "Veto"
+    },
+    "veto": {
+      "order": "Order of play",
+      "steps": {
+        "Ban": "Ban",
+        "Pick": "Pick",
+        "Side": "Side",
+        "Decider": "Decider",
+        "Region": "Region"
+      },
+      "yours": {
+        "Ban": "Your ban",
+        "Pick": "Your pick",
+        "Side": "Your side"
+      }
     }
   },
   "ui": {
