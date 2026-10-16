@@ -16,6 +16,7 @@ const read = (p: string) =>
 const overview = read("components/match/LineupOverview.vue");
 const row = read("components/match/LineupOverviewRow.vue");
 const tableHead = read("components/ui/table/TableHead.vue");
+const sortableHead = read("components/common/SortableTableHead.vue");
 const tableCell = read("components/ui/table/TableCell.vue");
 const template = overview.slice(
   overview.indexOf("<template>"),
@@ -30,8 +31,24 @@ const stickyHead = template.match(
   /<TableHead\s+v-if="!hideMember"\s+class="([^"]+)"/,
 )![1];
 const stickyCell = row.match(/'(relative w-\[110px\][^']+sticky[^']+)'/)![1];
+// The sortable heading group and its icon block, as SortableTableHead writes them.
+const sortGroup = sortableHead.match(/<span (data-sort-group) class="([^"]+)">/)!;
+const sortIcons = sortableHead.match(/<span data-sort-icons class="([^"]+)">/)![1];
+const sortIcon = sortableHead.match(/<ChevronUp\s+class="([^"]+)"/)![1];
 const damageBlock = row.match(
   /<div class="(hidden md:flex flex-col[^"]+)">/,
+)![1];
+// On touch, StatLabel puts an info button before the heading text.
+const statLabel = read("components/common/StatLabel.vue");
+const touchWrap = statLabel.match(/<span v-if="headerTouch" class="([^"]+)">/)![1];
+const infoButton = statLabel.match(/data-stat-info\s+class="([^"]+)"/)![1];
+const infoIcon = statLabel.match(/<Info class="([^"]+)"/)![1];
+// The KAST value and the trend chevron that may follow it.
+const kastSpan = row.match(
+  /<TableCell v-if="overviewVis.kast !== false" class="tabular-nums">\s*<span class="([^"]+)">/,
+)![1];
+const chevron = read("components/StatChevron.vue").match(
+  /'(inline-block align-middle[^']+)'/,
 )![1];
 
 let doc: Document;
@@ -49,6 +66,14 @@ beforeAll(async () => {
     stickyCell,
     damageBlock,
     "whitespace-nowrap cursor-pointer inline-flex items-center gap-1 tabular-nums",
+    sortGroup[2],
+    sortIcons,
+    sortIcon,
+    touchWrap,
+    infoButton,
+    infoIcon,
+    kastSpan,
+    chevron,
   ].join(" ");
   const { css } = await postcss([
     tailwindcss({
@@ -63,10 +88,15 @@ beforeAll(async () => {
       <tr>
         <th class="${stickyHead}">${name}</th>
         <th class="${headBase} whitespace-nowrap cursor-pointer" data-stat>
-          <span class="inline-flex items-center gap-1">Kills</span>
+          <span data-sort-group class="${sortGroup[2]}">Kills<span data-sort-icons class="${sortIcons}"><svg class="${sortIcon}"></svg></span></span>
         </th>
-        <th class="${headBase} whitespace-nowrap" data-stat>KAST</th>
+        <th class="${headBase} whitespace-nowrap cursor-pointer" data-stat>
+          <span data-sort-group class="${sortGroup[2]}">KAST<span data-sort-icons class="${sortIcons}"><svg class="${sortIcon}"></svg></span></span>
+        </th>
         <th class="${headBase} whitespace-nowrap" data-stat>Total Damage</th>
+        <th class="${headBase} whitespace-nowrap cursor-pointer" data-stat>
+          <span data-sort-group data-touch class="${sortGroup[2]}"><span class="${touchWrap}"><button type="button" data-stat-info class="${infoButton}"><svg class="${infoIcon}"></svg></button>K</span><span data-sort-icons class="${sortIcons}"><svg class="${sortIcon}"></svg></span></span>
+        </th>
       </tr>
     </thead>
     <tbody>
@@ -74,11 +104,23 @@ beforeAll(async () => {
         <td class="${stickyCell}">player</td>
         <td class="${cellBase} tabular-nums" data-stat>20</td>
         <td class="${cellBase} tabular-nums" data-stat>
-          <span class="inline-flex items-center gap-0.5">78%</span>
+          <span data-kast class="${kastSpan}">78%<svg role="img" data-stat-chevron class="${chevron}"></svg></span>
         </td>
         <td class="${cellBase}" data-stat>
           <div class="${damageBlock}" data-damage><span>2199</span></div>
         </td>
+        <td class="${cellBase} tabular-nums" data-stat>20</td>
+      </tr>
+      <tr>
+        <td class="${stickyCell}">player</td>
+        <td class="${cellBase} tabular-nums" data-stat>11</td>
+        <td class="${cellBase} tabular-nums" data-stat>
+          <span data-kast class="${kastSpan}">70%</span>
+        </td>
+        <td class="${cellBase}" data-stat>
+          <div class="${damageBlock}" data-damage><span>1500</span></div>
+        </td>
+        <td class="${cellBase} tabular-nums" data-stat>11</td>
       </tr>
     </tbody>`;
 
@@ -91,11 +133,31 @@ beforeAll(async () => {
 
 const align = (el: Element) =>
   window.getComputedStyle(el as HTMLElement).textAlign;
+const style = (el: Element) => window.getComputedStyle(el as HTMLElement);
+const px = (v: string) => (v ? parseFloat(v) * (v.endsWith("rem") ? 16 : 1) : 0);
+// Width an icon takes beside the text: the svg, plus any padding and
+// margin of the box around it, plus the flex gap to the text.
+const iconBlock = (icon: Element, gapFrom: Element) => {
+  const svg = icon.tagName === "svg" ? icon : icon.querySelector("svg")!;
+  const box = style(icon);
+  const edges =
+    icon === svg
+      ? 0
+      : px(box.paddingLeft) +
+        px(box.paddingRight) +
+        px(box.marginLeft) +
+        px(box.marginRight);
+  return (
+    px(style(svg).width) +
+    edges +
+    px(style(gapFrom).columnGap || style(gapFrom).gap)
+  );
+};
 
 describe("match stats alignment (deafcs-web#123)", () => {
   it("centers every stat header and value, for both teams", () => {
     const stats = [...doc.querySelectorAll("[data-stat]")];
-    expect(stats).toHaveLength(12);
+    expect(stats).toHaveLength(24);
     for (const el of stats) {
       expect(`${el.tagName} ${el.textContent!.trim()} ${align(el)}`).toBe(
         `${el.tagName} ${el.textContent!.trim()} center`,
@@ -103,9 +165,55 @@ describe("match stats alignment (deafcs-web#123)", () => {
     }
   });
 
+  // A sortable heading is its label plus the sort-icon block. The spacer
+  // before the label equals that block, so the label (not just the group)
+  // sits over the centered values. Same rule for both teams.
+  it("pads each sortable heading by exactly its sort-icon block, for both teams", () => {
+    const groups = [
+      ...doc.querySelectorAll("th:not(.sticky) [data-sort-group]:not([data-touch])"),
+    ];
+    expect(groups).toHaveLength(4);
+    for (const g of groups) {
+      const arrows = iconBlock(g.querySelector("[data-sort-icons] svg")!, g);
+      expect(px(style(g).paddingLeft)).toBe(arrows);
+      expect(px(style(g).paddingLeft)).toBe(16);
+      expect(px(style(g).paddingRight)).toBe(0);
+    }
+    expect(sortGroup[1]).toBe("data-sort-group");
+  });
+
+  // Touch: the info button before the text (26px) and the arrows after it
+  // (16px) are balanced, so the text, not the icons, sits over the values.
+  it("balances the touch info icon against the sort arrows, for both teams", () => {
+    const groups = [...doc.querySelectorAll("th:not(.sticky) [data-sort-group][data-touch]")];
+    expect(groups).toHaveLength(2);
+    for (const g of groups) {
+      const info = iconBlock(g.querySelector("[data-stat-info]")!, g.firstElementChild!);
+      const arrows = iconBlock(g.querySelector("[data-sort-icons] svg")!, g);
+      expect(info).toBe(26);
+      expect(arrows).toBe(16);
+      expect(px(style(g).paddingLeft) + info).toBe(px(style(g).paddingRight) + arrows);
+    }
+  });
+
+  // A trend chevron after a value is balanced on the left; values without one
+  // get no padding. Both center the number itself.
+  it("balances the KAST trend chevron only when it renders, for both teams", () => {
+    const kast = [...doc.querySelectorAll("[data-kast]")];
+    expect(kast).toHaveLength(4);
+    for (const k of kast) {
+      const chev = k.querySelector("[data-stat-chevron]");
+      const expected = chev ? iconBlock(chev, k) : 0;
+      expect(px(style(k).paddingLeft)).toBe(expected);
+      expect(px(style(k).paddingRight)).toBe(0);
+    }
+    expect(kast.filter((k) => k.querySelector("[data-stat-chevron]"))).toHaveLength(2);
+    expect(px(style(kast[0]).paddingLeft)).toBe(16);
+  });
+
   it("keeps the sticky player column left-aligned", () => {
     const sticky = [...doc.querySelectorAll("th.sticky, td.sticky")];
-    expect(sticky).toHaveLength(4);
+    expect(sticky).toHaveLength(6);
     for (const el of sticky) {
       expect(align(el)).not.toBe("center");
     }

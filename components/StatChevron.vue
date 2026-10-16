@@ -86,5 +86,6 @@ const label = computed(() => {
     ]"
     :aria-label="label"
     role="img"
+    data-stat-chevron
   />
 </template>
