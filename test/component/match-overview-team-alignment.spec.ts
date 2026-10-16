@@ -16,6 +16,7 @@ const read = (p: string) =>
 const overview = read("components/match/LineupOverview.vue");
 const row = read("components/match/LineupOverviewRow.vue");
 const tableHead = read("components/ui/table/TableHead.vue");
+const sortableHead = read("components/common/SortableTableHead.vue");
 const tableCell = read("components/ui/table/TableCell.vue");
 const template = overview.slice(
   overview.indexOf("<template>"),
@@ -30,6 +31,10 @@ const stickyHead = template.match(
   /<TableHead\s+v-if="!hideMember"\s+class="([^"]+)"/,
 )![1];
 const stickyCell = row.match(/'(relative w-\[110px\][^']+sticky[^']+)'/)![1];
+// The sortable heading group and its icon block, as SortableTableHead writes them.
+const sortGroup = sortableHead.match(/<span (data-sort-group) class="([^"]+)">/)!;
+const sortIcons = sortableHead.match(/<span data-sort-icons class="([^"]+)">/)![1];
+const sortIcon = sortableHead.match(/<ChevronUp\s+class="([^"]+)"/)![1];
 const damageBlock = row.match(
   /<div class="(hidden md:flex flex-col[^"]+)">/,
 )![1];
@@ -49,6 +54,9 @@ beforeAll(async () => {
     stickyCell,
     damageBlock,
     "whitespace-nowrap cursor-pointer inline-flex items-center gap-1 tabular-nums",
+    sortGroup[2],
+    sortIcons,
+    sortIcon,
   ].join(" ");
   const { css } = await postcss([
     tailwindcss({
@@ -63,9 +71,11 @@ beforeAll(async () => {
       <tr>
         <th class="${stickyHead}">${name}</th>
         <th class="${headBase} whitespace-nowrap cursor-pointer" data-stat>
-          <span class="inline-flex items-center gap-1">Kills</span>
+          <span data-sort-group class="${sortGroup[2]}">Kills<span data-sort-icons class="${sortIcons}"><svg class="${sortIcon}"></svg></span></span>
         </th>
-        <th class="${headBase} whitespace-nowrap" data-stat>KAST</th>
+        <th class="${headBase} whitespace-nowrap cursor-pointer" data-stat>
+          <span data-sort-group class="${sortGroup[2]}">KAST<span data-sort-icons class="${sortIcons}"><svg class="${sortIcon}"></svg></span></span>
+        </th>
         <th class="${headBase} whitespace-nowrap" data-stat>Total Damage</th>
       </tr>
     </thead>
@@ -101,6 +111,24 @@ describe("match stats alignment (deafcs-web#123)", () => {
         `${el.tagName} ${el.textContent!.trim()} center`,
       );
     }
+  });
+
+  // A sortable heading is its label plus the sort-icon block. The spacer
+  // before the label equals that block, so the label (not just the group)
+  // sits over the centered values. Same rule for both teams.
+  it("pads each sortable heading by exactly its sort-icon block, for both teams", () => {
+    const px = (v: string) =>
+      v ? parseFloat(v) * (v.endsWith("rem") ? 16 : 1) : 0;
+    const groups = [...doc.querySelectorAll("th:not(.sticky) [data-sort-group]")];
+    expect(groups).toHaveLength(4);
+    for (const g of groups) {
+      const style = window.getComputedStyle(g as HTMLElement);
+      const icon = window.getComputedStyle(g.querySelector("svg")!);
+      expect(px(style.paddingLeft)).toBe(px(icon.width) + px(style.columnGap || style.gap));
+      expect(px(style.paddingLeft)).toBe(16);
+      expect(px(style.paddingRight)).toBe(0);
+    }
+    expect(sortGroup[1]).toBe("data-sort-group");
   });
 
   it("keeps the sticky player column left-aligned", () => {

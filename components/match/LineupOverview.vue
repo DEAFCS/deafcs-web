@@ -141,9 +141,12 @@ import {
 
 <template>
   <!-- Stat headers and values are centered in their column; the sticky
-       player column stays left-aligned (deafcs-web#123). -->
+       player column stays left-aligned (deafcs-web#123). A sortable heading
+       is its label plus a 16px sort-icon block (w-3 + gap-1); an equal
+       spacer before the label keeps the group centered and puts the label
+       itself over the centered values. -->
   <Table
-    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5 [&_th:not(.sticky)]:text-center [&_td:not(.sticky)]:text-center"
+    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5 [&_th:not(.sticky)]:text-center [&_td:not(.sticky)]:text-center [&_th:not(.sticky)_[data-sort-group]]:pl-4"
   >
     <template v-for="(lp, lpIdx) of lineupsToRender" :key="lp.id">
       <TableHeader
