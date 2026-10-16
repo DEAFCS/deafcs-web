@@ -140,8 +140,10 @@ import {
 </script>
 
 <template>
+  <!-- Stat headers and values are centered in their column; the sticky
+       player column stays left-aligned (deafcs-web#123). -->
   <Table
-    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5"
+    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5 [&_th:not(.sticky)]:text-center [&_td:not(.sticky)]:text-center"
   >
     <template v-for="(lp, lpIdx) of lineupsToRender" :key="lp.id">
       <TableHeader
