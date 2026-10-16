@@ -301,6 +301,10 @@ async function connect() {
       const state = pc?.connectionState;
       if (state === "connected") {
         status.value = "playing";
+        // 5Stack WEB #698: only a connection that actually came up counts as
+        // played, not an answer that never connects.
+        failureCount = 0;
+        hasEverPlayed = true;
       } else if (state === "failed" || state === "disconnected") {
         if (clipRenderActive.value) {
           status.value = "rendering";
@@ -311,6 +315,14 @@ async function connect() {
         status.value = "error";
         errorMessage.value = `peer connection ${state}`;
         retryDelay = INITIAL_RETRY_DELAY_MS;
+        // An answer that never connects (eg. UDP blocked on the viewer's
+        // network) is a failed attempt too, or the viewer retries forever
+        // and never reaches the fallback.
+        if (shouldFallBack()) {
+          fallBack();
+          void teardown();
+          return;
+        }
         scheduleRetry();
       }
     };
@@ -346,8 +358,6 @@ async function connect() {
     const answerSdp = await res.text();
     await pc.setRemoteDescription({ type: "answer", sdp: answerSdp });
     retryDelay = INITIAL_RETRY_DELAY_MS;
-    failureCount = 0;
-    hasEverPlayed = true;
     isRetrying.value = false;
   } catch (err) {
     const message = (err as Error)?.message ?? String(err);
@@ -360,18 +370,26 @@ async function connect() {
     status.value = "error";
     errorMessage.value = message;
     await teardown();
-    failureCount += 1;
-    if (
-      failureCount >= MAX_WHEP_FAILURES &&
-      props.fallbackUrl &&
-      !hasEverPlayed
-    ) {
-      cancelRetries();
-      useFallback.value = true;
+    if (shouldFallBack()) {
+      fallBack();
       return;
     }
     scheduleRetry();
   }
+}
+
+// Counts a failed attempt and says whether it is time to give up on WHEP
+// (5Stack WEB #698). Without a fallbackUrl (calls, cameras) it never does.
+function shouldFallBack() {
+  failureCount += 1;
+  return (
+    failureCount >= MAX_WHEP_FAILURES && !!props.fallbackUrl && !hasEverPlayed
+  );
+}
+
+function fallBack() {
+  cancelRetries();
+  useFallback.value = true;
 }
 
 function scheduleRetry() {
