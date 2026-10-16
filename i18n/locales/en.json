@@ -7021,7 +7021,9 @@
       "access_denied": "Stream unavailable",
       "access_denied_hint": "You don't have access to this live stream — players can't watch a match they're in.",
       "card": {
-        "scheduled": "Scheduled"
+        "scheduled": "Scheduled",
+        "forfeit": "Forfeit",
+        "surrendered": "Surrendered"
       }
     },
     "elo_details": {
@@ -7450,7 +7452,8 @@
       "action_side": "{team} chose {side} on {map}",
       "action_decider": "{map} was the decider",
       "side_picked_by": "{team} chose {side}",
-      "starts_on": "{team} starts {side}"
+      "starts_on": "{team} starts {side}",
+      "auto_picked": "Auto"
     },
     "decider": "Decider",
     "map_veto": {
@@ -8091,6 +8094,26 @@
     "admin_bar": {
       "rcon_unavailable": "RCON unavailable",
       "not_controllable": "Match is not in a controllable state."
+    },
+    "header": {
+      "final": "Final",
+      "winner": "Winner",
+      "veto": "Veto"
+    },
+    "veto": {
+      "order": "Order of play",
+      "steps": {
+        "Ban": "Ban",
+        "Pick": "Pick",
+        "Side": "Side",
+        "Decider": "Decider",
+        "Region": "Region"
+      },
+      "yours": {
+        "Ban": "Your ban",
+        "Pick": "Your pick",
+        "Side": "Your side"
+      }
     }
   },
   "ui": {

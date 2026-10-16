@@ -74,9 +74,15 @@ test("match rows keep mode and BO pills at the same full row size", () => {
   assert.equal((matchTableRow.match(/:class="matchTypePillClasses"/g) || []).length, 2);
 });
 
-test("match detail uses the status-sized mode badge variant", () => {
-  assert.match(matchDetail, /<MatchTypeBadge[\s\S]*size="detail"/);
-  assert.match(matchDetail, /const statusBaseClasses =/);
+// The match banner is 5Stack's MatchHeader (WEB 85b4f0f9); DEAFCS keeps its
+// mode badge there, status-sized.
+test("match detail uses the status-sized mode badge variant", async () => {
+  const header = await readFile(
+    new URL("../components/match/MatchHeader.vue", import.meta.url),
+    "utf8",
+  );
+  assert.match(header, /<MatchTypeBadge[\s\S]*size="detail"/);
+  assert.match(matchDetail, /<MatchHeader :match="match" \/>/);
 });
 
 test("tournament cards render actual mode names through the shared badge", () => {
