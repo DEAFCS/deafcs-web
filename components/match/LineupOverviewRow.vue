@@ -358,7 +358,7 @@ const DASH = "—";
           <AnimatedStat :value="hasStats ? adr : DASH" />
           <StatChevron :cfg="ADR_TIER" :value="adrNum" />
         </span>
-        <div class="hidden md:flex flex-col items-start leading-tight">
+        <div class="hidden md:flex flex-col items-center leading-tight">
           <span class="tabular-nums"
             ><AnimatedStat :value="stats?.damage ?? DASH"
           /></span>
