@@ -7018,7 +7018,9 @@
       "access_denied": "Stream unavailable",
       "access_denied_hint": "You don't have access to this live stream — players can't watch a match they're in.",
       "card": {
-        "scheduled": "Scheduled"
+        "scheduled": "Scheduled",
+        "forfeit": "Forfeit",
+        "surrendered": "Surrendered"
       }
     },
     "elo_details": {
@@ -8088,6 +8090,11 @@
     "admin_bar": {
       "rcon_unavailable": "RCON unavailable",
       "not_controllable": "Match is not in a controllable state."
+    },
+    "header": {
+      "final": "Final",
+      "winner": "Winner",
+      "veto": "Veto"
     }
   },
   "ui": {

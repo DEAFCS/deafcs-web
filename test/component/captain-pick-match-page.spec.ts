@@ -404,7 +404,10 @@ describe("drafted lineups can't be edited by hand while players are picked", () 
 it("keeps the real match header and navigation around canonical Captain Pick", () => {
   const page = read("pages/matches/[id]/index.vue");
   const header = page.slice(page.indexOf("<template>"), page.indexOf("<MatchTabs"));
-  for (const content of ["lineup1Name", "lineup2Name", "<MatchInfo", "<MatchActions"]) expect(header).toContain(content);
+  for (const content of ["<MatchHeader", "<MatchInfo"]) expect(header).toContain(content);
+  // The team names and the ... menu live in 5Stack's MatchHeader (WEB 85b4f0f9).
+  const banner = read("components/match/MatchHeader.vue");
+  for (const content of ["match.lineup.lineup_1", "match.lineup.lineup_2", "<MatchActions"]) expect(banner).toContain(content);
   expect(page).toMatch(/<MatchTabs[\s\S]*?<template #overview>[\s\S]*?<MatchOverview/);
   expect(page).not.toMatch(/<CaptainPickScreen|<CaptainPickChat|<TacticalPageHeader/);
   const info = read("components/match/MatchInfo.vue");

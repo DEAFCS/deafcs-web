@@ -106,7 +106,8 @@ describe("guest-safe match page and private camera requests", () => {
     expect(publicOp.query).toContain("draft_games");
     expect(privateOps()).toHaveLength(0);
     expect(wrapper.text()).toContain("Team A");
-    expect(wrapper.vm.statusTier).toBe("veto");
+    // The status badge moved into MatchHeader (5Stack WEB 85b4f0f9).
+    expect(wrapper.vm.match.status).toBe("PickingPlayers");
     expect(wrapper.vm.canJoinLobby).toBe(false);
     expect(wrapper.vm.cameraSpotCheckRequested).toBe(false);
     expect(wrapper.vm.showCameraOverlay).toBe(false);

@@ -132,7 +132,7 @@ describe("player-visible date formatters use dateLocale()", () => {
     "components/match/MatchMaps.vue",
     "components/match/overview/OverviewSchedule.vue",
     "components/match/ScheduleMatch.vue",
-    "pages/matches/[id]/index.vue",
+    "components/match/MatchHeader.vue",
     "components/tournament/TournamentAgendaRow.vue",
     "components/tournament/TournamentNextLan.vue",
     "components/tournament/BracketNegotiation.vue",
