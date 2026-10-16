@@ -13,6 +13,7 @@ import {
 import TimeAgo from "~/components/TimeAgo.vue";
 import { e_match_status_enum } from "~/generated/zeus";
 import cleanMapName from "~/utilities/cleanMapName";
+import mapLabel from "~/utilities/mapLabel";
 import {
   buildMatchLineupAvatarOverride,
   matchAllowsRosterImage,
@@ -504,7 +505,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
             />
             <span
               class="min-w-0 truncate text-xs font-medium first-letter:uppercase"
-              >{{ cleanMapName(match_map.map.name) }}</span
+              >{{ mapLabel(match_map.map) }}</span
             >
             <div
               class="ml-auto flex shrink-0 items-center gap-1 text-xs tabular-nums"
@@ -558,7 +559,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
                   "
                 />
                 <span class="text-xs font-medium first-letter:uppercase">{{
-                  cleanMapName(match_map.map.name)
+                  mapLabel(match_map.map)
                 }}</span>
                 <div class="flex items-center space-x-1 text-xs">
                   <span
@@ -607,7 +608,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
                     "
                   />
                   <span class="text-xs font-medium first-letter:uppercase">{{
-                    cleanMapName(match_map.map.name)
+                    mapLabel(match_map.map)
                   }}</span>
                   <div class="flex items-center space-x-1 text-xs">
                     <span
@@ -657,7 +658,7 @@ import MatchOverviewDrawer from "~/components/match/MatchOverviewDrawer.vue";
                   "
                 />
                 <span class="text-xs font-medium first-letter:uppercase">{{
-                  cleanMapName(match_map.map.name)
+                  mapLabel(match_map.map)
                 }}</span>
                 <div class="flex items-center space-x-1 text-xs">
                   <span

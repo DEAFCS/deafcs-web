@@ -290,6 +290,14 @@ export default {
           });
         }
 
+        // DEAFCS: a workshop map has one row per match type, and copies made
+        // for another mode used to be saved without a label. Show (and copy
+        // on) the label any row of this map has, not just the first row's.
+        const unique = uniqueMapsMap.get(map.name);
+        if (unique && !unique.label && map.label) {
+          unique.label = map.label;
+        }
+
         if (map.enabled) {
           uniqueMapsMap.get(map.name)?.poolTypes.push(map.type);
         }
