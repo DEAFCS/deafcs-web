@@ -94,6 +94,7 @@ import { Button } from "~/components/ui/button";
 interface Map {
   id: string;
   name: string;
+  label?: string | null;
   type: string;
   patch?: string;
   poster?: string;
@@ -160,6 +161,10 @@ export default {
                   type,
                   enabled: true,
                   name: map.name,
+                  // DEAFCS: keep the map's display name. A workshop map's name
+                  // is its Workshop ID, so a copy without the label showed as
+                  // a number everywhere it was used in this mode.
+                  label: map.label ?? null,
                   active_pool: map.active_pool,
                   workshop_map_id: map.workshop_map_id,
                   poster: map.poster,

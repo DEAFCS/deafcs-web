@@ -283,7 +283,7 @@ export default {
         }
 
         for (const map of this.maps) {
-          const mapName = cleanMapName(map.name);
+          const mapName = cleanMapName(map.label || map.name);
           allMaps.add(mapName);
           if (!wins.has(mapName)) {
             wins.set(mapName, 0);
