@@ -388,7 +388,8 @@ export type UtilityMetaLineup = {
 export type UtilityPracticeSession = {
   id: string;
   match_id: string | null;
-  match: { server_id: string | null } | null;
+  // Staff-only computed field: null for anyone but an administrator.
+  server_id: string | null;
   host_steam_id: string | null;
   host: { name: string | null } | null;
   team_id: string | null;
@@ -503,7 +504,7 @@ export function readUtilityPracticeSession(
     hasFailed: status === "Failed",
     canManage: session?.can_manage === true,
     matchId: session?.match_id ?? started?.match_id ?? null,
-    serverId: session?.match?.server_id ?? null,
+    serverId: session?.server_id ?? null,
   };
 }
 

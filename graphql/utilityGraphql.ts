@@ -134,8 +134,10 @@ export const utilityPracticeSessionFields = {
   // server is on the wrong map is who can move it.
   host: { name: true },
   // Only for the staff console and the pod log tail below the panel; nothing
-  // player-facing reads it.
-  match: { server_id: true },
+  // player-facing reads it. A computed field, not match { server_id }: the
+  // matches select hides practice matches from every role, so the relationship
+  // is always null here. It answers only for administrators.
+  server_id: true,
   team_id: true,
   map_name: true,
   map_changing_at: true,

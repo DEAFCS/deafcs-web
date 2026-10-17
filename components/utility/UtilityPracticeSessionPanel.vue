@@ -464,8 +464,10 @@ const panelCta = "w-full font-bold uppercase tracking-[0.22em]";
 
       <!-- Operator tools. A practice pod is a game server like any other, and
            when one refuses connections its console is what answers why. It
-           is staff-gated here because RCON is staff-gated on the server. -->
-      <template v-if="canOperate">
+           is staff-gated here because RCON is staff-gated on the server.
+           Shown only once the server id is known: the API hands it to
+           administrators alone, and an empty section reads as a dead click. -->
+      <template v-if="canOperate && serverId">
         <Separator />
 
         <Collapsible v-model:open="operatorOpen">

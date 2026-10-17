@@ -76842,6 +76842,8 @@ count?: [{	columns?: Array<ValueTypes["utility_practice_invites_select_column"]>
 	connection_link?:boolean | `@${string}`,
 	/** A computed field, executes function "utility_practice_connection_string" */
 	connection_string?:boolean | `@${string}`,
+	/** A computed field, executes function "utility_practice_server_id" */
+	server_id?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** An object relationship */
 	e_utility_practice_status?:ValueTypes["e_utility_practice_statuses"],
@@ -163633,6 +163635,8 @@ count?: [{	columns?: Array<ResolverInputTypes["utility_practice_invites_select_c
 	connection_link?:boolean | `@${string}`,
 	/** A computed field, executes function "utility_practice_connection_string" */
 	connection_string?:boolean | `@${string}`,
+	/** A computed field, executes function "utility_practice_server_id" */
+	server_id?:boolean | `@${string}`,
 	created_at?:boolean | `@${string}`,
 	/** An object relationship */
 	e_utility_practice_status?:ResolverInputTypes["e_utility_practice_statuses"],
@@ -240750,6 +240754,8 @@ export type ModelTypes = {
 	connection_link?: string | undefined | null,
 	/** A computed field, executes function "utility_practice_connection_string" */
 	connection_string?: string | undefined | null,
+	/** A computed field, executes function "utility_practice_server_id" */
+	server_id?: ModelTypes["uuid"] | undefined | null,
 	created_at: ModelTypes["timestamptz"],
 	/** An object relationship */
 	e_utility_practice_status: ModelTypes["e_utility_practice_statuses"],
@@ -320499,6 +320505,8 @@ export type GraphQLTypes = {
 	connection_link?: string | undefined | null,
 	/** A computed field, executes function "utility_practice_connection_string" */
 	connection_string?: string | undefined | null,
+	/** A computed field, executes function "utility_practice_server_id" */
+	server_id?: GraphQLTypes["uuid"] | undefined | null,
 	created_at: GraphQLTypes["timestamptz"],
 	/** An object relationship */
 	e_utility_practice_status: GraphQLTypes["e_utility_practice_statuses"],
