@@ -5,10 +5,13 @@ import { createRequire } from "node:module";
 import postcss from "postcss";
 import tailwindcss from "tailwindcss";
 
-// deafcs-web#123: match stats were left-aligned under their headings. Every
-// stat header and value is now centered in its column, for both teams; the
-// sticky player column stays left-aligned. This builds the real Tailwind CSS
-// for the classes the components use and checks the computed alignment.
+// deafcs-web#123: both teams' match stats use the same alignment. Follow-up:
+// centering every column (with spacers to balance the sort arrows and trend
+// chevrons) made the table about 170px wider than upstream 5Stack and cut
+// off Total Damage on desktop. Headings and values now start at the
+// column's left padding like upstream, with the heading text exactly over
+// its values and every icon after the text. This builds the real Tailwind
+// CSS for the classes the components use and checks the computed layout.
 const root = path.resolve(__dirname, "../..");
 const read = (p: string) =>
   fs.readFileSync(path.join(root, p), "utf8").split("\r\n").join("\n");
@@ -63,7 +66,18 @@ const chevron = read("components/StatChevron.vue").match(
   /'(inline-block align-middle[^']+)'/,
 )![1];
 
+// Upstream 5Stack's class string for this table (5stackgg/web a67e2c6,
+// components/match/LineupOverview.vue), for the desktop width comparison.
+const upstreamTableClass =
+  "min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5";
+
+// The team name / Team Avg row inside each team header.
+const teamNameRow = template.match(
+  /<div class="(flex items-center gap-1[^"]*)">/,
+)![1];
+
 let doc: Document;
+let renderTeam: (name: string) => string;
 
 beforeAll(async () => {
   // Tailwind's own loader, as Nuxt uses: the config is CommonJS.
@@ -72,6 +86,8 @@ beforeAll(async () => {
   const config = loadConfig(path.join(root, "tailwind.config.js"));
   const used = [
     tableClass,
+    upstreamTableClass,
+    teamNameRow,
     headBase,
     cellBase,
     stickyHead,
@@ -140,6 +156,7 @@ beforeAll(async () => {
       </tr>
     </tbody>`;
 
+  renderTeam = team;
   doc = document;
   doc.head.innerHTML = `<style>${css}</style>`;
   doc.body.innerHTML = `<table class="${tableClass}">${team("Team 1")}${team(
@@ -171,60 +188,119 @@ const iconBlock = (icon: Element, gapFrom: Element) => {
 };
 
 describe("match stats alignment (deafcs-web#123)", () => {
-  it("centers every stat header and value, for both teams", () => {
+  it("starts every stat header and value at the column's left padding, for both teams", () => {
     const stats = [...doc.querySelectorAll("[data-stat]")];
     expect(stats).toHaveLength(24);
     for (const el of stats) {
-      expect(`${el.tagName} ${el.textContent!.trim()} ${align(el)}`).toBe(
-        `${el.tagName} ${el.textContent!.trim()} center`,
+      // th: text-left; td: the default (start)
+      expect(`${el.tagName} ${el.textContent!.trim()} ${align(el) || "start"}`).toMatch(
+        / (left|start)$/,
       );
     }
   });
 
-  // A sortable heading is its label plus the sort-icon block. The spacer
-  // before the label equals that block, so the label (not just the group)
-  // sits over the centered values. Same rule for both teams.
-  it("pads each sortable heading by exactly its sort-icon block, for both teams", () => {
-    const groups = [
-      ...doc.querySelectorAll("th:not(.sticky) [data-sort-group]:not([data-touch])"),
-    ];
-    expect(groups).toHaveLength(4);
-    for (const g of groups) {
-      const arrows = iconBlock(g.querySelector("[data-sort-icons] svg")!, g);
-      expect(px(style(g).paddingLeft)).toBe(arrows);
-      expect(px(style(g).paddingLeft)).toBe(16);
+  // The heading text starts exactly where its values start: no spacer before
+  // a sortable label or after it, and no padding beside a value with a trend
+  // chevron. The arrows and the chevron trail the text.
+  it("starts each heading's text exactly over its values, for both teams", () => {
+    const columns = [...doc.querySelectorAll("[data-team-header] tr")].map(
+      (tr) => [...tr.children].slice(1),
+    );
+    const rows = [...doc.querySelectorAll("tbody tr")].map((tr) =>
+      [...tr.children].slice(1),
+    );
+    const inner = (cell: Element) =>
+      cell.querySelector("[data-sort-group], [data-kast]");
+    const textStart = (cell: Element) =>
+      px(style(cell).paddingLeft) +
+      (inner(cell) ? px(style(inner(cell)!).paddingLeft) : 0);
+    for (const head of columns) {
+      for (const row of rows) {
+        head.forEach((th, i) =>
+          expect(`${th.textContent!.trim()} ${textStart(th)}`).toBe(
+            `${th.textContent!.trim()} ${textStart(row[i])}`,
+          ),
+        );
+      }
+    }
+    for (const g of doc.querySelectorAll("th:not(.sticky) [data-sort-group]")) {
+      expect(px(style(g).paddingLeft)).toBe(0);
       expect(px(style(g).paddingRight)).toBe(0);
+      // the arrows come after the label
+      expect(g.lastElementChild!.hasAttribute("data-sort-icons")).toBe(true);
     }
     expect(sortGroup[1]).toBe("data-sort-group");
   });
 
-  // Touch: the info button before the text (26px) and the arrows after it
-  // (16px) are balanced, so the text, not the icons, sits over the values.
-  it("balances the touch info icon against the sort arrows, for both teams", () => {
+  // Touch: the info button is moved after the label, so the label still
+  // starts over the values and the icon takes no room before it.
+  it("puts the touch info icon after the label, for both teams", () => {
     const groups = [...doc.querySelectorAll("th:not(.sticky) [data-sort-group][data-touch]")];
     expect(groups).toHaveLength(2);
     for (const g of groups) {
-      const info = iconBlock(g.querySelector("[data-stat-info]")!, g.firstElementChild!);
-      const arrows = iconBlock(g.querySelector("[data-sort-icons] svg")!, g);
-      expect(info).toBe(26);
-      expect(arrows).toBe(16);
-      expect(px(style(g).paddingLeft) + info).toBe(px(style(g).paddingRight) + arrows);
+      const info = g.querySelector("[data-stat-info]")!;
+      expect(style(info.parentElement!).display).toBe("inline-flex");
+      expect(style(info).order).toBe("9999");
+      expect(iconBlock(info, info.parentElement!)).toBe(26);
+      expect(px(style(g).paddingLeft)).toBe(0);
     }
   });
 
-  // A trend chevron after a value is balanced on the left; values without one
-  // get no padding. Both center the number itself.
-  it("balances the KAST trend chevron only when it renders, for both teams", () => {
+  it("adds no padding beside a value with a trend chevron, for both teams", () => {
     const kast = [...doc.querySelectorAll("[data-kast]")];
     expect(kast).toHaveLength(4);
     for (const k of kast) {
-      const chev = k.querySelector("[data-stat-chevron]");
-      const expected = chev ? iconBlock(chev, k) : 0;
-      expect(px(style(k).paddingLeft)).toBe(expected);
+      expect(px(style(k).paddingLeft)).toBe(0);
       expect(px(style(k).paddingRight)).toBe(0);
     }
     expect(kast.filter((k) => k.querySelector("[data-stat-chevron]"))).toHaveLength(2);
-    expect(px(style(kast[0]).paddingLeft)).toBe(16);
+  });
+
+  // Desktop width: a stat column is as wide as its text plus what this
+  // table adds around it. That must not exceed upstream 5Stack's table,
+  // which fits Total Damage and ADR where the centered layout (16px spacer
+  // per sortable heading, 16px beside chevron values) needed 160px more.
+  it("keeps the desktop table as narrow as upstream 5Stack", () => {
+    const budget = (table: Element) => {
+      const part = (tag: string) =>
+        [...table.children].filter((c) => c.tagName === tag);
+      const head = part("THEAD")[0].querySelector("tr")!;
+      const rows = part("TBODY").flatMap((b) => [...b.querySelectorAll("tr")]);
+      const extra = (cell: Element) =>
+        [cell, ...cell.querySelectorAll("[data-sort-group], [data-kast]")]
+          .map((el) => {
+            const s = style(el);
+            return (
+              px(s.paddingLeft) +
+              px(s.paddingRight) +
+              px(s.marginLeft) +
+              px(s.marginRight)
+            );
+          })
+          .reduce((a, b) => a + b, 0);
+      return [...head.children].slice(1).map((th, i) =>
+        Math.max(extra(th), ...rows.map((tr) => extra(tr.children[i + 1]))),
+      );
+    };
+    const ours = budget(doc.querySelector("table")!);
+    const upstream = document.createElement("table");
+    upstream.className = upstreamTableClass;
+    upstream.innerHTML = renderTeam("Team 1");
+    doc.body.appendChild(upstream);
+    const theirs = budget(upstream);
+    upstream.remove();
+    expect(ours).toEqual(theirs);
+    // first stat column pl-5 + pr-2, the rest px-2
+    expect(ours).toEqual([28, 16, 16, 16]);
+    // DEAFCS shows Team Avg next to the team name; on desktop that row adds
+    // nothing to the player column (the name truncates instead).
+    const row = document.createElement("div");
+    row.className = teamNameRow;
+    doc.querySelector("th.sticky")!.appendChild(row);
+    expect(innerWidth).toBeGreaterThanOrEqual(768);
+    expect(style(row).width).toBe("0px");
+    expect(style(row).minWidth).toBe("100%");
+    row.remove();
   });
 
   it("keeps the sticky player column left-aligned", () => {
@@ -235,10 +311,10 @@ describe("match stats alignment (deafcs-web#123)", () => {
     }
   });
 
-  it("centers the stacked Total Damage and ADR block", () => {
+  it("starts the stacked Total Damage and ADR block at the left, like upstream", () => {
     for (const el of doc.querySelectorAll("[data-damage]")) {
-      expect(window.getComputedStyle(el as HTMLElement).alignItems).toBe(
-        "center",
+      expect(window.getComputedStyle(el as HTMLElement).alignItems).toMatch(
+        /^(flex-)?start$/,
       );
     }
   });
