@@ -140,22 +140,28 @@ import {
 </script>
 
 <template>
+  <!-- Column layout as upstream 5Stack: headings and values start at the
+       column's left padding, and icons trail the text, so no column is
+       wider than its text plus px-2 (deafcs-web#123 follow-up). The heading
+       text starts exactly over its values: sort arrows and trend chevrons
+       come after the text, and on touch the info icon is moved after the
+       label instead of before it. On desktop the team name and Team Avg
+       never widen the player column (md:w-0 md:min-w-full): the name
+       truncates instead.
+       Both teams' header rows are identical. The line between the teams is
+       the bottom border of the first team's last row, not padding or a
+       border inside the second team's header. -->
   <Table
-    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5"
+    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5 [&_th:not(.sticky)_[data-stat-info]]:order-last [&>tbody:not(:last-child)>tr:last-child]:border-b-[3px] [&>tbody:not(:last-child)>tr:last-child]:border-border/80"
   >
     <template v-for="(lp, lpIdx) of lineupsToRender" :key="lp.id">
-      <TableHeader
-        :class="[
-          '[&_th]:h-12 bg-muted/20',
-          lpIdx > 0 ? '[&_th]:pt-7 border-t-[3px] border-border/80' : '',
-        ]"
-      >
+      <TableHeader class="[&_th]:h-12 bg-muted/20">
         <TableRow>
           <TableHead
             v-if="!hideMember"
             class="w-[110px] md:w-[220px] text-left sticky left-0 z-20 bg-card border-r border-border shadow-[3px_0_6px_-3px_hsl(0_0%_0%/0.7)] touch-pan-y [transform:translateZ(0)]"
           >
-            <div class="flex items-center gap-1 md:gap-4">
+            <div class="flex items-center gap-1 md:gap-2 md:w-0 md:min-w-full">
               <div
                 v-if="match.status === e_match_status_enum.WaitingForCheckIn"
                 class="relative inline-flex"

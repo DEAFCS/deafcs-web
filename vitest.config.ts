@@ -27,6 +27,7 @@ export default defineConfig({
       "@": path.resolve(__dirname, "."),
       // Nuxt's virtual module; specs that need it vi.mock("#app").
       "#app": path.resolve(__dirname, "test/component/fixtures/nuxtApp.ts"),
+      "#components": path.resolve(__dirname, "test/component/fixtures/nuxtComponents.ts"),
     },
   },
   test: {

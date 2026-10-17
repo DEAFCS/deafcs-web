@@ -7061,6 +7061,7 @@
       "min_lineup_warning": "Select at least {min} players to register.",
       "login_required": "Log in to register for this tournament.",
       "role_required": "{role} or higher required to join this tournament.",
+      "free_agent_already": "You are signed up as a Free Agent in this tournament. Leave the Free Agent pool first to register a team.",
       "member_role_required": "{role} or higher required",
       "individual": {
         "registered": "You're registered",
@@ -7712,6 +7713,8 @@
       "remove_failed": "Could not remove the player",
       "checked_in": "Checked in",
       "already_in_pool": "You are already signed up as a free agent for this tournament.",
+      "already_on_team": "You are already on a team in this tournament. Leave your team first to sign up as a Free Agent.",
+      "already_own_team": "You already have a team in this tournament, so you cannot also sign up as a Free Agent.",
       "sign_up_alone": "Sign up alone",
       "sign_up_with_lobby": "Sign up all {count}",
       "lobby_title": "Bring your lobby",
@@ -8106,7 +8109,9 @@
       "access_denied": "Stream unavailable",
       "access_denied_hint": "You don't have access to this live stream — players can't watch a match they're in.",
       "card": {
-        "scheduled": "Scheduled"
+        "scheduled": "Scheduled",
+        "forfeit": "Forfeit",
+        "surrendered": "Surrendered"
       }
     },
     "elo_details": {
@@ -8535,7 +8540,8 @@
       "action_side": "{team} chose {side} on {map}",
       "action_decider": "{map} was the decider",
       "side_picked_by": "{team} chose {side}",
-      "starts_on": "{team} starts {side}"
+      "starts_on": "{team} starts {side}",
+      "auto_picked": "Auto"
     },
     "decider": "Decider",
     "map_veto": {
@@ -9176,6 +9182,26 @@
     "admin_bar": {
       "rcon_unavailable": "RCON unavailable",
       "not_controllable": "Match is not in a controllable state."
+    },
+    "header": {
+      "final": "Final",
+      "winner": "Winner",
+      "veto": "Veto"
+    },
+    "veto": {
+      "order": "Order of play",
+      "steps": {
+        "Ban": "Ban",
+        "Pick": "Pick",
+        "Side": "Side",
+        "Decider": "Decider",
+        "Region": "Region"
+      },
+      "yours": {
+        "Ban": "Your ban",
+        "Pick": "Your pick",
+        "Side": "Your side"
+      }
     }
   },
   "ui": {

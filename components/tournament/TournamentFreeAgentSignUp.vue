@@ -45,12 +45,36 @@ const teamSize = computed(
 // joinTournamentAsFreeAgent requires exactly RegistrationOpen, while the leave
 // rule also allows Setup. Offering Sign up during Setup produces a button that
 // can only ever fail, so the two windows are kept apart.
-const canSignUp = computed(
+// DEAFCS: one entry per tournament. A player on a team, or who owns one, is
+// already in, so the API refuses the pool sign-up (tbi_tournament_free_agents).
+// Say why up front instead of offering a button that can only fail.
+const teamEntry = computed<"rostered" | "owner" | null>(() => {
+  const steamId = String(me.value?.steam_id ?? "");
+  if (!steamId) return null;
+  const teams = (props.tournament?.teams ?? []) as Agent[];
+  if (
+    teams.some((team) =>
+      (team.roster ?? []).some(
+        (member: Agent) => String(member.player_steam_id) === steamId,
+      ),
+    )
+  ) {
+    return "rostered";
+  }
+  if (teams.some((team) => String(team.owner_steam_id) === steamId)) {
+    return "owner";
+  }
+  return null;
+});
+
+const signUpOpen = computed(
   () =>
     !!me.value &&
     props.tournament?.status === e_tournament_status_enum.RegistrationOpen &&
     !props.myEntry,
 );
+
+const canSignUp = computed(() => signUpOpen.value && !teamEntry.value);
 
 // The party IS the matchmaking lobby — there is no separate invite to accept,
 // because a captain who can already queue the whole lobby into a live match is
@@ -251,4 +275,16 @@ async function joinPool(withParty = false) {
       {{ $t("tournament.free_agents.sign_up") }}
     </Button>
   </div>
+
+  <p
+    v-else-if="signUpOpen && teamEntry"
+    class="rounded-md border border-border bg-card/45 p-3.5 text-[0.78rem] leading-relaxed text-muted-foreground"
+    data-testid="free-agent-team-entry"
+  >
+    {{
+      teamEntry === "rostered"
+        ? $t("tournament.free_agents.already_on_team")
+        : $t("tournament.free_agents.already_own_team")
+    }}
+  </p>
 </template>

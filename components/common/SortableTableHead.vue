@@ -34,7 +34,7 @@ provide(
     class="cursor-pointer select-none hover:text-foreground transition-colors"
     @click="emit('sort', props.sortKey)"
   >
-    <span class="inline-flex items-center gap-1">
+    <span data-sort-group class="inline-flex items-center gap-1">
       <slot />
       <span data-sort-icons class="inline-flex flex-col leading-none">
         <ChevronUp

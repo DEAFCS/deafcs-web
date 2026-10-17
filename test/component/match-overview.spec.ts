@@ -769,12 +769,14 @@ describe("match page", () => {
   });
 
   it("keeps the normal banner and its ... menu from the start of Captain Pick", () => {
-    const header = template.slice(template.indexOf("<header"), template.indexOf("</header>"));
+    // The banner is 5Stack's MatchHeader (WEB 85b4f0f9).
+    const header = readFileSync(path.resolve(__dirname, "../../components/match/MatchHeader.vue"), "utf8");
     expect(header).toContain('<MatchActions :match="match" />');
     expect(header).toContain("match.options.best_of.option");
-    expect(header).toContain("match.e_region.description");
+    expect(header).toContain("match.e_region?.description");
+    expect(template).toContain('<MatchHeader :match="match" />');
     // The banner is not gated on any status or lifecycle stage.
-    expect(template.slice(0, template.indexOf("<header"))).not.toMatch(/overview|PickingPlayers/);
+    expect(template.slice(0, template.indexOf("<MatchHeader"))).not.toMatch(/overview|PickingPlayers/);
   });
 
   it("Captain Pick stage only for a real draft, also between the final pick and veto", () => {
