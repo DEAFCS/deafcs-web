@@ -47,6 +47,18 @@ const infoIcon = statLabel.match(/<Info class="([^"]+)"/)![1];
 const kastSpan = row.match(
   /<TableCell v-if="overviewVis.kast !== false" class="tabular-nums">\s*<span class="([^"]+)">/,
 )![1];
+// The table section wrappers, as the shared table components write them.
+const sectionBase = (file: string, tag: string) => {
+  const source = read(file);
+  const start = source.indexOf(`<${tag} :class="cn('`) + `<${tag} :class="cn('`.length;
+  return source.slice(start, source.indexOf("'", start));
+};
+const theadBase = sectionBase("components/ui/table/TableHeader.vue", "thead");
+const tbodyBase = sectionBase("components/ui/table/TableBody.vue", "tbody");
+const trBase = sectionBase("components/ui/table/TableRow.vue", "tr");
+// Each team's header, exactly as LineupOverview writes it (one static class).
+const teamHeaderTag = template.match(/<TableHeader\b[^>]*>/)![0];
+const teamHeader = teamHeaderTag.match(/\sclass="([^"]+)"/)?.[1] ?? "";
 const chevron = read("components/StatChevron.vue").match(
   /'(inline-block align-middle[^']+)'/,
 )![1];
@@ -74,6 +86,10 @@ beforeAll(async () => {
     infoIcon,
     kastSpan,
     chevron,
+    theadBase,
+    tbodyBase,
+    trBase,
+    teamHeader,
   ].join(" ");
   const { css } = await postcss([
     tailwindcss({
@@ -84,8 +100,8 @@ beforeAll(async () => {
 
   // One table, two teams, the way LineupOverview renders them.
   const team = (name: string) => `
-    <thead>
-      <tr>
+    <thead class="${theadBase} ${teamHeader}" data-team-header>
+      <tr class="${trBase}">
         <th class="${stickyHead}">${name}</th>
         <th class="${headBase} whitespace-nowrap cursor-pointer" data-stat>
           <span data-sort-group class="${sortGroup[2]}">Kills<span data-sort-icons class="${sortIcons}"><svg class="${sortIcon}"></svg></span></span>
@@ -99,8 +115,8 @@ beforeAll(async () => {
         </th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
+    <tbody class="${tbodyBase}">
+      <tr class="${trBase}">
         <td class="${stickyCell}">player</td>
         <td class="${cellBase} tabular-nums" data-stat>20</td>
         <td class="${cellBase} tabular-nums" data-stat>
@@ -111,7 +127,7 @@ beforeAll(async () => {
         </td>
         <td class="${cellBase} tabular-nums" data-stat>20</td>
       </tr>
-      <tr>
+      <tr class="${trBase}" data-last-row>
         <td class="${stickyCell}">player</td>
         <td class="${cellBase} tabular-nums" data-stat>11</td>
         <td class="${cellBase} tabular-nums" data-stat>
@@ -225,6 +241,37 @@ describe("match stats alignment (deafcs-web#123)", () => {
         "center",
       );
     }
+  });
+
+  // The second team's header used to get 28px of top padding and a 3px
+  // border inside it, which pushed its text to the bottom of the row. Both
+  // headers are now the same; the line between the teams is the bottom border
+  // of the first team's last row.
+  it("gives both team headers the same padding, height and no border inside", () => {
+    // One static class, no per-team binding.
+    expect(teamHeaderTag).not.toContain(":class");
+    expect(teamHeader).toContain("[&_th]:h-12");
+    expect(teamHeader).not.toMatch(/\bpt-|\bpy-|\bp-\d|border-t/);
+    const heads = [...doc.querySelectorAll("[data-team-header]")];
+    expect(heads).toHaveLength(2);
+    const box = (h: Element) => {
+      const th = h.querySelectorAll("th");
+      return [h, ...th].map((el) => {
+        const s = style(el);
+        return [s.paddingTop, s.paddingBottom, s.borderTopWidth, s.height].join(" ");
+      });
+    };
+    expect(box(heads[1])).toEqual(box(heads[0]));
+    expect(px(style(heads[1]).borderTopWidth)).toBe(0);
+    expect(px(style(heads[1].querySelector("th")!).paddingTop)).toBe(
+      px(style(heads[0].querySelector("th")!).paddingTop),
+    );
+  });
+
+  it("separates the teams with the first team's last row, not the second header", () => {
+    const [first, second] = [...doc.querySelectorAll("[data-last-row]")];
+    expect(px(style(first).borderBottomWidth)).toBe(3);
+    expect(px(style(second).borderBottomWidth)).toBe(0);
   });
 
   it("renders both teams through one table, header and row", () => {

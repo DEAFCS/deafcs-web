@@ -148,17 +148,15 @@ import {
        - touch info icon before a heading: 26px (p-2 button, -m-1, gap-1);
          with the arrows that leaves 10px to pad on the right
        - trend chevron after a value: 16px (w-3.5 + gap-0.5), padded left
-         only when a chevron renders -->
+         only when a chevron renders
+       Both teams' header rows are identical. The line between the teams is
+       the bottom border of the first team's last row, not padding or a
+       border inside the second team's header. -->
   <Table
-    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5 [&_th:not(.sticky)]:text-center [&_td:not(.sticky)]:text-center [&_th:not(.sticky)_[data-sort-group]]:pl-4 [&_th:not(.sticky)_[data-sort-group]:has([data-stat-info])]:pl-0 [&_th:not(.sticky)_[data-sort-group]:has([data-stat-info])]:pr-2.5 [&_td:not(.sticky)>span:has([data-stat-chevron])]:pl-4"
+    class="min-w-full w-max [&_td]:whitespace-nowrap [&_th]:px-2 [&_td]:px-2 [&_th.sticky+th]:!pl-5 [&_td.sticky+td]:!pl-5 [&_th:not(.sticky)]:text-center [&_td:not(.sticky)]:text-center [&_th:not(.sticky)_[data-sort-group]]:pl-4 [&_th:not(.sticky)_[data-sort-group]:has([data-stat-info])]:pl-0 [&_th:not(.sticky)_[data-sort-group]:has([data-stat-info])]:pr-2.5 [&_td:not(.sticky)>span:has([data-stat-chevron])]:pl-4 [&>tbody:not(:last-child)>tr:last-child]:border-b-[3px] [&>tbody:not(:last-child)>tr:last-child]:border-border/80"
   >
     <template v-for="(lp, lpIdx) of lineupsToRender" :key="lp.id">
-      <TableHeader
-        :class="[
-          '[&_th]:h-12 bg-muted/20',
-          lpIdx > 0 ? '[&_th]:pt-7 border-t-[3px] border-border/80' : '',
-        ]"
-      >
+      <TableHeader class="[&_th]:h-12 bg-muted/20">
         <TableRow>
           <TableHead
             v-if="!hideMember"
