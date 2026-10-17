@@ -6969,6 +6969,9 @@
     }
   },
   "match": {
+    "highlights": {
+      "clip_count": "{count} clips"
+    },
     "overall": "Overall",
     "head_to_head_overall_only": "Head to Head uses Overall statistics.",
     "open_match": "Open match",
@@ -6989,7 +6992,7 @@
     "match_scheduled_for": "Match scheduled for {time}.",
     "start_now_or_schedule": "Start the match now or schedule it for later.",
     "keyboard_shortcuts": "Keyboard shortcuts",
-    "up_next": "Up Next",
+    "up_next": "Up next",
     "head_to_head_matrix": {
       "damage": "Damage",
       "your_weapons": "Your weapons",

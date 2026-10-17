@@ -4118,6 +4118,9 @@
     }
   },
   "match": {
+    "highlights": {
+      "clip_count": "{count} 个片段"
+    },
     "open_match": "打开比赛",
     "picks_label": "选图",
     "full_page": "全屏",
