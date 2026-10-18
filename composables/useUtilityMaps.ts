@@ -14,12 +14,18 @@ import type { UtilityType } from "~/types/utility";
 import { e_match_types_enum, order_by } from "~/generated/zeus";
 import { loadRadarMaps, normalizeMapName } from "~/utilities/mapAssets";
 import mapLabel from "~/utilities/mapLabel";
+import {
+  activeDutyNames,
+  orderActiveDutyFirst,
+} from "~/utilities/activeDutyMaps";
 
 export type UtilityMapTile = {
   name: string;
   label: string;
   patch: string | null;
   poster: string | null;
+  /** DEAFCS: one of Valve's Active Duty maps (maps.active_pool). */
+  activeDuty: boolean;
 };
 
 /** Where one lineup lands, reduced to what a map's tile draws. */
@@ -41,7 +47,14 @@ const mapsQuery = generateQuery({
       },
       order_by: [{ name: order_by.asc }],
     },
-    { id: true, name: true, label: true, patch: true, poster: true },
+    {
+      id: true,
+      name: true,
+      label: true,
+      patch: true,
+      poster: true,
+      active_pool: true,
+    },
   ],
 });
 
@@ -61,9 +74,11 @@ function loadMaps(): Promise<void> {
           getGraphqlClient().query({ query: mapsQuery, fetchPolicy: "cache-first" }),
           loadRadarMaps(),
         ]);
+        const rows = ((data as any)?.maps ?? []) as Array<any>;
+        const active = activeDutyNames(rows);
         const seen = new Set<string>();
         const next: UtilityMapTile[] = [];
-        for (const map of ((data as any)?.maps ?? []) as Array<any>) {
+        for (const map of rows) {
           const radar = normalizeMapName(map.name);
           // A map without a radar has nothing to draw a lineup on.
           if (!radarMaps.has(radar) || seen.has(radar)) {
@@ -75,9 +90,11 @@ function loadMaps(): Promise<void> {
             label: mapLabel(map),
             patch: map.patch ?? null,
             poster: map.poster ?? null,
+            activeDuty: active.has(radar),
           });
         }
-        tiles.value = next;
+        // DEAFCS: Active Duty first, the rest after, each alphabetical.
+        tiles.value = orderActiveDutyFirst(next, active);
       } catch (error) {
         console.error("[utility] map list load error:", error);
         mapsPromise = null;

@@ -21,6 +21,20 @@ const { tiles, counts, privateCounts, landings, loadCounts, loadLandings } =
   useUtilityMaps();
 const loading = ref(!tiles.value.length);
 
+// DEAFCS: Valve's Active Duty maps by default, the rest one click away. A
+// install with no map flagged active_pool just shows every map, as before.
+const group = ref<"active" | "other">("active");
+const activeTiles = computed(() => tiles.value.filter((tile) => tile.activeDuty));
+const otherTiles = computed(() => tiles.value.filter((tile) => !tile.activeDuty));
+const hasGroups = computed(() => activeTiles.value.length > 0);
+const shownTiles = computed(() =>
+  !hasGroups.value
+    ? tiles.value
+    : group.value === "active"
+      ? activeTiles.value
+      : otherTiles.value,
+);
+
 // A map's tile and its board are the same radar at two sizes, so the pages
 // hand it to each other: picking a map -- from a tile or from the rail -- tells
 // the map page where that tile's radar was, and coming back from a map the
@@ -68,7 +82,7 @@ const total = computed(() =>
 // Three across on desktop. The legend takes what the maps leave of their last
 // row, or a row of its own when they leave nothing.
 const COLUMNS = 3;
-const mapCount = computed(() => (loading.value ? 10 : tiles.value.length));
+const mapCount = computed(() => (loading.value ? 10 : shownTiles.value.length));
 const legendSpan = computed(
   () => (COLUMNS - (mapCount.value % COLUMNS)) % COLUMNS || COLUMNS,
 );
@@ -106,16 +120,48 @@ const LEGEND_SPAN: Record<number, string> = {
             :class="arriving ? 'utility-arrive' : ''"
           >
             <h1
+              v-if="!hasGroups"
               class="font-mono text-[0.68rem] font-bold uppercase tracking-[0.16em]"
             >
               {{ $t("pages.utility.picker.all_maps") }}
             </h1>
             <span
-              v-if="tiles.length"
+              v-if="!hasGroups && tiles.length"
               class="font-mono text-[0.7rem] tabular-nums text-muted-foreground"
             >
               {{ tiles.length }}
             </span>
+
+            <!-- DEAFCS: Active Duty first; Other maps stay one click away. -->
+            <div
+              v-if="hasGroups"
+              role="tablist"
+              :aria-label="$t('pages.utility.picker.label')"
+              class="flex items-center gap-1"
+              data-testid="utility-map-groups"
+            >
+              <button
+                v-for="option of [
+                  { key: 'active', label: $t('pages.utility.picker.active_duty'), count: activeTiles.length },
+                  { key: 'other', label: $t('pages.utility.picker.other_maps'), count: otherTiles.length },
+                ]"
+                :key="option.key"
+                type="button"
+                role="tab"
+                :aria-selected="group === option.key"
+                :disabled="option.key === 'other' && !option.count"
+                class="inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 font-mono text-[0.68rem] font-bold uppercase tracking-[0.16em] transition-colors disabled:opacity-40"
+                :class="
+                  group === option.key
+                    ? 'border-[hsl(var(--tac-amber))] bg-[hsl(var(--tac-amber)/0.12)] text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                "
+                @click="group = option.key as 'active' | 'other'"
+              >
+                {{ option.label }}
+                <span class="tabular-nums text-muted-foreground">{{ option.count }}</span>
+              </button>
+            </div>
           </div>
 
           <UtilityEmpty
@@ -153,7 +199,7 @@ const LEGEND_SPAN: Record<number, string> = {
 
             <template v-else>
               <UtilityMapPreviewTile
-                v-for="tile of tiles"
+                v-for="tile of shownTiles"
                 :key="tile.name"
                 :ref="(el) => setTile(tile.name, el)"
                 :class="

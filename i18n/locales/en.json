@@ -5780,6 +5780,8 @@
         "count_public": "Public lineups on this map",
         "label": "Maps",
         "all_maps": "All maps",
+        "active_duty": "Active Duty",
+        "other_maps": "Other maps",
         "legend": "A mark is where saved lineups land. The more that land together, the bigger it gets.",
         "total": "{count} lineup saved so far. | {count} lineups saved so far."
       },

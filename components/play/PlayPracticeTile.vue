@@ -5,7 +5,9 @@ import { Button } from "~/components/ui/button";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
@@ -17,6 +19,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 import { loginLinks } from "~/utilities/loginLinks";
 import cleanMapName from "~/utilities/cleanMapName";
 import { loadRadarMaps, normalizeMapName } from "~/utilities/mapAssets";
+import { activeDutyNames, splitActiveDuty } from "~/utilities/activeDutyMaps";
 
 const isGuest = computed(() => !useAuthStore().me?.steam_id);
 
@@ -24,6 +27,9 @@ const isGuest = computed(() => !useAuthStore().me?.steam_id);
 // Only maps with a radar can carry lineups -- same rule as /utility.
 const maps = ref<string[]>([]);
 const mapName = ref<string>("");
+// DEAFCS: Valve's Active Duty maps (maps.active_pool) first, then the rest.
+const activeMaps = ref<string[]>([]);
+const otherMaps = ref<string[]>([]);
 const practiceOpen = ref(false);
 
 const mapsQuery = generateQuery({
@@ -35,7 +41,7 @@ const mapsQuery = generateQuery({
       },
       order_by: [{ name: order_by.asc }],
     },
-    { name: true },
+    { name: true, active_pool: true },
   ],
 });
 
@@ -49,12 +55,22 @@ onMounted(async () => {
       }),
       loadRadarMaps(),
     ]);
+    const rows = ((data as any)?.maps ?? []) as Array<{
+      name: string;
+      active_pool?: boolean | null;
+    }>;
     const names = new Set<string>();
-    for (const map of ((data as any)?.maps ?? []) as Array<{ name: string }>) {
+    for (const map of rows) {
       const radar = normalizeMapName(map.name);
       if (radarMaps.has(radar)) names.add(radar);
     }
-    maps.value = [...names];
+    const split = splitActiveDuty(
+      [...names].map((name) => ({ name })),
+      activeDutyNames(rows),
+    );
+    activeMaps.value = split.active.map((map) => map.name);
+    otherMaps.value = split.other.map((map) => map.name);
+    maps.value = [...activeMaps.value, ...otherMaps.value];
     mapName.value =
       maps.value.find((name) => name === "de_mirage") ?? maps.value[0] ?? "";
   } catch (error) {
@@ -106,9 +122,29 @@ const touchTarget =
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="map in maps" :key="map" :value="map">
-              {{ cleanMapName(map) }}
-            </SelectItem>
+            <template v-if="activeMaps.length">
+              <SelectGroup>
+                <SelectLabel class="text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground">
+                  {{ $t("pages.utility.picker.active_duty") }}
+                </SelectLabel>
+                <SelectItem v-for="map in activeMaps" :key="map" :value="map">
+                  {{ cleanMapName(map) }}
+                </SelectItem>
+              </SelectGroup>
+              <SelectGroup v-if="otherMaps.length">
+                <SelectLabel class="text-[0.65rem] uppercase tracking-[0.14em] text-muted-foreground">
+                  {{ $t("pages.utility.picker.other_maps") }}
+                </SelectLabel>
+                <SelectItem v-for="map in otherMaps" :key="map" :value="map">
+                  {{ cleanMapName(map) }}
+                </SelectItem>
+              </SelectGroup>
+            </template>
+            <template v-else>
+              <SelectItem v-for="map in maps" :key="map" :value="map">
+                {{ cleanMapName(map) }}
+              </SelectItem>
+            </template>
           </SelectContent>
         </Select>
         <Button
