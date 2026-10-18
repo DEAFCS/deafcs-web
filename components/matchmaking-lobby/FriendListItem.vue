@@ -19,9 +19,16 @@ import {
   Swords,
   LogIn,
   MessageSquare,
+  Crosshair,
 } from "lucide-vue-next";
 import { useFriendActions } from "~/composables/useFriendActions";
 import { useFriendStatus } from "~/composables/useFriendStatus";
+import { useFriendPracticeSessions } from "~/composables/useFriendPracticeSessions";
+import {
+  joinablePracticeFor,
+  practiceJoinPath,
+} from "~/utilities/friendPractice";
+import cleanMapName from "~/utilities/cleanMapName";
 import { useDraftGamesStore } from "~/stores/DraftGamesStore";
 import { toast } from "~/components/ui/toast";
 import { openDirectMessage } from "~/composables/useDirectMessage";
@@ -116,6 +123,30 @@ async function joinLobby() {
   } finally {
     joiningLobby.value = false;
   }
+}
+
+// DEAFCS: Join Pracc. A friend's live Open/Friends practice session, offered
+// through the same /utility/<map>?practice=<code> door an invite link opens,
+// so the API's join still decides access, capacity and whether it is live.
+const { sessions: practiceSessions } = useFriendPracticeSessions();
+const joinablePractice = computed(() =>
+  isFriend.value
+    ? joinablePracticeFor(
+        props.player.steam_id,
+        practiceSessions.value,
+        useAuthStore().me?.steam_id,
+      )
+    : null,
+);
+const practiceMapLabel = computed(() =>
+  joinablePractice.value?.map_name
+    ? cleanMapName(joinablePractice.value.map_name)
+    : "",
+);
+function joinPractice() {
+  const session = joinablePractice.value;
+  if (!session) return;
+  navigateTo(practiceJoinPath(session));
 }
 
 const canInviteToLobby = computed(() => {
@@ -364,6 +395,38 @@ const amberHover =
                   </template>
                 </div>
               </Transition>
+            </div>
+          </div>
+
+          <!-- DEAFCS: a friend hosting a live Open/Friends Pracc session.
+               Same banner shape and mini Join as a joinable lobby/draft. -->
+          <div
+            v-if="!showBanner && joinablePractice"
+            class="px-2 pb-2 pt-0.5 transition-opacity duration-200"
+            :class="muted ? 'opacity-50 group-hover/row:opacity-90' : ''"
+            data-testid="friend-practice-banner"
+          >
+            <div
+              class="flex items-center gap-2 rounded-md border-l-2 border-[hsl(var(--tac-amber))] bg-gradient-to-r from-[hsl(var(--tac-amber))]/15 to-transparent px-2.5 py-1.5 text-[hsl(var(--tac-amber))]"
+            >
+              <Crosshair class="h-3.5 w-3.5 shrink-0" />
+              <span
+                class="min-w-0 truncate font-mono text-[0.62rem] font-bold uppercase tracking-[0.14em]"
+              >
+                {{ $t("matchmaking.friends.in_practice", { map: practiceMapLabel }) }}
+              </span>
+              <Button
+                size="sm"
+                :class="[
+                  'ml-auto h-5 shrink-0 cursor-pointer gap-1 px-1.5 font-mono text-[0.55rem] font-bold uppercase tracking-[0.1em]',
+                  'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.85)]',
+                ]"
+                data-testid="friend-practice-join"
+                @click.stop.prevent="joinPractice"
+              >
+                <LogIn class="h-3 w-3" />
+                {{ $t("matchmaking.friends.join") }}
+              </Button>
             </div>
           </div>
 

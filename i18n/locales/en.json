@@ -9611,6 +9611,7 @@
       "in_match": "In a match",
       "in_lobby": "In a lobby",
       "in_draft": "In draft lobby",
+      "in_practice": "In Pracc · {map}",
       "playing_cs2": "Playing Counter-Strike 2",
       "available": "Available",
       "join": "Join",
