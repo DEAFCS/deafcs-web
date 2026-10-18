@@ -6151,6 +6151,7 @@
         "scrims": "Scrim Finder",
         "leaderboard": "Leaderboard",
         "search": "Search",
+        "utility": "Utility Library",
         "highlights": "Highlights",
         "news": "News",
         "leagues": "League",
@@ -6159,6 +6160,12 @@
       },
       "community": {
         "title": "Community"
+      },
+      "roster": {
+        "title": "Roster"
+      },
+      "library": {
+        "title": "Library"
       },
       "social": {
         "title": "Social"
@@ -6220,6 +6227,7 @@
         "tournaments": "Tournaments",
         "players": "Players",
         "teams": "Teams",
+        "utility": "Utility Library",
         "leaderboard": "Leaderboard",
         "awards": "Awards",
         "news": "News",

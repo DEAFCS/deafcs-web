@@ -34,6 +34,7 @@ import {
   LifeBuoy,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
+import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
 import { e_player_roles_enum } from "~/generated/zeus";
@@ -363,9 +364,13 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 
         <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
+        <!-- DEAFCS: the same two groups as the top menu. Roster as before;
+             Library holds the Utility Library (upstream 5Stack's Utility item),
+             Highlights, Awards and News. No Community/Social headings, and no
+             Forum or Announcements link (the pages and channel are untouched). -->
         <SidebarGroup>
           <SidebarGroupLabel>{{
-            $t("layouts.app_nav.community.title")
+            $t("layouts.app_nav.roster.title")
           }}</SidebarGroupLabel>
 
           <SidebarMenu>
@@ -438,23 +443,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.awards')"
-              >
-                <NuxtLink
-                  to="/awards"
-                  :class="{
-                    'router-link-active': $route.path.startsWith('/awards'),
-                  }"
-                >
-                  <Award />
-                  {{ $t("layouts.app_nav.navigation.awards") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
           </SidebarMenu>
         </SidebarGroup>
 
@@ -462,23 +450,25 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 
         <SidebarGroup>
           <SidebarGroupLabel>{{
-            $t("layouts.app_nav.social.title")
+            $t("layouts.app_nav.library.title")
           }}</SidebarGroupLabel>
 
           <SidebarMenu>
-            <SidebarMenuItem v-if="newsEnabled">
+            <SidebarMenuItem
+              :tooltip="$t('layouts.app_nav.tooltips.utility')"
+            >
               <SidebarMenuButton
                 as-child
-                :tooltip="newsLabel || $t('layouts.app_nav.tooltips.news')"
+                :tooltip="$t('layouts.app_nav.tooltips.utility')"
               >
                 <NuxtLink
-                  :to="{ name: 'news' }"
+                  :to="{ name: 'utility' }"
                   :class="{
-                    'router-link-active': isRouteActive('news'),
+                    'router-link-active': isRouteActive('utility'),
                   }"
                 >
-                  <Newspaper />
-                  {{ newsLabel || $t("layouts.app_nav.navigation.news") }}
+                  <HeGrenadeIcon class="size-4" />
+                  {{ $t("layouts.app_nav.navigation.utility") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -506,6 +496,40 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   >
                     {{ renderQueueInFlightCount }}
                   </Badge>
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.awards')"
+              >
+                <NuxtLink
+                  to="/awards"
+                  :class="{
+                    'router-link-active': $route.path.startsWith('/awards'),
+                  }"
+                >
+                  <Award />
+                  {{ $t("layouts.app_nav.navigation.awards") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem v-if="newsEnabled">
+              <SidebarMenuButton
+                as-child
+                :tooltip="newsLabel || $t('layouts.app_nav.tooltips.news')"
+              >
+                <NuxtLink
+                  :to="{ name: 'news' }"
+                  :class="{
+                    'router-link-active': isRouteActive('news'),
+                  }"
+                >
+                  <Newspaper />
+                  {{ newsLabel || $t("layouts.app_nav.navigation.news") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>

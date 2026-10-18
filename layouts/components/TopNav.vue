@@ -21,7 +21,6 @@ import {
   UserCog,
   ShieldCheck,
   FileText,
-  MessagesSquare,
   Menu,
 } from "lucide-vue-next";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
@@ -425,62 +424,37 @@ const socialLinkClasses =
                             </NuxtLink>
                           </NavigationMenuLink>
                         </li>
-                        <li>
-                          <NavigationMenuLink as-child>
-                            <NuxtLink
-                              to="/awards"
-                              :class="[navItemClasses, navItemStackedClasses]"
-                            >
-                              <span :class="navItemChevronClasses">◢</span>
-                              <span :class="navItemContentClasses">
-                                <span :class="navItemLabelClasses">
-                                  {{
-                                    $t(
-                                      "layouts.top_nav.community.awards.title",
-                                    )
-                                  }}
-                                </span>
-                                <span :class="navItemSubClasses">
-                                  {{
-                                    $t(
-                                      "layouts.top_nav.community.awards.subtitle",
-                                    )
-                                  }}
-                                </span>
-                              </span>
-                            </NuxtLink>
-                          </NavigationMenuLink>
-                        </li>
                       </ul>
                     </div>
 
+                    <!-- DEAFCS: two columns. Upstream 5Stack's Roster column as
+                         is, and its Library column holding what DEAFCS keeps:
+                         Utility Library, Highlights, Awards, News. No Social
+                         column (Forum and Announcements are off the menu; the
+                         pages and the Chat Hub channel are untouched). -->
                     <div class="min-w-[160px] flex-1">
                       <div :class="navGroupLabelClasses">
                         <span :class="navGroupLabelTickClasses"></span>
-                        {{ $t("layouts.top_nav.community.social.title") }}
+                        {{ $t("layouts.top_nav.community.library.title") }}
                       </div>
                       <ul class="flex flex-col gap-1">
-                        <li v-if="newsEnabled">
+                        <li>
                           <NavigationMenuLink as-child>
                             <NuxtLink
-                              to="/news"
+                              to="/utility"
                               :class="[navItemClasses, navItemStackedClasses]"
                             >
                               <span :class="navItemChevronClasses">◢</span>
                               <span :class="navItemContentClasses">
                                 <span :class="navItemLabelClasses">
                                   {{
-                                    newsLabel ||
-                                    $t("layouts.top_nav.community.news.title")
+                                    $t("layouts.top_nav.community.utility.title")
                                   }}
                                 </span>
                                 <span :class="navItemSubClasses">
                                   {{
                                     $t(
-                                      "layouts.top_nav.community.news.subtitle",
-                                      {
-                                        brand: brandName || "DEAFCS",
-                                      },
+                                      "layouts.top_nav.community.utility.subtitle",
                                     )
                                   }}
                                 </span>
@@ -517,26 +491,22 @@ const socialLinkClasses =
                         <li>
                           <NavigationMenuLink as-child>
                             <NuxtLink
-                              to="/forum"
+                              to="/awards"
                               :class="[navItemClasses, navItemStackedClasses]"
                             >
                               <span :class="navItemChevronClasses">◢</span>
                               <span :class="navItemContentClasses">
-                                <span
-                                  :class="[
-                                    navItemLabelClasses,
-                                    navItemLabelIconClasses,
-                                  ]"
-                                >
+                                <span :class="navItemLabelClasses">
                                   {{
-                                    $t("layouts.top_nav.community.social.forum.title")
+                                    $t(
+                                      "layouts.top_nav.community.awards.title",
+                                    )
                                   }}
-                                  <MessagesSquare class="h-3.5 w-3.5" />
                                 </span>
                                 <span :class="navItemSubClasses">
                                   {{
                                     $t(
-                                      "layouts.top_nav.community.social.forum.subtitle",
+                                      "layouts.top_nav.community.awards.subtitle",
                                     )
                                   }}
                                 </span>
@@ -544,33 +514,27 @@ const socialLinkClasses =
                             </NuxtLink>
                           </NavigationMenuLink>
                         </li>
-                      </ul>
-                    </div>
-
-                    <!-- Upstream 5Stack TopNav: Library > Utility. -->
-                    <div class="min-w-[160px] flex-1">
-                      <div :class="navGroupLabelClasses">
-                        <span :class="navGroupLabelTickClasses"></span>
-                        {{ $t("layouts.top_nav.community.library.title") }}
-                      </div>
-                      <ul class="flex flex-col gap-1">
-                        <li>
+                        <li v-if="newsEnabled">
                           <NavigationMenuLink as-child>
                             <NuxtLink
-                              to="/utility"
+                              to="/news"
                               :class="[navItemClasses, navItemStackedClasses]"
                             >
                               <span :class="navItemChevronClasses">◢</span>
                               <span :class="navItemContentClasses">
                                 <span :class="navItemLabelClasses">
                                   {{
-                                    $t("layouts.top_nav.community.utility.title")
+                                    newsLabel ||
+                                    $t("layouts.top_nav.community.news.title")
                                   }}
                                 </span>
                                 <span :class="navItemSubClasses">
                                   {{
                                     $t(
-                                      "layouts.top_nav.community.utility.subtitle",
+                                      "layouts.top_nav.community.news.subtitle",
+                                      {
+                                        brand: brandName || "DEAFCS",
+                                      },
                                     )
                                   }}
                                 </span>
@@ -1003,9 +967,10 @@ const socialLinkClasses =
                   v-else-if="item.type === 'community'"
                   class="flex flex-col gap-1"
                 >
+                  <!-- DEAFCS: the same two groups as the desktop menu. -->
                   <div :class="[navGroupLabelClasses, 'mt-3']">
                     <span :class="navGroupLabelTickClasses"></span>
-                    {{ $t("layouts.top_nav.community_menu") }}
+                    {{ $t("layouts.top_nav.community.roster") }}
                   </div>
                   <NuxtLink
                     to="/players"
@@ -1054,6 +1019,43 @@ const socialLinkClasses =
                       </span>
                     </span>
                   </NuxtLink>
+
+                  <div :class="[navGroupLabelClasses, 'mt-3']">
+                    <span :class="navGroupLabelTickClasses"></span>
+                    {{ $t("layouts.top_nav.community.library.title") }}
+                  </div>
+                  <NuxtLink
+                    to="/utility"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.utility.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{ $t("layouts.top_nav.community.utility.subtitle") }}
+                      </span>
+                    </span>
+                  </NuxtLink>
+                  <NuxtLink
+                    to="/highlights"
+                    :class="[navItemClasses, navItemStackedClasses]"
+                    @click="mobileNavOpen = false"
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.highlights.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{
+                          $t("layouts.top_nav.community.highlights.subtitle")
+                        }}
+                      </span>
+                    </span>
+                  </NuxtLink>
                   <NuxtLink
                     to="/awards"
                     :class="[navItemClasses, navItemStackedClasses]"
@@ -1082,40 +1084,11 @@ const socialLinkClasses =
                           newsLabel || $t("layouts.top_nav.community.news.title")
                         }}
                       </span>
-                    </span>
-                  </NuxtLink>
-                  <NuxtLink
-                    to="/highlights"
-                    :class="[navItemClasses, navItemStackedClasses]"
-                    @click="mobileNavOpen = false"
-                  >
-                    <span :class="navItemChevronClasses">◢</span>
-                    <span :class="navItemContentClasses">
-                      <span :class="navItemLabelClasses">
-                        {{ $t("layouts.top_nav.community.highlights.title") }}
-                      </span>
                       <span :class="navItemSubClasses">
                         {{
-                          $t("layouts.top_nav.community.highlights.subtitle")
-                        }}
-                      </span>
-                    </span>
-                  </NuxtLink>
-                  <NuxtLink
-                    to="/forum"
-                    :class="[navItemClasses, navItemStackedClasses]"
-                    @click="mobileNavOpen = false"
-                  >
-                    <span :class="navItemChevronClasses">◢</span>
-                    <span :class="navItemContentClasses">
-                      <span :class="navItemLabelClasses">
-                        {{
-                          $t("layouts.top_nav.community.social.forum.title")
-                        }}
-                      </span>
-                      <span :class="navItemSubClasses">
-                        {{
-                          $t("layouts.top_nav.community.social.forum.subtitle")
+                          $t("layouts.top_nav.community.news.subtitle", {
+                            brand: brandName || "DEAFCS",
+                          })
                         }}
                       </span>
                     </span>
