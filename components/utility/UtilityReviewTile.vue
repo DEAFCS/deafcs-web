@@ -12,7 +12,7 @@ import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import TimeAgo from "~/components/TimeAgo.vue";
 import UtilityRadarThumb from "~/components/utility/UtilityRadarThumb.vue";
 import { useMapCallouts } from "~/composables/useMapCallouts";
-import { humanizeCallout } from "~/utilities/mapCallouts";
+import { calloutLabel } from "~/utilities/mapCallouts";
 import { UTILITY_TYPE_COLORS } from "~/utilities/utilityDisplay";
 import type { UtilityLineup } from "~/types/utility";
 
@@ -49,8 +49,10 @@ const origin = computed(() => ({
   z: props.lineup.origin_z,
 }));
 
-const { calloutAt } = useMapCallouts(() => props.lineup.map_name);
-const lands = computed(() => humanizeCallout(calloutAt(landing.value)));
+const { callouts, calloutAt } = useMapCallouts(() => props.lineup.map_name);
+const lands = computed(() =>
+  calloutLabel(calloutAt(landing.value), callouts.value),
+);
 
 const airTime = computed(() => {
   const ms = Number(props.lineup.flight_time_ms ?? 0);

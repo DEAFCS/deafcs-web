@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { humanizeCallout } from "~/utilities/mapCallouts";
+import { calloutLabel } from "~/utilities/mapCallouts";
 import type { MapCallout } from "~/utilities/mapCallouts";
 
 const props = withDefaults(
@@ -74,7 +74,7 @@ const drawn = computed<DrawnCallout[]>(() => {
 
     out.push({
       name: callout.name,
-      label: humanizeCallout(callout.name),
+      label: calloutLabel(callout.name, [callout]),
       boxes,
       labelAt:
         widest.w * widest.h >= MIN_LABEL_AREA

@@ -7,6 +7,7 @@ import SettingsSection from "~/components/settings/SettingsSection.vue";
 import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
 import UtilityImportPanel from "~/components/utility/UtilityImportPanel.vue";
 import UtilityRescanPanel from "~/components/utility/UtilityRescanPanel.vue";
+import UtilityCalloutLabelsPanel from "~/components/utility/UtilityCalloutLabelsPanel.vue";
 </script>
 
 <template>
@@ -151,6 +152,18 @@ import UtilityRescanPanel from "~/components/utility/UtilityRescanPanel.vue";
         "
       >
         <UtilityRescanPanel />
+      </SettingsSection>
+    </PageTransition>
+
+    <PageTransition :delay="140">
+      <SettingsSection
+        id="callout-labels"
+        :title="$t('pages.settings.application.utility.callout_labels.title')"
+        :description="
+          $t('pages.settings.application.utility.callout_labels.section_description')
+        "
+      >
+        <UtilityCalloutLabelsPanel />
       </SettingsSection>
     </PageTransition>
 

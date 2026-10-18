@@ -8,6 +8,8 @@ export type CalloutBox = {
 export type MapCallout = {
   name: string;
   boxes: CalloutBox[];
+  // DEAFCS: an administrator's display name (public.map_callout_labels).
+  label?: string | null;
 };
 
 export type CalloutPoint = {
@@ -190,6 +192,22 @@ export function humanizeCallout(raw: string | null | undefined): string {
   );
 }
 
+/**
+ * DEAFCS: what a callout is called on screen. An administrator's label wins;
+ * otherwise Valve's name, humanised as before. The original name stays the
+ * key everywhere, so a label never changes which place a point is in.
+ */
+export function calloutLabel(
+  name: string | null | undefined,
+  callouts?: ReadonlyArray<MapCallout> | null,
+): string {
+  if (!name) {
+    return "";
+  }
+  const label = callouts?.find((callout) => callout.name === name)?.label;
+  return label?.trim() || humanizeCallout(name);
+}
+
 export type AutoNameInput = {
   utilityType: UtilityType;
   origin: CalloutPoint | null | undefined;
@@ -210,8 +228,8 @@ export function autoUtilityName({
   callouts,
   t,
 }: AutoNameInput): string {
-  const from = humanizeCallout(calloutAt(origin, callouts));
-  const to = humanizeCallout(calloutAt(landing, callouts));
+  const from = calloutLabel(calloutAt(origin, callouts), callouts);
+  const to = calloutLabel(calloutAt(landing, callouts), callouts);
   const type = t(`pages.utility.types.${utilityType}`);
 
   if (to && from) {
