@@ -72962,6 +72962,7 @@ export const ReturnTypes: Record<string,any> = {
 		collection_id:"uuid",
 		connection_link:"String",
 		connection_string:"String",
+		server_id:"uuid",
 		created_at:"timestamptz",
 		e_utility_practice_status:"e_utility_practice_statuses",
 		empty_since:"timestamptz",
