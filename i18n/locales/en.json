@@ -6168,6 +6168,7 @@
         "leaderboard": "Leaderboard",
         "search": "Search",
         "utility": "Utility Library",
+        "announcements": "Announcements",
         "highlights": "Highlights",
         "news": "News",
         "leagues": "League",
@@ -6244,6 +6245,7 @@
         "players": "Players",
         "teams": "Teams",
         "utility": "Utility Library",
+        "announcements": "Announcements",
         "leaderboard": "Leaderboard",
         "awards": "Awards",
         "news": "News",
@@ -6346,6 +6348,10 @@
         "utility": {
           "title": "Utility Library",
           "subtitle": "Smokes, flashes and molotovs by map"
+        },
+        "announcements": {
+          "title": "Announcements",
+          "subtitle": "Updates from the DEAFCS team"
         }
       },
       "info": {

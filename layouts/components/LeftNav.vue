@@ -46,10 +46,20 @@ import Logout from "./Logout.vue";
 import { useMatchContext } from "~/composables/useMatchContext";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import { useAuthStore } from "~/stores/AuthStore";
+import { openAnnouncements as openAnnouncementsHub } from "~/utilities/openAnnouncements";
 
 const { setOpenMobile, isMobile } = useSidebar();
 const route = useRoute();
 const authStore = useAuthStore();
+
+// DEAFCS: Announcements opens the Chat Hub on that channel (see
+// utilities/openAnnouncements); on a phone the sidebar makes way first.
+function openAnnouncements() {
+  if (isMobile.value) {
+    setOpenMobile(false);
+  }
+  openAnnouncementsHub();
+}
 const {
   currentSeasonTo: currentLeagueSeasonTo,
   currentSeason: currentLeagueSeason,
@@ -364,10 +374,10 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 
         <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
-        <!-- DEAFCS: the same two groups as the top menu. Roster as before;
-             Library holds the Utility Library (upstream 5Stack's Utility item),
-             Highlights, Awards and News. No Community/Social headings, and no
-             Forum or Announcements link (the pages and channel are untouched). -->
+        <!-- DEAFCS: the same three groups as the top menu. Roster as before;
+             Library: the Utility Library (upstream 5Stack's Utility item),
+             Highlights, Awards; Social: News, and Announcements for logged-in
+             players. No Forum link (the page itself is untouched). -->
         <SidebarGroup>
           <SidebarGroupLabel>{{
             $t("layouts.app_nav.roster.title")
@@ -516,7 +526,20 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
+        <Separator
+          v-if="showSeparators && (newsEnabled || authStore.me)"
+          class="mx-4 w-auto"
+        />
+
+        <SidebarGroup v-if="newsEnabled || authStore.me">
+          <SidebarGroupLabel>{{
+            $t("layouts.app_nav.social.title")
+          }}</SidebarGroupLabel>
+
+          <SidebarMenu>
             <SidebarMenuItem v-if="newsEnabled">
               <SidebarMenuButton
                 as-child
@@ -531,6 +554,17 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   <Newspaper />
                   {{ newsLabel || $t("layouts.app_nav.navigation.news") }}
                 </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem v-if="authStore.me">
+              <SidebarMenuButton
+                :tooltip="$t('layouts.app_nav.tooltips.announcements')"
+                data-testid="sidebar-announcements"
+                @click="openAnnouncements()"
+              >
+                <Megaphone />
+                {{ $t("layouts.app_nav.navigation.announcements") }}
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

@@ -29,6 +29,7 @@ import { useMatchReadyModal } from "~/composables/useMatchReadyModal";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PlayerPendingImports from "~/components/PlayerPendingImports.vue";
 import { useAuthStore } from "~/stores/AuthStore";
+import { openAnnouncements } from "~/utilities/openAnnouncements";
 import Logout from "./Logout.vue";
 import ProfileMenu from "./ProfileMenu.vue";
 import MatchLobbies from "./MatchLobbies.vue";
@@ -144,7 +145,8 @@ const navBadgeDotClasses =
 
 const navContentClasses =
   "relative mt-0 min-w-[360px] max-w-[95vw] overflow-hidden border border-topnav-border bg-[linear-gradient(180deg,hsl(var(--topnav-background)/0.98)_0%,hsl(var(--topnav-background)/0.92)_100%)] p-0 shadow-[inset_0_1px_0_hsl(var(--tac-amber)/0.12),0_20px_40px_-12px_hsl(0_0%_0%/0.55)] [backdrop-filter:blur(8px)] [-webkit-backdrop-filter:blur(8px)] before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-[linear-gradient(90deg,transparent,hsl(var(--tac-amber)/0.5),transparent)]";
-const communityContentClasses = `${navContentClasses} min-w-[560px]`;
+// Upstream 5Stack's width for its three community columns.
+const communityContentClasses = `${navContentClasses} md:min-w-[min(780px,calc(100vw-1.25rem))]`;
 const infoContentClasses = `${navContentClasses} min-w-[720px]`;
 
 const navGroupLabelClasses =
@@ -427,11 +429,10 @@ const socialLinkClasses =
                       </ul>
                     </div>
 
-                    <!-- DEAFCS: two columns. Upstream 5Stack's Roster column as
-                         is, and its Library column holding what DEAFCS keeps:
-                         Utility Library, Highlights, Awards, News. No Social
-                         column (Forum and Announcements are off the menu; the
-                         pages and the Chat Hub channel are untouched). -->
+                    <!-- DEAFCS: upstream 5Stack's three columns. Roster as is;
+                         Library: Utility Library, Highlights, Awards; Social:
+                         News, and Announcements for logged-in players. Forum
+                         is off the menu (the page itself is untouched). -->
                     <div class="min-w-[160px] flex-1">
                       <div :class="navGroupLabelClasses">
                         <span :class="navGroupLabelTickClasses"></span>
@@ -514,6 +515,15 @@ const socialLinkClasses =
                             </NuxtLink>
                           </NavigationMenuLink>
                         </li>
+                      </ul>
+                    </div>
+
+                    <div class="min-w-[160px] flex-1">
+                      <div :class="navGroupLabelClasses">
+                        <span :class="navGroupLabelTickClasses"></span>
+                        {{ $t("layouts.top_nav.community.social.title") }}
+                      </div>
+                      <ul class="flex flex-col gap-1">
                         <li v-if="newsEnabled">
                           <NavigationMenuLink as-child>
                             <NuxtLink
@@ -540,6 +550,38 @@ const socialLinkClasses =
                                 </span>
                               </span>
                             </NuxtLink>
+                          </NavigationMenuLink>
+                        </li>
+                        <li v-if="authStore.me">
+                          <NavigationMenuLink as-child>
+                            <button
+                              type="button"
+                              :class="[
+                                navItemClasses,
+                                navItemStackedClasses,
+                                'w-full text-left',
+                              ]"
+                              data-testid="nav-announcements"
+                              @click="openAnnouncements()"
+                            >
+                              <span :class="navItemChevronClasses">◢</span>
+                              <span :class="navItemContentClasses">
+                                <span :class="navItemLabelClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.community.announcements.title",
+                                    )
+                                  }}
+                                </span>
+                                <span :class="navItemSubClasses">
+                                  {{
+                                    $t(
+                                      "layouts.top_nav.community.announcements.subtitle",
+                                    )
+                                  }}
+                                </span>
+                              </span>
+                            </button>
                           </NavigationMenuLink>
                         </li>
                       </ul>
@@ -1071,6 +1113,11 @@ const socialLinkClasses =
                       </span>
                     </span>
                   </NuxtLink>
+
+                  <div :class="[navGroupLabelClasses, 'mt-3']">
+                    <span :class="navGroupLabelTickClasses"></span>
+                    {{ $t("layouts.top_nav.community.social.title") }}
+                  </div>
                   <NuxtLink
                     v-if="newsEnabled"
                     to="/news"
@@ -1093,6 +1140,26 @@ const socialLinkClasses =
                       </span>
                     </span>
                   </NuxtLink>
+                  <button
+                    v-if="authStore.me"
+                    type="button"
+                    :class="[navItemClasses, navItemStackedClasses, 'w-full text-left']"
+                    data-testid="nav-announcements-mobile"
+                    @click="
+                      mobileNavOpen = false;
+                      openAnnouncements();
+                    "
+                  >
+                    <span :class="navItemChevronClasses">◢</span>
+                    <span :class="navItemContentClasses">
+                      <span :class="navItemLabelClasses">
+                        {{ $t("layouts.top_nav.community.announcements.title") }}
+                      </span>
+                      <span :class="navItemSubClasses">
+                        {{ $t("layouts.top_nav.community.announcements.subtitle") }}
+                      </span>
+                    </span>
+                  </button>
                 </div>
 
                 <div v-else-if="item.type === 'info'" class="flex flex-col gap-1">

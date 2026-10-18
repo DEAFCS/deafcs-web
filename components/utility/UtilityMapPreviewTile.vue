@@ -136,12 +136,15 @@ defineExpose({
   >
     <span class="relative block aspect-square lg:aspect-auto lg:min-h-0 lg:flex-1">
       <!-- Centred with auto margins, not a translate: the transform is
-           left free for the radar to be played out of the board's place. -->
+           left free for the radar to be played out of the board's place.
+           DEAFCS: on desktop the radar stops above the name along the foot
+           (2.75rem) instead of running under it, so a radar drawn to its
+           image's edges (Overpass, Vertigo, Train) is never covered. -->
       <svg
         v-if="radarSrc"
         ref="radar"
         :viewBox="`0 0 ${CANVAS} ${CANVAS}`"
-        class="absolute inset-[7%] h-[86%] w-[86%] lg:inset-x-0 lg:bottom-auto lg:top-[3%] lg:mx-auto lg:h-[90%] lg:w-auto"
+        class="absolute inset-[7%] h-[86%] w-[86%] lg:inset-x-0 lg:bottom-auto lg:top-[5%] lg:mx-auto lg:h-[calc(95%-2.75rem)] lg:w-auto lg:max-w-[90%]"
         aria-hidden="true"
       >
         <image
