@@ -16,6 +16,7 @@ import { Separator } from "~/components/ui/separator";
 import AnimatedFilters from "~/components/common/AnimatedFilters.vue";
 import RegionLatency from "~/components/matchmaking/RegionLatency.vue";
 import HeightSwap from "~/components/ui/transitions/HeightSwap.vue";
+import VerifyGate from "~/components/play/VerifyGate.vue";
 import UtilityPracticeSessionPanel from "~/components/utility/UtilityPracticeSessionPanel.vue";
 import UtilitySaveLineupDialog from "~/components/utility/UtilitySaveLineupDialog.vue";
 import { toast } from "~/components/ui/toast";
@@ -84,6 +85,7 @@ const ANY_REGION = "any";
 const NO_PLAYBOOK = "none";
 const SERVER_PREFIX = "server:";
 
+const settings = useApplicationSettingsStore();
 const regions = computed(() => useApplicationSettingsStore().availableRegions);
 const region = ref<string>(ANY_REGION);
 const playbookChoice = ref<string>(NO_PLAYBOOK);
@@ -596,7 +598,12 @@ const footerCta = "w-full font-bold uppercase tracking-[0.22em]";
 <template>
   <div>
     <div class="space-y-4">
-      <div v-if="!sessionId && !joining" class="space-y-4">
+      <VerifyGate
+        v-if="!sessionId && !joining"
+        :locked="!settings.matchmakingRoleAllowed"
+        class="space-y-4"
+      >
+      <div class="space-y-4">
         <div class="space-y-1.5">
           <span :class="fieldLabel">
             <Signal class="h-3.5 w-3.5" />
@@ -788,6 +795,7 @@ const footerCta = "w-full font-bold uppercase tracking-[0.22em]";
           </HeightSwap>
         </div>
       </div>
+      </VerifyGate>
 
       <!-- One panel for a running session, shared with the top bar so the
            two surfaces cannot drift into a panel and a menu again. -->

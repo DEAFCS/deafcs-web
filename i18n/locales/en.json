@@ -5155,6 +5155,11 @@
         "version_outdated": "Filmed by render version {version}. Version {expected} is current.",
         "version_unreported": "No render version reported: filmed before previews carried one, or by an older pod."
       },
+      "staff": {
+        "title": "Running practice servers",
+        "empty": "No practice servers are running.",
+        "stop": "Stop"
+      },
       "practice": {
         "title": "Practice Server",
         "description_live": "Your server is up. Jump in, or bring the people you want on it.",

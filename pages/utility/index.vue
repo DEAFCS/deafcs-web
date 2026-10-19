@@ -3,6 +3,8 @@ import UtilityTypeGlyph from "~/components/utility/UtilityTypeGlyph.vue";
 import { computed, nextTick, onMounted, ref } from "vue";
 import { onBeforeRouteLeave } from "vue-router";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import UtilityStaffSessions from "~/components/utility/UtilityStaffSessions.vue";
+import { useAuthStore } from "~/stores/AuthStore";
 import UtilityEmpty from "~/components/utility/UtilityEmpty.vue";
 import UtilityMapPreviewTile from "~/components/utility/UtilityMapPreviewTile.vue";
 import UtilityMapRail from "~/components/utility/UtilityMapRail.vue";
@@ -20,6 +22,7 @@ import { UTILITY_TYPES } from "~/utilities/utilityDisplay";
 const { tiles, counts, privateCounts, landings, loadCounts, loadLandings } =
   useUtilityMaps();
 const loading = ref(!tiles.value.length);
+const isAdmin = computed(() => useAuthStore().isAdmin);
 
 // DEAFCS: Valve's Active Duty maps by default, the rest one click away. A
 // install with no map flagged active_pool just shows every map, as before.
@@ -241,7 +244,8 @@ const LEGEND_SPAN: Record<number, string> = {
         </div>
       </div>
 
-      <div aria-hidden="true" class="hidden lg:block" />
+      <UtilityStaffSessions v-if="isAdmin" />
+      <div v-else aria-hidden="true" class="hidden lg:block" />
     </div>
   </PageTransition>
 </template>

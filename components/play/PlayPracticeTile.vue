@@ -15,6 +15,8 @@ import StartPracticeDialog from "~/components/utility/StartPracticeDialog.vue";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { order_by } from "~/generated/zeus";
+import VerifyGate from "~/components/play/VerifyGate.vue";
+import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useAuthStore } from "~/stores/AuthStore";
 import { loginLinks } from "~/utilities/loginLinks";
 import cleanMapName from "~/utilities/cleanMapName";
@@ -22,6 +24,11 @@ import { loadRadarMaps, normalizeMapName } from "~/utilities/mapAssets";
 import { activeDutyNames, splitActiveDuty } from "~/utilities/activeDutyMaps";
 
 const isGuest = computed(() => !useAuthStore().me?.steam_id);
+// Practice servers follow the matchmaking role: unverified players see the
+// tile blurred with a Get Verified prompt over it.
+const locked = computed(
+  () => !isGuest.value && !useApplicationSettingsStore().matchmakingRoleAllowed,
+);
 
 // The practice dialog books a server for one map, so the tile picks it here.
 // Only maps with a radar can carry lineups -- same rule as /utility.
@@ -90,8 +97,10 @@ const touchTarget =
 
 <template>
   <article
-    class="flex min-w-0 flex-col gap-2 rounded-lg border border-border bg-muted/20 p-4"
+    class="min-w-0 rounded-lg border border-border bg-muted/20 p-4"
   >
+    <VerifyGate :locked="locked">
+    <div class="flex flex-col gap-2">
     <div class="flex items-center justify-between gap-2">
       <h3 class="m-0 text-[15px] font-bold">
         {{ $t("pages.play.more_ways.practice.title") }}
@@ -158,6 +167,8 @@ const touchTarget =
         </Button>
       </template>
     </div>
+    </div>
+    </VerifyGate>
 
     <StartPracticeDialog
       v-if="mapName"

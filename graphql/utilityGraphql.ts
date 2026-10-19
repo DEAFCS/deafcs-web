@@ -1575,3 +1575,27 @@ export const sendUtilityScratchToServerMutation = gql`
     }
   }
 `;
+
+// Staff view: every live practice server and who is holding it. Only an
+// administrator's select permission returns rows that are not their own.
+export const staffUtilityPracticeSessionsSubscription = generateSubscription({
+  utility_practice_sessions: [
+    {
+      where: {
+        status: { _in: $("statuses", "[e_utility_practice_statuses_enum!]") },
+      },
+      order_by: [{ created_at: order_by.desc }],
+    },
+    {
+      id: true,
+      status: true,
+      map_name: true,
+      region: true,
+      access: true,
+      created_at: true,
+      expires_at: true,
+      server_id: true,
+      host: { steam_id: true, name: true },
+    },
+  ],
+});
