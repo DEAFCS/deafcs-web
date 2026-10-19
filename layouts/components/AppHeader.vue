@@ -7,6 +7,7 @@ import SystemStatus from "./SystemStatus.vue";
 import MatchLobbies from "./MatchLobbies.vue";
 import UtilityPracticeNav from "~/components/utility/UtilityPracticeNav.vue";
 import DraftRoomNav from "./DraftRoomNav.vue";
+import MobileBackButton from "./MobileBackButton.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import SpotlightPlayerSearch from "~/components/SpotlightPlayerSearch.vue";
 import { MessageSquare } from "lucide-vue-next";
@@ -31,6 +32,9 @@ const chatBadgeLabel = computed(() =>
   >
     <div class="flex items-center justify-between w-full">
       <div class="flex items-center gap-2 min-w-0 flex-1">
+        <!-- DEAFCS: phone / installed-app Back for staff, who get this header
+             instead of TopNav (see layouts/default.vue showLeftNav). -->
+        <MobileBackButton v-if="isMobile" />
         <SidebarTrigger class="shrink-0" />
         <Separator orientation="vertical" class="h-4 shrink-0" />
         <bread-crumbs></bread-crumbs>
