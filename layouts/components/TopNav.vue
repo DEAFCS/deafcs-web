@@ -34,6 +34,7 @@ import Logout from "./Logout.vue";
 import ProfileMenu from "./ProfileMenu.vue";
 import MatchLobbies from "./MatchLobbies.vue";
 import DraftRoomNav from "./DraftRoomNav.vue";
+import UtilityPracticeNav from "~/components/utility/UtilityPracticeNav.vue";
 import SystemStatus from "./SystemStatus.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import { useMediaQuery } from "@vueuse/core";
@@ -1398,6 +1399,7 @@ const socialLinkClasses =
                 : $t("matchmaking.captain_pick.nav")
             }}</span>
           </NuxtLink>
+          <UtilityPracticeNav v-if="!isMobile" />
           <DraftRoomNav v-if="!isMobile" />
           <MatchLobbies v-if="!isMobile" />
           <Button

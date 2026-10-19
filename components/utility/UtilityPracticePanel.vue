@@ -262,7 +262,11 @@ watch(
     }
     playbookChoice.value = props.playbookId ?? NO_PLAYBOOK;
     void restoreLiveSession();
-    void loadPracticeServers();
+    // An unverified player is refused the list, and the refusal surfaces as a
+    // red toast over the Get Verified prompt.
+    if (settings.matchmakingRoleAllowed) {
+      void loadPracticeServers();
+    }
     if (playbooks.value.length === 0) {
       void loadPlaybooks();
     }

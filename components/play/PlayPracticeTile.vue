@@ -15,6 +15,8 @@ import StartPracticeDialog from "~/components/utility/StartPracticeDialog.vue";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { order_by } from "~/generated/zeus";
+import UtilityPracticeSessionPanel from "~/components/utility/UtilityPracticeSessionPanel.vue";
+import { useUtilityPracticeSession } from "~/composables/useUtilityPracticeSession";
 import VerifyGate from "~/components/play/VerifyGate.vue";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import { useAuthStore } from "~/stores/AuthStore";
@@ -23,6 +25,9 @@ import cleanMapName from "~/utilities/cleanMapName";
 import { loadRadarMaps, normalizeMapName } from "~/utilities/mapAssets";
 import { activeDutyNames, splitActiveDuty } from "~/utilities/activeDutyMaps";
 
+// A server this player already holds: the tile becomes its controls instead
+// of offering to start a second one.
+const { session } = useUtilityPracticeSession();
 const isGuest = computed(() => !useAuthStore().me?.steam_id);
 // Practice servers follow the matchmaking role: unverified players see the
 // tile blurred with a Get Verified prompt over it.
@@ -99,7 +104,13 @@ const touchTarget =
   <article
     class="min-w-0 rounded-lg border border-border bg-muted/20 p-4"
   >
-    <VerifyGate :locked="locked">
+    <UtilityPracticeSessionPanel
+      v-if="session"
+      :session="session"
+      :map-name="session.map_name"
+      show-header
+    />
+    <VerifyGate v-else :locked="locked">
     <div class="flex flex-col gap-2">
     <div class="flex items-center justify-between gap-2">
       <h3 class="m-0 text-[15px] font-bold">
