@@ -4,9 +4,7 @@ import { e_match_status_enum } from "~/generated/zeus";
 
 <template>
   <div v-if="showConnectPanel || showLifecyclePanel">
-    <template
-      v-if="me && isLive && canWatch && canSeeGotv && !match.tv_connection_string"
-    >
+    <template v-if="me && isLive && canWatch && tvPending">
       <div
         class="flex items-center gap-2 p-4 rounded-lg border bg-foreground/10 mb-2"
       >
@@ -251,7 +249,14 @@ export default {
     },
     // tv_connection_string is one line per way to watch; see
     // get_match_tv_connection_string.
+    // "pending": the viewer will be offered a stream, the delay is just not up.
+    // Null when they will not (a verified user while only GOTV is on), so no
+    // notice for a stream they never get.
+    tvPending() {
+      return this.match.tv_connection_string === "pending";
+    },
     tvOptions() {
+      if (this.tvPending) return [];
       return String(this.match.tv_connection_string ?? "")
         .split("\n")
         .map((line) => line.trim())
@@ -260,12 +265,6 @@ export default {
           kind: data.startsWith("playcast") ? "playcast" : "gotv",
           data,
         }));
-    },
-    // Only streamers and up get GOTV, so only they are waiting on the delay. For
-    // everybody else the notice would sit there for a stream they will never
-    // be offered (Playcast shows up by itself when it is on).
-    canSeeGotv() {
-      return useAuthStore().isRoleAbove(e_player_roles_enum.streamer);
     },
     canWatch() {
       if (this.match.is_in_lineup) {
