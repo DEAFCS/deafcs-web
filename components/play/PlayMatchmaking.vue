@@ -519,40 +519,29 @@ const linkClasses =
           </div>
         </Fold>
 
-        <Fold :open="state === 'unverified' || state === 'closed'">
+        <Fold :open="state === 'closed'">
           <div
             data-play-notice
             class="mb-3.5 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card/60 px-3.5 py-3"
           >
             <Lock class="size-4 shrink-0 text-muted-foreground" />
             <span class="min-w-0 flex-1 text-[13px] font-semibold">
-              {{
-                state === "unverified"
-                  ? $t("pages.play.matchmaking.verification_required")
-                  : $t("pages.play.matchmaking.closed")
-              }}
+              {{ $t("pages.play.matchmaking.closed") }}
             </span>
-            <Button
-              v-if="state === 'unverified'"
-              as-child
-              size="sm"
-              :class="
-                verificationStatus === 'pending'
-                  ? 'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.9)]'
-                  : 'bg-emerald-600 text-white hover:bg-emerald-500'
-              "
-            >
-              <NuxtLink :to="verificationLink">
-                <component
-                  :is="verificationStatus === 'pending' ? Clock : ShieldCheck"
-                  class="size-3.5"
-                />
-                {{ verificationLabel }}
-              </NuxtLink>
-            </Button>
           </div>
         </Fold>
 
+        <!-- Unverified players see the whole picker blurred, with the
+             verification call to action centred over it. -->
+        <div class="relative">
+        <div
+          :class="
+            state === 'unverified' &&
+            'pointer-events-none select-none opacity-60 blur-[6px]'
+          "
+          :inert="state === 'unverified'"
+          :aria-hidden="state === 'unverified' ? 'true' : undefined"
+        >
         <div
           ref="modeGrid"
           role="radiogroup"
@@ -806,6 +795,35 @@ const linkClasses =
               {{ $t("pages.play.matchmaking.find_match") }}
             </Button>
           </div>
+        </div>
+        </div>
+        <div
+          v-if="state === 'unverified'"
+          data-play-notice
+          class="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 p-4 text-center"
+        >
+          <Lock class="size-6 text-muted-foreground" />
+          <span class="text-sm font-semibold">
+            {{ $t("pages.play.matchmaking.verification_required") }}
+          </span>
+          <Button
+            as-child
+            size="sm"
+            :class="
+              verificationStatus === 'pending'
+                ? 'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))] hover:bg-[hsl(var(--tac-amber)/0.9)]'
+                : 'bg-emerald-600 text-white hover:bg-emerald-500'
+            "
+          >
+            <NuxtLink :to="verificationLink">
+              <component
+                :is="verificationStatus === 'pending' ? Clock : ShieldCheck"
+                class="size-3.5"
+              />
+              {{ verificationLabel }}
+            </NuxtLink>
+          </Button>
+        </div>
         </div>
       </div>
 
