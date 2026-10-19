@@ -8570,6 +8570,7 @@
                     "priority_update_error":  "Impossibile aggiornare le priorità degli stream. Riprova.",
                     "streams_description":  "Stream",
                     "link":  "Link",
+                    "link_must_be_http":  "Inserisci un link che inizi con http:// o https://",
                     "title":  "Titolo",
                     "move_to_global_view":  "Sposta nella vista globale",
                     "section_title":  "Dirette",

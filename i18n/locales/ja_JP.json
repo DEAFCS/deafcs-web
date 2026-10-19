@@ -8570,6 +8570,7 @@
                     "priority_update_error":  "配信の優先順位を更新できませんでした。しばらくしてから再試行してください。",
                     "streams_description":  "ストリーム",
                     "link":  "リンク",
+                    "link_must_be_http":  "http:// または https:// で始まるリンクを入力してください",
                     "title":  "タイトル",
                     "move_to_global_view":  "全体ビューへ移動",
                     "section_title":  "ライブ配信",
