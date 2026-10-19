@@ -2,9 +2,13 @@
 // TournamentTeamPlacement.spec.ts); MIT Copyright (c) 2025 5Stack.gg; see
 // LICENSE.
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import en from "../../i18n/locales/en.json";
 import StageStandings from "../../components/tournament/StageStandings.vue";
 import TournamentResults from "../../components/tournament/TournamentResults.vue";
 import TournamentTeam from "../../components/tournament/TournamentTeam.vue";
+import { usablePodiumSteps } from "../../graphql/tournamentPodium";
 
 // A four-team single elimination without a third-place match. The standings
 // view splits the two semifinal losers on round ratio and KDR (3rd and 4th);
@@ -74,10 +78,67 @@ describe("final stage standings follow the tournament's placements", () => {
     ]);
   });
 
-  it("keeps the standings' own placement for the prize column", () => {
+  it("shows the 3rd-place prize for both teams sharing 3rd, with the shared note", () => {
     const entries = standings(sharedThird);
 
-    expect(entries.map((e: any) => e.placement)).toEqual([1, 2, 3, 4]);
+    expect(
+      entries.map((e: any) => [e.teamId, e.prizePlacement, e.sharedPlacement]),
+    ).toEqual([
+      ["a", 1, false],
+      ["b", 2, false],
+      ["c", 3, true],
+      ["d", 3, true],
+    ]);
+  });
+
+  it("gives each prize to the team at that place after a third-place match", () => {
+    const rows = [
+      { ...results[0] },
+      { ...results[2], tournament_team_id: "c", rank: 2, placement: 2, wins: 1, losses: 1 },
+      { ...results[1], tournament_team_id: "b", rank: 3, placement: 3, wins: 1, losses: 1 },
+      { ...results[3] },
+    ];
+    const entries = standings(
+      [
+        { placement: 1, tournament_team_id: "a" },
+        { placement: 2, tournament_team_id: "b" },
+        { placement: 3, tournament_team_id: "c" },
+      ],
+      rows,
+    );
+
+    expect(entries.map((e: any) => [e.teamId, e.prizePlacement, e.sharedPlacement])).toEqual([
+      ["a", 1, false],
+      ["b", 2, false],
+      ["c", 3, false],
+      ["d", 4, false],
+    ]);
+  });
+
+  it("keeps the standings' prize places without placements", () => {
+    const entries = standings([]);
+
+    expect(entries.map((e: any) => [e.prizePlacement, e.sharedPlacement])).toEqual([
+      [1, false],
+      [2, false],
+      [3, false],
+      [4, false],
+    ]);
+  });
+
+  it("renders the shared note only beside a shared place's prize", () => {
+    const source = readFileSync(
+      path.resolve(__dirname, "../../components/tournament/StageStandings.vue"),
+      "utf8",
+    );
+    expect(source).toContain("prizeForPlacement(entry.prizePlacement)");
+    expect(source).toMatch(
+      /v-if="entry\.sharedPlacement && prizeForPlacement\(entry\.prizePlacement\)"/,
+    );
+    expect(en.tournament.results_table.shared_prize_note).toBe(
+      "Shared place. The organizer's tournament rules decide the prize.",
+    );
+    expect(en.tournament.results_table.shared_prize_note).not.toContain("—");
   });
 
   it("is unchanged without placements (earlier stages, unfinished tournaments)", () => {
@@ -164,5 +225,26 @@ describe("a team's placement badge", () => {
 
   it("falls back to the standings without placements", () => {
     expect(badge(null, "d")).toBe(4);
+  });
+});
+
+describe("placements from the api are only used when they name a champion", () => {
+  it("passes complete placements through", () => {
+    expect(usablePodiumSteps(sharedThird)).toBe(sharedThird);
+  });
+
+  it("drops placements without a 1st (an old final with no recorded winner)", () => {
+    expect(
+      usablePodiumSteps([
+        { placement: 3, tournament_team_id: "c" },
+        { placement: 3, tournament_team_id: "d" },
+      ]),
+    ).toBeNull();
+  });
+
+  it("drops an empty list (a final stage played in groups) and a missing field", () => {
+    expect(usablePodiumSteps([])).toBeNull();
+    expect(usablePodiumSteps(null)).toBeNull();
+    expect(usablePodiumSteps(undefined)).toBeNull();
   });
 });

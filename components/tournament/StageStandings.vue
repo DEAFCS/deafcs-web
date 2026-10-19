@@ -106,7 +106,14 @@ import {
                     v-if="showPrizeColumn"
                     class="text-center font-mono tabular-nums"
                   >
-                    {{ prizeForPlacement(entry.placement) || "—" }}
+                    {{ prizeForPlacement(entry.prizePlacement) || "—" }}
+                    <span
+                      v-if="entry.sharedPlacement && prizeForPlacement(entry.prizePlacement)"
+                      class="mt-0.5 block font-sans text-[0.65rem] text-muted-foreground"
+                      data-testid="standings-shared-prize-note"
+                    >
+                      {{ $t("tournament.results_table.shared_prize_note") }}
+                    </span>
                   </TableCell>
                 </TableRow>
                 <TableRow
@@ -433,11 +440,22 @@ export default {
         // tournament's placements.
         const entries = sorted.map((row: any, index: number) => {
           const tournamentPlacement = placementOf(row);
+          const sharedPlacement =
+            !!tournamentPlacement &&
+            sorted.filter(
+              (other: any) => placementOf(other) === tournamentPlacement,
+            ).length > 1;
           return {
             rank:
               tournamentPlacement ??
               (placed ? index + 1 : Number(row.rank) || 0),
             placement: Number(row.placement) || 0,
+            // The prize column follows the tournament's placement where it
+            // has one: teams sharing a place show that place's prize, with a
+            // note that the organizer's rules decide the actual allocation.
+            // Display only; no prize record is written or changed.
+            prizePlacement: tournamentPlacement ?? (Number(row.placement) || 0),
+            sharedPlacement,
             teamId: row.tournament_team_id || row.team?.id,
             teamLinkId: row.team?.team?.id || null,
             teamName: this.displayTeamName(
@@ -448,9 +466,7 @@ export default {
             losses: Number(row.losses) || 0,
             matchesPlayed: Number(row.matches_played) || 0,
             tied: tournamentPlacement
-              ? sorted.filter(
-                  (other: any) => placementOf(other) === tournamentPlacement,
-                ).length > 1
+              ? sharedPlacement
               : (placementCounts.get(Number(row.placement) || 0) || 0) > 1,
             roster: (row.team?.roster || []).filter((m: any) => m?.player),
             tournamentTeam: row.team ?? null,

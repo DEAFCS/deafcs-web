@@ -461,7 +461,10 @@ import {
   tournamentAllowsCurrentRosterImage,
 } from "~/utilities/teamRosterOverride";
 import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
-import { tournamentPodiumQuery } from "~/graphql/tournamentPodium";
+import {
+  tournamentPodiumQuery,
+  usablePodiumSteps,
+} from "~/graphql/tournamentPodium";
 
 export default {
   props: {
@@ -796,7 +799,7 @@ export default {
           self.tournament?.status !== e_tournament_status_enum.Finished
         );
       },
-      update: (data: any) => data?.tournaments_by_pk?.podium ?? null,
+      update: (data: any) => usablePodiumSteps(data?.tournaments_by_pk?.podium),
       context: { optional: true },
       error: () => {},
     },

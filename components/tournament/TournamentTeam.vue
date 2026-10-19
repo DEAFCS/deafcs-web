@@ -406,7 +406,10 @@ import TournamentAttendanceBadge from "~/components/tournament/TournamentAttenda
 import { e_team_roles_enum, e_tournament_status_enum } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { generateMutation } from "~/graphql/graphqlGen";
-import { tournamentPodiumQuery } from "~/graphql/tournamentPodium";
+import {
+  tournamentPodiumQuery,
+  usablePodiumSteps,
+} from "~/graphql/tournamentPodium";
 import {
   attendanceCheckInOpen,
   showAttendanceStatuses,
@@ -452,7 +455,7 @@ export default {
           self.tournament?.status !== e_tournament_status_enum.Finished
         );
       },
-      update: (data: any) => data?.tournaments_by_pk?.podium ?? null,
+      update: (data: any) => usablePodiumSteps(data?.tournaments_by_pk?.podium),
       context: { optional: true },
       error: () => {},
     },
