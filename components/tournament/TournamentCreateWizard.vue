@@ -612,9 +612,10 @@ export default {
             useApplicationSettingsStore().teamMaxSubs,
           ),
         );
-        if (this.form.values.negotiated_scheduling) {
-          this.form.setFieldValue("match_mode", "admin");
-        }
+        this.form.setFieldValue(
+          "match_mode",
+          this.form.values.negotiated_scheduling ? "admin" : "auto",
+        );
         const form = this.form.values;
         // A category set that doesn't require a physical venue (e.g. Online
         // Event) must not submit stale address data left over from an

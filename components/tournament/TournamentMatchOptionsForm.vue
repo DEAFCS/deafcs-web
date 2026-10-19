@@ -55,7 +55,13 @@ import SettingsSaveBar from "~/components/settings/SettingsSaveBar.vue";
                 $t("tournament.form.auto_start.label")
               }}</SettingHeader>
               <FormDescription>{{
-                $t("tournament.form.auto_start.description")
+                value && stagesOverridingAutoStart.length
+                  ? $t(
+                      "tournament.form.auto_start.overridden",
+                      { stages: stagesOverridingAutoStart.join(", ") },
+                      stagesOverridingAutoStart.length,
+                    )
+                  : $t("tournament.form.auto_start.description")
               }}</FormDescription>
             </div>
             <FormControl>
@@ -124,8 +130,10 @@ import { mapFields } from "~/graphql/mapGraphql";
 import {
   $,
   e_map_pool_types_enum,
+  e_match_mode_enum,
   e_tournament_status_enum,
 } from "~/generated/zeus";
+import { adminModeStageOrders } from "~/utilities/tournamentManualScheduling";
 import matchOptionsValidator from "~/utilities/match-options-validator";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
@@ -221,6 +229,18 @@ export default {
     },
   },
   computed: {
+    // Stages in Admin match mode wait for an organizer even with Auto Start
+    // on. A stage without its own options follows the tournament's mode, which
+    // save writes from negotiated scheduling (5stackgg/web 2f97b21f).
+    stagesOverridingAutoStart(): Array<number> {
+      const written = this.form.values.negotiated_scheduling
+        ? e_match_mode_enum.admin
+        : e_match_mode_enum.auto;
+      return adminModeStageOrders({
+        ...this.tournament,
+        options: { ...this.tournament.options, match_mode: written },
+      });
+    },
     // Same rule as the API trigger: once registration has closed, substitutes
     // can be turned back on but not off (a seeded roster would be stranded).
     substitutesLocked() {
@@ -301,9 +321,11 @@ export default {
         // setting here: it was filled from the tournament's own options when
         // the form loaded, so saving keeps the allowance the tournament has.
         // Negotiated scheduling keeps brackets dormant until a time is agreed.
-        if (this.form.values.negotiated_scheduling) {
-          this.form.setFieldValue("match_mode", "admin");
-        }
+        // Match mode is hidden here, so turning it off has to set it back.
+        this.form.setFieldValue(
+          "match_mode",
+          this.form.values.negotiated_scheduling ? "admin" : "auto",
+        );
         const form = this.form.values;
 
         await this.$apollo.mutate({

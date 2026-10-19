@@ -1315,6 +1315,7 @@ export default {
                       match_options_id: true,
                       options: {
                         best_of: true,
+                        match_mode: true,
                       },
                       parent_bracket: {
                         id: true,

@@ -146,10 +146,27 @@ let contentResizeObserver: ResizeObserver | null = null;
 let containerResizeObserver: ResizeObserver | null = null;
 
 const scheduleDialogOpen = ref(false);
-const selectedBracket = ref<Bracket | null>(null);
+const selectedBracketId = ref<string | null>(null);
+
+// Read by id from the live rounds, so the dialog follows the bracket as its
+// schedule and match change instead of holding the row it was opened with.
+const selectedBracket = computed<Bracket | null>(() => {
+  if (!selectedBracketId.value) {
+    return null;
+  }
+  for (const brackets of props.rounds.values()) {
+    const found = Array.from(brackets as ArrayLike<Bracket>).find(
+      (bracket) => bracket?.id === selectedBracketId.value,
+    );
+    if (found) {
+      return found;
+    }
+  }
+  return null;
+});
 
 const handleScheduleBracket = (bracket: Bracket) => {
-  selectedBracket.value = bracket;
+  selectedBracketId.value = bracket.id;
   scheduleDialogOpen.value = true;
 };
 

@@ -16,11 +16,13 @@ import TimeAgo from "~/components/TimeAgo.vue";
 import BracketNegotiation from "~/components/tournament/BracketNegotiation.vue";
 import { negotiableBracket } from "~/utilities/bracketNegotiation";
 import { isOrphanedBracket } from "~/utilities/tournamentOrphanBracket";
+import { isBracketManuallyScheduled } from "~/utilities/tournamentManualScheduling";
 import TournamentMatchResetFlow from "~/components/tournament/TournamentMatchResetFlow.vue";
 import {
   e_match_status_enum,
   e_player_roles_enum,
   e_tournament_stage_types_enum,
+  e_tournament_status_enum,
 } from "~/generated/zeus";
 import { useAuthStore } from "~/stores/AuthStore";
 import type { Bracket } from "~/types/tournament";
@@ -41,6 +43,7 @@ const props = defineProps<{
     };
     options?: {
       best_of?: number;
+      match_mode?: string | null;
     };
     // Per-round scheduling windows (only leagues create them today).
     windows?: Array<{ round: number; opens_at?: string | null; closes_at?: string | null }>;
@@ -57,6 +60,7 @@ const props = defineProps<{
     auto_start?: boolean;
     options?: {
       best_of?: number;
+      match_mode?: string | null;
     };
   };
 }>();
@@ -97,19 +101,59 @@ const hasProjectedEta = (bracket: Bracket) =>
 const participantsKnown = (bracket: Bracket) =>
   !!bracket.team_1 && !!bracket.team_2;
 
+// Admin match mode on the bracket, its stage or the tournament keeps a bracket
+// waiting for an organizer even with auto start on, the same as auto start off
+// (5stackgg/web 2f97b21f).
+const isManual = (bracket: Bracket) =>
+  isBracketManuallyScheduled(props.tournament ?? {}, props.stage, bracket);
+
 const showWaitingForTeams = (bracket: Bracket) =>
   hasProjectedEta(bracket) &&
   !!props.tournament?.auto_start &&
+  !isManual(bracket) &&
   !participantsKnown(bracket);
 
-// Auto start off means nothing will start this match on its own -- the
-// organizer schedules it -- so the projection keeps its existing presentation
-// and the manual scheduling UX is unchanged.
+const AWAITING_SCHEDULE_STATUSES: Array<string> = [
+  e_tournament_status_enum.RegistrationClosed,
+  e_tournament_status_enum.CheckInReview,
+  e_tournament_status_enum.Live,
+  e_tournament_status_enum.Paused,
+];
+
+const etaClock = useEtaClock();
+
+// The api rewrites a passed ETA to its own now on every match change, and that
+// can land up to a tick after etaClock last moved; one tick of margin keeps it
+// from reading as still ahead.
+const isEtaAhead = (bracket: Bracket): boolean =>
+  !!bracket.scheduled_eta &&
+  Date.parse(bracket.scheduled_eta) > etaClock.value.getTime() + ETA_TICK_MS;
+
+// A manual bracket with both teams and no time yet. Organizers keep the to-do:
+// they are the ones who schedule the match. Players see the ETA while it is
+// still ahead (5stackgg/web 117ebad3).
+const isAwaitingSchedule = (bracket: Bracket): boolean =>
+  !bracket.bye &&
+  !bracket.finished &&
+  !bracket.match &&
+  !bracket.scheduled_at &&
+  participantsKnown(bracket) &&
+  !!props.tournament?.status &&
+  AWAITING_SCHEDULE_STATUSES.includes(props.tournament.status) &&
+  isManual(bracket) &&
+  (!!props.tournament.is_organizer || !isEtaAhead(bracket));
+
+// Auto start off, or admin match mode, means nothing will start this match on
+// its own -- the organizer schedules it -- so the projection keeps its
+// existing presentation.
 //
-// With auto start on and both participants known, nothing is shown: the match
-// materializes within the minute and its real status takes over the card.
+// With auto start on, auto match mode and both participants known, nothing is
+// shown: the match materializes within the minute and its real status takes
+// over the card.
 const showProjectedEta = (bracket: Bracket) =>
-  hasProjectedEta(bracket) && !props.tournament?.auto_start;
+  hasProjectedEta(bracket) &&
+  (!props.tournament?.auto_start || isManual(bracket)) &&
+  !isAwaitingSchedule(bracket);
 
 const { t } = useI18n();
 const nuxtApp = useNuxtApp();
@@ -548,9 +592,20 @@ const footerLines = (bracket: Bracket) => {
 const hasFooter = (bracket: Bracket) =>
   (hasRealSchedule(bracket) && !bracket.match) ||
   showWaitingForTeams(bracket) ||
+  isAwaitingSchedule(bracket) ||
   showProjectedEta(bracket) ||
   negotiableBracket(props.tournament, bracket as any) ||
   footerLines(bracket).length > 0;
+</script>
+
+<script lang="ts">
+import { createSharedComposable, useNow } from "@vueuse/core";
+
+const ETA_TICK_MS = 10_000;
+
+const useEtaClock = createSharedComposable(() =>
+  useNow({ interval: ETA_TICK_MS }),
+);
 </script>
 
 <template>
@@ -785,8 +840,17 @@ const hasFooter = (bracket: Bracket) =>
             {{ $t("tournament.match.waiting_for_teams") }}
           </span>
         </span>
-        <!-- Auto start off: the organizer drives scheduling, so the projection
-             keeps its existing presentation. -->
+        <!-- Manual scheduling with both teams known and no time yet. -->
+        <span
+          v-else-if="isAwaitingSchedule(bracket)"
+          class="flex items-center gap-1"
+          data-test="bracket-awaiting-schedule"
+        >
+          <CalendarIcon class="h-3 w-3 shrink-0" />
+          <span>{{ $t("tournament.bracket.awaiting_schedule") }}</span>
+        </span>
+        <!-- Auto start off or admin match mode: the organizer drives
+             scheduling, so the projection keeps its existing presentation. -->
         <span
           v-else-if="showProjectedEta(bracket)"
           class="flex items-center gap-1"

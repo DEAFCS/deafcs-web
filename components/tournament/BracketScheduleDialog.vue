@@ -88,6 +88,13 @@ import { Calendar as CalendarIcon } from "lucide-vue-next";
           {{ $t("tournament.bracket.clear_schedule") }}
         </Button>
         <Button
+          variant="outline"
+          @click="scheduleNow"
+          :disabled="saving || !!bracket?.match"
+        >
+          {{ $t("tournament.bracket.schedule_now") }}
+        </Button>
+        <Button
           @click="saveSchedule"
           :disabled="!startDate || !startTime || saving"
         >
@@ -131,6 +138,9 @@ export default {
     };
   },
   computed: {
+    scheduleKey(): string {
+      return `${this.bracket?.id ?? ""}|${this.bracket?.scheduled_at ?? ""}`;
+    },
     teamNames(): string {
       if (!this.bracket) return "";
       const t1 =
@@ -144,21 +154,30 @@ export default {
     },
   },
   watch: {
-    bracket: {
+    scheduleKey: {
       immediate: true,
-      handler(bracket) {
-        if (bracket?.scheduled_at) {
-          const date = new Date(bracket.scheduled_at);
-          this.startDate = toCalendarDate(fromDate(date, getLocalTimeZone()));
-          this.startTime = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
-        } else {
-          this.startDate = undefined;
-          this.startTime = undefined;
-        }
+      handler() {
+        this.resetPicked();
       },
+    },
+    open(open: boolean) {
+      if (open) {
+        this.resetPicked();
+      }
     },
   },
   methods: {
+    resetPicked() {
+      const bracket = this.bracket;
+      if (bracket?.scheduled_at) {
+        const date = new Date(bracket.scheduled_at);
+        this.startDate = toCalendarDate(fromDate(date, getLocalTimeZone()));
+        this.startTime = `${date.getHours().toString().padStart(2, "0")}:${date.getMinutes().toString().padStart(2, "0")}`;
+      } else {
+        this.startDate = undefined;
+        this.startTime = undefined;
+      }
+    },
     checkDate({
       day,
       month,
@@ -185,38 +204,30 @@ export default {
         });
         return;
       }
-      this.saving = true;
-      try {
-        await this.$apollo.mutate({
-          mutation: generateMutation({
-            update_tournament_brackets_by_pk: [
-              {
-                _set: { scheduled_at: scheduled_at },
-                pk_columns: { id: this.bracket.id },
-              },
-              { id: true, scheduled_at: true },
-            ],
-          }),
-        });
-        this.$emit("update:open", false);
-      } catch {
-        toast({
-          title: this.$t("error.generic"),
-          variant: "destructive",
-        });
-      } finally {
-        this.saving = false;
+      await this.setScheduledAt(scheduled_at);
+    },
+    // ASAP: the api starts a bracket scheduled inside its 15-minute window at
+    // once, so "now" creates the match straight away.
+    async scheduleNow() {
+      if (this.bracket?.match) {
+        return;
       }
+      await this.setScheduledAt(new Date().toISOString());
     },
     async clearSchedule() {
-      if (!this.bracket) return;
+      await this.setScheduledAt(null);
+    },
+    async setScheduledAt(scheduled_at: string | null) {
+      if (!this.bracket || this.saving) {
+        return;
+      }
       this.saving = true;
       try {
         await this.$apollo.mutate({
           mutation: generateMutation({
             update_tournament_brackets_by_pk: [
               {
-                _set: { scheduled_at: null },
+                _set: { scheduled_at },
                 pk_columns: { id: this.bracket.id },
               },
               { id: true, scheduled_at: true },

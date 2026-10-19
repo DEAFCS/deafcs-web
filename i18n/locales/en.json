@@ -7143,7 +7143,8 @@
       "discord_notifications_description": "Enable Discord notifications for match status changes in this tournament. When off, only panel notifications are sent.",
       "auto_start": {
         "label": "Auto Start",
-        "description": "When enabled, tournament matches are automatically scheduled. When disabled, an organizer must schedule each match manually."
+        "description": "When enabled, tournament matches are automatically scheduled. When disabled, an organizer must schedule each match manually.",
+        "overridden": "Stage {stages} uses Admin match mode, so an organizer schedules each of its matches. | Stages {stages} use Admin match mode, so an organizer schedules each of their matches."
       },
       "negotiated_scheduling": {
         "label": "Negotiated Scheduling",
@@ -7273,6 +7274,8 @@
       "schedule_title": "Schedule Match",
       "currently_scheduled": "Currently scheduled",
       "save_schedule": "Save Schedule",
+      "awaiting_schedule": "Awaiting schedule",
+      "schedule_now": "Now",
       "clear_schedule": "Clear",
       "past_time_error": "Scheduled time must be in the future",
       "fit_to_view": "Fit to view",
