@@ -355,6 +355,16 @@ export default defineNuxtConfig({
     },
   },
 
+  // The service worker and the push script it imports have fixed, unhashed
+  // names. Without a Cache-Control header Cloudflare caches .js at the edge
+  // and adds its 4 hour browser TTL, so installed apps kept the previous
+  // worker for up to 4 hours after a release. `no-store` keeps them out of
+  // every cache. Hashed workbox-*.js and /_nuxt/ assets keep their caching.
+  routeRules: {
+    "/sw.js": { headers: { "cache-control": "no-store" } },
+    "/sw-push.js": { headers: { "cache-control": "no-store" } },
+  },
+
   colorMode: {
     classSuffix: "",
     preference: "dark",
