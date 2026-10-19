@@ -576,6 +576,8 @@ useHead({
 </template>
 
 <script lang="ts">
+import { useRestoredData } from "~/composables/useRestoredState";
+import { isRestoringHistory } from "~/composables/useScrollRestoration";
 import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import * as z from "zod";
@@ -591,6 +593,9 @@ type PlayerTeam = {
 
 export default {
   data() {
+    // Composables may run here: Vue keeps this component current while it
+    // builds data. Back to this list lands on the same page.
+    const restoredList = useRestoredData("players-list", ["page"]);
     return {
       eloSliderMin: 0,
       eloSliderMax: 20000,
@@ -601,7 +606,7 @@ export default {
       // lookup for whichever players are on the current page.
       teamsByPlayer: {} as Record<string, PlayerTeam | null>,
       loading: false,
-      page: 1,
+      page: restoredList?.page ?? 1,
       perPage: this.loadFiltersFromStorage().perPage || 10,
       playersAggregate: 0,
       searchToken: 0,
@@ -825,72 +830,79 @@ export default {
     },
     "form.values.name": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.roles": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.eloMin": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.eloMax": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.countries": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.sanctionsMin": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.isBanned": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.isGagged": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     "form.values.isMuted": {
       handler() {
-        this.page = 1;
+        this.resetPage();
         this.onFilterChange();
       },
     },
     onlyPlayedMatches() {
-      this.page = 1;
+      this.resetPage();
       this.onFilterChange();
     },
     sortField() {
-      this.page = 1;
+      this.resetPage();
       this.onFilterChange();
     },
     sortDirection() {
-      this.page = 1;
+      this.resetPage();
       this.onFilterChange();
     },
   },
   methods: {
+    // A filter settling while back/forward restores the page is not the user
+    // changing it.
+    resetPage() {
+      if (!isRestoringHistory()) {
+        this.page = 1;
+      }
+    },
     updatePlayerRole(steam_id: string, role: e_player_roles_enum) {
       const player = this.players.find((player) => {
         return player.steam_id === steam_id;

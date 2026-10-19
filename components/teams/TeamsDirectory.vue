@@ -31,6 +31,7 @@ import { useAuthStore } from "~/stores/AuthStore";
 import { useDeferredLoading } from "~/composables/useDeferredLoading";
 import { useLiveTeamMatches } from "~/composables/useLiveTeamMatches";
 import { usePerPage } from "~/composables/usePerPage";
+import { useRestoredRefs } from "~/composables/useRestoredState";
 import { tournamentAwardSlotLookupFields } from "~/graphql/tournamentAwardSlotLookupFields";
 import { schemaHasField } from "~/utilities/schemaHasType";
 import {
@@ -65,6 +66,16 @@ const scrimsOnly = ref(false);
 const sort = ref<Sort | null>(null);
 const page = ref(1);
 const perPage = usePerPage("teams");
+// Back to Teams lands on the same page, search, sort and filters.
+useRestoredRefs("teams-directory", {
+  search,
+  query,
+  mine,
+  winnersOnly,
+  scrimsOnly,
+  sort,
+  page,
+});
 
 const teams = ref<any[]>([]);
 const total = ref(0);

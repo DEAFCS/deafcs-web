@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useRestoredRefs } from "~/composables/useRestoredState";
 import { computed, ref, watch } from "vue";
 import { useSubscription } from "@vue/apollo-composable";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
@@ -49,6 +50,8 @@ const filtered = computed(() => filterTournamentMatches(matches.value, filter.va
 
 const page = ref(1);
 const perPage = usePerPage("tournament-matches");
+// Back to the tournament lands on the same filter and page of its matches.
+useRestoredRefs("tournament-matches", { filter, page });
 watch([filter, perPage], () => (page.value = 1));
 const setPerPage = (value: number) => {
   perPage.value = value;

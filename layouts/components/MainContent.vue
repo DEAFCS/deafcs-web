@@ -62,6 +62,10 @@ const isMatchDetailRoute = computed(() => route.name === "matches-id");
 // the query string, so a query-only change IS the shrink we're reserving for.
 const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
   useScrollFloorAnchor(() => route.path);
+
+// Back/forward lands where the user left this scroller.
+const pageScroller = ref<HTMLElement | null>(null);
+useScrollRestorationAnchor(pageScroller, scrollFloorRootEl);
 </script>
 
 <template>
@@ -76,7 +80,10 @@ const { minHeight: scrollFloorMinHeight, rootEl: scrollFloorRootEl } =
       <SidebarInset
         class="flex flex-col min-h-0 h-[var(--sidebar-height)] !bg-transparent overflow-hidden"
       >
-        <div class="flex-1 overflow-auto [scrollbar-gutter:stable]">
+        <div
+          ref="pageScroller"
+          class="flex-1 overflow-auto [scrollbar-gutter:stable]"
+        >
           <SystemAlertBanner />
           <div
             ref="scrollFloorRootEl"
