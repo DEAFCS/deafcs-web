@@ -8981,6 +8981,8 @@
       "join_server": "Join Server",
       "join_as_spectator": "Spectator Details",
       "join_tv_stream": "TV Stream Details",
+      "join_gotv": "GOTV Details",
+      "join_playcast": "Playcast Details",
       "tv_delay": "TV is delayed by {delay} seconds, waiting for stream to be ready."
     },
     "replay": {

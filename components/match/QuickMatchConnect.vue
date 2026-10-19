@@ -13,18 +13,27 @@ import { e_match_status_enum } from "~/generated/zeus";
       </div>
     </template>
     <template
-      v-if="me && isLive && match.tv_connection_string && !match.connection_link"
+      v-if="me && isLive && tvOptions.length && !match.connection_link"
     >
+      <!-- One button per way to watch: Playcast (verified users and up) and
+           GOTV (streamers and up). The server only sends the ones this viewer
+           may have, one per line. -->
       <div
         class="flex items-center gap-2 p-4 rounded-lg border bg-foreground/10 mb-2"
       >
         <ClipBoard
-          :data="match.tv_connection_string"
+          v-for="option in tvOptions"
+          :key="option.kind"
+          :data="option.data"
           class="grow shrink-0 p-3 rounded-md h-12 w-12 connect-action"
         >
           <div class="flex items-center justify-center gap-2">
             <Tv class="w-4 h-4" />
-            <span>{{ $t("match.server.join_tv_stream") }}</span>
+            <span>{{
+              option.kind === "playcast"
+                ? $t("match.server.join_playcast")
+                : $t("match.server.join_gotv")
+            }}</span>
           </div>
         </ClipBoard>
       </div>
@@ -237,6 +246,18 @@ export default {
     },
     me() {
       return useAuthStore().me;
+    },
+    // tv_connection_string is one line per way to watch; see
+    // get_match_tv_connection_string.
+    tvOptions() {
+      return String(this.match.tv_connection_string ?? "")
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((data) => ({
+          kind: data.startsWith("playcast") ? "playcast" : "gotv",
+          data,
+        }));
     },
     canWatch() {
       if (this.match.is_in_lineup) {
