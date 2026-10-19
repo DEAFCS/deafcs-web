@@ -8912,6 +8912,7 @@
                     "priority_update_error":  "Stream-prioriteterne kunne ikke opdateres. Prøv igen.",
                     "streams_description":  "Streams",
                     "link":  "Link",
+                    "link_must_be_http":  "Angiv et link, der starter med http:// eller https://",
                     "title":  "Titel",
                     "move_to_global_view":  "Flyt til globalt visning",
                     "section_title":  "Live streams",

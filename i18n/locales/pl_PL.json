@@ -8551,6 +8551,7 @@
                     "priority_update_error":  "Nie udało się zaktualizować priorytetów transmisji. Spróbuj ponownie.",
                     "streams_description":  "Strumienie",
                     "link":  "Link",
+                    "link_must_be_http":  "Podaj link zaczynający się od http:// lub https://",
                     "title":  "Tytuł",
                     "move_to_global_view":  "Przenieś do widoku globalnego",
                     "section_title":  "Transmisje na żywo",

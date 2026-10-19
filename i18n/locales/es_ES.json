@@ -8570,6 +8570,7 @@
                     "priority_update_error":  "No se han podido actualizar las prioridades de las emisiones. Inténtalo de nuevo.",
                     "streams_description":  "Flujos",
                     "link":  "Enlace",
+                    "link_must_be_http":  "Introduce un enlace que empiece por http:// o https://",
                     "title":  "Título",
                     "move_to_global_view":  "Mover a la vista global",
                     "section_title":  "Emisiones en directo",

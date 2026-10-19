@@ -8571,6 +8571,7 @@
                     "priority_update_error":  "Det gick inte att uppdatera sändningsprioriteringarna. Försök igen.",
                     "streams_description":  "Strömmar",
                     "link":  "Länk",
+                    "link_must_be_http":  "Ange en länk som börjar med http:// eller https://",
                     "title":  "Titel",
                     "move_to_global_view":  "Flytta till global vy",
                     "section_title":  "Livesändningar",

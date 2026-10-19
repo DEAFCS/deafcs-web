@@ -8626,6 +8626,7 @@
                     "priority_update_error":  "更新直播優先順序失敗，請重試。",
                     "streams_description":  "直播平台",
                     "link":  "連結",
+                    "link_must_be_http":  "請輸入以 http:// 或 https:// 開頭的連結",
                     "title":  "標題",
                     "move_to_global_view":  "移至全域檢視",
                     "section_title":  "直播",
