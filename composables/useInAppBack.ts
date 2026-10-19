@@ -40,6 +40,48 @@ export function showsGlobalBack(
   return hasInAppBack(state);
 }
 
+function pathOf(location: string) {
+  return location.split(/[?#]/)[0].replace(/(.)\/$/, "$1");
+}
+
+// True when the previous in-app entry is the page `to` names (its query, e.g.
+// a list's filters, may differ: Back keeps the ones the user had).
+export function previousEntryIs(state: unknown, to: string): boolean {
+  if (!hasInAppBack(state)) {
+    return false;
+  }
+  return pathOf((state as { back: string }).back) === pathOf(to);
+}
+
+// Click handler for a "Back to ..." link: steps back when that page is the
+// previous entry, else lets the link navigate. Modified clicks (new tab,
+// new window) always keep the link.
+export function useBackToLink() {
+  const router = useRouter();
+  return (
+    event: MouseEvent,
+    to: string,
+    navigate: (event?: MouseEvent) => unknown,
+  ) => {
+    const plain =
+      event.button === 0 &&
+      !event.metaKey &&
+      !event.ctrlKey &&
+      !event.shiftKey &&
+      !event.altKey;
+    if (
+      plain &&
+      !event.defaultPrevented &&
+      previousEntryIs(window.history.state, to)
+    ) {
+      event.preventDefault();
+      router.back();
+      return;
+    }
+    navigate(event);
+  };
+}
+
 export function useInAppBack() {
   const router = useRouter();
   const route = useRoute();

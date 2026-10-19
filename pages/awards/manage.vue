@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BackToLink from "~/components/common/BackToLink.vue";
 import gql from "graphql-tag";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useApolloClient } from "@vue/apollo-composable";
@@ -477,13 +478,13 @@ onMounted(loadDefinitions);
   <main class="space-y-5 py-6">
     <PageTransition>
       <div class="space-y-5">
-      <NuxtLink
+      <BackToLink
         to="/awards"
         class="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <ArrowLeft class="h-4 w-4" aria-hidden="true" />
         Back to Awards
-      </NuxtLink>
+      </BackToLink>
 
       <TacticalPageHeader inline-actions>
         <template #title>Manage Awards</template>

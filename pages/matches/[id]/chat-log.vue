@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import BackToLink from "~/components/common/BackToLink.vue";
 definePageMeta({
   layout: "default",
   // Staff (moderator and above), same as the API's post-match chat access.
@@ -10,13 +11,13 @@ definePageMeta({
   <PageTransition :delay="0">
     <div v-if="match" class="flex flex-col gap-6">
       <div class="flex flex-col gap-1">
-        <NuxtLink
+        <BackToLink
           :to="`/matches/${match.id}`"
           class="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground w-fit"
         >
           <ChevronLeft class="h-3.5 w-3.5" />
           {{ $t("match.chat_log.back_to_match", "Back to match") }}
-        </NuxtLink>
+        </BackToLink>
         <h1 class="text-lg font-semibold">
           {{ $t("match.chat_log.title", "Chat Log") }}
         </h1>

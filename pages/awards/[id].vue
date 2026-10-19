@@ -8,6 +8,7 @@ import { ArrowLeft, CalendarDays, Users } from "lucide-vue-next";
 import AwardArtwork from "~/components/award/AwardArtwork.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import PageTransition from "~/components/ui/transitions/PageTransition.vue";
+import BackToLink from "~/components/common/BackToLink.vue";
 import Empty from "~/components/ui/empty/Empty.vue";
 import EmptyTitle from "~/components/ui/empty/EmptyTitle.vue";
 import EmptyDescription from "~/components/ui/empty/EmptyDescription.vue";
@@ -238,13 +239,13 @@ onMounted(loadAward);
   <main class="space-y-5 py-6">
     <PageTransition :show="initialLoadComplete">
       <div class="space-y-5">
-      <NuxtLink
+      <BackToLink
         to="/awards"
         class="inline-flex items-center gap-2 rounded-sm text-sm font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         <ArrowLeft class="h-4 w-4" aria-hidden="true" />
         Back to Awards
-      </NuxtLink>
+      </BackToLink>
 
       <Empty
         v-if="!award && error"
