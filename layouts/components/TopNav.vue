@@ -36,6 +36,7 @@ import MatchLobbies from "./MatchLobbies.vue";
 import DraftRoomNav from "./DraftRoomNav.vue";
 import UtilityPracticeNav from "~/components/utility/UtilityPracticeNav.vue";
 import SystemStatus from "./SystemStatus.vue";
+import MobileBackButton from "./MobileBackButton.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import { useMediaQuery } from "@vueuse/core";
 import { NuxtImg } from "#components";
@@ -191,6 +192,8 @@ const socialLinkClasses =
       class="relative flex h-14 min-h-14 items-center justify-between gap-1 px-2 sm:h-16 sm:min-h-16 sm:gap-4 sm:px-4"
     >
       <div class="flex min-w-0 items-center gap-1 sm:gap-3">
+        <!-- DEAFCS: phone / installed-app Back, only with a page to return to. -->
+        <MobileBackButton v-if="isMobile" />
         <NuxtLink
           v-if="!isMobile"
           :to="homePath"
