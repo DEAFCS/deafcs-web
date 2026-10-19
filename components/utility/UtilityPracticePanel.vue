@@ -446,6 +446,10 @@ watch(
 onBeforeUnmount(unsubscribeSession);
 
 async function start() {
+  // The panel is blurred for unverified players; the API would only answer
+  // with an error toast that repeats the Get Verified prompt over it.
+  if (!settings.matchmakingRoleAllowed) return;
+
   starting.value = true;
   try {
     const { data } = await getGraphqlClient().mutate({
@@ -841,6 +845,7 @@ const footerCta = "w-full font-bold uppercase tracking-[0.22em]";
         size="lg"
         :class="['tac-amber-cta', footerCta]"
         :loading="starting"
+        :disabled="!settings.matchmakingRoleAllowed"
         @click="start()"
       >
         {{ $t("pages.utility.practice.start_cta") }}

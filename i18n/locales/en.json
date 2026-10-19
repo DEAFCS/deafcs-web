@@ -5158,6 +5158,7 @@
       "staff": {
         "title": "Running practice servers",
         "empty": "No practice servers are running.",
+        "players": "Players on the server",
         "stop": "Stop"
       },
       "practice": {

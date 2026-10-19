@@ -1595,6 +1595,8 @@ export const staffUtilityPracticeSessionsSubscription = generateSubscription({
       created_at: true,
       expires_at: true,
       server_id: true,
+      connected_players: true,
+      max_players: true,
       host: { steam_id: true, name: true },
     },
   ],

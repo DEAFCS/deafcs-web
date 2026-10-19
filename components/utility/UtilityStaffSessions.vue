@@ -22,6 +22,8 @@ type StaffSession = {
   region: string | null;
   access: string | null;
   created_at: string;
+  connected_players: number | null;
+  max_players: number | null;
   host: { steam_id: string; name: string } | null;
 };
 
@@ -106,6 +108,9 @@ async function stop(session: StaffSession) {
           </NuxtLink>
           <div class="truncate text-xs text-muted-foreground">
             {{ cleanMapName(session.map_name) }}
+            · <span class="tabular-nums" :title="$t('pages.utility.staff.players')">{{
+              session.connected_players ?? 0
+            }}/{{ session.max_players ?? 5 }}</span>
             <template v-if="session.region"> · {{ session.region }}</template>
             · {{ session.status }} ·
             <TimeAgo :date="session.created_at" hide-icon />
