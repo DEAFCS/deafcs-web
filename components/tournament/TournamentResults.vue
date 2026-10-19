@@ -70,7 +70,7 @@ import {
                 {{ placementLabel(entry.placement) }}
               </div>
 
-              <div v-if="hasAwardFor(entry.placement)" class="relative">
+              <div v-if="hasAwardFor(entry.placement, entry.teamId)" class="relative">
                 <div
                   class="pointer-events-none absolute inset-0 blur-2xl transition-opacity duration-300 group-hover/step:opacity-100"
                   :class="entry.placement === 1 ? 'opacity-60' : 'opacity-30'"
@@ -413,6 +413,7 @@ import {
             :player-stats="tournamentPlayerStats"
             :prizes="tournament.prizes || []"
             :show-prize-column="true"
+            :placements="stage.id === finalStageId ? podiumSteps || [] : []"
           />
         </CardContent>
       </Card>
@@ -460,6 +461,7 @@ import {
   tournamentAllowsCurrentRosterImage,
 } from "~/utilities/teamRosterOverride";
 import { rosterImageSnapshotField } from "~/graphql/rosterImageSnapshotField";
+import { tournamentPodiumQuery } from "~/graphql/tournamentPodium";
 
 export default {
   props: {
@@ -482,6 +484,7 @@ export default {
       tournamentPlayerStats: [] as any[],
       awardOccurrences: [] as any[],
       tournamentAwardSlots: [] as any[],
+      podiumSteps: null as any[] | null,
     };
   },
   apollo: {
@@ -777,6 +780,26 @@ export default {
         },
       },
     },
+    // The finished tournament's placements (api tournament_podium), where a
+    // shared 3rd is two teams on the same step. Its own query, so the podium
+    // falls back to the final stage's standings without it.
+    podiumSteps: {
+      query: tournamentPodiumQuery,
+      variables: function () {
+        return { tournamentId: (this as any).tournament?.id };
+      },
+      skip: function () {
+        const self = this as any;
+        return (
+          !self.showStandings ||
+          !self.tournament?.id ||
+          self.tournament?.status !== e_tournament_status_enum.Finished
+        );
+      },
+      update: (data: any) => data?.tournaments_by_pk?.podium ?? null,
+      context: { optional: true },
+      error: () => {},
+    },
   },
   methods: {
     tierColor(placement: number) {
@@ -797,10 +820,19 @@ export default {
     // The Champion / Runner-up / Third Place award was granted for this
     // placement (awards on for the tournament). Without it the podium shows
     // the placed team only, no artwork.
-    hasAwardFor(placement: number) {
-      return ((this as any).awardOccurrences || []).some(
-        (o: any) => o.placement === placement,
-      );
+    //
+    // With a team, a placement award that names its teams only counts for a
+    // team it names: a shared 3rd shows two teams on the step, and the award
+    // calculation may have granted the bronze to one of them.
+    hasAwardFor(placement: number, teamId?: string | null) {
+      return ((this as any).awardOccurrences || []).some((o: any) => {
+        if (o.placement !== placement) return false;
+        if (!teamId) return true;
+        const teams = ((o.recipients || []) as any[])
+          .map((r: any) => r.tournament_team_id)
+          .filter(Boolean);
+        return teams.length === 0 || teams.includes(teamId);
+      });
     },
     awardArtworkFor(placement: number) {
       const occurrence = ((this as any).awardOccurrences || []).find(
@@ -869,28 +901,59 @@ export default {
         (this.tournament as any)?.status === e_tournament_status_enum.Finished
       );
     },
+    finalStageId() {
+      const stages = (((this.tournament as any)?.stages || []) as any[])
+        .slice()
+        .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
+      return stages[stages.length - 1]?.id ?? null;
+    },
     // The top three are tournament RESULTS: the final placement of the last
     // stage, shown only once the tournament is finished and whether or not
     // placement awards are enabled. Award artwork is added on top where an
     // award was granted (hasAwardFor); the MVP below is separate and stays the
     // manually selected award recipient.
+    //
+    // The placements come from the api's tournament_podium when it has them
+    // (5stackgg/api 30ca37b3): the final and the third-place decider order a
+    // single elimination final, and without a decider both semifinal losers
+    // share 3rd. The final stage's standings are the fallback, and stay what
+    // a last stage played in groups shows (the api has no podium for it).
     podium() {
       if (!this.isFinished) return [];
       const stages = (((this.tournament as any)?.stages || []) as any[])
         .slice()
         .sort((a, b) => (Number(a.order) || 0) - (Number(b.order) || 0));
       const finalStage = stages[stages.length - 1];
-      const rows = ((finalStage?.results || []) as any[])
-        .filter((row: any) => {
-          const placement = Number(row?.placement) || 0;
-          return placement >= 1 && placement <= 3;
-        })
-        .sort(
-          (a: any, b: any) =>
-            Number(a.placement) - Number(b.placement) ||
-            (Number(a.group_number) || 1) - (Number(b.group_number) || 1) ||
-            (Number(a.rank) || 0) - (Number(b.rank) || 0),
-        );
+      const results = (finalStage?.results || []) as any[];
+      const steps = (this as any).podiumSteps as any[] | null;
+      const rows = steps?.length
+        ? steps
+            .filter((step: any) => {
+              const placement = Number(step?.placement) || 0;
+              return placement >= 1 && placement <= 3;
+            })
+            .map((step: any) => ({
+              placement: Number(step.placement),
+              tournament_team_id: step.tournament_team_id,
+              name: step.name,
+              team:
+                results.find(
+                  (row: any) =>
+                    (row.tournament_team_id ?? row.team?.id) ===
+                    step.tournament_team_id,
+                )?.team ?? null,
+            }))
+        : results
+            .filter((row: any) => {
+              const placement = Number(row?.placement) || 0;
+              return placement >= 1 && placement <= 3;
+            })
+            .sort(
+              (a: any, b: any) =>
+                Number(a.placement) - Number(b.placement) ||
+                (Number(a.group_number) || 1) - (Number(b.group_number) || 1) ||
+                (Number(a.rank) || 0) - (Number(b.rank) || 0),
+            );
       return rows.map((row: any) => {
         const rosterPlayers = (row.team?.roster || [])
           .map((r: any) => r.player)
@@ -905,6 +968,7 @@ export default {
               row.tournament_team_id ?? row.team?.id,
             ) ||
             row.team?.team?.name ||
+            row.name ||
             "",
           tournamentType: this.finalStageType,
           players: rosterPlayers,

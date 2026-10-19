@@ -315,6 +315,11 @@ export default {
       type: Boolean,
       default: false,
     },
+    // The finished tournament's placements, for its final stage only.
+    placements: {
+      type: Array,
+      default: () => [],
+    },
   },
   data() {
     return {
@@ -331,6 +336,15 @@ export default {
         (this.tournament as any)?.status ===
         e_tournament_status_enum.Finished
       );
+    },
+    placementByTeam() {
+      const map = new Map<string, number>();
+      for (const step of (this.placements as any[]) || []) {
+        if (step?.tournament_team_id && Number(step.placement) > 0) {
+          map.set(String(step.tournament_team_id), Number(step.placement));
+        }
+      }
+      return map;
     },
     columnCount(): number {
       return this.showPrizeColumn ? 7 : 6;
@@ -385,11 +399,22 @@ export default {
       for (const gn of numbers) {
         if (this.onlyGroup != null && this.onlyGroup !== gn) continue;
         const rows = grouped.get(gn) || [];
-        const sorted = rows
-          .slice()
-          .sort(
-            (a: any, b: any) => (Number(a.rank) || 0) - (Number(b.rank) || 0),
+        const placementOf = (row: any) =>
+          this.placementByTeam.get(
+            String(row.tournament_team_id || row.team?.id),
           );
+        // A placed team ranks by its placement, which is what the podium
+        // shows; the tiebreakers only order the teams after them
+        // (5stackgg/web 45a580e0).
+        const sorted = rows.slice().sort((a: any, b: any) => {
+          const placedA = placementOf(a);
+          const placedB = placementOf(b);
+          if (placedA !== placedB) {
+            return (placedA ?? Infinity) - (placedB ?? Infinity);
+          }
+          return (Number(a.rank) || 0) - (Number(b.rank) || 0);
+        });
+        const placed = sorted.filter((row: any) => placementOf(row)).length;
 
         // Tied iff multiple teams share the same `placement` (RANK with ties)
         // from the API. `rank` itself is a deterministic ROW_NUMBER and never
@@ -403,22 +428,34 @@ export default {
           placementCounts.set(p, (placementCounts.get(p) || 0) + 1);
         }
 
-        const entries = sorted.map((row: any) => ({
-          rank: Number(row.rank) || 0,
-          placement: Number(row.placement) || 0,
-          teamId: row.tournament_team_id || row.team?.id,
-          teamLinkId: row.team?.team?.id || null,
-          teamName: this.displayTeamName(
-            row.team,
-            row.tournament_team_id || row.team?.id,
-          ),
-          wins: Number(row.wins) || 0,
-          losses: Number(row.losses) || 0,
-          matchesPlayed: Number(row.matches_played) || 0,
-          tied: (placementCounts.get(Number(row.placement) || 0) || 0) > 1,
-          roster: (row.team?.roster || []).filter((m: any) => m?.player),
-          tournamentTeam: row.team ?? null,
-        }));
+        // DEAFCS: `placement` (the prize column's key) stays the standings'
+        // own value; only the shown rank, order and tie follow the
+        // tournament's placements.
+        const entries = sorted.map((row: any, index: number) => {
+          const tournamentPlacement = placementOf(row);
+          return {
+            rank:
+              tournamentPlacement ??
+              (placed ? index + 1 : Number(row.rank) || 0),
+            placement: Number(row.placement) || 0,
+            teamId: row.tournament_team_id || row.team?.id,
+            teamLinkId: row.team?.team?.id || null,
+            teamName: this.displayTeamName(
+              row.team,
+              row.tournament_team_id || row.team?.id,
+            ),
+            wins: Number(row.wins) || 0,
+            losses: Number(row.losses) || 0,
+            matchesPlayed: Number(row.matches_played) || 0,
+            tied: tournamentPlacement
+              ? sorted.filter(
+                  (other: any) => placementOf(other) === tournamentPlacement,
+                ).length > 1
+              : (placementCounts.get(Number(row.placement) || 0) || 0) > 1,
+            roster: (row.team?.roster || []).filter((m: any) => m?.player),
+            tournamentTeam: row.team ?? null,
+          };
+        });
         out.push({
           number: gn,
           display: this.groupDisplay(gn),

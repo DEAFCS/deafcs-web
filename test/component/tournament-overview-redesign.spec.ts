@@ -424,7 +424,7 @@ describe("finished podium comes from the final placement, not from awards", () =
     const section = results.slice(results.indexOf('data-testid="tournament-results-podium"') - 120, results.indexOf('data-testid="tournament-results-podium"'));
     expect(section).toContain("isFinished && (podium.length || mvp)");
     expect(section).not.toMatch(/award|trophies_enabled/i);
-    expect(results).toContain('v-if="hasAwardFor(entry.placement)"');
+    expect(results).toContain('v-if="hasAwardFor(entry.placement, entry.teamId)"');
   });
 
   it("the MVP is still only the manually selected recipient: a podium without one shows no MVP", async () => {
