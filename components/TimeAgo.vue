@@ -11,6 +11,7 @@ import { CalendarIcon } from "lucide-vue-next";
 
 <script lang="ts">
 import TimeAgo from "javascript-time-ago";
+import { dateLocale } from "~/utilities/dateLocale";
 import en from "javascript-time-ago/locale/en";
 
 TimeAgo.addDefaultLocale(en);
@@ -104,6 +105,14 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Past this many seconds the label is the wall-clock time ("15:00", with
+    // the day when it is not today) instead of "2 hours ago". Null keeps the
+    // relative label however old the date is.
+    absoluteAfter: {
+      required: false,
+      type: Number,
+      default: null,
+    },
   },
   data() {
     return {
@@ -144,6 +153,24 @@ export default {
       this.unsubscribe?.();
       this.unsubscribe = null;
     },
+    absoluteText(time: Date) {
+      const clock = {
+        hour: "2-digit",
+        minute: "2-digit",
+        hourCycle: "h23",
+      } as const;
+
+      if (time.toDateString() === new Date().toDateString()) {
+        return time.toLocaleTimeString(dateLocale(), clock);
+      }
+
+      return time.toLocaleString(dateLocale(), {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        ...clock,
+      });
+    },
     updateText() {
       const timeAgo = new TimeAgo("en-US");
       const time = new Date(this.date);
@@ -166,6 +193,15 @@ export default {
                 .toString()
                 .padStart(2, "0")}`
             : `${minutes}:${seconds.toString().padStart(2, "0")}`;
+        return;
+      }
+
+      if (
+        this.absoluteAfter !== null &&
+        !this.seconds &&
+        Date.now() - time.getTime() > this.absoluteAfter * 1000
+      ) {
+        this.text = this.absoluteText(time);
         return;
       }
 

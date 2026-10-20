@@ -91,7 +91,12 @@ import FiveStackToolTip from "~/components/FiveStackToolTip.vue";
         </h4>
         <span class="whitespace-nowrap text-[10px] text-muted-foreground/70">
           <template v-if="absoluteTimestamps">{{ clockTime }}</template>
-          <time-ago v-else :date="message.timestamp ?? ''" hide-icon></time-ago>
+          <time-ago
+            v-else
+            :date="message.timestamp ?? ''"
+            :absolute-after="3600"
+            hide-icon
+          ></time-ago>
         </span>
         <span
           v-if="authorBlocked"
