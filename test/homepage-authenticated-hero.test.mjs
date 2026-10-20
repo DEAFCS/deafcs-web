@@ -63,7 +63,7 @@ test("online now reuses the established websocket presence snapshot", () => {
 
 test("stats have no fake values and the logged-out homepage remains on its existing branch", () => {
   assert.doesNotMatch(playerOverview, /\b2[,.]?458\b|\b27\b/);
-  assert.match(homeIndex, /<HomePlayerOverview[\s\S]*v-else-if="showLoggedInHome"/);
+  assert.match(homeIndex, /<HomeDashboard[\s\S]*v-else-if="showLoggedInHome"/);
   assert.match(
     homeIndex,
     /v-if="!authStore\.hasCheckedSession && !previewHomeState"/,

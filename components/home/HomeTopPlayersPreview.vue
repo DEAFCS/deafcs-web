@@ -36,7 +36,8 @@ interface ModeState {
 
 const props = withDefaults(
   defineProps<{
-    variant?: "tabs" | "all";
+    // glass: the signed-in dashboard's tabbed panel (same data and rules).
+    variant?: "tabs" | "all" | "glass";
   }>(),
   {
     variant: "tabs",
@@ -432,6 +433,116 @@ void fetchTopPlayers();
       </NuxtLink>
     </div>
   </Card>
+
+  <div
+    v-else-if="props.variant === 'glass'"
+    class="flex min-w-0 flex-1 flex-col"
+    data-testid="home-elo-leaderboard"
+  >
+    <div
+      class="grid min-w-0 grid-cols-3 gap-1 rounded-lg border border-border/70 bg-background/40 p-1"
+      role="tablist"
+      aria-label="Leaderboard mode"
+    >
+      <button
+        v-for="mode in modes"
+        :id="`elo-glass-tab-${mode.alias}`"
+        :key="mode.value"
+        type="button"
+        role="tab"
+        class="relative min-h-9 min-w-0 rounded-md px-2 text-xs font-semibold text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+        :class="selectedMode === mode.value ? 'bg-muted/50 text-foreground shadow-[inset_0_-2px_0_var(--mode-color)]' : ''"
+        :style="{ '--mode-color': mode.color }"
+        :aria-selected="selectedMode === mode.value"
+        :aria-controls="`elo-glass-panel-${mode.alias}`"
+        @click="selectedMode = mode.value"
+        @keydown.left.prevent="selectAdjacentMode(-1)"
+        @keydown.right.prevent="selectAdjacentMode(1)"
+      >
+        <span class="truncate">{{ mode.value }}</span>
+      </button>
+    </div>
+
+    <div
+      :id="`elo-glass-panel-${selectedMode.toLowerCase()}`"
+      role="tabpanel"
+      :aria-labelledby="`elo-glass-tab-${selectedMode.toLowerCase()}`"
+      class="mt-3 flex flex-1 flex-col"
+      aria-live="polite"
+    >
+      <div v-if="activeState.loading" class="grid gap-1.5">
+        <Skeleton v-for="rank in 5" :key="rank" class="h-11 w-full rounded-lg" />
+      </div>
+      <div
+        v-else-if="activeState.requestError"
+        class="flex flex-1 items-center justify-center gap-3 rounded-lg border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground"
+        role="alert"
+      >
+        Unable to load the leaderboard.
+        <button type="button" class="font-semibold text-[hsl(var(--tac-amber))] hover:underline" @click="fetchTopPlayers">
+          Try again
+        </button>
+      </div>
+      <p
+        v-else-if="activeState.players.length === 0"
+        class="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground"
+      >
+        No ranked players yet.
+      </p>
+      <ol v-else class="grid gap-1.5">
+        <li v-for="player in activeState.players" :key="player.player_steam_id">
+          <NuxtLink
+            :to="{ name: 'players-id', params: { id: player.player_steam_id } }"
+            class="grid min-h-11 min-w-0 grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border px-2 py-1.5 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+            :class="
+              player.rank === 1
+                ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[linear-gradient(90deg,hsl(var(--tac-amber)/0.14),transparent_70%)]'
+                : 'border-border/60 bg-muted/15'
+            "
+            :aria-label="`Rank ${player.rank}, ${player.player_name}, ${formatElo(player.value)} ELO`"
+          >
+            <span
+              class="grid size-6 place-items-center rounded-md font-mono text-[0.7rem] font-black tabular-nums"
+              :class="
+                player.rank === 1
+                  ? 'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))]'
+                  : player.rank <= 3
+                    ? 'bg-muted text-foreground'
+                    : 'text-muted-foreground'
+              "
+            >{{ player.rank }}</span>
+            <PlayerDisplay
+              :player="{
+                steam_id: player.player_steam_id,
+                name: player.player_name,
+                avatar_url: player.player_avatar_url,
+                custom_avatar_url: player.player_custom_avatar_url,
+                country: player.player_country,
+              }"
+              :show-elo="false"
+              :show-online="false"
+              :show-role="false"
+              :linkable="false"
+              truncate-name
+              compact
+              size="xs"
+              class="min-w-0"
+            />
+            <span class="text-right font-mono text-sm font-bold tabular-nums" :style="{ color: eloTierColor(player.value) }">
+              {{ formatElo(player.value) }}
+            </span>
+          </NuxtLink>
+        </li>
+      </ol>
+      <p class="mt-auto flex items-center justify-between gap-2 pt-3 text-[11px] text-muted-foreground">
+        <span>Current ELO · {{ selectedMode }} · current season</span>
+        <NuxtLink :to="leaderboardLink" class="inline-flex items-center gap-1 whitespace-nowrap hover:text-foreground">
+          Full leaderboard
+          <ArrowRight class="size-3" aria-hidden="true" />
+        </NuxtLink>
+      </p>
+    </div>
+  </div>
 
   <div
     v-else

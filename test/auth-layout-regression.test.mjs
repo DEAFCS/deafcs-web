@@ -46,7 +46,7 @@ const preloader = await readFile(
 test("the root route always uses the normal homepage and default layout", () => {
   assert.match(rootPage, /layout:\s*["']default["']/);
   assert.match(rootPage, /<LoadingScreen/);
-  assert.match(rootPage, /<HomePlayerOverview[\s\S]*v-else-if="showLoggedInHome"/);
+  assert.match(rootPage, /<HomeDashboard[\s\S]*v-else-if="showLoggedInHome"/);
   assert.match(rootPage, /<main v-else/);
   assert.doesNotMatch(rootPage, /PreLaunchGate|Access Pending|showPreLaunchGate/);
   assert.doesNotMatch(rootPage, /shouldRenderApplicationShell|setPageLayout/);
@@ -88,7 +88,7 @@ test("public routes stay public and auth transport routes stay reachable", () =>
 
 test("restricted routes keep their existing middleware permissions", () => {
   assert.match(middleware, /!hasMe && !isPublicRoute\(to\.path\)/);
-  assert.match(rootPage, /HomePlayerOverview/);
+  assert.match(rootPage, /HomeDashboard/);
   assert.match(appLayout, /authStore\.isRoleAbove\(e_player_roles_enum\.moderator\)/);
 });
 

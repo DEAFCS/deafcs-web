@@ -32,7 +32,12 @@ import {
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 
-const props = defineProps<{ ghost?: boolean }>();
+const props = defineProps<{
+  ghost?: boolean;
+  // 5Stack (32e5757): one equal row of four, for pages where highlights are
+  // not the hero (the signed-in homepage).
+  compact?: boolean;
+}>();
 
 const { t } = useI18n();
 
@@ -56,10 +61,14 @@ const rangeOptions = computed(() => [
 
 const clips = ref<Clip[]>([]);
 const loading = ref(true);
-// Lead play plus up to six.
-const LIMIT = 7;
+// Lead play plus up to six; compact is one row of four (5Stack).
+const limit = computed(() => (props.compact ? 4 : 7));
 
-const cells = computed(() => highlightCells(clips.value));
+const cells = computed(() =>
+  props.compact
+    ? clips.value.map((clip) => ({ clip, cols: 12 / clips.value.length, rows: 1, hero: false }))
+    : highlightCells(clips.value),
+);
 const { clearClipQueue } = useClipModal();
 onBeforeUnmount(() => { requestId++; clearClipQueue("watch-highlights"); });
 
@@ -80,7 +89,7 @@ async function fetchClips() {
           clipTileFields,
         ],
       } as any),
-      variables: { where: highlightsWhere(kind.value, range.value), limit: LIMIT },
+      variables: { where: highlightsWhere(kind.value, range.value), limit: limit.value },
       fetchPolicy: "network-only",
     });
     if (id !== requestId) return;
@@ -150,8 +159,8 @@ function leadTag() {
       <div v-for="index in 4" :key="index" aria-hidden="true" class="watch-bento-cell rounded-lg border border-dashed border-border/70"></div>
     </div>
 
-    <div v-else-if="loading" class="watch-bento">
-      <Skeleton class="watch-bento-cell watch-bento-hero rounded-lg" />
+    <div v-else-if="loading" class="watch-bento" :class="{ 'watch-bento--compact': compact }">
+      <Skeleton v-if="!compact" class="watch-bento-cell watch-bento-hero rounded-lg" />
       <Skeleton v-for="index in 4" :key="index" class="watch-bento-cell rounded-lg" />
     </div>
 
@@ -166,7 +175,7 @@ function leadTag() {
       </Button>
     </div>
 
-    <div v-else class="watch-bento" data-testid="watch-highlights-grid">
+    <div v-else class="watch-bento" :class="{ 'watch-bento--compact': compact }" data-testid="watch-highlights-grid">
       <div
         v-for="(cell, index) in cells"
         :key="cell.clip.id"
@@ -176,7 +185,7 @@ function leadTag() {
         :data-testid="index === 0 ? 'watch-highlight-lead' : 'watch-highlight-tile'"
       >
         <ClipTile :clip="cell.clip" :variant="cell.hero ? 'hero' : 'tile'"
-          :tag="cell.hero ? leadTag() : undefined" :queue="clips" queue-scope="watch-highlights" fill
+          :tag="cell.hero || (compact && index === 0) ? leadTag() : undefined" :queue="clips" queue-scope="watch-highlights" fill
           @visibility-changed="(id, visibility) => { if (visibility !== 'public') clips = clips.filter(c => c.id !== id); }" />
       </div>
     </div>
@@ -196,5 +205,9 @@ function leadTag() {
   .watch-bento { grid-template-columns: minmax(0, 1fr); }
   .watch-bento-cell, .watch-bento-hero { grid-column: span 1; aspect-ratio: 16 / 11; }
   .watch-bento-hero { aspect-ratio: 4 / 3.4; }
+  /* DEAFCS: the compact row stays two across on phones, so four plays do not
+     stack into a very long column on the homepage. */
+  .watch-bento--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .watch-bento--compact .watch-bento-cell { aspect-ratio: 4 / 3.6; }
 }
 </style>
