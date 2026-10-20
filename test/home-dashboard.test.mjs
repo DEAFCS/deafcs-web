@@ -244,6 +244,9 @@ test("Player of the Month review page is administrator-only and uses the API act
   // Two-step approval; a rejection needs a reason.
   assert.match(page, /confirmFor = c\.steamId/);
   assert.match(page, /:disabled="busy \|\| !rejectNote\.trim\(\)"/);
+  // Both sides of a tie are badged, not only the first (tiedWithNext).
+  assert.match(page, /if \(eligible\[i \+ 1\]\) tied\.add\(eligible\[i \+ 1\]\.steamId\)/);
+  assert.match(page, /v-if="tiedSteamIds\.has\(c\.steamId\)"/);
 
   const card = await read("../components/home/dashboard/HomePlayerOfMonth.vue");
   assert.match(card, /isAdministrator \? '\/awards\/player-of-the-month' : undefined/);

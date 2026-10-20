@@ -108,6 +108,18 @@ watch([month, isAdministrator], () => void load(), { immediate: true });
 
 const snapshot = computed(() => review.value?.candidates ?? null);
 const candidates = computed<any[]>(() => snapshot.value?.candidates ?? []);
+// The snapshot marks a tie on the first of each equal pair (tiedWithNext);
+// badge both sides so the last player of a tie group is marked too.
+const tiedSteamIds = computed(() => {
+  const eligible = candidates.value.filter((c) => c.eligible);
+  const tied = new Set<string>();
+  eligible.forEach((c, i) => {
+    if (!c.tiedWithNext) return;
+    tied.add(c.steamId);
+    if (eligible[i + 1]) tied.add(eligible[i + 1].steamId);
+  });
+  return tied;
+});
 const pending = computed(() => review.value?.status === "pending");
 const nameOf = (steamId: string | null) =>
   candidates.value.find((c) => c.steamId === steamId)?.name ?? steamId ?? "";
@@ -262,7 +274,7 @@ const statusClasses: Record<string, string> = {
                 <span v-if="c.steamId === snapshot.recommendedSteamId && c.eligible" class="text-xs font-semibold text-[hsl(var(--tac-amber))]">
                   Recommended
                 </span>
-                <span v-if="c.tiedWithNext" class="rounded border border-[hsl(var(--tac-amber)/0.5)] px-1.5 text-[11px] font-semibold text-[hsl(var(--tac-amber))]">
+                <span v-if="tiedSteamIds.has(c.steamId)" class="rounded border border-[hsl(var(--tac-amber)/0.5)] px-1.5 text-[11px] font-semibold text-[hsl(var(--tac-amber))]">
                   Tie: staff decide
                 </span>
                 <Button
