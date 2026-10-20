@@ -200,6 +200,25 @@ test("Your Highlights filters on the featured player (target_steam_id), not matc
   assert.match(highlights, /player: String\(props\.steamId\)/);
 });
 
+test("Recent Matches puts Match history beside the title, arrows stay right", async () => {
+  const recent = await read("../components/home/dashboard/HomeRecentMatches.vue");
+  const header = await read("../components/home/dashboard/HomeSectionHeader.vue");
+  assert.match(recent, /link-label="Match history"\s+link-beside-title/);
+  assert.match(recent, /<template #actions>/);
+  // Other sections keep their link on the far right (opt-in only).
+  assert.match(header, /v-if="to && linkBesideTitle"/);
+  assert.match(header, /v-if="to && !linkBesideTitle"/);
+});
+
+test("Latest News shows the lead plus up to four, All news stays on the right", async () => {
+  const news = await read("../components/home/dashboard/HomeNewsFeed.vue");
+  assert.match(news, /limit: 5,/);
+  assert.match(news, /articles\.value\.slice\(1, 5\)/);
+  assert.match(news, /fillsColumn = computed\(\(\) => rest\.value\.length >= 4\)/);
+  assert.match(news, /to="\/news" link-label="All news" \/>/);
+  assert.doesNotMatch(news, /link-beside-title/);
+});
+
 test("no AWP or knife records", () => {
   assert.ok(!RECORD_ORDER.some((key) => /awp|knife/i.test(key)));
 });

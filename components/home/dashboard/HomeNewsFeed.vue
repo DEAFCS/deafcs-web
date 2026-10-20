@@ -16,7 +16,7 @@ import {
 
 // Latest News: the same published articles as before (HomeLatestNewsPreview,
 // newsArticleListFields, hidden when News is off), shown as one lead story
-// and the two before it.
+// and up to the four before it.
 type NewsArticle = {
   id: string;
   slug: string | null;
@@ -39,7 +39,7 @@ async function load() {
           {
             where: { status: { _eq: "published" } },
             order_by: [{ published_at: order_by.desc_nulls_last }],
-            limit: 3,
+            limit: 5,
           },
           newsArticleListFields,
         ],
@@ -70,7 +70,10 @@ function formatDate(value: string | null) {
 }
 
 const lead = computed(() => articles.value[0] ?? null);
-const rest = computed(() => articles.value.slice(1));
+const rest = computed(() => articles.value.slice(1, 5));
+// Four smaller cards share the lead story's height evenly on desktop; fewer
+// simply stack from the top (no stretched, half-empty cards).
+const fillsColumn = computed(() => rest.value.length >= 4);
 </script>
 
 <template>
@@ -103,7 +106,9 @@ const rest = computed(() => articles.value.slice(1));
         :to="link(lead)"
         class="group/news flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-muted/20 outline-none transition-colors hover:bg-muted/35 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
       >
-        <div class="grid aspect-[16/7] place-items-center overflow-hidden bg-background/60">
+        <!-- flex-1: if the four cards beside it are taller, the cover grows to
+             fill the difference instead of leaving a gap under the text. -->
+        <div class="grid aspect-[16/7] flex-1 place-items-center overflow-hidden bg-background/60">
           <img
             v-if="lead.cover_image_url"
             :src="lead.cover_image_url"
@@ -128,12 +133,17 @@ const rest = computed(() => articles.value.slice(1));
         </div>
       </NuxtLink>
 
-      <div v-if="rest.length" class="grid content-start gap-3">
+      <div
+        v-if="rest.length"
+        class="grid gap-2"
+        :class="fillsColumn ? 'content-start lg:auto-rows-fr lg:content-stretch' : 'content-start'"
+        data-testid="home-news-rest"
+      >
         <NuxtLink
           v-for="article in rest"
           :key="article.id"
           :to="link(article)"
-          class="group/news flex min-w-0 gap-3 rounded-lg border border-border bg-muted/20 p-2.5 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+          class="group/news flex min-w-0 items-center gap-3 rounded-lg border border-border bg-muted/20 p-2.5 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
         >
           <div class="grid aspect-[4/3] w-28 shrink-0 place-items-center overflow-hidden rounded-md bg-background/60">
             <img
@@ -152,7 +162,11 @@ const rest = computed(() => articles.value.slice(1));
             <h3 class="line-clamp-2 text-sm font-bold leading-snug transition-colors group-hover/news:text-[hsl(var(--tac-amber))]">
               {{ article.title }}
             </h3>
-            <p v-if="article.teaser" class="mt-1 line-clamp-2 text-xs leading-5 text-muted-foreground">
+            <p
+              v-if="article.teaser"
+              class="mt-1 text-xs leading-5 text-muted-foreground"
+              :class="fillsColumn ? 'line-clamp-2 lg:line-clamp-1' : 'line-clamp-2'"
+            >
               {{ article.teaser }}
             </p>
           </div>

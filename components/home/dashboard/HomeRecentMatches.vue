@@ -141,6 +141,7 @@ const arrowClasses =
       title="Your Recent Matches"
       :to="`/players/${viewer.steamId}`"
       link-label="Match history"
+      link-beside-title
     >
       <template #actions>
         <div v-if="items.length" class="flex gap-1.5 max-sm:hidden">
