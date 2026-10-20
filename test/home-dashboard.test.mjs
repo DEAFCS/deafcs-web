@@ -329,5 +329,9 @@ test("preview samples are dev-only and always labelled", async () => {
     assert.match(source, /import\.meta\.dev/, file);
     assert.match(source, /:sample="sample"/, file);
     assert.match(source, /await import\(\s*"~\/components\/home\/dashboard\/homePreviewSamples"/, file);
+    // An early return lets the production build drop the import and its
+    // chunk; an `else if (import.meta.dev ...)` branch left a dead chunk.
+    assert.match(source, /if \(\s*(live\.length \|\| )?!import\.meta\.dev \|\| !props\.viewer\.samples/, file);
+    assert.doesNotMatch(source, /else if \(import\.meta\.dev/, file);
   }
 });

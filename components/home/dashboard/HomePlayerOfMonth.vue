@@ -138,18 +138,25 @@ async function load() {
       winner.value = { occurrence, recipient };
       const at = occurrence.effective_at ?? occurrence.created_at;
       if (at) void loadMonthStats(recipient.player.steam_id, at).catch(() => {});
-    } else if (import.meta.dev && props.viewer.samples) {
-      const { samplePlayerOfMonth } = await import("~/components/home/dashboard/homePreviewSamples");
-      const s = samplePlayerOfMonth();
-      winner.value = s.winner;
-      monthStats.value = s.stats;
-      sample.value = true;
+    } else {
+      await useSampleIfDev();
     }
   } catch (error) {
     console.error("[home] player of the month:", error);
   } finally {
     loaded.value = true;
   }
+}
+
+// Dev-only preview sample. The early return (same shape as the other
+// sections) lets the production build drop the import and its chunk.
+async function useSampleIfDev() {
+  if (!import.meta.dev || !props.viewer.samples) return;
+  const { samplePlayerOfMonth } = await import("~/components/home/dashboard/homePreviewSamples");
+  const s = samplePlayerOfMonth();
+  winner.value = s.winner;
+  monthStats.value = s.stats;
+  sample.value = true;
 }
 
 let stopObserving = () => {};
