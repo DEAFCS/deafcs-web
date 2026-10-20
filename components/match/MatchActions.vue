@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   Ban,
+  History,
   LifeBuoy,
   MessageSquare,
   MoreVertical,
@@ -8,12 +9,14 @@ import {
   Play,
   Radio,
   RefreshCw,
+  RotateCcw,
   Scissors,
   Square,
   Trash2,
   Video,
   XCircle,
 } from "lucide-vue-next";
+import MatchRestoreRoundDialog from "~/components/match/MatchRestoreRoundDialog.vue";
 import MatchSelectServer from "~/components/match/MatchSelectServer.vue";
 import MatchSelectWinner from "~/components/match/MatchSelectWinner.vue";
 import DropdownMenuItem from "~/components/ui/dropdown-menu/DropdownMenuItem.vue";
@@ -252,7 +255,9 @@ import {
             canVoidElo ||
             canDeleteMatch ||
             canDeleteTournamentMatchDisabled ||
-            canReparseDemos
+            canReparseDemos ||
+            canRestoreRound ||
+            canRestartMap
           "
         />
 
@@ -264,6 +269,19 @@ import {
         <DropdownMenuItem v-if="canViewChatLog" @click="openChatLog">
           <MessageSquare class="text-muted-foreground" />
           <span>{{ $t("match.actions.chat_log", "Chat Log") }}</span>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem v-if="canRestoreRound" @click="restoreOpen = true">
+          <History />
+          {{ $t("match.recovery.restore.title") }}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          v-if="canRestartMap"
+          @click="showRestartMapDialog = true"
+        >
+          <RotateCcw />
+          {{ $t("match.recovery.restart_map.title") }}
         </DropdownMenuItem>
 
         <DropdownMenuItem v-if="canReparseDemos" @click="reparseAllDemos">
@@ -334,6 +352,38 @@ import {
         </template>
       </DropdownMenuContent>
     </DropdownMenu>
+
+    <AlertDialog :open="showRestartMapDialog">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{
+            $t("match.recovery.restart_map.title")
+          }}</AlertDialogTitle>
+          <AlertDialogDescription>
+            {{ $t("match.recovery.restart_map.description") }}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showRestartMapDialog = false">
+            {{ $t("common.cancel") }}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            @click="
+              restartMatchMap();
+              showRestartMapDialog = false;
+            "
+          >
+            {{ $t("match.recovery.restart_map.title") }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <MatchRestoreRoundDialog
+      v-if="canRestoreRound || restoreOpen"
+      v-model:open="restoreOpen"
+      :match="match"
+    />
 
     <AlertDialog :open="showDeleteDialog">
       <AlertDialogContent>
@@ -422,6 +472,14 @@ const PAUSE_CLIP_RENDER_BATCH = gql`
   }
 `;
 
+const RESTART_MATCH_MAP = gql`
+  mutation RestartMatchMap($matchId: uuid!) {
+    restartMatchMap(match_id: $matchId) {
+      success
+    }
+  }
+`;
+
 const RESUME_CLIP_RENDER_BATCH = gql`
   mutation ResumeClipRenderBatch($match_map_id: uuid!) {
     resumeClipRenderBatch(match_map_id: $match_map_id) {
@@ -464,6 +522,8 @@ export default {
       cancellingMatch: false,
       deletingMatch: false,
       togglingLive: false,
+      restoreOpen: false,
+      showRestartMapDialog: false,
     };
   },
   created() {
@@ -488,6 +548,25 @@ export default {
     },
   },
   methods: {
+    async restartMatchMap() {
+      try {
+        await this.$apollo.mutate({
+          mutation: RESTART_MATCH_MAP,
+          variables: { matchId: this.match.id },
+        });
+      } catch (error) {
+        toast({
+          title: this.$t("match.recovery.restart_map.failed"),
+          description: (error as Error)?.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: this.$t("match.recovery.restart_map.restarted"),
+      });
+    },
     openCameraGrid() {
       // Sized for the grid's own 2-column layout (each tile ~50% of
       // the usable width) — wide enough that two tiles read as a
@@ -847,6 +926,26 @@ export default {
     },
   },
   computed: {
+    // MatchMaps.vue's Restore Round button and upstream's Fix a Problem rows.
+    canRestoreRound() {
+      return (
+        !!this.match.is_organizer &&
+        this.match.status === e_match_status_enum.Live &&
+        this.match.options?.type !== "Rush" &&
+        ["Warmup", "Live", "Overtime", "Paused"].includes(
+          this.currentMap?.status,
+        )
+      );
+    },
+    canRestartMap() {
+      return (
+        !!this.match.is_organizer &&
+        this.match.status === e_match_status_enum.Live &&
+        ["Warmup", "Knife", "Live", "Overtime", "Paused"].includes(
+          this.currentMap?.status,
+        )
+      );
+    },
     // clip_render_jobs select permission (public_clip_render_jobs.yaml):
     // user (own rows), streamer, match_organizer, administrator, and every
     // role inheriting them, i.e. any signed-in player. Not guest.
