@@ -9,7 +9,8 @@ import { formatCount, homePanelClasses, homePanelPaddingClasses, type HomeViewer
 // DEAFCS players live on their linked Twitch channel in Counter-Strike. The
 // list comes from the API (it holds the Twitch credentials and checks the
 // category); no admin approval. Nothing from Twitch loads in the page: no
-// embed, no autoplay, no Twitch-hosted thumbnails. A card only links out.
+// embed, no autoplay; only Twitch's small preview image when it loads.
+// A card only links out.
 // Hidden while nobody is live.
 const props = defineProps<{ viewer: HomeViewer }>();
 
@@ -27,7 +28,8 @@ async function load() {
   }
   const live = fetched ?? [];
   if (live.length || !import.meta.dev || !props.viewer.samples) {
-    streamers.value = live;
+    // Most viewers first (the API already sorts; kept here for safety).
+    streamers.value = [...live].sort((a, b) => (b.viewerCount ?? -1) - (a.viewerCount ?? -1));
     sample.value = false;
     return;
   }
@@ -38,10 +40,14 @@ async function load() {
 
 onMounted(() => {
   void load();
-  // The API caches Twitch status; two minutes is plenty for a list.
-  timer = setInterval(load, 120_000);
+  // The API shares one cached list (fresh for 60 s): asking every 90 s
+  // keeps it current without adding load.
+  timer = setInterval(load, 90_000);
 });
 onBeforeUnmount(() => timer && clearInterval(timer));
+
+// Thumbnails that failed to load (blocked or gone): hidden, card unchanged.
+const brokenThumbs = ref(new Set<string>());
 
 function liveFor(startedAt: string | null) {
   if (!startedAt) return null;
@@ -68,6 +74,30 @@ function liveFor(startedAt: string | null) {
         :key="streamer.steamId"
         class="flex w-[82%] min-w-0 shrink-0 snap-start flex-col gap-2.5 rounded-lg border border-border bg-muted/20 p-3 sm:w-auto"
       >
+        <!-- Twitch's own preview image, small and lazy. Nothing plays; if a
+             browser blocks Twitch images the card simply has no preview. -->
+        <a
+          v-if="streamer.thumbnailUrl && !brokenThumbs.has(streamer.steamId)"
+          :href="sample ? undefined : streamer.link"
+          target="_blank"
+          rel="noopener noreferrer"
+          tabindex="-1"
+          aria-hidden="true"
+          class="relative block aspect-video overflow-hidden rounded-md bg-muted/40"
+        >
+          <img
+            :src="streamer.thumbnailUrl"
+            alt=""
+            loading="lazy"
+            decoding="async"
+            referrerpolicy="no-referrer"
+            width="320"
+            height="180"
+            class="h-full w-full object-cover"
+            @error="brokenThumbs = new Set([...brokenThumbs, streamer.steamId])"
+          />
+          <span class="absolute left-2 top-2 rounded bg-destructive px-1.5 font-mono text-[0.6rem] font-bold uppercase leading-4 text-white">Live</span>
+        </a>
         <div class="flex min-w-0 items-center gap-3">
           <span class="relative shrink-0">
             <img

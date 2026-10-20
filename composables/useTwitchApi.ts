@@ -90,11 +90,14 @@ export type LiveStreamer = {
   title: string | null;
   viewerCount: number | null;
   startedAt: string | null;
+  // Twitch CDN preview (320x180), when Twitch gives one.
+  thumbnailUrl?: string | null;
 };
 
-// Every linked player live in Counter-Strike right now, for the homepage.
-// Needs the API's GET /twitch/live (not deployed yet): until it exists this
-// returns null (route missing, stop asking) and the section stays hidden.
+// Every linked player live in Counter-Strike right now, most viewers first,
+// for the homepage (API GET /twitch/live, shared server-side cache). Returns
+// null when the route is missing (an API without it: stop asking) and [] on
+// any other failure; the section stays hidden either way.
 export async function fetchLiveStreamers(): Promise<LiveStreamer[] | null> {
   try {
     const res = await fetch(twitchApi("live"), { credentials: "include" });
