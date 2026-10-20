@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { ArrowRight, Crown, ShieldCheck } from "lucide-vue-next";
 import { order_by } from "~/generated/zeus";
+import { useAuthStore } from "~/stores/AuthStore";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
 import AwardArtwork from "~/components/award/AwardArtwork.vue";
@@ -25,6 +26,10 @@ const POTM_SYSTEM_KEY = "player_of_the_month";
 
 const props = defineProps<{ viewer: HomeViewer }>();
 
+// Administrators get a link to the staff review (never in the preview).
+const authStore = useAuthStore();
+const isAdministrator = computed(() => !props.viewer.preview && authStore.me?.role === "administrator");
+
 const root = ref<HTMLElement | null>(null);
 const loaded = ref(false);
 const winner = ref<any | null>(null);
@@ -38,21 +43,42 @@ function monthRange(iso: string) {
   return { start: start.toISOString(), end: end.toISOString() };
 }
 
+// The matches the award counts (API rules v1, player-of-the-month-rules.ts):
+// finished DEAFCS Competitive/Wingman/Duel matches in the UTC month,
+// matchmaking or tournament (not draft rooms or organizer custom matches),
+// ELO not voided.
+function countedMatchWhere(steamId: string, start: string, end: string) {
+  return {
+    status: { _eq: "Finished" },
+    source: { _eq: "5stack" },
+    ended_at: { _gte: start, _lt: end },
+    elo_voided: { _neq: true },
+    options: { type: { _in: ["Competitive", "Wingman", "Duel"] } },
+    _and: [
+      {
+        _or: [
+          { tournament_brackets: {} },
+          { organizer_steam_id: { _is_null: true }, _not: { draft_games: {} } },
+        ],
+      },
+      {
+        _or: [
+          { lineup_1: { lineup_players: { steam_id: { _eq: steamId } } } },
+          { lineup_2: { lineup_players: { steam_id: { _eq: steamId } } } },
+        ],
+      },
+    ],
+  };
+}
+
 async function loadMonthStats(steamId: string, effectiveAt: string) {
   const { start, end } = monthRange(effectiveAt);
+  const match = countedMatchWhere(steamId, start, end);
   const { data } = await getGraphqlClient().query({
     query: generateQuery({
+      matches_aggregate: [{ where: match }, { aggregate: { count: true } }],
       v_player_match_rating: [
-        {
-          where: {
-            steam_id: { _eq: steamId },
-            match: {
-              status: { _eq: "Finished" },
-              source: { _eq: "5stack" },
-              ended_at: { _gte: start, _lt: end },
-            },
-          },
-        },
+        { where: { steam_id: { _eq: steamId }, match } },
         { match_id: true, adr: true, hltv_rating: true, rounds_played: true },
       ],
     } as any),
@@ -64,7 +90,7 @@ async function loadMonthStats(steamId: string, effectiveAt: string) {
       ? rows.reduce((sum, row) => sum + Number(row[field] ?? 0) * (row.rounds_played ?? 0), 0) / rounds
       : null;
   monthStats.value = {
-    matches: new Set(rows.map((row) => row.match_id)).size,
+    matches: (data as any)?.matches_aggregate?.aggregate?.count ?? new Set(rows.map((row) => row.match_id)).size,
     rating: weighted("hltv_rating"),
     adr: weighted("adr"),
   };
@@ -153,7 +179,13 @@ const rules = [
     :class="[homePanelClasses, homePanelPaddingClasses, 'flex flex-col']"
     data-testid="home-player-of-month"
   >
-    <HomeSectionHeader id="home-potm-title" title="Player of the Month" :sample="sample" />
+    <HomeSectionHeader
+      id="home-potm-title"
+      title="Player of the Month"
+      :sample="sample"
+      :to="isAdministrator ? '/awards/player-of-the-month' : undefined"
+      link-label="Staff review"
+    />
 
     <div v-if="!loaded" class="h-36 animate-pulse rounded-lg bg-muted/30"></div>
 

@@ -219,6 +219,38 @@ test("Latest News shows the lead plus up to four, All news stays on the right", 
   assert.doesNotMatch(news, /link-beside-title/);
 });
 
+test("Last 7 Days reads the shared API result first and only computes in the browser without it", async () => {
+  const card = await read("../components/home/dashboard/HomeWeeklyRecords.vue");
+  assert.match(card, /\/stats\/weekly-records\?mode=Competitive/);
+  // available:false (another request computing) never triggers a local computation.
+  assert.match(card, /if \(server && !server\.available\) \{[\s\S]*state\.value = "unavailable";[\s\S]*return;/);
+  assert.match(card, /await loadInBrowser\(\);/);
+});
+
+test("Live on Twitch: previews only as images, never an embed; most viewers first", () => {
+  const template = streamers.slice(streamers.indexOf("<template>"));
+  assert.match(template, /:src="streamer\.thumbnailUrl"/);
+  assert.match(template, /@error="brokenThumbs/);
+  assert.doesNotMatch(template, /<iframe|<video|player\.twitch\.tv|autoplay/);
+  assert.match(streamers, /sort\(\(a, b\) => \(b\.viewerCount \?\? -1\) - \(a\.viewerCount \?\? -1\)\)/);
+});
+
+test("Player of the Month review page is administrator-only and uses the API actions", async () => {
+  const page = await read("../pages/awards/player-of-the-month.vue");
+  assert.match(page, /auth\.me\?\.role === "administrator"/);
+  for (const action of ["playerOfTheMonthReview", "calculatePlayerOfTheMonth", "approvePlayerOfTheMonth", "rejectPlayerOfTheMonth"]) {
+    assert.match(page, new RegExp(action));
+  }
+  // Two-step approval; a rejection needs a reason.
+  assert.match(page, /confirmFor = c\.steamId/);
+  assert.match(page, /:disabled="busy \|\| !rejectNote\.trim\(\)"/);
+
+  const card = await read("../components/home/dashboard/HomePlayerOfMonth.vue");
+  assert.match(card, /isAdministrator \? '\/awards\/player-of-the-month' : undefined/);
+  assert.match(card, /elo_voided: \{ _neq: true \}/);
+  assert.match(card, /_not: \{ draft_games: \{\} \}/);
+});
+
 test("no AWP or knife records", () => {
   assert.ok(!RECORD_ORDER.some((key) => /awp|knife/i.test(key)));
 });

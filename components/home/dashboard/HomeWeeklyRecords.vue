@@ -35,7 +35,7 @@ const CACHE_MS = 10 * 60_000;
 type PlayerInfo = { name: string; avatar_url: string | null };
 
 const root = ref<HTMLElement | null>(null);
-const state = ref<"idle" | "loading" | "ready" | "error">("idle");
+const state = ref<"idle" | "loading" | "ready" | "unavailable" | "error">("idle");
 const records = ref<WeeklyRecord[]>([]);
 const players = ref<Record<string, PlayerInfo>>({});
 const matchCount = ref(0);
@@ -134,7 +134,46 @@ async function loadPlayers(list: WeeklyRecord[]) {
   };
 }
 
+// The API's shared result (GET /stats/weekly-records, same calculation,
+// computed once per 5 minutes for everyone). null: the route is missing or
+// unreachable (an API without it), so this browser computes as before.
+type ServerResult = { available: boolean; matchCount?: number; records?: WeeklyRecord[]; players?: Record<string, PlayerInfo> };
+async function fetchServerRecords(): Promise<ServerResult | null> {
+  try {
+    const apiDomain = useRuntimeConfig().public.apiDomain;
+    const res = await fetch(`https://${apiDomain}/stats/weekly-records?mode=Competitive`);
+    if (!res.ok) return null;
+    const data = (await res.json()) as ServerResult;
+    return typeof data?.available === "boolean" ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
 async function load() {
+  const server = await fetchServerRecords();
+  if (server?.available) {
+    players.value = server.players ?? {};
+    matchCount.value = server.matchCount ?? 0;
+    setRecords(server.records ?? []);
+    state.value = "ready";
+    return;
+  }
+  if (server && !server.available) {
+    // Another request is computing the shared result: never recompute here,
+    // show a short notice and ask again in a moment.
+    state.value = "unavailable";
+    if (!retryTimer) retryTimer = setTimeout(() => { retryTimer = null; void load(); }, 15_000);
+    return;
+  }
+  await loadInBrowser();
+}
+
+// Fallback when the API has no /stats route: the original in-browser
+// calculation (same rules), kept for 10 minutes in this browser.
+async function loadInBrowser() {
   const cached = readCache();
   if (cached) {
     players.value = cached.players ?? {};
@@ -228,6 +267,7 @@ watch(
 onBeforeUnmount(() => {
   stopObserving();
   stopRotation();
+  if (retryTimer) clearTimeout(retryTimer);
 });
 
 // The pill row scrolls sideways; keep the active category in view.
@@ -274,6 +314,10 @@ const scoreboard = (matchId: string) => ({
       <div class="flex gap-2">
         <div v-for="i in 4" :key="i" class="h-7 w-24 animate-pulse rounded-full bg-muted/30"></div>
       </div>
+    </div>
+
+    <div v-else-if="state === 'unavailable'" class="flex flex-1 items-center gap-3 rounded-lg border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground" data-testid="home-week-unavailable">
+      This week's records are being prepared. They will appear in a moment.
     </div>
 
     <div v-else-if="state === 'error'" class="flex flex-1 items-center gap-3 rounded-lg border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground">
