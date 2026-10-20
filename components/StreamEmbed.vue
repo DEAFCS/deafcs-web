@@ -14,6 +14,32 @@ import StreamCanvas from "~/components/match/StreamCanvas.vue";
     >
       <template #video>
         <div ref="playerRef" class="absolute inset-0 h-full w-full"></div>
+
+        <!-- Twitch only loads after a click. Firefox with strict tracking
+             protection (e.g. Betterfox) shows a black player for an embed that
+             starts on its own; a click is the user gesture that lets it play,
+             and nothing is requested from twitch.tv before it. -->
+        <div
+          v-if="twitchWaiting"
+          class="absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-black/85 p-4 text-center"
+        >
+          <TwitchIcon class="size-8 text-[#9146ff]" />
+          <Button type="button" @click="startTwitch">
+            {{ $t("streams.load_twitch") }}
+          </Button>
+          <p class="max-w-xs text-xs text-white/60">
+            {{ $t("streams.load_twitch_notice") }}
+          </p>
+          <a
+            v-if="selectedStream"
+            :href="selectedStream.link"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-xs text-white/70 underline hover:text-white"
+          >
+            {{ $t("streams.open_on_twitch") }}
+          </a>
+        </div>
       </template>
 
       <Button
@@ -43,6 +69,7 @@ import StreamCanvas from "~/components/match/StreamCanvas.vue";
            (so the call-to-action is reachable on touch devices); fades
            in on hover once unmuted. -->
       <button
+        v-if="!twitchWaiting"
         type="button"
         :aria-label="isMuted ? $t('ui_extras.unmute') : $t('ui_extras.mute')"
         :class="[
@@ -152,6 +179,8 @@ export default {
       // either don't expose a JS API or it's unstable enough that a
       // reload is the most reliable path).
       isMuted: true,
+      // A Twitch stream is picked but waiting for the viewer to click Load.
+      twitchWaiting: false,
     };
   },
   computed: {
@@ -450,7 +479,24 @@ export default {
         }
       }
     },
+    async startTwitch() {
+      if (!this.embedId) {
+        return;
+      }
+
+      this.twitchWaiting = false;
+
+      try {
+        await this.loadTwitchPlayerScript();
+        this.mountTwitchPlayer(this.embedId);
+      } catch (error) {
+        console.warn("Twitch player failed to load:", error);
+        this.twitchWaiting = true;
+      }
+    },
     async loadStream() {
+      this.twitchWaiting = false;
+
       if (!this.selectedStream || !this.selectedStream.link) {
         this.platform = null;
         this.embedId = null;
@@ -467,8 +513,9 @@ export default {
 
       switch (this.platform) {
         case "twitch":
-          await this.loadTwitchPlayerScript();
-          this.mountTwitchPlayer(this.embedId);
+          // Wait for a click; see startTwitch.
+          this.cleanupPlayer();
+          this.twitchWaiting = true;
           break;
         case "youtube":
           this.mountYouTubePlayer(this.embedId);

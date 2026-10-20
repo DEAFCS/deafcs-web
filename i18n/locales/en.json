@@ -10048,6 +10048,9 @@
   },
   "streams": {
     "move_to_global_view": "Move to global view",
+    "load_twitch": "Click to load Twitch",
+    "load_twitch_notice": "The player is loaded from twitch.tv only when you click.",
+    "open_on_twitch": "Open on Twitch",
     "section_title": "Live Streams",
     "section_description": "Manage the live stream links for this match. These links are shown to viewers and casters.",
     "no_streams_title": "No Live Streams",
