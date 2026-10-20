@@ -9,6 +9,7 @@ import { NOT_LEAGUE_TOURNAMENT } from "~/graphql/tournamentFilters";
 import { formatStartTime } from "~/components/watch/watchTicker";
 import { relativeWhen } from "~/components/play/scheduleRow";
 import HomeSectionHeader from "~/components/home/dashboard/HomeSectionHeader.vue";
+import { checkInText, homeCheckIn } from "~/components/home/dashboard/homeTournamentCheckIn";
 import {
   ACTIVE_MATCH_STATUSES,
   homePanelClasses,
@@ -40,6 +41,12 @@ const tournamentsQuery = generateSubscription({
               status: { _neq: "Removed" },
             },
           },
+          {
+            free_agents: {
+              player_steam_id: { _eq: $("steam_id", "bigint!") },
+              status: { _neq: "withdrawn" },
+            },
+          },
         ],
         _and: [NOT_LEAGUE_TOURNAMENT],
       },
@@ -52,10 +59,19 @@ const tournamentsQuery = generateSubscription({
       start: true,
       status: true,
       e_tournament_status: { description: true },
+      // The same check-in fields TournamentDetail hands TournamentCheckInPanel.
+      registration_version: true,
       check_in_required: true,
-      check_in_open: true,
+      check_in_setting: true,
       check_in_opens_before_minutes: true,
+      check_in_closes_before_minutes: true,
       check_in_ends_at: true,
+      check_in_started: true,
+      min_players_per_lineup: true,
+      is_organizer: true,
+      // Legacy individual sign-ups have their own window (the layout's
+      // TournamentCheckInOverlay); version 2 uses the fields above.
+      individual_check_in_ends_at: true,
       current_stage: true,
       options: { type: true },
       teams_aggregate: [{}, { aggregate: { count: true } }],
@@ -70,6 +86,12 @@ const tournamentsQuery = generateSubscription({
           tournament_team: {
             id: true,
             name: true,
+            // tournament_teams.checked_in_at is the one team check-in signal
+            // (graphql/tournamentTeamFields.ts); can_manage is who may act in
+            // Captains mode; roster stamps only matter in Players mode.
+            checked_in_at: true,
+            can_manage: true,
+            roster: [{}, { player_steam_id: true, checked_in_at: true }],
             results: { wins: true, losses: true, matches_remaining: true },
           },
         },
@@ -77,6 +99,15 @@ const tournamentsQuery = generateSubscription({
       individual_signups: [
         { where: { player_steam_id: { _eq: $("steam_id", "bigint!") } } },
         { status: true, checked_in_at: true },
+      ],
+      free_agents: [
+        {
+          where: {
+            player_steam_id: { _eq: $("steam_id", "bigint!") },
+            status: { _neq: "withdrawn" },
+          },
+        },
+        { status: true, checked_in_at: true, tournament_team_id: true },
       ],
     },
   ],
@@ -204,42 +235,55 @@ function statusTone(status: string): Tone {
 function cardModel(tournament: any) {
   const roster = tournament.rosters?.[0] ?? null;
   const signup = tournament.individual_signups?.[0] ?? null;
+  const freeAgent = tournament.free_agents?.[0] ?? null;
   const team = roster?.tournament_team ?? null;
   const live = tournament.status === "Live" || tournament.status === "Paused";
   const start = tournament.start ? new Date(tournament.start) : null;
   const lines: Line[] = [];
+  let action: { label: string; to: string } | null = null;
 
   lines.push({
     key: "registration",
     label: "Registration",
     value: team?.name
       ? `Registered with ${team.name}`
-      : signup
-        ? "Signed up, teams are drawn before the start"
-        : "Registered",
+      : freeAgent
+        ? FREE_AGENT_STATUS[freeAgent.status] ?? FREE_AGENT_STATUS.registered
+        : signup
+          ? "Signed up, teams are drawn before the start"
+          : "Registered",
     tone: "ok",
     icon: UserCheck,
   });
 
-  if (tournament.check_in_required && !live) {
-    const checkedIn = !!(roster?.checked_in_at || signup?.checked_in_at);
-    let value = "Check-in required";
-    let tone: Tone = "muted";
-    if (checkedIn) {
-      value = "Checked in";
-      tone = "ok";
-    } else if (tournament.check_in_open) {
-      value = tournament.check_in_ends_at
-        ? `Check-in open until ${formatStartTime(tournament.check_in_ends_at, now.value)}`
-        : "Check-in open now";
-      tone = "hot";
-    } else if (start && tournament.check_in_opens_before_minutes) {
-      const opens = new Date(start.getTime() - tournament.check_in_opens_before_minutes * 60_000);
-      if (opens > now.value) {
-        value = `Check-in opens ${formatStartTime(opens.toISOString(), now.value)}`;
-      }
+  const checkIn = homeCheckIn({
+    tournament,
+    team,
+    freeAgent: team ? null : freeAgent,
+    steamId: props.viewer.steamId,
+    now: now.value,
+  });
+  if (checkIn) {
+    const text = checkInText(checkIn, (date) => formatStartTime(date.toISOString(), now.value));
+    lines.push({ key: "check-in", label: "Check-in", value: text.value, tone: text.tone, icon: CheckCircle2 });
+    // Checking in itself happens in the tournament page's check-in panel.
+    if (checkIn.canAct && checkIn.actionLabel) {
+      action = { label: checkIn.actionLabel, to: `/tournaments/${tournament.id}` };
     }
-    lines.push({ key: "check-in", label: "Check-in", value, tone, icon: CheckCircle2 });
+  } else if (tournament.registration_version !== 2 && signup && !live) {
+    const endsAt = tournament.individual_check_in_ends_at;
+    if (signup.checked_in_at) {
+      lines.push({ key: "check-in", label: "Check-in", value: "Checked in", tone: "ok", icon: CheckCircle2 });
+    } else if (endsAt && new Date(endsAt) > now.value) {
+      lines.push({
+        key: "check-in",
+        label: "Check-in",
+        value: `Open until ${formatStartTime(endsAt, now.value)}`,
+        tone: "hot",
+        icon: CheckCircle2,
+      });
+      action = { label: "Check in", to: `/tournaments/${tournament.id}` };
+    }
   }
 
   const bracket = team ? nextBrackets.value[team.id] : null;
@@ -288,12 +332,20 @@ function cardModel(tournament: any) {
     name: tournament.name,
     status: tournament.e_tournament_status?.description ?? tournament.status,
     statusTone: statusTone(tournament.status),
-    when: start && !live ? formatStartTime(tournament.start, now.value) : null,
-    relative: start && !live ? relativeWhen(start, now.value, t) : "",
+    when: start ? formatStartTime(tournament.start, now.value) : null,
+    relative: !start ? "" : start > now.value ? relativeWhen(start, now.value, t) : "Started",
     teams: tournament.teams_aggregate?.aggregate?.count ?? null,
     lines,
+    action,
   };
 }
+
+// tournament_free_agents.status, worded like TournamentFreeAgents.
+const FREE_AGENT_STATUS: Record<string, string> = {
+  registered: "Free agent, waiting to be drafted",
+  waitlisted: "Free agent, on the waitlist",
+  drafted: "Drafted, team being set up",
+};
 
 const cards = computed(() => tournaments.value.map(cardModel));
 
@@ -361,13 +413,24 @@ const toneClasses: Record<Tone, string> = {
           </div>
         </dl>
 
-        <NuxtLink
-          :to="`/tournaments/${card.id}`"
-          class="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[hsl(var(--tac-amber))] hover:underline"
-        >
-          Open tournament
-          <ArrowRight class="size-3" aria-hidden="true" />
-        </NuxtLink>
+        <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+          <NuxtLink
+            v-if="card.action"
+            :to="card.action.to"
+            class="inline-flex items-center gap-1.5 rounded-md bg-[hsl(var(--tac-amber))] px-3 py-1.5 text-xs font-bold text-black hover:bg-[hsl(var(--tac-amber)/0.85)]"
+            data-testid="home-tournament-check-in"
+          >
+            <CheckCircle2 class="size-3.5" aria-hidden="true" />
+            {{ card.action.label }}
+          </NuxtLink>
+          <NuxtLink
+            :to="`/tournaments/${card.id}`"
+            class="inline-flex items-center gap-1 text-xs font-semibold text-[hsl(var(--tac-amber))] hover:underline"
+          >
+            Open tournament
+            <ArrowRight class="size-3" aria-hidden="true" />
+          </NuxtLink>
+        </div>
       </article>
     </div>
   </section>

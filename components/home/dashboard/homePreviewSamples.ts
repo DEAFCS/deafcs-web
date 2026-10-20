@@ -58,10 +58,15 @@ export function sampleTournament() {
     start: hoursFromNow(5),
     status: "RegistrationClosed",
     e_tournament_status: { description: "Registration Closed" },
+    registration_version: 2,
     check_in_required: true,
-    check_in_open: false,
+    check_in_setting: "Captains",
     check_in_opens_before_minutes: 60,
-    check_in_ends_at: hoursFromNow(4.75),
+    check_in_closes_before_minutes: 15,
+    check_in_ends_at: null,
+    check_in_started: false,
+    min_players_per_lineup: 5,
+    is_organizer: false,
     current_stage: 1,
     options: { type: "Competitive" },
     teams_aggregate: { aggregate: { count: 8 } },
@@ -69,10 +74,18 @@ export function sampleTournament() {
     rosters: [
       {
         checked_in_at: null,
-        tournament_team: { id: "sample-team", name: "Sample Team A", results: null },
+        tournament_team: {
+          id: "sample-team",
+          name: "Sample Team A",
+          checked_in_at: null,
+          can_manage: true,
+          roster: [],
+          results: null,
+        },
       },
     ],
     individual_signups: [],
+    free_agents: [],
   };
   const bracket = {
     id: "sample-bracket",
