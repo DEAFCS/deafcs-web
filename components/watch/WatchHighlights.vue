@@ -37,9 +37,11 @@ const props = defineProps<{
   // 5Stack (32e5757): one equal row of four, for pages where highlights are
   // not the hero (the signed-in homepage).
   compact?: boolean;
-  // DEAFCS homepage "Your Highlights": only clips from matches this player
-  // played in, all time by default, and the whole section stays hidden when
-  // the player has none (community highlights stay on /watch).
+  // DEAFCS homepage "Your Highlights": only clips where this player is the
+  // featured player (match_clips.target_steam_id, the same field the player
+  // profile's PlayerHighlights and /highlights?player= filter on; the clip's
+  // kills and POV are that player's). All time by default; the whole section
+  // stays hidden when the player has none (community highlights stay on /watch).
   steamId?: string | null;
   title?: string;
 }>();
@@ -59,23 +61,20 @@ watch(noPlayerClips, (hidden) => emit("hidden", hidden));
 function clipsWhere() {
   const where = highlightsWhere(kind.value, range.value);
   if (!props.steamId) return where;
-  const steamId = String(props.steamId);
-  return {
-    ...where,
-    _and: [
-      {
-        match_map: {
-          match: {
-            _or: [
-              { lineup_1: { lineup_players: { steam_id: { _eq: steamId } } } },
-              { lineup_2: { lineup_players: { steam_id: { _eq: steamId } } } },
-            ],
-          },
-        },
-      },
-    ],
-  };
+  return { ...where, target_steam_id: { _eq: String(props.steamId) } };
 }
+
+// "See all": /highlights with the same player and, as far as that page's
+// filters allow, the same kind and range (its kills filter means "at least").
+const seeAllLink = computed(() => {
+  if (!props.steamId) return "/highlights";
+  const query: Record<string, string> = { player: String(props.steamId) };
+  if (kind.value === "ace") query.kills = "5";
+  if (kind.value === "4k") query.kills = "4";
+  if (range.value === "today") query.since = "24h";
+  if (range.value === "week") query.since = "7d";
+  return { path: "/highlights", query };
+});
 
 const kindOptions = computed(() => [
   { key: "all" as Kind, label: t("pages.watch.highlights.kinds.all") },
@@ -156,7 +155,7 @@ function leadTag() {
         </span>
         <NuxtLink
           v-if="!ghost"
-          :to="steamId ? `/players/${steamId}` : '/highlights'"
+          :to="seeAllLink"
           class="inline-flex items-center gap-1 font-mono text-[0.65rem] normal-case tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"
         >
           {{ $t("common.see_all") }}

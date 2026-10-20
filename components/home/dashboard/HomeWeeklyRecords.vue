@@ -300,11 +300,12 @@ const scoreboard = (matchId: string) => ({
         :aria-label="`${current.title}, ${active + 1} of ${records.length}`"
         aria-live="polite"
       >
+        <!-- The outgoing record fades out on top of the incoming one (no
+             out-in gap), so the card never collapses between records. -->
         <Transition
-          mode="out-in"
           enter-active-class="transition-[opacity,transform] duration-300 ease-out motion-reduce:transition-none"
           enter-from-class="translate-x-3 opacity-0"
-          leave-active-class="transition-opacity duration-150 ease-in motion-reduce:transition-none"
+          leave-active-class="pointer-events-none absolute inset-x-0 top-0 transition-opacity duration-150 ease-in motion-reduce:transition-none"
           leave-to-class="opacity-0"
         >
           <div :key="current.key" class="flex flex-1 flex-col gap-3 p-4 sm:flex-row sm:items-stretch sm:gap-5">
@@ -320,7 +321,7 @@ const scoreboard = (matchId: string) => ({
                 {{ nameOf(leader.steamId).slice(0, 1) }}
               </span>
               <div class="min-w-0">
-                <p class="font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))]">
+                <p class="truncate font-mono text-[0.65rem] font-semibold uppercase tracking-[0.16em] text-[hsl(var(--tac-amber))]">
                   {{ current.title }}
                 </p>
                 <NuxtLink
@@ -330,7 +331,7 @@ const scoreboard = (matchId: string) => ({
                   {{ nameOf(leader.steamId) }}
                 </NuxtLink>
                 <!-- Single-match records: the value opens that match's scoreboard. -->
-                <p class="flex items-baseline gap-2">
+                <p class="flex min-w-0 items-baseline gap-2 whitespace-nowrap">
                   <NuxtLink
                     v-if="leader.matchId"
                     :to="scoreboard(leader.matchId)"
@@ -338,9 +339,9 @@ const scoreboard = (matchId: string) => ({
                     :aria-label="`${leader.display} ${current.unit}, open the match scoreboard`"
                   >{{ leader.display }}</NuxtLink>
                   <span v-else class="font-mono text-4xl font-black tabular-nums leading-none">{{ leader.display }}</span>
-                  <span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{{ current.unit }}</span>
+                  <span class="min-w-0 truncate text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{{ current.unit }}</span>
                 </p>
-                <p class="mt-1 text-xs text-muted-foreground">
+                <p class="mt-1 truncate text-xs text-muted-foreground">
                   <NuxtLink
                     v-if="leader.matchId"
                     :to="scoreboard(leader.matchId)"
@@ -351,11 +352,9 @@ const scoreboard = (matchId: string) => ({
               </div>
             </div>
 
-            <!-- #2 to #5: compact rows so the card keeps its height. -->
-            <ol
-              v-if="current.entries.length > 1"
-              class="grid content-center gap-0.5 sm:w-52 sm:border-l sm:border-border/60 sm:pl-4"
-            >
+            <!-- #2 to #5: compact rows; four rows are always reserved (empty
+                 places show a dash) so the card keeps its height. -->
+            <ol class="grid content-center gap-0.5 sm:w-52 sm:border-l sm:border-border/60 sm:pl-4">
               <li
                 v-for="(entry, index) in current.entries.slice(1)"
                 :key="`${entry.steamId}-${entry.matchId ?? ''}-${index}`"
@@ -373,10 +372,24 @@ const scoreboard = (matchId: string) => ({
                 >{{ entry.display }}</NuxtLink>
                 <span v-else class="shrink-0 font-mono text-[13px] font-bold tabular-nums">{{ entry.display }}</span>
               </li>
+              <li
+                v-for="pad in Math.max(0, 4 - Math.max(0, current.entries.length - 1))"
+                :key="`pad-${pad}`"
+                class="flex min-w-0 items-center gap-2 text-[13px] leading-6 text-muted-foreground/40"
+                aria-hidden="true"
+              >
+                <span class="w-4 shrink-0 text-center font-mono text-xs font-bold">{{ current.entries.length + pad }}</span>
+                <span class="flex-1">-</span>
+              </li>
             </ol>
           </div>
         </Transition>
-        <p v-if="current.rule" class="border-t border-border/50 px-4 py-1.5 text-[11px] text-muted-foreground">
+        <!-- Every record has a footer; two lines are reserved on phones (where
+             the longer ones wrap) and one from sm up, so it never shifts. -->
+        <p
+          class="line-clamp-2 h-[calc(2rem+0.75rem+1px)] border-t border-border/50 px-4 py-1.5 text-[11px] leading-4 text-muted-foreground sm:line-clamp-1 sm:h-[calc(1rem+0.75rem+1px)]"
+          data-testid="home-week-rule"
+        >
           {{ current.rule }}
         </p>
       </div>

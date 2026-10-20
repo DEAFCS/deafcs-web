@@ -68,7 +68,9 @@ export type WeeklyRecord = {
   key: RecordKey;
   title: string;
   unit: string;
-  rule: string | null;
+  // Footer line under the card; every record has one so the card keeps
+  // the same height whichever record is showing.
+  rule: string;
   entries: RecordEntry[];
 };
 
@@ -271,7 +273,7 @@ export function weeklyRecords(
       key: "kills",
       title: "Most kills",
       unit: "Kills",
-      rule: null,
+      rule: "Total kills across the week",
       entries: rank(all, (p) => p.kills, (v) => String(v), matchesDetail),
     },
     {
@@ -290,7 +292,7 @@ export function weeklyRecords(
       key: "matches",
       title: "Most matches",
       unit: "Matches",
-      rule: null,
+      rule: "Finished matches across the week",
       entries: rank(all, (p) => p.matches.size, (v) => String(v), (p) => plural(p.rounds, "round")),
     },
     {

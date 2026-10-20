@@ -172,6 +172,34 @@ test("clutches and opening kills only appear when their data loaded", () => {
   assert.deepEqual(withEvents.map((r) => r.key), RECORD_ORDER.filter((k) => withEvents.some((r) => r.key === k)));
 });
 
+test("every record has a footer line, so the card height never changes", () => {
+  const p = merge(rows("1", 3), rows("2", 3));
+  const records = weeklyRecords(p.ratings, p.stats, {}, {
+    clutches: [{ match_id: "1-m0", clutcher_steam_id: "1" }],
+    openings: [{ match_id: "1-m0", steam_id: "1", wins: 2 }],
+  });
+  assert.equal(records.length, RECORD_ORDER.length);
+  for (const r of records) assert.ok(typeof r.rule === "string" && r.rule.length > 0, r.key);
+});
+
+test("Last 7 Days keeps a fixed footer and four runner-up rows, without an out-in gap", async () => {
+  const card = await read("../components/home/dashboard/HomeWeeklyRecords.vue");
+  const template = card.slice(card.indexOf("<template>"));
+  assert.doesNotMatch(template, /mode="out-in"/);
+  assert.match(template, /leave-active-class="[^"]*absolute/);
+  assert.match(template, /data-testid="home-week-rule"/);
+  assert.doesNotMatch(template, /v-if="current\.rule"/);
+  assert.match(template, /v-for="pad in Math\.max\(0, 4 - /);
+});
+
+test("Your Highlights filters on the featured player (target_steam_id), not match lineups", async () => {
+  const highlights = await read("../components/watch/WatchHighlights.vue");
+  assert.match(highlights, /target_steam_id: \{ _eq: String\(props\.steamId\) \}/);
+  assert.doesNotMatch(highlights, /lineup_players/);
+  assert.match(highlights, /path: "\/highlights", query/);
+  assert.match(highlights, /player: String\(props\.steamId\)/);
+});
+
 test("no AWP or knife records", () => {
   assert.ok(!RECORD_ORDER.some((key) => /awp|knife/i.test(key)));
 });
