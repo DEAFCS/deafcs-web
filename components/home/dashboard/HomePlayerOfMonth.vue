@@ -139,10 +139,10 @@ const monthLabel = computed(() => {
 });
 
 const rules = [
-  "Based on real DEAFCS matches played that month",
-  "Fair play required, no active sanctions",
-  "Reviewed and approved by DEAFCS staff",
-  "A player can win once every 12 months",
+  "Based on completed DEAFCS matchmaking and tournament matches that month",
+  "Fair play required: no warnings or bans during the month",
+  "Reviewed and approved by DEAFCS staff before it is published",
+  "Awards are permanent. No repeat winner within 12 award months",
 ];
 </script>
 

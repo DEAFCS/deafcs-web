@@ -36,8 +36,10 @@ interface ModeState {
 
 const props = withDefaults(
   defineProps<{
-    // glass: the signed-in dashboard's tabbed panel (same data and rules).
+    // glass: the signed-in dashboard's three columns (same data and rules),
+    // each with the viewer's own rank under the top 5.
     variant?: "tabs" | "all" | "glass";
+    viewerSteamId?: string | null;
   }>(),
   {
     variant: "tabs",
@@ -223,6 +225,8 @@ async function fetchTopPlayers() {
     const seasonId = await fetchActiveSeasonId();
     if (generation !== fetchGeneration) return;
 
+    if (props.variant === "glass") void fetchOwnRanks(seasonId, generation);
+
     const response = await getGraphqlClient().query({
       query: TOP_PLAYERS_QUERY,
       variables: {
@@ -270,6 +274,66 @@ async function fetchTopPlayers() {
     }
   }
 }
+
+// --- glass variant: the viewer's own rank per mode -------------------------
+// Same get_player_leaderboard_rank call (and season) as PlayerLeaderboardRank
+// and the leaderboard page. It ranks with SQL RANK(), so tied players share a
+// place; the top 5 use the same competition ranking below.
+type OwnRank = { rank: number; total: number; value: number };
+
+const OWN_RANK_QUERY = gql`
+  query HomeOwnLeaderboardRanks($season_id: uuid, $steam_id: String!, $steam_id_pk: bigint!) {
+    competitive: get_player_leaderboard_rank(
+      args: { _category: "elo", _window_days: 0, _match_type: "Competitive", _exclude_tournaments: false, _elo_view: "current", _season_id: $season_id, _player_steam_id: $steam_id }
+    ) { rank total value }
+    wingman: get_player_leaderboard_rank(
+      args: { _category: "elo", _window_days: 0, _match_type: "Wingman", _exclude_tournaments: false, _elo_view: "current", _season_id: $season_id, _player_steam_id: $steam_id }
+    ) { rank total value }
+    duel: get_player_leaderboard_rank(
+      args: { _category: "elo", _window_days: 0, _match_type: "Duel", _exclude_tournaments: false, _elo_view: "current", _season_id: $season_id, _player_steam_id: $steam_id }
+    ) { rank total value }
+    players_by_pk(steam_id: $steam_id_pk) { steam_id name avatar_url custom_avatar_url country }
+  }
+`;
+
+// undefined: still loading; null: unranked in that mode.
+const ownRanks = ref<Record<LeaderboardMode, OwnRank | null | undefined>>({
+  Competitive: undefined,
+  Wingman: undefined,
+  Duel: undefined,
+});
+const viewerPlayer = ref<Record<string, any> | null>(null);
+
+async function fetchOwnRanks(seasonId: string | null, generation: number) {
+  const steamId = props.viewerSteamId ? String(props.viewerSteamId) : "";
+  if (!steamId) return;
+  try {
+    const { data } = await getGraphqlClient().query({
+      query: OWN_RANK_QUERY,
+      variables: { season_id: seasonId, steam_id: steamId, steam_id_pk: steamId },
+      fetchPolicy: "network-only",
+    });
+    if (generation !== fetchGeneration) return;
+    viewerPlayer.value = (data as any)?.players_by_pk ?? null;
+    for (const mode of modes) {
+      const row = (data as any)?.[mode.alias]?.[0];
+      ownRanks.value[mode.value] = row
+        ? { rank: Number(row.rank), total: Number(row.total), value: Number(row.value) }
+        : null;
+    }
+  } catch (error) {
+    console.error("[home-top-players] failed to load your ranks", error);
+    for (const mode of modes) ownRanks.value[mode.value] = null;
+  }
+}
+
+// Competition ranking within the top 5 (1, 1, 3), matching RANK().
+function placeOf(players: LeaderboardPlayer[], player: LeaderboardPlayer) {
+  return 1 + players.filter((other) => other.value > player.value).length;
+}
+
+const isViewer = (steamId: string) =>
+  !!props.viewerSteamId && String(props.viewerSteamId) === steamId;
 
 void fetchTopPlayers();
 </script>
@@ -434,114 +498,158 @@ void fetchTopPlayers();
     </div>
   </Card>
 
+  <!-- Three columns from lg up; one swipeable row of columns below that. -->
   <div
     v-else-if="props.variant === 'glass'"
-    class="flex min-w-0 flex-1 flex-col"
+    class="-mx-1 flex min-w-0 snap-x gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-3 lg:overflow-visible lg:px-0 lg:pb-0"
     data-testid="home-elo-leaderboard"
   >
-    <div
-      class="grid min-w-0 grid-cols-3 gap-1 rounded-lg border border-border/70 bg-background/40 p-1"
-      role="tablist"
-      aria-label="Leaderboard mode"
+    <section
+      v-for="mode in modes"
+      :key="mode.value"
+      :aria-labelledby="`elo-col-${mode.alias}`"
+      class="flex w-[86%] min-w-0 shrink-0 snap-start flex-col rounded-lg border border-border/70 bg-background/35 p-3 sm:w-[60%] lg:w-auto"
+      :data-testid="`home-elo-${mode.alias}`"
     >
-      <button
-        v-for="mode in modes"
-        :id="`elo-glass-tab-${mode.alias}`"
-        :key="mode.value"
-        type="button"
-        role="tab"
-        class="relative min-h-9 min-w-0 rounded-md px-2 text-xs font-semibold text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
-        :class="selectedMode === mode.value ? 'bg-muted/50 text-foreground shadow-[inset_0_-2px_0_var(--mode-color)]' : ''"
-        :style="{ '--mode-color': mode.color }"
-        :aria-selected="selectedMode === mode.value"
-        :aria-controls="`elo-glass-panel-${mode.alias}`"
-        @click="selectedMode = mode.value"
-        @keydown.left.prevent="selectAdjacentMode(-1)"
-        @keydown.right.prevent="selectAdjacentMode(1)"
-      >
-        <span class="truncate">{{ mode.value }}</span>
-      </button>
-    </div>
+      <div class="mb-2 flex items-center justify-between gap-2">
+        <h3 :id="`elo-col-${mode.alias}`" class="flex min-w-0 items-center gap-2 text-sm font-bold">
+          <span class="size-2 shrink-0 rounded-full" :style="{ backgroundColor: mode.color }" aria-hidden="true"></span>
+          <span class="truncate">
+            {{ mode.value === "Competitive" ? "5v5" : mode.value === "Wingman" ? "2v2" : "1v1" }}
+            <span class="font-semibold text-muted-foreground">{{ mode.value }}</span>
+          </span>
+        </h3>
+        <NuxtLink
+          :to="leaderboardLinkFor(mode.value)"
+          class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-[11px] text-muted-foreground hover:text-foreground"
+          :aria-label="`Full ${mode.value} leaderboard`"
+        >
+          Full leaderboard
+          <ArrowRight class="size-3" aria-hidden="true" />
+        </NuxtLink>
+      </div>
 
-    <div
-      :id="`elo-glass-panel-${selectedMode.toLowerCase()}`"
-      role="tabpanel"
-      :aria-labelledby="`elo-glass-tab-${selectedMode.toLowerCase()}`"
-      class="mt-3 flex flex-1 flex-col"
-      aria-live="polite"
-    >
-      <div v-if="activeState.loading" class="grid gap-1.5">
-        <Skeleton v-for="rank in 5" :key="rank" class="h-11 w-full rounded-lg" />
+      <div v-if="modeStates[mode.value].loading" class="grid gap-1">
+        <Skeleton v-for="rank in 6" :key="rank" class="h-10 w-full rounded-md" />
       </div>
       <div
-        v-else-if="activeState.requestError"
-        class="flex flex-1 items-center justify-center gap-3 rounded-lg border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground"
+        v-else-if="modeStates[mode.value].requestError"
+        class="flex flex-1 items-center justify-center gap-2 rounded-md border border-dashed border-border/70 px-3 py-6 text-xs text-muted-foreground"
         role="alert"
       >
-        Unable to load the leaderboard.
+        Unable to load.
         <button type="button" class="font-semibold text-[hsl(var(--tac-amber))] hover:underline" @click="fetchTopPlayers">
           Try again
         </button>
       </div>
       <p
-        v-else-if="activeState.players.length === 0"
-        class="flex flex-1 items-center justify-center rounded-lg border border-dashed border-border/70 px-4 py-6 text-sm text-muted-foreground"
+        v-else-if="modeStates[mode.value].players.length === 0"
+        class="flex flex-1 items-center justify-center rounded-md border border-dashed border-border/70 px-3 py-6 text-xs text-muted-foreground"
       >
         No ranked players yet.
       </p>
-      <ol v-else class="grid gap-1.5">
-        <li v-for="player in activeState.players" :key="player.player_steam_id">
-          <NuxtLink
-            :to="{ name: 'players-id', params: { id: player.player_steam_id } }"
-            class="grid min-h-11 min-w-0 grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-lg border px-2 py-1.5 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
-            :class="
-              player.rank === 1
-                ? 'border-[hsl(var(--tac-amber)/0.45)] bg-[linear-gradient(90deg,hsl(var(--tac-amber)/0.14),transparent_70%)]'
-                : 'border-border/60 bg-muted/15'
-            "
-            :aria-label="`Rank ${player.rank}, ${player.player_name}, ${formatElo(player.value)} ELO`"
-          >
-            <span
-              class="grid size-6 place-items-center rounded-md font-mono text-[0.7rem] font-black tabular-nums"
+      <template v-else>
+        <ol class="grid gap-1">
+          <li v-for="player in modeStates[mode.value].players" :key="player.player_steam_id">
+            <NuxtLink
+              :to="{ name: 'players-id', params: { id: player.player_steam_id } }"
+              class="grid min-h-10 min-w-0 grid-cols-[1.75rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border px-2 py-1 outline-none transition-colors hover:bg-muted/40 focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
               :class="
-                player.rank === 1
-                  ? 'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))]'
-                  : player.rank <= 3
-                    ? 'bg-muted text-foreground'
-                    : 'text-muted-foreground'
+                isViewer(player.player_steam_id)
+                  ? 'border-[hsl(var(--tac-amber)/0.7)] bg-[hsl(var(--tac-amber)/0.14)]'
+                  : placeOf(modeStates[mode.value].players, player) === 1
+                    ? 'border-[hsl(var(--tac-amber)/0.4)] bg-[linear-gradient(90deg,hsl(var(--tac-amber)/0.12),transparent_70%)]'
+                    : 'border-border/50 bg-muted/15'
               "
-            >{{ player.rank }}</span>
-            <PlayerDisplay
-              :player="{
-                steam_id: player.player_steam_id,
-                name: player.player_name,
-                avatar_url: player.player_avatar_url,
-                custom_avatar_url: player.player_custom_avatar_url,
-                country: player.player_country,
-              }"
-              :show-elo="false"
-              :show-online="false"
-              :show-role="false"
-              :linkable="false"
-              truncate-name
-              compact
-              size="xs"
-              class="min-w-0"
-            />
-            <span class="text-right font-mono text-sm font-bold tabular-nums" :style="{ color: eloTierColor(player.value) }">
-              {{ formatElo(player.value) }}
+              :aria-label="`Rank ${placeOf(modeStates[mode.value].players, player)}, ${player.player_name}${isViewer(player.player_steam_id) ? ' (you)' : ''}, ${formatElo(player.value)} ELO`"
+            >
+              <span
+                class="grid size-6 place-items-center rounded font-mono text-[0.68rem] font-black tabular-nums"
+                :class="
+                  placeOf(modeStates[mode.value].players, player) === 1
+                    ? 'bg-[hsl(var(--tac-amber))] text-[hsl(var(--tac-amber-foreground))]'
+                    : placeOf(modeStates[mode.value].players, player) <= 3
+                      ? 'bg-muted text-foreground'
+                      : 'text-muted-foreground'
+                "
+              >{{ placeOf(modeStates[mode.value].players, player) }}</span>
+              <span class="flex min-w-0 items-center gap-1.5">
+                <PlayerDisplay
+                  :player="{
+                    steam_id: player.player_steam_id,
+                    name: player.player_name,
+                    avatar_url: player.player_avatar_url,
+                    custom_avatar_url: player.player_custom_avatar_url,
+                    country: player.player_country,
+                  }"
+                  :show-elo="false"
+                  :show-online="false"
+                  :show-role="false"
+                  :linkable="false"
+                  truncate-name
+                  compact
+                  size="xs"
+                  class="min-w-0"
+                />
+                <span
+                  v-if="isViewer(player.player_steam_id)"
+                  class="shrink-0 text-[10px] font-bold uppercase tracking-[0.1em] text-[hsl(var(--tac-amber))]"
+                >You</span>
+              </span>
+              <span class="text-right font-mono text-[13px] font-bold tabular-nums" :style="{ color: eloTierColor(player.value) }">
+                {{ formatElo(player.value) }}
+              </span>
+            </NuxtLink>
+          </li>
+        </ol>
+
+        <!-- The viewer's own rank, unless they are already in the top 5. -->
+        <template
+          v-if="
+            viewerSteamId &&
+            !modeStates[mode.value].players.some((p) => isViewer(p.player_steam_id))
+          "
+        >
+          <div class="my-1 flex justify-center text-muted-foreground/50" aria-hidden="true">···</div>
+          <Skeleton v-if="ownRanks[mode.value] === undefined" class="h-10 w-full rounded-md" />
+          <NuxtLink
+            v-else-if="ownRanks[mode.value]"
+            :to="{ path: '/leaderboard', query: { tab: 'elo', period: '0', type: mode.value, player: viewerSteamId } }"
+            class="grid min-h-10 min-w-0 grid-cols-[2.5rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-[hsl(var(--tac-amber)/0.7)] bg-[hsl(var(--tac-amber)/0.14)] px-2 py-1 outline-none transition-colors hover:bg-[hsl(var(--tac-amber)/0.2)] focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber)/0.55)]"
+            :aria-label="`Your ${mode.value} rank: ${ownRanks[mode.value]!.rank} of ${ownRanks[mode.value]!.total}, ${formatElo(ownRanks[mode.value]!.value)} ELO`"
+            :data-testid="`home-elo-you-${mode.alias}`"
+          >
+            <span class="font-mono text-[0.72rem] font-black tabular-nums text-[hsl(var(--tac-amber))]">#{{ ownRanks[mode.value]!.rank }}</span>
+            <span class="flex min-w-0 items-center gap-1.5">
+              <PlayerDisplay
+                v-if="viewerPlayer"
+                :player="viewerPlayer"
+                :show-elo="false"
+                :show-online="false"
+                :show-role="false"
+                :linkable="false"
+                truncate-name
+                compact
+                size="xs"
+                class="min-w-0"
+              />
+              <span class="shrink-0 text-[10px] font-bold uppercase tracking-[0.1em] text-[hsl(var(--tac-amber))]">You</span>
+            </span>
+            <span class="text-right font-mono text-[13px] font-bold tabular-nums" :style="{ color: eloTierColor(ownRanks[mode.value]!.value) }">
+              {{ formatElo(ownRanks[mode.value]!.value) }}
             </span>
           </NuxtLink>
-        </li>
-      </ol>
-      <p class="mt-auto flex items-center justify-between gap-2 pt-3 text-[11px] text-muted-foreground">
-        <span>Current ELO · {{ selectedMode }} · current season</span>
-        <NuxtLink :to="leaderboardLink" class="inline-flex items-center gap-1 whitespace-nowrap hover:text-foreground">
-          Full leaderboard
-          <ArrowRight class="size-3" aria-hidden="true" />
-        </NuxtLink>
-      </p>
-    </div>
+          <p
+            v-else
+            class="flex min-h-10 items-center justify-between gap-2 rounded-md border border-dashed border-border/70 px-2.5 text-xs text-muted-foreground"
+            :data-testid="`home-elo-unranked-${mode.alias}`"
+          >
+            <span>You are unranked in {{ mode.value }}</span>
+            <span class="font-mono font-bold">-</span>
+          </p>
+        </template>
+      </template>
+    </section>
   </div>
 
   <div

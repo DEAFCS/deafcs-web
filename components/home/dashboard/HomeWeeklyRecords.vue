@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { ChevronLeft, ChevronRight } from "lucide-vue-next";
 import { $, order_by } from "~/generated/zeus";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
@@ -10,19 +10,37 @@ import {
   homePanelPaddingClasses,
   whenNearViewport,
 } from "~/components/home/dashboard/homeDashboard";
-import { weeklyRecords, type WeeklyRecord } from "~/components/home/dashboard/weeklyRecords";
+import {
+  weeklyRecords,
+  type ClutchRow,
+  type OpeningRow,
+  type RatingRow,
+  type StatsRow,
+  type WeeklyRecord,
+} from "~/components/home/dashboard/weeklyRecords";
 
-// "Last 7 Days": HLTV-style rotating stat leader cards from finished DEAFCS
-// Competitive matches. Loads once, only when the section scrolls near the
-// viewport (one match list + one stats request + the leaders' names).
-// Records are informational; nothing is awarded for them.
+// "Last 7 Days": HLTV-style rotating stat leader cards (top 5) from finished
+// DEAFCS Competitive 5v5 matches. Loads only when the section scrolls near
+// the viewport:
+//   1. the week's matches, then one request for ratings + kills/deaths, and
+//      the leaders' names: every record but clutches and opening kills;
+//   2. in parallel, won clutches and opening kills (database-computed views,
+//      about a second each), added as their cards when they arrive.
+// The result is kept in this browser for 10 minutes so moving around the
+// site does not recompute it. Records are informational, never awarded.
+
+const CACHE_KEY = "deafcs:home:last7days:v2";
+const CACHE_MS = 10 * 60_000;
+
+type PlayerInfo = { name: string; avatar_url: string | null };
 
 const root = ref<HTMLElement | null>(null);
 const state = ref<"idle" | "loading" | "ready" | "error">("idle");
 const records = ref<WeeklyRecord[]>([]);
-const players = ref<Record<string, { name: string; avatar_url: string | null }>>({});
+const players = ref<Record<string, PlayerInfo>>({});
 const matchCount = ref(0);
 const active = ref(0);
+const pillRow = ref<HTMLElement | null>(null);
 
 const matchesQuery = generateQuery({
   matches: [
@@ -36,7 +54,13 @@ const matchesQuery = generateQuery({
       order_by: [{ ended_at: order_by.desc }],
       limit: 500,
     },
-    { id: true, options: { mr: true } },
+    {
+      id: true,
+      options: { mr: true },
+      // Lineup sizes: clutches are only counted in true 5v5 matches.
+      lineup_1: { lineup_players: [{}, { steam_id: true }] },
+      lineup_2: { lineup_players: [{}, { steam_id: true }] },
+    },
   ],
 } as any);
 
@@ -47,7 +71,18 @@ const statsQuery = generateQuery({
   ],
   player_match_stats_v: [
     { where: { match_id: { _in: $("ids", "[uuid!]!") } } },
-    { steam_id: true, match_id: true, kills: true, hs_kills: true },
+    { steam_id: true, match_id: true, kills: true, hs_kills: true, deaths: true },
+  ],
+} as any);
+
+const eventsQuery = generateQuery({
+  v_match_clutches: [
+    { where: { match_id: { _in: $("clutch_ids", "[uuid!]!") }, outcome: { _eq: "won" } } },
+    { match_id: true, clutcher_steam_id: true },
+  ],
+  v_match_player_opening_duels: [
+    { where: { match_id: { _in: $("ids", "[uuid!]!") }, wins: { _gt: 0 } } },
+    { match_id: true, steam_id: true, wins: true },
   ],
 } as any);
 
@@ -58,7 +93,57 @@ const playersQuery = generateQuery({
   ],
 } as any);
 
+function readCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    const cached = raw ? JSON.parse(raw) : null;
+    return cached && Date.now() - cached.at < CACHE_MS ? cached : null;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache() {
+  try {
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ at: Date.now(), records: records.value, players: players.value, matchCount: matchCount.value }),
+    );
+  } catch {
+    // storage full or blocked: the page simply recomputes next time
+  }
+}
+
+// Keep the card the viewer is on when more records arrive.
+function setRecords(next: WeeklyRecord[]) {
+  const key = records.value[active.value]?.key;
+  records.value = next;
+  const index = key ? next.findIndex((r) => r.key === key) : -1;
+  active.value = index >= 0 ? index : 0;
+}
+
+async function loadPlayers(list: WeeklyRecord[]) {
+  const missing = [...new Set(list.flatMap((r) => r.entries.map((e) => e.steamId)))].filter(
+    (id) => !players.value[id],
+  );
+  if (!missing.length) return;
+  const { data } = await getGraphqlClient().query({ query: playersQuery, variables: { steam_ids: missing } });
+  players.value = {
+    ...players.value,
+    ...Object.fromEntries(((data as any)?.players ?? []).map((p: any) => [String(p.steam_id), p])),
+  };
+}
+
 async function load() {
+  const cached = readCache();
+  if (cached) {
+    players.value = cached.players ?? {};
+    matchCount.value = cached.matchCount ?? 0;
+    setRecords(cached.records ?? []);
+    state.value = "ready";
+    return;
+  }
+
   state.value = "loading";
   try {
     const client = getGraphqlClient();
@@ -67,29 +152,44 @@ async function load() {
     const matches: any[] = (matchData as any)?.matches ?? [];
     matchCount.value = matches.length;
     if (!matches.length) {
-      records.value = [];
+      setRecords([]);
       state.value = "ready";
       return;
     }
+
     const ids = matches.map((m) => m.id);
-    const { data } = await client.query({ query: statsQuery, variables: { ids } });
+    const seated = (lineup: any) => (lineup?.lineup_players ?? []).filter((p: any) => p.steam_id).length;
+    const clutchIds = matches
+      .filter((m) => seated(m.lineup_1) === 5 && seated(m.lineup_2) === 5)
+      .map((m) => m.id);
     const mr = Object.fromEntries(matches.map((m) => [m.id, m.options?.mr]));
-    records.value = weeklyRecords(
-      (data as any)?.v_player_match_rating ?? [],
-      (data as any)?.player_match_stats_v ?? [],
-      mr,
-    );
-    const steamIds = [...new Set(records.value.flatMap((r) => r.entries.map((e) => e.steamId)))];
-    if (steamIds.length) {
-      const { data: playerData } = await client.query({
-        query: playersQuery,
-        variables: { steam_ids: steamIds },
-      });
-      players.value = Object.fromEntries(
-        ((playerData as any)?.players ?? []).map((p: any) => [String(p.steam_id), p]),
-      );
-    }
+
+    const events = client
+      .query({ query: eventsQuery, variables: { ids, clutch_ids: clutchIds } })
+      .then(({ data }) => ({
+        clutches: ((data as any)?.v_match_clutches ?? []) as ClutchRow[],
+        openings: ((data as any)?.v_match_player_opening_duels ?? []) as OpeningRow[],
+      }));
+
+    const { data } = await client.query({ query: statsQuery, variables: { ids } });
+    const ratings = ((data as any)?.v_player_match_rating ?? []) as RatingRow[];
+    const stats = ((data as any)?.player_match_stats_v ?? []) as StatsRow[];
+
+    const base = weeklyRecords(ratings, stats, mr);
+    await loadPlayers(base);
+    setRecords(base);
     state.value = "ready";
+
+    try {
+      const extra = await events;
+      const full = weeklyRecords(ratings, stats, mr, extra);
+      await loadPlayers(full);
+      setRecords(full);
+      writeCache();
+    } catch (error) {
+      // Clutches and opening kills stay out; the other records still show.
+      console.error("[home] last 7 days clutches/opening kills:", error);
+    }
   } catch (error) {
     console.error("[home] last 7 days records:", error);
     state.value = "error";
@@ -121,13 +221,25 @@ function stopRotation() {
 onMounted(() => {
   reducedMotion.value = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 });
-watch(records, () => {
-  active.value = 0;
-  startRotation();
-});
+watch(
+  () => records.value.length,
+  () => startRotation(),
+);
 onBeforeUnmount(() => {
   stopObserving();
   stopRotation();
+});
+
+// The pill row scrolls sideways; keep the active category in view.
+watch(active, async (index) => {
+  await nextTick();
+  const pill = pillRow.value?.children[index] as HTMLElement | undefined;
+  const row = pillRow.value;
+  if (!pill || !row) return;
+  const left = pill.offsetLeft - row.offsetLeft;
+  if (left < row.scrollLeft || left + pill.offsetWidth > row.scrollLeft + row.clientWidth) {
+    row.scrollTo({ left: Math.max(0, left - 8), behavior: reducedMotion.value ? "auto" : "smooth" });
+  }
 });
 
 function go(step: number) {
@@ -141,6 +253,11 @@ const current = computed(() => records.value[active.value] ?? null);
 const leader = computed(() => current.value?.entries[0] ?? null);
 const nameOf = (steamId: string) => players.value[steamId]?.name ?? "Player";
 const avatarOf = (steamId: string) => players.value[steamId]?.avatar_url ?? null;
+const scoreboard = (matchId: string) => ({
+  name: "matches-id",
+  params: { id: matchId },
+  query: { tab: "scoreboard" },
+});
 </script>
 
 <template>
@@ -212,33 +329,49 @@ const avatarOf = (steamId: string) => players.value[steamId]?.avatar_url ?? null
                 >
                   {{ nameOf(leader.steamId) }}
                 </NuxtLink>
+                <!-- Single-match records: the value opens that match's scoreboard. -->
                 <p class="flex items-baseline gap-2">
-                  <span class="font-mono text-4xl font-black tabular-nums leading-none">{{ leader.display }}</span>
+                  <NuxtLink
+                    v-if="leader.matchId"
+                    :to="scoreboard(leader.matchId)"
+                    class="font-mono text-4xl font-black tabular-nums leading-none hover:text-[hsl(var(--tac-amber))]"
+                    :aria-label="`${leader.display} ${current.unit}, open the match scoreboard`"
+                  >{{ leader.display }}</NuxtLink>
+                  <span v-else class="font-mono text-4xl font-black tabular-nums leading-none">{{ leader.display }}</span>
                   <span class="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">{{ current.unit }}</span>
                 </p>
                 <p class="mt-1 text-xs text-muted-foreground">
                   <NuxtLink
                     v-if="leader.matchId"
-                    :to="{ name: 'matches-id', params: { id: leader.matchId } }"
+                    :to="scoreboard(leader.matchId)"
                     class="underline-offset-2 hover:underline"
-                  >{{ leader.detail }}</NuxtLink>
+                  >{{ leader.detail }} · Scoreboard</NuxtLink>
                   <template v-else>{{ leader.detail }}</template>
                 </p>
               </div>
             </div>
 
-            <ol v-if="current.entries.length > 1" class="grid content-center gap-1.5 sm:w-48 sm:border-l sm:border-border/60 sm:pl-4">
+            <!-- #2 to #5: compact rows so the card keeps its height. -->
+            <ol
+              v-if="current.entries.length > 1"
+              class="grid content-center gap-0.5 sm:w-52 sm:border-l sm:border-border/60 sm:pl-4"
+            >
               <li
                 v-for="(entry, index) in current.entries.slice(1)"
-                :key="`${entry.steamId}-${index}`"
-                class="flex min-w-0 items-center gap-2 text-sm"
+                :key="`${entry.steamId}-${entry.matchId ?? ''}-${index}`"
+                class="flex min-w-0 items-center gap-2 text-[13px] leading-6"
               >
-                <span class="w-4 shrink-0 text-center font-mono text-xs font-bold text-muted-foreground">{{ index + 2 }}</span>
+                <span class="w-4 shrink-0 text-center font-mono text-xs font-bold text-muted-foreground">{{ entry.place }}</span>
                 <NuxtLink
                   :to="{ name: 'players-id', params: { id: entry.steamId } }"
                   class="min-w-0 flex-1 truncate hover:text-[hsl(var(--tac-amber))]"
                 >{{ nameOf(entry.steamId) }}</NuxtLink>
-                <span class="shrink-0 font-mono text-sm font-bold tabular-nums">{{ entry.display }}</span>
+                <NuxtLink
+                  v-if="entry.matchId"
+                  :to="scoreboard(entry.matchId)"
+                  class="shrink-0 font-mono text-[13px] font-bold tabular-nums hover:text-[hsl(var(--tac-amber))]"
+                >{{ entry.display }}</NuxtLink>
+                <span v-else class="shrink-0 font-mono text-[13px] font-bold tabular-nums">{{ entry.display }}</span>
               </li>
             </ol>
           </div>
@@ -257,14 +390,19 @@ const avatarOf = (steamId: string) => players.value[steamId]?.avatar_url ?? null
         >
           <ChevronLeft class="size-4" />
         </button>
-        <div class="flex min-w-0 flex-1 gap-1.5 overflow-x-auto [scrollbar-width:none]" role="tablist" aria-label="Records">
+        <div
+          ref="pillRow"
+          class="flex min-w-0 flex-1 snap-x gap-1.5 overflow-x-auto [scrollbar-width:none]"
+          role="tablist"
+          aria-label="Records"
+        >
           <button
             v-for="(record, index) in records"
             :key="record.key"
             type="button"
             role="tab"
             :aria-selected="index === active"
-            class="shrink-0 whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors"
+            class="shrink-0 snap-start whitespace-nowrap rounded-full border px-2.5 py-1 text-[11px] font-semibold transition-colors"
             :class="
               index === active
                 ? 'border-[hsl(var(--tac-amber)/0.6)] bg-[hsl(var(--tac-amber)/0.14)] text-foreground'
@@ -286,7 +424,7 @@ const avatarOf = (steamId: string) => players.value[steamId]?.avatar_url ?? null
       </div>
 
       <p class="text-[11px] text-muted-foreground">
-        From {{ matchCount }} Competitive DEAFCS matches finished in the last 7 days. Weekly records are not awards.
+        From {{ matchCount }} Competitive 5v5 DEAFCS matches finished in the last 7 days. Weekly records are not awards.
       </p>
     </div>
   </section>

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { ChevronLeft, ChevronRight } from "lucide-vue-next";
 import { $, order_by } from "~/generated/zeus";
 import getGraphqlClient from "~/graphql/getGraphqlClient";
 import { generateQuery } from "~/graphql/graphqlGen";
 import { watchTickerMatchFields } from "~/graphql/watchTickerFields";
+import HorizontalScrollRow from "~/components/common/HorizontalScrollRow.vue";
 import WatchMatchCard from "~/components/watch/WatchMatchCard.vue";
-import { tickerCell } from "~/components/watch/watchTicker";
+import { resultDayLabel, tickerCell, type TickerCellModel } from "~/components/watch/watchTicker";
 import HomeSectionHeader from "~/components/home/dashboard/HomeSectionHeader.vue";
 import {
   homeEmptyClasses,
@@ -17,16 +19,21 @@ import {
   type HomeViewer,
 } from "~/components/home/dashboard/homeDashboard";
 
-// "Your Recent Matches": this player's own finished DEAFCS matches, as the
-// /watch result cards (WatchMatchCard = 5Stack WatchTickerCell with the DEAFCS
-// map backgrounds; same tickerCell model and watchTickerMatchFields).
+// "Your Recent Matches": this player's own finished DEAFCS matches as the
+// /watch match rail shows its results (WatchMatchRail): one horizontal row of
+// WatchMatchCard (5Stack WatchTickerCell with the DEAFCS map backgrounds),
+// day dividers, arrows, and older matches paging in as the row scrolls.
+// Results only, so no live block.
 const props = defineProps<{ viewer: HomeViewer }>();
 
-const LIMIT = 6;
+const PAGE = 12;
 const { t, locale } = useI18n();
 const root = ref<HTMLElement | null>(null);
+const scrollRow = ref<InstanceType<typeof HorizontalScrollRow> | null>(null);
 const matches = ref<any[]>([]);
 const state = ref<"idle" | "ready" | "error">("idle");
+const loadingMore = ref(false);
+const done = ref(false);
 
 const query = generateQuery({
   matches: [
@@ -37,7 +44,8 @@ const query = generateQuery({
         ...lineupHasPlayer($("steam_id", "bigint!")),
       },
       order_by: [{ ended_at: order_by.desc_nulls_last }],
-      limit: LIMIT,
+      limit: $("limit", "Int!"),
+      offset: $("offset", "Int!"),
     },
     {
       ...watchTickerMatchFields,
@@ -48,18 +56,25 @@ const query = generateQuery({
   ],
 } as any);
 
-async function load() {
+async function load(more = false) {
+  if (more && (loadingMore.value || done.value)) return;
+  loadingMore.value = more;
   try {
     const { data } = await getGraphqlClient().query({
       query,
-      variables: { steam_id: props.viewer.steamId },
+      variables: { steam_id: props.viewer.steamId, limit: PAGE, offset: more ? matches.value.length : 0 },
       fetchPolicy: "network-only",
     });
-    matches.value = (data as any)?.matches ?? [];
+    const page: any[] = (data as any)?.matches ?? [];
+    const known = new Set(matches.value.map((m) => m.id));
+    matches.value = more ? [...matches.value, ...page.filter((m) => !known.has(m.id))] : page;
+    done.value = page.length < PAGE;
     state.value = "ready";
   } catch (error) {
     console.error("[home] recent matches:", error);
-    state.value = "error";
+    if (!more) state.value = "error";
+  } finally {
+    loadingMore.value = false;
   }
 }
 
@@ -69,12 +84,7 @@ onMounted(() => {
 });
 onBeforeUnmount(() => stopObserving());
 
-const cells = computed(() => {
-  const ctx = { t, locale: locale.value, now: new Date() };
-  return matches.value.map((match) => tickerCell(match, ctx));
-});
-
-// Win or loss from the viewer's side, shown as a thin strip under each card.
+// Win or loss from the viewer's side, shown on each card.
 function outcome(match: any): "win" | "loss" | null {
   if (!match?.winning_lineup_id) return null;
   const steamId = String(props.viewer.steamId);
@@ -88,7 +98,35 @@ function outcome(match: any): "win" | "loss" | null {
   if (!mine) return null;
   return match.winning_lineup_id === mine ? "win" : "loss";
 }
-const outcomes = computed(() => new Map(matches.value.map((m) => [m.id, outcome(m)])));
+
+type Item =
+  | { type: "cell"; key: string; model: TickerCellModel; outcome: "win" | "loss" | null }
+  | { type: "divider"; key: string; label: string };
+
+// Same day dividers as the /watch results ("Today", "Yesterday", dates).
+const items = computed<Item[]>(() => {
+  const now = new Date();
+  const ctx = { t, locale: locale.value, now };
+  const list: Item[] = [];
+  let lastDay: string | null = null;
+  for (const match of matches.value) {
+    const day = resultDayLabel(match.ended_at, now, t, locale.value);
+    if (day && day !== lastDay) {
+      list.push({ type: "divider", key: `day-${day}`, label: day });
+      lastDay = day;
+    }
+    list.push({ type: "cell", key: match.id, model: tickerCell(match, ctx), outcome: outcome(match) });
+  }
+  return list;
+});
+
+function scrollRight() {
+  scrollRow.value?.scrollByDirection("right");
+  if (!scrollRow.value?.state.canScrollRight) void load(true);
+}
+
+const arrowClasses =
+  "inline-flex size-8 items-center justify-center rounded-md border border-border bg-muted/30 text-foreground/80 transition-colors duration-150 hover:bg-muted/60 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--tac-amber))] disabled:cursor-default disabled:opacity-35 disabled:hover:bg-muted/30";
 </script>
 
 <template>
@@ -103,39 +141,63 @@ const outcomes = computed(() => new Map(matches.value.map((m) => [m.id, outcome(
       title="Your Recent Matches"
       :to="`/players/${viewer.steamId}`"
       link-label="Match history"
-    />
+    >
+      <template #actions>
+        <div v-if="items.length" class="flex gap-1.5 max-sm:hidden">
+          <button
+            type="button"
+            :class="arrowClasses"
+            :aria-label="$t('ui.scroll.left')"
+            :disabled="!scrollRow?.state.canScrollLeft"
+            @click="scrollRow?.scrollByDirection('left')"
+          >
+            <ChevronLeft class="size-4" />
+          </button>
+          <button
+            type="button"
+            :class="arrowClasses"
+            :aria-label="$t('ui.scroll.right')"
+            :disabled="!scrollRow?.state.canScrollRight && done"
+            @click="scrollRight"
+          >
+            <ChevronRight class="size-4" />
+          </button>
+        </div>
+      </template>
+    </HomeSectionHeader>
 
-    <div v-if="state === 'idle'" class="flex flex-wrap gap-3">
-      <div v-for="i in 3" :key="i" class="h-[6.875rem] w-56 animate-pulse rounded-lg bg-muted/30"></div>
+    <div v-if="state === 'idle'" class="flex gap-3 overflow-hidden">
+      <div v-for="i in 5" :key="i" class="h-[6.875rem] w-56 shrink-0 animate-pulse rounded-lg bg-muted/30"></div>
     </div>
     <p v-else-if="state === 'error'" :class="homeEmptyClasses">Could not load your recent matches.</p>
-    <p v-else-if="!cells.length" :class="homeEmptyClasses">
+    <p v-else-if="!items.length" :class="homeEmptyClasses">
       Your finished matches will show up here.
       <NuxtLink to="/play" class="font-semibold text-[hsl(var(--tac-amber))] hover:underline">Find a match</NuxtLink>
     </p>
-    <!-- Phones: one swipeable row like the /watch rail; a grid from sm up. -->
-    <ul v-else class="home-recent-grid -mx-1 flex snap-x gap-3 overflow-x-auto px-1 pb-1 [scrollbar-width:none] sm:mx-0 sm:grid sm:overflow-visible sm:px-0 sm:pb-0">
-      <li v-for="cell in cells" :key="cell.id" class="relative w-56 min-w-0 shrink-0 snap-start sm:w-auto">
-        <WatchMatchCard :model="cell" :stream-label="null" class="!w-full" />
-        <span
-          v-if="outcomes.get(cell.id)"
-          class="pointer-events-none absolute bottom-2.5 right-3 z-10 rounded px-1.5 font-mono text-[0.6rem] font-bold uppercase leading-4"
-          :aria-label="outcomes.get(cell.id) === 'win' ? 'Win' : 'Loss'"
-          :class="
-            outcomes.get(cell.id) === 'win'
-              ? 'bg-emerald-500/90 text-black'
-              : 'bg-destructive/90 text-white'
-          "
-        >{{ outcomes.get(cell.id) === "win" ? "W" : "L" }}</span>
-      </li>
-    </ul>
+    <HorizontalScrollRow v-else ref="scrollRow" @approaching-end="load(true)">
+      <div
+        v-for="item in items"
+        :key="item.key"
+        class="relative flex shrink-0 snap-start"
+        data-testid="home-recent-item"
+      >
+        <template v-if="item.type === 'cell'">
+          <WatchMatchCard :model="item.model" :stream-label="null" />
+          <span
+            v-if="item.outcome"
+            class="pointer-events-none absolute bottom-2.5 right-3 z-10 rounded px-1.5 font-mono text-[0.6rem] font-bold uppercase leading-4"
+            :aria-label="item.outcome === 'win' ? 'Win' : 'Loss'"
+            :class="item.outcome === 'win' ? 'bg-emerald-500/90 text-black' : 'bg-destructive/90 text-white'"
+          >{{ item.outcome === "win" ? "W" : "L" }}</span>
+        </template>
+        <div
+          v-else
+          class="ml-1.5 flex h-[6.875rem] min-w-[4.75rem] flex-col justify-center border-l border-border/70 pl-3 pr-2"
+        >
+          <span class="whitespace-nowrap text-[13px] font-bold">{{ item.label }}</span>
+        </div>
+      </div>
+      <div v-if="loadingMore" class="h-[6.875rem] w-56 shrink-0 animate-pulse rounded-lg bg-muted/30"></div>
+    </HorizontalScrollRow>
   </section>
 </template>
-
-<style scoped>
-@media (min-width: 640px) {
-  .home-recent-grid {
-    grid-template-columns: repeat(auto-fill, minmax(13.5rem, 1fr));
-  }
-}
-</style>

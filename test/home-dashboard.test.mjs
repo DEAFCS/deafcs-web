@@ -5,6 +5,8 @@ import {
   HS_MIN_KILLS,
   RATE_MIN_MATCHES,
   RATE_MIN_ROUNDS,
+  RECORD_ORDER,
+  SINGLE_MATCH_MIN_ROUNDS,
   weeklyRecords,
 } from "../components/home/dashboard/weeklyRecords.ts";
 
@@ -18,13 +20,13 @@ const samples = await read("../components/home/dashboard/homePreviewSamples.ts")
 
 // --- weekly records -------------------------------------------------------
 
-function rows(steamId, matches, { rounds = 24, adr = 80, rating = 1, kills = 18, hs = 9 } = {}) {
+function rows(steamId, matches, { rounds = 24, adr = 80, rating = 1, kills = 18, hs = 9, deaths = 15 } = {}) {
   const ratings = [];
   const stats = [];
   for (let i = 0; i < matches; i++) {
     const match_id = `${steamId}-m${i}`;
     ratings.push({ steam_id: steamId, match_id, adr, hltv_rating: rating, rounds_played: rounds });
-    stats.push({ steam_id: steamId, match_id, kills, hs_kills: hs });
+    stats.push({ steam_id: steamId, match_id, kills, hs_kills: hs, deaths });
   }
   return { ratings, stats };
 }
@@ -97,11 +99,12 @@ test("a short-handed player in an overtime match does not count as regulation", 
   assert.equal(result, undefined);
 });
 
-test("records keep the top three and drop empty records", () => {
-  const players = ["1", "2", "3", "4"].map((id, i) => rows(id, 1, { kills: 10 + i }));
+test("records keep the top five and drop empty records", () => {
+  const players = ["1", "2", "3", "4", "5", "6"].map((id, i) => rows(id, 1, { kills: 10 + i }));
   const { ratings, stats } = merge(...players);
   const records = weeklyRecords(ratings, stats, {});
-  assert.deepEqual(record(records, "kills").entries.map((e) => e.steamId), ["4", "3", "2"]);
+  assert.deepEqual(record(records, "kills").entries.map((e) => e.steamId), ["6", "5", "4", "3", "2"]);
+  assert.deepEqual(record(records, "kills").entries.map((e) => e.place), [1, 2, 3, 4, 5]);
   assert.equal(record(records, "kills").entries[0].detail, "1 match");
   const many = rows("9", 5);
   const manyRecords = weeklyRecords(many.ratings, many.stats, {});
@@ -110,7 +113,82 @@ test("records keep the top three and drop empty records", () => {
   assert.equal(weeklyRecords([], [], {}).length, 0);
 });
 
+test("tied values share a place (competition ranking), order stays deterministic", () => {
+  const players = ["3", "1", "2", "4"].map((id) => rows(id, 1, { kills: id === "4" ? 5 : 20 }));
+  const { ratings, stats } = merge(...players);
+  const entries = record(weeklyRecords(ratings, stats, {}), "kills").entries;
+  assert.deepEqual(entries.map((e) => [e.steamId, e.place]), [["1", 1], ["2", 1], ["3", 1], ["4", 4]]);
+});
+
+test("lowest DPR is total deaths / total rounds, with the rate minimums", () => {
+  // 15 deaths in 24 rounds (0.625/round), then 0 deaths in 10 rounds: the
+  // true weekly DPR is 30/58 = 0.52, not the average of match DPRs.
+  const a = rows("1", 2, { rounds: 24, deaths: 15 });
+  const b = rows("1", 1, { rounds: 10, deaths: 0 });
+  b.ratings[0].match_id = b.stats[0].match_id = "1-extra";
+  const worse = rows("2", 3, { rounds: 24, deaths: 20 });
+  const short = rows("3", RATE_MIN_MATCHES - 1, { deaths: 1 });
+  const { ratings, stats } = merge(a, b, worse, short);
+  const entries = record(weeklyRecords(ratings, stats, {}), "dpr").entries;
+  assert.deepEqual(entries.map((e) => e.steamId), ["1", "2"]);
+  assert.equal(entries[0].display, "0.52");
+});
+
+test("single-match records need the minimum rounds and link the match", () => {
+  const short = rows("1", 1, { rounds: SINGLE_MATCH_MIN_ROUNDS - 1, rating: 3, adr: 200, kills: 15 });
+  const full = rows("2", 1, { rounds: 20, rating: 1.4, adr: 95, kills: 22 });
+  const { ratings, stats } = merge(short, full);
+  const records = weeklyRecords(ratings, stats, {});
+  for (const key of ["match_rating", "match_adr", "match_kills"]) {
+    const entries = record(records, key).entries;
+    assert.deepEqual(entries.map((e) => e.steamId), ["2"], key);
+    assert.equal(entries[0].matchId, "2-m0", key);
+  }
+  assert.equal(record(records, "match_rating").entries[0].display, "1.40");
+  assert.equal(record(records, "match_adr").entries[0].display, "95.0");
+});
+
+test("clutches and opening kills only appear when their data loaded", () => {
+  const p = merge(rows("1", 2), rows("2", 2));
+  const without = weeklyRecords(p.ratings, p.stats, {});
+  assert.equal(record(without, "clutches"), undefined);
+  assert.equal(record(without, "opening_kills"), undefined);
+
+  const withEvents = weeklyRecords(p.ratings, p.stats, {}, {
+    clutches: [
+      { match_id: "1-m0", clutcher_steam_id: "1" },
+      { match_id: "1-m1", clutcher_steam_id: "1" },
+      { match_id: "2-m0", clutcher_steam_id: "2" },
+    ],
+    openings: [
+      { match_id: "1-m0", steam_id: "2", wins: 4 },
+      { match_id: "1-m0", steam_id: "2", wins: 3 },
+      { match_id: "1-m0", steam_id: "1", wins: 5 },
+    ],
+  });
+  assert.deepEqual(record(withEvents, "clutches").entries.map((e) => [e.steamId, e.value]), [["1", 2], ["2", 1]]);
+  assert.deepEqual(record(withEvents, "opening_kills").entries.map((e) => [e.steamId, e.value]), [["2", 7], ["1", 5]]);
+  // Categories come in the agreed order.
+  assert.deepEqual(withEvents.map((r) => r.key), RECORD_ORDER.filter((k) => withEvents.some((r) => r.key === k)));
+});
+
+test("no AWP or knife records", () => {
+  assert.ok(!RECORD_ORDER.some((key) => /awp|knife/i.test(key)));
+});
+
 // --- page wiring ----------------------------------------------------------
+
+test("the dashboard has a personal area, then the community area", () => {
+  const template = dashboard.slice(dashboard.indexOf("<template>"));
+  const personal = template.indexOf('data-testid="home-area-personal"');
+  const divider = template.indexOf('data-testid="home-area-divider"');
+  const community = template.indexOf('data-testid="home-area-community"');
+  assert.ok(personal >= 0 && personal < divider && divider < community);
+  assert.ok(template.indexOf("<HomeRecentMatches") < divider);
+  assert.ok(template.indexOf("<HomeLiveStreamers") > community);
+  assert.match(template, /<WatchHighlights[\s\S]*:steam-id="viewer\.steamId"/);
+  assert.match(template, /<HomeTopPlayersPreview variant="glass" :viewer-steam-id="viewer\.steamId" \/>/);
+});
 
 test("the signed-in branch renders the dashboard; the logged-out page is untouched", () => {
   assert.match(homeIndex, /<HomeDashboard v-else-if="showLoggedInHome" :viewer="homeViewer" \/>/);
@@ -122,15 +200,17 @@ test("the signed-in branch renders the dashboard; the logged-out page is untouch
 
 test("dashboard sections appear in the agreed order", () => {
   const order = [
+    // Your DEAFCS
     "HomeDashboardHero",
     "HomeScheduledMatches",
     "HomeYourTournament",
+    "HomeRecentMatches",
+    "WatchHighlights",
+    // DEAFCS Community
     "HomeLiveStreamers",
     "HomePlayerOfMonth",
     "HomeWeeklyRecords",
     'HomeTopPlayersPreview variant="glass"',
-    "HomeRecentMatches",
-    "WatchHighlights compact",
     "HomeNewsFeed",
   ];
   const template = dashboard.slice(dashboard.indexOf("<template>"));

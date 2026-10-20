@@ -37,6 +37,11 @@ const props = defineProps<{
   // 5Stack (32e5757): one equal row of four, for pages where highlights are
   // not the hero (the signed-in homepage).
   compact?: boolean;
+  // DEAFCS homepage "Your Highlights": only clips from matches this player
+  // played in, all time by default, and the whole section stays hidden when
+  // the player has none (community highlights stay on /watch).
+  steamId?: string | null;
+  title?: string;
 }>();
 
 const { t } = useI18n();
@@ -45,7 +50,32 @@ type Kind = HighlightKind;
 type Range = HighlightRange;
 
 const kind = ref<Kind>("all");
-const range = ref<Range>("week");
+const range = ref<Range>(props.steamId ? "all" : "week");
+// Player mode: no clip at all from their matches, so nothing to show.
+const noPlayerClips = ref(false);
+const emit = defineEmits<{ (e: "hidden", hidden: boolean): void }>();
+watch(noPlayerClips, (hidden) => emit("hidden", hidden));
+
+function clipsWhere() {
+  const where = highlightsWhere(kind.value, range.value);
+  if (!props.steamId) return where;
+  const steamId = String(props.steamId);
+  return {
+    ...where,
+    _and: [
+      {
+        match_map: {
+          match: {
+            _or: [
+              { lineup_1: { lineup_players: { steam_id: { _eq: steamId } } } },
+              { lineup_2: { lineup_players: { steam_id: { _eq: steamId } } } },
+            ],
+          },
+        },
+      },
+    ],
+  };
+}
 
 const kindOptions = computed(() => [
   { key: "all" as Kind, label: t("pages.watch.highlights.kinds.all") },
@@ -89,13 +119,16 @@ async function fetchClips() {
           clipTileFields,
         ],
       } as any),
-      variables: { where: highlightsWhere(kind.value, range.value), limit: limit.value },
+      variables: { where: clipsWhere(), limit: limit.value },
       fetchPolicy: "network-only",
     });
     if (id !== requestId) return;
     clips.value = (((data as any)?.match_clips ?? []) as Clip[]).filter(clip =>
       kind.value === "all" || clipRoundKills(clip) === (kind.value === "ace" ? 5 : 4),
     );
+    if (props.steamId && kind.value === "all" && range.value === "all") {
+      noPlayerClips.value = clips.value.length === 0;
+    }
   } catch (error) {
     if (id === requestId) console.error("[watch] highlights fetch error:", error);
   } finally {
@@ -114,16 +147,16 @@ function leadTag() {
 </script>
 
 <template>
-  <section id="watch-highlights" class="scroll-mt-20" data-testid="watch-highlights">
+  <section v-if="!noPlayerClips" id="watch-highlights" class="scroll-mt-20" data-testid="watch-highlights">
     <div :class="[tacticalSectionLabelClasses, '!flex w-full items-center justify-between']">
       <span class="inline-flex items-center gap-3">
         <span class="inline-flex items-center gap-2">
           <span :class="tacticalSectionTickClasses"></span>
-          {{ $t("pages.watch.highlights.title") }}
+          {{ title || $t("pages.watch.highlights.title") }}
         </span>
         <NuxtLink
           v-if="!ghost"
-          to="/highlights"
+          :to="steamId ? `/players/${steamId}` : '/highlights'"
           class="inline-flex items-center gap-1 font-mono text-[0.65rem] normal-case tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"
         >
           {{ $t("common.see_all") }}
