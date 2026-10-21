@@ -4175,6 +4175,12 @@
         "description": "所有人回到热身，比分回到 0–0。地图重新开始比赛后，在重新开始后的第一个回合结束前，目前打过的任何回合仍可恢复。",
         "restarted": "地图已从热身重新开始",
         "failed": "无法重新开始地图"
+      },
+      "fix": {
+        "title": "解决问题",
+        "restore_title": "某个回合出了问题",
+        "restart_map_title": "这张地图需要从头开始",
+        "restart_map_description": "回到 0–0 的热身。在下一回合结束前，已打过的回合仍可恢复。"
       }
     },
     "highlights": {
@@ -5077,7 +5083,72 @@
     },
     "admin_bar": {
       "rcon_unavailable": "RCON 不可用",
-      "not_controllable": "比赛处于不可控状态。"
+      "not_controllable": "比赛处于不可控状态。",
+      "veto_override": "覆盖否决",
+      "steps": {
+        "label": "比赛阶段",
+        "check_in": "签到",
+        "veto": "否决",
+        "warmup": "热身",
+        "live": "进行中",
+        "paused": "已暂停",
+        "finished": "已结束",
+        "canceled": "已取消",
+        "done": "已完成",
+        "now": "当前阶段",
+        "unlocks": "在此解锁",
+        "nothing_new": "此阶段没有新操作",
+        "captain_pick": "队长选人"
+      },
+      "show_console": "显示控制台和日志",
+      "hide_console": "隐藏控制台和日志"
+    },
+    "fix_menu": {
+      "right_now": "当前",
+      "any_time": "随时",
+      "restore_description": "崩溃、bug 或掉线。回退到任意回合的开始。",
+      "undo_last_title": "撤销上一步",
+      "undo_last_description": "撤回 {team} 对 {map} 的选择，让他们重新选择。",
+      "mispick_title": "修正误选",
+      "mispick_description": "选择出错的那一步。该步及之后的所有步骤都会重新进行。",
+      "redo_title": "重新 BP",
+      "redo_description": "所有地图回到地图池，从第一个禁用重新开始。",
+      "time_title": "再给 30 秒",
+      "time_description": "为 {team} 的计时器增加时间。",
+      "later_rounds": "地图开始进行后，回合修正才会开放。",
+      "undo_confirm": "撤销此步",
+      "rewound": "BP 已回退到第 {step} 步",
+      "rewind_failed": "无法回退 BP",
+      "time_added": "BP 计时器已增加 {seconds} 秒",
+      "time_failed": "无法为 BP 计时器增加时间"
+    },
+    "veto_rewind": {
+      "title": "BP · BO{count}",
+      "to_act": "执行第 {step} 步",
+      "ban": "禁用",
+      "pick": "选择",
+      "side": "阵营",
+      "decider": "决胜图",
+      "now": "当前",
+      "drawn": "剩余地图",
+      "redone": "重做",
+      "again_from": "重新进行第 {step} 步",
+      "rewind_to_step": "回退到第 {step} 步",
+      "again_ban": "{team} 重新禁用",
+      "again_pick": "{team} 重新选择",
+      "again_side": "{team} 重新选择阵营",
+      "again_decider": "重新确定决胜图",
+      "cleared_ban": "{team} 对 {map} 的禁用",
+      "cleared_pick": "{team} 对 {map} 的选择",
+      "cleared_side": "{team} 在 {map} 的阵营",
+      "cleared_decider": "决胜图 {map}",
+      "bar_headline": "回退到第 {step} 步 · {again}",
+      "bar_detail": "将清除：{list}。计时器重新开始。",
+      "confirm": "回退 BP",
+      "footnote": "被禁用的地图会回到地图池",
+      "eyebrow": "预览 · 从第 {step} 步开始",
+      "dialog_title": "修正 BP",
+      "dialog_description": "点击出错的那一步。该步及之后的所有步骤都会重新进行。"
     }
   },
   "ui": {
