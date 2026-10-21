@@ -78,7 +78,7 @@ const isRenderJobs = (q: string) => q.includes("clip_render_jobs");
 describe("MatchActions clip_render_jobs summary subscription", () => {
   it("subscribes through the guarded watcher only (no unconditional created() subscribe)", () => {
     expect(component.watch.renderSummaryScope.immediate).toBe(true);
-    expect(component.created.toString()).not.toContain("subscribeRenderSummary");
+    expect(String(component.created ?? "")).not.toContain("subscribeRenderSummary");
   });
 
   it("guest: no clip_render_jobs subscription at all", () => {

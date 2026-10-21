@@ -45,7 +45,7 @@ import {
       size="sm"
       variant="outline"
       @click="togglePause"
-      :disabled="!match.is_server_online"
+      :disabled="!match.is_server_online || togglingPause"
       :class="[
         'h-9 gap-1.5 font-mono text-[0.62rem] font-bold tracking-[0.18em] uppercase',
         isPaused
@@ -460,16 +460,16 @@ const RESUME_CLIP_RENDER_BATCH = gql`
     }
   }
 `;
-import socket from "~/web-sockets/Socket";
-import { v4 as uuidv4 } from "uuid";
+
+const SET_MATCH_PAUSED = gql`
+  mutation SetMatchPaused($match_id: uuid!, $paused: Boolean!) {
+    setMatchPaused(match_id: $match_id, paused: $paused) {
+      success
+    }
+  }
+`;
 import { useGpuPoolStatusStore } from "~/stores/GpuPoolStatusStore";
 import { useStreamerStore } from "~/stores/StreamerStore";
-import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
-import {
-  RconAction,
-  resolveRconCommand,
-  effectivePluginRuntime,
-} from "~/constants/rconCommands";
 export default {
   props: {
     match: {
@@ -483,7 +483,7 @@ export default {
       showVoidEloDialog: false,
       voidingElo: false,
       showSupportRequestedDialog: false,
-      rconUuid: undefined as string | undefined,
+      togglingPause: false,
       switching: false,
       renderSummary: [] as Array<{
         match_map_id: string;
@@ -499,12 +499,7 @@ export default {
       showRestartMapDialog: false,
     };
   },
-  created() {
-    this.rconUuid = uuidv4();
-    socket.on("rcon", this.onRconResponse);
-  },
   beforeUnmount() {
-    socket.removeListener("rcon", this.onRconResponse);
     this.renderSummarySub?.unsubscribe();
   },
   watch: {
@@ -836,38 +831,30 @@ export default {
         });
       }
     },
-    onRconResponse(data: any) {
-      if (data.uuid !== this.rconUuid) {
-        return;
-      }
-      if (data.result === "unable to connect to rcon") {
+    // The setMatchPaused action sends only the plugin's pause or resume, so
+    // organizers get it without the RCON console.
+    async togglePause() {
+      const paused = !this.isPaused;
+      this.togglingPause = true;
+      try {
+        await this.$apollo.mutate({
+          mutation: SET_MATCH_PAUSED,
+          variables: { match_id: this.match.id, paused },
+        });
+        toast({
+          title: paused
+            ? this.$t("match.actions.match_paused")
+            : this.$t("match.actions.match_resumed"),
+        });
+      } catch (error: any) {
         toast({
           variant: "destructive",
           title: this.$t("common.error"),
+          description: error?.message,
         });
-      } else {
-        toast({
-          title: this.isPaused
-            ? this.$t("match.actions.match_resumed")
-            : this.$t("match.actions.match_paused"),
-        });
+      } finally {
+        this.togglingPause = false;
       }
-    },
-    togglePause() {
-      const pluginRuntime = effectivePluginRuntime(
-        this.match.server_plugin_runtime,
-        useApplicationSettingsStore().gameServerPluginRuntime,
-      );
-      const command = resolveRconCommand(
-        this.isPaused ? RconAction.Resume : RconAction.Pause,
-        pluginRuntime,
-      );
-      this.rconUuid = uuidv4();
-      socket.event("rcon", {
-        uuid: this.rconUuid,
-        serverId: this.match.server_id,
-        command,
-      });
     },
     async callForOrganizer() {
       await this.$apollo.mutate({
@@ -1143,11 +1130,14 @@ export default {
     isPaused() {
       return this.currentMap?.status === e_match_map_status_enum.Paused;
     },
-    // Pause and resume go through RCON, which is administrator-only.
+    // Organizers of the match (match organizers on any match, tournament
+    // organizers on their own tournaments'), but only an administrator while
+    // playing in it. The API checks the same.
     canPauseResume() {
       if (
         !this.match.is_organizer ||
-        !useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+        (this.match.is_in_lineup &&
+          !useAuthStore().isRoleAbove(e_player_roles_enum.administrator))
       ) {
         return false;
       }
