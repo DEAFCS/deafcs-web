@@ -32,7 +32,19 @@ import {
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
 
-const props = defineProps<{ ghost?: boolean }>();
+const props = defineProps<{
+  ghost?: boolean;
+  // 5Stack (32e5757): one equal row of four, for pages where highlights are
+  // not the hero (the signed-in homepage).
+  compact?: boolean;
+  // DEAFCS homepage "Your Highlights": only clips where this player is the
+  // featured player (match_clips.target_steam_id, the same field the player
+  // profile's PlayerHighlights and /highlights?player= filter on; the clip's
+  // kills and POV are that player's). All time by default; the whole section
+  // stays hidden when the player has none (community highlights stay on /watch).
+  steamId?: string | null;
+  title?: string;
+}>();
 
 const { t } = useI18n();
 
@@ -40,7 +52,29 @@ type Kind = HighlightKind;
 type Range = HighlightRange;
 
 const kind = ref<Kind>("all");
-const range = ref<Range>("week");
+const range = ref<Range>(props.steamId ? "all" : "week");
+// Player mode: no clip at all from their matches, so nothing to show.
+const noPlayerClips = ref(false);
+const emit = defineEmits<{ (e: "hidden", hidden: boolean): void }>();
+watch(noPlayerClips, (hidden) => emit("hidden", hidden));
+
+function clipsWhere() {
+  const where = highlightsWhere(kind.value, range.value);
+  if (!props.steamId) return where;
+  return { ...where, target_steam_id: { _eq: String(props.steamId) } };
+}
+
+// "See all": /highlights with the same player and, as far as that page's
+// filters allow, the same kind and range (its kills filter means "at least").
+const seeAllLink = computed(() => {
+  if (!props.steamId) return "/highlights";
+  const query: Record<string, string> = { player: String(props.steamId) };
+  if (kind.value === "ace") query.kills = "5";
+  if (kind.value === "4k") query.kills = "4";
+  if (range.value === "today") query.since = "24h";
+  if (range.value === "week") query.since = "7d";
+  return { path: "/highlights", query };
+});
 
 const kindOptions = computed(() => [
   { key: "all" as Kind, label: t("pages.watch.highlights.kinds.all") },
@@ -56,10 +90,14 @@ const rangeOptions = computed(() => [
 
 const clips = ref<Clip[]>([]);
 const loading = ref(true);
-// Lead play plus up to six.
-const LIMIT = 7;
+// Lead play plus up to six; compact is one row of four (5Stack).
+const limit = computed(() => (props.compact ? 4 : 7));
 
-const cells = computed(() => highlightCells(clips.value));
+const cells = computed(() =>
+  props.compact
+    ? clips.value.map((clip) => ({ clip, cols: 12 / clips.value.length, rows: 1, hero: false }))
+    : highlightCells(clips.value),
+);
 const { clearClipQueue } = useClipModal();
 onBeforeUnmount(() => { requestId++; clearClipQueue("watch-highlights"); });
 
@@ -80,13 +118,16 @@ async function fetchClips() {
           clipTileFields,
         ],
       } as any),
-      variables: { where: highlightsWhere(kind.value, range.value), limit: LIMIT },
+      variables: { where: clipsWhere(), limit: limit.value },
       fetchPolicy: "network-only",
     });
     if (id !== requestId) return;
     clips.value = (((data as any)?.match_clips ?? []) as Clip[]).filter(clip =>
       kind.value === "all" || clipRoundKills(clip) === (kind.value === "ace" ? 5 : 4),
     );
+    if (props.steamId && kind.value === "all" && range.value === "all") {
+      noPlayerClips.value = clips.value.length === 0;
+    }
   } catch (error) {
     if (id === requestId) console.error("[watch] highlights fetch error:", error);
   } finally {
@@ -105,16 +146,16 @@ function leadTag() {
 </script>
 
 <template>
-  <section id="watch-highlights" class="scroll-mt-20" data-testid="watch-highlights">
+  <section v-if="!noPlayerClips" id="watch-highlights" class="scroll-mt-20" data-testid="watch-highlights">
     <div :class="[tacticalSectionLabelClasses, '!flex w-full items-center justify-between']">
       <span class="inline-flex items-center gap-3">
         <span class="inline-flex items-center gap-2">
           <span :class="tacticalSectionTickClasses"></span>
-          {{ $t("pages.watch.highlights.title") }}
+          {{ title || $t("pages.watch.highlights.title") }}
         </span>
         <NuxtLink
           v-if="!ghost"
-          to="/highlights"
+          :to="seeAllLink"
           class="inline-flex items-center gap-1 font-mono text-[0.65rem] normal-case tracking-[0.16em] text-muted-foreground transition-colors hover:text-foreground"
         >
           {{ $t("common.see_all") }}
@@ -150,8 +191,8 @@ function leadTag() {
       <div v-for="index in 4" :key="index" aria-hidden="true" class="watch-bento-cell rounded-lg border border-dashed border-border/70"></div>
     </div>
 
-    <div v-else-if="loading" class="watch-bento">
-      <Skeleton class="watch-bento-cell watch-bento-hero rounded-lg" />
+    <div v-else-if="loading" class="watch-bento" :class="{ 'watch-bento--compact': compact }">
+      <Skeleton v-if="!compact" class="watch-bento-cell watch-bento-hero rounded-lg" />
       <Skeleton v-for="index in 4" :key="index" class="watch-bento-cell rounded-lg" />
     </div>
 
@@ -166,7 +207,7 @@ function leadTag() {
       </Button>
     </div>
 
-    <div v-else class="watch-bento" data-testid="watch-highlights-grid">
+    <div v-else class="watch-bento" :class="{ 'watch-bento--compact': compact }" data-testid="watch-highlights-grid">
       <div
         v-for="(cell, index) in cells"
         :key="cell.clip.id"
@@ -176,7 +217,7 @@ function leadTag() {
         :data-testid="index === 0 ? 'watch-highlight-lead' : 'watch-highlight-tile'"
       >
         <ClipTile :clip="cell.clip" :variant="cell.hero ? 'hero' : 'tile'"
-          :tag="cell.hero ? leadTag() : undefined" :queue="clips" queue-scope="watch-highlights" fill
+          :tag="cell.hero || (compact && index === 0) ? leadTag() : undefined" :queue="clips" queue-scope="watch-highlights" fill
           @visibility-changed="(id, visibility) => { if (visibility !== 'public') clips = clips.filter(c => c.id !== id); }" />
       </div>
     </div>
@@ -196,5 +237,9 @@ function leadTag() {
   .watch-bento { grid-template-columns: minmax(0, 1fr); }
   .watch-bento-cell, .watch-bento-hero { grid-column: span 1; aspect-ratio: 16 / 11; }
   .watch-bento-hero { aspect-ratio: 4 / 3.4; }
+  /* DEAFCS: the compact row stays two across on phones, so four plays do not
+     stack into a very long column on the homepage. */
+  .watch-bento--compact { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .watch-bento--compact .watch-bento-cell { aspect-ratio: 4 / 3.6; }
 }
 </style>

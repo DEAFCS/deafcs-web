@@ -79,6 +79,37 @@ export async function saveMyTwitchChannel(
   }
 }
 
+// A DEAFCS player who is live on their linked Twitch channel, in the
+// Counter-Strike category (the API checks the category, game id 32399).
+export type LiveStreamer = {
+  steamId: string;
+  playerName: string;
+  avatarUrl: string | null;
+  channel: string;
+  link: string;
+  title: string | null;
+  viewerCount: number | null;
+  startedAt: string | null;
+  // Twitch CDN preview (320x180), when Twitch gives one.
+  thumbnailUrl?: string | null;
+};
+
+// Every linked player live in Counter-Strike right now, most viewers first,
+// for the homepage (API GET /twitch/live, shared server-side cache). Returns
+// null when the route is missing (an API without it: stop asking) and [] on
+// any other failure; the section stays hidden either way.
+export async function fetchLiveStreamers(): Promise<LiveStreamer[] | null> {
+  try {
+    const res = await fetch(twitchApi("live"), { credentials: "include" });
+    if (res.status === 404) return null;
+    if (!res.ok) return [];
+    const data = (await res.json()) as { streams?: LiveStreamer[] };
+    return Array.isArray(data?.streams) ? data.streams : [];
+  } catch {
+    return [];
+  }
+}
+
 // Live CS2 POV streams of seated players, per match. The API returns nothing
 // for a match the viewer plays or coaches in.
 export async function fetchMatchAutoStreams(
