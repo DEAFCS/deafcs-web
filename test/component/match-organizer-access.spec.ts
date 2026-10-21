@@ -169,9 +169,41 @@ describe("User A, a match_organizer on someone else's match", () => {
     );
   });
 
-  it("is never offered Restart Match", () => {
+  // DEAFCS: Restart Match is administrators only for now.
+  it.each(["user", "moderator", "match_organizer", "tournament_organizer"])(
+    "is never offered Restart Match as a %s",
+    (role) => {
+      for (const status of [
+        e_match_status_enum.Live,
+        e_match_status_enum.WaitingForServer,
+      ]) {
+        expect(
+          view(actions, ["canRestartMatch"], role, liveMatch({ status }))
+            .canRestartMatch,
+        ).toBe(false);
+      }
+    },
+  );
+
+  it("offers Restart Match to an administrator on a Live or WaitingForServer match only", () => {
+    const offered = (status: string) =>
+      view(actions, ["canRestartMatch"], "administrator", liveMatch({ status }))
+        .canRestartMatch;
+
+    expect(offered(e_match_status_enum.Live)).toBe(true);
+    expect(offered(e_match_status_enum.WaitingForServer)).toBe(true);
+    for (const status of [
+      e_match_status_enum.WaitingForCheckIn,
+      e_match_status_enum.Veto,
+      e_match_status_enum.Canceled,
+      e_match_status_enum.Finished,
+    ]) {
+      expect(offered(status)).toBe(false);
+    }
+  });
+
+  it("has Restart Match nowhere else", () => {
     for (const file of [
-      "components/match/MatchActions.vue",
       "components/match/MatchTabs.vue",
       "components/match/MatchAdminBottomBar.vue",
       "components/match/rounds/MatchRoundsTab.vue",
