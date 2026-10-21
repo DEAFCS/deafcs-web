@@ -2,7 +2,8 @@
 import { ref, computed, provide, onMounted, onBeforeUnmount } from "vue";
 import EventEmitter from "eventemitter3";
 import { useMatchBackupRounds } from "~/composables/useMatchBackupRounds";
-import { ChevronUp, GripHorizontal, Shield } from "lucide-vue-next";
+import MatchAdminDock from "~/components/match/MatchAdminDock.vue";
+import MatchAdminDockActions from "~/components/match/MatchAdminDockActions.vue";
 import MatchServerRebootControl from "~/components/match/MatchServerRebootControl.vue";
 import RconCommander from "~/components/servers/RconCommander.vue";
 import ServiceLogs from "~/components/ServiceLogs.vue";
@@ -31,7 +32,6 @@ provide("commander", commander);
 
 const applicationSettings = useApplicationSettingsStore();
 
-const open = ref(false);
 const mounted = ref(false);
 const hasLogs = ref(false);
 const showConfirmDialog = ref(false);
@@ -39,48 +39,10 @@ const showRebootDialog = ref(false);
 const pendingCommand = ref<MatchCommand | null>(null);
 const executePending = ref<(() => void) | null>(null);
 
-const panelHeight = ref(240);
-const dragging = ref(false);
-const MIN_HEIGHT = 120;
-
-function maxHeight() {
-  return Math.round(window.innerHeight * 0.9);
-}
-
-let activeMove: ((ev: MouseEvent) => void) | null = null;
-let activeUp: (() => void) | null = null;
-
-function stopDrag() {
-  if (activeMove) document.removeEventListener("mousemove", activeMove);
-  if (activeUp) document.removeEventListener("mouseup", activeUp);
-  activeMove = null;
-  activeUp = null;
-  dragging.value = false;
-}
-
-function startDrag(e: MouseEvent) {
-  e.preventDefault();
-  stopDrag();
-  dragging.value = true;
-  const startY = e.clientY;
-  const startHeight = panelHeight.value;
-
-  activeMove = (ev: MouseEvent) => {
-    const delta = startY - ev.clientY;
-    panelHeight.value = Math.max(
-      MIN_HEIGHT,
-      Math.min(maxHeight(), startHeight + delta),
-    );
-  };
-  activeUp = () => stopDrag();
-
-  document.addEventListener("mousemove", activeMove);
-  document.addEventListener("mouseup", activeUp);
-}
+let dockRaf = 0;
 
 onMounted(() => {
-  panelHeight.value = Math.round(window.innerHeight * 0.45);
-  // Only enable the teleport once its target is actually in the DOM.
+  // Mount the teleport only once its target is actually in the DOM.
   // On a fresh load the layout's #main-bottom-dock can mount a frame
   // after this component, and flipping `mounted` while the target is
   // missing makes Vue move the teleport into a null node
@@ -89,14 +51,14 @@ onMounted(() => {
     if (document.getElementById("main-bottom-dock")) {
       mounted.value = true;
     } else {
-      requestAnimationFrame(enableTeleport);
+      dockRaf = requestAnimationFrame(enableTeleport);
     }
   };
   enableTeleport();
 });
 
 onBeforeUnmount(() => {
-  stopDrag();
+  cancelAnimationFrame(dockRaf);
 });
 
 const currentMap = computed(() =>
@@ -125,7 +87,8 @@ const canSendRCONCommands = computed(
       e_match_status_enum.Veto,
       e_match_status_enum.WaitingForCheckIn,
       e_match_status_enum.WaitingForServer,
-    ].includes(props.match.status) && !!props.match.server_id,
+    ].includes(props.match.status) &&
+    !!props.match.server_id,
 );
 
 const canShowLogs = computed(
@@ -165,104 +128,18 @@ function runCommand(
 </script>
 
 <template>
-  <Teleport to="#main-bottom-dock" :disabled="!mounted">
-    <div
-      class="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80"
-    >
-      <AlertDialog :open="showConfirmDialog">
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{{ $t("common.confirm") }}</AlertDialogTitle>
-            <AlertDialogDescription class="flex flex-col gap-2">
-              <span>{{ $t("common.are_you_sure") }}</span>
-              <Badge variant="secondary" class="w-fit">
-                {{ pendingCommand?.display ? $t(pendingCommand.display) : "" }}
-              </Badge>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel @click="showConfirmDialog = false">
-              {{ $t("common.cancel") }}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              @click="
-                executePending && executePending();
-                showConfirmDialog = false;
-              "
-            >
-              {{ $t("common.confirm") }}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+  <!-- Teleport resolves its target once, at mount, and never re-resolves it
+       on a `disabled` toggle (5Stack WEB #908), so it mounts only once the
+       dock exists. -->
+  <Teleport v-if="mounted" to="#main-bottom-dock">
+    <MatchAdminDock :match="match" :controllable="canSendRCONCommands">
+      <template #actions="{ compact }">
+        <!-- DEAFCS: the step's recovery controls; the "..." menu stays in the
+             match header. -->
+        <MatchAdminDockActions :match="match" :compact="compact" />
+      </template>
 
-      <!-- Reboot confirm lives here (not in the RCON dropdown) so it survives
-           the dropdown unmounting when the menu closes. -->
-      <MatchServerRebootControl
-        :match="match"
-        variant="dialog"
-        v-model:open="showRebootDialog"
-      />
-
-      <div
-        v-show="open"
-        class="group h-2 cursor-ns-resize bg-border hover:bg-[hsl(var(--tac-amber)/0.4)] transition-colors flex items-center justify-center"
-        @mousedown="startDrag"
-      >
-        <GripHorizontal
-          class="w-4 h-4 text-muted-foreground/60 group-hover:text-[hsl(var(--tac-amber))] transition-colors pointer-events-none"
-        />
-      </div>
-
-      <button
-        type="button"
-        class="flex items-center gap-3 w-full px-4 py-2 hover:bg-muted/40 transition-colors duration-200 ease-out text-left"
-        :class="dragging && 'select-none'"
-        :aria-expanded="open"
-        @click="open = !open"
-      >
-        <div
-          class="inline-flex items-center gap-1.5 px-2 py-1 font-mono text-[0.65rem] font-bold tracking-[0.2em] uppercase border rounded transition-colors duration-200 ease-out"
-          :class="
-            canSendRCONCommands
-              ? 'border-[hsl(var(--tac-amber)/0.5)] bg-[hsl(var(--tac-amber)/0.12)] text-[hsl(var(--tac-amber))]'
-              : 'border-border bg-muted/40 text-muted-foreground'
-          "
-        >
-          <Shield class="w-3 h-3" />
-          {{ $t("match.admin") }}
-        </div>
-
-        <span
-          v-if="canSendRCONCommands"
-          class="font-mono text-[0.65rem] tracking-[0.18em] uppercase text-muted-foreground"
-        >
-          {{
-            match.is_server_online
-              ? $t("common.connected")
-              : $t("common.disconnected")
-          }}
-        </span>
-
-        <span
-          class="ml-auto flex items-center gap-1.5 text-xs text-muted-foreground"
-        >
-          {{ open ? $t("common.close") : $t("common.more") }}
-          <ChevronUp
-            class="w-4 h-4 transition-transform duration-300 ease-out"
-            :class="open ? 'rotate-180' : 'rotate-0'"
-          />
-        </span>
-      </button>
-
-      <div
-        class="overflow-hidden"
-        :class="[
-          !dragging && 'transition-[height] duration-300 ease-out',
-          open && 'border-t',
-        ]"
-        :style="{ height: open ? `${panelHeight}px` : '0px' }"
-      >
+      <template #console>
         <div
           class="h-full min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-3 p-3 sm:gap-4 sm:p-4 overflow-auto lg:overflow-hidden"
         >
@@ -289,26 +166,26 @@ function runCommand(
                 </DropdownMenuItem>
 
                 <template v-if="restorableRounds.length > 0">
-                <DropdownMenuSeparator />
-                <DropdownMenuSub>
-                  <DropdownMenuSubTrigger :disabled="!match.is_server_online">
-                    {{ $t("match.tabs.restore_round") }}
-                  </DropdownMenuSubTrigger>
-                  <DropdownMenuSubContent class="max-h-80 overflow-y-auto">
-                    <DropdownMenuItem
-                      v-for="round of restorableRounds"
-                      :key="round.round"
-                      :disabled="!match.is_server_online"
-                      @click="send('restore_round', round.round.toString())"
-                    >
-                      {{
-                        $t("common.round", {
-                          number: round.round.toString(),
-                        })
-                      }}
-                    </DropdownMenuItem>
-                  </DropdownMenuSubContent>
-                </DropdownMenuSub>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuSub>
+                    <DropdownMenuSubTrigger :disabled="!match.is_server_online">
+                      {{ $t("match.tabs.restore_round") }}
+                    </DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent class="max-h-80 overflow-y-auto">
+                      <DropdownMenuItem
+                        v-for="round of restorableRounds"
+                        :key="round.round"
+                        :disabled="!match.is_server_online"
+                        @click="send('restore_round', round.round.toString())"
+                      >
+                        {{
+                          $t("common.round", {
+                            number: round.round.toString(),
+                          })
+                        }}
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
                 </template>
               </template>
 
@@ -361,7 +238,42 @@ function runCommand(
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </template>
+    </MatchAdminDock>
+
+    <AlertDialog :open="showConfirmDialog">
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{{ $t("common.confirm") }}</AlertDialogTitle>
+          <AlertDialogDescription class="flex flex-col gap-2">
+            <span>{{ $t("common.are_you_sure") }}</span>
+            <Badge variant="secondary" class="w-fit">
+              {{ pendingCommand?.display ? $t(pendingCommand.display) : "" }}
+            </Badge>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel @click="showConfirmDialog = false">
+            {{ $t("common.cancel") }}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            @click="
+              executePending && executePending();
+              showConfirmDialog = false;
+            "
+          >
+            {{ $t("common.confirm") }}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+
+    <!-- Reboot confirm lives here (not in the RCON dropdown) so it survives
+         the dropdown unmounting when the menu closes. -->
+    <MatchServerRebootControl
+      :match="match"
+      variant="dialog"
+      v-model:open="showRebootDialog"
+    />
   </Teleport>
 </template>
