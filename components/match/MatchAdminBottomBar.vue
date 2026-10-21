@@ -12,7 +12,8 @@ import DropdownMenuSeparator from "~/components/ui/dropdown-menu/DropdownMenuSep
 import DropdownMenuSub from "~/components/ui/dropdown-menu/DropdownMenuSub.vue";
 import DropdownMenuSubTrigger from "~/components/ui/dropdown-menu/DropdownMenuSubTrigger.vue";
 import DropdownMenuSubContent from "~/components/ui/dropdown-menu/DropdownMenuSubContent.vue";
-import { e_match_status_enum } from "~/generated/zeus";
+import { e_match_status_enum, e_player_roles_enum } from "~/generated/zeus";
+import { useAuthStore } from "~/stores/AuthStore";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 import {
   type MatchCommand,
@@ -113,8 +114,10 @@ const pluginRuntime = computed(() =>
   ),
 );
 
+// DEAFCS: RCON is administrator-only (the API refuses everyone else).
 const canSendRCONCommands = computed(
   () =>
+    useAuthStore().isRoleAbove(e_player_roles_enum.administrator) &&
     [
       e_match_status_enum.Live,
       e_match_status_enum.PickingPlayers,

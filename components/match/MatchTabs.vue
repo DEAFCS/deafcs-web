@@ -1284,7 +1284,12 @@ export default {
         e_match_status_enum.Canceled,
       ].includes(this.match.status);
     },
+    // DEAFCS: RCON is administrator-only (the API refuses everyone else).
     canSendRCONCommands() {
+      if (!useAuthStore().isRoleAbove(e_player_roles_enum.administrator)) {
+        return false;
+      }
+
       return [
         e_match_status_enum.Live,
         e_match_status_enum.PickingPlayers,
