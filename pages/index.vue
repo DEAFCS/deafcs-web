@@ -20,7 +20,8 @@ import HomeTopPlayersPreview from "~/components/home/HomeTopPlayersPreview.vue";
 import HomeLatestHighlights from "~/components/home/HomeLatestHighlights.vue";
 import HomeFeaturedTournament from "~/components/home/HomeFeaturedTournament.vue";
 import HomeExploreShowcase from "~/components/home/HomeExploreShowcase.vue";
-import HomePlayerOverview from "~/components/home/HomePlayerOverview.vue";
+import HomeDashboard from "~/components/home/dashboard/HomeDashboard.vue";
+import type { HomeViewer } from "~/components/home/dashboard/homeDashboard";
 import { Button } from "~/components/ui/button";
 import { Card } from "~/components/ui/card";
 import { loginLinks } from "~/utilities/loginLinks";
@@ -91,6 +92,26 @@ const previewPlayer = {
 const showLoggedInHome = computed(
   () => isLoggedIn.value || previewHomeState.value === "logged-in",
 );
+
+// Who the signed-in dashboard is for. The dev-only preview shows the preview
+// player's real public data; `&samples=1` also fills empty sections with
+// labelled local samples (components/home/dashboard/homePreviewSamples.ts).
+const homeViewer = computed<HomeViewer>(() => {
+  if (isLoggedIn.value) {
+    return {
+      steamId: String(authStore.me!.steam_id),
+      name: authStore.me?.name?.trim() ?? "",
+      preview: false,
+      samples: false,
+    };
+  }
+  return {
+    steamId: previewPlayer.steam_id,
+    name: previewPlayer.name,
+    preview: true,
+    samples: import.meta.dev && route.query.samples === "1",
+  };
+});
 
 const heroVideoRef = ref<HTMLVideoElement | null>(null);
 const heroFrameRef = ref<HTMLElement | null>(null);
@@ -240,14 +261,7 @@ const howItWorksSteps = [
     class="min-h-[60vh]"
   />
 
-  <HomePlayerOverview
-    v-else-if="showLoggedInHome"
-    :preview-player="
-      !isLoggedIn && previewHomeState === 'logged-in'
-        ? previewPlayer
-        : undefined
-    "
-  />
+  <HomeDashboard v-else-if="showLoggedInHome" :viewer="homeViewer" />
 
   <main v-else class="min-w-0 space-y-16 pb-12 sm:space-y-20">
     <section
