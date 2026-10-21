@@ -193,6 +193,16 @@ async function mountMenu(match = vetoMatch()) {
             '<button type="button" :data-testid="$attrs[\'data-testid\']" @click="$emit(\'click\')"><slot /></button>',
         },
         DropdownMenuSeparator: { template: "<hr />" },
+        // The "Veto Recovery" submenu, opened.
+        DropdownMenuSub: { template: '<div data-stub="sub"><slot /></div>' },
+        DropdownMenuSubTrigger: {
+          inheritAttrs: false,
+          template:
+            "<div :data-testid=\"$attrs['data-testid']\"><slot /></div>",
+        },
+        DropdownMenuSubContent: {
+          template: '<div data-stub="sub-content"><slot /></div>',
+        },
       },
     },
     attachTo: body(),
@@ -370,6 +380,47 @@ describe("Veto Recovery in the ... menu", () => {
     await mountMenu(vetoMatch({ is_tournament_match: true }));
 
     expect(item("redo")).not.toBeNull();
+  });
+
+  it("groups the four actions under one Veto Recovery submenu", async () => {
+    picks = [pick("Ban", "l-1", "nuke"), pick("Ban", "l-2", "vertigo")];
+    await mountMenu();
+
+    const trigger = item("recovery")!;
+    expect(trigger.textContent?.trim()).toBe("Veto Recovery");
+    const content = body().querySelector('[data-stub="sub-content"]')!;
+    expect(
+      Array.from(content.querySelectorAll("button")).map((entry) =>
+        entry.textContent?.trim(),
+      ),
+    ).toEqual([
+      "Undo the Last Step",
+      "Fix a Mis-pick",
+      "Redo the Veto",
+      "Give 30 Seconds More",
+    ]);
+    expect(body().querySelectorAll('[data-stub="sub"]')).toHaveLength(1);
+  });
+
+  it.each([
+    ["no action applies", "match_organizer", { status: "Finished" }],
+    [
+      "the first map has started",
+      "match_organizer",
+      {
+        status: "Live",
+        match_maps: [{ id: "a", is_current_map: true, status: "Live" }],
+      },
+    ],
+    ["the viewer isn't staff", "user", {}],
+  ])("has no Veto Recovery submenu when %s", async (_, role, overrides) => {
+    viewer.role = role;
+    picks = [pick("Ban", "l-1", "nuke")];
+    await mountMenu(vetoMatch(overrides));
+
+    expect(item("recovery")).toBeNull();
+    expect(body().querySelector('[data-stub="sub"]')).toBeNull();
+    expect(body().querySelector("hr")).toBeNull();
   });
 });
 

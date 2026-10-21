@@ -9343,7 +9343,8 @@
       "rewound": "Veto rewound to step {step}",
       "rewind_failed": "Couldn't rewind the veto",
       "time_added": "{seconds} seconds added to the veto clock",
-      "time_failed": "Couldn't add time to the veto clock"
+      "time_failed": "Couldn't add time to the veto clock",
+      "veto_recovery": "Veto Recovery"
     },
     "veto_rewind": {
       "title": "Veto · Best of {count}",
