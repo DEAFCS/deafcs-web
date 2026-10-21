@@ -6586,7 +6586,7 @@
                       "headline_live":  "Rejouer le round {round} depuis le début",
                       "headline_forward":  "Avancer au début du round {round}",
                       "previous_round":  "Fin du round {round} : {team} a gagné en {side} · {reason}",
-                      "economy_hidden":  "L'argent et les armes des joueurs sont masqués car vous jouez dans ce match.",
+                      "economy_hidden":  "L'argent et les armes des joueurs ne sont visibles que par les administrateurs qui ne jouent pas dans ce match.",
                       "bank":  "Caisse {amount}",
                       "timeouts":  "Temps morts restants : {count}",
                       "player":  "Joueur",

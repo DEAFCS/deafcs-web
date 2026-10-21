@@ -6553,7 +6553,7 @@
                       "headline_live":  "라운드 {round} 처음부터 다시 하기",
                       "headline_forward":  "라운드 {round} 시작 시점으로 앞으로 가기",
                       "previous_round":  "라운드 {round} 종료: {team} {side}로 승리 · {reason}",
-                      "economy_hidden":  "이 매치에서 플레이 중이라 플레이어의 돈과 무기는 숨겨져요.",
+                      "economy_hidden":  "플레이어의 돈과 무기는 이 매치에서 플레이하지 않는 관리자에게만 보여요.",
                       "bank":  "팀 자금 {amount}",
                       "timeouts":  "남은 타임아웃: {count}",
                       "player":  "플레이어",

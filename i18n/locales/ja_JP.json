@@ -6586,7 +6586,7 @@
                       "headline_live":  "ラウンド {round} を最初からやり直す",
                       "headline_forward":  "ラウンド {round} の開始時に進む",
                       "previous_round":  "ラウンド {round} 終了: {team} が {side} で勝利 · {reason}",
-                      "economy_hidden":  "この試合に参加しているため、プレイヤーの所持金と武器は表示されません。",
+                      "economy_hidden":  "プレイヤーの所持金と武器は、この試合に参加していない管理者にのみ表示されます。",
                       "bank":  "所持金合計 {amount}",
                       "timeouts":  "残りタイムアウト: {count}",
                       "player":  "プレイヤー",

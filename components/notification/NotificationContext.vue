@@ -194,9 +194,7 @@ export default defineComponent({
       }
       if (this.kind === "server" && this.server) {
         return (
-          this.server.label ||
-          this.server.host ||
-          this.$t("notification_context.server_default")
+          this.server.label || this.$t("notification_context.server_default")
         );
       }
       if (this.kind === "node" && this.node) {
@@ -276,7 +274,6 @@ export default defineComponent({
             {
               id: true,
               label: true,
-              host: true,
               connected: true,
             },
           ],

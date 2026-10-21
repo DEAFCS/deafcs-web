@@ -8120,7 +8120,7 @@
         "headline_live": "Replay round {round} from the start",
         "headline_forward": "Forward to the start of round {round}",
         "previous_round": "Round {round} ended: {team} won as {side} · {reason}",
-        "economy_hidden": "Player money and weapons are hidden because you're playing in this match.",
+        "economy_hidden": "Player money and weapons are only shown to administrators who aren't playing in this match.",
         "bank": "Bank {amount}",
         "timeouts": "Timeouts left: {count}",
         "player": "Player",

@@ -6561,7 +6561,7 @@
                       "headline_live":  "{round}. raundu baştan oyna",
                       "headline_forward":  "{round}. raundun başına ilerle",
                       "previous_round":  "{round}. raunt bitti: {team} {side} olarak kazandı · {reason}",
-                      "economy_hidden":  "Bu maçta oynadığın için oyuncuların parası ve silahları gizli.",
+                      "economy_hidden":  "Oyuncuların parası ve silahları yalnızca bu maçta oynamayan yöneticilere gösterilir.",
                       "bank":  "Kasa {amount}",
                       "timeouts":  "Kalan mola: {count}",
                       "player":  "Oyuncu",

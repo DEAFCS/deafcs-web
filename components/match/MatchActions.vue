@@ -1131,13 +1131,13 @@ export default {
       return this.currentMap?.status === e_match_map_status_enum.Paused;
     },
     // Organizers of the match (match organizers on any match, tournament
-    // organizers on their own tournaments'), but only an administrator while
-    // playing in it. The API checks the same.
+    // organizers on their own tournaments'), also while playing in it; below
+    // match_organizer, not while playing. The API checks the same.
     canPauseResume() {
       if (
         !this.match.is_organizer ||
         (this.match.is_in_lineup &&
-          !useAuthStore().isRoleAbove(e_player_roles_enum.administrator))
+          !useAuthStore().isRoleAbove(e_player_roles_enum.match_organizer))
       ) {
         return false;
       }

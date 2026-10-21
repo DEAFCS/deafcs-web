@@ -77,23 +77,22 @@ export default {
   apollo: {
     $subscribe: {
       servers: {
-        query: typedGql("subscription")({
-          servers: [
-            {
-              where: {
-                type: {
-                  _eq: e_server_types_enum.Ranked,
-                },
-              },
-            },
-            {
-              id: true,
-              host: true,
-              port: true,
-              label: true,
-            },
-          ],
-        }),
+        // DEAFCS: a server's address is administrator-only in Hasura.
+        query() {
+          return useAuthStore().isAdmin
+            ? typedGql("subscription")({
+                servers: [
+                  { where: { type: { _eq: e_server_types_enum.Ranked } } },
+                  { id: true, host: true, port: true, label: true },
+                ],
+              })
+            : typedGql("subscription")({
+                servers: [
+                  { where: { type: { _eq: e_server_types_enum.Ranked } } },
+                  { id: true, label: true },
+                ],
+              });
+        },
         result({ data }) {
           this.servers = data.servers;
         },
@@ -172,7 +171,9 @@ export default {
       return this.servers.map((server) => {
         return {
           value: server.id,
-          display: `${server.label} (${server.host}:${server.port})`,
+          display: server.host
+            ? `${server.label} (${server.host}:${server.port})`
+            : server.label,
         };
       });
     },

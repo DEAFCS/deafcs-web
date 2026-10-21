@@ -6587,7 +6587,7 @@
                       "headline_live":  "Spela rond {round} från början",
                       "headline_forward":  "Fram till början av rond {round}",
                       "previous_round":  "Rond {round} slutade: {team} vann som {side} · {reason}",
-                      "economy_hidden":  "Spelarnas pengar och vapen är dolda eftersom du spelar i den här matchen.",
+                      "economy_hidden":  "Spelarnas pengar och vapen visas bara för administratörer som inte spelar i den här matchen.",
                       "bank":  "Kassa {amount}",
                       "timeouts":  "Timeouts kvar: {count}",
                       "player":  "Spelare",

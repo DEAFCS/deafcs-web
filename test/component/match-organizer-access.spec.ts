@@ -121,7 +121,12 @@ const ACTION_FLAGS = [
   "canPauseResume",
   "canCancelMatch",
 ];
-const TAB_FLAGS = ["currentMap", "canSeeRounds", "canSendRCONCommands"];
+const TAB_FLAGS = [
+  "currentMap",
+  "canSeeRounds",
+  "canSendRCONCommands",
+  "canViewAdmin",
+];
 
 describe("User A, a match_organizer on someone else's match", () => {
   it("gets the Rounds tab, Restore Round, Restart Map, Pause/Resume and Cancel", () => {
@@ -175,15 +180,50 @@ describe("User A, a match_organizer on someone else's match", () => {
     }
   });
 
-  it("loses Pause/Resume while playing in the match", () => {
+  it.each(["match_organizer", "tournament_organizer", "administrator"])(
+    "keeps the Rounds tab and every recovery control as a %s playing in the match",
+    (role) => {
+      const playing = liveMatch({ is_in_lineup: true });
+      const a = view(actions, ACTION_FLAGS, role, playing);
+      expect(a.canRestoreRound).toBe(true);
+      expect(a.canRestartMap).toBe(true);
+      expect(a.canPauseResume).toBe(true);
+      expect(view(tabs, TAB_FLAGS, role, playing).canSeeRounds).toBe(true);
+    },
+  );
+
+  it("doesn't get the Server tab; an administrator does", () => {
+    for (const role of ROLES.filter((role) => role !== "administrator")) {
+      expect(view(tabs, TAB_FLAGS, role, liveMatch()).canViewAdmin).toBe(false);
+    }
     expect(
-      view(
-        actions,
-        ACTION_FLAGS,
-        "match_organizer",
-        liveMatch({ is_in_lineup: true }),
-      ).canPauseResume,
-    ).toBe(false);
+      view(tabs, TAB_FLAGS, "administrator", liveMatch()).canViewAdmin,
+    ).toBe(true);
+  });
+
+  it("is never offered a server reboot", () => {
+    expect(source("components/match/MatchServerRebootControl.vue")).toMatch(
+      /const canRebootMatchServer = computed\(\s*\(\) =>\s*useAuthStore\(\)\.isRoleAbove\(e_player_roles_enum\.administrator\) &&/,
+    );
+  });
+
+  it("never asks Hasura for a server's address", () => {
+    // MatchSelectServer asks for host and port only as an administrator;
+    // the notification card shows the server's label.
+    const select = source("components/match/MatchSelectServer.vue");
+    expect(select).toMatch(
+      /useAuthStore\(\)\.isAdmin\s*\?\s*typedGql\("subscription"\)\(\{[\s\S]*?host: true, port: true[\s\S]*?\}\)\s*:\s*typedGql\("subscription"\)\(\{[\s\S]*?\{ id: true, label: true \}/,
+    );
+    expect(
+      source("components/notification/NotificationContext.vue"),
+    ).not.toMatch(/host: true|server.host/);
+  });
+
+  it("is told the economy is administrator-only", () => {
+    const en = JSON.parse(source("i18n/locales/en.json"));
+    expect(en.match.recovery.restore.economy_hidden).toBe(
+      "Player money and weapons are only shown to administrators who aren't playing in this match.",
+    );
   });
 
   it("gets nothing on a match the API says they don't organize", () => {

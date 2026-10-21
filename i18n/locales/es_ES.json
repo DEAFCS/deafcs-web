@@ -6586,7 +6586,7 @@
                       "headline_live":  "Repetir la ronda {round} desde el principio",
                       "headline_forward":  "Avanzar al inicio de la ronda {round}",
                       "previous_round":  "Fin de la ronda {round}: {team} ganó como {side} · {reason}",
-                      "economy_hidden":  "El dinero y las armas de los jugadores están ocultos porque juegas en esta partida.",
+                      "economy_hidden":  "El dinero y las armas de los jugadores solo los ven los administradores que no juegan en esta partida.",
                       "bank":  "Caja {amount}",
                       "timeouts":  "Tiempos muertos restantes: {count}",
                       "player":  "Jugador",

@@ -1070,8 +1070,7 @@ export default {
   },
   computed: {
     // The Overview / Scoreboard choice is the lifecycle's, not the viewer's:
-    // only staff (moderator and up, the same staff line as the Admin tab and
-    // RCON) can pick either view by hand. Being this match's organizer, a
+    // only staff (moderator and up) can pick either view by hand. Being this match's organizer, a
     // captain or a player is not enough.
     canSeeLifecycleTabs() {
       return useAuthStore().isRoleAbove(e_player_roles_enum.moderator);
@@ -1273,15 +1272,11 @@ export default {
       );
     },
     canViewAdmin() {
-      // Mirror the backend's rcon.service.ts canAccessServer check: being
-      // the match organizer is never enough on its own there (non-staff
-      // players routinely organize their own scrims), so showing the
-      // Admin tab / RCON console off organizer status alone exposed the
-      // console UI to regular verified users whose commands would then
-      // silently no-op server-side.
+      // DEAFCS: everything on the Server tab (RCON, reboot, server logs) is
+      // administrator-only in the API, so the tab is too.
       return (
         this.match.is_organizer &&
-        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
       );
     },
     canViewMatchServerLogs() {

@@ -6923,7 +6923,7 @@
                       "headline_live":  "Spil runde {round} forfra",
                       "headline_forward":  "Frem til starten af runde {round}",
                       "previous_round":  "Runde {round} sluttede: {team} vandt som {side} · {reason}",
-                      "economy_hidden":  "Spillernes penge og våben er skjult, fordi du spiller i denne kamp.",
+                      "economy_hidden":  "Spillernes penge og våben vises kun for administratorer, der ikke spiller i denne kamp.",
                       "bank":  "Kasse {amount}",
                       "timeouts":  "Timeouts tilbage: {count}",
                       "player":  "Spiller",

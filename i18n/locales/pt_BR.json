@@ -8192,7 +8192,7 @@
                       "headline_live":  "Jogar o round {round} desde o início",
                       "headline_forward":  "Avançar ao início do round {round}",
                       "previous_round":  "Fim do round {round}: {team} venceu como {side} · {reason}",
-                      "economy_hidden":  "O dinheiro e as armas dos jogadores estão ocultos porque você está jogando nesta partida.",
+                      "economy_hidden":  "O dinheiro e as armas dos jogadores só aparecem para administradores que não estão jogando nesta partida.",
                       "bank":  "Caixa {amount}",
                       "timeouts":  "Pausas restantes: {count}",
                       "player":  "Jogador",

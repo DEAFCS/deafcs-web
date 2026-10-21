@@ -6586,7 +6586,7 @@
                       "headline_live":  "Runde {round} von vorne spielen",
                       "headline_forward":  "Vor zum Beginn von Runde {round}",
                       "previous_round":  "Runde {round} endete: {team} gewann als {side} · {reason}",
-                      "economy_hidden":  "Geld und Waffen der Spieler sind ausgeblendet, weil du in diesem Match spielst.",
+                      "economy_hidden":  "Geld und Waffen der Spieler sehen nur Administratoren, die nicht in diesem Match spielen.",
                       "bank":  "Kasse {amount}",
                       "timeouts":  "Verbleibende Timeouts: {count}",
                       "player":  "Spieler",

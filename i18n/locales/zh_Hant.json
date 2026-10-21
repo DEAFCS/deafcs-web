@@ -6638,7 +6638,7 @@
                       "headline_live":  "從頭重打第 {round} 回合",
                       "headline_forward":  "前進到第 {round} 回合開始時",
                       "previous_round":  "第 {round} 回合結束：{team} 以 {side} 獲勝 · {reason}",
-                      "economy_hidden":  "你正在參加這場比賽，因此隱藏了玩家的金錢和武器。",
+                      "economy_hidden":  "只有未參加這場比賽的管理員才能看到玩家的金錢和武器。",
                       "bank":  "資金 {amount}",
                       "timeouts":  "剩餘暫停：{count}",
                       "player":  "玩家",

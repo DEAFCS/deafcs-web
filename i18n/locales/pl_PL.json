@@ -6578,7 +6578,7 @@
                       "headline_live":  "Rozegraj rundę {round} od początku",
                       "headline_forward":  "Naprzód do początku rundy {round}",
                       "previous_round":  "Koniec rundy {round}: {team} wygrywa jako {side} · {reason}",
-                      "economy_hidden":  "Pieniądze i broń graczy są ukryte, ponieważ grasz w tym meczu.",
+                      "economy_hidden":  "Pieniądze i broń graczy widzą tylko administratorzy, którzy nie grają w tym meczu.",
                       "bank":  "Kasa {amount}",
                       "timeouts":  "Pozostałe przerwy: {count}",
                       "player":  "Gracz",

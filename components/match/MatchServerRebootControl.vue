@@ -7,7 +7,8 @@ import { Button } from "~/components/ui/button";
 import DropdownMenuItem from "~/components/ui/dropdown-menu/DropdownMenuItem.vue";
 import DropdownMenuSeparator from "~/components/ui/dropdown-menu/DropdownMenuSeparator.vue";
 import { toast } from "@/components/ui/toast";
-import { e_match_status_enum } from "~/generated/zeus";
+import { e_match_status_enum, e_player_roles_enum } from "~/generated/zeus";
+import { useAuthStore } from "~/stores/AuthStore";
 
 const props = defineProps<{
   match: Record<string, any>;
@@ -54,8 +55,10 @@ const rebootableStatuses = [
   e_match_status_enum.WaitingForServer,
 ];
 
+// DEAFCS: rebootMatchServer is administrator-only.
 const canRebootMatchServer = computed(
   () =>
+    useAuthStore().isRoleAbove(e_player_roles_enum.administrator) &&
     props.match.is_organizer &&
     !!props.match.server_id &&
     props.match.server_type === "On Demand" &&

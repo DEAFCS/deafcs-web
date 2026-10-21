@@ -74,16 +74,18 @@ describe("Pause and Resume in the match actions", () => {
     expect(view(role, { is_organizer: false, is_in_lineup: false, ...onMap("Live") }).canPauseResume).toBe(false);
   });
 
-  it.each(["user", "moderator", "match_organizer", "tournament_organizer"])(
-    "hides it from a %s organizer playing in the match",
+  // DEAFCS: match organizers and up keep it while playing; below them, a
+  // player who organizes their own match doesn't (the API's rule).
+  it.each(["user", "moderator"])("hides it from a %s organizer playing in the match", (role) => {
+    expect(view(role, { is_organizer: true, is_in_lineup: true, ...onMap("Live") }).canPauseResume).toBe(false);
+  });
+
+  it.each(["match_organizer", "tournament_organizer", "administrator"])(
+    "still shows it to a %s playing in the match",
     (role) => {
-      expect(view(role, { is_organizer: true, is_in_lineup: true, ...onMap("Live") }).canPauseResume).toBe(false);
+      expect(view(role, { is_organizer: true, is_in_lineup: true, ...onMap("Live") }).canPauseResume).toBe(true);
     },
   );
-
-  it("still shows it to an administrator playing in the match", () => {
-    expect(view("administrator", { is_organizer: true, is_in_lineup: true, ...onMap("Live") }).canPauseResume).toBe(true);
-  });
 
   it.each([
     ["Live", true],
