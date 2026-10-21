@@ -1189,8 +1189,12 @@ export default {
     isPaused() {
       return this.currentMap?.status === e_match_map_status_enum.Paused;
     },
+    // Pause and resume go through RCON, which is administrator-only.
     canPauseResume() {
-      if (!this.match.is_organizer) {
+      if (
+        !this.match.is_organizer ||
+        !useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+      ) {
         return false;
       }
       if (this.match.status !== e_match_status_enum.Live) {
