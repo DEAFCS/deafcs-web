@@ -8164,6 +8164,20 @@
         "undone_title": "Undone rounds",
         "undone_hint": "A restore or a map restart undid these. They can be brought back until the next round is played.",
         "bring_back": "Bring back round {round}"
+      },
+      "reset_veto": {
+        "title": "Reset Veto",
+        "description": "Every ban, pick and side choice is cleared and the teams veto again from the first ban. Banned maps go back in the pool and the clock starts again.",
+        "confirm": "Reset Veto",
+        "done": "Veto reset",
+        "failed": "Couldn't reset the veto"
+      },
+      "reset_captain_pick": {
+        "title": "Reset Captain Pick",
+        "description": "Every pick is cleared. The same ten players and the same two captains pick again from the first pick, and the pick timer starts again.",
+        "confirm": "Reset Captain Pick",
+        "done": "Captain Pick reset",
+        "failed": "Couldn't reset the Captain Pick"
       }
     },
     "highlights": {
@@ -9335,50 +9349,6 @@
         "Pick": "Your pick",
         "Side": "Your side"
       }
-    },
-    "fix_menu": {
-      "undo_last_title": "Undo the Last Step",
-      "undo_last_description": "Takes back {team}'s choice of {map}, and they choose again.",
-      "mispick_title": "Fix a Mis-pick",
-      "mispick_description": "Pick the step that went wrong. It and every step after it are done again.",
-      "redo_title": "Redo the Veto",
-      "redo_description": "Start again from the first ban, with every map back in the pool.",
-      "time_title": "Give 30 Seconds More",
-      "time_description": "Adds time to {team}'s clock.",
-      "undo_confirm": "Undo Step",
-      "rewound": "Veto rewound to step {step}",
-      "rewind_failed": "Couldn't rewind the veto",
-      "time_added": "{seconds} seconds added to the veto clock",
-      "time_failed": "Couldn't add time to the veto clock",
-      "veto_recovery": "Veto Recovery"
-    },
-    "veto_rewind": {
-      "title": "Veto · Best of {count}",
-      "to_act": "to act on step {step}",
-      "ban": "Ban",
-      "pick": "Pick",
-      "side": "Side",
-      "decider": "Decider",
-      "now": "Now",
-      "drawn": "Left Over",
-      "redone": "Redone",
-      "again_from": "Step {step} again",
-      "rewind_to_step": "Rewind to step {step}",
-      "again_ban": "{team} Bans Again",
-      "again_pick": "{team} Picks Again",
-      "again_side": "{team} Chooses a Side Again",
-      "again_decider": "The Decider Is Set Again",
-      "cleared_ban": "{team}'s ban of {map}",
-      "cleared_pick": "{team}'s pick of {map}",
-      "cleared_side": "{team}'s side on {map}",
-      "cleared_decider": "the decider, {map}",
-      "bar_headline": "Rewind to Step {step} · {again}",
-      "bar_detail": "Clears {list}. The clock starts again.",
-      "confirm": "Rewind the Veto",
-      "footnote": "Banned maps go back in the pool",
-      "eyebrow": "Preview · From step {step}",
-      "dialog_title": "Fix the Veto",
-      "dialog_description": "Click the step that went wrong. It and every step after it are done again."
     }
   },
   "ui": {

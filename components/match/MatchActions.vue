@@ -37,8 +37,8 @@ import {
   e_match_map_status_enum,
   e_player_roles_enum,
 } from "~/generated/zeus";
-import MatchVetoRecoveryDialogs from "~/components/match/MatchVetoRecoveryDialogs.vue";
-import MatchVetoRecoveryMenuItems from "~/components/match/MatchVetoRecoveryMenuItems.vue";
+import MatchPreMatchRecoveryDialogs from "~/components/match/MatchPreMatchRecoveryDialogs.vue";
+import MatchPreMatchRecoveryMenuItems from "~/components/match/MatchPreMatchRecoveryMenuItems.vue";
 </script>
 
 <template>
@@ -276,10 +276,10 @@ import MatchVetoRecoveryMenuItems from "~/components/match/MatchVetoRecoveryMenu
           <span>{{ $t("match.actions.chat_log", "Chat Log") }}</span>
         </DropdownMenuItem>
 
-        <!-- DEAFCS: Veto Recovery for staff (rewindMapVeto, extendVetoClock).
-             Captain Pick Recovery joins here, next to it, from its own
-             branch. -->
-        <MatchVetoRecoveryMenuItems :match="match" />
+        <!-- DEAFCS: the pre-match recovery for staff, Reset Veto
+             (rewindMapVeto step 1) and Reset Captain Pick
+             (resetCaptainPick), each only while it applies. -->
+        <MatchPreMatchRecoveryMenuItems :match="match" />
 
         <DropdownMenuItem v-if="canRestoreRound" @click="restoreOpen = true">
           <History />
@@ -461,8 +461,8 @@ import MatchVetoRecoveryMenuItems from "~/components/match/MatchVetoRecoveryMenu
       </AlertDialogContent>
     </AlertDialog>
 
-    <!-- Veto Recovery's dialogs stay mounted when the menu closes. -->
-    <MatchVetoRecoveryDialogs :match="match" />
+    <!-- Their confirm dialogs stay mounted when the menu closes. -->
+    <MatchPreMatchRecoveryDialogs :match="match" />
   </div>
 </template>
 
