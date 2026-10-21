@@ -62,6 +62,9 @@ type RestoreRounds = {
 const props = defineProps<{
   match: Record<string, any>;
   open: boolean;
+  // DEAFCS: the round picked in the Rounds tab, selected when it can be
+  // restored (otherwise the usual default).
+  initialRound?: number | null;
 }>();
 
 const emit = defineEmits<{ "update:open": [boolean] }>();
@@ -182,7 +185,11 @@ async function load() {
     });
     data.value = result?.getMatchRestoreRounds ?? null;
     if (!selected.value || !selectableRounds.value.includes(selected.value)) {
-      selected.value = defaultRound();
+      selected.value =
+        props.initialRound &&
+        selectableRounds.value.includes(props.initialRound)
+          ? props.initialRound
+          : defaultRound();
     }
   } catch (error) {
     if (!data.value) {

@@ -14,6 +14,10 @@ import {
   e_player_roles_enum,
 } from "../../generated/zeus";
 import MatchRestoreRoundDialog from "../../components/match/MatchRestoreRoundDialog.vue";
+import MatchRestartMapDialog from "../../components/match/MatchRestartMapDialog.vue";
+
+const { toastSpy } = vi.hoisted(() => ({ toastSpy: vi.fn() }));
+vi.mock("@/components/ui/toast", () => ({ toast: toastSpy }));
 
 // Restore Round and Restart Map for organizers (5stackgg/web 8413f8d #895,
 // ffcbea2 #900). The dialog cases are upstream's
@@ -301,7 +305,7 @@ function optionsOf(file: string, names: Record<string, unknown>) {
   return exportsObj.default;
 }
 
-const toast = vi.fn();
+const toast = toastSpy;
 const actions = optionsOf("components/match/MatchActions.vue", {
   useAuthStore: () => ({ isRoleAbove: () => false, me: null }),
   e_player_roles_enum,
@@ -389,38 +393,36 @@ describe("match menu", () => {
     expect(source).not.toMatch(/restartMatch\(/);
   });
 
-  it("restarts the map from warmup through the api", async () => {
-    const apolloMutate = vi.fn().mockResolvedValue({ data: {} });
-    const ctx: any = {
-      match: match(),
-      $apollo: { mutate: apolloMutate },
-      $t: (key: string) => key,
-    };
-    await actions.methods.restartMatchMap.call(ctx);
+  // DEAFCS: the confirmation lives in MatchRestartMapDialog, shared with the
+  // Rounds tab's Fix a Problem menu.
+  async function confirmRestartMap() {
+    wrapper = mount(MatchRestartMapDialog, {
+      props: { match: match(), open: true },
+      global: { plugins: [i18n] },
+      attachTo: document.body,
+    });
+    await flushPromises();
+    button("Restart Map")!.click();
+    await flushPromises();
+  }
 
-    expect(apolloMutate.mock.calls[0][0].mutation).toContain(
-      "restartMatchMap(match_id: $matchId)",
-    );
-    expect(apolloMutate.mock.calls[0][0].variables).toEqual({
-      matchId: "m-1",
-    });
+  it("restarts the map from warmup through the api", async () => {
+    await confirmRestartMap();
+
+    expect(sent()[0].document).toContain("restartMatchMap(match_id: $matchId)");
+    expect(sent()[0].variables).toEqual({ matchId: "m-1" });
     expect(toast).toHaveBeenLastCalledWith({
-      title: "match.recovery.restart_map.restarted",
+      title: "Map restarted from warmup",
     });
+    expect(wrapper!.emitted("update:open")?.at(-1)).toEqual([false]);
   });
 
   it("shows why the server refused a map restart", async () => {
-    const ctx: any = {
-      match: match(),
-      $apollo: {
-        mutate: vi.fn().mockRejectedValue(new Error("the map is already over")),
-      },
-      $t: (key: string) => key,
-    };
-    await actions.methods.restartMatchMap.call(ctx);
+    mutate.mockRejectedValue(new Error("the map is already over"));
+    await confirmRestartMap();
 
     expect(toast).toHaveBeenLastCalledWith({
-      title: "match.recovery.restart_map.failed",
+      title: "Couldn't restart the map",
       description: "the map is already over",
       variant: "destructive",
     });

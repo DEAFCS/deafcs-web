@@ -58,6 +58,7 @@ import ServiceLogs from "~/components/ServiceLogs.vue";
 import { e_match_types_enum } from "~/generated/zeus";
 import MatchForm from "~/components/match/MatchForm.vue";
 import MatchLiveStreams from "~/components/match/MatchLiveStreams.vue";
+import MatchRoundsTab from "~/components/match/rounds/MatchRoundsTab.vue";
 import mapLabel from "~/utilities/mapLabel";
 import { MoreVertical, AlertTriangle, ExternalLink } from "lucide-vue-next";
 import {
@@ -146,6 +147,9 @@ provide("commander", commander);
               <SelectItem v-if="!hideLifecycleTabs" value="scoreboard">
                 {{ $t("match.tabs.scoreboard") }}
               </SelectItem>
+              <SelectItem v-if="canSeeRounds" value="rounds">
+                {{ $t("match.tabs.rounds") }}
+              </SelectItem>
               <template v-if="!disableStats">
                 <SelectItem value="economy">
                   {{ $t("match.tabs.economy") }}
@@ -223,6 +227,9 @@ provide("commander", commander);
           </TabsTrigger>
           <TabsTrigger v-if="!hideLifecycleTabs" value="scoreboard">
             {{ $t("match.tabs.scoreboard") }}
+          </TabsTrigger>
+          <TabsTrigger v-if="canSeeRounds" value="rounds">
+            {{ $t("match.tabs.rounds") }}
           </TabsTrigger>
           <template v-if="!disableStats">
             <TabsTrigger value="economy">
@@ -683,6 +690,9 @@ provide("commander", commander);
           @has-logs="hasLogs = $event"
         />
       </div>
+    </TabsContent>
+    <TabsContent v-if="canSeeRounds" value="rounds">
+      <MatchRoundsTab :match="match" :can-restart-map="canSeeRounds" />
     </TabsContent>
     <TabsContent value="settings" class="flex flex-col gap-4 max-w-[1500px]">
       <MatchOptionsDisplay
@@ -1326,10 +1336,26 @@ export default {
     defaultMatchTab() {
       return resolveDefaultMatchTab(this.overviewAvailable, this.overviewDefault);
     },
+    // DEAFCS Rounds tab: the match's organizers, while a map is being played
+    // (the states Restore Round and Restart Map work in; Rush has neither).
+    canSeeRounds() {
+      return (
+        !!this.match.is_organizer &&
+        this.match.status === "Live" &&
+        this.match.options?.type !== "Rush" &&
+        ["Warmup", "Knife", "Live", "Overtime", "Paused"].includes(
+          this.currentMap?.status,
+        )
+      );
+    },
     availableMatchTabs() {
       const tabs = this.overviewAvailable
         ? [OVERVIEW_TAB_VALUE, "scoreboard"]
         : ["scoreboard"];
+
+      if (this.canSeeRounds) {
+        tabs.push("rounds");
+      }
 
       if (!this.disableStats) {
         tabs.push("economy");

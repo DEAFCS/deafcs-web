@@ -16,6 +16,7 @@ import {
   Video,
   XCircle,
 } from "lucide-vue-next";
+import MatchRestartMapDialog from "~/components/match/MatchRestartMapDialog.vue";
 import MatchRestoreRoundDialog from "~/components/match/MatchRestoreRoundDialog.vue";
 import MatchSelectServer from "~/components/match/MatchSelectServer.vue";
 import MatchSelectWinner from "~/components/match/MatchSelectWinner.vue";
@@ -353,31 +354,11 @@ import {
       </DropdownMenuContent>
     </DropdownMenu>
 
-    <AlertDialog :open="showRestartMapDialog">
-      <AlertDialogContent>
-        <AlertDialogHeader>
-          <AlertDialogTitle>{{
-            $t("match.recovery.restart_map.title")
-          }}</AlertDialogTitle>
-          <AlertDialogDescription>
-            {{ $t("match.recovery.restart_map.description") }}
-          </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-          <AlertDialogCancel @click="showRestartMapDialog = false">
-            {{ $t("common.cancel") }}
-          </AlertDialogCancel>
-          <AlertDialogAction
-            @click="
-              restartMatchMap();
-              showRestartMapDialog = false;
-            "
-          >
-            {{ $t("match.recovery.restart_map.title") }}
-          </AlertDialogAction>
-        </AlertDialogFooter>
-      </AlertDialogContent>
-    </AlertDialog>
+    <MatchRestartMapDialog
+      v-if="canRestartMap || showRestartMapDialog"
+      v-model:open="showRestartMapDialog"
+      :match="match"
+    />
 
     <MatchRestoreRoundDialog
       v-if="canRestoreRound || restoreOpen"
@@ -472,14 +453,6 @@ const PAUSE_CLIP_RENDER_BATCH = gql`
   }
 `;
 
-const RESTART_MATCH_MAP = gql`
-  mutation RestartMatchMap($matchId: uuid!) {
-    restartMatchMap(match_id: $matchId) {
-      success
-    }
-  }
-`;
-
 const RESUME_CLIP_RENDER_BATCH = gql`
   mutation ResumeClipRenderBatch($match_map_id: uuid!) {
     resumeClipRenderBatch(match_map_id: $match_map_id) {
@@ -548,25 +521,6 @@ export default {
     },
   },
   methods: {
-    async restartMatchMap() {
-      try {
-        await this.$apollo.mutate({
-          mutation: RESTART_MATCH_MAP,
-          variables: { matchId: this.match.id },
-        });
-      } catch (error) {
-        toast({
-          title: this.$t("match.recovery.restart_map.failed"),
-          description: (error as Error)?.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: this.$t("match.recovery.restart_map.restarted"),
-      });
-    },
     openCameraGrid() {
       // Sized for the grid's own 2-column layout (each tile ~50% of
       // the usable width) — wide enough that two tiles read as a
