@@ -3,7 +3,6 @@ import { ref, computed, provide, onMounted, onBeforeUnmount } from "vue";
 import EventEmitter from "eventemitter3";
 import { useMatchBackupRounds } from "~/composables/useMatchBackupRounds";
 import MatchAdminDock from "~/components/match/MatchAdminDock.vue";
-import MatchAdminDockActions from "~/components/match/MatchAdminDockActions.vue";
 import MatchServerRebootControl from "~/components/match/MatchServerRebootControl.vue";
 import RconCommander from "~/components/servers/RconCommander.vue";
 import ServiceLogs from "~/components/ServiceLogs.vue";
@@ -133,11 +132,8 @@ function runCommand(
        dock exists. -->
   <Teleport v-if="mounted" to="#main-bottom-dock">
     <MatchAdminDock :match="match" :controllable="canSendRCONCommands">
-      <template #actions="{ compact }">
-        <!-- DEAFCS: the step's recovery controls; the "..." menu stays in the
-             match header. -->
-        <MatchAdminDockActions :match="match" :compact="compact" />
-      </template>
+      <!-- DEAFCS: administrators only. Recovery controls are in the match's
+           "..." menu, not here. -->
 
       <template #console>
         <div

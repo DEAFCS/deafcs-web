@@ -953,7 +953,9 @@ describe("match page", () => {
 
   it("leaves staff, RCON and stream controls as they were", () => {
     expect(template).toContain('<MatchAdminBottomBar v-if="canViewMatchAdminBar" :match="match" />');
-    expect(page.computed.canViewMatchAdminBar.toString()).toContain("e_player_roles_enum.moderator");
+    // DEAFCS: the Admin Dock is for administrators only.
+    expect(page.computed.canViewMatchAdminBar.toString()).toContain("e_player_roles_enum.administrator");
+    expect(page.computed.canViewMatchAdminBar.toString()).not.toContain("is_organizer");
     const tabs = readFileSync(path.resolve(__dirname, "../../components/match/MatchTabs.vue"), "utf8");
     expect(tabs).toContain('<DropdownMenuItem v-if="canViewAdmin" @click="activeTab = \'server\'">');
     expect(tabs).toContain('<SelectItem v-if="canViewAdmin" value="server">');

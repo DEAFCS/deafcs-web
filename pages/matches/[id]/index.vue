@@ -1069,11 +1069,10 @@ export default {
         useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
       );
     },
+    // DEAFCS: the Admin Dock (RCON console and logs) is mounted for
+    // administrators only. Organizers use the match's "..." menu.
     canViewMatchAdminBar() {
-      return (
-        !!this.match?.is_organizer &&
-        useAuthStore().isRoleAbove(e_player_roles_enum.moderator)
-      );
+      return useAuthStore().isRoleAbove(e_player_roles_enum.administrator);
     },
     cameraRequestScope() {
       return `${this.matchId}:${useAuthStore().me?.steam_id ?? ""}`;

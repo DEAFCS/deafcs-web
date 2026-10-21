@@ -37,6 +37,8 @@ import {
   e_match_map_status_enum,
   e_player_roles_enum,
 } from "~/generated/zeus";
+import MatchVetoRecoveryDialogs from "~/components/match/MatchVetoRecoveryDialogs.vue";
+import MatchVetoRecoveryMenuItems from "~/components/match/MatchVetoRecoveryMenuItems.vue";
 </script>
 
 <template>
@@ -274,6 +276,11 @@ import {
           <span>{{ $t("match.actions.chat_log", "Chat Log") }}</span>
         </DropdownMenuItem>
 
+        <!-- DEAFCS: Veto Recovery for staff (rewindMapVeto, extendVetoClock).
+             Captain Pick Recovery joins here, next to it, from its own
+             branch. -->
+        <MatchVetoRecoveryMenuItems :match="match" />
+
         <DropdownMenuItem v-if="canRestoreRound" @click="restoreOpen = true">
           <History />
           {{ $t("match.recovery.restore.title") }}
@@ -453,6 +460,9 @@ import {
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
+
+    <!-- Veto Recovery's dialogs stay mounted when the menu closes. -->
+    <MatchVetoRecoveryDialogs :match="match" />
   </div>
 </template>
 

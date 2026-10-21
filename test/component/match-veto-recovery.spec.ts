@@ -1,48 +1,53 @@
 // @vitest-environment happy-dom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { flushPromises, mount } from "@vue/test-utils";
+import { defineComponent, h } from "vue";
+import { readFileSync } from "node:fs";
+import path from "node:path";
 import { print } from "graphql";
 import { createI18n } from "vue-i18n";
 import en from "../../i18n/locales/en.json";
 import { e_sides_enum } from "../../generated/zeus";
-import MatchAdminDockActions from "../../components/match/MatchAdminDockActions.vue";
+import MatchVetoRecoveryDialogs from "../../components/match/MatchVetoRecoveryDialogs.vue";
+import MatchVetoRecoveryMenuItems from "../../components/match/MatchVetoRecoveryMenuItems.vue";
 import MatchVetoFixDialog from "../../components/match/veto/MatchVetoFixDialog.vue";
 import {
-  fixProblemItems,
-  type FixProblemState,
-} from "../../utilities/fixProblem";
+  canRecoverVeto,
+  vetoRecoveryItems,
+} from "../../utilities/vetoRecovery";
 import {
   currentMatchAdminStep,
   matchAdminSteps,
 } from "../../utilities/matchAdminSteps";
 import type { VetoStep } from "../../utilities/rewind";
 
-// The admin dock's Veto Recovery and step-aware fixes (5Stack WEB 681116a
-// #908). The dialog cases are upstream's MatchVetoFixDialog.spec.ts, mounted
-// with plain Vitest instead of mountSuspended.
+// Veto Recovery in the match's "..." menu (5Stack WEB 681116a #908, its veto
+// fixes and Fix the Veto window). The dialog cases are upstream's
+// MatchVetoFixDialog.spec.ts, mounted with plain Vitest instead of
+// mountSuspended.
 
-const { toastSpy, role } = vi.hoisted(() => ({
+const ROLES = [
+  "user",
+  "verified_user",
+  "streamer",
+  "moderator",
+  "match_organizer",
+  "tournament_organizer",
+  "administrator",
+];
+const above = (role: string) => (needed: string) =>
+  ROLES.indexOf(role) >= ROLES.indexOf(needed);
+
+const { toastSpy, viewer } = vi.hoisted(() => ({
   toastSpy: vi.fn(),
-  role: { value: "moderator" },
+  viewer: { role: "match_organizer" },
 }));
 vi.mock("@/components/ui/toast", () => ({ toast: toastSpy }));
-vi.mock("~/stores/AuthStore", () => {
-  const ROLES = [
-    "user",
-    "verified_user",
-    "streamer",
-    "moderator",
-    "match_organizer",
-    "tournament_organizer",
-    "administrator",
-  ];
-  return {
-    useAuthStore: () => ({
-      isRoleAbove: (needed: string) =>
-        ROLES.indexOf(role.value) >= ROLES.indexOf(needed),
-    }),
-  };
-});
+vi.mock("~/stores/AuthStore", () => ({
+  useAuthStore: () => ({
+    isRoleAbove: (needed: string) => above(viewer.role)(needed),
+  }),
+}));
 
 const i18n = createI18n<Record<string, unknown>, "en">({
   legacy: false,
@@ -74,6 +79,7 @@ const DEMO_VETO: VetoStep[] = [
 ];
 
 let mutate: ReturnType<typeof vi.fn>;
+let subscribed: number;
 let picks: Array<any>;
 let wrapper: ReturnType<typeof mount> | undefined;
 
@@ -89,8 +95,9 @@ const sent = () =>
   }));
 
 beforeEach(() => {
-  role.value = "moderator";
+  viewer.role = "match_organizer";
   picks = [];
+  subscribed = 0;
   mutate = vi.fn().mockResolvedValue({ data: {} });
   vi.stubGlobal("useNuxtApp", () => ({
     $apollo: {
@@ -98,6 +105,7 @@ beforeEach(() => {
         mutate,
         subscribe: () => ({
           subscribe: ({ next }: { next: (value: unknown) => void }) => {
+            subscribed += 1;
             next({ data: { match_map_veto_picks: picks } });
             return { unsubscribe: vi.fn() };
           },
@@ -130,8 +138,7 @@ function vetoMatch(overrides: Record<string, any> = {}) {
     id: "m-1",
     status: "Veto",
     is_organizer: true,
-    is_in_lineup: false,
-    is_server_online: false,
+    is_tournament_match: false,
     lineup_1_id: "l-1",
     lineup_2_id: "l-2",
     lineup_1: { id: "l-1", name: "Kestrel" },
@@ -159,128 +166,132 @@ function vetoMatch(overrides: Record<string, any> = {}) {
   };
 }
 
-async function mountDock(match = vetoMatch()) {
-  wrapper = mount(MatchAdminDockActions, {
+// The "..." menu: its items (a plain list here instead of the dropdown) next
+// to the dialogs MatchActions keeps mounted.
+const Menu = defineComponent({
+  props: { match: { type: Object, required: true } },
+  setup(props) {
+    return () =>
+      h("div", [
+        h(MatchVetoRecoveryMenuItems, { match: props.match }),
+        h(MatchVetoRecoveryDialogs, { match: props.match }),
+      ]);
+  },
+});
+
+async function mountMenu(match = vetoMatch()) {
+  wrapper = mount(Menu, {
     props: { match },
-    global: { plugins: [i18n], stubs: { transition: false } },
+    global: {
+      plugins: [i18n],
+      stubs: {
+        transition: false,
+        DropdownMenuItem: {
+          inheritAttrs: false,
+          emits: ["click"],
+          template:
+            '<button type="button" :data-testid="$attrs[\'data-testid\']" @click="$emit(\'click\')"><slot /></button>',
+        },
+        DropdownMenuSeparator: { template: "<hr />" },
+      },
+    },
     attachTo: body(),
   });
   await flushPromises();
 }
 
-async function choose(title: string) {
-  button(t("match.recovery.fix.title"))!.click();
-  await flushPromises();
-  button(title)!.click();
-  await flushPromises();
-}
+const item = (key: string) =>
+  body().querySelector(
+    `[data-testid="match-action-veto-${key}"]`,
+  ) as HTMLElement | null;
 
-const state = (overrides: Partial<FixProblemState> = {}): FixProblemState => ({
-  status: "Veto",
-  stepLabel: "Veto",
-  currentMapStatus: null,
-  mapsStarted: false,
-  rush: false,
-  mapVeto: true,
-  vetoPicks: 2,
-  vetoTeam: "Kestrel",
-  vetoClockRunning: true,
-  lastPick: { team: "Ironside", map: "Vertigo" },
-  canControl: true,
-  canRestartMatch: false,
-  ...overrides,
-});
+const keys = (match: Record<string, any>, count = 2) =>
+  vetoRecoveryItems(
+    t,
+    match,
+    [pick("Ban", "l-1", "nuke"), pick("Ban", "l-2", "vertigo")].slice(0, count),
+  ).map((entry) => entry.key);
 
-const keys = (overrides: Partial<FixProblemState> = {}) => {
-  const menu = fixProblemItems(t, state(overrides));
-  return [...menu.now, ...menu.anytime].map((item) => item.key);
-};
-
-describe("Fix a Problem in the admin dock", () => {
-  it("offers the four veto fixes during the veto", () => {
-    expect(keys()).toEqual(["undo_last", "mispick", "redo", "time"]);
+describe("who gets Veto Recovery", () => {
+  it.each([
+    ["administrator", {}, true],
+    ["match_organizer", {}, true],
+    ["tournament_organizer", { is_tournament_match: true }, true],
+    ["tournament_organizer", { is_tournament_match: false }, false],
+    [
+      "tournament_organizer",
+      { is_tournament_match: true, is_organizer: false },
+      false,
+    ],
+    ["moderator", {}, false],
+    ["user", {}, false],
+  ])("a %s on %o: %s", (role, overrides, expected) => {
+    expect(canRecoverVeto(vetoMatch(overrides), above(role) as never)).toBe(
+      expected,
+    );
   });
 
-  it("drops Give 30s More when no clock runs, and Undo before a step is taken", () => {
-    expect(keys({ vetoClockRunning: false })).toEqual([
+  it("is the same while playing in the match", () => {
+    for (const role of ["administrator", "match_organizer"]) {
+      expect(
+        canRecoverVeto(vetoMatch({ is_in_lineup: true }), above(role) as never),
+      ).toBe(true);
+    }
+  });
+});
+
+describe("which veto fixes apply", () => {
+  it("offers all four during the veto", () => {
+    expect(keys(vetoMatch())).toEqual(["undo_last", "mispick", "redo", "time"]);
+  });
+
+  it("drops Give 30s More without a clock, and Undo before a step", () => {
+    expect(keys(vetoMatch({ map_veto_pick_expires_at: null }))).toEqual([
       "undo_last",
       "mispick",
       "redo",
     ]);
-    expect(keys({ vetoPicks: 0, lastPick: null })).toEqual(["time"]);
+    expect(keys(vetoMatch(), 0)).toEqual(["time"]);
   });
 
   it("still fixes a finished veto until the first map starts", () => {
-    expect(
-      keys({ status: "Live", currentMapStatus: "Scheduled", vetoTeam: null }),
-    ).toEqual(["mispick", "redo"]);
-    expect(
-      keys({
-        status: "Live",
-        currentMapStatus: "Live",
-        mapsStarted: true,
-        vetoTeam: null,
-      }),
-    ).toEqual(["restore", "restart_map"]);
-  });
-
-  it("offers nothing to an organizer the api would refuse", () => {
-    expect(keys({ canControl: false })).toEqual([]);
-    expect(
-      keys({
-        canControl: false,
-        status: "Live",
-        currentMapStatus: "Live",
-        mapsStarted: true,
-      }),
-    ).toEqual([]);
-  });
-
-  it("keeps Restart Match out until its branch turns it on, and then for Live only", () => {
     const live = {
       status: "Live",
-      currentMapStatus: "Live",
-      mapsStarted: true,
+      map_veto_picking_lineup_id: null,
+      map_veto_pick_expires_at: null,
     };
-    expect(keys(live)).not.toContain("restart");
-    expect(keys({ ...live, canRestartMatch: true })).toContain("restart");
-    expect(keys({ canRestartMatch: true })).not.toContain("restart");
-  });
-
-  it("has no fixes on a finished match (they stay in the ... menu)", () => {
-    expect(keys({ status: "Finished", vetoPicks: 9 })).toEqual([]);
-  });
-});
-
-describe("the dock's steps", () => {
-  it("shows Captain Pick only while the captains pick", () => {
-    const picking = { status: "PickingPlayers", options: { map_veto: true } };
-    expect(matchAdminSteps(picking)).toEqual([
-      "captain_pick",
-      "check_in",
-      "veto",
-      "warmup",
-      "live",
-      "finished",
-    ]);
-    expect(currentMatchAdminStep(picking)).toBe("captain_pick");
     expect(
-      matchAdminSteps({ status: "Veto", options: { map_veto: true } }),
-    ).not.toContain("captain_pick");
+      keys(
+        vetoMatch({
+          ...live,
+          match_maps: [{ id: "a", is_current_map: true, status: "Scheduled" }],
+        }),
+      ),
+    ).toEqual(["mispick", "redo"]);
+    expect(
+      keys(
+        vetoMatch({
+          ...live,
+          match_maps: [{ id: "a", is_current_map: true, status: "Warmup" }],
+        }),
+      ),
+    ).toEqual([]);
+    expect(keys(vetoMatch({ ...live, status: "Finished" }))).toEqual([]);
   });
 });
 
-describe("Veto Recovery from the dock", () => {
+describe("Veto Recovery in the ... menu", () => {
   it("undoes the last step after a confirm, telling the api how many picks it saw", async () => {
     picks = [pick("Ban", "l-1", "nuke"), pick("Ban", "l-2", "vertigo")];
-    await mountDock();
+    await mountMenu();
 
-    await choose(t("match.fix_menu.undo_last_title"));
+    item("undo_last")!.click();
+    await flushPromises();
     expect(body().textContent).toContain(
       "Takes back Ironside's choice of Vertigo, and they choose again.",
     );
     (
-      body().querySelector('[data-testid="dock-undo-confirm"]') as HTMLElement
+      body().querySelector('[data-testid="veto-undo-confirm"]') as HTMLElement
     ).click();
     await flushPromises();
 
@@ -294,9 +305,10 @@ describe("Veto Recovery from the dock", () => {
 
   it("gives the team on the clock 30 more seconds", async () => {
     picks = [pick("Ban", "l-1", "nuke")];
-    await mountDock();
+    await mountMenu();
 
-    await choose(t("match.fix_menu.time_title"));
+    item("time")!.click();
+    await flushPromises();
 
     expect(sent()).toEqual([
       { name: "ExtendVetoClock", variables: { matchId: "m-1", seconds: 30 } },
@@ -306,11 +318,12 @@ describe("Veto Recovery from the dock", () => {
     });
   });
 
-  it("opens Redo the Veto on the first step", async () => {
+  it("redoes the veto from the first step", async () => {
     picks = [pick("Ban", "l-1", "nuke"), pick("Ban", "l-2", "vertigo")];
-    await mountDock();
+    await mountMenu();
 
-    await choose(t("match.fix_menu.redo_title"));
+    item("redo")!.click();
+    await flushPromises();
     expect(body().textContent).toContain("Rewind to Step 1");
     button("Rewind the Veto")!.click();
     await flushPromises();
@@ -323,37 +336,40 @@ describe("Veto Recovery from the dock", () => {
     ]);
   });
 
-  it("hides the veto fixes from a player organizing below match_organizer", async () => {
-    role.value = "moderator";
-    picks = [pick("Ban", "l-1", "nuke")];
-    await mountDock(vetoMatch({ is_in_lineup: true }));
+  it("opens Fix a Mis-pick on the last step taken", async () => {
+    picks = [pick("Ban", "l-1", "nuke"), pick("Ban", "l-2", "vertigo")];
+    await mountMenu();
 
-    expect(button(t("match.recovery.fix.title"))).toBeUndefined();
-
-    wrapper!.unmount();
-    role.value = "match_organizer";
-    await mountDock(vetoMatch({ is_in_lineup: true }));
-    expect(button(t("match.recovery.fix.title"))).toBeDefined();
-  });
-
-  it("shows Pause on a live map and sends setMatchPaused", async () => {
-    await mountDock(
-      vetoMatch({
-        status: "Live",
-        is_server_online: true,
-        match_maps: [{ id: "map-1", is_current_map: true, status: "Live" }],
-      }),
-    );
-
-    (body().querySelector('[data-testid="dock-pause"]') as HTMLElement).click();
+    item("mispick")!.click();
     await flushPromises();
 
-    expect(sent()).toEqual([
-      {
-        name: "SetMatchPaused",
-        variables: { match_id: "m-1", paused: true },
-      },
-    ]);
+    expect(body().textContent).toContain("Rewind to Step 2");
+  });
+
+  it.each([
+    ["user", {}],
+    ["moderator", {}],
+    ["tournament_organizer", { is_tournament_match: false }],
+  ])(
+    "shows nothing to a %s who organizes the match, and doesn't subscribe",
+    async (role, overrides) => {
+      viewer.role = role;
+      picks = [pick("Ban", "l-1", "nuke")];
+      await mountMenu(vetoMatch(overrides));
+
+      expect(
+        body().querySelector('[data-testid^="match-action-veto-"]'),
+      ).toBeNull();
+      expect(subscribed).toBe(0);
+    },
+  );
+
+  it("shows a tournament_organizer the fixes on its own tournament's match", async () => {
+    viewer.role = "tournament_organizer";
+    picks = [pick("Ban", "l-1", "nuke")];
+    await mountMenu(vetoMatch({ is_tournament_match: true }));
+
+    expect(item("redo")).not.toBeNull();
   });
 });
 
@@ -424,5 +440,44 @@ describe("Fix the Veto", () => {
         ) as HTMLButtonElement
       ).disabled,
     ).toBe(true);
+  });
+});
+
+describe("the Admin Dock", () => {
+  const source = (file: string) =>
+    readFileSync(path.resolve(__dirname, "../..", file), "utf8");
+
+  it("is mounted for administrators only, on the match page and in draft rooms", () => {
+    for (const file of [
+      "pages/matches/[id]/index.vue",
+      "components/draft-games/DraftRoom.vue",
+    ]) {
+      const code = source(file);
+      expect(code).toMatch(
+        /canViewMatchAdminBar[^{]*\{?\s*(return\s*)?useAuthStore\(\)\.isRoleAbove\(e_player_roles_enum\.administrator\)/,
+      );
+      expect(code).toContain(
+        '<MatchAdminBottomBar v-if="canViewMatchAdminBar"',
+      );
+    }
+  });
+
+  it("carries no recovery controls, which stay in the ... menu", () => {
+    const bar = source("components/match/MatchAdminBottomBar.vue");
+    expect(bar).not.toMatch(
+      /VetoRecovery|rewindMapVeto|extendVetoClock|setMatchPaused/,
+    );
+    const actions = source("components/match/MatchActions.vue");
+    expect(actions).toContain('<MatchVetoRecoveryMenuItems :match="match" />');
+    expect(actions).toContain('<MatchVetoRecoveryDialogs :match="match" />');
+  });
+
+  it("shows the Captain Pick step only while the captains pick", () => {
+    const picking = { status: "PickingPlayers", options: { map_veto: true } };
+    expect(matchAdminSteps(picking)[0]).toBe("captain_pick");
+    expect(currentMatchAdminStep(picking)).toBe("captain_pick");
+    expect(
+      matchAdminSteps({ status: "Veto", options: { map_veto: true } }),
+    ).not.toContain("captain_pick");
   });
 });
