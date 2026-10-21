@@ -8144,6 +8144,12 @@
         "started": "Restoring round {round}",
         "failed": "Couldn't restore the round"
       },
+      "restart": {
+        "title": "Restart Match",
+        "description": "Everyone checks in again and the match gets a new server. The veto result and the maps stay the same. Finished maps keep their scores, stats and demos. The map that was being played starts over from warmup.",
+        "restarted": "Match restarted. Waiting for check-in.",
+        "failed": "Couldn't restart the match"
+      },
       "restart_map": {
         "title": "Restart Map",
         "description": "Everyone goes back to warmup and the score returns to 0–0. Once the map is live again, any round played so far can still be restored until the first round after the restart ends.",

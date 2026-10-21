@@ -16,6 +16,7 @@ import {
   Video,
   XCircle,
 } from "lucide-vue-next";
+import MatchRestartDialog from "~/components/match/MatchRestartDialog.vue";
 import MatchRestartMapDialog from "~/components/match/MatchRestartMapDialog.vue";
 import MatchRestoreRoundDialog from "~/components/match/MatchRestoreRoundDialog.vue";
 import MatchSelectServer from "~/components/match/MatchSelectServer.vue";
@@ -258,7 +259,8 @@ import {
             canDeleteTournamentMatchDisabled ||
             canReparseDemos ||
             canRestoreRound ||
-            canRestartMap
+            canRestartMap ||
+            canRestartMatch
           "
         />
 
@@ -283,6 +285,15 @@ import {
         >
           <RotateCcw />
           {{ $t("match.recovery.restart_map.title") }}
+        </DropdownMenuItem>
+
+        <DropdownMenuItem
+          v-if="canRestartMatch"
+          data-testid="match-action-restart-match"
+          @click="showRestartMatchDialog = true"
+        >
+          <RefreshCw />
+          {{ $t("match.recovery.restart.title") }}
         </DropdownMenuItem>
 
         <DropdownMenuItem v-if="canReparseDemos" @click="reparseAllDemos">
@@ -357,6 +368,12 @@ import {
     <MatchRestartMapDialog
       v-if="canRestartMap || showRestartMapDialog"
       v-model:open="showRestartMapDialog"
+      :match="match"
+    />
+
+    <MatchRestartDialog
+      v-if="canRestartMatch || showRestartMatchDialog"
+      v-model:open="showRestartMatchDialog"
       :match="match"
     />
 
@@ -497,6 +514,7 @@ export default {
       togglingLive: false,
       restoreOpen: false,
       showRestartMapDialog: false,
+      showRestartMatchDialog: false,
     };
   },
   beforeUnmount() {
@@ -887,6 +905,18 @@ export default {
         )
       );
     },
+    // DEAFCS: administrators only for now (the restartMatch action too), on a
+    // match that has gone Live or is waiting for its server. Organizers keep
+    // Restore Round, Restart Map and Pause/Resume.
+    canRestartMatch() {
+      return (
+        [
+          e_match_status_enum.Live,
+          e_match_status_enum.WaitingForServer,
+        ].includes(this.match.status) &&
+        useAuthStore().isRoleAbove(e_player_roles_enum.administrator)
+      );
+    },
     // clip_render_jobs select permission (public_clip_render_jobs.yaml):
     // user (own rows), streamer, match_organizer, administrator, and every
     // role inheriting them, i.e. any signed-in player. Not guest.
@@ -911,7 +941,8 @@ export default {
           this.canVoidElo ||
           this.canDeleteMatch ||
           this.canDeleteTournamentMatchDisabled ||
-          this.canReparseDemos,
+          this.canReparseDemos ||
+          this.canRestartMatch,
       );
     },
     canCancelMatch() {
