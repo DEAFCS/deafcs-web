@@ -122,14 +122,11 @@ const checkInProgress = computed(() => {
 });
 
 const me = computed(() => useAuthStore().me);
-// Mirrors rcon.service.ts's canAccessServer: being the organizer alone is
-// never enough server-side (non-staff players organize their own drafts
-// routinely), so gating the floating Admin/RCON bar on is_organizer alone
-// exposed it to regular verified users.
-const canViewMatchAdminBar = computed(
-  () =>
-    !!props.match?.is_organizer &&
-    useAuthStore().isRoleAbove(e_player_roles_enum.moderator),
+// DEAFCS: the Admin Dock (RCON console and logs) is mounted for
+// administrators only, as on the match page. Organizers use the match's
+// "..." menu.
+const canViewMatchAdminBar = computed(() =>
+  useAuthStore().isRoleAbove(e_player_roles_enum.administrator),
 );
 const perTeam = computed(() => props.room.capacity / 2);
 

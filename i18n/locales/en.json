@@ -8158,12 +8158,6 @@
         "undone_title": "Undone rounds",
         "undone_hint": "A restore or a map restart undid these. They can be brought back until the next round is played.",
         "bring_back": "Bring back round {round}"
-      },
-      "fix": {
-        "title": "Fix a Problem",
-        "restore_title": "A round went wrong",
-        "restart_map_title": "This map has to start over",
-        "restart_map_description": "Back to warmup at 0–0. The rounds played stay restorable until the next round ends."
       }
     },
     "highlights": {
@@ -9337,9 +9331,6 @@
       }
     },
     "fix_menu": {
-      "right_now": "Right Now",
-      "any_time": "Any Time",
-      "restore_description": "Crash, bug or disconnect. Go back to the start of any round.",
       "undo_last_title": "Undo the Last Step",
       "undo_last_description": "Takes back {team}'s choice of {map}, and they choose again.",
       "mispick_title": "Fix a Mis-pick",
@@ -9348,7 +9339,6 @@
       "redo_description": "Start again from the first ban, with every map back in the pool.",
       "time_title": "Give 30 Seconds More",
       "time_description": "Adds time to {team}'s clock.",
-      "later_rounds": "Round fixes unlock once a map is being played.",
       "undo_confirm": "Undo Step",
       "rewound": "Veto rewound to step {step}",
       "rewind_failed": "Couldn't rewind the veto",
