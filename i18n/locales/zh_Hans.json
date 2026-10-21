@@ -5110,7 +5110,8 @@
       "rewound": "BP 已回退到第 {step} 步",
       "rewind_failed": "无法回退 BP",
       "time_added": "BP 计时器已增加 {seconds} 秒",
-      "time_failed": "无法为 BP 计时器增加时间"
+      "time_failed": "无法为 BP 计时器增加时间",
+      "veto_recovery": "BP 恢复"
     },
     "veto_rewind": {
       "title": "BP · BO{count}",
