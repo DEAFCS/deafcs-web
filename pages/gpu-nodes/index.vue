@@ -842,6 +842,7 @@ async function stopGpuSession(nodeId: string) {
 <script lang="ts">
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import { Radio, PlayCircle, Film } from "lucide-vue-next";
+import { gpuSteamAccountsWhere } from "~/utilities/gpuSteamAccounts";
 
 type BusyEntry = {
   kind: "live" | "demo" | "highlights";
@@ -1094,7 +1095,10 @@ export default {
       steam_accounts: {
         query: typedGql("subscription")({
           steam_accounts: [
-            { order_by: [{ created_at: "asc" as any }] },
+            {
+              where: gpuSteamAccountsWhere,
+              order_by: [{ created_at: "asc" as any }],
+            },
             {
               id: true,
               username: true,

@@ -1566,6 +1566,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 <script lang="ts">
 import { generateQuery } from "~/graphql/graphqlGen";
 import type { Plugin } from "~/stores/Plugins";
+import { gpuSteamAccountsWhere } from "~/utilities/gpuSteamAccounts";
 export default {
   props: {
     isMobile: {
@@ -1615,7 +1616,7 @@ export default {
           { where: { gpu: { _eq: true } } as any },
           { id: true },
         ],
-        steam_accounts: [{}, { id: true }],
+        steam_accounts: [{ where: gpuSteamAccountsWhere }, { id: true }],
       }),
       pollInterval: 60 * 1000,
       update(this: any, data: any) {
