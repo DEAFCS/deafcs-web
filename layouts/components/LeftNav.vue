@@ -1131,6 +1131,13 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                       "layouts.app_nav.administration.verification_applications",
                     )
                   }}
+                  <Badge
+                    size="sm"
+                    v-if="pendingApplicationCount > 0"
+                    class="ml-auto"
+                  >
+                    {{ pendingApplicationCount }}
+                  </Badge>
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -1145,6 +1152,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <LifeBuoy />
                   Support Requests
+                  <Badge size="sm" v-if="openSupportCount > 0" class="ml-auto">
+                    {{ openSupportCount }}
+                  </Badge>
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -1778,6 +1788,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
 </template>
 
 <script lang="ts">
+import gql from "graphql-tag";
 import { generateQuery } from "~/graphql/graphqlGen";
 import type { Plugin } from "~/stores/Plugins";
 export default {
@@ -1793,6 +1804,9 @@ export default {
   },
   data() {
     return {
+      // Cases waiting on staff, for the badges in the Administration list.
+      openSupportCount: 0,
+      pendingApplicationCount: 0,
       serversOpened: false,
       infoOpened: false,
       profileOpened: false,
@@ -1807,6 +1821,41 @@ export default {
     };
   },
   apollo: {
+    // Live counts of what is still open. Only ids are asked for: the list is
+    // what the two pages already read, and the length is the number.
+    $subscribe: {
+      openSupportRequests: {
+        query: gql`
+          subscription LeftNavOpenSupportRequests {
+            support_requests(where: { status: { _neq: "closed" } }) {
+              id
+            }
+          }
+        `,
+        result(this: any, { data }: { data: any }) {
+          this.openSupportCount = data?.support_requests?.length ?? 0;
+        },
+        skip(this: any) {
+          return !this.canModerate;
+        },
+      },
+      pendingVerificationApplications: {
+        query: gql`
+          subscription LeftNavPendingVerificationApplications {
+            verification_applications(where: { status: { _eq: "pending" } }) {
+              id
+            }
+          }
+        `,
+        result(this: any, { data }: { data: any }) {
+          this.pendingApplicationCount =
+            data?.verification_applications?.length ?? 0;
+        },
+        skip(this: any) {
+          return !this.canModerate;
+        },
+      },
+    },
     telemetryStats: {
       query: generateQuery({
         telemetryStats: {

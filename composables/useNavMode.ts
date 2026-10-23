@@ -22,9 +22,16 @@ const ADMIN_ROUTES = [
   "admin-call",
 ];
 
+// Pages whose name is a prefix of a public page: /matches/create and the
+// Manage Matches list are admin, but /matches/<id> is a match anyone watches.
+const ADMIN_EXACT_ROUTES = ["matches", "matches-create"];
+
 export function isAdminRouteName(name: unknown): boolean {
   if (typeof name !== "string") {
     return false;
+  }
+  if (ADMIN_EXACT_ROUTES.includes(name)) {
+    return true;
   }
   return ADMIN_ROUTES.some((route) =>
     route.endsWith("-")
