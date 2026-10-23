@@ -1600,8 +1600,8 @@ function onLeftNavTouchEnd(e: TouchEvent) {
              moved here from the top bar. A row when the nav is open, a column
              of icons when it is collapsed. -->
         <div
-          class="flex items-center gap-1 px-2"
-          :class="rail ? 'flex-col' : ''"
+          class="flex items-center gap-1"
+          :class="rail ? 'flex-col' : 'px-2'"
         >
           <a
             :href="socialLinks.steamGroup"

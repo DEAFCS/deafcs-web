@@ -87,7 +87,11 @@ function nextIosStep() {
   </Button>
   <FiveStackToolTip v-else>
     <template #trigger>
-      <Button size="sm" @click="dialogOpen = true">
+      <Button
+        size="icon"
+        class="h-8 w-8 shrink-0"
+        @click="dialogOpen = true"
+      >
         <PhoneDownloadIcon class="w-4 h-4" />
       </Button>
     </template>
