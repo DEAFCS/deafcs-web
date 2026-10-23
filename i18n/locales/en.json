@@ -6166,6 +6166,14 @@
       "settings": "Notification Settings"
     },
     "app_nav": {
+      "account_card": {
+        "guest_line": "Sign in to queue for matches, track your stats and join tournaments.",
+        "sign_in": "Sign in with Steam",
+        "verify_line": "Get verified to queue for matches and join tournaments.",
+        "pending_line": "Your verification is being reviewed.",
+        "rejected_line": "Your application was rejected. See why and apply again.",
+        "get_verified": "Get Verified"
+      },
       "sections": {
         "compete": "Compete",
         "practice": "Practice",

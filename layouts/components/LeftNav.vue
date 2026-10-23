@@ -44,6 +44,7 @@ import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
 import InstallAppQrDialog from "~/components/InstallAppQrDialog.vue";
+import LeftNavAccountCard from "~/layouts/components/LeftNavAccountCard.vue";
 import { e_player_roles_enum } from "~/generated/zeus";
 import { DiscordLogoIcon, GithubLogoIcon } from "@radix-icons/vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -243,7 +244,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             :aria-current="isLogoRouteActive ? 'page' : undefined"
           >
             <NuxtImg
-              class="shrink-0 rounded max-w-11 max-h-11"
+              class="shrink-0 rounded max-w-14 max-h-14"
               :src="customLogoUrl || '/favicon/64.png'"
             />
             <Transition
@@ -258,7 +259,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               <span
                 v-if="!isPWA && (isMobile || sideBarOpen)"
                 key="brand"
-                class="text-xl font-bold tracking-wide truncate"
+                class="text-2xl font-bold tracking-wide truncate"
               >
                 {{ customBrandName || $t("layouts.app_nav.brand") }}
               </span>
@@ -266,6 +267,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </NuxtLink>
         </SidebarHeader>
       </Transition>
+      <LeftNavAccountCard :rail="rail" />
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
