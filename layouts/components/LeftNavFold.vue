@@ -37,7 +37,7 @@ const { isOpen, setOpen } = useLeftNavFold();
     </button>
     <div
       v-show="isOpen(props.id)"
-      class="ml-[17px] border-l border-sidebar-border pl-1"
+      class="ml-[17px] border-l border-sidebar-border pl-3 [&_svg]:hidden [&_.he-grenade-mask]:hidden"
     >
       <SidebarMenu><slot /></SidebarMenu>
     </div>

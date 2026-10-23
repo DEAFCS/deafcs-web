@@ -237,13 +237,13 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             :to="logoPath"
             class="flex min-w-0 items-center overflow-hidden transition-[gap,padding] duration-200 ease-linear [&.router-link-active]:!bg-transparent [&.router-link-exact-active]:!bg-transparent"
             :class="{
-              'gap-2 px-2 py-1.5': !isPWA && (isMobile || sideBarOpen),
+              'gap-3 px-2 py-2': !isPWA && (isMobile || sideBarOpen),
             }"
             :aria-label="customBrandName || $t('layouts.app_nav.brand')"
             :aria-current="isLogoRouteActive ? 'page' : undefined"
           >
             <NuxtImg
-              class="shrink-0 rounded max-w-8 max-h-8"
+              class="shrink-0 rounded max-w-11 max-h-11"
               :src="customLogoUrl || '/favicon/64.png'"
             />
             <Transition
@@ -258,7 +258,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               <span
                 v-if="!isPWA && (isMobile || sideBarOpen)"
                 key="brand"
-                class="font-semibold text-xlg truncate"
+                class="text-xl font-bold tracking-wide truncate"
               >
                 {{ customBrandName || $t("layouts.app_nav.brand") }}
               </span>
@@ -310,8 +310,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </KbdGroup>
               </SidebarMenuButton>
             </SidebarMenuItem>
-
-            <Separator v-if="showSeparators" class="mx-4 w-auto" />
 
             <SidebarMenuItem
               v-if="isMobile && me && !isPWA"
