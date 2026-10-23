@@ -3,7 +3,9 @@ import { MapPinOff, MonitorX } from "lucide-vue-next";
 
 // Stands in the replay stage's place when it cannot draw: no WebGL2, or no
 // model of the map to draw.
-defineProps<{ reason: "unsupported" | "missing-map" }>();
+// DEAFCS: `workshop` explains that a workshop map has no replay files yet,
+// rather than reading like a failed load.
+defineProps<{ reason: "unsupported" | "missing-map"; workshop?: boolean }>();
 </script>
 
 <template>
@@ -16,7 +18,9 @@ defineProps<{ reason: "unsupported" | "missing-map" }>();
     {{
       reason === "unsupported"
         ? $t("match.replay.chrome.stage_unsupported")
-        : $t("match.replay.chrome.stage_no_map")
+        : workshop
+          ? $t("match.replay.chrome.stage_no_workshop_map")
+          : $t("match.replay.chrome.stage_no_map")
     }}
   </div>
 </template>

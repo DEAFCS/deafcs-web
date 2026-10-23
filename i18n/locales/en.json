@@ -9248,6 +9248,7 @@
         "loading_map": "Loading {map}…",
         "stage_unsupported": "This browser can't show the replay map. It needs WebGL 2.",
         "stage_no_map": "The map for this replay couldn't load.",
+        "stage_no_workshop_map": "Replays aren't available for this workshop map yet. Matches on regular maps can still be watched in 2D and 3D.",
         "shot_coming_up": "Coming up: {shot}",
         "shot_wide": "Overview",
         "shot_standoff": "Standoff",

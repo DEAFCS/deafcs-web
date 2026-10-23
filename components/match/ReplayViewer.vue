@@ -2581,6 +2581,7 @@ const replayShare = useReplayShare({
         v-else
         class="z-[1]"
         :reason="stageUnavailable"
+        :workshop="/^\d+$/.test(normalizedMap)"
       />
 
       <!-- Unified chrome (Replay3D look) — shown over BOTH 2D and 3D so the

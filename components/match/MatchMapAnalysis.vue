@@ -228,25 +228,25 @@ const radarSrc = computed(() => {
   return `/radars/${normalizedMap.value}.png`;
 });
 
-const has2dRadar = computed(() =>
-  calibrations.value === null ? true : !!calibration.value,
-);
+// Both stay hidden until confirmed, so a map with no replay files (workshop
+// maps) never shows a button that opens an empty replay.
+const has2dRadar = computed(() => !!calibration.value);
 
-const has3dMesh = ref(true);
+const has3dMesh = ref(false);
 watch(
   () => activeMatchMap.value?.map?.name,
   async (name) => {
-    if (!import.meta.client) {
+    has3dMesh.value = false;
+    if (!import.meta.client || !name) {
       return;
     }
-    if (!name) {
-      has3dMesh.value = false;
-      return;
-    }
-    has3dMesh.value = await hasMeshForMap(
+    const found = await hasMeshForMap(
       useRuntimeConfig().public.mapMeshCdn as string,
       name,
     );
+    if (activeMatchMap.value?.map?.name === name) {
+      has3dMesh.value = found;
+    }
   },
   { immediate: true },
 );

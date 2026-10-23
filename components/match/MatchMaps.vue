@@ -387,8 +387,10 @@ export default {
   data() {
     return {
       isParsingDemo: false,
-      mapHasMesh: true,
-      mapHasRadar: true,
+      // DEAFCS: hidden until the checks confirm the map's files exist, so a
+      // map with none (workshop maps) never flashes a replay button.
+      mapHasMesh: false,
+      mapHasRadar: false,
       restoreOpen: false,
     };
   },
