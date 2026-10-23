@@ -18,6 +18,12 @@ vi.mock("~/components/ui/sidebar/utils", () => ({
 vi.mock("@/composables/useHubState", () => ({
   useHubState: () => ({ openLastOrDefaultHub: vi.fn() }),
 }));
+vi.mock("~/stores/MatchmakingStore", () => ({
+  useMatchmakingStore: () => ({ joinedMatchmakingQueues: null }),
+}));
+vi.mock("~/composables/useMatchReadyModal", () => ({
+  useMatchReadyModal: () => ({ openMatchReadyModal: vi.fn() }),
+}));
 vi.mock("~/composables/useChatTabs", () => ({
   useChatTabs: () => ({ unreadCounts: ref({}) }),
 }));
@@ -32,6 +38,7 @@ describe("staff top bar (AppHeader)", () => {
   beforeEach(() => {
     // Nuxt auto-imports these; plain Vitest does not.
     vi.stubGlobal("computed", computed);
+    vi.stubGlobal("useRoute", () => ({ path: "/" }));
     vi.stubGlobal("useAuthStore", () => ({
       me: { steam_id: "1", role: "administrator" },
     }));

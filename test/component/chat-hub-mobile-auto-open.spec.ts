@@ -242,7 +242,7 @@ describe("Chat Hub icon reaches the page's rooms without an Open Chat button", (
       "utf8",
     );
     expect(nav).toMatch(
-      /class="relative h-7 w-7 md:hidden"\s+@click="openLastOrDefaultHub\(\)"[\s\S]{0,200}<MessageSquare/,
+      /class="h-7 w-7 md:hidden relative"\s+@click="openLastOrDefaultHub\(\)"[\s\S]{0,200}<MessageSquare/,
     );
   });
 });

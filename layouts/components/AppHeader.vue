@@ -11,7 +11,6 @@ import MobileBackButton from "./MobileBackButton.vue";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import SpotlightPlayerSearch from "~/components/SpotlightPlayerSearch.vue";
 import { CheckCircle2, Crown, MessageSquare } from "lucide-vue-next";
-import SteamIcon from "~/components/icons/SteamIcon.vue";
 import { useMatchmakingStore } from "~/stores/MatchmakingStore";
 import { useMatchReadyModal } from "~/composables/useMatchReadyModal";
 import {
@@ -20,7 +19,6 @@ import {
   isMyCaptainPickTurn,
   pendingReadyCheck,
 } from "~/utilities/captainPickDraft";
-import { loginLinks } from "~/utilities/loginLinks";
 import { useHubState } from "@/composables/useHubState";
 import { useChatTabs } from "~/composables/useChatTabs";
 import AnimatedStat from "~/components/AnimatedStat.vue";
@@ -50,14 +48,6 @@ const activeCaptainPick = computed(() => {
 const isMyCaptainPick = computed(() =>
   isMyCaptainPickTurn(activeCaptainPick.value, useAuthStore().me?.steam_id),
 );
-const loginButtonClasses =
-  "group relative inline-flex items-center gap-[0.45rem] rounded-md border border-[hsl(var(--tac-amber)/0.55)] bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.14)_0%,hsl(var(--tac-amber)/0.06)_100%)] px-[0.8rem] py-[0.45rem] font-sans text-[0.68rem] font-bold uppercase tracking-[0.16em] text-topnav-foreground transition-[background-color,color,transform] duration-150 hover:bg-[linear-gradient(180deg,hsl(var(--tac-amber)/0.28)_0%,hsl(var(--tac-amber)/0.14)_100%)] active:translate-y-px sm:px-3 sm:py-[0.35rem] sm:text-[0.65rem] sm:tracking-[0.18em]";
-const loginArrowClasses =
-  "font-sans text-[hsl(var(--tac-amber))] transition-transform duration-150 group-hover:translate-x-[3px]";
-
-function signIn() {
-  window.location.href = `${loginLinks.steam}?redirect=${encodeURIComponent(window.location.toString())}`;
-}
 const { openLastOrDefaultHub } = useHubState();
 const { unreadCounts } = useChatTabs();
 const totalUnreadMessages = computed(() =>
@@ -146,27 +136,12 @@ const chatBadgeLabel = computed(() =>
           </NuxtLink>
         </template>
 
-        <template v-else>
-          <button
-            @click="signIn"
-            :class="loginButtonClasses"
-            type="button"
-            :aria-label="$t('layouts.top_nav.login')"
-          >
-            <SteamIcon class="h-3.5 w-3.5 fill-white" />
-            <span class="hidden sm:inline">{{
-              $t("layouts.top_nav.login")
-            }}</span>
-            <span :class="loginArrowClasses">→</span>
-          </button>
-        </template>
-
 
         <UtilityPracticeNav v-if="!isMobile" />
 
         <DraftRoomNav v-if="!isMobile"></DraftRoomNav>
 
-        <MatchLobbies v-if="!isMobile"></MatchLobbies>
+        <MatchLobbies v-if="!isMobile && me"></MatchLobbies>
 
         <SystemStatus></SystemStatus>
 

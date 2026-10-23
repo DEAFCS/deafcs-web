@@ -30,6 +30,10 @@ const appHeader = await readFile(
   new URL("../layouts/components/AppHeader.vue", import.meta.url),
   "utf8",
 );
+const leftNavCard = await readFile(
+  new URL("../layouts/components/LeftNavAccountCard.vue", import.meta.url),
+  "utf8",
+);
 const logout = await readFile(
   new URL("../layouts/components/Logout.vue", import.meta.url),
   "utf8",
@@ -113,9 +117,12 @@ test("the left nav shows My Support Requests and visitors get Sign in", () => {
     leftNav,
     /<NuxtLink[\s\S]*?to="\/support"[\s\S]*?My Support Requests/,
   );
-  // The top bar is gone, so the header beside the left nav carries the
-  // visitor's Sign in button.
-  assert.match(appHeader, /<template v-else>[\s\S]*?@click="signIn"/);
+  // Visitors sign in from the card at the top of the left nav, not the header.
+  assert.doesNotMatch(appHeader, /signIn/);
+  assert.match(
+    leftNavCard,
+    /@click="signIn"/,
+  );
 });
 
 test("everyone gets the left nav, and its moderator links keep their own gates", () => {
