@@ -1,111 +1,260 @@
-// Distinguishes *why* the upload failed so the caller can show a message
-// that actually points at the cause instead of a generic "try again" --
-// "network" with zero bytes ever sent is the signature this endpoint hit in
-// production for a ~95MB video from an iPhone: the request never reached
-// the server at all, most likely Safari failing to buffer a large
-// multipart/form-data body in memory before it could send anything.
-export type ChatAttachmentUploadError = Error & {
-  kind: "network" | "timeout" | "http";
-  status?: number;
-  bytesSent: number;
-};
-
-// Uploads a chat attachment ahead of the actual "lobby:chat" socket send --
-// the chat message doesn't exist yet at upload time, so this just stashes
-// the file in S3 and returns the key + content type to include as
-// `attachment` on the socket send.
+// Ported from 5stackgg/web 8ead042 composables/chatAttachmentUploads.ts: the
+// file goes up in parts (create, PUT each part, complete), each part a
+// request well under Cloudflare's 100 MB body cap. Sent as one request, a
+// 107 MB video was refused by Cloudflare before it reached the api.
 //
-// Sends the file as a raw binary body (Content-Type: the file's own
-// mimetype) instead of wrapping it in multipart/form-data like
-// uploadSupportAttachment.ts does -- multipart requires the browser to
-// build one combined body from all its parts before sending, and Safari
-// appears to do that fully in memory: a large video reliably failed there
-// (confirmed via server logs: zero bytes ever arrived) while working fine
-// on desktop browsers. A raw Blob/File body lets every browser stream it
-// directly instead. See chat.module.ts for the matching raw-body parser
-// this needs server-side.
-//
-// Uses XMLHttpRequest rather than fetch() specifically for its
-// upload.onprogress event -- fetch has no cross-browser way to observe
-// request body upload progress, and a 100-200MB video attachment can take
-// long enough (especially on mobile) that a plain spinner with no percentage
-// left people unsure whether it was still going at all.
-export function uploadChatAttachment(
-  file: File,
-  onProgress?: (percent: number) => void,
-): Promise<{ path: string; contentType: string }> {
-  const apiDomain = useRuntimeConfig().public.apiDomain as string;
+// DEAFCS differences: no room, poster or media metadata on create, and the
+// answer is still the S3 key + content type the "lobby:chat" socket send
+// takes as `attachment`, so sending works exactly as before. An upload that
+// fails or is cancelled after it was created is discarded here, since DEAFCS
+// has no upload tray to do it.
 
-  // Diagnostic logging (temporary, while tracking down a reproducible
-  // failure for large Photo-Library videos on iOS) -- lastLoggedPercent
-  // just keeps this to one line per ~10% instead of flooding the console.
-  console.log("[chat attachment] starting upload", {
-    name: file.name,
-    size: file.size,
-    type: file.type,
-  });
-  let lastLoggedPercent = -1;
+export class ChatUploadError extends Error {
+  constructor(public readonly code: string) {
+    super(code);
+    this.name = "ChatUploadError";
+  }
+}
 
+const apiBase = () => `https://${useRuntimeConfig().public.apiDomain}/chat`;
+
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function chatAttachmentUploadUrl(id: string): string {
+  return UUID.test(id) ? `${apiBase()}/attachments/${id}` : "";
+}
+
+// Must match the api's ChatAttachmentsService.MAX_UPLOADS_PER_PLAYER: it
+// answers 429 to a third part from the same player, so uploads share two at
+// a time. A 429 can still come from the api pod's own limit, so that part is
+// sent again after a pause rather than the file started over.
+const PARTS_IN_FLIGHT = 2;
+const RATE_LIMIT_RETRIES = 6;
+const RATE_LIMIT_BACKOFF_MS = 400;
+
+let partsInFlight = 0;
+const waitingForPart: Array<() => void> = [];
+
+async function withPartSlot<T>(
+  signal: AbortSignal,
+  work: () => Promise<T>,
+): Promise<T> {
+  while (partsInFlight >= PARTS_IN_FLIGHT) {
+    await new Promise<void>((resolve) => waitingForPart.push(resolve));
+    stopIfAborted(signal);
+  }
+
+  partsInFlight++;
+
+  try {
+    return await work();
+  } finally {
+    partsInFlight--;
+    waitingForPart.shift()?.();
+  }
+}
+
+function pause(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+
+    signal.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        reject(new ChatUploadError("aborted"));
+      },
+      { once: true },
+    );
+  });
+}
+
+async function putPart(
+  url: string,
+  body: Blob,
+  signal: AbortSignal,
+  onProgress: (loaded: number) => void,
+): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await withPartSlot(signal, () =>
+        put(url, body, signal, onProgress),
+      );
+    } catch (error) {
+      if (
+        !(error instanceof ChatUploadError) ||
+        error.code !== "rate_limited" ||
+        attempt >= RATE_LIMIT_RETRIES
+      ) {
+        throw error;
+      }
+
+      onProgress(0);
+      await pause(RATE_LIMIT_BACKOFF_MS * 2 ** attempt, signal);
+    }
+  }
+}
+
+function stopIfAborted(signal: AbortSignal) {
+  if (signal.aborted) {
+    throw new ChatUploadError("aborted");
+  }
+}
+
+async function request<T>(
+  method: "POST" | "DELETE",
+  path: string,
+  body?: Record<string, unknown>,
+): Promise<T> {
+  try {
+    return await $fetch<T>(`${apiBase()}${path}`, {
+      method,
+      body,
+      credentials: "include",
+    });
+  } catch (error) {
+    const failure = error as { data?: { code?: string }; status?: number };
+
+    throw new ChatUploadError(
+      failure?.data?.code ??
+        (failure?.status === 413 ? "too_large" : "unavailable"),
+    );
+  }
+}
+
+function errorCode(xhr: XMLHttpRequest): string {
+  const fallback = xhr.status === 413 ? "too_large" : "unavailable";
+
+  try {
+    const code = JSON.parse(xhr.responseText)?.code;
+
+    return typeof code === "string" ? code : fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+// Raw bytes, never a multipart form: a part is one request to the api, kept
+// well under Cloudflare's 100 MB body cap. XHR because fetch cannot report
+// upload progress; a Blob body always goes with its Content-Length, never
+// chunked, and the api refuses a part without one.
+function put(
+  url: string,
+  body: Blob,
+  signal: AbortSignal,
+  onProgress: (loaded: number) => void,
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new ChatUploadError("aborted"));
+      return;
+    }
+
     const xhr = new XMLHttpRequest();
-    let bytesSent = 0;
-    xhr.open("POST", `https://${apiDomain}/chat/attachment`);
+    const abort = () => xhr.abort();
+
+    xhr.open("PUT", url);
     xhr.withCredentials = true;
-    xhr.setRequestHeader("Content-Type", file.type);
-    // Generous but finite -- long enough for a large file on a slow mobile
-    // connection, short enough to eventually surface a stuck upload rather
-    // than spinning forever.
-    xhr.timeout = 10 * 60 * 1000;
+    xhr.setRequestHeader("Content-Type", "application/octet-stream");
 
     xhr.upload.onprogress = (event) => {
-      bytesSent = event.loaded;
-      if (!event.lengthComputable) return;
-      const percent = Math.round((event.loaded / event.total) * 100);
-      if (percent >= lastLoggedPercent + 10) {
-        lastLoggedPercent = percent;
-        console.log(
-          `[chat attachment] upload progress ${percent}% (${event.loaded}/${event.total} bytes)`,
-        );
+      if (event.lengthComputable) {
+        onProgress(event.loaded);
       }
-      onProgress?.(percent);
     };
 
     xhr.onload = () => {
-      console.log("[chat attachment] xhr load", {
-        status: xhr.status,
-        bytesSent,
-      });
-      if (xhr.status < 200 || xhr.status >= 300) {
-        const error = new Error(
-          `${xhr.status} ${xhr.statusText}`,
-        ) as ChatAttachmentUploadError;
-        error.kind = "http";
-        error.status = xhr.status;
-        error.bytesSent = bytesSent;
-        reject(error);
+      signal.removeEventListener("abort", abort);
+
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve();
         return;
       }
-      try {
-        resolve(JSON.parse(xhr.responseText));
-      } catch (error) {
-        reject(error);
-      }
+
+      reject(new ChatUploadError(errorCode(xhr)));
     };
-    xhr.ontimeout = () => {
-      console.log("[chat attachment] xhr timeout", { bytesSent });
-      const error = new Error("upload timed out") as ChatAttachmentUploadError;
-      error.kind = "timeout";
-      error.bytesSent = bytesSent;
-      reject(error);
-    };
+
     xhr.onerror = () => {
-      console.log("[chat attachment] xhr error", { bytesSent });
-      const error = new Error("network error") as ChatAttachmentUploadError;
-      error.kind = "network";
-      error.bytesSent = bytesSent;
-      reject(error);
+      signal.removeEventListener("abort", abort);
+      reject(new ChatUploadError("unavailable"));
     };
-    xhr.send(file);
-    console.log("[chat attachment] xhr.send() called");
+
+    xhr.onabort = () => {
+      reject(new ChatUploadError("aborted"));
+    };
+
+    signal.addEventListener("abort", abort, { once: true });
+    xhr.send(body);
   });
+}
+
+export function discardChatAttachment(id: string): void {
+  if (!UUID.test(id)) {
+    return;
+  }
+
+  void request("DELETE", `/attachments/${id}`).catch(() => {
+    return;
+  });
+}
+
+// Uploaded ahead of the actual "lobby:chat" socket send: the chat message
+// doesn't exist yet at upload time, so this just stashes the file in S3 and
+// returns the key + content type to include as `attachment` on the send.
+export async function uploadChatAttachment(
+  file: File,
+  onProgress?: (percent: number) => void,
+  signal: AbortSignal = new AbortController().signal,
+): Promise<{ path: string; contentType: string }> {
+  const report = (fraction: number) =>
+    onProgress?.(Math.min(100, Math.round(fraction * 100)));
+
+  stopIfAborted(signal);
+
+  const created = await request<{
+    id: string;
+    part_size: number;
+    parts: number;
+  }>("POST", "/attachments", {
+    name: file.name,
+    size: file.size,
+    mime_type: file.type,
+  });
+
+  try {
+    stopIfAborted(signal);
+
+    const url = chatAttachmentUploadUrl(created.id);
+
+    if (!url) {
+      throw new ChatUploadError("unavailable");
+    }
+
+    for (let part = 1; part <= created.parts; part++) {
+      const start = (part - 1) * created.part_size;
+      const chunk = file.slice(
+        start,
+        Math.min(start + created.part_size, file.size),
+      );
+
+      await putPart(`${url}/parts/${part}`, chunk, signal, (loaded) => {
+        report(((start + loaded) / file.size) * 0.98);
+      });
+    }
+
+    stopIfAborted(signal);
+
+    const uploaded = await request<{ path: string; contentType: string }>(
+      "POST",
+      `/attachments/${created.id}/complete`,
+    );
+
+    report(1);
+
+    return { path: uploaded.path, contentType: uploaded.contentType };
+  } catch (error) {
+    discardChatAttachment(created.id);
+    throw error;
+  }
 }

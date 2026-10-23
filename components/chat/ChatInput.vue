@@ -291,8 +291,8 @@ import { useForm } from "vee-validate";
 import { toTypedSchema } from "~/utilities/vee-validate-zod";
 import { toast } from "@/components/ui/toast";
 import {
+  ChatUploadError,
   uploadChatAttachment,
-  type ChatAttachmentUploadError,
 } from "~/utilities/uploadChatAttachment";
 import {
   isChatMessageTooLong,
@@ -361,6 +361,9 @@ export default {
       uploadedAttachment: null as { url: string; contentType: string } | null,
       uploadProgress: null as number | null,
       uploadFailed: false,
+      // Cancels the upload in flight when its file is swapped or removed, so
+      // the api can drop the parts already sent.
+      uploadAbort: null as AbortController | null,
       isDraggingOver: false,
       mentionOpen: false,
       mentionLoading: false,
@@ -401,6 +404,8 @@ export default {
       }
       this.uploadedAttachment = null;
       this.uploadFailed = false;
+      this.uploadAbort?.abort();
+      this.uploadAbort = null;
       if (file) {
         this.startUpload(file);
       }
@@ -416,6 +421,7 @@ export default {
     if (this.pendingAttachmentPreviewUrl) {
       URL.revokeObjectURL(this.pendingAttachmentPreviewUrl);
     }
+    this.uploadAbort?.abort();
   },
   computed: {
     mentionEnabled(): boolean {
@@ -589,6 +595,9 @@ export default {
     async startUpload(file: File) {
       this.uploadProgress = 0;
       this.uploadFailed = false;
+      this.uploadAbort?.abort();
+      const abort = new AbortController();
+      this.uploadAbort = abort;
       try {
         const uploaded = await uploadChatAttachment(
           file,
@@ -597,6 +606,7 @@ export default {
             // was in flight -- ignore a stale upload's progress/result.
             if (this.pendingAttachment === file) this.uploadProgress = percent;
           },
+          abort.signal,
         );
         if (this.pendingAttachment !== file) return;
         this.uploadedAttachment = {
@@ -605,18 +615,23 @@ export default {
         };
       } catch (error) {
         if (this.pendingAttachment !== file) return;
+        const code =
+          error instanceof ChatUploadError ? error.code : "unavailable";
+        if (code === "aborted") return;
         console.error("[chat] attachment upload failed", error);
-        const upload = error as ChatAttachmentUploadError;
         this.uploadFailed = true;
-        // Diagnostic (temporary): the exact numbers, visible without
-        // devtools, while tracking down a large-video-from-Photos failure.
         toast({
           variant: "destructive",
-          title: "Upload failed",
-          description: `${upload?.kind ?? "unknown"} -- ${upload?.bytesSent ?? 0}/${file.size} bytes sent${upload?.status ? `, HTTP ${upload.status}` : ""}`,
-          duration: 60000,
+          ...(code === "too_large" || code === "unsupported_type"
+            ? describeChatAttachmentRejection(code)
+            : {
+                title: "Upload failed",
+                description:
+                  "Could not upload the attachment. Check your connection and try again.",
+              }),
         });
       } finally {
+        if (this.uploadAbort === abort) this.uploadAbort = null;
         if (this.pendingAttachment === file) this.uploadProgress = null;
       }
     },
