@@ -21,6 +21,10 @@ import {
   MoreVertical,
 } from "lucide-vue-next";
 
+// With a `label` the trigger is a button that says it (the left nav footer);
+// without one it is the icon-only button the top bar uses.
+defineProps<{ label?: string }>();
+
 // Desktop-only entry point for getting the app onto a *phone* -- this
 // replaced the old top-nav InstallPWA icon, which only ever handled
 // installing on the device you're already using (irrelevant here,
@@ -71,7 +75,17 @@ function nextIosStep() {
 </script>
 
 <template>
-  <FiveStackToolTip>
+  <Button
+    v-if="label"
+    variant="outline"
+    size="sm"
+    class="h-8 min-w-0 flex-1 justify-center gap-2"
+    @click="dialogOpen = true"
+  >
+    <PhoneDownloadIcon class="w-4 h-4 shrink-0" />
+    <span class="truncate">{{ label }}</span>
+  </Button>
+  <FiveStackToolTip v-else>
     <template #trigger>
       <Button size="sm" @click="dialogOpen = true">
         <PhoneDownloadIcon class="w-4 h-4" />

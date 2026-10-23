@@ -35,6 +35,7 @@ import {
   Target,
   Gamepad2,
   Package,
+  CircleHelp,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
@@ -1624,7 +1625,18 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </a>
           <!-- The QR dialog for putting the app on a phone: desktop only, as in
                the top bar it came from. -->
-          <InstallAppQrDialog v-if="me && !isMobile" />
+          <InstallAppQrDialog
+            v-if="me && !isMobile"
+            :label="rail ? undefined : $t('pwa.install.button')"
+          />
+          <NuxtLink
+            to="/faq"
+            :aria-label="$t('layouts.app_nav.administration.info_faq')"
+            :title="$t('layouts.app_nav.administration.info_faq')"
+            :class="[footerIconClasses, !rail && 'ml-auto']"
+          >
+            <CircleHelp class="h-4 w-4" aria-hidden="true" />
+          </NuxtLink>
         </div>
         <SidebarMenu>
           <!-- On a phone the install button installs on that phone. -->
