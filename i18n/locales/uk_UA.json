@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Більше нікого в рейтингу",
+                                      "matches_count": "{count} матч | {count} матчів",
+                                      "all_seasons": "Усі сезони разом",
+                                      "you": "Ви",
+                                      "line": {
+                                        "top_of": "Найкращі · {value}",
+                                        "ranks": "Місця {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Останній матч",
                                                   "elo":  "ELO",

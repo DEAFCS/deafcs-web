@@ -102,6 +102,7 @@ const chevronClasses =
             linkable
             size="sm"
             :show-online="false"
+            :context-menu="false"
           />
         </DropdownMenuItem>
 

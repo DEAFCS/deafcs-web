@@ -2782,6 +2782,14 @@
       "matches": "比赛"
     },
     "leaderboard": {
+      "podium_empty": "暂无其他上榜玩家",
+      "matches_count": "{count} 场比赛 | {count} 场比赛",
+      "all_seasons": "所有赛季合计",
+      "you": "你",
+      "line": {
+        "top_of": "{value} 榜首",
+        "ranks": "第 {value} 名"
+      },
       "title": "排行榜",
       "no_results": "所选筛选条件下没有排行榜数据。",
       "categories": {

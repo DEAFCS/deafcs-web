@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "لا يوجد مصنفون آخرون بعد",
+                                      "matches_count": "{count} مباراة | {count} مباريات",
+                                      "all_seasons": "كل المواسم مجتمعة",
+                                      "you": "أنت",
+                                      "line": {
+                                        "top_of": "صدارة {value}",
+                                        "ranks": "المراكز {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "آخر مباراة",
                                                   "elo":  "ELO",

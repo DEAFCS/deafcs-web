@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Nikt inny nie jest jeszcze sklasyfikowany",
+                                      "matches_count": "{count} mecz | {count} mecze",
+                                      "all_seasons": "Wszystkie sezony łącznie",
+                                      "you": "Ty",
+                                      "line": {
+                                        "top_of": "Czołówka · {value}",
+                                        "ranks": "Miejsca {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Ostatni mecz",
                                                   "elo":  "ELO",

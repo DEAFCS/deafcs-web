@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Ingen annan rankad än",
+                                      "matches_count": "{count} match | {count} matcher",
+                                      "all_seasons": "Alla säsonger sammanlagt",
+                                      "you": "Du",
+                                      "line": {
+                                        "top_of": "Topp i {value}",
+                                        "ranks": "Placering {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Senaste matchen",
                                                   "elo":  "ELO",

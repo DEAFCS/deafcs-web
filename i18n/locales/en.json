@@ -3852,6 +3852,14 @@
       "matches": "matches"
     },
     "leaderboard": {
+      "podium_empty": "No one else ranked yet",
+      "matches_count": "{count} match | {count} matches",
+      "all_seasons": "Every season combined",
+      "you": "You",
+      "line": {
+        "top_of": "Top of {value}",
+        "ranks": "Ranks {value}"
+      },
       "title": "Leaderboard",
       "no_results": "No leaderboard data available for the selected filters.",
       "external_ranks_linked_accounts_hint": "Link your accounts for faster and more accurate leaderboard data.",

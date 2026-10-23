@@ -42,6 +42,14 @@
                    },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "暫無其他上榜玩家",
+                                      "matches_count": "{count} 場比賽 | {count} 場比賽",
+                                      "all_seasons": "所有賽季合計",
+                                      "you": "你",
+                                      "line": {
+                                        "top_of": "{value} 榜首",
+                                        "ranks": "第 {value} 名"
+                                      },
                                       "col":  {
                                                   "last_match":  "最近一場",
                                                   "elo":  "ELO",

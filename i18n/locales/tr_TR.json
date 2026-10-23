@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Henüz başka kimse sıralamada değil",
+                                      "matches_count": "{count} maç | {count} maç",
+                                      "all_seasons": "Tüm sezonlar birlikte",
+                                      "you": "Sen",
+                                      "line": {
+                                        "top_of": "{value} zirvesi",
+                                        "ranks": "Sıralar {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Son Maç",
                                                   "elo":  "ELO",

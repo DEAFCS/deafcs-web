@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Nessun altro in classifica",
+                                      "matches_count": "{count} partita | {count} partite",
+                                      "all_seasons": "Tutte le stagioni insieme",
+                                      "you": "Tu",
+                                      "line": {
+                                        "top_of": "Top di {value}",
+                                        "ranks": "Posizioni {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Ultima partita",
                                                   "elo":  "ELO",

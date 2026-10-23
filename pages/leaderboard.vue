@@ -8,6 +8,7 @@ import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
 import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import ExternalRankLeaderboard from "~/components/leaderboard/ExternalRankLeaderboard.vue";
+import LeaderboardPodium from "~/components/leaderboard/LeaderboardPodium.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
 import StatLabel from "~/components/common/StatLabel.vue";
 import StatChevron from "~/components/StatChevron.vue";
@@ -446,16 +447,17 @@ const defaultScope = computed(() => {
 function seasonScopeLabel(s: Season): string {
   return t("pages.seasons.season_number", { number: s.number ?? "?" });
 }
+function formatDay(date: Date, withYear = true): string {
+  return date.toLocaleDateString(dateLocale(), {
+    year: withYear ? "numeric" : undefined,
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
+}
 function seasonRangeLabel(s: Season): string {
-  const fmt = (iso: string) =>
-    new Date(iso).toLocaleDateString(dateLocale(), {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      timeZone: "UTC",
-    });
-  const range = `${fmt(s.starts_at)} – ${
-    s.ends_at ? fmt(s.ends_at) : t("pages.seasons.ongoing")
+  const range = `${formatDay(new Date(s.starts_at))} – ${
+    s.ends_at ? formatDay(new Date(s.ends_at)) : t("pages.seasons.ongoing")
   }`;
   return s.description ? `${range} · ${s.description}` : range;
 }
@@ -505,6 +507,20 @@ const roleLabel = computed(() =>
 const sourceLabel = computed(() =>
   t(`pages.leaderboard.sources.${source.value}`),
 );
+// The deck's second line (5Stack #985): the scope in words, then its dates.
+const scopeDetail = computed(() => {
+  if (derivedSeasonId.value) {
+    const s = seasons.value.find((x) => x.id === derivedSeasonId.value);
+    return s ? seasonRangeLabel(s) : "";
+  }
+  const days = derivedWindowDays.value;
+  if (days) {
+    const to = new Date();
+    const from = new Date(to.getTime() - days * 86_400_000);
+    return `${formatDay(from, from.getUTCFullYear() !== to.getUTCFullYear())} – ${formatDay(to)}`;
+  }
+  return seasonsEnabled.value ? t("pages.leaderboard.all_seasons") : "";
+});
 
 const entries = ref<LeaderboardEntry[]>([]);
 const total = ref(0);
@@ -908,6 +924,57 @@ function eloValueColor(value: number): string | undefined {
   return eloTierColor(value);
 }
 
+// The top three stand on a podium above the table (5Stack #985), only while
+// page one shows the board's own order. A column sort reorders the rows, so
+// the podium would no longer be the top three.
+const showPodium = computed(
+  () =>
+    page.value === 1 &&
+    sortBy.value === null &&
+    entries.value[0]?.rank === 1,
+);
+const podiumEntries = computed(() =>
+  showPodium.value ? entries.value.slice(0, 3) : [],
+);
+const tableEntries = computed(() =>
+  showPodium.value ? entries.value.slice(3) : entries.value,
+);
+
+function podiumValue(entry: LeaderboardEntry): string {
+  return formatValue(entry.value);
+}
+
+function podiumValueColor(entry: LeaderboardEntry): string | undefined {
+  return trophyTierColor("value") || eloValueColor(entry.value);
+}
+
+// The secondary column and the match count, as the podium's small line.
+function podiumMeta(entry: LeaderboardEntry): string {
+  const parts: string[] = [];
+  if (columnLabels.value.secondary_value) {
+    parts.push(
+      `${columnLabels.value.secondary_value} ${formatSecondary(entry.secondary_value)}`,
+    );
+  }
+  if (columnLabels.value.matches_played && entry.matches_played != null) {
+    parts.push(t("pages.leaderboard.matches_count", entry.matches_played));
+  }
+  return parts.join(" · ");
+}
+
+// "Top of Season 3" on page one, "Ranks 21–40" after it.
+const boardLine = computed(() => {
+  if (page.value > 1 && entries.value.length) {
+    return {
+      kind: "ranks",
+      value: `${(offset.value + 1).toLocaleString()}–${(
+        offset.value + entries.value.length
+      ).toLocaleString()}`,
+    };
+  }
+  return { kind: "top_of", value: scopeLabel.value };
+});
+
 watch(category, () => {
   if (!isRestoringHistory()) {
     sortBy.value = null;
@@ -1041,7 +1108,14 @@ watch([entries, highlightedSteamId], () => {
   if (highlightScrolledForSteamId === sid) return;
   if (!entries.value.some((e) => e.player_steam_id === sid)) return;
   void nextTick(() => {
-    highlightedRowEl.value?.scrollIntoView({
+    // A top-three player stands on the podium, not in the table.
+    const onPodium = podiumEntries.value.some(
+      (e) => e.player_steam_id === sid,
+    );
+    const target = onPodium
+      ? document.querySelector(`.lb-pod[data-steam-id="${CSS.escape(sid)}"]`)
+      : highlightedRowEl.value;
+    target?.scrollIntoView({
       block: "center",
       behavior: "smooth",
     });
@@ -1088,334 +1162,339 @@ onMounted(async () => {
 
 <template>
   <PageTransition>
-    <TacticalPageHeader stack-actions>
+    <TacticalPageHeader>
       <template #title>{{ $t("pages.leaderboard.title") }}</template>
-      <template #actions="{ tabs }">
-        <Select v-model="category">
-          <SelectTrigger
-            class="w-full min-w-0 md:hidden"
-            :aria-label="$t('pages.leaderboard.title')"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              v-for="cat in categories"
-              :key="cat.value"
-              :value="cat.value"
-            >
-              {{ $t(`pages.leaderboard.categories.${cat.value}`) }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-        <Tabs v-model="category" class="hidden md:block">
-          <TabsList variant="underline" :class="tabs.listClass">
-            <TabsTrigger
-              v-for="cat in categories"
-              :key="cat.value"
-              :value="cat.value"
-              :class="tabs.triggerClass"
-            >
-              {{ $t(`pages.leaderboard.categories.${cat.value}`) }}
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </template>
     </TacticalPageHeader>
   </PageTransition>
 
-  <!-- Compact filter bar -->
-  <PageTransition
-    v-if="category !== EXTERNAL_RANK_CATEGORY"
-    :delay="100"
-    class="mt-6"
-  >
-    <div
-      class="rounded-md border border-border bg-card/40 px-3 py-2.5 [backdrop-filter:blur(6px)]"
-    >
-      <!-- Desktop: inline filter row -->
-      <div class="hidden md:flex flex-wrap items-center gap-2">
-        <span
-          aria-hidden="true"
-          class="mr-1 hidden h-[2px] w-[10px] shrink-0 bg-[hsl(var(--tac-amber))] sm:inline-block"
-        ></span>
-
-        <Select v-model="scope">
-          <SelectTrigger class="h-8 w-[200px]">
-            <span class="truncate">{{ scopeLabel }}</span>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem
-              v-for="s in seasons"
-              :key="s.id"
-              :value="`season:${s.id}`"
-            >
-              <div class="flex flex-col">
-                <span>
-                  {{ seasonScopeLabel(s) }}
-                  <span
-                    v-if="activeSeason && s.id === activeSeason.id"
-                    class="text-[hsl(var(--tac-amber))]"
-                    >· {{ $t("pages.seasons.active") }}</span
-                  >
-                </span>
-                <span class="text-[0.65rem] text-muted-foreground">
-                  {{ seasonRangeLabel(s) }}
-                </span>
-              </div>
-            </SelectItem>
-            <SelectItem v-if="category !== 'elo'" value="0">{{
-              $t("pages.leaderboard.time_periods.all_time")
-            }}</SelectItem>
-            <SelectItem value="7">{{
-              category === "elo"
-                ? $t("pages.leaderboard.time_periods.days_7")
-                : $t("pages.leaderboard.time_periods.last_7_days")
-            }}</SelectItem>
-            <SelectItem value="30">{{
-              category === "elo"
-                ? $t("pages.leaderboard.time_periods.days_30")
-                : $t("pages.leaderboard.time_periods.last_30_days")
-            }}</SelectItem>
-            <SelectItem v-if="category === 'elo'" value="peak">
-              {{ $t("pages.leaderboard.time_periods.all_time") }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select v-model="matchType">
-          <SelectTrigger class="h-8 w-[180px]">
-            <SelectValue
-              :placeholder="$t('pages.leaderboard.match_types.all')"
-            />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{{
-              $t("pages.leaderboard.match_types.all")
-            }}</SelectItem>
-            <SelectItem value="Competitive">{{
-              $t("pages.leaderboard.match_types.competitive")
-            }}</SelectItem>
-            <SelectItem value="Wingman">{{
-              $t("pages.leaderboard.match_types.wingman")
-            }}</SelectItem>
-            <SelectItem value="Duel">{{
-              $t("pages.leaderboard.match_types.duel")
-            }}</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select v-model="source">
-          <SelectTrigger class="h-8 w-[160px]">
-            <SelectValue
-              :placeholder="$t('pages.leaderboard.sources.overall')"
-            />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt of SOURCE_OPTIONS" :key="opt" :value="opt">
-              {{ $t(`pages.leaderboard.sources.${opt}`) }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-
-        <Select v-if="supportsRole" v-model="roleFilter">
-          <SelectTrigger class="h-8 w-[160px]">
-            <SelectValue :placeholder="$t('pages.leaderboard.roles.all')" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem v-for="opt of ROLE_OPTIONS" :key="opt" :value="opt">
-              {{ $t(`pages.leaderboard.roles.${opt}`) }}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <!-- Mobile: collapse filters behind a Filters button + chips -->
-      <div class="md:hidden space-y-3">
-        <Popover>
-          <PopoverTrigger as-child>
-            <Button
-              variant="outline"
-              class="h-11 w-full justify-center gap-2 bg-card/60 backdrop-blur"
-              :class="{
-                'border-[hsl(var(--tac-amber)/0.55)] text-[hsl(var(--tac-amber))]':
-                  leaderboardFilterCount > 0,
-              }"
-            >
-              <SlidersHorizontal class="w-4 h-4" />
-              <span>{{ $t("common.filters") }}</span>
-              <span
-                v-if="leaderboardFilterCount > 0"
-                class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[0.65rem] font-semibold bg-[hsl(var(--tac-amber)/0.2)] text-[hsl(var(--tac-amber))] border border-[hsl(var(--tac-amber)/0.45)]"
-              >
-                {{ leaderboardFilterCount }}
-              </span>
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent
-            align="start"
-            class="w-[min(92vw,420px)] p-4 space-y-4"
+  <!-- The boards and the filters are one block (5Stack #985): Track tabs on
+       top, the filter row under them, and the scope in words below that.
+       DEAFCS: FACEIT & Premier keeps its own board without the filter row,
+       since none of these filters apply to it. -->
+  <PageTransition :delay="100" class="mt-6">
+    <Tabs v-model="category">
+      <div
+        class="overflow-hidden rounded-lg border border-border bg-card/40 [backdrop-filter:blur(6px)]"
+      >
+        <TabsList variant="track" class="rounded-none border-0">
+          <TabsTrigger
+            v-for="cat in categories"
+            :key="cat.value"
+            :value="cat.value"
           >
-            <div class="space-y-2">
-              <span
-                class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                {{ $t("common.date") }}
-              </span>
-              <Select v-model="scope">
-                <SelectTrigger class="w-full">
-                  <span class="truncate">{{ scopeLabel }}</span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="s in seasons"
-                    :key="s.id"
-                    :value="`season:${s.id}`"
-                  >
-                    {{ seasonScopeLabel(s)
-                    }}<span
-                      v-if="activeSeason && s.id === activeSeason.id"
-                      class="text-[hsl(var(--tac-amber))]"
-                    >
-                      · {{ $t("pages.seasons.active") }}</span
-                    >
-                  </SelectItem>
-                  <SelectItem v-if="category !== 'elo'" value="0">{{
-                    $t("pages.leaderboard.time_periods.all_time")
-                  }}</SelectItem>
-                  <SelectItem value="7">{{
-                    category === "elo"
-                      ? $t("pages.leaderboard.time_periods.days_7")
-                      : $t("pages.leaderboard.time_periods.last_7_days")
-                  }}</SelectItem>
-                  <SelectItem value="30">{{
-                    category === "elo"
-                      ? $t("pages.leaderboard.time_periods.days_30")
-                      : $t("pages.leaderboard.time_periods.last_30_days")
-                  }}</SelectItem>
-                  <SelectItem v-if="category === 'elo'" value="peak">
-                    {{ $t("pages.leaderboard.time_periods.all_time") }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div class="space-y-2">
-              <span
-                class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                {{ $t("pages.leaderboard.match_types.all") }}
-              </span>
-              <Select v-model="matchType">
-                <SelectTrigger class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{{
-                    $t("pages.leaderboard.match_types.all")
-                  }}</SelectItem>
-                  <SelectItem value="Competitive">{{
-                    $t("pages.leaderboard.match_types.competitive")
-                  }}</SelectItem>
-                  <SelectItem value="Wingman">{{
-                    $t("pages.leaderboard.match_types.wingman")
-                  }}</SelectItem>
-                  <SelectItem value="Duel">{{
-                    $t("pages.leaderboard.match_types.duel")
-                  }}</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div class="space-y-2">
-              <span
-                class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                {{ $t("pages.leaderboard.sources.overall") }}
-              </span>
-              <Select v-model="source">
-                <SelectTrigger class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="opt of SOURCE_OPTIONS"
-                    :key="opt"
-                    :value="opt"
-                  >
-                    {{ $t(`pages.leaderboard.sources.${opt}`) }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div v-if="supportsRole" class="space-y-2">
-              <span
-                class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
-              >
-                {{ $t("pages.leaderboard.roles.all") }}
-              </span>
-              <Select v-model="roleFilter">
-                <SelectTrigger class="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem
-                    v-for="opt of ROLE_OPTIONS"
-                    :key="opt"
-                    :value="opt"
-                  >
-                    {{ $t(`pages.leaderboard.roles.${opt}`) }}
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </PopoverContent>
-        </Popover>
+            {{ $t(`pages.leaderboard.categories.${cat.value}`) }}
+          </TabsTrigger>
+        </TabsList>
 
         <div
-          v-if="leaderboardFilterCount > 0"
-          class="flex flex-wrap items-center gap-2"
+          v-if="category !== EXTERNAL_RANK_CATEGORY"
+          class="border-t border-border p-2 md:px-3 md:py-2.5"
         >
-          <button
-            v-if="scope && scope !== defaultScope"
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
-            @click="scope = defaultScope"
+          <!-- Desktop: inline filter row -->
+          <div class="hidden md:flex flex-wrap items-center gap-2">
+            <span
+              aria-hidden="true"
+              class="mr-1 hidden h-[2px] w-[10px] shrink-0 bg-[hsl(var(--tac-amber))] sm:inline-block"
+            ></span>
+
+            <Select v-model="scope">
+              <SelectTrigger class="h-8 w-[200px]">
+                <span class="truncate">{{ scopeLabel }}</span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem
+                  v-for="s in seasons"
+                  :key="s.id"
+                  :value="`season:${s.id}`"
+                >
+                  <div class="flex flex-col">
+                    <span>
+                      {{ seasonScopeLabel(s) }}
+                      <span
+                        v-if="activeSeason && s.id === activeSeason.id"
+                        class="text-[hsl(var(--tac-amber))]"
+                        >· {{ $t("pages.seasons.active") }}</span
+                      >
+                    </span>
+                    <span class="text-[0.65rem] text-muted-foreground">
+                      {{ seasonRangeLabel(s) }}
+                    </span>
+                  </div>
+                </SelectItem>
+                <SelectItem v-if="category !== 'elo'" value="0">{{
+                  $t("pages.leaderboard.time_periods.all_time")
+                }}</SelectItem>
+                <SelectItem value="7">{{
+                  category === "elo"
+                    ? $t("pages.leaderboard.time_periods.days_7")
+                    : $t("pages.leaderboard.time_periods.last_7_days")
+                }}</SelectItem>
+                <SelectItem value="30">{{
+                  category === "elo"
+                    ? $t("pages.leaderboard.time_periods.days_30")
+                    : $t("pages.leaderboard.time_periods.last_30_days")
+                }}</SelectItem>
+                <SelectItem v-if="category === 'elo'" value="peak">
+                  {{ $t("pages.leaderboard.time_periods.all_time") }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-model="matchType">
+              <SelectTrigger class="h-8 w-[180px]">
+                <SelectValue
+                  :placeholder="$t('pages.leaderboard.match_types.all')"
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{{
+                  $t("pages.leaderboard.match_types.all")
+                }}</SelectItem>
+                <SelectItem value="Competitive">{{
+                  $t("pages.leaderboard.match_types.competitive")
+                }}</SelectItem>
+                <SelectItem value="Wingman">{{
+                  $t("pages.leaderboard.match_types.wingman")
+                }}</SelectItem>
+                <SelectItem value="Duel">{{
+                  $t("pages.leaderboard.match_types.duel")
+                }}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-model="source">
+              <SelectTrigger class="h-8 w-[160px]">
+                <SelectValue
+                  :placeholder="$t('pages.leaderboard.sources.overall')"
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt of SOURCE_OPTIONS" :key="opt" :value="opt">
+                  {{ $t(`pages.leaderboard.sources.${opt}`) }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select v-if="supportsRole" v-model="roleFilter">
+              <SelectTrigger class="h-8 w-[160px]">
+                <SelectValue :placeholder="$t('pages.leaderboard.roles.all')" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem v-for="opt of ROLE_OPTIONS" :key="opt" :value="opt">
+                  {{ $t(`pages.leaderboard.roles.${opt}`) }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <!-- Mobile: collapse filters behind a Filters button + chips -->
+          <div class="md:hidden space-y-3">
+            <Popover>
+              <PopoverTrigger as-child>
+                <Button
+                  variant="outline"
+                  class="h-11 w-full justify-center gap-2 bg-card/60 backdrop-blur"
+                  :class="{
+                    'border-[hsl(var(--tac-amber)/0.55)] text-[hsl(var(--tac-amber))]':
+                      leaderboardFilterCount > 0,
+                  }"
+                >
+                  <SlidersHorizontal class="w-4 h-4" />
+                  <span>{{ $t("common.filters") }}</span>
+                  <span
+                    v-if="leaderboardFilterCount > 0"
+                    class="inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[0.65rem] font-semibold bg-[hsl(var(--tac-amber)/0.2)] text-[hsl(var(--tac-amber))] border border-[hsl(var(--tac-amber)/0.45)]"
+                  >
+                    {{ leaderboardFilterCount }}
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                class="w-[min(92vw,420px)] p-4 space-y-4"
+              >
+                <div class="space-y-2">
+                  <span
+                    class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
+                  >
+                    {{ $t("common.date") }}
+                  </span>
+                  <Select v-model="scope">
+                    <SelectTrigger class="w-full">
+                      <span class="truncate">{{ scopeLabel }}</span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="s in seasons"
+                        :key="s.id"
+                        :value="`season:${s.id}`"
+                      >
+                        {{ seasonScopeLabel(s)
+                        }}<span
+                          v-if="activeSeason && s.id === activeSeason.id"
+                          class="text-[hsl(var(--tac-amber))]"
+                        >
+                          · {{ $t("pages.seasons.active") }}</span
+                        >
+                      </SelectItem>
+                      <SelectItem v-if="category !== 'elo'" value="0">{{
+                        $t("pages.leaderboard.time_periods.all_time")
+                      }}</SelectItem>
+                      <SelectItem value="7">{{
+                        category === "elo"
+                          ? $t("pages.leaderboard.time_periods.days_7")
+                          : $t("pages.leaderboard.time_periods.last_7_days")
+                      }}</SelectItem>
+                      <SelectItem value="30">{{
+                        category === "elo"
+                          ? $t("pages.leaderboard.time_periods.days_30")
+                          : $t("pages.leaderboard.time_periods.last_30_days")
+                      }}</SelectItem>
+                      <SelectItem v-if="category === 'elo'" value="peak">
+                        {{ $t("pages.leaderboard.time_periods.all_time") }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div class="space-y-2">
+                  <span
+                    class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
+                  >
+                    {{ $t("pages.leaderboard.match_types.all") }}
+                  </span>
+                  <Select v-model="matchType">
+                    <SelectTrigger class="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{{
+                        $t("pages.leaderboard.match_types.all")
+                      }}</SelectItem>
+                      <SelectItem value="Competitive">{{
+                        $t("pages.leaderboard.match_types.competitive")
+                      }}</SelectItem>
+                      <SelectItem value="Wingman">{{
+                        $t("pages.leaderboard.match_types.wingman")
+                      }}</SelectItem>
+                      <SelectItem value="Duel">{{
+                        $t("pages.leaderboard.match_types.duel")
+                      }}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div class="space-y-2">
+                  <span
+                    class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
+                  >
+                    {{ $t("pages.leaderboard.sources.overall") }}
+                  </span>
+                  <Select v-model="source">
+                    <SelectTrigger class="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="opt of SOURCE_OPTIONS"
+                        :key="opt"
+                        :value="opt"
+                      >
+                        {{ $t(`pages.leaderboard.sources.${opt}`) }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div v-if="supportsRole" class="space-y-2">
+                  <span
+                    class="font-mono text-[0.62rem] uppercase tracking-[0.2em] text-muted-foreground"
+                  >
+                    {{ $t("pages.leaderboard.roles.all") }}
+                  </span>
+                  <Select v-model="roleFilter">
+                    <SelectTrigger class="w-full">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="opt of ROLE_OPTIONS"
+                        :key="opt"
+                        :value="opt"
+                      >
+                        {{ $t(`pages.leaderboard.roles.${opt}`) }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </PopoverContent>
+            </Popover>
+
+            <div
+              v-if="leaderboardFilterCount > 0"
+              class="flex flex-wrap items-center gap-2"
+            >
+              <button
+                v-if="scope && scope !== defaultScope"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
+                @click="scope = defaultScope"
+              >
+                {{ scopeLabel }}
+                <X class="h-3 w-3 opacity-70" />
+              </button>
+              <button
+                v-if="matchType !== 'Competitive'"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
+                @click="matchType = 'Competitive'"
+              >
+                {{ matchTypeLabel }}
+                <X class="h-3 w-3 opacity-70" />
+              </button>
+              <button
+                v-if="supportsRole && roleFilter !== 'all'"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
+                @click="roleFilter = 'all'"
+              >
+                {{ roleLabel }}
+                <X class="h-3 w-3 opacity-70" />
+              </button>
+              <button
+                v-if="source !== 'overall'"
+                type="button"
+                class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
+                @click="source = 'overall'"
+              >
+                {{ sourceLabel }}
+                <X class="h-3 w-3 opacity-70" />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div
+          v-if="category !== EXTERNAL_RANK_CATEGORY"
+          class="flex min-h-[2.125rem] items-center gap-2 border-t border-dashed border-border px-3 py-1.5 text-xs text-muted-foreground/80"
+        >
+          <Transition
+            mode="out-in"
+            enter-active-class="transition-opacity duration-200 ease-out"
+            leave-active-class="transition-opacity duration-100 ease-in"
+            enter-from-class="opacity-0"
+            leave-to-class="opacity-0"
           >
-            {{ scopeLabel }}
-            <X class="h-3 w-3 opacity-70" />
-          </button>
-          <button
-            v-if="matchType !== 'Competitive'"
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
-            @click="matchType = 'Competitive'"
-          >
-            {{ matchTypeLabel }}
-            <X class="h-3 w-3 opacity-70" />
-          </button>
-          <button
-            v-if="supportsRole && roleFilter !== 'all'"
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
-            @click="roleFilter = 'all'"
-          >
-            {{ roleLabel }}
-            <X class="h-3 w-3 opacity-70" />
-          </button>
-          <button
-            v-if="source !== 'overall'"
-            type="button"
-            class="inline-flex items-center gap-1.5 rounded-full border border-[hsl(var(--tac-amber)/0.35)] bg-[hsl(var(--tac-amber)/0.12)] px-2.5 py-1 text-xs text-[hsl(var(--tac-amber))]"
-            @click="source = 'overall'"
-          >
-            {{ sourceLabel }}
-            <X class="h-3 w-3 opacity-70" />
-          </button>
+            <span :key="scope" class="min-w-0">
+              <span class="font-medium text-muted-foreground">{{
+                scopeLabel
+              }}</span>
+              <template v-if="scopeDetail"> · {{ scopeDetail }}</template>
+            </span>
+          </Transition>
         </div>
       </div>
-    </div>
+    </Tabs>
   </PageTransition>
 
   <!-- Results -->
@@ -1426,9 +1505,26 @@ onMounted(async () => {
   >
     <div>
       <div class="p-4 relative">
+        <i18n-t
+          :keypath="`pages.leaderboard.line.${boardLine.kind}`"
+          tag="div"
+          class="mb-3.5 flex min-h-7 items-center gap-2 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+        >
+          <template #value>
+            <span class="text-foreground">{{ boardLine.value }}</span>
+          </template>
+        </i18n-t>
         <Transition v-bind="leaderboardFadeTransition" mode="out-in">
           <!-- Loading -->
           <div v-if="loading" key="loading" class="space-y-4">
+            <div
+              v-if="page === 1 && sortBy === null"
+              class="mb-1.5 grid grid-cols-3 items-end gap-3"
+            >
+              <Skeleton class="h-36 rounded-lg" />
+              <Skeleton class="h-44 rounded-lg" />
+              <Skeleton class="h-36 rounded-lg" />
+            </div>
             <div v-for="i in perPage" :key="i" class="flex items-center gap-4">
               <Skeleton class="h-6 w-8" />
               <Skeleton class="h-10 w-10 rounded" />
@@ -1444,307 +1540,320 @@ onMounted(async () => {
             </p>
           </Empty>
 
-          <!-- Results Table -->
-          <Table v-else key="table">
-            <TableHeader>
-              <TableRow>
-                <TableHead class="w-16">{{
-                  $t("pages.leaderboard.columns.rank")
-                }}</TableHead>
-                <TableHead>{{ $t("common.player") }}</TableHead>
-                <TableHead
-                  class="text-right"
-                  :class="{
-                    'cursor-pointer select-none hover:text-foreground':
-                      isSortable('value'),
-                    'text-[hsl(var(--tac-amber))]':
-                      effectiveSortField === 'value',
-                  }"
-                  @click="toggleSort('value')"
-                >
-                  <div
-                    class="flex items-center justify-end gap-1"
-                    :style="
-                      trophyTierColor('value')
-                        ? { color: trophyTierColor('value') }
-                        : {}
-                    "
+          <!-- Podium + results table -->
+          <div v-else key="table">
+            <LeaderboardPodium
+              v-if="showPodium"
+              class="mb-3.5"
+              :entries="podiumEntries"
+              :is-awards="category === 'trophies'"
+              :me-steam-id="loggedInSteamId"
+              :highlighted-steam-id="highlightedSteamId"
+              :format-value="podiumValue"
+              :value-color="podiumValueColor"
+              :meta="podiumMeta"
+            />
+            <Table v-if="tableEntries.length">
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-16">{{
+                    $t("pages.leaderboard.columns.rank")
+                  }}</TableHead>
+                  <TableHead>{{ $t("common.player") }}</TableHead>
+                  <TableHead
+                    class="text-right"
+                    :class="{
+                      'cursor-pointer select-none hover:text-foreground':
+                        isSortable('value'),
+                      'text-[hsl(var(--tac-amber))]':
+                        effectiveSortField === 'value',
+                    }"
+                    @click="toggleSort('value')"
                   >
-                    <span
-                      v-if="trophyTierColor('value')"
-                      class="inline-block h-1.5 w-1.5 rounded-full"
-                      :style="{
-                        background: trophyTierColor('value'),
-                        boxShadow: `0 0 4px ${trophyTierColor('value')}`,
-                      }"
-                    ></span>
-                    <StatLabel
-                      v-if="columnGlossary.value"
-                      :stat="columnGlossary.value"
-                      :label="columnLabels.value"
-                      header
-                    />
-                    <template v-else>{{ columnLabels.value }}</template>
-                    <component
-                      v-if="isSortable('value')"
-                      :is="sortIcon('value')"
-                      class="h-3.5 w-3.5"
-                    />
-                  </div>
-                </TableHead>
-                <TableHead
-                  v-if="columnLabels.secondary_value"
-                  class="text-right"
-                  :class="{
-                    'cursor-pointer select-none hover:text-foreground':
-                      isSortable('secondary_value'),
-                    'text-[hsl(var(--tac-amber))]':
-                      effectiveSortField === 'secondary_value',
-                  }"
-                  @click="toggleSort('secondary_value')"
-                >
-                  <div
-                    class="flex items-center justify-end gap-1"
-                    :style="
-                      trophyTierColor('secondary_value')
-                        ? { color: trophyTierColor('secondary_value') }
-                        : {}
-                    "
-                  >
-                    <span
-                      v-if="trophyTierColor('secondary_value')"
-                      class="inline-block h-1.5 w-1.5 rounded-full"
-                      :style="{
-                        background: trophyTierColor('secondary_value'),
-                        boxShadow: `0 0 4px ${trophyTierColor('secondary_value')}`,
-                      }"
-                    ></span>
-                    <StatLabel
-                      v-if="columnGlossary.secondary_value"
-                      :stat="columnGlossary.secondary_value"
-                      :label="columnLabels.secondary_value ?? ''"
-                      header
-                    />
-                    <template v-else>{{
-                      columnLabels.secondary_value
-                    }}</template>
-                    <component
-                      v-if="isSortable('secondary_value')"
-                      :is="sortIcon('secondary_value')"
-                      class="h-3.5 w-3.5"
-                    />
-                  </div>
-                </TableHead>
-                <TableHead
-                  v-if="columnLabels.tertiary_value"
-                  class="text-right"
-                  :class="{
-                    'cursor-pointer select-none hover:text-foreground':
-                      isSortable('tertiary_value'),
-                    'text-[hsl(var(--tac-amber))]':
-                      effectiveSortField === 'tertiary_value',
-                  }"
-                  @click="toggleSort('tertiary_value')"
-                >
-                  <div
-                    class="flex items-center justify-end gap-1"
-                    :style="
-                      trophyTierColor('tertiary_value')
-                        ? { color: trophyTierColor('tertiary_value') }
-                        : {}
-                    "
-                  >
-                    <span
-                      v-if="trophyTierColor('tertiary_value')"
-                      class="inline-block h-1.5 w-1.5 rounded-full"
-                      :style="{
-                        background: trophyTierColor('tertiary_value'),
-                        boxShadow: `0 0 4px ${trophyTierColor('tertiary_value')}`,
-                      }"
-                    ></span>
-                    <StatLabel
-                      v-if="columnGlossary.tertiary_value"
-                      :stat="columnGlossary.tertiary_value"
-                      :label="columnLabels.tertiary_value ?? ''"
-                      header
-                    />
-                    <template v-else>{{
-                      columnLabels.tertiary_value
-                    }}</template>
-                    <component
-                      v-if="isSortable('tertiary_value')"
-                      :is="sortIcon('tertiary_value')"
-                      class="h-3.5 w-3.5"
-                    />
-                  </div>
-                </TableHead>
-                <TableHead
-                  v-if="columnLabels.matches_played"
-                  class="text-right"
-                  :class="{
-                    'cursor-pointer select-none hover:text-foreground':
-                      isSortable('matches_played'),
-                    'text-[hsl(var(--tac-amber))]':
-                      effectiveSortField === 'matches_played',
-                  }"
-                  @click="toggleSort('matches_played')"
-                >
-                  <div
-                    class="flex items-center justify-end gap-1"
-                    :style="
-                      trophyTierColor('matches_played')
-                        ? { color: trophyTierColor('matches_played') }
-                        : {}
-                    "
-                  >
-                    <span
-                      v-if="trophyTierColor('matches_played')"
-                      class="inline-block h-1.5 w-1.5 rounded-full"
-                      :style="{
-                        background: trophyTierColor('matches_played'),
-                        boxShadow: `0 0 4px ${trophyTierColor('matches_played')}`,
-                      }"
-                    ></span>
-                    {{ columnLabels.matches_played }}
-                    <component
-                      v-if="isSortable('matches_played')"
-                      :is="sortIcon('matches_played')"
-                      class="h-3.5 w-3.5"
-                    />
-                  </div>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow
-                v-for="entry in entries"
-                :key="entry.player_steam_id"
-                :ref="(el) => setHighlightedRowRef(el, entry.player_steam_id)"
-                class="cursor-pointer"
-                :class="[
-                  entry.player_steam_id === highlightedSteamId
-                    ? 'leaderboard-row--highlight'
-                    : '',
-                  entry.player_steam_id === loggedInSteamId &&
-                  entry.player_steam_id !== highlightedSteamId
-                    ? 'leaderboard-row--me'
-                    : '',
-                ]"
-              >
-                <NuxtLink
-                  :to="{
-                    name: 'players-id',
-                    params: { id: entry.player_steam_id },
-                  }"
-                  class="contents"
-                >
-                  <TableCell>
-                    <div class="flex items-center justify-center">
+                    <div
+                      class="flex items-center justify-end gap-1"
+                      :style="
+                        trophyTierColor('value')
+                          ? { color: trophyTierColor('value') }
+                          : {}
+                      "
+                    >
                       <span
-                        :class="{
-                          'text-yellow-400 font-bold': entry.rank === 1,
-                          'text-gray-300 font-bold': entry.rank === 2,
-                          'text-amber-600 font-bold': entry.rank === 3,
-                          'text-muted-foreground': entry.rank > 3,
+                        v-if="trophyTierColor('value')"
+                        class="inline-block h-1.5 w-1.5 rounded-full"
+                        :style="{
+                          background: trophyTierColor('value'),
+                          boxShadow: `0 0 4px ${trophyTierColor('value')}`,
                         }"
-                      >
-                        {{ entry.rank }}
-                      </span>
+                      ></span>
+                      <StatLabel
+                        v-if="columnGlossary.value"
+                        :stat="columnGlossary.value"
+                        :label="columnLabels.value"
+                        header
+                      />
+                      <template v-else>{{ columnLabels.value }}</template>
+                      <component
+                        v-if="isSortable('value')"
+                        :is="sortIcon('value')"
+                        class="h-3.5 w-3.5"
+                      />
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <PlayerDisplay
-                      :player="{
-                        steam_id: entry.player_steam_id,
-                        name: entry.player_name,
-                        custom_avatar_url: entry.player_custom_avatar_url,
-                        avatar_url: entry.player_avatar_url,
-                        country: entry.player_country,
-                      }"
-                      :show-elo="false"
-                      :show-online="false"
-                      :show-role="false"
-                      :linkable="false"
-                      size="xs"
-                    />
-                  </TableCell>
-                  <TableCell
-                    class="text-right font-mono font-semibold tabular-nums"
-                    :style="
-                      trophyTierColor('value') || eloValueColor(entry.value)
-                        ? {
-                            color:
-                              trophyTierColor('value') ||
-                              eloValueColor(entry.value),
-                          }
-                        : {}
-                    "
-                  >
-                    <span class="inline-flex items-center justify-end gap-1">
-                      {{ formatValue(entry.value) }}
-                      <StatChevron
-                        v-if="statTier('value')"
-                        :cfg="statTier('value')"
-                        :value="entry.value"
-                      />
-                    </span>
-                  </TableCell>
-                  <TableCell
+                  </TableHead>
+                  <TableHead
                     v-if="columnLabels.secondary_value"
-                    class="text-right font-mono tabular-nums"
-                    :class="secondaryValueClass(entry.secondary_value)"
-                    :style="
-                      trophyTierColor('secondary_value')
-                        ? { color: trophyTierColor('secondary_value') }
-                        : {}
-                    "
+                    class="text-right"
+                    :class="{
+                      'cursor-pointer select-none hover:text-foreground':
+                        isSortable('secondary_value'),
+                      'text-[hsl(var(--tac-amber))]':
+                        effectiveSortField === 'secondary_value',
+                    }"
+                    @click="toggleSort('secondary_value')"
                   >
-                    <span class="inline-flex items-center justify-end gap-1">
-                      {{ formatSecondary(entry.secondary_value) }}
-                      <StatChevron
-                        v-if="statTier('secondary_value')"
-                        :cfg="statTier('secondary_value')"
-                        :value="entry.secondary_value"
+                    <div
+                      class="flex items-center justify-end gap-1"
+                      :style="
+                        trophyTierColor('secondary_value')
+                          ? { color: trophyTierColor('secondary_value') }
+                          : {}
+                      "
+                    >
+                      <span
+                        v-if="trophyTierColor('secondary_value')"
+                        class="inline-block h-1.5 w-1.5 rounded-full"
+                        :style="{
+                          background: trophyTierColor('secondary_value'),
+                          boxShadow: `0 0 4px ${trophyTierColor('secondary_value')}`,
+                        }"
+                      ></span>
+                      <StatLabel
+                        v-if="columnGlossary.secondary_value"
+                        :stat="columnGlossary.secondary_value"
+                        :label="columnLabels.secondary_value ?? ''"
+                        header
                       />
-                    </span>
-                  </TableCell>
-                  <TableCell
+                      <template v-else>{{
+                        columnLabels.secondary_value
+                      }}</template>
+                      <component
+                        v-if="isSortable('secondary_value')"
+                        :is="sortIcon('secondary_value')"
+                        class="h-3.5 w-3.5"
+                      />
+                    </div>
+                  </TableHead>
+                  <TableHead
                     v-if="columnLabels.tertiary_value"
-                    class="text-right font-mono tabular-nums"
+                    class="text-right"
                     :class="{
-                      'text-muted-foreground':
-                        !trophyTierColor('tertiary_value'),
+                      'cursor-pointer select-none hover:text-foreground':
+                        isSortable('tertiary_value'),
+                      'text-[hsl(var(--tac-amber))]':
+                        effectiveSortField === 'tertiary_value',
                     }"
-                    :style="
-                      trophyTierColor('tertiary_value')
-                        ? { color: trophyTierColor('tertiary_value') }
-                        : {}
-                    "
+                    @click="toggleSort('tertiary_value')"
                   >
-                    {{ formatTertiary(entry.tertiary_value) }}
-                  </TableCell>
-                  <TableCell
+                    <div
+                      class="flex items-center justify-end gap-1"
+                      :style="
+                        trophyTierColor('tertiary_value')
+                          ? { color: trophyTierColor('tertiary_value') }
+                          : {}
+                      "
+                    >
+                      <span
+                        v-if="trophyTierColor('tertiary_value')"
+                        class="inline-block h-1.5 w-1.5 rounded-full"
+                        :style="{
+                          background: trophyTierColor('tertiary_value'),
+                          boxShadow: `0 0 4px ${trophyTierColor('tertiary_value')}`,
+                        }"
+                      ></span>
+                      <StatLabel
+                        v-if="columnGlossary.tertiary_value"
+                        :stat="columnGlossary.tertiary_value"
+                        :label="columnLabels.tertiary_value ?? ''"
+                        header
+                      />
+                      <template v-else>{{
+                        columnLabels.tertiary_value
+                      }}</template>
+                      <component
+                        v-if="isSortable('tertiary_value')"
+                        :is="sortIcon('tertiary_value')"
+                        class="h-3.5 w-3.5"
+                      />
+                    </div>
+                  </TableHead>
+                  <TableHead
                     v-if="columnLabels.matches_played"
-                    class="text-right font-mono tabular-nums"
+                    class="text-right"
                     :class="{
-                      'text-muted-foreground':
-                        !trophyTierColor('matches_played'),
+                      'cursor-pointer select-none hover:text-foreground':
+                        isSortable('matches_played'),
+                      'text-[hsl(var(--tac-amber))]':
+                        effectiveSortField === 'matches_played',
                     }"
-                    :style="
-                      trophyTierColor('matches_played')
-                        ? {
-                            color: trophyTierColor('matches_played'),
-                            fontWeight: category === 'trophies' ? 600 : 400,
-                          }
-                        : {}
-                    "
+                    @click="toggleSort('matches_played')"
                   >
-                    {{ entry.matches_played ?? "—" }}
-                  </TableCell>
-                </NuxtLink>
-              </TableRow>
-            </TableBody>
-          </Table>
+                    <div
+                      class="flex items-center justify-end gap-1"
+                      :style="
+                        trophyTierColor('matches_played')
+                          ? { color: trophyTierColor('matches_played') }
+                          : {}
+                      "
+                    >
+                      <span
+                        v-if="trophyTierColor('matches_played')"
+                        class="inline-block h-1.5 w-1.5 rounded-full"
+                        :style="{
+                          background: trophyTierColor('matches_played'),
+                          boxShadow: `0 0 4px ${trophyTierColor('matches_played')}`,
+                        }"
+                      ></span>
+                      {{ columnLabels.matches_played }}
+                      <component
+                        v-if="isSortable('matches_played')"
+                        :is="sortIcon('matches_played')"
+                        class="h-3.5 w-3.5"
+                      />
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="entry in tableEntries"
+                  :key="entry.player_steam_id"
+                  :ref="(el) => setHighlightedRowRef(el, entry.player_steam_id)"
+                  class="cursor-pointer"
+                  :class="[
+                    entry.player_steam_id === highlightedSteamId
+                      ? 'leaderboard-row--highlight'
+                      : '',
+                    entry.player_steam_id === loggedInSteamId &&
+                    entry.player_steam_id !== highlightedSteamId
+                      ? 'leaderboard-row--me'
+                      : '',
+                  ]"
+                >
+                  <NuxtLink
+                    :to="{
+                      name: 'players-id',
+                      params: { id: entry.player_steam_id },
+                    }"
+                    class="contents"
+                  >
+                    <TableCell>
+                      <div class="flex items-center justify-center">
+                        <span
+                          :class="{
+                            'text-yellow-400 font-bold': entry.rank === 1,
+                            'text-gray-300 font-bold': entry.rank === 2,
+                            'text-amber-600 font-bold': entry.rank === 3,
+                            'text-muted-foreground': entry.rank > 3,
+                          }"
+                        >
+                          {{ entry.rank }}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <PlayerDisplay
+                        :player="{
+                          steam_id: entry.player_steam_id,
+                          name: entry.player_name,
+                          custom_avatar_url: entry.player_custom_avatar_url,
+                          avatar_url: entry.player_avatar_url,
+                          country: entry.player_country,
+                        }"
+                        :show-elo="false"
+                        :show-online="false"
+                        :show-role="false"
+                        :linkable="false"
+                        size="xs"
+                      />
+                    </TableCell>
+                    <TableCell
+                      class="text-right font-mono font-semibold tabular-nums"
+                      :style="
+                        trophyTierColor('value') || eloValueColor(entry.value)
+                          ? {
+                              color:
+                                trophyTierColor('value') ||
+                                eloValueColor(entry.value),
+                            }
+                          : {}
+                      "
+                    >
+                      <span class="inline-flex items-center justify-end gap-1">
+                        {{ formatValue(entry.value) }}
+                        <StatChevron
+                          v-if="statTier('value')"
+                          :cfg="statTier('value')"
+                          :value="entry.value"
+                        />
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      v-if="columnLabels.secondary_value"
+                      class="text-right font-mono tabular-nums"
+                      :class="secondaryValueClass(entry.secondary_value)"
+                      :style="
+                        trophyTierColor('secondary_value')
+                          ? { color: trophyTierColor('secondary_value') }
+                          : {}
+                      "
+                    >
+                      <span class="inline-flex items-center justify-end gap-1">
+                        {{ formatSecondary(entry.secondary_value) }}
+                        <StatChevron
+                          v-if="statTier('secondary_value')"
+                          :cfg="statTier('secondary_value')"
+                          :value="entry.secondary_value"
+                        />
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      v-if="columnLabels.tertiary_value"
+                      class="text-right font-mono tabular-nums"
+                      :class="{
+                        'text-muted-foreground':
+                          !trophyTierColor('tertiary_value'),
+                      }"
+                      :style="
+                        trophyTierColor('tertiary_value')
+                          ? { color: trophyTierColor('tertiary_value') }
+                          : {}
+                      "
+                    >
+                      {{ formatTertiary(entry.tertiary_value) }}
+                    </TableCell>
+                    <TableCell
+                      v-if="columnLabels.matches_played"
+                      class="text-right font-mono tabular-nums"
+                      :class="{
+                        'text-muted-foreground':
+                          !trophyTierColor('matches_played'),
+                      }"
+                      :style="
+                        trophyTierColor('matches_played')
+                          ? {
+                              color: trophyTierColor('matches_played'),
+                              fontWeight: category === 'trophies' ? 600 : 400,
+                            }
+                          : {}
+                      "
+                    >
+                      {{ entry.matches_played ?? "—" }}
+                    </TableCell>
+                  </NuxtLink>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
         </Transition>
       </div>
 

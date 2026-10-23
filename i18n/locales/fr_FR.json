@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Personne d'autre n'est classé",
+                                      "matches_count": "{count} match | {count} matchs",
+                                      "all_seasons": "Toutes les saisons cumulées",
+                                      "you": "Vous",
+                                      "line": {
+                                        "top_of": "Top de {value}",
+                                        "ranks": "Rangs {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Dernier match",
                                                   "elo":  "ELO",

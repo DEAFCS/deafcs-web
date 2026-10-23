@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "他にランク入りした人はいません",
+                                      "matches_count": "{count} 試合 | {count} 試合",
+                                      "all_seasons": "全シーズン合計",
+                                      "you": "あなた",
+                                      "line": {
+                                        "top_of": "{value} のトップ",
+                                        "ranks": "{value} 位"
+                                      },
                                       "col":  {
                                                   "last_match":  "直近の試合",
                                                   "elo":  "ELO",

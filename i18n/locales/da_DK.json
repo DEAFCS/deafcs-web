@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Ingen andre er rangeret endnu",
+                                      "matches_count": "{count} kamp | {count} kampe",
+                                      "all_seasons": "Alle sæsoner samlet",
+                                      "you": "Dig",
+                                      "line": {
+                                        "top_of": "Top i {value}",
+                                        "ranks": "Placering {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Seneste kamp",
                                                   "elo":  "ELO",

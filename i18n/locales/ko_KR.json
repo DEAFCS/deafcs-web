@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "아직 다른 순위가 없습니다",
+                                      "matches_count": "{count}경기 | {count}경기",
+                                      "all_seasons": "모든 시즌 합산",
+                                      "you": "나",
+                                      "line": {
+                                        "top_of": "{value} 상위",
+                                        "ranks": "{value}위"
+                                      },
                                       "col":  {
                                                   "last_match":  "최근 경기",
                                                   "elo":  "ELO",

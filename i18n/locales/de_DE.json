@@ -33,6 +33,14 @@
                   },
     "pages":  {
                   "leaderboard":  {
+                                      "podium_empty": "Noch niemand sonst platziert",
+                                      "matches_count": "{count} Match | {count} Matches",
+                                      "all_seasons": "Alle Saisons zusammen",
+                                      "you": "Du",
+                                      "line": {
+                                        "top_of": "Spitze · {value}",
+                                        "ranks": "Plätze {value}"
+                                      },
                                       "col":  {
                                                   "last_match":  "Letztes Match",
                                                   "elo":  "ELO",

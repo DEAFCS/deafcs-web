@@ -4646,6 +4646,14 @@
                                          "matches":  "partidas"
                                      },
                   "leaderboard":  {
+                                      "podium_empty": "Ninguém mais classificado ainda",
+                                      "matches_count": "{count} partida | {count} partidas",
+                                      "all_seasons": "Todas as temporadas somadas",
+                                      "you": "Você",
+                                      "line": {
+                                        "top_of": "Top de {value}",
+                                        "ranks": "Posições {value}"
+                                      },
                                       "title":  "Ranking",
                                       "no_results":  "Sem resultados para os filtros selecionados.",
                                       "categories":  {
