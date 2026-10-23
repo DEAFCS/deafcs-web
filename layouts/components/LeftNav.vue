@@ -40,6 +40,7 @@ import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
 import PluginIcon from "~/components/plugins/PluginIcon.vue";
 import InstallPWA from "~/components/InstallPWA.vue";
+import InstallAppQrDialog from "~/components/InstallAppQrDialog.vue";
 import { e_player_roles_enum } from "~/generated/zeus";
 import { DiscordLogoIcon, GithubLogoIcon } from "@radix-icons/vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -1598,9 +1599,13 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           >
             <InstagramIcon class="h-4 w-4" aria-hidden="true" />
           </a>
-          <InstallPWA :is-menu-item="false" />
+          <!-- The QR dialog for putting the app on a phone: desktop only, as in
+               the top bar it came from. -->
+          <InstallAppQrDialog v-if="me && !isMobile" />
         </div>
         <SidebarMenu>
+          <!-- On a phone the install button installs on that phone. -->
+          <InstallPWA v-if="isMobile" />
           <SidebarMenuItem>
             <DropdownMenu v-model:open="profileOpened">
               <DropdownMenuTrigger as-child>
