@@ -79,7 +79,7 @@ function nextIosStep() {
     v-if="label"
     variant="outline"
     size="sm"
-    class="h-8 min-w-0 flex-1 justify-center gap-2"
+    class="h-8 min-w-0 flex-1 justify-center gap-2 border-white/[0.07] bg-black/35 text-sidebar-foreground/80"
     @click="dialogOpen = true"
   >
     <PhoneDownloadIcon class="w-4 h-4 shrink-0" />
@@ -88,8 +88,9 @@ function nextIosStep() {
   <FiveStackToolTip v-else>
     <template #trigger>
       <Button
+        variant="outline"
         size="icon"
-        class="h-8 w-8 shrink-0"
+        class="h-8 w-8 shrink-0 border-white/[0.07] bg-black/35 text-sidebar-foreground/70 hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))]"
         @click="dialogOpen = true"
       >
         <PhoneDownloadIcon class="w-4 h-4" />
