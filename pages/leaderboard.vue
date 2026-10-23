@@ -940,18 +940,29 @@ const tableEntries = computed(() =>
   showPodium.value ? entries.value.slice(3) : entries.value,
 );
 
+// A 7/30-day board is ranked by ELO change, so the podium leads with the
+// change and moves the ELO itself to the small line.
 function podiumValue(entry: LeaderboardEntry): string {
+  if (isRollingElo.value) return formatSecondary(entry.secondary_value);
   return formatValue(entry.value);
 }
 
 function podiumValueColor(entry: LeaderboardEntry): string | undefined {
+  if (isRollingElo.value) {
+    const change = Math.round(entry.secondary_value ?? 0);
+    if (change > 0) return "hsl(var(--success))";
+    if (change < 0) return "hsl(var(--destructive))";
+    return undefined;
+  }
   return trophyTierColor("value") || eloValueColor(entry.value);
 }
 
 // The secondary column and the match count, as the podium's small line.
 function podiumMeta(entry: LeaderboardEntry): string {
   const parts: string[] = [];
-  if (columnLabels.value.secondary_value) {
+  if (isRollingElo.value) {
+    parts.push(`${columnLabels.value.value} ${formatValue(entry.value)}`);
+  } else if (columnLabels.value.secondary_value) {
     parts.push(
       `${columnLabels.value.secondary_value} ${formatSecondary(entry.secondary_value)}`,
     );
