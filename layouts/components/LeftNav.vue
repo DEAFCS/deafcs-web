@@ -1846,7 +1846,7 @@ export default {
       openSupportRequests: {
         query: gql`
           subscription LeftNavOpenSupportRequests {
-            support_requests(where: { status: { _neq: "closed" } }) {
+            support_requests(where: { status: { _neq: closed } }) {
               id
             }
           }
