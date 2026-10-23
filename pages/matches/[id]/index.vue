@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { computed, onUnmounted, provide, ref, watch } from "vue";
+import {
+  computed,
+  defineAsyncComponent,
+  onUnmounted,
+  provide,
+  ref,
+  watch,
+} from "vue";
 import { useRoute } from "vue-router";
 import { useApolloClient } from "@vue/apollo-composable";
 import gql from "graphql-tag";
@@ -8,7 +15,6 @@ import MatchOverview from "~/components/match/overview/MatchOverview.vue";
 import { createCaptainPickProgress } from "~/composables/useCaptainPickProgress";
 import MatchTabs from "~/components/match/MatchTabs.vue";
 import MatchMaps from "~/components/match/MatchMaps.vue";
-import MatchAdminBottomBar from "~/components/match/MatchAdminBottomBar.vue";
 import MatchInfo from "~/components/match/MatchInfo.vue";
 import MatchHighlightsReel from "~/components/match/MatchHighlightsReel.vue";
 import MatchHeader from "~/components/match/MatchHeader.vue";
@@ -122,6 +128,9 @@ watch(
 );
 onUnmounted(() => rankSub?.unsubscribe());
 
+const MatchAdminBottomBar = defineAsyncComponent(
+  () => import("~/components/match/MatchAdminBottomBar.vue"),
+);
 </script>
 
 <template>
