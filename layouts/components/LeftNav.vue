@@ -731,7 +731,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </SidebarGroup>
         </template>
 
-        <SidebarGroup v-if="isAdmin" :style="orderStyle('information')">
+        <SidebarGroup :style="orderStyle('information')">
           <SidebarGroupLabel>{{
             $t("layouts.app_nav.information.title")
           }}</SidebarGroupLabel>
@@ -1641,7 +1641,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
         <SidebarMenu>
           <!-- On a phone the install button installs on that phone. -->
           <InstallPWA v-if="isMobile" />
-          <SidebarMenuItem>
+          <SidebarMenuItem v-if="me">
             <DropdownMenu v-model:open="profileOpened">
               <DropdownMenuTrigger as-child>
                 <SidebarMenuButton

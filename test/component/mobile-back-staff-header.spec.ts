@@ -69,17 +69,13 @@ describe("staff top bar (AppHeader)", () => {
   });
 });
 
-describe("every default-layout top bar carries the arrow", () => {
-  it("the layout picks TopNav or AppHeader, and both have it", () => {
+describe("the default-layout header carries the arrow", () => {
+  it("the layout renders AppHeader for everyone, and it has the arrow", () => {
     const layout = read("layouts/default.vue");
-    expect(layout).toContain('<TopNav v-if="!showLeftNav" />');
+    expect(layout).not.toContain("TopNav");
     expect(layout).toContain('<AppHeader class="px-6" v-if="showLeftNav" />');
-
-    for (const bar of [
-      "layouts/components/TopNav.vue",
-      "layouts/components/AppHeader.vue",
-    ]) {
-      expect(read(bar), bar).toContain('<MobileBackButton v-if="isMobile" />');
-    }
+    expect(read("layouts/components/AppHeader.vue")).toContain(
+      '<MobileBackButton v-if="isMobile" />',
+    );
   });
 });

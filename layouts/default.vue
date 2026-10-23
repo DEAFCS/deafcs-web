@@ -4,7 +4,6 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { computed, defineAsyncComponent, provide } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "~/stores/AuthStore";
-import { e_player_roles_enum } from "~/generated/zeus";
 import { useGtm } from "@/layouts/composables/useGtm";
 import { useChatTabSetup } from "~/composables/useChatTabSetup";
 import { useIncomingDirectMessages } from "~/composables/useIncomingDirectMessages";
@@ -14,9 +13,6 @@ const AppSidebar = defineAsyncComponent(
 );
 const MainContent = defineAsyncComponent(
   () => import("@/layouts/components/MainContent.vue"),
-);
-const TopNav = defineAsyncComponent(
-  () => import("@/layouts/components/TopNav.vue"),
 );
 const AppHeader = defineAsyncComponent(
   () => import("@/layouts/components/AppHeader.vue"),
@@ -63,17 +59,11 @@ useChatTabSetup();
 useIncomingDirectMessages();
 
 const route = useRoute();
-const authStore = useAuthStore();
 
-// Floor is moderator, not match_organizer: moderator now has real sidebar
-// destinations (Support Requests, Verification Applications, both gated
-// individually inside LeftNav.vue's own canModerate checks), so it must
-// mount at all for a moderator session. isRoleAbove is a minimum-rank
-// check, so this still covers match_organizer/tournament_organizer/admin
-// unchanged -- only streamer and below still fall back to TopNav.
-const showLeftNav = computed(() => {
-  return authStore.isRoleAbove(e_player_roles_enum.moderator);
-});
+// DEAFCS: everyone gets the left nav and the header beside it; the top bar is
+// gone. (Staff used to be the only ones with it.) Kept as a flag because
+// MainContent and others read it.
+const showLeftNav = computed(() => true);
 
 const containContent = computed(() => {
   if (route.name?.toString().startsWith("settings-application")) {
@@ -122,7 +112,6 @@ provide("containContent", containContent);
       class="flex flex-col overflow-y-auto overflow-x-hidden !bg-transparent"
       style="height: 100svh"
     >
-      <TopNav v-if="!showLeftNav" />
       <AppHeader class="px-6" v-if="showLeftNav" />
 
       <MainContent class="flex-1">

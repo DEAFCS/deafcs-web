@@ -14,7 +14,6 @@ const read = (file: string) =>
     "\n",
   );
 
-const topNav = read("layouts/components/TopNav.vue");
 const leftNav = read("layouts/components/LeftNav.vue");
 
 const between = (source: string, start: string, end: string) => {
@@ -34,99 +33,6 @@ const order = (source: string, needles: string[]) =>
 
 const ascending = (positions: number[]) =>
   expect([...positions].sort((a, b) => a - b)).toEqual(positions);
-
-describe("top mega menu", () => {
-  const desktop = between(
-    topNav,
-    `item.type === 'community'"`,
-    `item.type === 'info'"`,
-  );
-  const columns = (() => {
-    const library = desktop.indexOf('community.library.title")');
-    const social = desktop.indexOf('community.social.title")');
-    return {
-      roster: desktop.slice(0, library),
-      library: desktop.slice(library, social),
-      social: desktop.slice(social),
-    };
-  })();
-
-  it("has three columns, Roster, Library, Social", () => {
-    expect(desktop.match(/navGroupLabelClasses/g)?.length).toBe(3);
-    ascending(
-      order(desktop, [
-        'community.roster")',
-        'community.library.title")',
-        'community.social.title")',
-      ]),
-    );
-  });
-
-  it("puts each page in its column, in order", () => {
-    ascending(
-      order(columns.roster, ['to="/players"', 'to="/teams"', 'to="/leaderboard"']),
-    );
-    ascending(
-      order(columns.library, ['to="/utility"', 'to="/highlights"', 'to="/awards"']),
-    );
-    expect(columns.library).not.toContain('to="/news"');
-    ascending(order(columns.social, ['to="/news"', "openAnnouncements()"]));
-  });
-
-  it("keeps the descriptions under every item", () => {
-    for (const key of [
-      "players",
-      "teams",
-      "leaderboard",
-      "utility",
-      "highlights",
-      "awards",
-      "news",
-      "announcements",
-    ]) {
-      expect(desktop).toContain(`layouts.top_nav.community.${key}.subtitle`);
-    }
-  });
-
-  it("uses upstream 5Stack's three-column width", () => {
-    expect(topNav).toContain(
-      "md:min-w-[min(780px,calc(100vw-1.25rem))]",
-    );
-  });
-
-  it("shows Announcements only with a session and opens the Hub's tab", () => {
-    expect(columns.social).toMatch(/<li v-if="authStore\.me">/);
-    expect(topNav).toContain('from "~/utilities/openAnnouncements"');
-    // A button that opens the Hub, never a page a guest could load.
-    expect(topNav).not.toMatch(/\/announcements|to="\/chat/);
-  });
-
-  it("gives the mobile menu the same three groups", () => {
-    const mobile = between(
-      topNav,
-      `v-else-if="item.type === 'community'"\n                  class="flex flex-col gap-1"`,
-      `v-else-if="item.type === 'info'" class="flex flex-col gap-1"`,
-    );
-    order(mobile, [
-      'community.roster")',
-      'to="/players"',
-      'to="/teams"',
-      'to="/leaderboard"',
-      'community.library.title")',
-      'to="/utility"',
-      'to="/highlights"',
-      'to="/awards"',
-      'community.social.title")',
-      'to="/news"',
-      'v-if="authStore.me"',
-      "openAnnouncements();",
-    ]);
-  });
-
-  it("links no Forum", () => {
-    expect(topNav).not.toMatch(/to="\/forum"|name: 'forum'|social\.forum/);
-  });
-});
 
 describe("left sidebar", () => {
   const groups = between(

@@ -26,8 +26,8 @@ const profileMenu = await readFile(
 const en = JSON.parse(
   await readFile(new URL("../i18n/locales/en.json", import.meta.url), "utf8"),
 );
-const topNav = await readFile(
-  new URL("../layouts/components/TopNav.vue", import.meta.url),
+const appHeader = await readFile(
+  new URL("../layouts/components/AppHeader.vue", import.meta.url),
   "utf8",
 );
 const logout = await readFile(
@@ -54,7 +54,7 @@ test("the root route always uses the normal homepage and default layout", () => 
 
 test("the default layout renders the normal shell without auth-status swapping", () => {
   assert.match(appLayout, /<TopoBackground \/>/);
-  assert.match(appLayout, /<TopNav v-if="!showLeftNav" \/>/);
+  assert.doesNotMatch(appLayout, /TopNav/);
   assert.match(appLayout, /<AppSidebar v-if="showLeftNav" \/>/);
   assert.doesNotMatch(
     appLayout,
@@ -89,7 +89,6 @@ test("public routes stay public and auth transport routes stay reachable", () =>
 test("restricted routes keep their existing middleware permissions", () => {
   assert.match(middleware, /!hasMe && !isPublicRoute\(to\.path\)/);
   assert.match(rootPage, /HomeDashboard/);
-  assert.match(appLayout, /authStore\.isRoleAbove\(e_player_roles_enum\.moderator\)/);
 });
 
 test("auth initialization has one middleware owner and navigation does not force reloads", () => {
@@ -97,109 +96,30 @@ test("auth initialization has one middleware owner and navigation does not force
   assert.doesNotMatch(rootPage, /authStore\.getMe\(\)/);
   assert.match(authStore, /if \(getMePromise\) \{\s*return getMePromise;/);
   assert.doesNotMatch(authStore, /void fetchMe\(\)/);
-  assert.doesNotMatch(topNav, /onLogoClick|window\.location\.reload|location\.replace/);
   assert.doesNotMatch(leftNav, /onLogoClick|window\.location\.reload|location\.replace/);
   assert.doesNotMatch(logout, /window\.location\.reload|location\.replace/);
   assert.match(logout, /await navigateTo\("\/", \{ replace: true \}\)/);
 });
 
-test("all logged-in navigation variants show My Support Requests", () => {
-  const guestTopNavStart = topNav.indexOf("<template v-else>");
-  const loggedInTopNav = topNav.slice(
-    topNav.indexOf('<template v-if="me">'),
-    guestTopNavStart,
-  );
-  const guestTopNav = topNav.slice(guestTopNavStart);
-
-  // The top nav's account menu is the shared ProfileMenu (5Stack); My Support
-  // Requests is its row in place of upstream's Help & FAQ.
-  assert.match(loggedInTopNav, /<ProfileMenu[\s\S]*?@logout="showLogoutModal = true"/);
+test("the left nav shows My Support Requests and visitors get Sign in", () => {
+  assert.match(leftNav, /<ProfileMenu[\s\S]*?@logout="showLogoutModal = true"|showLogoutModal = true/);
   assert.match(
     profileMenu,
     /to="\/support"[\s\S]*?layouts\.app_nav\.profile\.support_requests/,
   );
   assert.equal(en.layouts.app_nav.profile.support_requests, "My Support Requests");
   assert.doesNotMatch(profileMenu, /isAdmin|administrator|name: 'faq'/);
-  assert.doesNotMatch(loggedInTopNav, /isAdmin|administrator/);
-  assert.doesNotMatch(guestTopNav, /My Support Requests|to="\/support"|<ProfileMenu/);
   assert.match(
     leftNav,
     /<NuxtLink[\s\S]*?to="\/support"[\s\S]*?My Support Requests/,
   );
+  // The top bar is gone, so the header beside the left nav carries the
+  // visitor's Sign in button.
+  assert.match(appHeader, /<template v-else>[\s\S]*?@click="signIn"/);
 });
 
-// Task 1.1 regression: LeftNav.vue's own canModerate gates on the
-// Verification Applications / Support Requests links were individually
-// correct, but layouts/default.vue's showLeftNav floor (the switch that
-// decides whether <AppSidebar> -- which is what actually mounts LeftNav.vue
-// -- renders at all, vs falling back to the plain <TopNav>) was still
-// match_organizer, which ranks ABOVE moderator in AuthStore's roleOrder.
-// A moderator therefore never got LeftNav.vue in the DOM in the first
-// place; canModerate never even ran. isRoleAbove is a minimum-rank check,
-// so lowering the floor to moderator is a strict widening: every role that
-// satisfied match_organizer before still does (they rank higher), and only
-// streamer/verified_user/user still fall back to TopNav, unchanged.
-const roleOrder = [
-  "user",
-  "verified_user",
-  "streamer",
-  "moderator",
-  "match_organizer",
-  "tournament_organizer",
-  "administrator",
-];
-
-function isRoleAbove(actualRole, requiredRole) {
-  const requiredIndex = roleOrder.indexOf(requiredRole);
-  const actualIndex = roleOrder.indexOf(actualRole);
-  if (requiredIndex === -1 || actualIndex === -1) return false;
-  return actualIndex >= requiredIndex;
-}
-
-test("showLeftNav mounts the sidebar (and therefore LeftNav.vue) for a moderator session", () => {
-  const floorMatch = appLayout.match(
-    /authStore\.isRoleAbove\(e_player_roles_enum\.(\w+)\)/,
-  );
-  assert.ok(floorMatch, "showLeftNav must call authStore.isRoleAbove(...)");
-  const floorRole = floorMatch[1];
-
-  // The actual regression, reproduced directly against the shipped floor:
-  // a moderator must satisfy it (this is what was false before the fix).
-  assert.equal(
-    isRoleAbove("moderator", floorRole),
-    true,
-    "a moderator session must satisfy showLeftNav's role floor",
-  );
-
-  // Every role that could see the sidebar before this fix must still see it.
-  for (const role of ["match_organizer", "tournament_organizer", "administrator"]) {
-    assert.equal(
-      isRoleAbove(role, floorRole),
-      true,
-      `${role} must still satisfy showLeftNav's role floor`,
-    );
-  }
-
-  // Roles below moderator must still fall back to TopNav -- no widening
-  // beyond moderator.
-  for (const role of ["user", "verified_user", "streamer"]) {
-    assert.equal(
-      isRoleAbove(role, floorRole),
-      false,
-      `${role} must NOT satisfy showLeftNav's role floor`,
-    );
-  }
-});
-
-test("moderator's sidebar links are reachable end-to-end: showLeftNav mounts LeftNav.vue, and LeftNav.vue's own gate shows both links", () => {
-  const floorMatch = appLayout.match(
-    /authStore\.isRoleAbove\(e_player_roles_enum\.(\w+)\)/,
-  );
-  const sidebarMountsForModerator = isRoleAbove("moderator", floorMatch[1]);
-  assert.equal(sidebarMountsForModerator, true);
-
-  // LeftNav.vue's own per-link gates, only meaningful once the component
-  // actually mounts.
+test("everyone gets the left nav, and its moderator links keep their own gates", () => {
+  assert.match(appLayout, /const showLeftNav = computed\(\(\) => true\)/);
   assert.match(
     leftNav,
     /verification_applications["'][\s\S]{0,400}?v-if="canModerate"|v-if="canModerate"[\s\S]{0,200}?verification_applications/,

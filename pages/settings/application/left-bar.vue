@@ -51,6 +51,36 @@ definePageMeta({
         </div>
       </SettingsSection>
     </PageTransition>
+
+    <PageTransition :delay="80">
+      <SettingsSection
+        id="left-bar-logo-link"
+        :title="$t('pages.settings.application.top_bar.logo_link.title')"
+        :description="
+          $t('pages.settings.application.top_bar.logo_link.description')
+        "
+      >
+        <div class="flex max-w-lg gap-2">
+          <Input
+            v-model="logoLinkInput"
+            :placeholder="
+              $t('pages.settings.application.top_bar.logo_link.placeholder')
+            "
+            @keydown.enter.prevent="saveLogoLink"
+          />
+          <Button
+            variant="outline"
+            :disabled="logoLinkInput === (logoLink || '')"
+            @click="saveLogoLink"
+          >
+            {{ $t("common.save") }}
+          </Button>
+        </div>
+        <p class="text-xs text-muted-foreground">
+          {{ $t("pages.settings.application.top_bar.logo_link.hint") }}
+        </p>
+      </SettingsSection>
+    </PageTransition>
   </SettingsPage>
 </template>
 
@@ -62,6 +92,9 @@ import type { Plugin } from "~/stores/Plugins";
 import { leftBarOrder } from "~/utilities/leftBarOrder";
 
 const ORDER_SETTING_NAME = "public.left_bar_order";
+// Where the brand logo at the top of the left nav goes. Kept under its old
+// name so the value an administrator already set carries over.
+const LOGO_LINK_SETTING_NAME = "public.top_bar_logo_link";
 
 interface LeftBarItem {
   key: string;
@@ -74,6 +107,7 @@ export default {
     return {
       // What the admin is currently typing, keyed like the persisted order map.
       orderInputs: {} as Record<string, number>,
+      logoLinkInput: useApplicationSettingsStore().topBarLogoLink || "",
     };
   },
   computed: {
@@ -117,6 +151,9 @@ export default {
         }))
         .sort((a, b) => a.order - b.order);
     },
+    logoLink(): string | null {
+      return useApplicationSettingsStore().topBarLogoLink;
+    },
     isDirty(): boolean {
       const saved = useApplicationSettingsStore().leftBarOrder;
       return this.items.some(
@@ -125,6 +162,11 @@ export default {
     },
   },
   watch: {
+    logoLink(value: string | null) {
+      if (value !== (this.logoLinkInput || null)) {
+        this.logoLinkInput = value || "";
+      }
+    },
     // Seed the editable numbers once the list is known, without clobbering
     // numbers the admin already typed for the others.
     items: {
@@ -145,13 +187,26 @@ export default {
         object[item.key] = Number(this.orderInputs[item.key]) || 0;
       }
 
+      await this.persistSetting(ORDER_SETTING_NAME, JSON.stringify(object));
+      toast({
+        title: this.$t("pages.settings.application.update_success") as string,
+      });
+    },
+    async saveLogoLink() {
+      await this.persistSetting(
+        LOGO_LINK_SETTING_NAME,
+        this.logoLinkInput.trim(),
+      );
+      toast({
+        title: this.$t("pages.settings.application.update_success") as string,
+      });
+    },
+    async persistSetting(name: string, value: string) {
       await (this as any).$apollo.mutate({
         mutation: generateMutation({
           insert_settings: [
             {
-              objects: [
-                { name: ORDER_SETTING_NAME, value: JSON.stringify(object) },
-              ],
+              objects: [{ name, value }],
               on_conflict: {
                 constraint: settings_constraint.settings_pkey,
                 update_columns: [settings_update_column.value],
@@ -160,9 +215,6 @@ export default {
             { __typename: true },
           ],
         }),
-      });
-      toast({
-        title: this.$t("pages.settings.application.update_success") as string,
       });
     },
   },

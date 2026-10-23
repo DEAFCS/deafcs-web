@@ -238,7 +238,7 @@ describe("Chat Hub icon reaches the page's rooms without an Open Chat button", (
 
   it("keeps the phone header's chat icon wired to the Hub", () => {
     const nav = fs.readFileSync(
-      path.resolve(__dirname, "../../layouts/components/TopNav.vue"),
+      path.resolve(__dirname, "../../layouts/components/AppHeader.vue"),
       "utf8",
     );
     expect(nav).toMatch(

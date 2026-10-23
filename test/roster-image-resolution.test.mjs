@@ -83,7 +83,6 @@ const MUST_OPT_IN = [
 const MUST_STAY_AVATAR_ONLY = [
   // sidebar / account identity
   "layouts/components/LeftNav.vue",
-  "layouts/components/TopNav.vue",
   // Matchmaking
   "components/matchmaking-lobby/FriendListItem.vue",
   "components/matchmaking-lobby/MatchLobby.vue",

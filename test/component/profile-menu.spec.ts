@@ -134,13 +134,4 @@ describe("top navigation profile menu", () => {
     expect(w.emitted("logout")).toHaveLength(1);
   });
 
-  it("TopNav uses the shared menu, not its own inline copy", () => {
-    const topNav = fs.readFileSync(
-      path.resolve(__dirname, "../../layouts/components/TopNav.vue"),
-      "utf8",
-    );
-    expect(topNav).toContain('import ProfileMenu from "./ProfileMenu.vue";');
-    expect(topNav).toContain('@logout="showLogoutModal = true"');
-    expect(topNav).not.toContain('<DropdownMenu v-model:open="profileMenuOpen">');
-  });
 });

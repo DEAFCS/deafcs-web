@@ -136,18 +136,3 @@ describe("MobileBackButton", () => {
   });
 });
 
-describe("top bar placement", () => {
-  const topNav = readFileSync(
-    path.resolve(__dirname, "../../layouts/components/TopNav.vue"),
-    "utf8",
-  ).replace(/\r\n/g, "\n");
-
-  it("sits first in the top bar, on phone widths only", () => {
-    const start = topNav.indexOf('<div class="flex min-w-0 items-center gap-1 sm:gap-3">');
-    const backAt = topNav.indexOf('<MobileBackButton v-if="isMobile" />');
-    const logoAt = topNav.indexOf("<NuxtLink", start);
-    expect(start).toBeGreaterThan(-1);
-    expect(backAt).toBeGreaterThan(start);
-    expect(backAt).toBeLessThan(logoAt);
-  });
-});

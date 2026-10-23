@@ -3,7 +3,6 @@ import { readFileSync } from "node:fs";
 
 const matchmakingStore = readFileSync("stores/MatchmakingStore.ts", "utf8");
 const leftNav = readFileSync("layouts/components/LeftNav.vue", "utf8");
-const topNav = readFileSync("layouts/components/TopNav.vue", "utf8");
 
 for (const mode of ["Competitive", "Wingman", "Duel"]) {
   assert.match(
@@ -17,10 +16,7 @@ assert.match(matchmakingStore, /const totalQueuedPlayers = computed\(\(\) =>/);
 assert.match(matchmakingStore, /lobbySizes\.set\(`\$\{type\}:\$\{entry\.index\}`/);
 assert.match(matchmakingStore, /total \+= size/);
 
-for (const [name, source] of [
-  ["left navigation", leftNav],
-  ["top navigation", topNav],
-]) {
+for (const [name, source] of [["left navigation", leftNav]]) {
   assert.match(
     source,
     /playTotalCount\(\)\s*{\s*return useMatchmakingStore\(\)\.totalQueuedPlayers;\s*}/,

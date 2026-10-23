@@ -9,7 +9,6 @@ const app = read("app.vue");
 const defaultLayout = read("layouts/default.vue");
 const publicLayout = read("layouts/public.vue");
 const chatLayout = read("layouts/chat.vue");
-const topNav = read("layouts/components/TopNav.vue");
 const appHeader = read("layouts/components/AppHeader.vue");
 const notice = read("components/WebsiteRestrictionNotice.vue");
 const restrictionStore = read("stores/WebsiteRestrictionStore.ts");
@@ -31,7 +30,6 @@ test("restriction notice is mounted by the active layout instead of before NuxtL
 });
 
 test("default navigation stays first and the restriction notice precedes page content", () => {
-  const topNavMount = defaultLayout.indexOf('<TopNav v-if="!showLeftNav" />');
   const appHeaderMount = defaultLayout.indexOf(
     '<AppHeader class="px-6" v-if="showLeftNav" />',
   );
@@ -43,12 +41,10 @@ test("default navigation stays first and the restriction notice precedes page co
     '<ApplicationSettingsShell v-if="isApplicationSettings">',
   );
 
-  assert.ok(topNavMount >= 0);
-  assert.ok(appHeaderMount > topNavMount);
+  assert.ok(appHeaderMount >= 0);
   assert.ok(mainContent > appHeaderMount);
   assert.ok(noticeSlot > mainContent);
   assert.ok(pageContent > noticeSlot);
-  assert.match(topNav, /class="sticky top-0/);
   assert.match(appHeader, /sticky top-0 z-50/);
 });
 
