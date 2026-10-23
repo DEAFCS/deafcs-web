@@ -90,7 +90,7 @@ const orderStyle = (key: string) => ({
 
 const { t: tr } = useI18n();
 const footerIconClasses =
-  "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-white/[0.07] bg-black/35 text-sidebar-foreground/70 transition-[background-color,border-color,color] duration-150 hover:border-[hsl(var(--tac-amber)/0.35)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))] focus-visible:border-[hsl(var(--tac-amber)/0.35)] focus-visible:bg-[hsl(var(--tac-amber)/0.08)] focus-visible:text-[hsl(var(--tac-amber))] focus-visible:outline-none";
+  "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-sidebar-foreground/70 transition-[background-color,border-color,color] duration-150 hover:border-[hsl(var(--tac-amber)/0.35)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))] focus-visible:border-[hsl(var(--tac-amber)/0.35)] focus-visible:bg-[hsl(var(--tac-amber)/0.08)] focus-visible:text-[hsl(var(--tac-amber))] focus-visible:outline-none";
 const navMatchmaking = useMatchmakingStore();
 const navMatchLobby = useMatchLobbyStore();
 const navPlugins = usePluginsStore();
@@ -1595,7 +1595,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </Badge>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
+      <SidebarFooter class="shrink-0 gap-1.5 border-t border-sidebar-border bg-background/40">
         <!-- DEAFCS: the Steam group and Instagram links and the install button,
              moved here from the top bar. A row when the nav is open, a column
              of icons when it is collapsed. -->
