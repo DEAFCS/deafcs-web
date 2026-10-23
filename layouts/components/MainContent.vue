@@ -33,7 +33,26 @@ function publishDockHeight() {
   );
 }
 
+// The system alert banners sit above the page inside the scroller, so pages
+// that size a column to the viewport (the utility library's card) have to
+// leave room for them, or the bottom of that column ends up off screen.
+const alertsBar = ref<HTMLElement | null>(null);
+let alertsRO: ResizeObserver | null = null;
+
+function publishAlertsHeight() {
+  const h = alertsBar.value?.offsetHeight ?? 0;
+  document.documentElement.style.setProperty(
+    "--system-alerts-height",
+    `${h}px`,
+  );
+}
+
 onMounted(() => {
+  publishAlertsHeight();
+  if (typeof ResizeObserver !== "undefined" && alertsBar.value) {
+    alertsRO = new ResizeObserver(() => publishAlertsHeight());
+    alertsRO.observe(alertsBar.value);
+  }
   publishDockHeight();
   if (typeof ResizeObserver !== "undefined" && bottomDock.value) {
     dockRO = new ResizeObserver(() => publishDockHeight());
@@ -43,6 +62,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   dockRO?.disconnect();
+  alertsRO?.disconnect();
+  document.documentElement.style.removeProperty("--system-alerts-height");
   document.documentElement.style.removeProperty("--main-bottom-dock-height");
 });
 
@@ -84,7 +105,9 @@ useScrollRestorationAnchor(pageScroller, scrollFloorRootEl);
           ref="pageScroller"
           class="flex-1 overflow-auto [scrollbar-gutter:stable]"
         >
-          <SystemAlertBanner />
+          <div ref="alertsBar">
+            <SystemAlertBanner />
+          </div>
           <div
             ref="scrollFloorRootEl"
             class="mx-auto p-2 sm:p-4 w-full self-center"
