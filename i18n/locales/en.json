@@ -8174,6 +8174,12 @@
         "started": "Restoring round {round}",
         "failed": "Couldn't restore the round"
       },
+      "restart": {
+        "title": "Restart Match",
+        "description": "Everyone checks in again and the match gets a new server. The veto result and the maps stay the same. Finished maps keep their scores, stats and demos. The map that was being played starts over from warmup.",
+        "restarted": "Match restarted. Waiting for check-in.",
+        "failed": "Couldn't restart the match"
+      },
       "restart_map": {
         "title": "Restart Map",
         "description": "Everyone goes back to warmup and the score returns to 0–0. Once the map is live again, any round played so far can still be restored until the first round after the restart ends.",
@@ -8188,6 +8194,20 @@
         "undone_title": "Undone rounds",
         "undone_hint": "A restore or a map restart undid these. They can be brought back until the next round is played.",
         "bring_back": "Bring back round {round}"
+      },
+      "reset_veto": {
+        "title": "Reset Veto",
+        "description": "Every ban, pick and side choice is cleared and the teams veto again from the first ban. Banned maps go back in the pool and the clock starts again.",
+        "confirm": "Reset Veto",
+        "done": "Veto reset",
+        "failed": "Couldn't reset the veto"
+      },
+      "reset_captain_pick": {
+        "title": "Reset Captain Pick",
+        "description": "Every pick is cleared. The same ten players and the same two captains pick again from the first pick, and the pick timer starts again.",
+        "confirm": "Reset Captain Pick",
+        "done": "Captain Pick reset",
+        "failed": "Couldn't reset the Captain Pick"
       }
     },
     "highlights": {
@@ -9320,7 +9340,25 @@
     },
     "admin_bar": {
       "rcon_unavailable": "RCON unavailable",
-      "not_controllable": "Match is not in a controllable state."
+      "not_controllable": "Match is not in a controllable state.",
+      "veto_override": "Veto Override",
+      "steps": {
+        "label": "Match steps",
+        "check_in": "Check-in",
+        "veto": "Veto",
+        "warmup": "Warmup",
+        "live": "Live",
+        "paused": "Paused",
+        "finished": "Finished",
+        "canceled": "Canceled",
+        "done": "Done",
+        "now": "You are here",
+        "unlocks": "Unlocks here",
+        "nothing_new": "Nothing new for you here",
+        "captain_pick": "Captain Pick"
+      },
+      "show_console": "Show console and logs",
+      "hide_console": "Hide console and logs"
     },
     "header": {
       "final": "Final",

@@ -15,6 +15,7 @@ import {
 } from "../../generated/zeus";
 import MatchRestoreRoundDialog from "../../components/match/MatchRestoreRoundDialog.vue";
 import MatchRestartMapDialog from "../../components/match/MatchRestartMapDialog.vue";
+import MatchRestartDialog from "../../components/match/MatchRestartDialog.vue";
 
 const { toastSpy } = vi.hoisted(() => ({ toastSpy: vi.fn() }));
 vi.mock("@/components/ui/toast", () => ({ toast: toastSpy }));
@@ -385,12 +386,20 @@ describe("match menu", () => {
     },
   );
 
-  it("never offers Restart Match: the api action waits for the server stop fix", () => {
+  // DEAFCS: only MatchRestartDialog asks for restartMatch, and only
+  // administrators get it (match-organizer-access.spec.ts).
+  it("asks for Restart Match only through its dialog", () => {
     const source = readFileSync(
       path.resolve(__dirname, "../../components/match/MatchActions.vue"),
       "utf8",
     );
     expect(source).not.toMatch(/restartMatch\(/);
+    expect(
+      readFileSync(
+        path.resolve(__dirname, "../../components/match/MatchRestartDialog.vue"),
+        "utf8",
+      ),
+    ).toMatch(/restartMatch\(match_id: \$matchId\)/);
   });
 
   // DEAFCS: the confirmation lives in MatchRestartMapDialog, shared with the
@@ -424,6 +433,39 @@ describe("match menu", () => {
     expect(toast).toHaveBeenLastCalledWith({
       title: "Couldn't restart the map",
       description: "the map is already over",
+      variant: "destructive",
+    });
+  });
+
+  async function confirmRestartMatch() {
+    wrapper = mount(MatchRestartDialog, {
+      props: { match: match(), open: true },
+      global: { plugins: [i18n] },
+      attachTo: document.body,
+    });
+    await flushPromises();
+    button("Restart Match")!.click();
+    await flushPromises();
+  }
+
+  it("restarts the match from check-in through the api", async () => {
+    await confirmRestartMatch();
+
+    expect(sent()[0].document).toContain("restartMatch(match_id: $matchId)");
+    expect(sent()[0].variables).toEqual({ matchId: "m-1" });
+    expect(toast).toHaveBeenLastCalledWith({
+      title: "Match restarted. Waiting for check-in.",
+    });
+    expect(wrapper!.emitted("update:open")?.at(-1)).toEqual([false]);
+  });
+
+  it("shows why a match restart was refused", async () => {
+    mutate.mockRejectedValue(new Error("a Veto match can't be restarted"));
+    await confirmRestartMatch();
+
+    expect(toast).toHaveBeenLastCalledWith({
+      title: "Couldn't restart the match",
+      description: "a Veto match can't be restarted",
       variant: "destructive",
     });
   });

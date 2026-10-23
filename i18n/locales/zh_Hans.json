@@ -4164,11 +4164,31 @@
         "started": "正在恢复第 {round} 回合",
         "failed": "无法恢复回合"
       },
+      "restart": {
+        "title": "重新开始比赛",
+        "description": "所有人重新签到，比赛会分配新的服务器。BP 结果和地图保持不变。已结束的地图保留比分、数据和录像。正在进行的地图从热身重新开始。",
+        "restarted": "比赛已重新开始，等待签到。",
+        "failed": "无法重新开始比赛"
+      },
       "restart_map": {
         "title": "重新开始地图",
         "description": "所有人回到热身，比分回到 0–0。地图重新开始比赛后，在重新开始后的第一个回合结束前，目前打过的任何回合仍可恢复。",
         "restarted": "地图已从热身重新开始",
         "failed": "无法重新开始地图"
+      },
+      "reset_veto": {
+        "title": "重置 BP",
+        "description": "所有禁用、选择和选边都会被清除，双方从第一次禁用重新开始 BP。被禁用的地图回到地图池，计时器重新开始。",
+        "confirm": "重置 BP",
+        "done": "BP 已重置",
+        "failed": "无法重置 BP"
+      },
+      "reset_captain_pick": {
+        "title": "重置队长选人",
+        "description": "所有选人都会被清除。同样的十名玩家和两位队长从第一次选人重新开始，选人计时器重新开始。",
+        "confirm": "重置队长选人",
+        "done": "队长选人已重置",
+        "failed": "无法重置队长选人"
       }
     },
     "highlights": {
@@ -5071,7 +5091,25 @@
     },
     "admin_bar": {
       "rcon_unavailable": "RCON 不可用",
-      "not_controllable": "比赛处于不可控状态。"
+      "not_controllable": "比赛处于不可控状态。",
+      "veto_override": "覆盖否决",
+      "steps": {
+        "label": "比赛阶段",
+        "check_in": "签到",
+        "veto": "否决",
+        "warmup": "热身",
+        "live": "进行中",
+        "paused": "已暂停",
+        "finished": "已结束",
+        "canceled": "已取消",
+        "done": "已完成",
+        "now": "当前阶段",
+        "unlocks": "在此解锁",
+        "nothing_new": "此阶段没有新操作",
+        "captain_pick": "队长选人"
+      },
+      "show_console": "显示控制台和日志",
+      "hide_console": "隐藏控制台和日志"
     }
   },
   "ui": {
