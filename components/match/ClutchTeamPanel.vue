@@ -13,6 +13,7 @@ function memberAvatarSrc(member: any) {
     member?.player,
     member?.steam_id,
     apiDomain,
+    64,
   );
 }
 

@@ -1,6 +1,5 @@
 // Adapted from 5Stack WEB 85b4f0f9; MIT Copyright (c) 2025 5Stack.gg; see LICENSE.
-// DEAFCS: the veto order comes from the api (mapVetoOrder), and avatars are
-// requested without ?w= (the DEAFCS api does not resize).
+// DEAFCS: the veto order comes from the api (mapVetoOrder).
 import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { teamMonogram } from "~/components/watch/watchTicker";
 import { mapVetoOrder } from "~/utilities/vetoOrder";
@@ -62,11 +61,12 @@ export function vetoLineups(
     return {
       name,
       crest:
-        resolveAvatarUrl(value?.team?.avatar_url, apiDomain) ??
+        resolveAvatarUrl(value?.team?.avatar_url, apiDomain, 128) ??
         (isPug
           ? resolveAvatarUrl(
               captain?.custom_avatar_url || captain?.avatar_url,
               apiDomain,
+              128,
             )
           : null),
       monogram: teamMonogram(name),

@@ -3410,6 +3410,7 @@ export default {
       return resolveAvatarUrl(
         this.player.custom_avatar_url || this.player.avatar_url,
         this.apiDomain,
+        512,
       );
     },
     playerRosterImageSrc() {

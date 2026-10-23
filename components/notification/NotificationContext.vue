@@ -9,6 +9,7 @@ import TeamRankSummary from "~/components/team/TeamRankSummary.vue";
 import { $ } from "~/generated/zeus";
 import { typedGql } from "~/generated/zeus/typedDocumentNode";
 import gql from "graphql-tag";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 const MATCH_TYPES = ["MatchStatusChange", "MatchSupport"];
 const SERVER_TYPES = ["DedicatedServerStatus", "DedicatedServerRconStatus"];
@@ -442,9 +443,7 @@ export default defineComponent({
   },
   methods: {
     teamAvatar(team: any): string | null {
-      return team?.avatar_url
-        ? `https://${this.apiDomain}/${team.avatar_url}`
-        : null;
+      return resolveAvatarUrl(team?.avatar_url, this.apiDomain, 64);
     },
     scrimTime(): string {
       if (!this.scrim?.proposed_scheduled_at) return "";

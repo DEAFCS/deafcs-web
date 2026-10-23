@@ -136,7 +136,7 @@ function holderTeam(holder: ActiveAwardHolder) {
 }
 
 function teamAvatar(holder: ActiveAwardHolder) {
-  return resolveAvatarUrl(holderTeam(holder)?.avatar_url, apiDomain.value);
+  return resolveAvatarUrl(holderTeam(holder)?.avatar_url, apiDomain.value, 128);
 }
 
 function formatDate(value?: string | null) {

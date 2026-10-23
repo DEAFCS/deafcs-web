@@ -524,6 +524,7 @@ const arrivalFace = computed(() => {
     src: resolveAvatarUrl(
       friend.custom_avatar_url || friend.avatar_url,
       apiDomain,
+      64,
     ),
     initials: (friend.name ?? "?").slice(0, 2).toUpperCase(),
   };

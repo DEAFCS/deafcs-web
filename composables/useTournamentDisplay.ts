@@ -11,6 +11,7 @@ import {
   tournamentChampion,
   tournamentRowState,
 } from "~/utilities/watchEventCard";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 // Status and category descriptions come from the database in title case;
 // keep acronyms (LAN) and lower the rest so the line reads as a sentence.
@@ -41,7 +42,11 @@ export function useTournamentDisplay(source: () => any) {
 
   const bannerSrc = computed(() => {
     if (tournament.value?.banner) {
-      return `https://${runtimeConfig.public.apiDomain}/${tournament.value.banner}`;
+      return resolveAvatarUrl(
+        tournament.value.banner,
+        runtimeConfig.public.apiDomain,
+        1024,
+      );
     }
     return tournamentMapPosters(tournament.value, 1)[0] ?? null;
   });

@@ -1010,6 +1010,7 @@ export default {
         this.member.player,
         steamId,
         apiDomain,
+        128,
       );
     },
     memberEloChange() {

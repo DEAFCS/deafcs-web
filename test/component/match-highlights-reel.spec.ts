@@ -4,8 +4,8 @@ import { defineComponent, h, ref } from "vue";
 
 // 5Stack WEB cfd7ecb MatchHighlightsReel (layout from 9702249 #716): player
 // with the clip details under it, and an "Up next" thumbnail queue beside it
-// (a horizontal strip on phones). DEAFCS adaptations: no ?w= avatar resize,
-// and can-prev/can-next for the DEAFCS player controls.
+// (a horizontal strip on phones). DEAFCS adaptation: can-prev/can-next for
+// the DEAFCS player controls.
 const mocks = vi.hoisted(() => ({
   playClips: vi.fn(),
   shareClip: vi.fn(),
@@ -113,8 +113,8 @@ describe("MatchHighlightsReel (5Stack port)", () => {
     expect(text).toContain("0:24");
     expect(text).toContain("12");
     expect(text).toContain("clips.details");
-    // Stored-size avatar: the DEAFCS API has no ?w= resize.
-    expect(w.find("[data-avatar]").attributes("data-avatar")).toBe("https://api.test/avatars/players/p1.png");
+    // Resized avatar (5Stack f87f0b2 / api 2b7bf8c #642).
+    expect(w.find("[data-avatar]").attributes("data-avatar")).toBe("https://api.test/avatars/players/p1.png?w=64");
     expect(w.find("a[href='/players/p1']").exists()).toBe(true);
   });
 
