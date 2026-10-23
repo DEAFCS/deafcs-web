@@ -143,6 +143,11 @@ export const SETTINGS_NAV_GROUPS: SettingsNavGroup[] = [
         order: 4,
       },
       {
+        path: "/settings/application/left-bar",
+        labelKey: "pages.settings.application.left_bar.title",
+        order: 4.5,
+      },
+      {
         path: "/settings/application/api-keys",
         labelKey: "pages.settings.application.api_keys.title",
         order: 5,

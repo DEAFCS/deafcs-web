@@ -32,6 +32,9 @@ import {
   UserCheck,
   FileCheck2,
   LifeBuoy,
+  Target,
+  Gamepad2,
+  Package,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
@@ -44,6 +47,13 @@ import PlayerPendingImports from "~/components/PlayerPendingImports.vue";
 import { Kbd, KbdGroup } from "~/components/ui/kbd";
 import Logout from "./Logout.vue";
 import { useMatchContext } from "~/composables/useMatchContext";
+import { useI18n } from "vue-i18n";
+import { useNavMode } from "~/composables/useNavMode";
+import { leftBarOrder } from "~/utilities/leftBarOrder";
+import LeftNavDoors from "./LeftNavDoors.vue";
+import LeftNavFold from "./LeftNavFold.vue";
+import type { LeftNavDoor } from "./leftNavDoor";
+import type { Plugin as NavPlugin } from "~/stores/Plugins";
 import { useSidebar } from "~/components/ui/sidebar/utils";
 import { useAuthStore } from "~/stores/AuthStore";
 import { openAnnouncements as openAnnouncementsHub } from "~/utilities/openAnnouncements";
@@ -51,6 +61,104 @@ import { openAnnouncements as openAnnouncementsHub } from "~/utilities/openAnnou
 const { setOpenMobile, isMobile } = useSidebar();
 const route = useRoute();
 const authStore = useAuthStore();
+
+// DEAFCS: the left nav is Play / Admin for administrators (the route picks the
+// list, the switch overrides it until the next page); everyone else keeps one
+// list that holds both their play pages and whatever staff pages they have.
+const { mode: navMode, setMode: setNavMode } = useNavMode();
+const showNavModes = computed(() => authStore.isAdmin);
+const inPlayMode = computed(
+  () => !showNavModes.value || navMode.value === "play",
+);
+const inAdminMode = computed(
+  () => !showNavModes.value || navMode.value === "admin",
+);
+
+// Where each block sits: an administrator's number (Settings > Left Bar), else
+// the default. Applied as a flex `order`, so the markup order does not matter.
+const navSettings = useApplicationSettingsStore();
+const orderStyle = (key: string) => ({
+  order: leftBarOrder(navSettings.leftBarOrder, key),
+});
+
+const { t: tr } = useI18n();
+const navMatchmaking = useMatchmakingStore();
+const navMatchLobby = useMatchLobbyStore();
+const navPlugins = usePluginsStore();
+const routeIs = (name: string) => {
+  const current = route.name as string | undefined;
+  return current === name || !!current?.startsWith(`${name}-`);
+};
+
+// The Inventory app gets a door of its own. visiblePlugins only holds what this
+// role may open, so it shows for administrators until it is opened to others.
+const inventoryPlugin = computed<NavPlugin | null>(
+  () =>
+    navPlugins.visiblePlugins.find((plugin) => plugin.slug === "inventory") ??
+    null,
+);
+
+const doors = computed<LeftNavDoor[]>(() => {
+  const list: Array<LeftNavDoor & { order: number }> = [
+    {
+      key: "play",
+      label: tr("layouts.app_nav.navigation.play"),
+      to: { name: "play" },
+      icon: Play,
+      active: routeIs("play"),
+      badge:
+        navMatchmaking.totalQueuedPlayers > 0
+          ? navMatchmaking.totalQueuedPlayers
+          : null,
+      badgeTone: "count",
+      order: leftBarOrder(navSettings.leftBarOrder, "play"),
+    },
+    {
+      key: "watch",
+      label: tr("layouts.app_nav.navigation.watch"),
+      to: { name: "watch" },
+      icon: Radio,
+      active: routeIs("watch"),
+      badge:
+        navMatchLobby.liveMatchesCount > 0 ? navMatchLobby.liveMatchesCount : null,
+      badgeTone: "live",
+      order: leftBarOrder(navSettings.leftBarOrder, "watch"),
+    },
+  ];
+
+  const inventory = inventoryPlugin.value;
+  if (inventory) {
+    const path = `/apps/${inventory.slug}`;
+    list.push({
+      key: "inventory",
+      label: inventory.title || "Inventory",
+      to: path,
+      icon: Package,
+      active: route.path === path || route.path.startsWith(`${path}/`),
+      order: leftBarOrder(navSettings.leftBarOrder, "inventory"),
+    });
+  }
+
+  return list.sort((a, b) => a.order - b.order);
+});
+
+// The plugin groups of the Apps section, without the app that has a door.
+const appGroups = computed(() => {
+  const groups: Array<{ name: string | null; plugins: NavPlugin[] }> = [];
+  for (const plugin of navPlugins.visiblePlugins) {
+    if (plugin.slug === inventoryPlugin.value?.slug) {
+      continue;
+    }
+    const name = plugin.nav_group || null;
+    let group = groups.find((entry) => entry.name === name);
+    if (!group) {
+      group = { name, plugins: [] };
+      groups.push(group);
+    }
+    group.plugins.push(plugin);
+  }
+  return groups;
+});
 
 // DEAFCS: Announcements opens the Chat Hub on that channel (see
 // utilities/openAnnouncements); on a phone the sidebar makes way first.
@@ -218,49 +326,77 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
-            <SidebarMenuItem :tooltip="$t('layouts.app_nav.tooltips.play')">
+        <!-- DEAFCS: Play / Admin switch for administrators. The route decides
+             which list shows (useNavMode); the switch overrides it until the next
+             page. Everyone else keeps one list. -->
+        <SidebarGroup v-if="showNavModes" class="py-1">
+          <div
+            v-if="!rail"
+            role="group"
+            :aria-label="$t('layouts.app_nav.modes.play')"
+            class="grid grid-cols-2 gap-1 rounded-lg border border-sidebar-border p-1"
+          >
+            <button
+              type="button"
+              class="h-8 rounded-md text-sm font-semibold transition-colors"
+              :class="
+                navMode === 'play'
+                  ? 'bg-[hsl(var(--tac-amber)/0.14)] text-sidebar-foreground'
+                  : 'text-muted-foreground hover:text-sidebar-foreground'
+              "
+              :aria-pressed="navMode === 'play'"
+              @click="setNavMode('play')"
+            >
+              {{ $t("layouts.app_nav.modes.play") }}
+            </button>
+            <button
+              type="button"
+              class="h-8 rounded-md text-sm font-semibold transition-colors"
+              :class="
+                navMode === 'admin'
+                  ? 'bg-[hsl(var(--tac-amber)/0.14)] text-sidebar-foreground'
+                  : 'text-muted-foreground hover:text-sidebar-foreground'
+              "
+              :aria-pressed="navMode === 'admin'"
+              @click="setNavMode('admin')"
+            >
+              {{ $t("layouts.app_nav.modes.admin") }}
+            </button>
+          </div>
+          <SidebarMenu v-else>
+            <SidebarMenuItem>
               <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.play')"
+                :tooltip="
+                  navMode === 'admin'
+                    ? $t('layouts.app_nav.modes.to_play')
+                    : $t('layouts.app_nav.modes.to_admin')
+                "
+                @click="setNavMode(navMode === 'admin' ? 'play' : 'admin')"
               >
-                <NuxtLink
-                  :to="{ name: 'play' }"
-                  :class="{
-                    'router-link-active': isRouteActive('play'),
-                  }"
-                >
-                  <Play />
-                  {{ $t("layouts.app_nav.navigation.play") }}
-
-                  <Badge size="sm" v-if="playTotalCount > 0" class="ml-auto">
-                    {{ playTotalCount }}
-                  </Badge>
-                </NuxtLink>
+                <component :is="navMode === 'admin' ? Gamepad2 : Cog" />
+                <span>{{
+                  navMode === "admin"
+                    ? $t("layouts.app_nav.modes.play")
+                    : $t("layouts.app_nav.modes.admin")
+                }}</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
-            <SidebarMenuItem :tooltip="$t('layouts.app_nav.tooltips.watch')">
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.watch')"
-              >
-                <NuxtLink
-                  :to="{ name: 'watch' }"
-                  :class="{
-                    'router-link-active': isRouteActive('watch'),
-                  }"
-                >
-                  <Radio />
-                  {{ $t("layouts.app_nav.navigation.watch") }}
+        <template v-if="inPlayMode">
+          <LeftNavDoors :doors="doors" :rail="rail" />
 
-                  <Badge size="sm" v-if="liveMatchesCount > 0" class="ml-auto">
-                    {{ liveMatchesCount }}
-                  </Badge>
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
+        <LeftNavFold
+          id="compete"
+          :label="$t('layouts.app_nav.sections.compete')"
+          :icon="Trophy"
+          :rail="rail"
+          :style="orderStyle('compete')"
+        >
             <SidebarMenuItem>
               <SidebarMenuButton
                 as-child
@@ -324,6 +460,50 @@ function onLeftNavTouchEnd(e: TouchEvent) {
             <SidebarMenuItem>
               <SidebarMenuButton
                 as-child
+                :tooltip="$t('layouts.app_nav.tooltips.leaderboard')"
+              >
+                <NuxtLink
+                  :to="{ name: 'leaderboard' }"
+                  :class="{
+                    'router-link-active': isRouteActive('leaderboard'),
+                  }"
+                >
+                  <Trophy />
+                  {{ $t("layouts.app_nav.navigation.leaderboard") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+        </LeftNavFold>
+
+        <LeftNavFold
+          id="practice"
+          :label="$t('layouts.app_nav.sections.practice')"
+          :icon="Target"
+          :rail="rail"
+          :style="orderStyle('practice')"
+        >
+            <SidebarMenuItem
+              :tooltip="$t('layouts.app_nav.tooltips.utility')"
+            >
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.utility')"
+              >
+                <NuxtLink
+                  :to="{ name: 'utility' }"
+                  :class="{
+                    'router-link-active': isRouteActive('utility'),
+                  }"
+                >
+                  <HeGrenadeIcon class="size-4" />
+                  {{ $t("layouts.app_nav.navigation.utility") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
                 :tooltip="$t('layouts.app_nav.tooltips.public_servers')"
               >
                 <NuxtLink
@@ -334,88 +514,6 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 >
                   <Server />
                   {{ $t("layouts.app_nav.navigation.public_servers") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <template v-if="pluginGroups.length > 0">
-          <Separator v-if="showSeparators" class="mx-4 w-auto" />
-
-          <SidebarGroup
-            v-for="group in pluginGroups"
-            :key="group.name ?? 'apps'"
-          >
-            <SidebarGroupLabel>{{
-              group.name || $t("layouts.app_nav.plugins.title")
-            }}</SidebarGroupLabel>
-            <SidebarMenu>
-              <SidebarMenuItem v-for="plugin in group.plugins" :key="plugin.id">
-                <SidebarMenuButton as-child :tooltip="plugin.title">
-                  <NuxtLink
-                    :to="`/apps/${plugin.slug}`"
-                    :class="{
-                      // Prefix match: a plugin owns every route under its slug,
-                      // so its own sub-routes keep the nav entry lit.
-                      'router-link-active':
-                        $route.path === `/apps/${plugin.slug}` ||
-                        $route.path.startsWith(`/apps/${plugin.slug}/`),
-                    }"
-                  >
-                    <PluginIcon :name="plugin.icon" class="size-4" />
-                    {{ plugin.title }}
-                  </NuxtLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-        </template>
-
-        <Separator v-if="showSeparators" class="mx-4 w-auto" />
-
-        <!-- DEAFCS: the same three groups as the top menu. Roster as before;
-             Library: the Utility Library (upstream 5Stack's Utility item),
-             Highlights, Awards; Social: News, and Announcements for logged-in
-             players. No Forum link (the page itself is untouched). -->
-        <SidebarGroup>
-          <SidebarGroupLabel>{{
-            $t("layouts.app_nav.roster.title")
-          }}</SidebarGroupLabel>
-
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.players')"
-              >
-                <NuxtLink
-                  :to="{ name: 'players' }"
-                  :class="{
-                    'router-link-active':
-                      isRouteActive('players') &&
-                      !$route.path.startsWith('/me'),
-                  }"
-                >
-                  <Users />
-                  {{ $t("layouts.app_nav.navigation.players") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.teams')"
-              >
-                <NuxtLink
-                  :to="{ name: 'teams' }"
-                  :class="{
-                    'router-link-active': isRouteActive('teams'),
-                  }"
-                >
-                  <ShieldHalf />
-                  {{ $t("layouts.app_nav.navigation.teams") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
@@ -436,53 +534,15 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
+        </LeftNavFold>
 
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.leaderboard')"
-              >
-                <NuxtLink
-                  :to="{ name: 'leaderboard' }"
-                  :class="{
-                    'router-link-active': isRouteActive('leaderboard'),
-                  }"
-                >
-                  <Trophy />
-                  {{ $t("layouts.app_nav.navigation.leaderboard") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        <Separator v-if="showSeparators" class="mx-4 w-auto" />
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{{
-            $t("layouts.app_nav.library.title")
-          }}</SidebarGroupLabel>
-
-          <SidebarMenu>
-            <SidebarMenuItem
-              :tooltip="$t('layouts.app_nav.tooltips.utility')"
-            >
-              <SidebarMenuButton
-                as-child
-                :tooltip="$t('layouts.app_nav.tooltips.utility')"
-              >
-                <NuxtLink
-                  :to="{ name: 'utility' }"
-                  :class="{
-                    'router-link-active': isRouteActive('utility'),
-                  }"
-                >
-                  <HeGrenadeIcon class="size-4" />
-                  {{ $t("layouts.app_nav.navigation.utility") }}
-                </NuxtLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
+        <LeftNavFold
+          id="media"
+          :label="$t('layouts.app_nav.sections.media')"
+          :icon="Film"
+          :rail="rail"
+          :style="orderStyle('media')"
+        >
             <SidebarMenuItem
               :tooltip="$t('layouts.app_nav.navigation.highlights')"
             >
@@ -526,20 +586,60 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+        </LeftNavFold>
 
-        <Separator
-          v-if="showSeparators && (newsEnabled || authStore.me)"
-          class="mx-4 w-auto"
-        />
+        <LeftNavFold
+          id="roster"
+          :label="$t('layouts.app_nav.sections.roster')"
+          :icon="Users"
+          :rail="rail"
+          :style="orderStyle('roster')"
+        >
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.players')"
+              >
+                <NuxtLink
+                  :to="{ name: 'players' }"
+                  :class="{
+                    'router-link-active':
+                      isRouteActive('players') &&
+                      !$route.path.startsWith('/me'),
+                  }"
+                >
+                  <Users />
+                  {{ $t("layouts.app_nav.navigation.players") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
 
-        <SidebarGroup v-if="newsEnabled || authStore.me">
-          <SidebarGroupLabel>{{
-            $t("layouts.app_nav.social.title")
-          }}</SidebarGroupLabel>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.teams')"
+              >
+                <NuxtLink
+                  :to="{ name: 'teams' }"
+                  :class="{
+                    'router-link-active': isRouteActive('teams'),
+                  }"
+                >
+                  <ShieldHalf />
+                  {{ $t("layouts.app_nav.navigation.teams") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+        </LeftNavFold>
 
-          <SidebarMenu>
+        <LeftNavFold
+          v-if="newsEnabled || authStore.me"
+          id="social"
+          :label="$t('layouts.app_nav.sections.social')"
+          :icon="Newspaper"
+          :rail="rail"
+          :style="orderStyle('social')"
+        >
             <SidebarMenuItem v-if="newsEnabled">
               <SidebarMenuButton
                 as-child
@@ -567,12 +667,41 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                 {{ $t("layouts.app_nav.navigation.announcements") }}
               </SidebarMenuButton>
             </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
+        </LeftNavFold>
 
-        <Separator v-if="showSeparators && isAdmin" class="mx-4 w-auto" />
+        <template v-if="appGroups.length > 0">
 
-        <SidebarGroup v-if="isAdmin">
+          <SidebarGroup
+            v-for="group in appGroups"
+            :key="group.name ?? 'apps'"
+            :style="orderStyle('apps')"
+          >
+            <SidebarGroupLabel>{{
+              group.name || $t("layouts.app_nav.plugins.title")
+            }}</SidebarGroupLabel>
+            <SidebarMenu>
+              <SidebarMenuItem v-for="plugin in group.plugins" :key="plugin.id">
+                <SidebarMenuButton as-child :tooltip="plugin.title">
+                  <NuxtLink
+                    :to="`/apps/${plugin.slug}`"
+                    :class="{
+                      // Prefix match: a plugin owns every route under its slug,
+                      // so its own sub-routes keep the nav entry lit.
+                      'router-link-active':
+                        $route.path === `/apps/${plugin.slug}` ||
+                        $route.path.startsWith(`/apps/${plugin.slug}/`),
+                    }"
+                  >
+                    <PluginIcon :name="plugin.icon" class="size-4" />
+                    {{ plugin.title }}
+                  </NuxtLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroup>
+        </template>
+
+        <SidebarGroup v-if="isAdmin" :style="orderStyle('information')">
           <SidebarGroupLabel>{{
             $t("layouts.app_nav.information.title")
           }}</SidebarGroupLabel>
@@ -893,6 +1022,9 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </SidebarMenu>
         </SidebarGroup>
 
+        </template>
+
+        <template v-if="inAdminMode">
         <Separator
           v-if="
             showSeparators &&
@@ -1416,6 +1548,8 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           </SidebarMenu>
         </SidebarGroup>
 
+        </template>
+
         <SidebarGroup v-if="telemetryStats?.online > 0 && sideBarOpen">
           <Badge
             size="sm"
@@ -1648,6 +1782,10 @@ export default {
     },
   },
   computed: {
+    // Collapsed to the icon rail (never on a phone).
+    rail() {
+      return !(this.isMobile || this.sideBarOpen);
+    },
     me() {
       return useAuthStore().me;
     },

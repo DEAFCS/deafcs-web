@@ -488,6 +488,28 @@ export const useApplicationSettingsStore = defineStore(
       return {};
     });
 
+    // Per-block order of the left nav (Play, Watch, Inventory, Compete, ...), set
+    // under Settings > Application > Left Bar. Same shape as topBarOrder: absent
+    // means no override, and the nav falls back to LEFT_BAR_DEFAULT_ORDER.
+    const leftBarOrder = computed<Record<string, number>>(() => {
+      const raw = settings.value?.find(
+        (setting) => setting.name === "public.left_bar_order",
+      )?.value;
+
+      if (!raw) {
+        return {};
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+          return parsed;
+        }
+      } catch {}
+
+      return {};
+    });
+
     // Overrides where the brand logo/name in the top bar links to. Empty
     // means "no override" — the nav falls back to its default (/me when
     // signed in, otherwise /play).
@@ -712,6 +734,7 @@ export const useApplicationSettingsStore = defineStore(
       scrimFinderEnabled,
       pluginsEnabled,
       topBarOrder,
+      leftBarOrder,
       topBarLogoLink,
       defaultHudMode,
       canCreateMatch,

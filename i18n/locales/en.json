@@ -2350,6 +2350,12 @@
             "custom_placeholder": "https://… , <svg…>, or an icon name"
           }
         },
+        "left_bar": {
+          "title": "Change Left Bar",
+          "section": "Left Bar Order",
+          "description": "Set a number for each block to control the order it appears in the left navigation. Lower numbers come first. Play, Watch and Inventory are sorted among themselves and always sit above the sections.",
+          "hint": "A block you do not see here is hidden for you, for example Inventory when the Inventory app is not installed or not allowed for your role."
+        },
         "top_bar": {
           "title": "Change Top Bar",
           "section": "Top Bar Order",
@@ -6160,6 +6166,21 @@
       "settings": "Notification Settings"
     },
     "app_nav": {
+      "sections": {
+        "compete": "Compete",
+        "practice": "Practice",
+        "media": "Media",
+        "roster": "Roster",
+        "social": "Social",
+        "apps": "Apps",
+        "information": "Information"
+      },
+      "modes": {
+        "play": "Play",
+        "admin": "Admin",
+        "to_admin": "Switch to the admin menu",
+        "to_play": "Switch to the play menu"
+      },
       "brand": "DEAFCS",
       "systems_online": "{count} System Online | {count} Systems Online",
       "navigation": {
