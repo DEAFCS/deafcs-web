@@ -35,6 +35,23 @@ export default defineNuxtConfig({
         });
       }
     },
+
+    // Nuxt marks every build chunk `prefetch: true`, and with ssr:false the
+    // shell renders that as ~345 <link rel="prefetch"> tags. The browser then
+    // opens a few hundred speculative connections while the entry chunk is
+    // still downloading and parsing, and first paint waits behind them.
+    // Measured on a 4x-CPU / 9Mbps profile: FCP 1372ms -> 580ms, app reveal
+    // -575ms with these stripped.
+    //
+    // Nothing is lost that the app needs to boot: the entry keeps its
+    // modulepreload, route chunks are dynamic imports that load on navigation,
+    // and NuxtLink's interaction prefetch (see experimental.defaults below)
+    // still warms a route on hover/touch.
+    "build:manifest"(manifest) {
+      for (const chunk of Object.values(manifest)) {
+        chunk.prefetch = false;
+      }
+    },
   },
 
   // Pin the shadcn `cn` helper to a real committed module. shadcn-nuxt
@@ -416,6 +433,13 @@ export default defineNuxtConfig({
 
   compatibilityDate: "2024-07-15",
 
+  nitro: {
+    // Brotli at max quality at build time, served as-is by Nitro's static
+    // handler. Cloudflare's on-the-fly brotli came out ~20% larger on our
+    // biggest chunks (entry 437KB -> 343KB, en locale 158KB -> 125KB).
+    compressPublicAssets: { brotli: true, gzip: true },
+  },
+
   vite: {
     optimizeDeps: {
       include: ["monaco-editor"],
@@ -462,6 +486,9 @@ export default defineNuxtConfig({
     ],
     build: {
       target: "esnext",
+      // The gzip-size report re-compresses every chunk just to print sizes;
+      // on the amd64 image build it ran the 8 GB heap out.
+      reportCompressedSize: false,
     },
   },
 });
