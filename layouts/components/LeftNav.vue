@@ -66,7 +66,15 @@ import { useSidebar } from "~/components/ui/sidebar/utils";
 import { useAuthStore } from "~/stores/AuthStore";
 import { openAnnouncements as openAnnouncementsHub } from "~/utilities/openAnnouncements";
 
-const { setOpenMobile, isMobile } = useSidebar();
+const { setOpenMobile, isMobile, setOpen } = useSidebar();
+
+// A visitor sees the nav open, whatever the window width: the Sign in card and
+// the install button are in it. (The provider folds it on narrow windows.)
+onMounted(() => {
+  if (!useAuthStore().me && !isMobile.value) {
+    setOpen(true);
+  }
+});
 const route = useRoute();
 const authStore = useAuthStore();
 
@@ -1628,7 +1636,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           <!-- The QR dialog for putting the app on a phone: desktop only, as in
                the top bar it came from. -->
           <InstallAppQrDialog
-            v-if="me && !isMobile"
+            v-if="!isMobile"
             :label="rail ? undefined : $t('pwa.install.button')"
           />
           <NuxtLink
