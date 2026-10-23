@@ -36,6 +36,8 @@ import {
   Gamepad2,
   Package,
   CircleHelp,
+  FileText,
+  ShieldCheck,
 } from "lucide-vue-next";
 import TournamentBracket from "~/components/icons/tournament-bracket.vue";
 import HeGrenadeIcon from "~/components/icons/HeGrenadeIcon.vue";
@@ -1706,6 +1708,42 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                     >
                       <LifeBuoy class="size-4" />
                       My Support Requests
+                    </NuxtLink>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuGroup>
+                  <DropdownMenuItem class="flex gap-2" as-child>
+                    <NuxtLink
+                      to="/terms-of-service"
+                      :class="{
+                        'router-link-active': isRouteActive('terms-of-service'),
+                      }"
+                    >
+                      <FileText class="size-4" />
+                      {{
+                        $t(
+                          "layouts.app_nav.administration.info_terms_of_service",
+                        )
+                      }}
+                    </NuxtLink>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem class="flex gap-2" as-child>
+                    <NuxtLink
+                      to="/privacy-policy"
+                      :class="{
+                        'router-link-active': isRouteActive('privacy-policy'),
+                      }"
+                    >
+                      <ShieldCheck class="size-4" />
+                      {{
+                        $t(
+                          "layouts.app_nav.administration.info_privacy_policy",
+                        )
+                      }}
                     </NuxtLink>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
