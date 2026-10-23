@@ -482,6 +482,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
         </LeftNavFold>
 
         <LeftNavFold
+          v-if="canModerate"
           id="practice"
           :label="$t('layouts.app_nav.sections.practice')"
           :icon="Target"
@@ -507,7 +508,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="canModerate">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.tooltips.public_servers')"
@@ -524,7 +525,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <SidebarMenuItem>
+            <SidebarMenuItem v-if="canModerate">
               <SidebarMenuButton
                 as-child
                 :tooltip="$t('layouts.app_nav.navigation.scrims')"
@@ -541,6 +542,28 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               </SidebarMenuButton>
             </SidebarMenuItem>
         </LeftNavFold>
+
+        <!-- Regular players have the Utility Library and nothing else under
+             Practice, so it is a plain link instead of a section with one row. -->
+        <SidebarGroup v-else class="py-0.5" :style="orderStyle('practice')">
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.sections.practice')"
+                class="h-9 gap-2 font-semibold"
+              >
+                <NuxtLink
+                  :to="{ name: 'utility' }"
+                  :class="{ 'router-link-active': isRouteActive('utility') }"
+                >
+                  <Target />
+                  <span>{{ $t("layouts.app_nav.sections.practice") }}</span>
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarGroup>
 
         <LeftNavFold
           id="media"
