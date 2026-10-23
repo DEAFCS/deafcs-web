@@ -584,6 +584,25 @@ function onLeftNavTouchEnd(e: TouchEvent) {
           :style="orderStyle('media')"
         >
             <SidebarMenuItem
+              :tooltip="$t('layouts.app_nav.navigation.matches')"
+            >
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.navigation.matches')"
+              >
+                <NuxtLink
+                  :to="{ name: 'matches' }"
+                  :class="{
+                    'router-link-active': $route.name === 'matches',
+                  }"
+                >
+                  <Swords />
+                  {{ $t("layouts.app_nav.navigation.matches") }}
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <SidebarMenuItem
               :tooltip="$t('layouts.app_nav.navigation.highlights')"
             >
               <SidebarMenuButton
