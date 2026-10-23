@@ -50,6 +50,9 @@ import { useMatchContext } from "~/composables/useMatchContext";
 import { useI18n } from "vue-i18n";
 import { useNavMode } from "~/composables/useNavMode";
 import { leftBarOrder } from "~/utilities/leftBarOrder";
+import SteamIcon from "~/components/icons/SteamIcon.vue";
+import InstagramIcon from "~/components/icons/InstagramIcon.vue";
+import { socialLinks } from "~/utilities/socialLinks";
 import LeftNavDoors from "./LeftNavDoors.vue";
 import LeftNavFold from "./LeftNavFold.vue";
 import type { LeftNavDoor } from "./leftNavDoor";
@@ -82,6 +85,8 @@ const orderStyle = (key: string) => ({
 });
 
 const { t: tr } = useI18n();
+const footerIconClasses =
+  "inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-transparent bg-transparent text-sidebar-foreground/70 transition-[background-color,border-color,color] duration-150 hover:border-[hsl(var(--tac-amber)/0.35)] hover:bg-[hsl(var(--tac-amber)/0.08)] hover:text-[hsl(var(--tac-amber))] focus-visible:border-[hsl(var(--tac-amber)/0.35)] focus-visible:bg-[hsl(var(--tac-amber)/0.08)] focus-visible:text-[hsl(var(--tac-amber))] focus-visible:outline-none";
 const navMatchmaking = useMatchmakingStore();
 const navMatchLobby = useMatchLobbyStore();
 const navPlugins = usePluginsStore();
@@ -1566,47 +1571,36 @@ function onLeftNavTouchEnd(e: TouchEvent) {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem
-            v-if="
-              me?.role === e_player_roles_enum.administrator && showReportIssue
-            "
+        <!-- DEAFCS: the Steam group and Instagram links and the install button,
+             moved here from the top bar. A row when the nav is open, a column
+             of icons when it is collapsed. -->
+        <div
+          class="flex items-center gap-1 px-2"
+          :class="rail ? 'flex-col' : ''"
+        >
+          <a
+            :href="socialLinks.steamGroup"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="$t('layouts.app_nav.tooltips.steam_group')"
+            :title="$t('layouts.app_nav.tooltips.steam_group')"
+            :class="footerIconClasses"
           >
-            <SidebarMenuButton
-              as-child
-              :tooltip="$t('layouts.app_nav.tooltips.report_issue')"
-            >
-              <a
-                href="https://github.com/DEAFCS/deafcs-web/issues"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <GithubLogoIcon class="w-5 h-5" />
-                {{ $t("layouts.app_nav.footer.report_issue") }}
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              as-child
-              :tooltip="$t('layouts.app_nav.tooltips.join_discord')"
-            >
-              <a
-                :href="inviteLink"
-                target="_blank"
-                rel="noopener noreferrer"
-                class="text-muted-foreground transition-colors hover:text-foreground"
-              >
-                <DiscordLogoIcon class="w-5 h-5" />
-                {{ $t("layouts.app_nav.footer.join_discord") }}
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          <InstallPWA />
-
+            <SteamIcon class="h-4 w-4 fill-current" aria-hidden="true" />
+          </a>
+          <a
+            :href="socialLinks.instagram"
+            target="_blank"
+            rel="noopener noreferrer"
+            :aria-label="$t('layouts.app_nav.tooltips.instagram')"
+            :title="$t('layouts.app_nav.tooltips.instagram')"
+            :class="footerIconClasses"
+          >
+            <InstagramIcon class="h-4 w-4" aria-hidden="true" />
+          </a>
+          <InstallPWA :is-menu-item="false" />
+        </div>
+        <SidebarMenu>
           <SidebarMenuItem>
             <DropdownMenu v-model:open="profileOpened">
               <DropdownMenuTrigger as-child>
