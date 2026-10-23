@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import TopoBackground from "@/layouts/components/TopoBackground.vue";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { computed, defineAsyncComponent, provide } from "vue";
+import { computed, defineAsyncComponent, provide, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useAuthStore } from "~/stores/AuthStore";
 import { useGtm } from "@/layouts/composables/useGtm";
@@ -51,14 +51,40 @@ const TournamentTeamCheckInOverlay = defineAsyncComponent(
   () => import("~/components/tournament/TournamentTeamCheckInOverlay.vue"),
 );
 import { useClipModal } from "~/composables/useClipModal";
+import { useOrphanedScan } from "~/composables/useOrphanedScan";
 
 const { activeClipId } = useClipModal();
+const { dialogOpen: orphanedUploadsOpen } = useOrphanedScan();
+
+// Both render nothing until opened, so neither is downloaded until then. Once
+// opened each stays mounted, so closing still plays its exit transition.
+const clipModalMounted = ref(!!activeClipId.value);
+watch(activeClipId, (id) => {
+  if (id) {
+    clipModalMounted.value = true;
+  }
+});
+const orphanedUploadsMounted = ref(orphanedUploadsOpen.value);
+watch(orphanedUploadsOpen, (open) => {
+  if (open) {
+    orphanedUploadsMounted.value = true;
+  }
+});
 
 useGtm();
 useChatTabSetup();
 useIncomingDirectMessages();
 
 const route = useRoute();
+const authStore = useAuthStore();
+
+// AppHeader loads MatchLobbies lazily, and the root Suspense holds the
+// pre-loader until it arrives. Asking for it here, while AppHeader's own chunk
+// is still on its way, keeps a signed-in boot from paying for the two one
+// after the other.
+if (authStore.me) {
+  void import("~/layouts/components/MatchLobbies.vue");
+}
 
 // DEAFCS: everyone gets the left nav and the header beside it; the top bar is
 // gone. (Staff used to be the only ones with it.) Kept as a flag because
@@ -129,9 +155,9 @@ provide("containContent", containContent);
 
   <div id="global-chat-container"></div>
 
-  <ClipDetailModal :clip-id="activeClipId" />
+  <ClipDetailModal v-if="clipModalMounted" :clip-id="activeClipId" />
 
-  <OrphanedUploadsDialog />
+  <OrphanedUploadsDialog v-if="orphanedUploadsMounted" />
 
   <GlobalLobbyCallNotifier />
   <GlobalVerificationCallNotifier />
@@ -143,7 +169,7 @@ provide("containContent", containContent);
 
   <TournamentTeamCheckInOverlay />
 
-  <ActionToasts />
+  <ActionToasts v-if="authStore.me" />
 </template>
 
 <script lang="ts">

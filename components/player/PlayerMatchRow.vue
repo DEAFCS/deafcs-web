@@ -16,6 +16,7 @@ import PlayerMatchScoreboard from "~/components/player/PlayerMatchScoreboard.vue
 import TournamentTime from "~/components/tournament/TournamentTime.vue";
 import { kdColor, hltvColor } from "~/utils/statTiers";
 import { matchSeriesLabel } from "~/utilities/matchSeriesLabel";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import {
   supportsTournamentMvp,
   tournamentMatchScores,
@@ -899,7 +900,7 @@ export default {
               lineup?.team?.name ||
               lineup?.name ||
               this.$t("pages.watch.ticker.tbd"),
-            avatarSrc: avatar ? `https://${this.apiDomain}/${avatar}` : null,
+            avatarSrc: resolveAvatarUrl(avatar, this.apiDomain, 64),
             score: scores[index],
             outcomeClass: winner
               ? winner === id
@@ -957,7 +958,7 @@ export default {
       return {
         name,
         shortName: lu.team?.short_name || null,
-        avatarSrc: url ? `https://${this.apiDomain}/${url}` : null,
+        avatarSrc: resolveAvatarUrl(url, this.apiDomain, 64),
       };
     },
     playerLineupId(): string | null {

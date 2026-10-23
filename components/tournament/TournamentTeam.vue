@@ -24,6 +24,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { toast } from "~/components/ui/toast";
 import TournamentAttendanceBadge from "~/components/tournament/TournamentAttendanceBadge.vue";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 </script>
 
 <template>
@@ -486,7 +487,7 @@ export default {
     teamAvatarSrc() {
       const avatarUrl = this.team?.team?.avatar_url;
       if (!avatarUrl) return null;
-      return `https://${this.apiDomain}/${avatarUrl}`;
+      return resolveAvatarUrl(avatarUrl, this.apiDomain, 128);
     },
     displayName() {
       return this.team.team?.name || this.team.name || "";

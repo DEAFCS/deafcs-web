@@ -19,8 +19,9 @@ RUN corepack enable && corepack prepare
 
 # The theater-mode clip bundle pushes the Vite client build past Node's
 # default old-space heap limit inside the container; without this the
-# build OOMs partway through.
-ENV NODE_OPTIONS=--max-old-space-size=6144
+# build OOMs partway through. Pre-compressing the built assets (nitro
+# compressPublicAssets) ran 6144 out too, so this matches upstream's 8192.
+ENV NODE_OPTIONS=--max-old-space-size=8192
 RUN yarn build
 
 FROM node:22-alpine

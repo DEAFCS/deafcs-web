@@ -15,6 +15,7 @@ import { awardArtworkDefinitionFor } from "~/utilities/awardOccurrenceResolution
 import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
 import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 import { tournamentCardCount } from "~/utilities/tournamentCardCount";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 const { t } = useI18n();
 
@@ -55,7 +56,7 @@ const logoUrl = computed(() => {
     return null;
   }
 
-  return `https://${runtimeConfig.public.apiDomain}/${logo}`;
+  return resolveAvatarUrl(logo, runtimeConfig.public.apiDomain, 128);
 });
 
 const bannerUrl = computed(() => {
@@ -64,7 +65,7 @@ const bannerUrl = computed(() => {
     return null;
   }
 
-  return `https://${runtimeConfig.public.apiDomain}/${banner}`;
+  return resolveAvatarUrl(banner, runtimeConfig.public.apiDomain, 1024);
 });
 
 // Deterministic gradient keyed on the id so bannerless tournaments still fill

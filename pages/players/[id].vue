@@ -1,20 +1,13 @@
 <script lang="ts" setup>
+import { lazyPanel } from "~/utilities/lazyPanel";
 import { dateLocale } from "~/utilities/dateLocale";
 import { useI18n } from "vue-i18n";
 import PlayerMatchesTable from "~/components/player/PlayerMatchesTable.vue";
 import DemoUpload from "~/components/DemoUpload.vue";
 import PlayerIntroDashboard from "~/components/player/PlayerIntroDashboard.vue";
-import PlayerMapsGrid from "~/components/player/PlayerMapsGrid.vue";
-import PlayerWeaponsTable from "~/components/player/PlayerWeaponsTable.vue";
 import PlayerHeroActions from "~/components/player/PlayerHeroActions.vue";
 import SteamIcon from "~/components/icons/SteamIcon.vue";
 import PlayerTwitchLink from "~/components/player/PlayerTwitchLink.vue";
-import PlayerPreferredRoles from "~/components/player/PlayerPreferredRoles.vue";
-import PlayerRoleRadar from "~/components/player/PlayerRoleRadar.vue";
-import PlayerPerformanceRating from "~/components/player/PlayerPerformanceRating.vue";
-import PlayerConsistencyChart from "~/components/player/PlayerConsistencyChart.vue";
-import PlayerCareerDuels from "~/components/player/PlayerCareerDuels.vue";
-import PlayerCareerClutches from "~/components/player/PlayerCareerClutches.vue";
 
 const { t } = useI18n();
 const playerContext = usePlayerContext();
@@ -104,7 +97,6 @@ import PlayerElo from "~/components/PlayerElo.vue";
 import PlayerLeaderboardRank from "~/components/PlayerLeaderboardRank.vue";
 import PlayerFaceitRank from "~/components/PlayerFaceitRank.vue";
 import PlayerPremierRank from "~/components/PlayerPremierRank.vue";
-import PlayerEloHistoryDialog from "~/components/PlayerEloHistoryDialog.vue";
 import {
   MATCH_TYPE_RGB,
   matchTypeColorStyle,
@@ -1768,6 +1760,35 @@ definePageMeta({
 });
 
 const { isMobile } = useSidebar();
+
+const PlayerPerformanceRating = lazyPanel(
+  () => import("~/components/player/PlayerPerformanceRating.vue"),
+);
+const PlayerConsistencyChart = lazyPanel(
+  () => import("~/components/player/PlayerConsistencyChart.vue"),
+);
+const PlayerEloHistoryDialog = lazyPanel(
+  () => import("~/components/PlayerEloHistoryDialog.vue"),
+);
+const PlayerMapsGrid = lazyPanel(
+  () => import("~/components/player/PlayerMapsGrid.vue"),
+);
+const PlayerWeaponsTable = lazyPanel(
+  () => import("~/components/player/PlayerWeaponsTable.vue"),
+);
+const PlayerPreferredRoles = lazyPanel(
+  () => import("~/components/player/PlayerPreferredRoles.vue"),
+);
+const PlayerRoleRadar = lazyPanel(
+  () => import("~/components/player/PlayerRoleRadar.vue"),
+);
+const PlayerCareerDuels = lazyPanel(
+  () => import("~/components/player/PlayerCareerDuels.vue"),
+);
+const PlayerCareerClutches = lazyPanel(
+  () => import("~/components/player/PlayerCareerClutches.vue"),
+);
+
 const playerHeroClasses =
   "relative flex min-w-0 flex-col rounded-lg border border-border px-6 py-5 [background:radial-gradient(120%_140%_at_0%_0%,hsl(var(--tac-amber)_/_0.06)_0%,transparent_45%),linear-gradient(180deg,hsl(var(--card)_/_0.5)_0%,hsl(var(--card)_/_0.2)_100%)] [backdrop-filter:blur(6px)] max-md:px-4 max-md:py-5";
 // Phones: avatar + label/name form the first row, the meta strip spans the
@@ -3410,6 +3431,7 @@ export default {
       return resolveAvatarUrl(
         this.player.custom_avatar_url || this.player.avatar_url,
         this.apiDomain,
+        512,
       );
     },
     playerRosterImageSrc() {

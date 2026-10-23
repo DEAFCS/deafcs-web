@@ -1,8 +1,7 @@
 <!-- Adapted from 5Stack WEB cfd7ecb (components/match/MatchHighlightsReel.vue,
      last changed in f87f0b2, layout from 9702249 #716); MIT Copyright (c) 2025
-     5Stack.gg; see LICENSE. DEAFCS changes: avatars are requested at their
-     stored size (the DEAFCS API has no ?w= resize, 5Stack api#862), and the
-     player gets can-prev/can-next for the DEAFCS player controls. -->
+     5Stack.gg; see LICENSE. DEAFCS changes: the player gets can-prev/can-next
+     for the DEAFCS player controls. -->
 <script setup lang="ts">
 import {
   computed,
@@ -83,6 +82,7 @@ const playerOptions = computed<PlayerOption[]>(() => {
       avatarSrc: resolveAvatarUrl(
         c.target?.avatar_url ?? null,
         apiDomain.value,
+        64,
       ),
       side: lineup?.side ?? null,
       teamName: lineup?.lineup?.name ?? null,

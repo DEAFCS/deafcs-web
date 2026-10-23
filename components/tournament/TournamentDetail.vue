@@ -1586,13 +1586,21 @@ export default {
       if (!this.tournament?.logo) {
         return null;
       }
-      return `https://${useRuntimeConfig().public.apiDomain}/${this.tournament.logo}`;
+      return resolveAvatarUrl(
+        this.tournament.logo,
+        useRuntimeConfig().public.apiDomain,
+        256,
+      );
     },
     tournamentBannerSrc() {
       if (!this.tournament?.banner) {
         return null;
       }
-      return `https://${useRuntimeConfig().public.apiDomain}/${this.tournament.banner}`;
+      return resolveAvatarUrl(
+        this.tournament.banner,
+        useRuntimeConfig().public.apiDomain,
+        1920,
+      );
     },
     tournamentCategories() {
       return (this.tournament?.categories ?? []).map((category) => {

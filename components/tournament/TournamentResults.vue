@@ -31,6 +31,7 @@ import {
 
       <header class="relative mb-6 flex flex-col gap-1">
         <div :class="[tacticalSectionLabelClasses, 'mb-0']">
+    64,
           <span :class="tacticalSectionTickClasses"></span>
           {{ $t("trophies.title") }}
         </div>

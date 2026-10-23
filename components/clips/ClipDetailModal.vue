@@ -433,7 +433,11 @@ const downloadFilename = computed<string>(() =>
 );
 
 const targetAvatarSrc = computed(() =>
-  resolveAvatarUrl(clip.value?.target?.avatar_url ?? null, apiDomain.value),
+  resolveAvatarUrl(
+    clip.value?.target?.avatar_url ?? null,
+    apiDomain.value,
+    128,
+  ),
 );
 const poster = computed(
   () =>
@@ -482,7 +486,11 @@ const matchCard = computed(() => {
   ).map(([lineup, score, id]) => ({
     id: lineup.id,
     name: lineup.name,
-    avatar: resolveAvatarUrl(lineup.team?.avatar_url ?? null, apiDomain.value),
+    avatar: resolveAvatarUrl(
+      lineup.team?.avatar_url ?? null,
+      apiDomain.value,
+      128,
+    ),
     monogram: teamMonogram(lineup.name),
     score,
     won: decided && mm.winning_lineup_id === id,

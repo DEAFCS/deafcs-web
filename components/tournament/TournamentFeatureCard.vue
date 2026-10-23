@@ -8,6 +8,7 @@ import MatchTypeBadge from "~/components/MatchTypeBadge.vue";
 import TournamentSoloRandomBadge from "~/components/tournament/TournamentSoloRandomBadge.vue";
 import { formatAttendanceWindowRange } from "~/utilities/tournamentAttendance";
 import { tournamentCardCount } from "~/utilities/tournamentCardCount";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 type TournamentStatusVariant = "default" | "finished" | "live" | "registration";
 
@@ -33,7 +34,7 @@ const bannerUrl = computed(() => {
   if (!banner) {
     return null;
   }
-  return `https://${runtimeConfig.public.apiDomain}/${banner}`;
+  return resolveAvatarUrl(banner, runtimeConfig.public.apiDomain, 1024);
 });
 
 const logoUrl = computed(() => {
@@ -41,7 +42,7 @@ const logoUrl = computed(() => {
   if (!logo) {
     return null;
   }
-  return `https://${runtimeConfig.public.apiDomain}/${logo}`;
+  return resolveAvatarUrl(logo, runtimeConfig.public.apiDomain, 256);
 });
 
 // Deterministic gradient keyed on the id so bannerless tournaments still look

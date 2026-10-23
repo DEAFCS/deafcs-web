@@ -17,6 +17,7 @@ import {
   tournamentChampion,
   tournamentRowState,
 } from "~/utilities/watchEventCard";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 
 // `stacked` puts the banner on top from lg up, for a grid column too narrow
 // to sit it beside the details; the banner then takes any extra height the
@@ -50,7 +51,11 @@ const isGuest = computed(() => !useAuthStore().me?.steam_id);
 
 const bannerSrc = computed(() => {
   if (props.tournament.banner) {
-    return `https://${runtimeConfig.public.apiDomain}/${props.tournament.banner}`;
+    return resolveAvatarUrl(
+      props.tournament.banner,
+      runtimeConfig.public.apiDomain,
+      1024,
+    );
   }
   return tournamentMapPosters(props.tournament, 1)[0] ?? null;
 });

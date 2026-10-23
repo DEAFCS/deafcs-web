@@ -69,6 +69,7 @@ const avatarSrc = (player: any) =>
   resolveAvatarUrl(
     player?.roster_image_url || player?.custom_avatar_url || player?.avatar_url,
     apiDomain,
+    64,
   );
 
 const busy = ref(false);

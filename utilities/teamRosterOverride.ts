@@ -1,4 +1,4 @@
-import { resolveAvatarUrl } from "./avatarUrl";
+import { resolveAvatarUrl, type AvatarWidth } from "./avatarUrl";
 
 interface RosterEntry {
   player_steam_id: string | number;
@@ -144,6 +144,7 @@ export function resolveMatchPlayerAvatarUrl(
   player: MatchPlayerLike | null | undefined,
   steamId: string | number | null | undefined,
   apiDomain: string | null | undefined,
+  width?: AvatarWidth,
 ): string | null {
   const historicalSnapshot = matchUsesHistoricalRosterSnapshot(match)
     ? buildLineupSnapshotAvatarOverride(lineup)(
@@ -160,7 +161,7 @@ export function resolveMatchPlayerAvatarUrl(
     (allowRosterImage ? player?.roster_image_url : null) ||
     player?.custom_avatar_url ||
     player?.avatar_url;
-  return resolveAvatarUrl(path, apiDomain);
+  return resolveAvatarUrl(path, apiDomain, width);
 }
 
 interface TournamentLike {

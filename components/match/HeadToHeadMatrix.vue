@@ -105,6 +105,7 @@ function memberAvatarSrc(member: any, lineup: any) {
     member?.player,
     member?.steam_id,
     apiDomain,
+    64,
   );
 }
 

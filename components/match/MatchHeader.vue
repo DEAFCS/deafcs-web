@@ -1,7 +1,6 @@
 <!-- Adapted from 5Stack WEB 85b4f0f9 (components/match/MatchHeader.vue); MIT
-     Copyright (c) 2025 5Stack.gg; see LICENSE. DEAFCS changes: avatars are
-     requested at their stored size (the DEAFCS API has no ?w= resize, 5Stack
-     api#862), the DEAFCS match-type badge stays next to the source badge, and
+     Copyright (c) 2025 5Stack.gg; see LICENSE. DEAFCS changes: the DEAFCS
+     match-type badge stays next to the source badge, and
      the small auto-cancel clock keeps the DEAFCS rule (hidden in Veto/Live). -->
 <script setup lang="ts">
 import { computed } from "vue";
@@ -118,6 +117,7 @@ const playerAvatar = (player: any) =>
   resolveAvatarUrl(
     player?.custom_avatar_url || player?.avatar_url,
     apiDomain.value,
+    256,
   );
 
 const teams = computed(() =>
@@ -135,7 +135,7 @@ const teams = computed(() =>
       name,
       teamId: lineup?.team_id ?? null,
       crest:
-        resolveAvatarUrl(lineup?.team?.avatar_url, apiDomain.value) ??
+        resolveAvatarUrl(lineup?.team?.avatar_url, apiDomain.value, 256) ??
         (isPug.value ? playerAvatar(captain) : null),
       monogram: teamMonogram(name),
       roster: players.slice(0, 5).map((member: any) => ({

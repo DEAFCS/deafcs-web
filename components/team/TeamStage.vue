@@ -25,6 +25,7 @@ import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
 } from "~/utilities/tacticalClasses";
+import { resolveAvatarUrl } from "~/utilities/avatarUrl";
 import { useApplicationSettingsStore } from "~/stores/ApplicationSettings";
 
 // The team's one headline card: the match it's playing, else the next one on
@@ -235,7 +236,7 @@ const empty = computed(() => {
 
 const apiDomain = useRuntimeConfig().public.apiDomain;
 function avatarSrc(path: string) {
-  return /^https?:\/\//.test(path) ? path : `https://${apiDomain}/${path}`;
+  return resolveAvatarUrl(path, apiDomain, 128);
 }
 
 const cardClasses =
