@@ -59,6 +59,15 @@ useChatTabSetup();
 useIncomingDirectMessages();
 
 const route = useRoute();
+const authStore = useAuthStore();
+
+// AppHeader loads MatchLobbies lazily, and the root Suspense holds the
+// pre-loader until it arrives. Asking for it here, while AppHeader's own chunk
+// is still on its way, keeps a signed-in boot from paying for the two one
+// after the other.
+if (authStore.me) {
+  void import("~/layouts/components/MatchLobbies.vue");
+}
 
 // DEAFCS: everyone gets the left nav and the header beside it; the top bar is
 // gone. (Staff used to be the only ones with it.) Kept as a flag because
@@ -143,7 +152,7 @@ provide("containContent", containContent);
 
   <TournamentTeamCheckInOverlay />
 
-  <ActionToasts />
+  <ActionToasts v-if="authStore.me" />
 </template>
 
 <script lang="ts">

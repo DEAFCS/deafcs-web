@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import { defineAsyncComponent } from "vue";
 import { formatBadgeCount } from "~/utilities/formatBadgeCount";
 import { SidebarTrigger } from "~/components/ui/sidebar";
 import { Separator } from "~/components/ui/separator";
 import BreadCrumbs from "~/components/BreadCrumbs.vue";
 import SystemStatus from "./SystemStatus.vue";
-import MatchLobbies from "./MatchLobbies.vue";
 import UtilityPracticeNav from "~/components/utility/UtilityPracticeNav.vue";
 import DraftRoomNav from "./DraftRoomNav.vue";
 import MobileBackButton from "./MobileBackButton.vue";
@@ -56,6 +56,11 @@ const totalUnreadMessages = computed(() =>
 const chatBadgeLabel = computed(() =>
   formatBadgeCount(totalUnreadMessages.value),
 );
+
+// Signed-in only (it sits under `v-if="me"`), and it carries the lobby, quick
+// queue and player-search UI with it: a visitor who is not signed in never
+// downloads any of that.
+const MatchLobbies = defineAsyncComponent(() => import("./MatchLobbies.vue"));
 </script>
 
 <template>
