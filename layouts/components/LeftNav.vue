@@ -241,12 +241,12 @@ function onLeftNavTouchEnd(e: TouchEvent) {
         enter-from-class="opacity-0 max-h-0 py-0 my-0"
         leave-to-class="opacity-0 max-h-0 py-0 my-0"
       >
-        <SidebarHeader v-if="!isMobile && (!isPWA || !sideBarOpen)">
+        <SidebarHeader v-if="!isMobile">
           <NuxtLink
             :to="logoPath"
             class="flex min-w-0 items-center overflow-hidden transition-[gap,padding] duration-200 ease-linear [&.router-link-active]:!bg-transparent [&.router-link-exact-active]:!bg-transparent"
             :class="{
-              'gap-3 px-2 py-2': !isPWA && (isMobile || sideBarOpen),
+              'gap-3 px-2 py-2': isMobile || sideBarOpen,
             }"
             :aria-label="customBrandName || $t('layouts.app_nav.brand')"
             :aria-current="isLogoRouteActive ? 'page' : undefined"
@@ -265,7 +265,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
               leave-from-class="max-w-48"
             >
               <span
-                v-if="!isPWA && (isMobile || sideBarOpen)"
+                v-if="isMobile || sideBarOpen"
                 key="brand"
                 class="text-2xl font-bold tracking-wide truncate"
               >
@@ -280,7 +280,7 @@ function onLeftNavTouchEnd(e: TouchEvent) {
         <SidebarGroup>
           <SidebarMenu>
             <SidebarMenuItem
-              v-if="isPWA"
+              v-if="isPWA && isMobile"
               :tooltip="$t('layouts.app_nav.tooltips.dashboard')"
             >
               <SidebarMenuButton
