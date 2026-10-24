@@ -133,17 +133,13 @@ const granting = ref(false);
 
 // Staff at or above the grant floor (public.grant_awards_role, the same
 // setting grantAward checks) can hand out a Special award directly, outside
-// any tournament (5Stack AwardDetailSheet grant). DEAFCS: only Special,
-// non-built-in awards. MVP and placement medals come from tournaments and
-// leagues, and Player of the Month from its monthly review.
+// any tournament (5Stack AwardDetailSheet grant). DEAFCS: only Special
+// awards (Player of the Month included). MVP and placement medals come from
+// tournaments and leagues.
 const canGrant = computed(() => {
   const authStore = useAuthStore();
   if (!authStore.me || !award.value) return false;
-  if (
-    award.value.tier !== "special" ||
-    award.value.system_key ||
-    award.value.archived_at
-  ) {
+  if (award.value.tier !== "special" || award.value.archived_at) {
     return false;
   }
   return authStore.isRoleAbove(useApplicationSettingsStore().awardGrantRole);
