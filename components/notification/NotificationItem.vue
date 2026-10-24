@@ -5,9 +5,13 @@ import { Button } from "~/components/ui/button";
 import TimeAgo from "~/components/TimeAgo.vue";
 import NotificationContext from "~/components/notification/NotificationContext.vue";
 import NotificationMessage from "~/components/notification/NotificationMessage.vue";
+import AwardNotificationCard from "~/components/notification/AwardNotificationCard.vue";
 import { useOrphanedScan } from "~/composables/useOrphanedScan";
 import { newsCommentNotificationPath } from "~/utilities/newsCommentText";
-import { awardNotificationPath } from "~/utilities/awardNotification";
+import {
+  awardNameFromMessage,
+  awardNotificationPath,
+} from "~/utilities/awardNotification";
 
 // The orphaned-uploads dialog is mounted globally (default layout), so a
 // StorageScan notification can open it in place instead of navigating away.
@@ -101,6 +105,14 @@ const titleLink = computed(() => {
   }
   return null;
 });
+
+// Award Received: the award's name moves from the message into the preview
+// card (trophy + name), like the verification notification's applicant card.
+const awardName = computed(() =>
+  props.notification.type === "AwardGranted"
+    ? awardNameFromMessage(props.notification.message)
+    : null,
+);
 
 const deleting = ref(false);
 const dismissed = ref(false);
@@ -196,8 +208,18 @@ onBeforeUnmount(() => {
           : 'text-muted-foreground',
       ]"
     >
-      <NotificationMessage :html="notification.message" />
+      <template v-if="awardName">{{
+        $t("layouts.notifications.award_received")
+      }}</template>
+      <NotificationMessage v-else :html="notification.message" />
     </p>
+
+    <AwardNotificationCard
+      v-if="awardName"
+      :name="awardName"
+      :to="titleLink"
+      class="mb-2"
+    />
 
     <NotificationContext
       v-if="

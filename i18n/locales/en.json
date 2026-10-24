@@ -6299,6 +6299,7 @@
     },
     "notifications": {
       "title": "Notifications",
+      "award_received": "You were awarded.",
       "dismiss": "Dismiss",
       "dismiss_all": "Dismiss All",
       "delete_all_read": "Delete All Read",
