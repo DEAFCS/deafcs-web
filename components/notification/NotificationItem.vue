@@ -7,6 +7,7 @@ import NotificationContext from "~/components/notification/NotificationContext.v
 import NotificationMessage from "~/components/notification/NotificationMessage.vue";
 import { useOrphanedScan } from "~/composables/useOrphanedScan";
 import { newsCommentNotificationPath } from "~/utilities/newsCommentText";
+import { awardNotificationPath } from "~/utilities/awardNotification";
 
 // The orphaned-uploads dialog is mounted globally (default layout), so a
 // StorageScan notification can open it in place instead of navigating away.
@@ -93,6 +94,10 @@ const titleLink = computed(() => {
   // DEAFCS: a reply to your News comment opens that reply on the article.
   if (type === "NewsCommentReply") {
     return newsCommentNotificationPath(entity_id);
+  }
+  // You received an award (5Stack AwardGranted): opens the award.
+  if (type === "AwardGranted") {
+    return awardNotificationPath(entity_id);
   }
   return null;
 });

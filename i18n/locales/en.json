@@ -1820,6 +1820,10 @@
             "news_replies": {
               "title": "Replies to your comments",
               "description": "Someone replied to your News comment"
+            },
+            "awards": {
+              "title": "Awards",
+              "description": "You received an award"
             }
           }
         },

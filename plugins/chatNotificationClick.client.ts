@@ -12,6 +12,7 @@
 // instead -- see routeNonChatNotification below.
 import { useChatNotificationNavigation } from "~/composables/useChatNotificationNavigation";
 import { newsCommentNotificationPath } from "~/utilities/newsCommentText";
+import { awardNotificationPath } from "~/utilities/awardNotification";
 
 const ADMIN_FACING_VERIFICATION_TYPES = new Set([
   "VerificationApplicationSubmitted",
@@ -68,6 +69,12 @@ async function routeNonChatNotification(
       await navigateTo(path);
       return true;
     }
+  }
+
+  // You received an award (5Stack AwardGranted): opens the award.
+  if (type === "AwardGranted") {
+    await navigateTo(awardNotificationPath(entityId));
+    return true;
   }
 
   return false;
