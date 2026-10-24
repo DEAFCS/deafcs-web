@@ -14,6 +14,7 @@ const ADMIN_ROUTES = [
   "regions",
   "seasons",
   "support-requests",
+  "bans",
   "verification-applications",
   "terms-acceptances",
   "stream-deck",

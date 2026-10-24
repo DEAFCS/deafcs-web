@@ -32,6 +32,7 @@ import {
   UserCheck,
   FileCheck2,
   LifeBuoy,
+  ShieldX,
   Target,
   Gamepad2,
   Package,
@@ -1174,6 +1175,28 @@ function onLeftNavTouchEnd(e: TouchEvent) {
                   <Badge size="sm" v-if="openSupportCount > 0" class="ml-auto">
                     {{ openSupportCount }}
                   </Badge>
+                </NuxtLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+
+            <!-- Upstream 5Stack lists Bans for everyone under Community;
+                 DEAFCS keeps it with the moderator tools. -->
+            <SidebarMenuItem
+              v-if="canModerate"
+              :tooltip="$t('layouts.app_nav.tooltips.bans')"
+            >
+              <SidebarMenuButton
+                as-child
+                :tooltip="$t('layouts.app_nav.tooltips.bans')"
+              >
+                <NuxtLink
+                  :to="{ name: 'bans' }"
+                  :class="{
+                    'router-link-active': isRouteActive('bans'),
+                  }"
+                >
+                  <ShieldX />
+                  {{ $t("layouts.app_nav.navigation.bans") }}
                 </NuxtLink>
               </SidebarMenuButton>
             </SidebarMenuItem>
