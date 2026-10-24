@@ -10686,7 +10686,10 @@
     "team_elo": "TEAM ELO",
     "kda": "KDA",
     "kda_breakdown": "K / D / A",
-    "perf": "PERF"
+    "perf": "PERF",
+    "expected": "EXPECTED",
+    "base_elo": "BASE ELO",
+    "hltv_rating": "HLTV rating"
   },
   "stat": {
     "level": {

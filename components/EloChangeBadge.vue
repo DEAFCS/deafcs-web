@@ -10,6 +10,12 @@ import {
   TooltipTrigger,
 } from "~/components/ui/tooltip";
 import { ArrowUpRight, ArrowDownRight } from "lucide-vue-next";
+import {
+  eloBreakdown,
+  formatMultiplier,
+  formatPercent,
+  formatSigned as formatSignedValue,
+} from "~/utilities/eloBreakdown";
 
 interface EloChange {
   elo_change?: number | string | null;
@@ -34,6 +40,8 @@ interface EloChange {
   damage_percent?: number | string | null;
   type?: string | null;
   match_result?: string | null;
+  elo_version?: number | string | null;
+  scale_factor?: number | string | null;
 }
 
 const props = defineProps<{
@@ -58,12 +66,11 @@ const hasData = computed(
 const seriesMult = computed(() => toNum(props.eloChange?.series_multiplier));
 const hasSeriesBonus = computed(() => seriesMult.value > 1);
 
-const perfMult = computed(() => toNum(props.eloChange?.performance_multiplier));
-const impact = computed(() => toNum(props.eloChange?.impact) || perfMult.value);
-const impactDelta = computed(() => Math.round((impact.value - 1) * 100));
-const expectedScore = computed(() => toNum(props.eloChange?.expected_score));
-const actualScore = computed(() => toNum(props.eloChange?.actual_score));
-const kFactor = computed(() => toNum(props.eloChange?.k_factor) || 500);
+// EXPECTED / BASE ELO / IMPACT / PERF from the stored row (its own formula
+// version and scale, see utilities/eloBreakdown.ts).
+const breakdown = computed(() => eloBreakdown(props.eloChange ?? {}));
+const perfMult = computed(() => breakdown.value.perf);
+const kFactor = computed(() => breakdown.value.kFactor);
 
 const currentElo = computed(() =>
   Math.round(toNum(props.eloChange?.current_elo)),
@@ -88,9 +95,6 @@ const eloGapBar = computed(() => {
   return 50 + (clamped / 3000) * 50;
 });
 
-const damagePercent = computed(() =>
-  Math.round(toNum(props.eloChange?.damage_percent) * 100),
-);
 
 const typeLabel = computed(() => {
   switch (props.eloChange?.type) {
@@ -121,10 +125,6 @@ function formatSigned(n: number): string {
   return `${sign}${n.toLocaleString()}`;
 }
 
-function formatSignedPercent(n: number): string {
-  const sign = n > 0 ? "+" : "";
-  return `${sign}${n}%`;
-}
 
 const badgeBase =
   "inline-flex items-center gap-[3px] font-['Oxanium',sans-serif] font-bold tracking-[0.04em] tabular-nums rounded-[3px] border leading-none whitespace-nowrap cursor-help transition-all duration-150 hover:-translate-y-px";
@@ -379,89 +379,84 @@ const chipClipSm = "";
             </div>
           </section>
 
+          <!-- EXPECTED | BASE ELO / IMPACT | PERF ×, values and their
+               indicator on one line. -->
           <section
             class="relative grid grid-cols-2 gap-px mb-2.5 bg-border/60 border border-border/60"
+            data-elo-fields
           >
-            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80">
-              <span :class="labelClass">{{
-                $t("elo_change.kda_breakdown")
-              }}</span>
+            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80 min-w-0">
+              <span :class="labelClass">{{ $t("elo_change.expected") }}</span>
               <span
-                :class="[monoNum, 'font-semibold text-[12px] text-foreground']"
+                :class="[monoNum, 'flex items-baseline gap-1.5 whitespace-nowrap font-semibold text-[12px] text-foreground']"
               >
-                {{ eloChange.kills
-                }}<span class="text-muted-foreground mx-px">/</span
-                >{{ eloChange.deaths
-                }}<span class="text-muted-foreground mx-px">/</span
-                >{{ eloChange.assists }}
-              </span>
-            </div>
-            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80">
-              <span :class="labelClass">{{ $t("elo_change.kda") }}</span>
-              <span
-                :class="[monoNum, 'font-semibold text-[12px] text-foreground']"
-              >
-                {{ toNum(eloChange.kda).toFixed(2) }}
+                <span data-elo-expected>{{ breakdown.expectedPercent }}%</span>
                 <span
-                  class="text-[10px] text-muted-foreground font-normal ml-0.5"
+                  :class="[
+                    'text-[10px] font-semibold',
+                    breakdown.delta > 0
+                      ? 'text-[hsl(142_71%_60%)]'
+                      : 'text-[hsl(0_84%_66%)]',
+                  ]"
+                  data-elo-delta
                 >
-                  · AVG {{ toNum(eloChange.team_avg_kda).toFixed(2) }}
+                  Δ {{ formatSignedValue(breakdown.delta, 2) }}
                 </span>
               </span>
             </div>
-            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80">
-              <span :class="labelClass">{{ $t("elo_change.damage") }}</span>
+            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80 min-w-0">
+              <span :class="labelClass">{{ $t("elo_change.base_elo") }}</span>
               <span
-                :class="[monoNum, 'font-semibold text-[12px] text-foreground']"
+                :class="[monoNum, 'font-semibold text-[12px] text-foreground whitespace-nowrap']"
+                data-elo-base
               >
-                {{ eloChange.damage }}
-                <span
-                  class="text-[10px] text-muted-foreground font-normal ml-0.5"
-                >
-                  · {{ damagePercent }}%
-                </span>
+                {{ formatSignedValue(breakdown.baseElo) }}
               </span>
             </div>
-            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80">
-              <span :class="labelClass">{{ $t("elo_change.score") }}</span>
-              <span
-                :class="[monoNum, 'font-semibold text-[12px] text-foreground']"
-              >
-                {{ actualScore.toFixed(2) }}
-                <span
-                  class="text-[10px] text-muted-foreground font-normal ml-0.5"
-                >
-                  · EXP {{ expectedScore.toFixed(2) }}
-                </span>
-              </span>
-            </div>
-            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80">
+            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80 min-w-0">
               <span :class="labelClass">{{ $t("elo_change.impact") }}</span>
               <span
-                :class="[
-                  monoNum,
-                  'font-semibold text-[12px]',
-                  impact > 1
-                    ? 'text-[hsl(142_71%_60%)]'
-                    : impact < 1
-                      ? 'text-[hsl(0_84%_66%)]'
-                      : 'text-foreground',
-                ]"
+                :class="[monoNum, 'flex items-baseline gap-1.5 whitespace-nowrap font-semibold text-[12px] text-foreground']"
+                data-elo-impact
               >
-                {{ impact.toFixed(2) }}×
-                <span
-                  class="text-[10px] text-muted-foreground font-normal ml-0.5"
-                >
-                  {{ formatSignedPercent(impactDelta) }}
-                </span>
+                <template v-if="breakdown.impactIsHltv">
+                  <span>{{
+                    breakdown.impact === null ? "–" : breakdown.impact.toFixed(2)
+                  }}</span>
+                  <span class="text-[10px] text-muted-foreground font-normal">
+                    {{ $t("elo_change.hltv_rating") }}
+                  </span>
+                </template>
+                <template v-else>
+                  <span>{{ (breakdown.impact ?? 1).toFixed(2) }}×</span>
+                  <span
+                    v-if="breakdown.impactPercent !== null"
+                    class="text-[10px] text-muted-foreground font-normal"
+                  >
+                    {{ formatPercent(breakdown.impactPercent) }}
+                  </span>
+                </template>
               </span>
             </div>
-            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80">
+            <div class="flex flex-col gap-0.5 px-2 py-1.5 bg-card/80 min-w-0">
               <span :class="labelClass">{{ $t("elo_change.perf") }} ×</span>
               <span
-                :class="[monoNum, 'font-semibold text-[12px] text-foreground']"
+                :class="[monoNum, 'flex items-baseline gap-1.5 whitespace-nowrap font-semibold text-[12px] text-foreground']"
+                data-elo-perf
               >
-                {{ perfMult.toFixed(2) }}
+                <span>{{ formatMultiplier(breakdown.perf) }}</span>
+                <span
+                  :class="[
+                    'text-[10px] font-semibold',
+                    breakdown.perfPercent > 0
+                      ? 'text-[hsl(142_71%_60%)]'
+                      : breakdown.perfPercent < 0
+                        ? 'text-[hsl(0_84%_66%)]'
+                        : 'text-muted-foreground',
+                  ]"
+                >
+                  {{ formatPercent(breakdown.perfPercent) }}
+                </span>
               </span>
             </div>
           </section>
@@ -482,13 +477,13 @@ const chipClipSm = "";
               class="inline-flex items-baseline gap-[2px] px-[5px] py-px border border-border/70 bg-muted/30 font-medium text-muted-foreground cursor-help hover:border-[hsl(var(--tac-amber)/0.5)] hover:text-foreground transition-colors"
               :title="
                 $t('match.elo_details.formula.delta_hint', {
-                  actual: actualScore.toFixed(2),
-                  expected: expectedScore.toFixed(2),
+                  actual: breakdown.actual.toFixed(2),
+                  expected: breakdown.expected.toFixed(2),
                 })
               "
             >
               ∆<em class="not-italic text-foreground font-bold">{{
-                (actualScore - expectedScore).toFixed(2)
+                breakdown.delta.toFixed(2)
               }}</em>
             </span>
             <span class="text-muted-foreground/70 font-bold">×</span>
@@ -497,7 +492,7 @@ const chipClipSm = "";
               :title="$t('match.elo_details.formula.perf_hint')"
             >
               P<em class="not-italic text-foreground font-bold">{{
-                perfMult.toFixed(2)
+                formatMultiplier(perfMult)
               }}</em>
             </span>
             <span class="text-muted-foreground/70 font-bold">×</span>
@@ -517,7 +512,7 @@ const chipClipSm = "";
                     ? 'text-[hsl(var(--tac-amber))]'
                     : 'text-foreground',
                 ]"
-                >×{{ seriesMult }}</em
+                >{{ seriesMult || 1 }}</em
               >
             </span>
             <span class="text-muted-foreground/90 font-bold mx-0.5">=</span>

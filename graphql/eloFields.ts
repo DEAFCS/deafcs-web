@@ -8,6 +8,9 @@ export const eloFields = Selector("v_player_elo")({
   damage_percent: true,
   deaths: true,
   elo_change: true,
+  // DEAFCS: the formula that produced the row (2 = 5v5 ELO v2) and its scale.
+  elo_version: true,
+  scale_factor: true,
   expected_score: true,
   impact: true,
   k_factor: true,
