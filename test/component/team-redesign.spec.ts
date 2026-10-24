@@ -72,8 +72,8 @@ describe("DEAFCS award adapter (occurrence -> upstream grant shape)", () => {
     expect(resolveAwardTier(0, null)).toBe("mvp");
     expect(resolveAwardTier(3, null)).toBe("bronze");
     expect(resolveAwardTier(null, "silver")).toBe("silver");
-    expect(resolveAwardTier(null, "special")).toBe("bronze");
-    expect(resolveAwardTier(undefined, null)).toBe("bronze");
+    expect(resolveAwardTier(null, "special")).toBe("special");
+    expect(resolveAwardTier(undefined, null)).toBe("special");
   });
 });
 

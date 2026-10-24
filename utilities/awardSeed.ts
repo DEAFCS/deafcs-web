@@ -54,6 +54,14 @@ export const TIER_PALETTES = {
     gem: ["#ff8c00", "#2ed573", "#b87333"],
     label: "BRONZE",
   },
+  special: {
+    primary: "#a78bfa",
+    secondary: "#5b3fa8",
+    highlight: "#ede4ff",
+    shadow: "#2e1a52",
+    gem: ["#4ad8ff", "#ffd24a", "#ff6bd6"],
+    label: "AWARD",
+  },
 } as const;
 
 export type AwardTier = keyof typeof TIER_PALETTES;
@@ -66,9 +74,8 @@ export function placementToTier(placement: number): AwardTier {
 }
 
 // A tournament placement always wins the palette so medals stay readable even
-// when an organizer maps an off-tier award onto a placement. DEAFCS has no
-// "special" palette, so an award without a placement or a known tier reads as
-// bronze.
+// when an organizer maps an off-tier award onto a placement. An award without
+// a placement (Player of the Month, Hall of Fame, ...) is Special (5Stack).
 export function resolveAwardTier(
   placement?: number | null,
   awardTier?: string | null,
@@ -79,5 +86,5 @@ export function resolveAwardTier(
   if (awardTier && awardTier in TIER_PALETTES) {
     return awardTier as AwardTier;
   }
-  return "bronze";
+  return "special";
 }

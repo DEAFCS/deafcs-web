@@ -22,6 +22,10 @@ import {
   type AwardDetail,
 } from "~/utilities/awardDetail";
 import { AWARD_TIER_COLORS } from "~/utilities/awardArtwork";
+import AwardGrantInline from "~/components/award/AwardGrantInline.vue";
+import { Button } from "~/components/ui/button";
+import { toast } from "~/components/ui/toast";
+import { useI18n } from "vue-i18n";
 
 const AWARD_CORE_QUERY = gql`
   query PublicAwardCore($id: uuid!) {
@@ -33,6 +37,8 @@ const AWARD_CORE_QUERY = gql`
       silhouette
       image_url
       system_key
+      allow_multiple
+      archived_at
       tournament_id
       event_id
       elo_season_id
@@ -122,6 +128,42 @@ const accent = computed(
 
 useHead({ title: computed(() => award.value?.name || "Award") });
 
+const { t } = useI18n();
+const granting = ref(false);
+
+// Staff at or above the grant floor (public.grant_awards_role, the same
+// setting grantAward checks) can hand out a Special award directly, outside
+// any tournament (5Stack AwardDetailSheet grant). DEAFCS: only Special,
+// non-built-in awards. MVP and placement medals come from tournaments and
+// leagues, and Player of the Month from its monthly review.
+const canGrant = computed(() => {
+  const authStore = useAuthStore();
+  if (!authStore.me || !award.value) return false;
+  if (
+    award.value.tier !== "special" ||
+    award.value.system_key ||
+    award.value.archived_at
+  ) {
+    return false;
+  }
+  return authStore.isRoleAbove(useApplicationSettingsStore().awardGrantRole);
+});
+
+const grantHolders = computed(() =>
+  holders.value.map((holder) => holder.recipient),
+);
+
+function onGranted(name: string) {
+  granting.value = false;
+  toast({
+    title: t("pages.awards.granted_toast", {
+      award: award.value?.name || "",
+      name,
+    }) as string,
+  });
+  void loadAward("network-only");
+}
+
 function holderTeam(holder: ActiveAwardHolder) {
   return (
     holder.recipient.team ||
@@ -156,7 +198,9 @@ function formatYear(value?: string | null) {
   return Number.isNaN(date.getTime()) ? "" : String(date.getFullYear());
 }
 
-async function loadAward() {
+async function loadAward(
+  fetchPolicy: "cache-first" | "network-only" = "cache-first",
+) {
   loading.value = true;
   error.value = null;
   historyError.value = null;
@@ -180,7 +224,7 @@ async function loadAward() {
   }>({
     query: AWARD_HISTORY_QUERY,
     variables,
-    fetchPolicy: "cache-first",
+    fetchPolicy,
   });
 
   try {
@@ -189,7 +233,7 @@ async function loadAward() {
     }>({
       query: AWARD_CORE_QUERY,
       variables: { id },
-      fetchPolicy: "cache-first",
+      fetchPolicy,
     });
 
     const coreAward = result.data.awards_by_pk;
@@ -232,7 +276,7 @@ async function loadAward() {
   }
 }
 
-onMounted(loadAward);
+onMounted(() => loadAward());
 </script>
 
 <template>
@@ -257,7 +301,7 @@ onMounted(loadAward);
         <button
           type="button"
           class="rounded-md border border-border px-3 py-1.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          @click="loadAward"
+          @click="loadAward()"
         >
           Try again
         </button>
@@ -347,7 +391,24 @@ onMounted(loadAward);
             </h2>
             <span class="h-px flex-1 bg-border/60"></span>
             <span class="font-mono text-xs text-muted-foreground">{{ holders.length }}</span>
+            <Button
+              v-if="canGrant && !granting"
+              size="sm"
+              variant="outline"
+              class="h-7"
+              @click="granting = true"
+            >
+              {{ $t("awards.composer.grant_here") }}
+            </Button>
           </div>
+
+          <AwardGrantInline
+            v-if="canGrant && granting"
+            :award="award"
+            :holders="grantHolders"
+            @cancel="granting = false"
+            @granted="onGranted"
+          />
 
           <Empty
             v-if="historyError"

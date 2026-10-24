@@ -53,6 +53,8 @@ export interface AwardDetail {
   silhouette?: number | null;
   image_url?: string | null;
   system_key?: string | null;
+  allow_multiple?: boolean | null;
+  archived_at?: string | null;
   tournament_id?: string | null;
   event_id?: string | null;
   elo_season_id?: string | null;

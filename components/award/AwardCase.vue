@@ -4,12 +4,15 @@ import { computed, ref } from "vue";
 import AwardArtwork from "./AwardArtwork.vue";
 import AwardModal from "./AwardModal.vue";
 import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
+import { resolveAwardTier, type AwardTier } from "~/utilities/awardSeed";
 
 interface Award {
   id: string;
-  placement: number;
+  // null for a Special award (Player of the Month, ...).
+  placement: number | null;
   placement_tier?: string | null;
-  tournament_id: string;
+  tournament_id?: string | null;
+  awarded_at?: string | null;
   team_id?: string | null;
   tournament?: {
     name: string;
@@ -56,23 +59,46 @@ const props = withDefaults(defineProps<Props>(), {
 const selected = ref<Award | null>(null);
 const modalOpen = ref(false);
 
+function trophyTier(trophy: Award): AwardTier {
+  return resolveAwardTier(trophy.placement, trophy.award?.tier);
+}
+
+function trophyDate(trophy: Award): string | null {
+  return trophy.tournament?.start || trophy.awarded_at || null;
+}
+
+// Placement medals lead, ordered mvp -> bronze; Special awards trail them,
+// newest first within each (5Stack AwardCase).
+const TIER_ORDER: Record<AwardTier, number> = {
+  mvp: 0,
+  gold: 1,
+  silver: 2,
+  bronze: 3,
+  special: 4,
+};
+
 const sorted = computed(() => {
   if (!props.trophies) return [];
   return [...props.trophies].sort((a, b) => {
-    if (a.placement !== b.placement) return a.placement - b.placement;
-    const da = a.tournament?.start ? new Date(a.tournament.start).getTime() : 0;
-    const db = b.tournament?.start ? new Date(b.tournament.start).getTime() : 0;
+    const ta = TIER_ORDER[trophyTier(a)];
+    const tb = TIER_ORDER[trophyTier(b)];
+    if (ta !== tb) return ta - tb;
+    const da = new Date(trophyDate(a) || 0).getTime();
+    const db = new Date(trophyDate(b) || 0).getTime();
     return db - da;
   });
 });
 
 const counts = computed(() => {
-  const c = { mvp: 0, gold: 0, silver: 0, bronze: 0 };
+  const c: Record<AwardTier, number> = {
+    mvp: 0,
+    gold: 0,
+    silver: 0,
+    bronze: 0,
+    special: 0,
+  };
   for (const t of sorted.value) {
-    if (t.placement === 0) c.mvp++;
-    else if (t.placement === 1) c.gold++;
-    else if (t.placement === 2) c.silver++;
-    else if (t.placement === 3) c.bronze++;
+    c[trophyTier(t)]++;
   }
   return c;
 });
@@ -108,11 +134,12 @@ import {
 
 const eyebrowClasses = `${tacticalSectionLabelClasses} mb-0`;
 
-const tierColors: Record<"mvp" | "gold" | "silver" | "bronze", string> = {
+const tierColors: Record<AwardTier, string> = {
   mvp: "hsl(195 85% 60%)",
   gold: "hsl(45 95% 60%)",
   silver: "hsl(0 0% 78%)",
   bronze: "hsl(28 70% 52%)",
+  special: "hsl(258 90% 74%)",
 };
 
 const tierRack = computed(() => {
@@ -121,15 +148,13 @@ const tierRack = computed(() => {
     { key: "gold" as const, label: "1ST", full: "1st Place" },
     { key: "silver" as const, label: "2ND", full: "2nd Place" },
     { key: "bronze" as const, label: "3RD", full: "3rd Place" },
+    { key: "special" as const, label: "AWD", full: "Awards" },
   ];
   return props.hideMvp ? tiers.filter((t) => t.key !== "mvp") : tiers;
 });
 
-function placementUplight(placement: number) {
-  if (placement === 0) return tierColors.mvp;
-  if (placement === 1) return tierColors.gold;
-  if (placement === 2) return tierColors.silver;
-  return tierColors.bronze;
+function trophyUplight(trophy: Award) {
+  return tierColors[trophyTier(trophy)];
 }
 </script>
 
@@ -206,7 +231,7 @@ function placementUplight(placement: number) {
         <div
           class="pointer-events-none absolute inset-x-3 bottom-8 top-2 rounded-full opacity-40 blur-2xl transition-opacity duration-300 group-hover/pedestal:opacity-80"
           :style="{
-            background: `radial-gradient(ellipse at center bottom, ${placementUplight(trophy.placement)} 0%, transparent 65%)`,
+            background: `radial-gradient(ellipse at center bottom, ${trophyUplight(trophy)} 0%, transparent 65%)`,
           }"
         ></div>
 
@@ -222,17 +247,23 @@ function placementUplight(placement: number) {
           <div
             class="truncate text-center text-[0.72rem] font-semibold uppercase tracking-[0.1em] text-foreground group-hover/pedestal:text-[hsl(var(--tac-amber))]"
             :title="
-              trophy.trophy_config?.custom_name || trophy.tournament?.name
+              trophy.trophy_config?.custom_name ||
+              trophy.tournament?.name ||
+              trophy.award?.name
             "
           >
-            {{ trophy.trophy_config?.custom_name || trophy.tournament?.name }}
+            {{
+              trophy.trophy_config?.custom_name ||
+              trophy.tournament?.name ||
+              trophy.award?.name
+            }}
           </div>
           <div
-            v-if="trophy.tournament?.start"
+            v-if="trophyDate(trophy)"
             class="mt-0.5 flex items-center justify-center gap-1.5 font-mono text-[0.58rem] uppercase tracking-[0.2em] text-muted-foreground/80"
           >
             <span class="h-[1px] w-2 bg-border"></span>
-            {{ formatAwardDate(trophy.tournament.start) }}
+            {{ formatAwardDate(trophyDate(trophy)) }}
             <span class="h-[1px] w-2 bg-border"></span>
           </div>
         </div>

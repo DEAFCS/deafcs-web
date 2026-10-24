@@ -5,10 +5,15 @@ export const awardFields = Selector("award_recipients")({
   team_id: true,
   player_steam_id: true,
   tournament_team_id: true,
+  created_at: true,
   occurrence: {
     id: true,
     tournament_id: true,
     placement: true,
+    // Special awards (Player of the Month, ...) have no tournament: their
+    // date is the occurrence's own.
+    source: true,
+    effective_at: true,
     // The whole award definition, not just its image: every consumer renders
     // it through AwardArtwork, which needs tier/silhouette/system_key to pick
     // between uploaded artwork, a procedural silhouette and the tier icon.

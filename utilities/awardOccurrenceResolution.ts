@@ -1,5 +1,5 @@
 import { placementForTournamentAwardSlot } from "./tournamentAwardPicker";
-import { placementToTier } from "./awardSeed";
+import { resolveAwardTier } from "./awardSeed";
 import type { AwardArtworkDefinition } from "./awardArtwork";
 
 export interface TournamentAwardSlotLookupRow {
@@ -39,10 +39,11 @@ const PLACEMENT_AWARD_NAMES: Readonly<Record<number, string>> = {
 };
 
 function slotOverrideFor(
-  placement: number,
+  placement: number | null,
   tournamentId: string | null | undefined,
   slots: TournamentAwardSlotLookupRow[] | null | undefined,
 ): TournamentAwardSlotLookupRow | undefined {
+  if (placement === null) return undefined;
   return (slots || []).find(
     (candidate) =>
       candidate.tournament_id === tournamentId &&
@@ -62,7 +63,7 @@ function slotOverrideFor(
  * old procedural AwardBadge cup.
  */
 export function resolveAwardArtwork(
-  placement: number,
+  placement: number | null,
   liveAwardImageUrl: string | null | undefined,
   tournamentId: string | null | undefined,
   slots: TournamentAwardSlotLookupRow[] | null | undefined,
@@ -87,13 +88,13 @@ export function resolveAwardArtwork(
  * other award without uploaded artwork gets.
  */
 export function awardArtworkDefinitionFor(
-  placement: number,
+  placement: number | null,
   award: AwardDefinitionRow | null | undefined,
   tournamentId: string | null | undefined,
   slots: TournamentAwardSlotLookupRow[] | null | undefined,
 ): AwardArtworkDefinition {
   const slot = slotOverrideFor(placement, tournamentId, slots);
-  const tier = award?.tier || placementToTier(placement);
+  const tier = award?.tier || resolveAwardTier(placement, null);
 
   return {
     // The id only seeds procedural variation, so a synthesized definition
@@ -102,7 +103,7 @@ export function awardArtworkDefinitionFor(
     name:
       slot?.custom_name ||
       award?.name ||
-      PLACEMENT_AWARD_NAMES[placement] ||
+      (placement === null ? null : PLACEMENT_AWARD_NAMES[placement]) ||
       "Award",
     tier,
     image_url: slot?.image_override || award?.image_url || null,
@@ -116,10 +117,14 @@ export interface AwardRecipientRow {
   team_id?: string | null;
   player_steam_id?: string | number | null;
   tournament_team_id?: string | null;
+  created_at?: string | null;
   occurrence?: {
     id: string;
-    tournament_id: string;
-    placement: number;
+    tournament_id: string | null;
+    // null for a Special award (no tournament placement).
+    placement: number | null;
+    source?: string | null;
+    effective_at?: string | null;
     award?: AwardDefinitionRow | null;
     tournament?: {
       name: string;
@@ -155,7 +160,8 @@ export function mapAwardRecipientToTrophy(
   slots: TournamentAwardSlotLookupRow[] | null | undefined,
 ) {
   const occurrence = recipient.occurrence;
-  const placement = occurrence?.placement ?? 0;
+  // No placement means a Special award, never MVP (placement 0).
+  const placement = occurrence?.placement ?? null;
   const artwork = resolveAwardArtwork(
     placement,
     occurrence?.award?.image_url,
@@ -166,7 +172,12 @@ export function mapAwardRecipientToTrophy(
   return {
     id: recipient.id,
     placement,
-    tournament_id: occurrence?.tournament_id,
+    placement_tier: resolveAwardTier(placement, occurrence?.award?.tier),
+    tournament_id: occurrence?.tournament_id ?? null,
+    source: occurrence?.source ?? null,
+    // Tournament awards date from the tournament; Special awards from their
+    // own occurrence (e.g. the first day of the Player of the Month).
+    awarded_at: occurrence?.effective_at ?? recipient.created_at ?? null,
     team_id: recipient.team_id,
     tournament: occurrence?.tournament ?? null,
     tournament_team: recipient.tournament_team ?? null,

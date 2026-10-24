@@ -207,4 +207,41 @@ assert.equal(placementForTournamentAwardSlot("third_place"), 3);
   assert.equal(resolveArtworkForDefinition(mapped.award).kind, "custom-image");
 }
 
+// A Special award (Player of the Month) has no tournament and no placement:
+// it must stay Special, never become MVP (placement 0), and carry its own date.
+{
+  const mapped = mapAwardRecipientToTrophy(
+    {
+      id: "recip-potm",
+      team_id: null,
+      player_steam_id: "76561190000000001",
+      created_at: "2026-10-20T12:00:00Z",
+      occurrence: {
+        id: "occ-potm",
+        tournament_id: null,
+        placement: null,
+        source: "manual",
+        effective_at: "2026-09-01T00:00:00Z",
+        award: {
+          id: "award-potm",
+          name: "Player of the Month",
+          tier: "special",
+          silhouette: null,
+          image_url: null,
+          system_key: "player_of_the_month",
+        },
+        tournament: null,
+      },
+    },
+    [],
+  );
+  assert.equal(mapped.placement, null);
+  assert.equal(mapped.placement_tier, "special");
+  assert.equal(mapped.tournament_id, null);
+  assert.equal(mapped.source, "manual");
+  assert.equal(mapped.awarded_at, "2026-09-01T00:00:00Z");
+  assert.equal(mapped.award.tier, "special");
+  assert.equal(mapped.award.name, "Player of the Month");
+}
+
 console.log("award artwork resolution checks passed");

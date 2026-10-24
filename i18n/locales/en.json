@@ -1252,6 +1252,12 @@
     }
   },
   "pages": {
+    "awards": {
+      "grant": "Grant award",
+      "note": "Note",
+      "already_holds": "{name} already holds {award}, and it doesn't allow multiple.",
+      "granted_toast": "Granted {award} to {name}"
+    },
     "terms_acceptance": {
       "title": "Welcome to DEAFCS",
       "intro": "Before continuing, please review and accept the terms and rules that apply when using DEAFCS.",
@@ -11498,7 +11504,8 @@
     }
   },
   "awards_modal": {
-    "view_tournament": "VIEW TOURNAMENT"
+    "view_tournament": "VIEW TOURNAMENT",
+    "view_award": "VIEW AWARD"
   },
   "awards_manage_form": {
     "team": "Team",

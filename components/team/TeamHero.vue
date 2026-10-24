@@ -83,6 +83,7 @@ const TIER_ORDER: Record<AwardTier, number> = {
   gold: 1,
   silver: 2,
   bronze: 3,
+  special: 4,
 };
 const AWARDS_SHOWN = 6;
 

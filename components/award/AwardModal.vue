@@ -3,6 +3,7 @@ import { dateLocale } from "~/utilities/dateLocale";
 import { computed } from "vue";
 import AwardArtwork from "./AwardArtwork.vue";
 import type { AwardArtworkDefinition } from "~/utilities/awardArtwork";
+import { resolveAwardTier } from "~/utilities/awardSeed";
 import {
   tacticalSectionLabelClasses,
   tacticalSectionTickClasses,
@@ -17,9 +18,11 @@ import {
 
 interface Award {
   id: string;
-  placement: number;
+  // null for a Special award.
+  placement: number | null;
   placement_tier?: string | null;
-  tournament_id: string;
+  tournament_id?: string | null;
+  awarded_at?: string | null;
   team_id?: string | null;
   tournament?: {
     name: string;
@@ -57,23 +60,39 @@ interface Props {
 const props = defineProps<Props>();
 const emit = defineEmits<{ (e: "update:open", v: boolean): void }>();
 
+// Special awards (no placement, usually no tournament) follow 5Stack's
+// AwardModal: "Granted", the Special colour, and no View Tournament link.
+const TIER_COLORS: Record<string, string> = {
+  mvp: "hsl(195 85% 60%)",
+  gold: "hsl(45 95% 60%)",
+  silver: "hsl(0 0% 78%)",
+  bronze: "hsl(28 70% 52%)",
+  special: "hsl(258 90% 74%)",
+};
+
+const tier = computed(() =>
+  resolveAwardTier(props.trophy.placement, props.trophy.award?.tier),
+);
+
+const hasPlacement = computed(
+  () =>
+    props.trophy.placement !== null && props.trophy.placement !== undefined,
+);
+
 const placementLabelKey = computed(() => {
   if (props.trophy.placement === 0) return "awards.mvp";
   if (props.trophy.placement === 1) return "awards.first_place";
   if (props.trophy.placement === 2) return "awards.second_place";
-  return "awards.third_place";
+  if (props.trophy.placement === 3) return "awards.third_place";
+  return "awards.granted";
 });
 
-const tierColor = computed(() => {
-  if (props.trophy.placement === 0) return "hsl(195 85% 60%)";
-  if (props.trophy.placement === 1) return "hsl(45 95% 60%)";
-  if (props.trophy.placement === 2) return "hsl(0 0% 78%)";
-  return "hsl(28 70% 52%)";
-});
+const tierColor = computed(() => TIER_COLORS[tier.value]);
 
 const formattedDate = computed(() => {
-  if (!props.trophy.tournament?.start) return null;
-  const d = new Date(props.trophy.tournament.start);
+  const iso = props.trophy.tournament?.start || props.trophy.awarded_at;
+  if (!iso) return null;
+  const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
   return d
     .toLocaleDateString(dateLocale(), {
@@ -85,6 +104,11 @@ const formattedDate = computed(() => {
 });
 
 const tournamentName = computed(() => props.trophy.tournament?.name || "");
+// A tournament award keeps the tournament as its title; a Special award has
+// none, so it shows the award's own name.
+const title = computed(
+  () => tournamentName.value || props.trophy.award?.name || "",
+);
 const tournamentType = computed(
   () => props.trophy.tournament?.stages?.[0]?.type || null,
 );
@@ -121,10 +145,10 @@ const trophyTeam = computed(() => {
         <DialogTitle
           class="text-xl font-bold uppercase tracking-[0.04em] sm:text-2xl"
         >
-          {{ tournamentName }}
+          {{ title }}
         </DialogTitle>
         <DialogDescription class="sr-only">
-          {{ tournamentName }} — {{ $t(placementLabelKey) }}
+          {{ title }}, {{ $t(placementLabelKey) }}
         </DialogDescription>
       </DialogHeader>
 
@@ -191,7 +215,7 @@ const trophyTeam = computed(() => {
             class="font-semibold uppercase tracking-wide"
             :style="{ color: tierColor }"
           >
-            <template v-if="trophy.placement === 0"
+            <template v-if="!hasPlacement || trophy.placement === 0"
               >★ {{ $t(placementLabelKey) }}</template
             >
             <template v-else>
@@ -206,7 +230,9 @@ const trophyTeam = computed(() => {
           >
             {{ $t("awards.tournament") }}
           </dt>
-          <dd class="font-semibold">{{ tournamentType || "—" }}</dd>
+          <dd class="font-semibold">
+            {{ tournamentType || trophy.award?.name || "—" }}
+          </dd>
         </div>
         <div class="flex min-w-0 flex-col gap-1 bg-background/60 p-3">
           <dt
@@ -220,20 +246,44 @@ const trophyTeam = computed(() => {
         </div>
       </dl>
 
-      <NuxtLink
-        :to="`/tournaments/${trophy.tournament_id}`"
-        class="group/link inline-flex items-center justify-center gap-2 rounded-sm border border-border px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.08)] hover:text-[hsl(var(--tac-amber))]"
-      >
-        <span
-          class="transition-transform duration-150 group-hover/link:translate-x-[-2px]"
-          >▚</span
+      <!-- 5Stack: View Tournament only when there is one; every award links
+           to its own page. Navigating unmounts the page hosting this dialog,
+           so close it first. -->
+      <div class="flex flex-wrap items-stretch gap-2">
+        <NuxtLink
+          v-if="trophy.tournament_id"
+          :to="`/tournaments/${trophy.tournament_id}`"
+          class="group/link inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.08)] hover:text-[hsl(var(--tac-amber))]"
+          @click="emit('update:open', false)"
         >
-        {{ $t("awards_modal.view_tournament") }}
-        <span
-          class="transition-transform duration-150 group-hover/link:translate-x-[2px]"
-          >◢</span
+          <span
+            class="transition-transform duration-150 group-hover/link:translate-x-[-2px]"
+            >▚</span
+          >
+          {{ $t("awards_modal.view_tournament") }}
+          <span
+            class="transition-transform duration-150 group-hover/link:translate-x-[2px]"
+            >◢</span
+          >
+        </NuxtLink>
+
+        <NuxtLink
+          v-if="trophy.award?.id && !trophy.award.id.startsWith('placement-')"
+          :to="`/awards/${trophy.award.id}`"
+          class="group/link inline-flex flex-1 items-center justify-center gap-2 rounded-sm border border-border px-4 py-2.5 font-mono text-[0.7rem] uppercase tracking-[0.2em] text-muted-foreground transition-colors duration-150 hover:border-[hsl(var(--tac-amber))] hover:bg-[hsl(var(--tac-amber)_/_0.08)] hover:text-[hsl(var(--tac-amber))]"
+          @click="emit('update:open', false)"
         >
-      </NuxtLink>
+          <span
+            class="transition-transform duration-150 group-hover/link:translate-x-[-2px]"
+            >▚</span
+          >
+          {{ $t("awards_modal.view_award") }}
+          <span
+            class="transition-transform duration-150 group-hover/link:translate-x-[2px]"
+            >◢</span
+          >
+        </NuxtLink>
+      </div>
     </DialogContent>
   </Dialog>
 </template>
