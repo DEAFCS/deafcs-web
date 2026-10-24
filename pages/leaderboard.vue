@@ -6,7 +6,6 @@ import { isRestoringHistory } from "~/composables/useScrollRestoration";
 import { useRestoredRefs } from "~/composables/useRestoredState";
 import { useI18n } from "vue-i18n";
 import { useApolloClient } from "@vue/apollo-composable";
-import TacticalPageHeader from "~/components/TacticalPageHeader.vue";
 import ExternalRankLeaderboard from "~/components/leaderboard/ExternalRankLeaderboard.vue";
 import LeaderboardPodium from "~/components/leaderboard/LeaderboardPodium.vue";
 import PlayerDisplay from "~/components/PlayerDisplay.vue";
@@ -1172,17 +1171,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <PageTransition>
-    <TacticalPageHeader>
-      <template #title>{{ $t("pages.leaderboard.title") }}</template>
-    </TacticalPageHeader>
-  </PageTransition>
+  <!-- No banner (5Stack): the page title stays for screen readers. -->
+  <h1 class="sr-only">{{ $t("pages.leaderboard.title") }}</h1>
 
   <!-- The boards and the filters are one block (5Stack #985): Track tabs on
        top, the filter row under them, and the scope in words below that.
        DEAFCS: FACEIT & Premier keeps its own board without the filter row,
        since none of these filters apply to it. -->
-  <PageTransition :delay="100" class="mt-6">
+  <PageTransition>
     <Tabs v-model="category">
       <div
         class="overflow-hidden rounded-lg border border-border bg-card/40 [backdrop-filter:blur(6px)]"
